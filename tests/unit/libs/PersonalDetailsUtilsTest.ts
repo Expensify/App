@@ -469,20 +469,24 @@ describe('PersonalDetailsUtils', () => {
     });
 
     describe('getAccountIDsByLogins', () => {
+        const accountID1 = 1;
+        const accountID2 = 2;
+        const accountID3 = 3;
+
         it('should return account IDs for existing users', async () => {
             const personalDetails: PersonalDetailsList = {
-                1: {
-                    accountID: 1,
+                [accountID1]: {
+                    accountID: accountID1,
                     login: 'user1@example.com',
                     displayName: 'User One',
                 },
-                2: {
-                    accountID: 2,
+                [accountID2]: {
+                    accountID: accountID2,
                     login: 'user2@example.com',
                     displayName: 'User Two',
                 },
-                3: {
-                    accountID: 3,
+                [accountID3]: {
+                    accountID: accountID3,
                     login: 'user3@example.com',
                     displayName: 'User Three',
                 },
@@ -492,13 +496,13 @@ describe('PersonalDetailsUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getAccountIDsByLogins(['user1@example.com', 'user2@example.com']);
-            expect(result).toEqual([1, 2]);
+            expect(result).toEqual([accountID1, accountID2]);
         });
 
         it('should generate optimistic account IDs for unknown users', async () => {
             const personalDetails: PersonalDetailsList = {
-                1: {
-                    accountID: 1,
+                [accountID1]: {
+                    accountID: accountID1,
                     login: 'user1@example.com',
                     displayName: 'User One',
                 },
@@ -510,16 +514,16 @@ describe('PersonalDetailsUtils', () => {
             const result = getAccountIDsByLogins(['user1@example.com', 'unknown@example.com']);
 
             // First should be 1 (existing), second should be a generated optimistic ID
-            expect(result[0]).toBe(1);
+            expect(result.at(0)).toBe(accountID1);
             // Optimistic account IDs are generated - they should be different from real IDs
-            expect(result[1]).not.toBe(0);
-            expect(typeof result[1]).toBe('number');
+            expect(result.at(1)).not.toBe(0);
+            expect(typeof result.at(1)).toBe('number');
         });
 
         it('should handle case-insensitive email matching', async () => {
             const personalDetails: PersonalDetailsList = {
-                1: {
-                    accountID: 1,
+                [accountID1]: {
+                    accountID: accountID1,
                     login: 'user1@example.com',
                     displayName: 'User One',
                 },
@@ -530,7 +534,7 @@ describe('PersonalDetailsUtils', () => {
 
             // The cache is built with lowercase keys, so we need to test that the lookup works
             const result = getAccountIDsByLogins(['USER1@EXAMPLE.COM']);
-            expect(result).toEqual([1]);
+            expect(result).toEqual([accountID1]);
         });
 
         it('should handle empty array', async () => {
@@ -540,10 +544,12 @@ describe('PersonalDetailsUtils', () => {
     });
 
     describe('getPersonalDetailByEmail', () => {
+        const testAccountID = 1;
+
         it('should return personal details for an existing email', async () => {
             const personalDetails: PersonalDetailsList = {
-                1: {
-                    accountID: 1,
+                [testAccountID]: {
+                    accountID: testAccountID,
                     login: 'test@example.com',
                     displayName: 'Test User',
                 },
@@ -554,7 +560,7 @@ describe('PersonalDetailsUtils', () => {
 
             const result = getPersonalDetailByEmail('test@example.com');
             expect(result).toEqual({
-                accountID: 1,
+                accountID: testAccountID,
                 login: 'test@example.com',
                 displayName: 'Test User',
             });
@@ -562,8 +568,8 @@ describe('PersonalDetailsUtils', () => {
 
         it('should return undefined for unknown email', async () => {
             const personalDetails: PersonalDetailsList = {
-                1: {
-                    accountID: 1,
+                [testAccountID]: {
+                    accountID: testAccountID,
                     login: 'test@example.com',
                     displayName: 'Test User',
                 },
@@ -578,8 +584,8 @@ describe('PersonalDetailsUtils', () => {
 
         it('should handle case-insensitive email lookup', async () => {
             const personalDetails: PersonalDetailsList = {
-                1: {
-                    accountID: 1,
+                [testAccountID]: {
+                    accountID: testAccountID,
                     login: 'Test@Example.com',
                     displayName: 'Test User',
                 },
@@ -590,7 +596,7 @@ describe('PersonalDetailsUtils', () => {
 
             const result = getPersonalDetailByEmail('test@example.com');
             expect(result).toEqual({
-                accountID: 1,
+                accountID: testAccountID,
                 login: 'Test@Example.com',
                 displayName: 'Test User',
             });
@@ -618,9 +624,7 @@ describe('PersonalDetailsUtils', () => {
         });
 
         it('should allow O(1) lookup by accountID', () => {
-            const details: PersonalDetails[] = [
-                {accountID: 100, login: 'test@example.com', displayName: 'Test User'},
-            ];
+            const details: PersonalDetails[] = [{accountID: 100, login: 'test@example.com', displayName: 'Test User'}];
 
             const map = createPersonalDetailsLookupByAccountID(details);
 

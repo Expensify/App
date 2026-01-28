@@ -1215,7 +1215,7 @@ function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<On
 
     for (const key in data) {
         if (isViolationEntry(key)) {
-            violations[key] = data[key] as OnyxTypes.TransactionViolation[];
+            violations[key] = data[key];
         }
     }
 
