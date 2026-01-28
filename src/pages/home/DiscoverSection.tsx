@@ -32,7 +32,7 @@ function DiscoverSection() {
                 onPress={handlePress}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('homePage.discoverSection.title')}
-                style={[styles.ph8, styles.pb4]}
+                style={[styles.mh8, styles.mb4]}
             >
                 <View style={[styles.br2, styles.overflowHidden]}>
                     <Image

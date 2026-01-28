@@ -5712,6 +5712,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
         discoverSectionImage: {
             width: '100%',
+            height: undefined,
             aspectRatio: 2.2,
         },
     }) satisfies StaticStyles;
