@@ -107,7 +107,7 @@ function signInToOldDotAndChooseExperience(hybridApp: OnyxEntry<HybridApp>, tryN
     if (tryNewDot !== undefined) {
         setUseNewDotSignInPage(false).then(() => {
             if (shouldUseOldApp(tryNewDot)) {
-                closeReactNativeApp({shouldSetNVP: false});
+                closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
             } else {
                 setReadyToShowAuthScreens(true);
             }
