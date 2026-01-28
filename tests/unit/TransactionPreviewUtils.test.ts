@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -47,7 +46,7 @@ const basicProps = {
     areThereDuplicates: false,
     currentUserEmail: '',
     currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-    allReportsViolations: {},
+    reportViolations: undefined,
 };
 
 describe('TransactionPreviewUtils', () => {
@@ -353,19 +352,17 @@ describe('TransactionPreviewUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const allReportsViolations: OnyxCollection<ReportViolations> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`]: {
-                    fieldRequired: {
-                        field1: {},
-                        field2: {},
-                    },
-                } as unknown as ReportViolations,
-            };
+            const reportViolations: ReportViolations = {
+                fieldRequired: {
+                    field1: {},
+                    field2: {},
+                },
+            } as unknown as ReportViolations;
 
             const functionArgs = {
                 ...basicProps,
                 iouReport,
-                allReportsViolations,
+                reportViolations,
                 violations: [],
                 transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
             };
@@ -387,7 +384,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgsWithoutViolations = {
                 ...basicProps,
                 iouReport,
-                allReportsViolations: {},
+                reportViolations: undefined,
                 violations: [],
                 transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
             };
@@ -396,18 +393,16 @@ describe('TransactionPreviewUtils', () => {
             const shouldShowRBRWithoutViolations = resultWithoutViolations.shouldShowRBR;
 
             // Then, test with violations
-            const allReportsViolations: OnyxCollection<ReportViolations> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`]: {
-                    fieldRequired: {
-                        field1: {},
-                    },
-                } as unknown as ReportViolations,
-            };
+            const reportViolations: ReportViolations = {
+                fieldRequired: {
+                    field1: {},
+                },
+            } as unknown as ReportViolations;
 
             const functionArgsWithViolations = {
                 ...basicProps,
                 iouReport,
-                allReportsViolations,
+                reportViolations,
                 violations: [],
                 transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
             };
@@ -425,18 +420,16 @@ describe('TransactionPreviewUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const allReportsViolations: OnyxCollection<ReportViolations> = {
-                [`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`]: {
-                    fieldRequired: {
-                        merchant: {},
-                    },
-                } as unknown as ReportViolations,
-            };
+            const reportViolations: ReportViolations = {
+                fieldRequired: {
+                    merchant: {},
+                },
+            } as unknown as ReportViolations;
 
             const functionArgs = {
                 ...basicProps,
                 iouReport,
-                allReportsViolations,
+                reportViolations,
                 violations: [], // No transaction violations
                 transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
             };

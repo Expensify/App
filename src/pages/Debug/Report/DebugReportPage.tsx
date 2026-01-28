@@ -153,7 +153,6 @@ function DebugReportPage({
     }, [
         report,
         transactionViolations,
-        reportID,
         reportViolations,
         isReportArchived,
         chatReport,
