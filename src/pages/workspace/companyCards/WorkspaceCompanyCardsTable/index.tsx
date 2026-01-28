@@ -394,6 +394,7 @@ function WorkspaceCompanyCardsTable({
                         />
                         <Button
                             text={translate('workspace.companyCards.error.tryAgain')}
+                            isDisabled={isOffline}
                             onPress={feedErrorReloadAction}
                         />
                     </View>
