@@ -185,7 +185,7 @@
     "react-native-keyboard-controller": "1.18.5",
     "react-native-launch-arguments": "4.1.1",
     "react-native-localize": "^3.5.4",
-    "react-native-nitro-modules": "0.33.2",
+    "react-native-nitro-modules": "0.29.4",
     "react-native-nitro-sqlite": "9.2.0",
     "react-native-onyx": "3.0.31",
     "react-native-pager-view": "7.0.2",
