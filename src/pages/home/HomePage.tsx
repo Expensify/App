@@ -22,6 +22,8 @@ function HomePage() {
     const {translate} = useLocalize();
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
 
+    // confirmReadyToOpenApp must be called after HomePage mounts     
+    // to make sure everything loads properly
     useEffect(() => {
         confirmReadyToOpenApp();
     }, []);
