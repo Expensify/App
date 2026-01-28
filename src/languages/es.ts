@@ -58,6 +58,8 @@ const translations: TranslationDeepObject<typeof en> = {
         workspaces: 'Espacios de trabajo',
         inbox: 'Recibidos',
         home: 'Inicio',
+        greetingsWithName: (name: string) => `¡Saludos, ${name}!`,
+        greetings: '¡Saludos!',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Remisión',

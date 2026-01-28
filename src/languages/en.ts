@@ -276,6 +276,8 @@ const translations = {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         home: 'Home',
+        greetingsWithName: (name: string) => `Greetings, ${name}!`,
+        greetings: 'Greetings!',
         inbox: 'Inbox',
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
