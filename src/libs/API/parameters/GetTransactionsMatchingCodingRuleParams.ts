@@ -1,8 +1,6 @@
-import type {CodingRuleFilter} from '@src/types/onyx/Policy';
-
 type GetTransactionsMatchingCodingRuleParams = {
     policyID: string;
-    filters: CodingRuleFilter;
+    filters: string;
 };
 
 export default GetTransactionsMatchingCodingRuleParams;

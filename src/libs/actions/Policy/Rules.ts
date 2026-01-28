@@ -203,7 +203,7 @@ function getTransactionsMatchingCodingRule(policyID: string, merchant: string) {
         },
     ];
 
-    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {filters, policyID}, {optimisticData, successData, failureData});
+    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {policyID, filters: JSON.stringify(filters)}, {optimisticData, successData, failureData});
 }
 
 /**
