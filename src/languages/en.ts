@@ -6242,6 +6242,11 @@ const translations = {
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+                matchType: 'Match type',
+                matchTypeContains: 'Contains',
+                matchTypeContainsDescription: 'Match expenses where the merchant name contains the specified text (case-insensitive)',
+                matchTypeExact: 'Matches exactly',
+                matchTypeExactDescription: 'Match expenses where the merchant name exactly matches the specified text',
             },
             categoryRules: {
                 title: 'Category rules',

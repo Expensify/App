@@ -3775,10 +3775,15 @@ const CONST = {
             CATEGORY: 'category',
             DESCRIPTION: 'comment',
             MERCHANT_TO_MATCH: 'merchantToMatch',
+            MATCH_TYPE: 'matchType',
             MERCHANT: 'merchant',
             REIMBURSABLE: 'reimbursable',
             TAG: 'tag',
             TAX: 'tax',
+        },
+        MATCH_TYPE: {
+            CONTAINS: 'contains',
+            EXACT: 'exact',
         },
     },
 
