@@ -66,6 +66,7 @@ function TransactionDuplicateReview() {
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {
         canBeMissing: true,
     });
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     const onPreviewPressed = useCallback(
         (reportID: string) => {
@@ -109,8 +110,8 @@ function TransactionDuplicateReview() {
         if (!route.params.threadReportID || report?.reportID) {
             return;
         }
-        openReport(route.params.threadReportID);
-    }, [report?.reportID, route.params.threadReportID]);
+        openReport(route.params.threadReportID, introSelected);
+    }, [report?.reportID, route.params.threadReportID, introSelected]);
 
     useEffect(() => {
         if (!transactionID) {
