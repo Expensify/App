@@ -102,9 +102,8 @@ import {
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
-import * as ReportActionsFollowupUtils from '@libs/ReportActionsFollowupUtils';
+import * as ReportActionsFollowupUtils from '@libs/ReportActionFollowupUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {getLastVisibleAction} from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
@@ -555,6 +554,7 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
         return null;
     }
 
+    // Mark followup-list as selected after a comment has been posted below the follow up list comment
     const updatedHtml = html.replace(/<followup-list(\s[^>]*)?>/, '<followup-list selected>');
     return {
         ...reportAction,
@@ -644,7 +644,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
 
     // Check if the last visible action is from Concierge with unresolved followups
     // If so, optimistically resolve them by adding the updated action to optimisticReportActions
-    const lastVisibleAction = getLastVisibleAction(reportID);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
     const lastActorAccountID = lastVisibleAction?.actorAccountID;
     const lastActionReportActionID = lastVisibleAction?.reportActionID;
     const resolvedAction = buildOptimisticResolvedFollowups(lastVisibleAction);
