@@ -83,6 +83,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
             ListItem={RadioListItem}
             initiallyFocusedItemKey={selectedOptionKey}
             shouldHideKeyboardOnScroll={false}
+            shouldUpdateFocusedIndex
         />
     );
 }
