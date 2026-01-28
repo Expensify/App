@@ -1,4 +1,4 @@
-import {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,10 +7,12 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isOpenExpenseReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type {Report, Transaction} from '@src/types/onyx';
@@ -74,7 +76,9 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         getTransactionsMatchingCodingRule({merchant, policyID});
     }, [merchant, policyID]);
 
-    const onBack = () => {};
+    const onBack = () => {
+        Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+    };
 
     return (
         <ScreenWrapper
@@ -84,7 +88,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={'Preview Matches'}
+                title={translate('workspace.rules.merchantRules.previewMatches')}
                 onBackButtonPress={onBack}
             />
             <View style={[styles.flex1]}></View>

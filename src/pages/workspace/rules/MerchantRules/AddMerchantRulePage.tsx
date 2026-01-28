@@ -186,6 +186,10 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
         },
     ];
 
+    const previewMatches = () => {
+        Navigation.navigate(ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID));
+    };
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -221,9 +225,10 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                     ))}
                 </ScrollView>
                 <Button
-                    text={translate('common.reset')}
+                    text={translate('workspace.rules.merchantRules.previewMatches')}
                     style={[styles.mh4, styles.mt4]}
                     large
+                    onPress={previewMatches}
                 />
                 <FormAlertWithSubmitButton
                     buttonText={translate('workspace.rules.merchantRules.saveRule')}
