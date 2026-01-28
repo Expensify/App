@@ -920,7 +920,7 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
  * Convert a date to UTC by taking midnight (00:00:00) in the user's local timezone and expressing it as a UTC timestamp
  */
 
-const formatValidFromDate = (fromDate: string): string => {
+const normalizeDateToStartOfDay = (fromDate: string): string => {
     const localDate = parse(fromDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
     const midnightLocal = startOfDay(localDate);
     return getDBTime(midnightLocal.valueOf());
@@ -929,11 +929,39 @@ const formatValidFromDate = (fromDate: string): string => {
 /**
  * Convert a date to UTC by taking end of day (23:59:59) in the user's local timezone and expressing it as a UTC timestamp
  */
-const formatValidThruDate = (thruDate: string): string => {
+const normalizeDateToEndOfDay = (thruDate: string): string => {
     const localDate = parse(thruDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
     const endOfDayLocal = endOfDay(localDate);
     return getDBTime(endOfDayLocal.valueOf());
 };
+
+/**
+ * Returns the start and end dates of a month in the format yyyy-MM-dd.
+ * @param year - Year (e.g., 2025)
+ * @param month - Month (1-12, where 1 is January)
+ */
+function getMonthDateRange(year: number, month: number): {start: string; end: string} {
+    return {
+        start: format(new Date(year, month - 1, 1), 'yyyy-MM-dd'),
+        end: format(new Date(year, month, 0), 'yyyy-MM-dd'),
+    };
+}
+
+/**
+ * Checks if a date string (yyyy-MM-dd or yyyy-MM-dd HH:mm:ss) falls within a specific month.
+ * Uses string comparison to avoid timezone issues.
+ *
+ * @param dateString - Date string in format yyyy-MM-dd or yyyy-MM-dd HH:mm:ss
+ * @param year - Year (e.g., 2025)
+ * @param month - Month (1-12, where 1 is January)
+ */
+function isDateStringInMonth(dateString: string, year: number, month: number): boolean {
+    const datePart = dateString.substring(0, 10);
+    const {start: monthStart, end: monthEnd} = getMonthDateRange(year, month);
+
+    // String comparison works because yyyy-MM-dd format is lexicographically sortable
+    return datePart >= monthStart && datePart <= monthEnd;
+}
 
 const DateUtils = {
     isDate,
@@ -993,8 +1021,10 @@ const DateUtils = {
     getFormattedSplitDateRange,
     isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
-    formatValidFromDate,
-    formatValidThruDate,
+    normalizeDateToStartOfDay,
+    normalizeDateToEndOfDay,
+    getMonthDateRange,
+    isDateStringInMonth,
 };
 
 export default DateUtils;

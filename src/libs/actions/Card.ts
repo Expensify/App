@@ -844,8 +844,8 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
         {
             ...parameters,
             policyID,
-            validFrom: validFrom ? DateUtils.formatValidFromDate(validFrom) : undefined,
-            validThru: validThru ? DateUtils.formatValidThruDate(validThru) : undefined,
+            validFrom: validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom) : undefined,
+            validThru: validThru ? DateUtils.normalizeDateToEndOfDay(validThru) : undefined,
         },
         {
             optimisticData,
