@@ -993,7 +993,7 @@ const translations = {
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
-            menuItemTitleNonAdmin: 'Learn how to create expenses and submit reports',
+            menuItemTitleNonAdmin: 'Learn how to create expenses and submit reports.',
             menuItemTitleAdmin: 'Learn how to invite members, edit approval workflows, and reconcile company cards.',
             menuItemDescription: 'See what Expensify can do in 2 min',
         },
