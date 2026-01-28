@@ -1652,13 +1652,13 @@ function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) 
     return mostFrequent.domain;
 }
 
-const getDescriptionForPolicyDomainCard = (domainName: string): string => {
+const getDescriptionForPolicyDomainCard = (domainName: string, policies?: OnyxCollection<Policy>): string => {
     // A domain name containing a policyID indicates that this is a workspace feed
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
     if (policyID) {
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policy = getPolicy(policyID.toUpperCase());
+        const policy = getPolicy(policyID.toUpperCase(), policies);
         return policy?.name ?? domainName;
     }
     return domainName;

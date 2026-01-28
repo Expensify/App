@@ -180,6 +180,7 @@ function PaymentMethodList({
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
@@ -241,11 +242,10 @@ function PaymentMethodList({
                     if (isUserPersonalCard) {
                         cardDescription = lastFourPAN;
                     } else if (lastFourPAN) {
-                        cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`;
+                        cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, allPolicies)}`;
                     } else {
-                        cardDescription = getDescriptionForPolicyDomainCard(card.domainName);
+                        cardDescription = getDescriptionForPolicyDomainCard(card.domainName, allPolicies);
                     }
-
                     // Personal cards from OldDot navigate to personal card details page
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
                     const cardOnPress = isUserPersonalCard
@@ -311,8 +311,8 @@ function PaymentMethodList({
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
                 const cardDescription =
                     card?.nameValuePairs?.issuedBy && card?.lastFourPAN
-                        ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                        : getDescriptionForPolicyDomainCard(card.domainName);
+                        ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, allPolicies)}`
+                        : getDescriptionForPolicyDomainCard(card.domainName, allPolicies);
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -435,6 +435,7 @@ function PaymentMethodList({
         activePaymentMethodID,
         actionPaymentMethodType,
         onThreeDotsMenuPress,
+        allPolicies,
     ]);
 
     const onPressItem = useCallback(() => {
