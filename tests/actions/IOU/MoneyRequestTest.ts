@@ -15,7 +15,7 @@ import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import * as ReportUtils from '../../../src/libs/ReportUtils';
 import createRandomPolicy from '../../utils/collections/policies';
-import {createRandomReport} from '../../utils/collections/reports';
+import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -76,6 +76,8 @@ describe('MoneyRequest', () => {
             targetAccountID: 789,
         };
 
+        const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
+
         const baseParams = {
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
@@ -88,6 +90,7 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
+            selfDMReport,
             isSelfTourViewed: false,
         };
 
@@ -262,6 +265,8 @@ describe('MoneyRequest', () => {
         const backTo = ROUTES.REPORT_WITH_ID.getRoute('123');
         const managerMcTestAccountID = 444;
 
+        const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
+
         const baseParams: MoneyRequestStepScanParticipantsFlowParams = {
             iouType: CONST.IOU.TYPE.CREATE,
             policy: fakePolicy,
@@ -292,6 +297,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             files: [fakeReceiptFile],
             shouldGenerateTransactionThreadReport: false,
+            selfDMReport,
             isSelfTourViewed: false,
         };
 
@@ -637,7 +643,7 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should set participants and navigate to confirmation page when from global create menu', async () => {
+        it('should track expense when coming from global create menu and auto reporting is disabled', async () => {
             const defaultExpensePolicy = {
                 ...fakePolicy,
                 autoReporting: false,
@@ -658,15 +664,15 @@ describe('MoneyRequest', () => {
                 participants: [
                     {
                         accountID: 0,
-                        isPolicyExpenseChat: true,
-                        reportID: fakeReport.reportID,
+                        isPolicyExpenseChat: false,
+                        reportID: selfDMReport.reportID,
                         selected: true,
                     },
                 ],
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.initialTransaction.transactionID, '1'),
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, baseParams.initialTransaction.transactionID, selfDMReport.reportID),
             );
         });
 
@@ -692,6 +698,8 @@ describe('MoneyRequest', () => {
         const firstSplitParticipantID = '100';
         const secondSplitParticipantID = '101';
 
+        const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
+
         const baseParams = {
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
@@ -716,6 +724,7 @@ describe('MoneyRequest', () => {
             setDistanceRequestData: jest.fn(),
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
+            selfDMReport,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {

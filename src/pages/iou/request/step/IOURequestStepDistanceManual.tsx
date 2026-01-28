@@ -16,6 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMoneyRequestParticipantsFromReport, setMoneyRequestDistance, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
@@ -69,6 +70,7 @@ function IOURequestStepDistanceManual({
     const isArchived = isArchivedReport(reportNameValuePairs);
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
+    const selfDMReport = useSelfDMReport();
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
@@ -194,6 +196,7 @@ function IOURequestStepDistanceManual({
                 introSelected,
                 activePolicyID,
                 privateIsArchived: reportNameValuePairs?.private_isArchived,
+                selfDMReport,
             });
         },
         [
@@ -227,8 +230,10 @@ function IOURequestStepDistanceManual({
             activePolicyID,
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
+            selfDMReport,
             reportID,
-            currentUserPersonalDetails.accountID,
+            parentReportNextStep,
+            reportNameValuePairs?.private_isArchived,
         ],
     );
 
