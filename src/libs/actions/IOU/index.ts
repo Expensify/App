@@ -5366,7 +5366,7 @@ function updateMoneyRequestDistance({
     }
 
     if (!distance) {
-        const recentServerValidatedWaypoints = deprecatedRecentWaypoints.filter((item) => !item.pendingAction);
+        const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
         onyxData?.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
@@ -6706,7 +6706,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
 
-    const recentServerValidatedWaypoints = deprecatedRecentWaypoints.filter((item) => !item.pendingAction);
+    const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
