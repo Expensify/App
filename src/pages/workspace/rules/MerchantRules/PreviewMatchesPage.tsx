@@ -1,3 +1,4 @@
+import {FlashList, ListRenderItem} from '@shopify/flash-list';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -87,6 +88,10 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const matchingTransactionsArray = Array.from(matchingTransactions ?? []);
     const hasMatchingTransactions = !!merchant && !!matchingTransactionsArray.length;
 
+    const renderItem: ListRenderItem<Transaction> = ({}) => <View></View>;
+
+    const keyExtractor = (item: Transaction) => item.transactionID;
+
     return (
         <ScreenWrapper
             testID="PreviewMatchesPage"
@@ -107,6 +112,15 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                         title={translate('workspace.rules.merchantRules.previewMatchesEmptyStateTitle')}
                         subtitle={translate('workspace.rules.merchantRules.previewMatchesEmptyStateSubtitle')}
                         containerStyle={styles.pb10}
+                    />
+                )}
+
+                {hasMatchingTransactions && (
+                    <FlashList
+                        data={matchingTransactionsArray}
+                        renderItem={renderItem}
+                        keyExtractor={keyExtractor}
+                        estimatedItemSize={64}
                     />
                 )}
             </View>
