@@ -510,7 +510,7 @@ function MoneyRequestParticipantsSelector({
                 return;
             }
 
-            setSelectedOptions([{...option, isSelected: true, reportID: option.reportID ?? ''}]);
+            setSelectedOptions([{...option, isSelected: true, reportID: option.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID}]);
             addSingleParticipant(option);
         },
         [isIOUSplit, addParticipantToSelection, addSingleParticipant, setSelectedOptions],
