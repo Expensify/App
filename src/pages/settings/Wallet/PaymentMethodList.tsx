@@ -1,5 +1,4 @@
 import {isUserValidatedSelector} from '@selectors/Account';
-import {filterPersonalCards} from '@selectors/Card';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement} from 'react';
@@ -28,6 +27,7 @@ import {
     getPlaidInstitutionIconUrl,
     isExpensifyCard,
     isExpensifyCardPendingAction,
+    isUserAssignedPersonalCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@libs/CardUtils';
@@ -176,9 +176,11 @@ function PaymentMethodList({
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
@@ -186,16 +188,30 @@ function PaymentMethodList({
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
+            const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-                // Filter by active cards associated with a domain
-                .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
+                // Include active Expensify cards, company cards (domain), and user-assigned personal cards
+                .filter(
+                    (card) =>
+                        CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
+                        (isExpensifyCard(card) || !!card.domainName || isUserAssignedPersonalCard(card, currentUserAccountID)) &&
+                        card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+                );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
-
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+                const isUserPersonalCard = isUserAssignedPersonalCard(card, currentUserAccountID);
+                const isCSVCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
+
+                let icon;
+                if (isUserPersonalCard && isCSVCard) {
+                    icon = getCardFeedIcon(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, illustrations, companyCardFeedIcons);
+                } else {
+                    icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+                }
 
                 let shouldShowRBR = false;
                 if (card.fundID) {
@@ -217,19 +233,45 @@ function PaymentMethodList({
                 }
 
                 if (!isExpensifyCard(card)) {
-                    const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
+                    const cardDisplayName = maskCardNumber(card.cardName, card.bank);
+                    const pressHandler = onPress as CardPressHandler;
+
+                    let cardDescription;
+                    if (isUserPersonalCard) {
+                        cardDescription = lastFourPAN;
+                    } else if (lastFourPAN) {
+                        cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, allPolicies)}`;
+                    } else {
+                        cardDescription = getDescriptionForPolicyDomainCard(card.domainName, allPolicies);
+                    }
+                    // Personal cards from OldDot navigate to personal card details page
+                    // Company cards use the pressHandler callback (for 3-dot menu behavior)
+                    const cardOnPress = isUserPersonalCard
+                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
+                        : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                              pressHandler({
+                                  event: e,
+                                  cardData: card,
+                                  icon: {
+                                      icon,
+                                      iconStyles: [styles.cardIcon],
+                                      iconWidth: variables.cardIconWidth,
+                                      iconHeight: variables.cardIconHeight,
+                                  },
+                                  cardID: card.cardID,
+                              });
+
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        plaidUrl,
-                        title: maskCardNumber(card.cardName, card.bank),
-                        description: lastFourPAN
-                            ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                            : getDescriptionForPolicyDomainCard(card.domainName),
+                        plaidUrl: isUserPersonalCard ? undefined : plaidUrl,
+                        title: cardDisplayName,
+                        description: cardDescription,
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
+                        shouldShowThreeDotsMenu: !isUserPersonalCard,
                         errors: card.errors,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
@@ -238,20 +280,8 @@ function PaymentMethodList({
                         iconStyles: [styles.cardIcon],
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
-                        iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                         isMethodActive: activePaymentMethodID === card.cardID,
-                        onPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-                            pressHandler({
-                                event: e,
-                                cardData: card,
-                                icon: {
-                                    icon,
-                                    iconStyles: [styles.cardIcon],
-                                    iconWidth: variables.cardIconWidth,
-                                    iconHeight: variables.cardIconHeight,
-                                },
-                                cardID: card.cardID,
-                            }),
+                        onPress: cardOnPress,
                     });
                     continue;
                 }
@@ -281,8 +311,8 @@ function PaymentMethodList({
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
                 const cardDescription =
                     card?.nameValuePairs?.issuedBy && card?.lastFourPAN
-                        ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                        : getDescriptionForPolicyDomainCard(card.domainName);
+                        ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, allPolicies)}`
+                        : getDescriptionForPolicyDomainCard(card.domainName, allPolicies);
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -393,6 +423,7 @@ function PaymentMethodList({
         filterCurrency,
         isLoadingCardList,
         cardList,
+        session?.accountID,
         illustrations,
         companyCardFeedIcons,
         shouldShowRbrForFeedNameWithDomainID,
@@ -404,6 +435,7 @@ function PaymentMethodList({
         activePaymentMethodID,
         actionPaymentMethodType,
         onThreeDotsMenuPress,
+        allPolicies,
     ]);
 
     const onPressItem = useCallback(() => {

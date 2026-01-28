@@ -1,4 +1,3 @@
-import {filterPersonalCards} from '@selectors/Card';
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
@@ -55,7 +54,7 @@ const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
 
 function WalletPage() {
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         canBeMissing: true,
         selector: fundListSelector,

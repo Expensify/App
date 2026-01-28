@@ -831,6 +831,21 @@ function isPersonalCard(card?: Card) {
     return !!card?.fundID && card.fundID !== '0';
 }
 
+function isUserAssignedPersonalCard(card: Card | undefined, currentUserAccountID: number): boolean {
+    if (!card) {
+        return false;
+    }
+
+    return !card.domainName && card.accountID === currentUserAccountID;
+}
+
+/**
+ * Filter out personal (including cash) cards from the card list.
+ */
+function filterPersonalCards(cards: CardList | undefined): CardList {
+    return filterObject(cards ?? {}, (_key, card) => isPersonalCard(card));
+}
+
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;
@@ -934,7 +949,9 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    filterPersonalCards,
     isPersonalCard,
+    isUserAssignedPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     splitMaskedCardNumber,

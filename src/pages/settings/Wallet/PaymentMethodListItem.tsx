@@ -29,6 +29,7 @@ type PaymentMethodItem = PaymentMethod & {
     canDismissError?: boolean;
     disabled?: boolean;
     shouldShowRightIcon?: boolean;
+    shouldShowThreeDotsMenu?: boolean;
     interactive?: boolean;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     errors?: Errors;
@@ -94,9 +95,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
+    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems;
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (isAccountInSetupState(item) || !threeDotsMenuItems || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (isAccountInSetupState(item) || !showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
@@ -138,10 +140,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 badgeSuccess={isAccountInSetupState(item) ? true : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={item.iconRight}
-                shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}
-                shouldShowRightComponent={!!threeDotsMenuItems}
+                shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
+                shouldShowRightComponent={showThreeDotsMenu}
                 rightComponent={
-                    threeDotsMenuItems ? (
+                    showThreeDotsMenu ? (
                         <View style={styles.alignSelfCenter}>
                             <ThreeDotsMenu
                                 shouldSelfPosition

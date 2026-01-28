@@ -382,6 +382,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardVerifyAccountPage').default,
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardDetailsPage').default,
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditNamePage').default,
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditTransactionStartDatePage').default,
     [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardMissingDetailsPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardMissingDetailsMagicCodePage').default,

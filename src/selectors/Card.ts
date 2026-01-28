@@ -36,4 +36,9 @@ const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspac
     return Object.values(cards)?.at(0);
 };
 
-export {filterCardsHiddenFromSearch, filterPersonalCards, defaultExpensifyCardSelector};
+/**
+ * Returns a selector that picks a single card from the card list by card ID.
+ */
+const cardByIdSelector = (cardID: string) => (cardList: OnyxEntry<CardList>) => cardList?.[cardID];
+
+export {filterCardsHiddenFromSearch, filterPersonalCards, defaultExpensifyCardSelector, cardByIdSelector};
