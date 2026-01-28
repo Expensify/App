@@ -534,6 +534,9 @@ type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedB
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
         /** Final and formatted "year" value used for displaying */
         formattedYear: string;
+
+        /** Key used for sorting */
+        sortKey: number;
     };
 
 type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.QUARTER} & SearchQuarterGroup & {
