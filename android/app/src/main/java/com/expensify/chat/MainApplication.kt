@@ -13,7 +13,6 @@ import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
-import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
@@ -24,7 +23,6 @@ import com.facebook.soloader.SoLoader
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.oblador.performance.RNPerformance
 import expo.modules.ApplicationLifecycleDispatcher
-import expo.modules.ReactNativeHostWrapper
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 
 class MainApplication : MultiDexApplication(), ReactApplication {

@@ -141,7 +141,7 @@
     "expo-location": "55.0.3",
     "expo-modules-core": "55.0.4",
     "expo-secure-store": "~14.2.4",
-    "expo-video": "^3.0.12",
+    "expo-video": "55.0.3",
     "expo-store-review": "~9.0.8",
     "expo-task-manager": "55.0.2",
     "fast-equals": "^5.2.2",
