@@ -1,10 +1,10 @@
 import {useMemo, useRef, useState} from 'react';
+import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_OUTCOME_MAP} from '@components/MultifactorAuthentication/config';
 import useLocalize from '@hooks/useLocalize';
 import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 import type {MultifactorAuthenticationTranslationParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
-import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_OUTCOME_MAP} from './config';
 import {getAuthTypeName, getOutcomePaths, isValidScenario, shouldClearScenario} from './helpers';
 import type {SetMultifactorAuthenticationStatus, UseMultifactorAuthenticationStatus} from './types';
 

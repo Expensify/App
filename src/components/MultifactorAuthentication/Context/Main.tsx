@@ -18,9 +18,10 @@
  */
 import React, {createContext, useContext, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
+import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
+import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {requestValidateCodeAction} from '@libs/actions/User';
 import type {
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationPartialStatus,
@@ -30,11 +31,10 @@ import type {
 import {MultifactorAuthenticationCallbacks} from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import {normalizedConfigs} from '@navigation/linkingConfig/config';
 import Navigation from '@navigation/Navigation';
+import {requestValidateCodeAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
-import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from './config/types';
 import {
     doesDeviceSupportBiometrics,
     extractAdditionalParameters,
@@ -86,9 +86,15 @@ const MultifactorAuthenticationContext = createContext<UseMultifactorAuthenticat
         success: undefined,
         scenario: undefined,
     },
-    proceed: () => Promise.resolve(),
     update: () => Promise.resolve(),
     trigger: () => Promise.resolve(),
+    executeScenario: () => Promise.resolve(),
+    setValidateCode: () => {},
+    cancel: () => Promise.resolve(),
+    state: {
+        scenario: undefined,
+    },
+    setSoftPromptApproved: () => {},
 });
 
 type MultifactorAuthenticationContextProviderProps = {
@@ -284,6 +290,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED) {
                 await resetKeys(accountID);
             }
+
+            // TODO: call action here
 
             setStatus(
                 {
@@ -681,7 +689,18 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     // The React compiler prohibits the use of useCallback and useMemo in new components
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const MultifactorAuthenticationData = {info, proceed, update, trigger};
+    const MultifactorAuthenticationData = {
+        info,
+        executeScenario: proceed,
+        update,
+        trigger,
+        setValidateCode: (validateCode: string) => update({validateCode: Number(validateCode)}),
+        cancel: () => trigger('CANCEL'),
+        state: {
+            scenario,
+        },
+        setSoftPromptApproved: (decision: boolean) => update({softPromptDecision: decision}),
+    };
 
     return <MultifactorAuthenticationContext.Provider value={MultifactorAuthenticationData}>{children}</MultifactorAuthenticationContext.Provider>;
 }
@@ -692,11 +711,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
  * @returns The multifactor authentication context with info, proceed, update, and trigger functions.
  * @throws Error if used outside of the provider.
  */
-function useMultifactorAuthenticationContext(): UseMultifactorAuthentication {
+function useMultifactorAuthentication(): UseMultifactorAuthentication {
     const context = useContext(MultifactorAuthenticationContext);
 
     if (!context) {
-        throw new Error('useMultifactorAuthenticationContext must be used within a MultifactorAuthenticationContextProvider');
+        throw new Error('useMultifactorAuthentication must be used within a MultifactorAuthenticationContextProvider');
     }
 
     return context;
@@ -704,5 +723,8 @@ function useMultifactorAuthenticationContext(): UseMultifactorAuthentication {
 
 MultifactorAuthenticationContextProvider.displayName = 'MultifactorAuthenticationContextProvider';
 
+type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T> & Partial<OutcomePaths>;
+
 export default MultifactorAuthenticationContextProvider;
-export {MultifactorAuthenticationContext, useMultifactorAuthenticationContext};
+export {MultifactorAuthenticationContext, useMultifactorAuthentication};
+export type {UseMultifactorAuthentication as MultifactorAuthenticationContextValue, ExecuteScenarioParams};

@@ -3,7 +3,7 @@
  */
 import type {EmptyObject, ValueOf} from 'type-fest';
 import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
-import type {MarqetaAuthTypeName, OutcomePaths} from '@components/MultifactorAuthentication/types';
+import type {MarqetaAuthTypeName, OutcomePaths} from '@components/MultifactorAuthentication/Context/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';

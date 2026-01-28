@@ -2,7 +2,7 @@
  * Manages the multifactor authentication challenge flow including requesting, signing, and sending challenges.
  */
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
-import {resetKeys} from '@components/MultifactorAuthentication/helpers';
+import {resetKeys} from '@components/MultifactorAuthentication/Context/helpers';
 import {requestAuthenticationChallenge} from '@libs/actions/MultifactorAuthentication';
 import {signToken as signTokenED25519} from './ED25519';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';

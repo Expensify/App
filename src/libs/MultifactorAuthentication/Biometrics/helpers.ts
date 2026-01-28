@@ -8,7 +8,7 @@ import type {
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioConfig,
 } from '@components/MultifactorAuthentication/config/types';
-import type {MarqetaAuthTypeName} from '@components/MultifactorAuthentication/types';
+import type {MarqetaAuthTypeName} from '@components/MultifactorAuthentication/Context/types';
 import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
 import type {

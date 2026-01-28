@@ -1,4 +1,14 @@
 import type {ValueOf} from 'type-fest';
+import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
+import type {
+    AllMultifactorAuthenticationOutcomeType,
+    MultifactorAuthenticationOutcomeSuffixes,
+    MultifactorAuthenticationProcessScenarioParameters,
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioConfig,
+    MultifactorAuthenticationScenarioParams,
+} from '@components/MultifactorAuthentication/config/types';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
@@ -9,16 +19,6 @@ import CONST from '@src/CONST';
 import ROUTES, {MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import Base64URL from '@src/utils/Base64URL';
-import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
-import type {
-    AllMultifactorAuthenticationOutcomeType,
-    MultifactorAuthenticationOutcomeSuffixes,
-    MultifactorAuthenticationProcessScenarioParameters,
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioAdditionalParams,
-    MultifactorAuthenticationScenarioConfig,
-    MultifactorAuthenticationScenarioParams,
-} from './config/types';
 import type {AuthTypeName, MarqetaAuthTypeName, NoScenarioForStatusReason, OutcomePaths} from './types';
 
 /**

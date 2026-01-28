@@ -5,7 +5,6 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {MULTIFACTOR_AUTHENTICATION_OUTCOME_MAP} from '@components/MultifactorAuthentication/config';
-import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,17 +24,18 @@ function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthentication
         Navigation.dismissModal();
     };
 
-    const {info} = useMultifactorAuthenticationContext();
-
     const data = MULTIFACTOR_AUTHENTICATION_OUTCOME_MAP[route.params.outcomeType];
 
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(data?.illustration ?? 'HumptyDumpty'));
 
-    const {headerTitle, title, description} = info;
-
     if (!data) {
         return <NotFoundPage />;
     }
+
+    // Get text values from outcome config and translate them
+    const headerTitle = translate(data.headerTitle);
+    const title = translate(data.title);
+    const description = translate(data.description);
 
     const {customDescription: CustomDescription} = data;
     const CustomSubtitle = CustomDescription ? <CustomDescription /> : undefined;

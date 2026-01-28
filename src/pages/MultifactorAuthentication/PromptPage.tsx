@@ -4,7 +4,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
-import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
@@ -21,14 +20,15 @@ type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<Multifa
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {update, trigger, info} = useMultifactorAuthenticationContext();
+    const {cancel, state, setSoftPromptApproved} = useMultifactorAuthentication();
+    // TODO: const {state, setSoftPromptApproved} = useMultifactorAuthenticationState();
 
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
     const onConfirm = () => {
-        update({softPromptDecision: true});
+        setSoftPromptApproved(true);
     };
 
     const showConfirmModal = () => {
@@ -43,7 +43,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
-        trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE);
+        cancel();
     };
 
     const focusTrapConfirmModal = () => {
@@ -85,7 +85,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                     />
                 </FixedFooter>
                 <MultifactorAuthenticationTriggerCancelConfirmModal
-                    scenario={info.scenario}
+                    scenario={state.scenario}
                     isVisible={isConfirmModalVisible}
                     onConfirm={cancelFlow}
                     onCancel={hideConfirmModal}

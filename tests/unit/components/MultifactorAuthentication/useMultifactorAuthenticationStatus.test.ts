@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
-import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentication/useMultifactorAuthenticationStatus';
+import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentication/Context/useMultifactorAuthenticationStatus';
 import type {MultifactorAuthenticationPartialStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 
@@ -14,7 +14,7 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 
 // Mock all the dependency helpers with proper implementations
-jest.mock('@components/MultifactorAuthentication/helpers', () => ({
+jest.mock('@components/MultifactorAuthentication/Context/helpers', () => ({
     getAuthTypeName: jest.fn(() => 'BIOMETRICS'),
     getOutcomePaths: jest.fn(() => {
         // Always return valid outcome paths that exist in the config mock

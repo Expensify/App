@@ -6,7 +6,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -45,7 +45,8 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const {trigger, update} = useMultifactorAuthenticationContext();
+    const {cancel, setValidateCode} = useMultifactorAuthentication();
+    // TODO: const {setValidateCode} = useMultifactorAuthenticationState();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -148,13 +149,13 @@ function MultifactorAuthenticationValidateCodePage() {
         // Clear errors before submit
         setFormError({});
 
-        // Call the submit callback (from context)
-        update({validateCode: Number(inputCode)});
+        // Set validate code in state context - the process function will handle the rest
+        setValidateCode(inputCode);
     };
 
     const onGoBackPress = () => {
         // TODO: We probably do not need to trigger anything as the RHP is closed
-        trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE);
+        cancel();
         // Close the RHP instead of returning to the invisible biometrics test screen
         Navigation.dismissModal();
     };

@@ -11,7 +11,7 @@ import {
     resetKeys,
     shouldAllowBiometrics,
     shouldClearScenario,
-} from '@components/MultifactorAuthentication/helpers';
+} from '@components/MultifactorAuthentication/Context/helpers';
 import {registerAuthenticationKey, requestAuthenticationChallenge} from '@libs/actions/MultifactorAuthentication';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import type {MultifactorAuthenticationPartialStatus} from '@libs/MultifactorAuthentication/Biometrics/types';

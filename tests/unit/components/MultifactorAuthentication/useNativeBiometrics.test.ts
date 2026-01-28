@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
-import {doesDeviceSupportBiometrics, isBiometryConfigured, resetKeys} from '@components/MultifactorAuthentication/helpers';
-import useNativeBiometrics from '@components/MultifactorAuthentication/useNativeBiometrics';
+import {doesDeviceSupportBiometrics, isBiometryConfigured, resetKeys} from '@components/MultifactorAuthentication/Context/helpers';
+import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
 import {requestAuthenticationChallenge} from '@libs/actions/MultifactorAuthentication';
 import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
@@ -37,7 +37,7 @@ jest.mock('@components/MultifactorAuthentication/config', () => ({
         },
     ),
 }));
-jest.mock('@components/MultifactorAuthentication/helpers');
+jest.mock('@components/MultifactorAuthentication/Context/helpers');
 
 describe('useNativeBiometrics hook', () => {
     beforeEach(() => {

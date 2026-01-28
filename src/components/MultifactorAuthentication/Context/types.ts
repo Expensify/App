@@ -2,6 +2,12 @@
  * Type definitions for multifactor authentication components.
  */
 import type {ValueOf} from 'type-fest';
+import type {
+    AllMultifactorAuthenticationOutcomeType,
+    MultifactorAuthenticationScenario,
+    MultifactorAuthenticationScenarioAdditionalParams,
+    MultifactorAuthenticationScenarioParams,
+} from '@components/MultifactorAuthentication/config/types';
 import type {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {
     AllMultifactorAuthenticationFactors,
@@ -13,12 +19,6 @@ import type {
     MultifactorKeyStoreOptions,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
-import type {
-    AllMultifactorAuthenticationOutcomeType,
-    MultifactorAuthenticationScenario,
-    MultifactorAuthenticationScenarioAdditionalParams,
-    MultifactorAuthenticationScenarioParams,
-} from './config/types';
 
 type MultifactorAuthorization<T extends MultifactorAuthenticationScenario> = (
     scenario: T,
@@ -76,13 +76,19 @@ type UseMultifactorAuthentication = {
             headerTitle: string;
             scenario: MultifactorAuthenticationScenario | undefined;
         };
-    proceed: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: MultifactorAuthenticationScenarioParams<T> & Partial<OutcomePaths>) => Promise<void>;
+    executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: MultifactorAuthenticationScenarioParams<T> & Partial<OutcomePaths>) => Promise<void>;
     update: (
         params: Partial<AllMultifactorAuthenticationFactors> & {
             softPromptDecision?: boolean;
         },
     ) => Promise<void>;
     trigger: <T extends MultifactorAuthenticationTrigger>(triggerType: T, argument?: MultifactorTriggerArgument<T>) => Promise<void>;
+    setValidateCode: (validateCode: string) => void;
+    cancel: () => Promise<void>;
+    state: {
+        scenario: MultifactorAuthenticationScenario | undefined;
+    };
+    setSoftPromptApproved: (decision: boolean) => void;
 };
 
 type MultifactorAuthenticationScenarioStatus = {
