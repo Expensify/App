@@ -142,10 +142,10 @@ function isCardClosed(card: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
 }
 
-function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldExcludeCardHiddenFromSearch = false) {
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldFilterOutPersonalCards = false) {
     const feedCards: CardList = {};
     for (const card of Object.values(cardList ?? {})) {
-        if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
+        if (!isCard(card) || (shouldFilterOutPersonalCards && !isPersonalCard(card))) {
             continue;
         }
 
@@ -154,7 +154,7 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
 
     for (const currentCardFeed of Object.values(workspaceFeeds ?? {})) {
         for (const card of Object.values(currentCardFeed ?? {})) {
-            if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
+            if (!isCard(card)) {
                 continue;
             }
             feedCards[card.cardID] = card;
@@ -831,13 +831,6 @@ function isPersonalCard(card?: Card) {
     return (!!card?.fundID && card.fundID !== '0') || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
 }
 
-/**
- * Filter out personal (including cash) cards from the card list.
- */
-function filterPersonalCards(cards: CardList | undefined): CardList {
-    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
-}
-
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;
@@ -941,7 +934,6 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
-    filterPersonalCards,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,

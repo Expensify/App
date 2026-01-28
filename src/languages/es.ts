@@ -1,6 +1,8 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
+import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, RoutedDueToDEWParams, SplitDateRangeParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
@@ -28,6 +30,7 @@ const translations: TranslationDeepObject<typeof en> = {
         in: 'En',
         optional: 'Opcional',
         new: 'Nuevo',
+        newFeature: 'Nueva función',
         center: 'Centrar',
         search: 'Buscar',
         reports: 'Informes',
@@ -54,6 +57,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
         inbox: 'Recibidos',
+        home: 'Inicio',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Remisión',
@@ -292,10 +296,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valor',
         downloadFailedTitle: 'Error en la descarga',
         downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'No puedes exportar un informe vacío.',
-            other: () => `No puedes exportar informes vacíos.`,
-        }),
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
@@ -391,6 +391,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Tipo de cambio',
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
+        month: 'Monat',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -509,6 +510,18 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {
             biometrics: 'Activa la verificación rápida y segura usando tu rostro o huella dactilar. No se requieren contraseñas ni códigos.',
         },
+        revoke: {
+            revoke: 'Revocar',
+            title: 'Reconocimiento facial/huella digital y claves de acceso',
+            explanation:
+                'La verificación mediante reconocimiento facial, huella digital o clave de acceso está habilitada en uno o más dispositivos. Revocar el acceso requerirá un código mágico para la próxima verificación en cualquier dispositivo.',
+            confirmationPrompt: '¿Estás seguro? Necesitarás un código mágico para la próxima verificación en cualquier dispositivo.',
+            cta: 'Revocar acceso',
+            noDevices:
+                'No tienes ningún dispositivo registrado para la verificación mediante reconocimiento facial, huella digital o clave de acceso. Si registras alguno, podrás revocar ese acceso aquí.',
+            dismiss: 'Entendido',
+            error: 'La solicitud ha fallado. Inténtalo de nuevo más tarde.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -617,6 +630,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `¿Estás seguro de que quieres eliminar este ${type}?`;
         },
         onlyVisible: 'Visible sólo para',
+        explain: 'Explicar',
+        explainMessage: 'Por favor explícame esto.',
         replyInThread: 'Responder en el hilo',
         joinThread: 'Unirse al hilo',
         leaveThread: 'Dejar hilo',
@@ -647,6 +662,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
+        askMeAnything: '¡Pregúntame lo que quieras!',
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}) => `¡Bienvenido a ${roomName}!`,
@@ -810,6 +826,10 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
         scanFailed: 'El recibo no pudo ser escaneado, ya que falta el comerciante, la fecha o el monto.',
+        addAReceipt: {
+            phrase1: 'Añade un recibo',
+            phrase2: 'o arrastra y suelta uno aquí',
+        },
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
@@ -943,14 +963,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '¿Estás seguro de que quieres eliminar esta solicitud?',
             other: '¿Estás seguro de que quieres eliminar estas solicitudes?',
         }),
-        deleteReport: () => ({
-            one: 'Eliminar informe',
-            other: 'Eliminar informes',
-        }),
-        deleteReportConfirmation: () => ({
-            one: '¿Estás seguro de que quieres eliminar este informe?',
-            other: '¿Estás seguro de que quieres eliminar estos informes?',
-        }),
+        deleteReport: 'Eliminar informe',
+        deleteReportConfirmation: '¿Estás seguro de que quieres eliminar este informe?',
         settledExpensify: 'Pagado',
         done: 'Listo',
         settledElsewhere: 'Pagado de otra forma',
@@ -1218,6 +1232,40 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'El importe total es demasiado alto. Reduce las horas o disminuye la tasa.',
         },
         correctDistanceRateError: 'Corrige el error de la tasa de distancia y vuelve a intentarlo.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+
+                if (key === 'reimbursable') {
+                    return value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"';
+                }
+
+                if (key === 'billable') {
+                    return value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"';
+                }
+
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `estableció la tasa de impuesto a "${taxRateName}"`;
+                    }
+                    return `tasa de impuesto a "${taxRateName}"`;
+                }
+
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `estableció el ${translations.common[key].toLowerCase()} a "${updatedValue}"`;
+                }
+
+                return `${translations.common[key].toLowerCase()} a "${updatedValue}"`;
+            });
+
+            return `${formatList(fragments)} a través de <a href="${policyRulesRoute}">reglas del espacio de trabajo</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2098,19 +2146,27 @@ ${amount} para ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Reglas de gastos',
         subtitle: 'Estas reglas se aplicarán a tus gastos. Si los envías a un espacio de trabajo, las reglas del espacio de trabajo pueden anularlas.',
+        findRule: 'Encontrar regla',
         emptyRules: {
             title: 'Aún no has creado ninguna regla',
             subtitle: 'Añade una regla para automatizar los informes de gastos.',
         },
         changes: {
-            billable: (value: boolean) => `Actualiza el gasto a ${value ? 'facturable' : 'no facturable'}`,
-            category: (value: string) => `Actualiza la categoría a "${value}"`,
-            comment: (value: string) => `Cambia la descripción a "${value}"`,
-            merchant: (value: string) => `Actualiza el comercio a "${value}"`,
-            reimbursable: (value: boolean) => `Actualiza el gasto a ${value ? 'reembolsable' : 'no reembolsable'}`,
-            report: (value: string) => `Añadir a un informe llamado "${value}"`,
-            tag: (value: string) => `Actualiza la etiqueta a "${value}"`,
-            tax: (value: string) => `Actualiza la tasa de impuesto a ${value}`,
+            billableUpdate: (value: boolean) => `Actualiza el gasto a ${value ? 'facturable' : 'no facturable'}`,
+            categoryUpdate: (value: string) => `Actualiza la categoría a "${value}"`,
+            commentUpdate: (value: string) => `Cambia la descripción a "${value}"`,
+            merchantUpdate: (value: string) => `Actualiza el comercio a "${value}"`,
+            reimbursableUpdate: (value: boolean) => `Actualiza el gasto a ${value ? 'reembolsable' : 'no reembolsable'}`,
+            tagUpdate: (value: string) => `Actualiza la etiqueta a "${value}"`,
+            taxUpdate: (value: string) => `Actualiza la tasa de impuesto a ${value}`,
+            billable: (value: boolean) => `el gasto a ${value ? 'facturable' : 'no facturable'}`,
+            category: (value: string) => `la categoría a "${value}"`,
+            comment: (value: string) => `la descripción a "${value}"`,
+            merchant: (value: string) => `el comercio a "${value}"`,
+            reimbursable: (value: boolean) => `el gasto a ${value ? 'reembolsable' : 'no reembolsable'}`,
+            tag: (value: string) => `la etiqueta a "${value}"`,
+            tax: (value: string) => `la tasa de impuesto a ${value}`,
+            report: (value: string) => `añadir a un informe llamado "${value}"`,
         },
         newRule: 'Nueva regla',
         addRule: {
@@ -4543,6 +4599,8 @@ ${amount} para ${merchant} - ${date}`,
                 '<muted-text><centered-text>O algo podría estar roto. De cualquier manera, si tienes alguna pregunta, <concierge-link>contacta a Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Elige una fecha de inicio de transacciones',
             startDateDescription: 'Importaremos todas las transacciones desde esta fecha en adelante. Si no se especifica una fecha, iremos tan atrás como lo permita tu banco.',
+            editStartDateDescription:
+                'Elige una nueva fecha de inicio de transacciones. Sincronizaremos todas las transacciones a partir de esa fecha, excepto las que ya hayamos importado.',
             fromTheBeginning: 'Desde el principio',
             customStartDate: 'Fecha de inicio personalizada',
             customCloseDate: 'Fecha de cierre personalizada',
@@ -5879,6 +5937,10 @@ ${amount} para ${merchant} - ${date}`,
                     `<muted-text>Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para <a href="${categoriesPageLink}">categorías</a> y <a href="${tagsPageLink}">etiquetas</a>.</muted-text>`,
                 receiptRequiredAmount: 'Cantidad requerida para los recibos',
                 receiptRequiredAmountDescription: 'Exige recibos cuando los gastos superen este importe, a menos que lo anule una regla de categoría.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `La cantidad no puede ser mayor que la cantidad requerida para recibos detallados (${amount})`,
+                itemizedReceiptRequiredAmount: 'Cantidad requerida para recibos detallados',
+                itemizedReceiptRequiredAmountDescription: 'Exige recibos detallados cuando los gastos superen este importe, a menos que lo anule una regla de categoría.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `La cantidad no puede ser menor que la cantidad requerida para recibos regulares (${amount})`,
                 maxExpenseAmount: 'Importe máximo del gasto',
                 maxExpenseAmountDescription: 'Marca los gastos que superen este importe, a menos que una regla de categoría lo anule.',
                 maxAge: 'Antigüedad máxima',
@@ -5941,6 +6003,27 @@ ${amount} para ${merchant} - ${date}`,
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: (featureName, moreFeaturesLink) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
             },
+            merchantRules: {
+                title: 'Comerciante',
+                subtitle: 'Configura las reglas de comerciante para que los gastos lleguen correctamente codificados y requieran menos limpieza.',
+                addRule: 'Añadir regla de comerciante',
+                addRuleTitle: 'Añadir regla',
+                editRuleTitle: 'Editar regla',
+                expensesWith: 'Para gastos con:',
+                applyUpdates: 'Aplicar estas actualizaciones:',
+                merchantHint: 'Coincide con un nombre de comerciante con coincidencia "contiene" sin distinción de mayúsculas y minúsculas',
+                saveRule: 'Guardar regla',
+                confirmError: 'Ingresa comerciante y aplica al menos una actualización',
+                confirmErrorMerchant: 'Por favor ingresa comerciante',
+                confirmErrorUpdate: 'Por favor aplica al menos una actualización',
+                deleteRule: 'Eliminar regla',
+                deleteRuleConfirmation: '¿Estás seguro de que quieres eliminar esta regla?',
+                ruleSummaryTitle: (merchantName: string) => `Si el comerciante contiene "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Renombrar comerciante a "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Actualizar ${fieldName} a "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marcar como "${reimbursable ? 'reembolsable' : 'no reembolsable'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Marcar como "${billable ? 'facturable' : 'no facturable'}"`,
+            },
             categoryRules: {
                 title: 'Reglas de categoría',
                 approver: 'Aprobador',
@@ -5969,6 +6052,12 @@ ${amount} para ${merchant} - ${date}`,
                     default: (defaultAmount) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predeterminado`,
                     never: 'Nunca requerir recibos',
                     always: 'Requerir recibos siempre',
+                },
+                requireItemizedReceiptsOver: 'Requerir recibos detallados para importes superiores a',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predeterminado`,
+                    never: 'Nunca requerir recibos detallados',
+                    always: 'Requerir recibos detallados siempre',
                 },
                 defaultTaxRate: 'Tasa de impuesto predeterminada',
                 enableWorkflows: ({moreFeaturesLink}) =>
@@ -6127,6 +6216,12 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `cambió la categoría "${categoryName}" a ${newValue} (previamente ${oldValue})`;
         },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}) => {
+            if (!oldValue) {
+                return `actualizó la categoría "${categoryName}" cambiando Recibos detallados a ${newValue}`;
+            }
+            return `cambió los Recibos detallados de la categoría "${categoryName}" a ${newValue} (previamente ${oldValue})`;
+        },
         setCategoryName: ({oldName, newName}) => `renombró la categoría "${oldName}" a "${newName}"`,
         updateTagListName: ({oldName, newName}) => `cambió el nombre de la lista de etiquetas a "${newName}" (previamente "${oldName}")`,
         addTag: ({tagListName, tagName}) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
@@ -6262,6 +6357,11 @@ ${amount} para ${merchant} - ${date}`,
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de asistentes`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el autopago de informes aprobados`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `estableció el umbral de autopago de informes aprobados en "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `cambió el umbral de autopago de informes aprobados a "${newLimit}" (previamente "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: 'eliminó el umbral de autopago de informes aprobados',
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `cambió el aprobador predeterminado a ${newApprover} (anteriormente ${previousApprover})` : `cambió el aprobador predeterminado a ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -6476,6 +6576,8 @@ ${amount} para ${merchant} - ${date}`,
         topSpenders: 'Mayores gastadores',
         saveSearch: 'Guardar búsqueda',
         savedSearchesMenuItemTitle: 'Guardadas',
+        topCategories: 'Categorías principales',
+        topMerchants: 'Principales comerciantes',
         searchName: 'Nombre de la búsqueda',
         deleteSavedSearch: 'Eliminar búsqueda guardada',
         deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
@@ -6499,12 +6601,14 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Este mes',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Año hasta la fecha',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Último extracto',
                 },
             },
             status: 'Estado',
             keyword: 'Palabra clave',
             keywords: 'Palabras clave',
+            limit: 'Límite',
             currency: 'Divisa',
             completed: 'Completadas',
             card: {
@@ -6536,6 +6640,10 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Tarjeta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retiro',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoría',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciante',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mes',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6558,6 +6666,7 @@ ${amount} para ${merchant} - ${date}`,
             accessPlaceHolder: 'Abrir para ver detalles',
         },
         noCategory: 'Sin categoría',
+        noMerchant: 'Sin comerciante',
         noTag: 'Sin etiqueta',
         expenseType: 'Tipo de gasto',
         withdrawalType: 'Tipo de retiro',
@@ -7442,6 +7551,7 @@ ${amount} para ${merchant} - ${date}`,
 
             return 'Recibo obligatorio';
         },
+        itemizedReceiptRequired: ({formattedLimit}) => `Recibo detallado requerido${formattedLimit ? ` para importes sobre ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}) => {
             const preMessage = 'Gastos prohibidos:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7972,6 +8082,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
+        gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
@@ -8136,7 +8247,6 @@ ${amount} para ${merchant} - ${date}`,
                 `<comment><muted-text-label>Cuando está habilitada, el contacto principal pagará todos los espacios de trabajo de los miembros de <strong>${domainName}</strong> y recibirá todos los recibos de facturación.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'No se pudo cambiar la facturación consolidada del dominio. Por favor, inténtalo de nuevo más tarde.',
             addAdmin: 'Añadir administrador',
-            invite: 'Invitar',
             addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
             revokeAdminAccess: 'Revocar acceso de administrador',
             cantRevokeAdminAccess: 'No se puede revocar el acceso de administrador del contacto técnico',
@@ -8153,10 +8263,14 @@ ${amount} para ${merchant} - ${date}`,
         members: {
             title: 'Miembros',
             findMember: 'Buscar miembro',
+            addMember: 'Añadir miembro',
+            email: 'Dirección de correo electrónico',
+            errors: {
+                addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.',
+            },
         },
     },
     gps: {
-        tooltip: '¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.',
         disclaimer: 'Utiliza el GPS para crear un gasto a partir de tu trayecto. Toca Iniciar a continuación para comenzar el seguimiento.',
         error: {
             failedToStart: 'No se pudo iniciar el seguimiento de la ubicación.',
@@ -8203,6 +8317,12 @@ ${amount} para ${merchant} - ${date}`,
         notification: {
             title: 'Seguimiento GPS en curso',
             body: 'Ve a la app para finalizar',
+        },
+        continueGpsTripModal: {
+            title: '¿Continuar el registro del viaje por GPS?',
+            prompt: 'Parece que la app se cerró durante tu último viaje por GPS. ¿Te gustaría continuar grabando ese viaje?',
+            confirm: 'Continuar viaje',
+            cancel: 'Ver viaje',
         },
         signOutWarningTripInProgress: {
             title: 'Seguimiento por GPS en curso',
