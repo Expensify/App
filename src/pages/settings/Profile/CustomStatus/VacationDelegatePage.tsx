@@ -3,9 +3,6 @@ import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,8 +19,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
 
-function VacationDelegatePage() {
+function VacationDelegatePage() { 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
@@ -33,14 +32,14 @@ function VacationDelegatePage() {
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
-    const currentVacationDelegate = vacationDelegate?.delegate;
-    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+    const currentVacationDelegate = vacationDelegate?.delegate ?? '';
+    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const excludeLogins = useMemo(
         () => ({
             ...CONST.EXPENSIFY_EMAILS_OBJECT,
-            [currentVacationDelegate ?? '']: true,
+            [currentVacationDelegate]: true,
         }),
         [currentVacationDelegate],
     );
@@ -56,22 +55,13 @@ function VacationDelegatePage() {
         },
     });
 
-    const headerMessage = useMemo(() => {
-        return getHeaderMessage(
-            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-            !!availableOptions.userToInvite,
-            debouncedSearchTerm.trim(),
-            countryCode,
-            false,
-        );
-    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, debouncedSearchTerm, countryCode]);
-
     const sections = useMemo(() => {
         const sectionsList = [];
 
         if (vacationDelegate && delegatePersonalDetails) {
             sectionsList.push({
                 title: undefined,
+                sectionIndex: 0,
                 data: [
                     {
                         ...delegatePersonalDetails,
@@ -92,27 +82,26 @@ function VacationDelegatePage() {
                         ],
                     },
                 ],
-                shouldShow: true,
             });
         }
 
         sectionsList.push({
             title: translate('common.recents'),
+            sectionIndex: 1,
             data: availableOptions.recentReports,
-            shouldShow: availableOptions.recentReports?.length > 0,
         });
 
         sectionsList.push({
             title: translate('common.contacts'),
+            sectionIndex: 2,
             data: availableOptions.personalDetails,
-            shouldShow: availableOptions.personalDetails?.length > 0,
         });
 
         if (availableOptions.userToInvite) {
             sectionsList.push({
                 title: undefined,
+                sectionIndex: 3,
                 data: [availableOptions.userToInvite],
-                shouldShow: true,
             });
         }
 
@@ -164,6 +153,19 @@ function VacationDelegatePage() {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    const textInputOptions = {
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        headerMessage: getHeaderMessage(
+            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+            !!availableOptions.userToInvite,
+            debouncedSearchTerm.trim(),
+            countryCode,
+            false,
+        ),
+    };
+
     return (
         <>
             <ScreenWrapper
@@ -180,10 +182,8 @@ function VacationDelegatePage() {
                         ListItem={UserListItem}
                         onSelectRow={onSelectRow}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchTerm}
-                        textInputValue={searchTerm}
-                        headerMessage={headerMessage}
-                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                        textInputOptions={textInputOptions}
+                        shouldShowTextInput
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
                         onEndReached={onListEndReached}
