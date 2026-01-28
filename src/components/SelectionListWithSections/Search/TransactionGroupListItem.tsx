@@ -18,8 +18,10 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionTagGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -43,8 +45,10 @@ import type {ReportAction, ReportActions} from '@src/types/onyx';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
+import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
+import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 
@@ -62,7 +66,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     columns,
     groupBy,
     searchType,
-    accountID,
     isOffline,
     newTransactionID,
     violations,
@@ -117,7 +120,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const [sectionData] = getSections({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             data: transactionsSnapshot?.data,
-            currentAccountID: accountID,
+            currentAccountID: currentUserDetails.accountID,
             currentUserEmail: currentUserDetails.email ?? '',
             translate,
             formatPhoneNumber,
@@ -132,12 +135,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [
         isExpenseReportType,
         transactionsSnapshot?.data,
-        accountID,
         translate,
         formatPhoneNumber,
         groupItem.transactions,
         selectedTransactionIDsSet,
         currentUserDetails.email,
+        currentUserDetails.accountID,
         isActionLoadingSet,
         bankAccountList,
         allReportMetadata,
@@ -301,6 +304,32 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         isExpanded={isExpanded}
                     />
                 ),
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: (
+                    <MerchantListItemHeader
+                        merchant={groupItem as TransactionMerchantGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                ),
+                [CONST.SEARCH.GROUP_BY.TAG]: (
+                    <TagListItemHeader
+                        tag={groupItem as TransactionTagGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                ),
                 [CONST.SEARCH.GROUP_BY.MONTH]: (
                     <MonthListItemHeader
                         month={groupItem as TransactionMonthGroupListItemType}
@@ -406,7 +435,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 onCheckboxPress={onCheckboxPress}
                                 columns={columns}
                                 groupBy={groupBy}
-                                accountID={accountID}
+                                accountID={currentUserDetails.accountID}
                                 isOffline={isOffline}
                                 violations={violations}
                                 transactions={transactions}

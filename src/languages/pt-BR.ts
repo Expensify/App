@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -638,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Despesa duplicada',
         newFeature: 'Novo recurso',
         month: 'Mês',
+        home: 'Início',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -764,12 +767,12 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Revogar',
             title: 'Rosto/digital & chaves de acesso',
             explanation:
-                'Verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
+                'A verificação por rosto/digital ou chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
             confirmationPrompt: 'Tem certeza? Você precisará de um código mágico para a próxima verificação em qualquer dispositivo',
             cta: 'Revogar acesso',
-            noDevices: 'Você não tem nenhum dispositivo registrado para verificação com rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
-            error: 'A solicitação falhou. Tente novamente mais tarde.',
+            error: 'Falha na solicitação. Tente novamente mais tarde.',
         },
     },
     validateCodeModal: {
@@ -925,6 +928,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo(a)! Vamos configurar tudo para você.',
         chatWithAccountManager: 'Converse com o seu gerente de conta aqui',
+        askMeAnything: 'Pergunte-me qualquer coisa!',
         sayHello: 'Diga olá!',
         yourSpace: 'Seu espaço',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) a ${roomName}!`,
@@ -1493,6 +1497,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Corrija o erro na taxa de distância e tente novamente.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'marcou a despesa como "reembolsável"' : 'marcou a despesa como “não reembolsável”';
+                }
+                if (key === 'billable') {
+                    return value ? 'marcou a despesa como “faturável”' : 'marcou a despesa como "não faturável"';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `definir a taxa de imposto como "${taxRateName}"`;
+                    }
+                    return `alíquota de imposto para "${taxRateName}"`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `defina o ${translations.common[key].toLowerCase()} como "${updatedValue}"`;
+                }
+                return `${translations.common[key].toLowerCase()} para "${updatedValue}"`;
+            });
+            return `${formatList(fragments)} via <a href="${policyRulesRoute}">regras do workspace</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4890,6 +4920,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             assign: 'Atribuir',
             assignCardFailedError: 'Falha na atribuição do cartão.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription: 'Escolha uma nova data de início das transações. Vamos sincronizar todas as transações a partir dessa data, excluindo aquelas que já importamos.',
             unassignCardFailedError: 'Falha ao desatribuir o cartão.',
         },
         expensifyCard: {
@@ -6319,6 +6350,17 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Atualizar ${fieldName} para "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marcar como "${reimbursable ? 'reembolsável' : 'não reembolsável'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Marcar como "${billable ? 'faturável' : 'não faturável'}"`,
+                addRuleTitle: 'Adicionar regra',
+                expensesWith: 'Para despesas com:',
+                applyUpdates: 'Aplicar estas atualizações:',
+                merchantHint: 'Corresponder um nome de comerciante com correspondência "contém" sem diferenciação entre maiúsculas e minúsculas',
+                saveRule: 'Salvar regra',
+                confirmError: 'Insira o estabelecimento e aplique pelo menos uma atualização',
+                confirmErrorMerchant: 'Insira o comerciante',
+                confirmErrorUpdate: 'Por favor, aplique pelo menos uma atualização',
+                editRuleTitle: 'Editar regra',
+                deleteRule: 'Excluir regra',
+                deleteRuleConfirmation: 'Tem certeza de que deseja excluir esta regra?',
             },
         },
         planTypePage: {
@@ -6856,6 +6898,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         searchName: 'Pesquisar nome',
         savedSearchesMenuItemTitle: 'Salvo',
         topCategories: 'Principais categorias',
+        topMerchants: 'Principais comerciantes',
         groupedExpenses: 'despesas agrupadas',
         bulkActions: {
             approve: 'Aprovar',
@@ -6916,8 +6959,10 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retirada',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID da retirada',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciante',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
             },
             feed: 'Feed',
@@ -6940,6 +6985,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             accessPlaceHolder: 'Abra para ver detalhes',
         },
         noCategory: 'Sem categoria',
+        noMerchant: 'Sem comerciante',
         noTag: 'Sem tag',
         expenseType: 'Tipo de despesa',
         withdrawalType: 'Tipo de saque',
@@ -7096,6 +7142,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 leftTheChat: 'saiu do chat',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `A conexão ${feedName} está quebrada. Para restaurar as importações do cartão, <a href='${workspaceCompanyCardRoute}'>faça login no seu banco</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `a conexão Plaid com sua conta bancária empresarial está quebrada. Por favor, <a href='${walletRoute}'>reconecte sua conta bancária ${maskedAccountNumber}</a> para continuar usando seus Cartões Expensify.`,
             },
             error: {
                 invalidCredentials: 'Credenciais inválidas, verifique a configuração da sua conexão.',

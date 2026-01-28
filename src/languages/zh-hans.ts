@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -635,6 +637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: '重复报销',
         newFeature: '新功能',
         month: '月',
+        home: '首页',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -758,13 +761,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: '撤销',
-            title: '面容/指纹和通行密钥',
-            explanation: '在一台或多台设备上已启用面部/指纹或通行密钥验证。撤销访问权限后，下一次在任意设备上进行验证时都需要输入魔法验证码',
+            title: '面部识别/指纹识别与通行密钥',
+            explanation: '在一台或多台设备上已启用面部 / 指纹或通行密钥验证。撤销访问权限后，下次在任何设备上进行验证时都需要使用魔法验证码',
             confirmationPrompt: '你确定吗？在任何设备上进行下一步验证时，你都需要一个魔法代码',
             cta: '撤销访问权限',
             noDevices: '您尚未注册任何用于人脸/指纹或通行密钥验证的设备。如果您注册了设备，您将可以在此撤销其访问权限。',
-            dismiss: '知道了',
-            error: '请求失败。请稍后再试。',
+            dismiss: '明白了',
+            error: '请求失败。请稍后重试。',
         },
     },
     validateCodeModal: {
@@ -916,6 +919,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: '这是你的个人空间。可用于记录笔记、任务、草稿和提醒。',
         beginningOfChatHistorySystemDM: '欢迎！我们来为你完成设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
+        askMeAnything: '问我任何问题！',
         sayHello: '打个招呼！',
         yourSpace: '您的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到 ${roomName}！`,
@@ -1471,6 +1475,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: '修复里程费率错误后请重试。',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>解释</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? '将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”';
+                }
+                if (key === 'billable') {
+                    return value ? '将该报销标记为“可向客户收费”' : '已将该报销标记为“不可计费”';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `将税率设置为“${taxRateName}”`;
+                    }
+                    return `税率为“${taxRateName}”`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `将 ${translations.common[key].toLowerCase()} 设置为 “${updatedValue}”`;
+                }
+                return `${translations.common[key].toLowerCase()} 为 “${updatedValue}”`;
+            });
+            return `${formatList(fragments)} 通过<a href="${policyRulesRoute}">工作区规则</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4798,6 +4828,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             assign: '分配',
             assignCardFailedError: '卡片分配失败。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription: '选择一个新的交易起始日期。我们将从该日期起同步所有交易，但不包括已经导入的交易。',
             unassignCardFailedError: '卡片取消分配失败。',
         },
         expensifyCard: {
@@ -6184,6 +6215,17 @@ ${reportName}
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `将 ${fieldName} 更新为“${fieldValue}”`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `标记为“${reimbursable ? '可报销' : '不予报销'}”`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `标记为“${billable ? '可计费' : '不可计费'}”`,
+                addRuleTitle: '添加规则',
+                expensesWith: '对于以下费用：',
+                applyUpdates: '应用这些更新：',
+                merchantHint: '使用不区分大小写的“包含”匹配来匹配商户名称',
+                saveRule: '保存规则',
+                confirmError: '输入商家并至少应用一项更新',
+                confirmErrorMerchant: '请输入商家',
+                confirmErrorUpdate: '请至少进行一次更新',
+                editRuleTitle: '编辑规则',
+                deleteRule: '删除规则',
+                deleteRuleConfirmation: '您确定要删除此规则吗？',
             },
         },
         planTypePage: {
@@ -6703,6 +6745,7 @@ ${reportName}
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
         topCategories: '热门类别',
+        topMerchants: '热门商家',
         groupedExpenses: '已分组报销费用',
         bulkActions: {
             approve: '批准',
@@ -6762,9 +6805,11 @@ ${reportName}
             purchaseCurrency: '购买货币',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '来自',
-                [CONST.SEARCH.GROUP_BY.CARD]: '卡',
+                [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: '商家',
+                [CONST.SEARCH.GROUP_BY.TAG]: '标签',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
             feed: '动态',
@@ -6787,6 +6832,7 @@ ${reportName}
             accessPlaceHolder: '打开以查看详情',
         },
         noCategory: '无类别',
+        noMerchant: '无商户',
         noTag: '无标签',
         expenseType: '费用类型',
         withdrawalType: '提现类型',
@@ -6937,6 +6983,8 @@ ${reportName}
                 leftTheChat: '已离开聊天',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `您的企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用您的 Expensify 卡。`,
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',

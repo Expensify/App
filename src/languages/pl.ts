@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -639,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Zduplikowany wydatek',
         newFeature: 'Nowa funkcja',
         month: 'Miesiąc',
+        home: 'Strona główna',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -763,13 +766,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Unieważnij',
-            title: 'Rozpoznawanie twarzy/odcisku palca i klucze dostępu',
+            title: 'Rozpoznawanie twarzy/odcisk palca i klucze dostępu',
             explanation:
-                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub kilku urządzeniach. Odwołanie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
-            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do kolejnej weryfikacji na każdym urządzeniu',
+                'Weryfikacja za pomocą twarzy/odcisku palca lub klucza dostępu (passkey) jest włączona na jednym lub większej liczbie urządzeń. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
+            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do następnej weryfikacji na dowolnym urządzeniu',
             cta: 'Cofnij dostęp',
             noDevices:
-                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą/odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
+                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą, odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp w tym miejscu.',
             dismiss: 'Rozumiem',
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
         },
@@ -926,6 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'To jest Twoja osobista przestrzeń. Używaj jej do notatek, zadań, szkiców i przypomnień.',
         beginningOfChatHistorySystemDM: 'Witamy! Skonfigurujmy wszystko.',
         chatWithAccountManager: 'Czat z Twoim opiekunem klienta tutaj',
+        askMeAnything: 'Zapytaj mnie o cokolwiek!',
         sayHello: 'Przywitaj się!',
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witamy w ${roomName}!`,
@@ -1496,6 +1500,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Napraw błąd stawki za dystans i spróbuj ponownie.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'oznaczył wydatek jako „podlegający zwrotowi”' : 'oznaczył wydatek jako „niepodlegający zwrotowi”';
+                }
+                if (key === 'billable') {
+                    return value ? 'oznaczył wydatek jako „refakturowalny”' : 'oznaczył wydatek jako „niepodlegający refakturowaniu”';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `ustaw stawkę podatku na „${taxRateName}”`;
+                    }
+                    return `stawka podatku na „${taxRateName}”`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `ustaw ${translations.common[key].toLowerCase()} na „${updatedValue}”`;
+                }
+                return `${translations.common[key].toLowerCase()} na „${updatedValue}”`;
+            });
+            return `${formatList(fragments)} przez <a href="${policyRulesRoute}">zasady przestrzeni roboczej</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4891,6 +4921,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             assign: 'Przypisz',
             assignCardFailedError: 'Przypisanie karty nie powiodło się.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription: 'Wybierz nową datę początkową transakcji. Zsynchronizujemy wszystkie transakcje od tej daty, z wyłączeniem tych, które już zostały zaimportowane.',
             unassignCardFailedError: 'Nie udało się odłączyć karty.',
         },
         expensifyCard: {
@@ -6319,6 +6350,17 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Zaktualizuj ${fieldName} na „${fieldValue}”`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Oznacz jako "${reimbursable ? 'kwalifikujący się do zwrotu kosztów' : 'niepodlegający zwrotowi'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Oznacz jako „${billable ? 'fakturowalne' : 'poza fakturą'}”`,
+                addRuleTitle: 'Dodaj regułę',
+                expensesWith: 'Dla wydatków z:',
+                applyUpdates: 'Zastosuj te aktualizacje:',
+                merchantHint: 'Dopasuj nazwę sprzedawcy przy użyciu nieczułego na wielkość liter dopasowania typu „zawiera”',
+                saveRule: 'Zapisz regułę',
+                confirmError: 'Wprowadź sprzedawcę i zastosuj co najmniej jedną aktualizację',
+                confirmErrorMerchant: 'Wprowadź sprzedawcę',
+                confirmErrorUpdate: 'Proszę wprowadzić co najmniej jedną zmianę',
+                editRuleTitle: 'Edytuj regułę',
+                deleteRule: 'Usuń regułę',
+                deleteRuleConfirmation: 'Czy na pewno chcesz usunąć tę regułę?',
             },
         },
         planTypePage: {
@@ -6855,6 +6897,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         searchName: 'Wyszukaj nazwę',
         savedSearchesMenuItemTitle: 'Zapisano',
         topCategories: 'Najlepsze kategorie',
+        topMerchants: 'Najlepsi sprzedawcy',
         groupedExpenses: 'pogrupowane wydatki',
         bulkActions: {
             approve: 'Zatwierdź',
@@ -6917,6 +6960,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Sprzedawca',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Etykieta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
             },
             feed: 'Kanał',
@@ -6939,6 +6984,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły',
         },
         noCategory: 'Brak kategorii',
+        noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
         expenseType: 'Typ wydatku',
         withdrawalType: 'Typ wypłaty',
@@ -7095,6 +7141,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 leftTheChat: 'opuścił czat',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Połączenie ${feedName} jest przerwane. Aby przywrócić importy kart, <a href='${workspaceCompanyCardRoute}'>zaloguj się do swojego banku</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `połączenie Plaid z Twoim firmowym kontem bankowym jest przerwane. <a href='${walletRoute}'>Połącz ponownie swoje konto bankowe ${maskedAccountNumber}</a>, aby nadal korzystać z kart Expensify.`,
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',

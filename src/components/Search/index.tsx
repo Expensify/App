@@ -57,7 +57,9 @@ import {
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionMemberGroupListItemType,
+    isTransactionMerchantGroupListItemType,
     isTransactionMonthGroupListItemType,
+    isTransactionTagGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
@@ -845,6 +847,34 @@ function Search({
                 const categoryValue = item.category === '' ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : item.category;
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
                 newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: categoryValue}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionMerchantGroupListItemType(item)) {
+                const merchantValue = item.merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : item.merchant;
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: merchantValue}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionTagGroupListItemType(item)) {
+                const tagValue = item.tag === '' || item.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : item.tag;
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: tagValue}]});
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
