@@ -7,6 +7,7 @@ import useOnyx from './useOnyx';
 type AgentZeroStatusState = {
     isProcessing: boolean;
     reasoningHistory: string[];
+    statusLabel: string;
     kickoffWaitingIndicator: () => void;
 };
 
@@ -24,6 +25,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     const [waitingSessionVersion, setWaitingSessionVersion] = useState<number | null>(null);
     const [reasoningHistory, setReasoningHistory] = useState<string[]>([]);
 
+    const statusLabel = serverLabel ?? '';
     const isProcessing = isConciergeChat && (!!serverLabel || isOptimisticallyProcessing);
 
     useEffect(() => {
@@ -95,9 +97,10 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
         () => ({
             isProcessing,
             reasoningHistory,
+            statusLabel,
             kickoffWaitingIndicator,
         }),
-        [isProcessing, reasoningHistory, kickoffWaitingIndicator],
+        [isProcessing, reasoningHistory, statusLabel, kickoffWaitingIndicator],
     );
 }
 

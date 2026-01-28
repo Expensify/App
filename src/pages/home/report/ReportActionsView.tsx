@@ -116,7 +116,10 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
-    const {isProcessing: isConciergeProcessing, reasoningHistory: conciergeReasoningHistory} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
+    const {isProcessing: isConciergeProcessing, reasoningHistory: conciergeReasoningHistory, statusLabel: conciergeStatusLabel} = useAgentZeroStatusIndicator(
+        reportID,
+        isConciergeChat,
+    );
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
     const reportTransactionIDs = useMemo(
@@ -336,6 +339,7 @@ function ReportActionsView({
                 hasCreatedActionAdded={shouldAddCreatedAction}
                 isConciergeProcessing={isConciergeProcessing}
                 conciergeReasoningHistory={conciergeReasoningHistory}
+                conciergeStatusLabel={conciergeStatusLabel}
             />
             <UserTypingEventListener report={report} />
         </>

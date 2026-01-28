@@ -15,9 +15,10 @@ import CONST from '@src/CONST';
 
 type ConciergeThinkingMessageProps = {
     reasoningHistory?: string[];
+    statusLabel?: string;
 };
 
-function ConciergeThinkingMessage({reasoningHistory = []}: ConciergeThinkingMessageProps) {
+function ConciergeThinkingMessage({reasoningHistory = [], statusLabel = ''}: ConciergeThinkingMessageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -25,6 +26,7 @@ function ConciergeThinkingMessage({reasoningHistory = []}: ConciergeThinkingMess
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
 
     const hasReasoningHistory = reasoningHistory.length > 0;
+    const statusText = statusLabel.trim() || translate('common.thinking');
     const formattedTime = DateUtils.formatToLocalTime(new Date());
 
     const toggleExpanded = () => {
@@ -49,18 +51,18 @@ function ConciergeThinkingMessage({reasoningHistory = []}: ConciergeThinkingMess
                 </View>
                 <View style={styles.chatItemMessage}>
                     {!hasReasoningHistory ? (
-                        <Text>{translate('common.thinking')}</Text>
+                        <Text>{statusText}</Text>
                     ) : (
                         <>
                             <PressableWithFeedback
                                 onPress={toggleExpanded}
                                 style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                                 role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('common.thinking')}
+                                accessibilityLabel={statusText}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.8}
                             >
-                                <Text>{translate('common.thinking')}</Text>
+                                <Text>{statusText}</Text>
                                 <Icon
                                     src={isExpanded ? icons.UpArrow : icons.DownArrow}
                                     fill={theme.icon}

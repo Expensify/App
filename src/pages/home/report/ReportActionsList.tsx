@@ -127,6 +127,9 @@ type ReportActionsListProps = {
 
     /** Reasoning history from Concierge */
     conciergeReasoningHistory?: string[];
+
+    /** Concierge processing status label */
+    conciergeStatusLabel?: string;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -168,6 +171,7 @@ function ReportActionsList({
     hasCreatedActionAdded,
     isConciergeProcessing = false,
     conciergeReasoningHistory = [],
+    conciergeStatusLabel = '',
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -805,7 +809,7 @@ function ReportActionsList({
 
         return (
             <View>
-                {isConciergeProcessing && <ConciergeThinkingMessage reasoningHistory={conciergeReasoningHistory} />}
+                {isConciergeProcessing && <ConciergeThinkingMessage reasoningHistory={conciergeReasoningHistory} statusLabel={conciergeStatusLabel} />}
                 {canShowHeader && (
                     <ListBoundaryLoader
                         type={CONST.LIST_COMPONENTS.HEADER}
@@ -814,7 +818,7 @@ function ReportActionsList({
                 )}
             </View>
         );
-    }, [canShowHeader, retryLoadNewerChatsError, isConciergeProcessing, conciergeReasoningHistory]);
+    }, [canShowHeader, retryLoadNewerChatsError, isConciergeProcessing, conciergeReasoningHistory, conciergeStatusLabel]);
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
