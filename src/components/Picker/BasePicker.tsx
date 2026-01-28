@@ -38,6 +38,7 @@ function BasePicker<TPickerValue>({
     onBlur = () => {},
     additionalPickerEvents = () => {},
     ref,
+    accessibilityLabel,
 }: BasePickerProps<TPickerValue>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
@@ -204,15 +205,18 @@ function BasePicker<TPickerValue>({
                     onClose={disableHighlight}
                     textInputProps={{
                         allowFontScaling: false,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel,
                     }}
                     pickerProps={{
                         ref: picker,
-                        tabIndex: -1,
                         onFocus: enableHighlight,
                         onBlur: () => {
                             disableHighlight();
                             onBlur();
                         },
+                        accessibilityLabel,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
                         ...additionalPickerEvents(enableHighlight, (inputValue, index) => {
                             onValueChange(inputValue, index);
                             disableHighlight();
