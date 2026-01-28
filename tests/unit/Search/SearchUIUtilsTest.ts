@@ -15,10 +15,12 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Navigation from '@navigation/Navigation';
@@ -1978,6 +1980,118 @@ const transactionMonthGroupListItems: TransactionMonthGroupListItemType[] = [
     },
 ];
 
+const searchResultsGroupByYear: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}2026` as const]: {
+            year: 2026,
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}2025` as const]: {
+            year: 2025,
+            count: 3,
+            currency: 'USD',
+            total: 75,
+        },
+    },
+    search: {
+        count: 8,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 325,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const transactionYearGroupListItems: TransactionYearGroupListItemType[] = [
+    {
+        year: 2026,
+        count: 5,
+        currency: 'USD',
+        total: 250,
+        groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
+        formattedYear: '2026',
+        sortKey: 2026,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+    {
+        year: 2025,
+        count: 3,
+        currency: 'USD',
+        total: 75,
+        groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
+        formattedYear: '2025',
+        sortKey: 2025,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+];
+
+const searchResultsGroupByQuarter: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {
+            year: 2026,
+            quarter: 1,
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}2025_4` as const]: {
+            year: 2025,
+            quarter: 4,
+            count: 3,
+            currency: 'USD',
+            total: 75,
+        },
+    },
+    search: {
+        count: 8,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 325,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const transactionQuarterGroupListItems: TransactionQuarterGroupListItemType[] = [
+    {
+        year: 2026,
+        quarter: 1,
+        count: 5,
+        currency: 'USD',
+        total: 250,
+        groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
+        formattedQuarter: 'Q1 2026',
+        sortKey: 20261,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+    {
+        year: 2025,
+        quarter: 4,
+        count: 3,
+        currency: 'USD',
+        total: 75,
+        groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
+        formattedQuarter: 'Q4 2025',
+        sortKey: 20254,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+];
+
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
         Onyx.init({
@@ -2770,6 +2884,171 @@ describe('SearchUIUtils', () => {
             };
 
             expect(SearchUIUtils.isTransactionWeekGroupListItemType(weekItem)).toBe(true);
+        });
+
+        it('should return getYearSections result when type is EXPENSE and groupBy is year', () => {
+            expect(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByYear.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    groupBy: CONST.SEARCH.GROUP_BY.YEAR,
+                })[0],
+            ).toStrictEqual(transactionYearGroupListItems);
+        });
+
+        it('should format year names correctly', () => {
+            const dataWithDifferentYears: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026` as const]: {
+                    year: 2026,
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}2024` as const]: {
+                    year: 2024,
+                    count: 1,
+                    currency: 'USD',
+                    total: 25,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithDifferentYears,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.YEAR,
+            }) as [TransactionYearGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.formattedYear === '2026')).toBe(true);
+            expect(result.some((item) => item.formattedYear === '2024')).toBe(true);
+        });
+
+        it('should calculate sortKey correctly for year groups', () => {
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByYear.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.YEAR,
+            }) as [TransactionYearGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.sortKey === 2026)).toBe(true);
+            expect(result.some((item) => item.sortKey === 2025)).toBe(true);
+        });
+
+        it('should return isTransactionYearGroupListItemType true for year group items', () => {
+            const yearItem: TransactionYearGroupListItemType = {
+                year: 2026,
+                count: 5,
+                currency: 'USD',
+                total: 250,
+                groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
+                formattedYear: '2026',
+                sortKey: 2026,
+                transactions: [],
+                transactionsQueryJSON: undefined,
+            };
+
+            expect(SearchUIUtils.isTransactionYearGroupListItemType(yearItem)).toBe(true);
+        });
+
+        it('should return getQuarterSections result when type is EXPENSE and groupBy is quarter', () => {
+            expect(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByQuarter.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                })[0],
+            ).toStrictEqual(transactionQuarterGroupListItems);
+        });
+
+        it('should format quarter names correctly', () => {
+            const dataWithDifferentQuarters: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {
+                    year: 2026,
+                    quarter: 1,
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_3` as const]: {
+                    year: 2026,
+                    quarter: 3,
+                    count: 1,
+                    currency: 'USD',
+                    total: 25,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithDifferentQuarters,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            }) as [TransactionQuarterGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.formattedQuarter === 'Q1 2026')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q3 2026')).toBe(true);
+        });
+
+        it('should calculate sortKey correctly for quarter groups', () => {
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByQuarter.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            }) as [TransactionQuarterGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.sortKey === 20261)).toBe(true);
+            expect(result.some((item) => item.sortKey === 20254)).toBe(true);
+        });
+
+        it('should return isTransactionQuarterGroupListItemType true for quarter group items', () => {
+            const quarterItem: TransactionQuarterGroupListItemType = {
+                year: 2026,
+                quarter: 1,
+                count: 5,
+                currency: 'USD',
+                total: 250,
+                groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                formattedQuarter: 'Q1 2026',
+                sortKey: 20261,
+                transactions: [],
+                transactionsQueryJSON: undefined,
+            };
+
+            expect(SearchUIUtils.isTransactionQuarterGroupListItemType(quarterItem)).toBe(true);
         });
 
         it('should return getWeekSections result when type is EXPENSE and groupBy is week', () => {
