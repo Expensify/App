@@ -8,29 +8,15 @@ import type {GpsDraftDetails} from '@src/types/onyx';
 function useUpdateGpsTripOnReconnect() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
 
-    const updateStartAddressToHumanReadable = async (gpsPoints: GpsDraftDetails['gpsPoints']) => {
-        const firstPoint = gpsPoints.at(0);
-        if (!firstPoint) {
+    const updateAddressToHumanReadable = async (gpsPoint: GpsDraftDetails['gpsPoints'][number] | undefined, setAddress: typeof setStartAddress) => {
+        if (!gpsPoint) {
             return;
         }
 
-        const startAddress = await addressFromGpsPoint(firstPoint);
+        const startAddress = await addressFromGpsPoint(gpsPoint);
 
         if (startAddress !== null) {
-            setStartAddress({value: startAddress, type: 'address'});
-        }
-    };
-
-    const updateEndAddressToHumanReadable = async (gpsPoints: GpsDraftDetails['gpsPoints']) => {
-        const lastPoint = gpsPoints.at(-1);
-        if (!lastPoint) {
-            return;
-        }
-
-        const endAddress = await addressFromGpsPoint(lastPoint);
-
-        if (endAddress !== null) {
-            setEndAddress({value: endAddress, type: 'address'});
+            setAddress({value: startAddress, type: 'address'});
         }
     };
 
@@ -42,14 +28,15 @@ function useUpdateGpsTripOnReconnect() {
         const {gpsPoints, startAddress, endAddress} = gpsDraftDetails;
 
         if (startAddress.type === 'coordinates') {
-            updateStartAddressToHumanReadable(gpsPoints);
+            updateAddressToHumanReadable(gpsPoints.at(0), setStartAddress);
         }
 
         if (endAddress.type === 'coordinates') {
-            updateEndAddressToHumanReadable(gpsPoints);
+            updateAddressToHumanReadable(gpsPoints.at(-1), setEndAddress);
         }
     };
 
+    // This is intentional to use async/await pattern for better readability
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     useNetwork({onReconnect: updateAddressesToHumanReadable});
 }
