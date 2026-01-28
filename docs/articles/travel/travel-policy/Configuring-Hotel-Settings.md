@@ -52,16 +52,16 @@ You can also add a custom message explaining the restriction to travelers during
 
 Configure hotel restrictions by property type.
 
-When setting this up, customers will set:
+Configure the following settings:
 
 - **Property types to restrict** – Properties matching these types will be marked out-of-policy.  
-  *Note: This is a dropdown with options like Apartment, Castle, Health Spa, and Boatel.*
+  *Note: Select from property types including Apartment, Castle, Health Spa, and Boatel.*
 
 - **Restricted properties can have their own Out of Policy action** – Choose how to handle bookings that violate this restriction.  
-  *Note: Use this to require special approval for specific property types.*
+  *Note: This allows you to set different approval requirements for specific property types.*
 
 - **Tier exception** – Allow preferred properties to bypass type restrictions.  
-  *Note: Preferred hotels are set under* Program > Company > Supplier > Supplier Management.
+  *Note: To set preferred hotels, go to Program > Company > Supplier > Supplier Management.
 
 ---
 
