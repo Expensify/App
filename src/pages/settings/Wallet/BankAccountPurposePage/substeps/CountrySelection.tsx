@@ -47,7 +47,7 @@ function CountrySelection() {
                     onSubmit={onConfirm}
                     isAlertVisible={shouldShowError}
                     containerStyles={[!shouldShowError && styles.mt5]}
-                    message={translate('common.error.pleaseSelectOne')}
+                    message={translate('workspace.companyCards.addNewCard.error.pleaseSelectCountry')}
                 />
             }
         />

@@ -4,7 +4,6 @@ import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
-import type AccountVerifications from './AccountVerifications';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -200,42 +199,6 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Currency of the bank account */
     currency?: string;
-
-    /** Fields type (local/international) */
-    fieldsType?: string;
-
-    /** Whether user has full SSN */
-    hasFullSSN?: boolean;
-
-    /** Whether user is controlling officer */
-    isControllingOfficer?: boolean;
-
-    /** Whether this is from NewDot */
-    isFromNewDot?: boolean;
-
-    /** Last update timestamp */
-    lastUpdate?: string;
-
-    /** Previous state */
-    previousState?: number;
-
-    /** Verifications object */
-    verifications?: AccountVerifications;
-
-    /** Combined address field */
-    address?: string;
-
-    /** Location latitude */
-    lat?: number;
-
-    /** Location longitude */
-    lng?: number;
-
-    /** Location/place name */
-    name?: string;
-
-    /** Secondary address line */
-    street2?: string;
 };
 
 /** The step in an reimbursement account's ach data */

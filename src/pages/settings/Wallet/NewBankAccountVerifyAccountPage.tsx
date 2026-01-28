@@ -4,10 +4,10 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
-import {getCurrentUserEmail} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 
 type NewBankAccountVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT>;
 
@@ -15,7 +15,7 @@ function NewBankAccountVerifyAccountPage({route}: NewBankAccountVerifyAccountPag
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const currentUserEmail = getCurrentUserEmail();
-    const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail, allPolicies), [currentUserEmail, allPolicies]);
+    const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail ?? '', allPolicies), [currentUserEmail, allPolicies]);
     const navigateForwardTo = isAdmin ? ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE : ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route;
     const navigateBackTo = route.params?.backTo ?? ROUTES.SETTINGS_WALLET;
 
