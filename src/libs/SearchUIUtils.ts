@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
-import {format} from 'date-fns';
+import {endOfMonth, format, startOfMonth, startOfYear, subMonths} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -11,6 +11,7 @@ import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {
+    QueryFilters,
     SearchAction,
     SearchColumnType,
     SearchCustomColumnIds,
@@ -1391,6 +1392,7 @@ function getTransactionsSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
+    queryJSON?: SearchQueryJSON,
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
@@ -1409,7 +1411,8 @@ function getTransactionsSections(
 
     const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
 
-    const queryJSON = getCurrentSearchQueryJSON();
+    // Use the provided queryJSON if available, otherwise fall back to getCurrentSearchQueryJSON()
+    const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -1418,9 +1421,9 @@ function getTransactionsSections(
         let shouldShow = true;
 
         const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`);
-        if (queryJSON && !isActionLoading) {
-            if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                const status = queryJSON.status;
+        if (currentQueryJSON && !isActionLoading) {
+            if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                const status = currentQueryJSON.status;
                 if (Array.isArray(status)) {
                     shouldShow = status.some((expenseStatus) => {
                         return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report) : false;
@@ -2431,7 +2434,10 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroup.week);
+            const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(
+                DateUtils.getWeekDateRange(weekGroup.week),
+                queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
+            );
             if (queryJSON && weekGroup.week) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
@@ -2547,7 +2553,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions);
+    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions, queryJSON);
 }
 
 /**
@@ -4085,6 +4091,128 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+/**
+ * Converts a date preset string to actual date range
+ */
+function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: string} {
+    const now = new Date();
+    let start: Date;
+    let end: Date;
+
+    switch (preset) {
+        case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
+            start = startOfMonth(now);
+            end = endOfMonth(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_MONTH:
+            const lastMonth = subMonths(now, 1);
+            start = startOfMonth(lastMonth);
+            end = endOfMonth(lastMonth);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
+            start = startOfYear(now);
+            end = now;
+            break;
+        default:
+            // For other presets or unknown values, return empty range (will be ignored)
+            return {start: '', end: ''};
+    }
+
+    return {
+        start: format(start, 'yyyy-MM-dd'),
+        end: format(end, 'yyyy-MM-dd'),
+    };
+}
+
+/**
+ * Checks if a string value is a date preset
+ */
+function isDatePreset(value: string | number | undefined): value is SearchDatePreset {
+    if (typeof value !== 'string') {
+        return false;
+    }
+    return Object.values(CONST.SEARCH.DATE_PRESETS).some((datePreset) => datePreset === value);
+}
+
+function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, dateFilter: QueryFilters[0] | undefined): {start: string; end: string} {
+    if (!dateFilter || !dateFilter.filters) {
+        return timeRange;
+    }
+
+    const {start: timeRangeStart, end: timeRangeEnd} = timeRange;
+    const startLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
+    const endLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
+    const equalToFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+
+    // Check if any filter value is a date preset and convert it to actual date range
+    let limitsStart: string | undefined;
+    let limitsEnd: string | undefined;
+
+    // Handle GREATER_THAN_OR_EQUAL_TO operator
+    if (startLimitFilter?.value) {
+        const value = String(startLimitFilter.value);
+        if (isDatePreset(value)) {
+            const presetRange = getDateRangeForPreset(value);
+            limitsStart = presetRange.start || undefined;
+        } else {
+            limitsStart = value;
+        }
+    }
+
+    // Handle LOWER_THAN_OR_EQUAL_TO operator
+    if (endLimitFilter?.value) {
+        const value = String(endLimitFilter.value);
+        if (isDatePreset(value)) {
+            const presetRange = getDateRangeForPreset(value);
+            limitsEnd = presetRange.end || undefined;
+        } else {
+            limitsEnd = value;
+        }
+    }
+
+    // Handle EQUAL_TO operator (for presets like "this-month", "last-month", "year-to-date")
+    if (equalToFilter?.value) {
+        const value = String(equalToFilter.value);
+        if (isDatePreset(value)) {
+            const presetRange = getDateRangeForPreset(value);
+            if (presetRange.start && presetRange.end) {
+                // If we don't have start/end limits yet, use the preset range
+                if (!limitsStart) {
+                    limitsStart = presetRange.start;
+                }
+                if (!limitsEnd) {
+                    limitsEnd = presetRange.end;
+                }
+                // If we have both limits, use the intersection (max start, min end)
+                if (limitsStart && presetRange.start > limitsStart) {
+                    limitsStart = presetRange.start;
+                }
+                if (limitsEnd && presetRange.end < limitsEnd) {
+                    limitsEnd = presetRange.end;
+                }
+            }
+        }
+    }
+
+    // Adjust the start date: use max(timeRangeStart, limitsStart) if limitsStart exists
+    // Dates are in YYYY-MM-DD format, so lexicographic comparison works correctly
+    let adjustedStart = timeRangeStart;
+    if (limitsStart && limitsStart > timeRangeStart) {
+        adjustedStart = limitsStart;
+    }
+
+    // Adjust the end date: use min(timeRangeEnd, limitsEnd) if limitsEnd exists
+    let adjustedEnd = timeRangeEnd;
+    if (limitsEnd && limitsEnd < timeRangeEnd) {
+        adjustedEnd = limitsEnd;
+    }
+
+    return {
+        start: adjustedStart,
+        end: adjustedEnd,
+    };
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -4140,5 +4268,6 @@ export {
     getCustomColumnDefault,
     getToFieldValueForTransaction,
     isTodoSearch,
+    adjustTimeRangeToDateFilters,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
