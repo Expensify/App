@@ -124,7 +124,10 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 <View style={[styles.mt3]}>
                     {sortedRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
-                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName);
+                        const isExactMatch = rule.filters?.operator === 'matches';
+                        const matchDescription = isExactMatch
+                            ? translate('workspace.rules.merchantRules.ruleSummaryTitleExact', merchantName)
+                            : translate('workspace.rules.merchantRules.ruleSummaryTitleContains', merchantName);
                         const ruleDescription = getRuleDescription(rule, translate, fieldLabels);
 
                         return (
