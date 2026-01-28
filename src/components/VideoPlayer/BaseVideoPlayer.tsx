@@ -490,6 +490,7 @@ function BaseVideoPlayer({
                                             }
                                             videoPlayerElementParentRef.current = el;
                                         }}
+                                        pointerEvents="none"
                                     >
                                         <VideoView
                                             // has to be switched to fullscreenOptions={{enable: true}} when mobile Safari gets fixed
