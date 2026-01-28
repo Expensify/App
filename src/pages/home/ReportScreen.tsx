@@ -23,6 +23,7 @@ import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -295,6 +296,20 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         [reportOnyx, reportNameValuePairsOnyx?.private_isArchived, permissions],
     );
     const reportID = report?.reportID;
+    const parentReportID = getNonEmptyStringOnyxID(report?.parentReportID);
+    const parentReport = parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] : undefined;
+    const isConciergeChat = useMemo(
+        () =>
+            !!report &&
+            (isConciergeChatReport(report, conciergeReportID) || isConciergeChatReport(parentReport, conciergeReportID)),
+        [report, parentReport, conciergeReportID],
+    );
+    const {
+        isProcessing: isConciergeProcessing,
+        reasoningHistory: conciergeReasoningHistory,
+        statusLabel: conciergeStatusLabel,
+        kickoffWaitingIndicator,
+    } = useAgentZeroStatusIndicator(reportID ?? '', isConciergeChat);
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
     const prevReport = usePrevious(report);
@@ -1091,6 +1106,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 parentReportAction={parentReportAction}
                                                 transactionThreadReportID={transactionThreadReportID}
                                                 isReportTransactionThread={isTransactionThreadView}
+                                                isConciergeProcessing={isConciergeProcessing}
+                                                conciergeReasoningHistory={conciergeReasoningHistory}
+                                                conciergeStatusLabel={conciergeStatusLabel}
                                             />
                                         ) : null}
                                         {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
@@ -1120,6 +1138,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                                 isInSidePanel={isInSidePanel}
+                                                kickoffWaitingIndicator={kickoffWaitingIndicator}
                                             />
                                         ) : null}
                                     </View>

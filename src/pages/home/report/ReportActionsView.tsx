@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
@@ -32,7 +31,7 @@ import {
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isConciergeChatReport, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,6 +66,15 @@ type ReportActionsViewProps = {
 
     /** If the report is a transaction thread report */
     isReportTransactionThread?: boolean;
+
+    /** Whether Concierge is currently processing */
+    isConciergeProcessing?: boolean;
+
+    /** Reasoning history from Concierge */
+    conciergeReasoningHistory?: string[];
+
+    /** Concierge processing status label */
+    conciergeStatusLabel?: string;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -80,6 +88,9 @@ function ReportActionsView({
     hasNewerActions,
     hasOlderActions,
     isReportTransactionThread,
+    isConciergeProcessing = false,
+    conciergeReasoningHistory = [],
+    conciergeStatusLabel = '',
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -115,11 +126,6 @@ function ReportActionsView({
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(false);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
-    const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
-    const {isProcessing: isConciergeProcessing, reasoningHistory: conciergeReasoningHistory, statusLabel: conciergeStatusLabel} = useAgentZeroStatusIndicator(
-        reportID,
-        isConciergeChat,
-    );
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
     const reportTransactionIDs = useMemo(

@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
 type ConciergeThinkingMessageProps = {
@@ -72,9 +73,9 @@ function ConciergeThinkingMessage({reasoningHistory = [], statusLabel = ''}: Con
                             </PressableWithFeedback>
                             {isExpanded && (
                                 <View style={[styles.mt2, styles.ml2, styles.pl3, styles.borderLeft]}>
-                                    {reasoningHistory.map((item, index) => (
+                                    {reasoningHistory.map((item) => (
                                         <View
-                                            key={`reasoning-${index}`}
+                                            key={`reasoning-${StringUtils.hash(item)}`}
                                             style={styles.mb2}
                                         >
                                             <RenderHTML html={Parser.replace(item)} />
