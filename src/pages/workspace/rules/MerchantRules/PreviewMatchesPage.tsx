@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
@@ -189,7 +190,6 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     return (
         <ScreenWrapper
             testID="PreviewMatchesPage"
-            shouldShowOfflineIndicatorInWideScreen
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -197,37 +197,40 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                 title={translate('workspace.rules.merchantRules.previewMatches')}
                 onBackButtonPress={onBack}
             />
-            <View style={[styles.flex1]}>
-                {!!isLoading && (
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <ActivityIndicator
-                            color={theme.spinner}
-                            size={25}
-                            style={[styles.pl3]}
+
+            <FullPageOfflineBlockingView>
+                <View style={[styles.flex1]}>
+                    {!!isLoading && (
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                            <ActivityIndicator
+                                color={theme.spinner}
+                                size={25}
+                                style={[styles.pl3]}
+                            />
+                        </View>
+                    )}
+
+                    {isLoadedAndEmpty && (
+                        <BlockingView
+                            icon={illustrations.Telescope}
+                            iconWidth={variables.emptyListIconWidth}
+                            iconHeight={variables.emptyListIconHeight}
+                            title={translate('workspace.rules.merchantRules.previewMatchesEmptyStateTitle')}
+                            subtitle={translate('workspace.rules.merchantRules.previewMatchesEmptyStateSubtitle')}
+                            containerStyle={styles.pb10}
                         />
-                    </View>
-                )}
+                    )}
 
-                {isLoadedAndEmpty && (
-                    <BlockingView
-                        icon={illustrations.Telescope}
-                        iconWidth={variables.emptyListIconWidth}
-                        iconHeight={variables.emptyListIconHeight}
-                        title={translate('workspace.rules.merchantRules.previewMatchesEmptyStateTitle')}
-                        subtitle={translate('workspace.rules.merchantRules.previewMatchesEmptyStateSubtitle')}
-                        containerStyle={styles.pb10}
-                    />
-                )}
-
-                {isLoadedWithTransactions && (
-                    <FlashList
-                        data={matchingTransactionsArray}
-                        renderItem={renderItem}
-                        keyExtractor={keyExtractor}
-                        contentContainerStyle={[styles.mh5]}
-                    />
-                )}
-            </View>
+                    {isLoadedWithTransactions && (
+                        <FlashList
+                            data={matchingTransactionsArray}
+                            renderItem={renderItem}
+                            keyExtractor={keyExtractor}
+                            contentContainerStyle={[styles.mh5]}
+                        />
+                    )}
+                </View>
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
