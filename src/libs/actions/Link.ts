@@ -30,7 +30,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Account, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
-import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, setOnboardingErrorMessage} from './Welcome';
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from './Welcome/OnboardingFlow';
@@ -248,9 +248,29 @@ function openReportFromDeepLink(
     onboardingInitialPath: OnyxEntry<string>,
     reports: OnyxCollection<Report>,
     isAuthenticated: boolean,
+    isUrlChangeEvent: boolean,
     conciergeReportID: string | undefined,
 ) {
     const reportID = getReportIDFromLink(url);
+    const hasReportLocally = !!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID;
+
+    // For URL change events (app already running), handle differently to avoid placeholder issue
+    if (isUrlChangeEvent) {
+        const route = getRouteFromLink(url);
+
+        if (reportID && !isAuthenticated) {
+            // For public rooms with unauthenticated user, call openReport to authenticate
+            // Use isFromDeepLink: false to avoid IS_CHECKING_PUBLIC_ROOM side effects
+
+            openReport(reportID, '', [], undefined, '0', false);
+        }
+
+        // Navigate directly - the report screen will show the data when it arrives
+        if (route) {
+            Navigation.navigate(route as Route);
+        }
+        return;
+    }
 
     if (reportID && !isAuthenticated) {
         // Start span for public room API call
@@ -268,8 +288,13 @@ function openReportFromDeepLink(
             endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
             doneCheckingPublicRoom();
         }
+    } else if (reportID && isAuthenticated && !hasReportLocally) {
+        // For authenticated users, if the report doesn't exist locally yet, fetch it
+        // This can happen when opening a deep link before the reports collection is loaded
+
+        openReport(reportID, '', [], undefined, '0', true);
     } else {
-        // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
+        // If we're not opening a public room (no reportID) or the user is authenticated with the report already loaded, we unblock the UI (hide splash screen)
         doneCheckingPublicRoom();
     }
 
@@ -340,12 +365,29 @@ function openReportFromDeepLink(
                             const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
                                 // Check if the report exists in the collection
                                 const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                                const currentTopmostReportId = Navigation.getTopmostReportId();
+                                const isNowAuthenticated = hasAuthToken();
+
+                                // If we're already on the target report, don't navigate again
+                                // React Navigation's linking config already handled the navigation
+                                if (reportID && currentTopmostReportId === reportID) {
+                                    return;
+                                }
+
+                                // If the user is now authenticated (either as anonymous or signed in user) and the report exists,
+                                // React Navigation's linking should have already handled the navigation.
+                                // Skip explicit navigation to avoid double navigation causing placeholder/flicker.
+                                if (isNowAuthenticated && report?.reportID && !report.errorFields?.notFound) {
+                                    return;
+                                }
+
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
                                 if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
                                     const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                        Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
+
+                                        Navigation.navigate(lastAccessedReportRoute, {forceReplace: currentTopmostReportId === reportID});
                                         return;
                                     }
                                     navigateToConciergeChat(conciergeReportID, false, () => true);
@@ -358,11 +400,9 @@ function openReportFromDeepLink(
                             };
                             // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                            if (
-                                reportID &&
-                                !isAuthenticated &&
-                                (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID)
-                            ) {
+                            const shouldWaitForReport =
+                                reportID && !isAuthenticated && (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID);
+                            if (shouldWaitForReport) {
                                 const reportConnection = Onyx.connectWithoutView({
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return
