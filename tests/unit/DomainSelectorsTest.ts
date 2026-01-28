@@ -1,8 +1,17 @@
-import { adminAccountIDsSelector, adminPendingActionSelector, defaultSecurityGroupIDSelector, domainEmailSelector, domainSettingsPrimaryContactSelector, isSecurityGroupEntry, memberAccountIDsSelector, selectSecurityGroupsForAccount, technicalContactSettingsSelector } from '@selectors/Domain';
-import type { OnyxEntry } from 'react-native-onyx';
+import {
+    adminAccountIDsSelector,
+    adminPendingActionSelector,
+    defaultSecurityGroupIDSelector,
+    domainEmailSelector,
+    domainSettingsPrimaryContactSelector,
+    isSecurityGroupEntry,
+    memberAccountIDsSelector,
+    selectSecurityGroupsForAccount,
+    technicalContactSettingsSelector,
+} from '@selectors/Domain';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type { CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings } from '@src/types/onyx';
-
+import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
 
 describe('domainSelectors', () => {
     const userID1 = 123;
@@ -324,7 +333,7 @@ describe('domainSelectors', () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 domain_defaultSecurityGroupID: '1',
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: securityGroup,
-            };
+            } as unknown as Domain;
 
             const result = selectSecurityGroupsForAccount(123)(domain);
 
@@ -347,7 +356,7 @@ describe('domainSelectors', () => {
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: group1,
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: group2,
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}3`]: group3,
-            };
+            } as unknown as Domain;
 
             const result = selectSecurityGroupsForAccount(123)(domain);
 
