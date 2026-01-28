@@ -379,7 +379,9 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
                             }
                         };
 
-                        handleDeeplinkNavigation();
+                        if (isAnonymousUser()) {
+                            handleDeeplinkNavigation();
+                        }
                     });
                 },
             });
