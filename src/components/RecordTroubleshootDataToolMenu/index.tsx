@@ -2,6 +2,7 @@ import JSZip from 'jszip';
 import React, {useRef, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
+import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseRecordTroubleshootDataToolMenu from './BaseRecordTroubleshootDataToolMenu';
