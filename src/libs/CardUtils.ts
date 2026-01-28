@@ -145,7 +145,7 @@ function isCardClosed(card: Card) {
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldFilterOutPersonalCards = false) {
     const feedCards: CardList = {};
     for (const card of Object.values(cardList ?? {})) {
-        if (!isCard(card) || (shouldFilterOutPersonalCards && !isPersonalCard(card))) {
+        if (!isCard(card) || (shouldFilterOutPersonalCards && isPersonalCard(card))) {
             continue;
         }
 
