@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -640,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Note de frais en double',
         newFeature: 'Nouvelle fonctionnalité',
         month: 'Mois',
+        home: 'Accueil',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -767,13 +770,13 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Révoquer',
             title: 'Reconnaissance faciale/empreinte digitale et passkeys',
             explanation:
-                'La vérification par reconnaissance faciale/empreinte digitale ou passkey est activée sur un ou plusieurs appareils. Révoquer l’accès nécessitera un code magique pour la prochaine vérification sur n’importe quel appareil',
+                'La vérification par reconnaissance faciale/empreinte digitale ou par passkey est activée sur un ou plusieurs appareils. Révoquer l’accès exigera un code magique pour la prochaine vérification sur n’importe quel appareil',
             confirmationPrompt: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil',
             cta: 'Révoquer l’accès',
             noDevices:
-                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale, empreinte digitale ou Passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
+                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale/empreinte digitale ou par passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
             dismiss: 'Compris',
-            error: 'La demande a échoué. Veuillez réessayer plus tard.',
+            error: 'La requête a échoué. Veuillez réessayer plus tard.',
         },
     },
     validateCodeModal: {
@@ -797,7 +800,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Retournez sur l’appareil d’origine et demandez un nouveau code',
         successfulNewCodeRequest: 'Code demandé. Veuillez vérifier votre appareil.',
         tfaRequiredTitle: dedent(`
-            Authentification à deux facteurs  
+            Authentification à deux facteurs
             requise
         `),
         tfaRequiredDescription: dedent(`
@@ -930,6 +933,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Ceci est votre espace personnel. Utilisez-le pour vos notes, tâches, brouillons et rappels.',
         beginningOfChatHistorySystemDM: 'Bienvenue ! Commençons votre configuration.',
         chatWithAccountManager: 'Discutez avec votre gestionnaire de compte ici',
+        askMeAnything: 'Posez-moi toutes vos questions !',
         sayHello: 'Dites bonjour !',
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
@@ -1503,6 +1507,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Corrigez l’erreur de taux de distance et réessayez.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'a marqué la dépense comme « remboursable »' : 'a marqué la dépense comme « non remboursable »';
+                }
+                if (key === 'billable') {
+                    return value ? 'a marqué la dépense comme « facturable »' : 'a marqué la dépense comme « non refacturable »';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `définir le taux de taxe sur « ${taxRateName} »`;
+                    }
+                    return `taux de taxe vers « ${taxRateName} »`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `définir ${translations.common[key].toLowerCase()} sur « ${updatedValue} »`;
+                }
+                return `${translations.common[key].toLowerCase()} à « ${updatedValue} »`;
+            });
+            return `${formatList(fragments)} via les <a href="${policyRulesRoute}">règles de l’espace de travail</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -4672,7 +4702,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Quel est l’ID du script ?',
-                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous : 
+                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous :
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Cliquez sur un segment personnalisé.
@@ -6373,6 +6403,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 confirmError: 'Saisissez un marchand et appliquez au moins une mise à jour',
                 confirmErrorMerchant: 'Veuillez saisir le commerçant',
                 confirmErrorUpdate: 'Veuillez appliquer au moins une mise à jour',
+                editRuleTitle: 'Modifier la règle',
+                deleteRule: 'Supprimer la règle',
+                deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
             },
         },
         planTypePage: {
@@ -6912,6 +6945,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
         topCategories: 'Catégories principales',
+        topMerchants: 'Principaux commerçants',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             approve: 'Approuver',
@@ -6974,6 +7008,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             },
             feed: 'Flux',
@@ -6996,6 +7032,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             accessPlaceHolder: 'Ouvrir pour plus de détails',
         },
         noCategory: 'Aucune catégorie',
+        noMerchant: 'Aucun commerçant',
         noTag: 'Aucune étiquette',
         expenseType: 'Type de dépense',
         withdrawalType: 'Type de retrait',

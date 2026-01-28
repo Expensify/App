@@ -33,7 +33,9 @@ import type {
     SearchCategoryGroup,
     SearchDataTypes,
     SearchMemberGroup,
+    SearchMerchantGroup,
     SearchMonthGroup,
+    SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWithdrawalIDGroup,
@@ -509,6 +511,16 @@ type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {
 type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
         /** Final and formatted "category" value used for displaying and sorting */
         formattedCategory?: string;
+    };
+
+type TransactionMerchantGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MERCHANT} & SearchMerchantGroup & {
+        /** Final and formatted "merchant" value used for displaying and sorting */
+        formattedMerchant?: string;
+    };
+
+type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
+        /** Final and formatted "tag" value used for displaying and sorting */
+        formattedTag?: string;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -1154,6 +1166,8 @@ export type {
     TransactionCardGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionTagGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,
