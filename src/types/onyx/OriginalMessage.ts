@@ -1143,7 +1143,7 @@ type OriginalMessageTakeControl = {
 };
 
 /**
- * Model of SETTLEMENTACCOUNTLOCKED report action
+ * Model of settlement account locked report action
  */
 type OriginalMessageSettlementAccountLocked = {
     /** The masked bank account number that was locked */
@@ -1151,7 +1151,7 @@ type OriginalMessageSettlementAccountLocked = {
 
     /** The policy the bank account is connected to and is being notified */
     policyID: string;
-}
+};
 
 /**
  * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED, CARD_ISSUED_VIRTUAL and CARD_ISSUED_VIRTUAL actions
