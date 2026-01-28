@@ -5090,9 +5090,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     ctaText: 'Prośba wysłana',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Zarezerwuj lub zarządzaj swoją podróżą',
-                    subtitle: 'Użyj Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzaj wszystkimi wydatkami służbowymi w jednym miejscu.',
-                    ctaText: 'Rezerwuj lub zarządzaj',
+                    title: 'Rezerwacja podróży',
+                    subtitle: 'Gratulacje! Wszystko gotowe, aby rezerwować i zarządzać podróżami w tym obszarze roboczym.',
+                    ctaText: 'Zarządzaj podróżami',
+                },
+                settings: {
+                    autoAddTripName: {title: 'Dodaj nazwy podróży do wydatków', subtitle: 'Automatycznie dodawaj nazwy podróży do opisów wydatków dla podróży zarezerwowanych w Expensify.'},
                 },
                 travelInvoicing: {
                     travelBookingSection: {

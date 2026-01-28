@@ -5101,10 +5101,12 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     subtitle: 'We bekijken momenteel uw verzoek om Expensify Travel in te schakelen. Maak u geen zorgen, we laten u weten wanneer het klaar is.',
                     ctaText: 'Verzoek verzonden',
                 },
-                bookOrManageYourTrip: {
-                    title: 'Boek of beheer uw reis',
-                    subtitle: 'Gebruik Expensify Travel om de beste reisaanbiedingen te krijgen en beheer al uw zakelijke uitgaven op één plek.',
-                    ctaText: 'Boeken of beheren',
+                bookOrManageYourTrip: {title: 'Reisboeking', subtitle: 'Gefeliciteerd! Je bent helemaal klaar om reizen in deze workspace te boeken en te beheren.', ctaText: 'Reis beheren'},
+                settings: {
+                    autoAddTripName: {
+                        title: 'Voeg reisinamen toe aan uitgaven',
+                        subtitle: 'Voeg automatisch reisinamen toe aan onkostbeschrijvingen voor reizen die in Expensify zijn geboekt.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {title: 'Reisboeking', subtitle: 'Gefeliciteerd! Je kunt nu reizen boeken en beheren in deze werkruimte.', manageTravelLabel: 'Reizen beheren'},

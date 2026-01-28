@@ -5120,9 +5120,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     ctaText: 'Anfrage gesendet',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Buchen oder verwalten Sie Ihre Reise',
-                    subtitle: 'Nutzen Sie Expensify Travel für die besten Reiseangebote und verwalten Sie alle Ihre Geschäftsausgaben an einem Ort.',
-                    ctaText: 'Buchen oder verwalten',
+                    title: 'Reisebuchung',
+                    subtitle: 'Glückwunsch! Du bist jetzt bereit, in diesem Workspace Reisen zu buchen und zu verwalten.',
+                    ctaText: 'Reisen verwalten',
+                },
+                settings: {
+                    autoAddTripName: {
+                        title: 'Reisenamen zu Ausgaben hinzufügen',
+                        subtitle: 'Reisenamen automatisch zu Ausgabenbeschreibungen hinzufügen für Reisen, die in Expensify gebucht wurden.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
