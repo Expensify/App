@@ -64,9 +64,9 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
-        const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
+        const missingRequiredColumns = requiredColumns.filter((requiredColumn) => !columns.includes(requiredColumn.value)).map((requiredColumn) => requiredColumn.text).join(', ');
         if (missingRequiredColumns) {
-            errors.required = translate('workspace.companyCards.addNewCard.csvErrors.requiredColumns', missingRequiredColumns.text);
+            errors.required = translate('workspace.companyCards.addNewCard.csvErrors.requiredColumns', missingRequiredColumns);
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
