@@ -82,6 +82,31 @@ You can issue virtual or physical cards to employees:
 
 ---
 
+# Freeze or unfreeze Expensify Cards
+
+As a Workspace Admin, you can freeze or unfreeze any card in your workspace - without needing to cancel or reissue it.
+
+Freezing a card is helpful if:
+- You suspect misuse or a policy violation
+- You want to temporarily pause employee spending
+- You're enforcing a department-wide budget freeze
+
+### To freeze or unfreeze a card:
+
+1. Go to **Settings > Workspaces > [Workspace Name] > Expensify Card**.
+2. Click a card from the list to open its details pane.
+3. Tap **Freeze card** or **Unfreeze card**.
+4. Confirm the action in the popup modal.
+
+Once frozen:
+- The card immediately stops working for purchases
+- You'll see a note below the card indicating who froze the card and when
+- The employee sees the same message and cannot unfreeze the card themselves
+
+All freeze/unfreeze actions are automatically posted to the workspace chat.
+
+---
+
 # FAQ
 
 ## What kind of bank account is required?
