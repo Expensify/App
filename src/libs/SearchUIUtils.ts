@@ -2020,7 +2020,10 @@ function getReportSections({
 
             const transactionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
-            const transaction = {
+            const transaction: TransactionListItemType = {
+                ...transactionItem,
+                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                allActions,
                 report,
                 reportAction,
                 holdReportAction: holdReportActionsByTransactionID.get(transactionItem.transactionID),
