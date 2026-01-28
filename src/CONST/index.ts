@@ -1293,6 +1293,7 @@ const CONST = {
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 REROUTE: 'REROUTE',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
+                SETTLEMENT_ACCOUNT_LOCKED:'SETTLEMENTACCOUNTLOCKED',
                 SHARE: 'SHARE', // OldDot Action
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',

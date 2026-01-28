@@ -1129,6 +1129,17 @@ type OriginalMessageTakeControl = {
 };
 
 /**
+ * Model of SETTLEMENTACCOUNTLOCKED report action
+ */
+type OriginalMessageSettlementAccountLocked = {
+    /** The masked bank account number that was locked */
+    maskedBankAccountNumber: string;
+
+    /** The policy the bank account is connected to and is being notified */
+    policyID: string;
+}
+
+/**
  * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED, CARD_ISSUED_VIRTUAL and CARD_ISSUED_VIRTUAL actions
  */
 type IssueNewCardOriginalMessage = OriginalMessage<
@@ -1256,6 +1267,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
+    [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
 } & OldDotOriginalMessageMap &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
@@ -1284,4 +1296,5 @@ export type {
     OriginalMessageConciergeAutoMapMccGroups,
     OriginalMessageCompanyCardConnectionBroken,
     OriginalMessageReimbursementDirectorInformationRequired,
+    OriginalMessageSettlementAccountLocked,
 };

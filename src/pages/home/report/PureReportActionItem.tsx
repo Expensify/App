@@ -1640,6 +1640,13 @@ function PureReportActionItem({
                     <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(translate, action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
+            const originalMessage = getOriginalMessage(action) ?? {maskedBankAccountNumber: '', policyID: ''};
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${translate('report.actions.type.settlementAccountLocked', originalMessage)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
