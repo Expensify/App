@@ -234,6 +234,12 @@ function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boo
     if (!cardName || cardName === '') {
         return '';
     }
+
+    // CSV imported cards use user-provided display names, not card numbers - return as-is
+    if (feed === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD) {
+        return cardName;
+    }
+
     const hasSpace = /\s/.test(cardName);
     const maskedString = cardName.replaceAll('X', '•');
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
