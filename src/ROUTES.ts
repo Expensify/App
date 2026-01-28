@@ -2677,36 +2677,40 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new` as const,
     },
     RULES_MERCHANT_MERCHANT_TO_MATCH: {
-        route: 'workspaces/:policyID/rules/merchant-rules/new/merchant-to-match',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/merchant-to-match` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-to-match` as const,
     },
     RULES_MERCHANT_MERCHANT: {
-        route: 'workspaces/:policyID/rules/merchant-rules/new/merchant',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/merchant` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant` as const,
     },
     RULES_MERCHANT_CATEGORY: {
-        route: 'workspaces/:policyID/rules/merchant-rules/new/category',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/category` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/category',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category` as const,
     },
     RULES_MERCHANT_TAG: {
-        route: 'workspaces/:policyID/rules/merchant-rules/new/tag',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/tag` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag` as const,
     },
     RULES_MERCHANT_TAX: {
-        route: 'workspaces/:policyID/rules/merchant-rules/new/tax',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/tax` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax` as const,
     },
     RULES_MERCHANT_DESCRIPTION: {
-        route: 'workspaces/:policyID/rules/merchant-rules/new/description',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/description` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/description',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/description` as const,
     },
     RULES_MERCHANT_REIMBURSABLE: {
-        route: 'workspaces/:policyID/rules/merchant-rules/new/reimbursable',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/reimbursable` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/reimbursable',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/reimbursable` as const,
     },
     RULES_MERCHANT_BILLABLE: {
-        route: 'workspaces/:policyID/rules/merchant-rules/new/billable',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/billable` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/billable',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/billable` as const,
+    },
+    RULES_MERCHANT_EDIT: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID}` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {

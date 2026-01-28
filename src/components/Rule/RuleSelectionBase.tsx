@@ -48,7 +48,6 @@ function RuleSelectionBase({titleKey, testID, selectedItem, items, onSave, onBac
         <RuleNotFoundPageWrapper hash={hash}>
             <ScreenWrapper
                 testID={testID}
-                shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
                 shouldEnableMaxHeight
             >
