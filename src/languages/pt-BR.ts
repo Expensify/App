@@ -7003,6 +7003,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
         },
         topSpenders: 'Maiores gastadores',
+        view: {label: 'Visualizar', table: 'Tabela', bar: 'Gráfico'},
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',

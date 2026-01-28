@@ -7053,6 +7053,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
         topSpenders: 'Plus gros dépensiers',
+        view: {label: 'Afficher', table: 'Tableau', bar: 'Graphique'},
     },
     genericErrorPage: {
         title: 'Oh oh, quelque chose s’est mal passé !',

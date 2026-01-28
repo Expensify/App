@@ -7002,6 +7002,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             allMatchingItemsSelected: 'Wybrano wszystkie pasujące elementy',
         },
         topSpenders: 'Najwięksi wydający',
+        view: {label: 'Wyświetl', table: 'Tabela', bar: 'Wykres'},
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',

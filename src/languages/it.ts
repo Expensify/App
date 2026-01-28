@@ -7030,6 +7030,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         topSpenders: 'Maggiori spenditori',
+        view: {label: 'Visualizza', table: 'Tabella', bar: 'Grafico'},
     },
     genericErrorPage: {
         title: 'Uh-oh, qualcosa è andato storto!',
