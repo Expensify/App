@@ -3620,57 +3620,6 @@ function getColumnsToShow(
             return result;
         }
 
-        if (groupBy === CONST.SEARCH.GROUP_BY.WEEK) {
-            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]);
-            const result: SearchColumnType[] = [];
-
-            for (const col of requiredColumns) {
-                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
-                    result.push(col);
-                }
-            }
-
-            for (const col of columnsToShow ?? []) {
-                result.push(col);
-            }
-
-            return result;
-        }
-
-        if (groupBy === CONST.SEARCH.GROUP_BY.TAG) {
-            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG]);
-            const result: SearchColumnType[] = [];
-
-            for (const col of requiredColumns) {
-                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
-                    result.push(col);
-                }
-            }
-
-            for (const col of columnsToShow ?? []) {
-                result.push(col);
-            }
-
-            return result;
-        }
-
-        if (groupBy === CONST.SEARCH.GROUP_BY.WEEK) {
-            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]);
-            const result: SearchColumnType[] = [];
-
-            for (const col of requiredColumns) {
-                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
-                    result.push(col);
-                }
-            }
-
-            for (const col of columnsToShow ?? []) {
-                result.push(col);
-            }
-
-            return result;
-        }
-
         if (groupBy === CONST.SEARCH.GROUP_BY.TAG) {
             const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG]);
             const result: SearchColumnType[] = [];
@@ -3690,6 +3639,23 @@ function getColumnsToShow(
 
         if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
             const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!(columnsToShow as SearchColumnType[]).includes(col)) {
+                    result.push(col);
+                }
+            }
+
+            for (const col of columnsToShow ?? []) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.WEEK) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]);
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
