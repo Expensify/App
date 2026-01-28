@@ -66,7 +66,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     columns,
     groupBy,
     searchType,
-    accountID,
     isOffline,
     newTransactionID,
     violations,
@@ -120,7 +119,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const [sectionData] = getSections({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             data: transactionsSnapshot?.data,
-            currentAccountID: accountID,
+            currentAccountID: currentUserDetails.accountID,
             currentUserEmail: currentUserDetails.email ?? '',
             translate,
             formatPhoneNumber,
@@ -134,12 +133,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [
         isExpenseReportType,
         transactionsSnapshot?.data,
-        accountID,
         translate,
         formatPhoneNumber,
         groupItem.transactions,
         selectedTransactionIDsSet,
         currentUserDetails.email,
+        currentUserDetails.accountID,
         isActionLoadingSet,
         bankAccountList,
     ]);
@@ -433,7 +432,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 onCheckboxPress={onCheckboxPress}
                                 columns={columns}
                                 groupBy={groupBy}
-                                accountID={accountID}
+                                accountID={currentUserDetails.accountID}
                                 isOffline={isOffline}
                                 violations={violations}
                                 transactions={transactions}
