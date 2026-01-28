@@ -2,7 +2,8 @@ import React from 'react';
 import type {ListItem, TransactionCategoryGroupListItemType} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
-import BaseListItemHeader, {type BaseListItemHeaderProps} from './BaseListItemHeader';
+import type {BaseListItemHeaderProps} from './BaseListItemHeader';
+import BaseListItemHeader from './BaseListItemHeader';
 
 type CategoryListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
     /** The category currently being looked at */
