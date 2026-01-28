@@ -4,7 +4,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext';
+import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchContext} from '@components/Search/SearchContext';
