@@ -13,6 +13,7 @@ import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank} from '@libs/CardUtils';
@@ -32,6 +33,7 @@ function SelectBankStep() {
     const illustrations = useThemeIllustrations();
     const companyCardBankIcons = useCompanyCardBankIcons();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
@@ -66,7 +68,8 @@ function SelectBankStep() {
     }, [bankSelected, isFileImportSelected, isOtherBankSelected]);
 
     useEffect(() => {
-        setBankSelected(addNewCard?.data.selectedBank);
+        const selectedBank = addNewCard?.data.selectedBank;
+        setBankSelected(selectedBank);
     }, [addNewCard?.data.selectedBank]);
 
     const handleBackButtonPress = () => {
@@ -87,7 +90,11 @@ function SelectBankStep() {
         return bank;
     };
 
-    const data = Object.values(CONST.COMPANY_CARDS.BANKS).map((bank) => ({
+    const availableBanks = isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT)
+        ? Object.values(CONST.COMPANY_CARDS.BANKS)
+        : Object.values(CONST.COMPANY_CARDS.BANKS).filter((bank) => bank !== CONST.COMPANY_CARDS.BANKS.FILE_IMPORT);
+
+    const data = availableBanks.map((bank) => ({
         value: bank,
         text: getBankDisplayText(bank),
         keyForList: bank,
