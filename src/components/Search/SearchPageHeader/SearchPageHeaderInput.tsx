@@ -67,18 +67,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const queryText = buildUserReadableQueryString(
-        queryJSON,
-        personalDetails,
-        reports,
-        taxRates,
-        nonPersonalAndWorkspaceCards,
-        allFeeds,
-        policies,
-        currentUserAccountID,
-        true,
-        translate,
-    );
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, policies, currentUserAccountID, true, translate);
 
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT, {canBeMissing: true});
     const shouldShowQuery = searchContext?.shouldShowSearchQuery ?? false;

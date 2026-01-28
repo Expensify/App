@@ -20,7 +20,6 @@ import type {
     SearchStatus,
     SearchWithdrawalType,
     SelectedTransactionInfo,
-    SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
