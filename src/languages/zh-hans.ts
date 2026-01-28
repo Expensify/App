@@ -760,10 +760,9 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: '使用您的脸部或指纹启用快速安全验证。无需密码或代码。',
         },
         revoke: {
-            revoke: '撤销',
             title: '面部识别/指纹识别与通行密钥',
-            explanation: '一台或多台设备已启用面部/指纹或通行密钥验证。吊销访问权限后，下次在任何设备上进行验证时都需要输入魔法验证码。',
-            confirmationPrompt: '你确定吗？在任何设备上进行下一步验证时，你都需要一个魔法代码。',
+            explanation: '一个或多个设备已启用面容 / 指纹或通行密钥验证。撤销访问后，下次在任何设备上进行验证时都需要输入魔术代码。',
+            confirmationPrompt: '你确定吗？接下来在任何设备上进行验证时，你都需要使用魔法验证码。',
             cta: '撤销访问权限',
             noDevices: '您尚未注册任何用于人脸/指纹或通行密钥验证的设备。如果您注册了设备，您将可以在此撤销其访问权限。',
             dismiss: '明白了',
