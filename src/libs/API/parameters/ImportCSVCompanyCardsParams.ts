@@ -7,6 +7,9 @@ type ImportCSVCompanyCardsParams = {
 
     /** Stringified JSON array of column mappings, ordered by column index */
     templateSettings: string;
+
+    /** Stringified JSON array of imported row data */
+    data: string;
 };
 
 export default ImportCSVCompanyCardsParams;

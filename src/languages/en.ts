@@ -4799,6 +4799,10 @@ const translations = {
                     tag: 'Tag',
                     uniqueID: 'Unique ID',
                 },
+                csvErrors: {
+                    requiredColumns: 'TEMP MESSAGE - Please map all required columns before continuing.',
+                    duplicateColumns: 'TEMP MESSAGE - Each field can only be mapped once.',
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Last day of the month',

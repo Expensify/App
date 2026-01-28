@@ -1000,6 +1000,17 @@ function setFeedStatementPeriodEndDay(
     API.write(WRITE_COMMANDS.SET_FEED_STATEMENT_PERIOD_END_DAY, parameters, {optimisticData, successData, failureData});
 }
 
+function importCSVCompanyCards(policyID: string, templateName: string, templateSettings: string[], data: string[][]) {
+    const parameters: ImportCSVCompanyCardsParams = {
+        policyID,
+        templateName,
+        templateSettings: JSON.stringify(templateSettings),
+        data: JSON.stringify(data),
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters);
+}
+
 function clearErrorField(bankName: CompanyCardFeed, domainAccountID: number, fieldName: keyof CardFeedData) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         settings: {

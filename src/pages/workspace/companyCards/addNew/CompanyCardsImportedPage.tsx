@@ -67,13 +67,11 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
+            errors.required = translate('workspace.companyCards.addNewCard.csvErrors.requiredColumns');
         } else {
             const duplicate = findDuplicate(columns);
-            const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
-
-            if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
+            if (duplicate) {
+                errors.duplicates = translate('workspace.companyCards.addNewCard.csvErrors.duplicateColumns');
             } else {
                 errors = {};
             }
@@ -87,7 +85,16 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         if (Object.keys(errors).length > 0) {
             return;
         }
-    }, [validate]);
+
+        if (!templateName) {
+            return;
+        }
+
+        const templateSettings = columnNames.map((_, index) => spreadsheet?.columns?.[index] ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
+        const columns = spreadsheet?.data ?? [];
+        const rows = columns.at(0)?.map((_, rowIndex) => columns.map((column) => column.at(rowIndex) ?? '')) ?? [];
+        importCSVCompanyCards(policyID, templateName, templateSettings, rows);
+    }, [columnNames, policyID, spreadsheet?.columns, spreadsheet?.data, templateName, validate]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
