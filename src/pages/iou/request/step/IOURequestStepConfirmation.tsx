@@ -692,7 +692,7 @@ function IOURequestStepConfirmation({
             if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
                 return;
             }
-            if (iouType === CONST.IOU.TYPE.TRACK && selfDMReport) {
+            if (iouType === CONST.IOU.TYPE.TRACK) {
                 submitPerDiemExpenseForSelfDM({
                     selfDMReport,
                     policy,

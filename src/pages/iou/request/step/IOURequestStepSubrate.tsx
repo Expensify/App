@@ -16,12 +16,11 @@ import ValuePicker from '@components/ValuePicker';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPerDiemCustomUnit, getPolicyByCustomUnitID} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {addSubrate, getIOURequestPolicyID, removeSubrate, updateSubrate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -70,11 +69,14 @@ function IOURequestStepSubrate({
 }: IOURequestStepSubrateProps) {
     const styles = useThemeStyles();
     const iouPolicyID = getIOURequestPolicyID(transaction, report);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
-    const policyID = iouPolicyID === CONST.POLICY.ID_FAKE ? customUnitPolicy?.id : iouPolicyID;
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: iouPolicyID,
+        action,
+        iouType,
+        isPerDiemRequest: true,
+    });
 
-    const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();

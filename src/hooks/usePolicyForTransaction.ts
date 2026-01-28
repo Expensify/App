@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -29,13 +29,19 @@ type UsePolicyForTransactionResult = {
     policy: OnyxEntry<Policy>;
 };
 
+const customUnitPolicySelector = (policies: OnyxCollection<Policy>, transaction: OnyxEntry<Transaction>) => getPolicyByCustomUnitID(transaction, policies);
+
 function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, isPerDiemRequest}: UsePolicyForTransactionParams): UsePolicyForTransactionResult {
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const [customUnitPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: (policies) => customUnitPolicySelector(policies, transaction),
+    });
     const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`, {canBeMissing: true});
 
     const isUnreportedExpense = isExpenseUnreported(transaction);
-    const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
     const policyForSelfDMExpense = isPerDiemRequest ? customUnitPolicy : policyForMovingExpenses;
