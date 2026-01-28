@@ -4093,6 +4093,12 @@ const CONST = {
         ERROR: 'error',
         INFO: 'info',
     },
+    ACTION_BADGE_VERBS: {
+        SUBMIT: 'Submit',
+        APPROVE: 'Approve',
+        PAY: 'Pay',
+        EXPORT: 'Export',
+    },
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',
         INVITE: 'invite',

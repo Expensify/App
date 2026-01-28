@@ -1079,6 +1079,18 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeExtraSmall,
         },
 
+        actionBadgeDot: {
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+        },
+
+        actionBadgeText: {
+            fontSize: variables.fontSizeSmall,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...whiteSpace.noWrap,
+        },
+
         border: {
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,

@@ -544,6 +544,65 @@ function getTransactionThreadPrimaryAction(
     return '';
 }
 
+type ActionBadge = {
+    verb: ValueOf<typeof CONST.ACTION_BADGE_VERBS>;
+};
+
+type GetReportActionBadgeParams = {
+    report: Report | undefined;
+    currentUserAccountID: number;
+    currentUserLogin: string;
+    bankAccountList: OnyxEntry<BankAccountList>;
+    policy?: Policy;
+    reportNameValuePairs?: ReportNameValuePairs;
+    reportTransactions: Transaction[];
+    reportActions?: ReportAction[];
+};
+
+/**
+ * Determines which action badge (if any) should be shown for a report in the LHN.
+ * Checks actions in workflow order from furthest down to earliest:
+ * Export (reimbursed) > Pay (approved) > Approve (submitted) > Submit (open)
+ */
+function getReportActionBadge({
+    report,
+    currentUserAccountID,
+    currentUserLogin,
+    bankAccountList,
+    policy,
+    reportNameValuePairs,
+    reportTransactions,
+    reportActions,
+}: GetReportActionBadgeParams): ActionBadge | null {
+    if (!report) {
+        return null;
+    }
+
+    // Only show action badges for expense reports
+    if (!isExpenseReportUtils(report)) {
+        return null;
+    }
+
+    // Check in workflow order (furthest down first): Export > Pay > Approve > Submit
+    if (isExportAction(report, currentUserLogin, policy, reportActions)) {
+        return {verb: CONST.ACTION_BADGE_VERBS.EXPORT};
+    }
+
+    if (isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, bankAccountList, policy, reportNameValuePairs)) {
+        return {verb: CONST.ACTION_BADGE_VERBS.PAY};
+    }
+
+    if (isApproveAction(report, reportTransactions, currentUserAccountID, policy)) {
+        return {verb: CONST.ACTION_BADGE_VERBS.APPROVE};
+    }
+
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
+        return {verb: CONST.ACTION_BADGE_VERBS.SUBMIT};
+    }
+
+    return null;
+}
+
 export {
     getReportPrimaryAction,
     getTransactionThreadPrimaryAction,
@@ -556,4 +615,7 @@ export {
     isPrimaryMarkAsResolvedAction,
     getAllExpensesToHoldIfApplicable,
     isReviewDuplicatesAction,
+    getReportActionBadge,
 };
+
+export type {ActionBadge};
