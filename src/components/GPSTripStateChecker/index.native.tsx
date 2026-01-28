@@ -3,20 +3,24 @@ import React, {useEffect, useState} from 'react';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {setEndAddress, setIsTracking} from '@libs/actions/GPSDraftDetails';
+import {addressFromGpsPoint, coordinatesToString} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
-import addressFromGpsPoint from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/addressFromGpsPoint';
-import coordinatesToString from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/coordinatesToString';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {useSplashScreenState} from '@src/SplashScreenStateContext';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+
+    const {splashScreenState} = useSplashScreenState();
 
     useUpdateGpsTripOnReconnect();
 
@@ -45,8 +49,8 @@ function GPSTripStateChecker() {
     }, []);
 
     const navigateToGpsScreen = () => {
-        const optimisticReportID = generateReportID();
-        Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
+        const reportID = gpsDraftDetails?.reportID ?? generateReportID();
+        Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
     };
 
     const continueGpsTrip = async () => {
@@ -100,7 +104,7 @@ function GPSTripStateChecker() {
 
     return (
         <ConfirmModal
-            isVisible={showContinueTripModal}
+            isVisible={showContinueTripModal && splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN}
             title={translate('gps.continueGpsTripModal.title')}
             prompt={translate('gps.continueGpsTripModal.prompt')}
             shouldReverseStackedButtons
