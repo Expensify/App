@@ -78,14 +78,14 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     isControlPolicy: boolean,
     isInvoice = false,
 ): T[] {
-    // No missingAttendees violation for invoices
+    // Don't show missingAttendees violation on invoices
     if (isInvoice) {
         return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
     }
 
     const hasMissingAttendeesViolation = violations.some((v) => v.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
     const shouldShowMissingAttendees =
-        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled);
+        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
 
     if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
         // Add violation when it should show but isn't present from BE
