@@ -44,7 +44,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             });
             return;
         }

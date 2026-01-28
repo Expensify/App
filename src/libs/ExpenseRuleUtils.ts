@@ -54,7 +54,7 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
     if (rule.tag) {
         addChange('tag', getCleanedTagName(rule.tag));
     }
-    if (rule.tax?.field_id_TAX) {
+    if (rule.tax?.field_id_TAX?.value) {
         addChange('tax', rule.tax.field_id_TAX.value);
     }
     if (rule.report) {
