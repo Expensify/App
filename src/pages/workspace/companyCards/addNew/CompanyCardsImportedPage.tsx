@@ -27,7 +27,9 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const policyID = route.params.policyID;
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
-    const templateName = addNewCard?.data?.companyCardLayoutName ?? '';
+    const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
+    // TODO: Identify how to move forward with possibly an optimistic layout type.
+    const layoutType = 'ccuploadxyz';
 
     const columnNames = useMemo(() => generateColumnNames(spreadsheet?.data?.length ?? 0), [spreadsheet?.data?.length]);
 
@@ -86,15 +88,26 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             return;
         }
 
-        if (!templateName) {
+        if (!layoutName) {
             return;
         }
 
-        const templateSettings = columnNames.map((_, index) => spreadsheet?.columns?.[index] ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
+        const settings = columnNames.map((_, index) => spreadsheet?.columns?.[index] ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
+        
+        // Transform columns-based data to rows-based data, including the header
         const columns = spreadsheet?.data ?? [];
-        const rows = columns.at(0)?.map((_, rowIndex) => columns.map((column) => column.at(rowIndex) ?? '')) ?? [];
-        importCSVCompanyCards(policyID, templateName, templateSettings, rows);
-    }, [columnNames, policyID, spreadsheet?.columns, spreadsheet?.data, templateName, validate]);
+        const rows: string[][] = [];
+        if (columns.length > 0) {
+            for (let rowIndex = 0; rowIndex < columns[0].length; rowIndex++) {
+                const row: string[] = [];
+                for (let colIndex = 0; colIndex < columns.length; colIndex++) {
+                    row.push(columns[colIndex][rowIndex] ?? '');
+                }
+                rows.push(row);
+            }
+        }
+        importCSVCompanyCards(policyID, layoutName, layoutType, settings, rows);
+    }, [columnNames, policyID, spreadsheet?.columns, spreadsheet?.data, layoutName, layoutType, validate]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
