@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxKey} from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
-import type {EnablePolicyFeatureCommand, RequestMatcher} from '@libs/actions/RequestConflictUtils';
+import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
@@ -13,7 +13,7 @@ import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
+import type {AnyRequest, OnyxData, PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
 import {READ_COMMANDS} from './types';
@@ -171,10 +171,10 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand, TKey
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
-    requestMatcher: RequestMatcher<TKey> = (request) => request.command === command,
+    requestMatcher: AnyRequestMatcher = (request) => request.command === command,
 ): Promise<void | Response<TKey>> {
     const conflictResolver = {
-        checkAndFixConflictingRequest: (persistedRequests: Array<OnyxRequest<TKey>>) => resolveDuplicationConflictAction(persistedRequests, requestMatcher),
+        checkAndFixConflictingRequest: (persistedRequests: AnyRequest[]) => resolveDuplicationConflictAction(persistedRequests, requestMatcher),
     };
 
     return write(command, apiCommandParameters, onyxData, conflictResolver);

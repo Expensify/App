@@ -1,32 +1,10 @@
-import type {CustomTypeOptions, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import type OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import type {Merge} from 'type-fest';
+import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 import type Response from './Response';
 
-/**
- * Represents type options to configure all Onyx methods.
- * It's a combination of predefined options with user-provided options (CustomTypeOptions).
- *
- * The user-defined options (CustomTypeOptions) are merged into these predefined options.
- * In case of conflicting properties, the ones from CustomTypeOptions are prioritized.
- */
-type TypeOptions = Merge<
-    {
-        /** Represents a string union of all Onyx normal keys. */
-        keys: string;
-        /** Represents a string union of all Onyx collection keys. */
-        collectionKeys: string;
-        /** Represents a Record where each key is an Onyx key and each value is its corresponding Onyx value type. */
-        values: Record<string, unknown>;
-    },
-    CustomTypeOptions
->;
-
-/** Represents a string union of all Onyx collection keys. */
-type CollectionKeyBase = TypeOptions['collectionKeys'];
-
 /** Expands an Onyx key, allowing template patterns for collections or enforcing literals otherwise. */
-type ExpandOnyxKeys<TKey extends OnyxKey> = TKey extends CollectionKeyBase ? NoInfer<`${TKey}${string}`> : TKey;
+type ExpandOnyxKeys<TKey extends OnyxKey> = TKey extends OnyxCollectionKey ? NoInfer<`${TKey}${string}`> : TKey;
 
 /**
  * Represents an OnyxUpdate type without strict type checks on the value.
@@ -206,12 +184,11 @@ type ConflictActionData = {
  * Generic base for objects that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
  */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-interface RequestConflictResolverBase<TRequest> {
+type RequestConflictResolverBase<TKey extends OnyxKey> = {
     /**
      * A function that checks if a new request conflicts with any existing requests in the queue.
      */
-    checkAndFixConflictingRequest?(persistedRequest: TRequest[]): ConflictActionData;
+    checkAndFixConflictingRequest?(persistedRequest: Array<Request<TKey>>): ConflictActionData;
 
     /**
      * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads
@@ -223,19 +200,20 @@ interface RequestConflictResolverBase<TRequest> {
      * A boolean flag to mark a request as rollback, if set to true it means the request failed and was added back into the queue.
      */
     isRollback?: boolean;
-}
+};
 
 /**
  * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
  */
-type RequestConflictResolver<TKey extends OnyxKey> = RequestConflictResolverBase<Request<TKey>>;
+type RequestConflictResolver<TKey extends OnyxKey> = RequestConflictResolverBase<TKey>;
 
 /**
  * Loosely typed object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
  */
-type AnyRequestConflictResolver = RequestConflictResolverBase<AnyRequest>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyRequestConflictResolver = RequestConflictResolverBase<any>;
 
 /** Model of requests sent to the API */
 type AnyRequest = AnyRequestData & AnyRequestConflictResolver;
