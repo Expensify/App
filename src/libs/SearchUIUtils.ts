@@ -2547,13 +2547,7 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            // Calculate quarter date range: Q1 (Jan-Mar), Q2 (Apr-Jun), Q3 (Jul-Sep), Q4 (Oct-Dec)
-            const quarterStartMonth = (quarterGroup.quarter - 1) * 3 + 1; // 1, 4, 7, 10
-            const quarterEndMonth = quarterGroup.quarter * 3; // 3, 6, 9, 12
-            const quarterStart = `${quarterGroup.year}-${String(quarterStartMonth).padStart(2, '0')}-01`;
-            // Get last day of quarter end month (Date constructor uses 0-indexed months, so quarterEndMonth gives last day of previous month)
-            const quarterEndDate = new Date(quarterGroup.year, quarterEndMonth, 0);
-            const quarterEnd = `${quarterGroup.year}-${String(quarterEndMonth).padStart(2, '0')}-${String(quarterEndDate.getDate()).padStart(2, '0')}`;
+            const {start: quarterStart, end: quarterEnd} = DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter);
             if (queryJSON && quarterGroup.year !== undefined && quarterGroup.quarter !== undefined) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
@@ -2567,7 +2561,7 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
-            const formattedQuarter = `Q${quarterGroup.quarter} ${quarterGroup.year}`;
+            const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter);
 
             quarterSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
