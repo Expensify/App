@@ -5,6 +5,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -52,6 +53,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
@@ -74,6 +78,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             draftComments,
             nvpDismissedProductTraining,
             loginList,
+            currentUserAccountID,
+            currentUserEmail,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
@@ -81,14 +87,26 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             },
             countryCode,
         );
-    }, [areOptionsInitialized, options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails]);
+    }, [
+        areOptionsInitialized,
+        options.reports,
+        options.personalDetails,
+        allPolicies,
+        draftComments,
+        nvpDismissedProductTraining,
+        loginList,
+        countryCode,
+        personalDetails,
+        currentUserAccountID,
+        currentUserEmail,
+    ]);
 
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));
     }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -103,7 +121,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, currentUserAccountID, currentUserEmail]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -117,6 +135,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             chatOptions.recentReports,
             chatOptions.personalDetails,
             privateIsArchivedMap,
+            currentUserAccountID,
             personalDetails,
             true,
             undefined,
@@ -169,7 +188,18 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, privateIsArchivedMap]);
+    }, [
+        areOptionsInitialized,
+        cleanSearchTerm,
+        selectedOptions,
+        chatOptions,
+        personalDetails,
+        reportAttributesDerived,
+        translate,
+        formatPhoneNumber,
+        currentUserAccountID,
+        privateIsArchivedMap,
+    ]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);

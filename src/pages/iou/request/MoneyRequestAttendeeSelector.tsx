@@ -10,6 +10,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {SectionListDataType} from '@components/SelectionListWithSections/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -71,10 +72,16 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
 
-    const recentAttendeeLists = useMemo(() => getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? []), [personalDetails, attendees, recentAttendees]);
+    const recentAttendeeLists = useMemo(
+        () => getFilteredRecentAttendees(personalDetails, attendees, recentAttendees ?? [], currentUserEmail, currentUserAccountID),
+        [personalDetails, attendees, recentAttendees, currentUserEmail, currentUserAccountID],
+    );
     const initialSelectedOptions = useMemo(
         () =>
             attendees.map((attendee) => ({
@@ -210,6 +217,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             orderedAvailableOptions.recentReports,
             orderedAvailableOptions.personalDetails,
             privateIsArchivedMap,
+            currentUserAccountID,
             personalDetails,
             true,
             undefined,
@@ -244,6 +252,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     status: orderedAvailableOptions.userToInvite?.status ?? undefined,
                 },
                 loginList,
+                currentUserEmail,
             )
         ) {
             newSections.push({
@@ -252,7 +261,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 shouldShow: true,
@@ -264,7 +273,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             !!orderedAvailableOptions?.userToInvite,
             cleanSearchTerm,
             countryCode,
-            attendees.some((attendee) => getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            attendees.some((attendee) => getPersonalDetailSearchTerms(attendee, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
         return [newSections, headerMessage];
@@ -283,6 +292,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         countryCode,
         translate,
         privateIsArchivedMap,
+        currentUserAccountID,
+        currentUserEmail,
     ]);
 
     const optionLength = useMemo(() => {

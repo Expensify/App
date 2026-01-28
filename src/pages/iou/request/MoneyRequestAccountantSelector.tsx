@@ -8,6 +8,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -67,6 +68,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -88,6 +92,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             draftComments,
             nvpDismissedProductTraining,
             loginList,
+            currentUserAccountID,
+            currentUserEmail,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -115,6 +121,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         betas,
         action,
         countryCode,
+        currentUserAccountID,
+        currentUserEmail,
         personalDetails,
     ]);
 
@@ -128,12 +136,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -153,6 +161,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             chatOptions.recentReports,
             chatOptions.personalDetails,
             privateIsArchivedMap,
+            currentUserAccountID,
             personalDetails,
             true,
             undefined,
@@ -177,6 +186,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             !isCurrentUser(
                 {...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID, status: chatOptions.userToInvite?.status ?? undefined},
                 loginList,
+                currentUserEmail,
             )
         ) {
             newSections.push({
@@ -185,7 +195,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
@@ -214,6 +224,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         loginList,
         countryCode,
         privateIsArchivedMap,
+        currentUserAccountID,
+        currentUserEmail,
     ]);
 
     const selectAccountant = useCallback(
