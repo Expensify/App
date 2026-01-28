@@ -11,7 +11,6 @@ import type {PersonalDetails} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDebounce from './useDebounce';
 import useDebouncedState from './useDebouncedState';
-import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
@@ -169,7 +168,6 @@ function useSearchSelectorBase({
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
-    const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -194,7 +192,6 @@ function useSearchSelectorBase({
         switch (searchContext) {
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
                 return getSearchOptions({
-                    translate,
                     options: optionsWithContacts,
                     draftComments,
                     nvpDismissedProductTraining,
@@ -217,7 +214,6 @@ function useSearchSelectorBase({
                     draftComments,
                     nvpDismissedProductTraining,
                     policyTags,
-                    translate,
                     loginList,
                     currentUserAccountID,
                     currentUserEmail,
@@ -241,7 +237,6 @@ function useSearchSelectorBase({
                     draftComments,
                     nvpDismissedProductTraining,
                     policyTags,
-                    translate,
                     loginList,
                     currentUserAccountID,
                     currentUserEmail,
@@ -263,7 +258,6 @@ function useSearchSelectorBase({
                     draftComments,
                     nvpDismissedProductTraining,
                     policyTags,
-                    translate,
                     loginList,
                     currentUserAccountID,
                     currentUserEmail,
@@ -290,7 +284,6 @@ function useSearchSelectorBase({
                     draftComments,
                     nvpDismissedProductTraining,
                     policyTags,
-                    translate,
                     loginList,
                     currentUserAccountID,
                     currentUserEmail,
@@ -320,7 +313,6 @@ function useSearchSelectorBase({
                     draftComments,
                     nvpDismissedProductTraining,
                     policyTags,
-                    translate,
                     loginList,
                     currentUserAccountID,
                     currentUserEmail,
@@ -347,7 +339,6 @@ function useSearchSelectorBase({
     }, [
         areOptionsInitialized,
         searchContext,
-        translate,
         optionsWithContacts,
         draftComments,
         nvpDismissedProductTraining,

@@ -848,7 +848,6 @@ function createOption(
     accountIDs: number[],
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     report: OnyxInputOrEntry<Report>,
-    translate: LocalizedTranslate,
     policyTags: OnyxEntry<PolicyTagLists>,
     currentUserAccountID: number,
     config?: PreviewConfig,
@@ -931,7 +930,7 @@ function createOption(
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         result.lastMessageText = getLastMessageTextForReport({
-            translate,
+            translate: translateLocal,
             report,
             lastActorDetails,
             isReportArchived: !!result.private_isArchived,
@@ -1013,8 +1012,6 @@ function getReportOption(
         visibleParticipantAccountIDs,
         personalDetails ?? {},
         !isEmptyObject(report) ? report : undefined,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        translateLocal,
         policyTags,
         currentUserAccountID,
         {
@@ -1074,8 +1071,6 @@ function getReportDisplayOption(
         visibleParticipantAccountIDs,
         personalDetails ?? {},
         !isEmptyObject(report) ? report : undefined,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        translateLocal,
         policyTags,
         currentUserAccountID,
         {
@@ -1115,7 +1110,6 @@ function getReportDisplayOption(
 function getPolicyExpenseReportOption(
     participant: Participant | SearchOptionData,
     policyTags: OnyxCollection<PolicyTagLists>,
-    translate: LocalizedTranslate,
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
@@ -1130,7 +1124,6 @@ function getPolicyExpenseReportOption(
         visibleParticipantAccountIDs,
         personalDetails ?? {},
         !isEmptyObject(expenseReport) ? expenseReport : null,
-        translate,
         reportPolicyTags,
         currentUserAccountID,
         {
@@ -1246,7 +1239,6 @@ function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array
 function processReport(
     report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    translate: LocalizedTranslate,
     policyTags: OnyxEntry<PolicyTagLists>,
     currentUserAccountID: number,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
@@ -1273,7 +1265,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, translate, policyTags, currentUserAccountID, undefined, reportAttributesDerived),
+            ...createOption(accountIDs, personalDetails, report,  policyTags, currentUserAccountID, undefined, reportAttributesDerived),
         },
     };
 }
@@ -1281,7 +1273,6 @@ function processReport(
 function createOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     policyTags: OnyxCollection<PolicyTagLists>,
-    translate: LocalizedTranslate,
     currentUserAccountID: number,
     reports?: OnyxCollection<Report>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
@@ -1294,7 +1285,7 @@ function createOptionList(
     if (reports) {
         for (const report of Object.values(reports)) {
             const reportPolicyTags = report?.policyID ? policyTags?.[report?.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
-            const {reportMapEntry, reportOption} = processReport(report, personalDetails, translate, reportPolicyTags, currentUserAccountID, reportAttributesDerived);
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportPolicyTags, currentUserAccountID, reportAttributesDerived);
 
             if (reportMapEntry) {
                 const [accountID, reportValue] = reportMapEntry;
@@ -1316,7 +1307,6 @@ function createOptionList(
                 [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 personalDetails,
                 report,
-                translate,
                 policyTagList,
                 currentUserAccountID,
                 {
@@ -1356,7 +1346,6 @@ function createFilteredOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reports: OnyxCollection<Report>,
     policyTags: OnyxCollection<PolicyTagLists>,
-    translate: LocalizedTranslate,
     currentUserAccountID: number,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     options: {
@@ -1415,7 +1404,7 @@ function createFilteredOptionList(
     const reportOptions: Array<SearchOption<Report>> = [];
     for (const report of limitedReports) {
         const reportPolicyTags = report?.policyID ? policyTags?.[report?.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
-        const {reportMapEntry, reportOption} = processReport(report, personalDetails, translate, reportPolicyTags, currentUserAccountID, reportAttributesDerived);
+        const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportPolicyTags, currentUserAccountID, reportAttributesDerived);
 
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -1451,7 +1440,6 @@ function createFilteredOptionList(
                       [accountID],
                       personalDetails,
                       reportMapForAccountIDs[accountID],
-                      translate,
                       reportPolicyTags,
                       currentUserAccountID,
                       {showPersonalDetails: true},
@@ -1471,7 +1459,6 @@ function createOptionFromReport(
     report: Report,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     policyTags: OnyxEntry<PolicyTagLists>,
-    translate: LocalizedTranslate,
     currentUserAccountID: number,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     config?: PreviewConfig,
@@ -1480,7 +1467,7 @@ function createOptionFromReport(
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, translate, policyTags, currentUserAccountID, config, reportAttributesDerived),
+        ...createOption(accountIDs, personalDetails, report,  policyTags, currentUserAccountID, config, reportAttributesDerived),
     };
 }
 
@@ -1759,7 +1746,6 @@ function canCreateOptimisticPersonalDetailOption({
  */
 function getUserToInviteOption({
     searchValue,
-    translate,
     loginsToExclude = {},
     selectedOptions = [],
     showChatPreviewLine = false,
@@ -1796,7 +1782,7 @@ function getUserToInviteOption({
             login: searchValue,
         },
     };
-    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, translate, undefined, currentUserAccountID, {
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, undefined, currentUserAccountID, {
         showChatPreviewLine,
     });
     userToInvite.isOptimisticAccount = true;
@@ -2217,7 +2203,6 @@ function getValidOptions(
     draftComments: OnyxCollection<string> | undefined,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
     policyTags: OnyxCollection<PolicyTagLists>,
-    translate: LocalizedTranslate,
     loginList: OnyxEntry<Login>,
     currentUserAccountID: number,
     currentUserEmail: string,
@@ -2443,7 +2428,6 @@ function getValidOptions(
         userToInvite = filterUserToInvite(
             {currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions},
             searchString ?? '',
-            translate,
             loginList,
             currentUserEmail,
             currentUserAccountID,
@@ -2466,7 +2450,6 @@ function getValidOptions(
 }
 
 type SearchOptionsConfig = {
-    translate: LocalizedTranslate;
     options: OptionList;
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
     draftComments: OnyxCollection<string>;
@@ -2497,7 +2480,6 @@ function getSearchOptions({
     nvpDismissedProductTraining,
     betas,
     policyTags,
-    translate,
     isUsedInChatFinder = true,
     includeReadOnly = true,
     searchQuery = '',
@@ -2521,7 +2503,6 @@ function getSearchOptions({
         draftComments,
         nvpDismissedProductTraining,
         policyTags,
-        translate,
         loginList,
         currentUserAccountID,
         currentUserEmail,
@@ -2646,7 +2627,6 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
-    translate: LocalizedTranslate,
     loginList: OnyxEntry<Login>,
     currentUserAccountID: number,
     currentUserEmail: string,
@@ -2661,7 +2641,6 @@ function getMemberInviteOptions(
         undefined,
         nvpDismissedProductTraining,
         {},
-        translate,
         loginList,
         currentUserAccountID,
         currentUserEmail,
@@ -2739,7 +2718,6 @@ function formatSectionsFromSearchTerm(
     filteredRecentReports: SearchOptionData[],
     filteredPersonalDetails: SearchOptionData[],
     policyTags: OnyxCollection<PolicyTagLists>,
-    translate: LocalizedTranslate,
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
@@ -2757,7 +2735,7 @@ function formatSectionsFromSearchTerm(
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                           return isReportPolicyExpenseChat
-                              ? getPolicyExpenseReportOption(participant, policyTags, translate, currentUserAccountID, personalDetails, reportAttributesDerived)
+                              ? getPolicyExpenseReportOption(participant, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived)
                               : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
@@ -2785,7 +2763,7 @@ function formatSectionsFromSearchTerm(
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
                       return isReportPolicyExpenseChat
-                          ? getPolicyExpenseReportOption(participant, policyTags, translate, currentUserAccountID, personalDetails, reportAttributesDerived)
+                          ? getPolicyExpenseReportOption(participant, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived)
                           : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,
@@ -2910,7 +2888,6 @@ function filterCurrentUserOption(currentUserOption: SearchOptionData | null | un
 function filterUserToInvite(
     options: Omit<Options, 'userToInvite'>,
     searchValue: string,
-    translate: LocalizedTranslate,
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -2941,7 +2918,6 @@ function filterUserToInvite(
         searchValue,
         loginsToExclude,
         countryCode,
-        translate,
         loginList,
         currentUserEmail,
         currentUserAccountID,
@@ -2982,7 +2958,6 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
 function filterOptions(
     options: Options,
     searchInputValue: string,
-    translate: LocalizedTranslate,
     countryCode: number,
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
@@ -3006,7 +2981,6 @@ function filterOptions(
             currentUserOption,
         },
         searchValue,
-        translate,
         loginList,
         currentUserEmail,
         currentUserAccountID,
@@ -3068,7 +3042,6 @@ function combineOrderingOfReportsAndPersonalDetails(
 function filterAndOrderOptions(
     options: Options,
     searchInputValue: string,
-    translate: LocalizedTranslate,
     countryCode: number,
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
@@ -3077,7 +3050,7 @@ function filterAndOrderOptions(
 ): Options {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, config);
+        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, config);
     }
 
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);

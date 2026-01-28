@@ -71,7 +71,6 @@ function ShareTab({ref}: ShareTabProps) {
             return defaultListOptions;
         }
         return getSearchOptions({
-            translate,
             options,
             draftComments,
             nvpDismissedProductTraining,
@@ -89,7 +88,6 @@ function ShareTab({ref}: ShareTabProps) {
         });
     }, [
         areOptionsInitialized,
-        translate,
         options,
         draftComments,
         nvpDismissedProductTraining,

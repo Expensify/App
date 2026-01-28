@@ -105,7 +105,6 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             draftComments,
             nvpDismissedProductTraining,
             policyTags,
-            translate,
             loginList,
             currentUserAccountID,
             currentUserEmail,
@@ -123,7 +122,6 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         draftComments,
         nvpDismissedProductTraining,
         policyTags,
-        translate,
         loginList,
         currentUserAccountID,
         currentUserEmail,
@@ -135,7 +133,6 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         return filterAndOrderOptions(
             optionsList,
             cleanSearchTerm,
-            translate,
             countryCode,
             loginList,
             currentUserEmail,
@@ -147,7 +144,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                 canInviteUser: false,
             },
         );
-    }, [optionsList, cleanSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID]);
+    }, [optionsList, cleanSearchTerm,  countryCode, loginList, currentUserEmail, currentUserAccountID]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({

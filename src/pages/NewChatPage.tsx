@@ -57,7 +57,6 @@ type SelectedOption = ListItem &
     };
 
 function useOptions() {
-    const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -105,7 +104,6 @@ function useOptions() {
         draftComments,
         nvpDismissedProductTraining,
         policyTags,
-        translate,
         loginList,
         currentUserAccountID,
         currentUserEmail,
@@ -122,7 +120,7 @@ function useOptions() {
 
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -165,7 +163,6 @@ function useOptions() {
                       personalDetails.find((option) => option.accountID === participant.accountID) ??
                       getUserToInviteOption({
                           searchValue: participant?.login,
-                          translate,
                           loginList,
                           currentUserEmail: personalData.email ?? '',
                           currentUserAccountID: personalData.accountID,
@@ -276,7 +273,6 @@ function NewChatPage({ref}: NewChatPageProps) {
         recentReports,
         personalDetails,
         undefined,
-        translate,
         currentUserAccountID,
         allPersonalDetails,
         undefined,

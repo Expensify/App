@@ -293,7 +293,6 @@ function MoneyRequestParticipantsSelector({
             [],
             [],
             policyTags,
-            translate,
             currentUserAccountID,
             personalDetails,
             true,
@@ -348,7 +347,7 @@ function MoneyRequestParticipantsSelector({
                 data: [availableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, policyTags, translate, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
@@ -361,28 +360,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         return [newSections, headerMessage];
-    }, [
-        areOptionsInitialized,
-        didScreenTransitionEnd,
-        searchTerm,
-        participants,
-        policyTags,
-        translate,
-        personalDetails,
-        reportAttributesDerived,
-        availableOptions.workspaceChats,
-        availableOptions.selfDMChat,
-        availableOptions.userToInvite,
-        availableOptions.recentReports,
-        availableOptions.personalDetails,
-        isWorkspacesOnly,
-        loginList,
-        isPerDiemRequest,
-        showImportContacts,
-        inputHelperText,
-        currentUserAccountID,
-        currentUserEmail,
-    ]);
+    }, [areOptionsInitialized, didScreenTransitionEnd, searchTerm, participants, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived, translate, availableOptions.workspaceChats, availableOptions.selfDMChat, availableOptions.userToInvite, availableOptions.recentReports, availableOptions.personalDetails, isWorkspacesOnly, loginList, currentUserEmail, isPerDiemRequest, showImportContacts, inputHelperText]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.

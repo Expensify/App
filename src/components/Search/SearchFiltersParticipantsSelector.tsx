@@ -76,7 +76,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             draftComments,
             nvpDismissedProductTraining,
             policyTags,
-            translate,
             loginList,
             currentUserAccountID,
             currentUserEmail,
@@ -87,28 +86,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             },
             countryCode,
         );
-    }, [
-        areOptionsInitialized,
-        options.reports,
-        options.personalDetails,
-        allPolicies,
-        draftComments,
-        nvpDismissedProductTraining,
-        policyTags,
-        translate,
-        loginList,
-        currentUserAccountID,
-        currentUserEmail,
-        personalDetails,
-        countryCode,
-    ]);
+    }, [areOptionsInitialized, options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, loginList, currentUserAccountID, currentUserEmail, personalDetails, countryCode]);
 
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));
     }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -123,7 +108,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, selectedOptions]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -137,7 +122,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             chatOptions.recentReports,
             chatOptions.personalDetails,
             undefined,
-            translate,
             currentUserAccountID,
             personalDetails,
             true,

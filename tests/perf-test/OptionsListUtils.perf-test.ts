@@ -93,7 +93,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const options = createOptionList(personalDetails, undefined, jest.fn(), MOCK_CURRENT_USER_ACCOUNT_ID, reports);
+const options = createOptionList(personalDetails, undefined, MOCK_CURRENT_USER_ACCOUNT_ID, reports);
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -138,7 +138,6 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,
                 policyTags: undefined,
-                translate: jest.fn(),
             }),
         );
     });
@@ -152,14 +151,13 @@ describe('OptionsListUtils', () => {
             {},
             nvpDismissedProductTraining,
             undefined,
-            jest.fn(),
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
             ValidOptionsConfig,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, jest.fn(), COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -170,14 +168,13 @@ describe('OptionsListUtils', () => {
             {},
             nvpDismissedProductTraining,
             undefined,
-            jest.fn(),
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
             ValidOptionsConfig,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', jest.fn(), COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID);
+            filterAndOrderOptions(formattedOptions, '',  COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID);
         });
     });
 
@@ -191,7 +188,6 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 undefined,
-                jest.fn(),
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
@@ -220,7 +216,6 @@ describe('OptionsListUtils', () => {
             getMemberInviteOptions(
                 options.personalDetails,
                 nvpDismissedProductTraining,
-                jest.fn(),
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
@@ -275,7 +270,6 @@ describe('OptionsListUtils', () => {
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
                 undefined,
-                jest.fn(),
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 mockedPersonalDetails,
                 true,
@@ -290,7 +284,7 @@ describe('OptionsListUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], undefined, jest.fn(), MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true),
+            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], undefined,  MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true),
         );
     });
 });

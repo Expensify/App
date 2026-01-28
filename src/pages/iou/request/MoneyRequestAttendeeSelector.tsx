@@ -216,7 +216,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             orderedAvailableOptions.recentReports,
             orderedAvailableOptions.personalDetails,
             policyTags,
-            translate,
             currentUserAccountID,
             personalDetails,
             true,
@@ -260,7 +259,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 data: [orderedAvailableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, policyTags, translate, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 shouldShow: true,
@@ -276,24 +275,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         );
 
         return [newSections, headerMessage];
-    }, [
-        areOptionsInitialized,
-        didScreenTransitionEnd,
-        searchTerm,
-        initialSelectedOptions,
-        attendees,
-        orderedAvailableOptions.recentReports,
-        orderedAvailableOptions.personalDetails,
-        orderedAvailableOptions.userToInvite,
-        personalDetails,
-        reportAttributesDerived,
-        loginList,
-        countryCode,
-        policyTags,
-        translate,
-        currentUserAccountID,
-        currentUserEmail,
-    ]);
+    }, [areOptionsInitialized, didScreenTransitionEnd, searchTerm, initialSelectedOptions, orderedAvailableOptions.recentReports, orderedAvailableOptions.personalDetails, orderedAvailableOptions.userToInvite, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived, loginList, currentUserEmail, countryCode, attendees, translate]);
 
     const optionLength = useMemo(() => {
         if (!areOptionsInitialized) {

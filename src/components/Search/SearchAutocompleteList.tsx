@@ -208,7 +208,6 @@ function SearchAutocompleteList({
             return defaultListOptions;
         }
         return getSearchOptions({
-            translate,
             options,
             draftComments,
             nvpDismissedProductTraining,
@@ -230,7 +229,6 @@ function SearchAutocompleteList({
         });
     }, [
         areOptionsInitialized,
-        translate,
         options,
         draftComments,
         nvpDismissedProductTraining,
@@ -434,7 +432,6 @@ function SearchAutocompleteList({
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
                 const participants = getSearchOptions({
-                    translate,
                     options,
                     draftComments,
                     nvpDismissedProductTraining,
@@ -469,7 +466,6 @@ function SearchAutocompleteList({
                 }
 
                 const filteredReports = getSearchOptions({
-                    translate,
                     options,
                     draftComments,
                     nvpDismissedProductTraining,

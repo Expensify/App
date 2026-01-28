@@ -202,7 +202,6 @@ type GetOptionsConfig = {
 
 type GetUserToInviteConfig = {
     searchValue: string | undefined;
-    translate: LocalizedTranslate;
     searchInputValue?: string;
     loginsToExclude?: Record<string, boolean>;
     reportActions?: ReportActions;

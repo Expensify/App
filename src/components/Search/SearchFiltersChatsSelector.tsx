@@ -74,7 +74,6 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                     {...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id},
                     personalDetails,
                     reportPolicyTags,
-                    translate,
                     currentUserAccountID,
                     reportAttributesDerived,
                 ),
@@ -83,7 +82,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             const alternateText = getAlternateText(report, {}, reportPolicyTags, isReportArchived, currentUserAccountID, {});
             return {...report, alternateText};
         });
-    }, [selectedReportIDs, reports, policyTags, personalDetails, translate, currentUserAccountID, reportAttributesDerived, archivedReportsIdSet]);
+    }, [selectedReportIDs, reports, policyTags, personalDetails,  currentUserAccountID, reportAttributesDerived, archivedReportsIdSet]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
@@ -100,7 +99,6 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             currentUserAccountID,
             currentUserEmail,
             policyTags,
-            translate,
         });
     }, [
         areOptionsInitialized,
@@ -113,15 +111,14 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         currentUserAccountID,
         currentUserEmail,
         policyTags,
-        translate,
     ]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm,  countryCode, loginList, currentUserEmail, currentUserAccountID, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm,  countryCode, loginList, currentUserEmail, currentUserAccountID, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -135,7 +132,6 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             chatOptions.recentReports,
             chatOptions.personalDetails,
             undefined,
-            translate,
             currentUserAccountID,
             personalDetails,
             false,

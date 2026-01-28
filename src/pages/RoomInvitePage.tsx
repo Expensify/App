@@ -99,7 +99,6 @@ function RoomInvitePage({
         const inviteOptions = getMemberInviteOptions(
             options.personalDetails,
             nvpDismissedProductTraining,
-            translate,
             loginList,
             currentUserAccountID,
             currentUserEmail,
@@ -126,18 +125,18 @@ function RoomInvitePage({
             recentReports: [],
             currentUserOption: null,
         };
-    }, [areOptionsInitialized, options.personalDetails, nvpDismissedProductTraining, translate, loginList, currentUserAccountID, currentUserEmail, betas, excludedUsers, selectedOptions]);
+    }, [areOptionsInitialized, options.personalDetails, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, betas, excludedUsers, selectedOptions]);
 
     const inviteOptions = useMemo(() => {
         if (debouncedSearchTerm.trim() === '') {
             return defaultOptions;
         }
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
             excludeLogins: excludedUsers,
         });
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, translate, countryCode, loginList, currentUserEmail, currentUserAccountID, excludedUsers]);
+    }, [debouncedSearchTerm, defaultOptions,  countryCode, loginList, currentUserEmail, currentUserAccountID, excludedUsers]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
