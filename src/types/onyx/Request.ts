@@ -76,7 +76,7 @@ type AnyOnyxData = OnyxDataBase<AnyOnyxUpdate>;
 /** HTTP request method names */
 type RequestType = 'get' | 'post';
 
-/** Base model for API requests containing common metadata and handlers */
+/** Generic base model for API requests containing common metadata and handlers */
 type RequestDataBase<TKey extends OnyxKey = OnyxKey> = {
     /** Name of the API command */
     command: string;
@@ -203,7 +203,7 @@ type ConflictActionData = {
 };
 
 /**
- * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
+ * Generic base for objects that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -232,7 +232,7 @@ interface RequestConflictResolverBase<TRequest> {
 type RequestConflictResolver<TKey extends OnyxKey> = RequestConflictResolverBase<Request<TKey>>;
 
 /**
- * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
+ * Loosely typed object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
  */
 type AnyRequestConflictResolver = RequestConflictResolverBase<AnyRequest>;
