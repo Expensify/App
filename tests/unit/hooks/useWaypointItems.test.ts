@@ -15,7 +15,7 @@ function createFilledWaypoints(): WaypointCollection {
         waypoint1: {
             keyForList: 'Santa Fe Place Mall_1769560178099',
             name: 'Santa Fe Place Mall',
-            address: 'Santa Fe Place Mall, Cerrillos Road, Santa Fe, NM, USA',
+            address: 'Santa Fe Place Mall, Road, Santa Fe, NM, USA',
             lat: 35.6360956,
             lng: -106.0146848,
         },
