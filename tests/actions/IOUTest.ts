@@ -5207,7 +5207,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5296,7 +5296,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5374,7 +5374,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     allTransactionViolationsParam: {},
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5478,7 +5478,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     allTransactionViolationsParam: {},
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5619,7 +5619,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     allTransactionViolationsParam: {},
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5702,7 +5702,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     allTransactionViolationsParam: {},
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5863,7 +5863,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -5972,7 +5972,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             await waitForBatchedUpdates();
@@ -6065,7 +6065,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     isSingleTransactionView: true,
                     allTransactionViolationsParam: {},
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
 
@@ -6122,7 +6122,7 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     allTransactionViolationsParam: {},
-                    currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 });
             }
             // Then we expect to navigate to the chat report
@@ -6199,7 +6199,7 @@ describe('actions/IOU', () => {
                 transactionIDsPendingDeletion: [],
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
-                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             deleteMoneyRequest({
                 transactionID: transaction2.transactionID,
@@ -6211,7 +6211,7 @@ describe('actions/IOU', () => {
                 transactionIDsPendingDeletion: [transaction1.transactionID],
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
-                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -6286,7 +6286,7 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 chatReport: expenseReport,
                 allTransactionViolationsParam: transactionViolations,
-                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -6349,7 +6349,7 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 chatReport: expenseReport,
                 allTransactionViolationsParam: {},
-                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();

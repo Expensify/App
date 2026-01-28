@@ -600,7 +600,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             isChatReportArchived: isParentReportArchived,
                             isChatIOUReportArchived,
                             allTransactionViolationsParam: allTransactionViolations,
-                            currentUserAccountIDParam: accountID,
+                            currentUserAccountID: accountID,
                         });
                     } else {
                         deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
