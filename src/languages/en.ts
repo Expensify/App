@@ -1519,7 +1519,7 @@ const translations = {
 
             return `${formatList(fragments)} via <a href="${policyRulesRoute}">workspace rules</a>`;
         },
-        duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per-diem expenses across workspaces because the rates may differ between workspaces.",
+        duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
     },
     transactionMerge: {
         listPage: {
