@@ -638,8 +638,8 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: '新功能',
         month: '月',
         home: '首页',
-        greetingsWithName: (name: string) => `你好, ${name}!`,
-        greetings: '你好!',
+        greetingsWithName: (name: string) => `问候，你好，${name}！`,
+        greetings: '问候！',
     },
     supportalNoAccess: {
         title: '先别急',

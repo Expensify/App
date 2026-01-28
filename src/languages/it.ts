@@ -642,8 +642,8 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nuova funzionalità',
         month: 'Mese',
         home: 'Home',
-        greetingsWithName: (name: string) => `Ciao, ${name}!`,
-        greetings: 'Ciao!',
+        greetingsWithName: (name: string) => `Saluti, ${name}!`,
+        greetings: 'Saluti!',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',

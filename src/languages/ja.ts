@@ -641,8 +641,8 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: '新機能',
         month: '月',
         home: 'ホーム',
-        greetingsWithName: (name: string) => `こんにちは、${name}さん!`,
-        greetings: 'こんにちは!',
+        greetingsWithName: (name: string) => `${name} さん、こんにちは！`,
+        greetings: 'こんにちは！',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
