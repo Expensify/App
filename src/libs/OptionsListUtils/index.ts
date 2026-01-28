@@ -228,9 +228,7 @@ Onyx.connect({
     },
 });
 
-<<<<<<< HEAD
 let allReportNameValuePairsOnyxConnect: OnyxCollection<ReportNameValuePairs>;
-=======
 /**
  * Invalidates and recomputes cache entries for a specific report.
  * This is called when report actions, metadata, or archived status changes.
@@ -312,7 +310,6 @@ function invalidateCacheForReport(reportID: string) {
 }
 
 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
->>>>>>> 794617d409f (perf: optimize LHN with content-based cache and automatic invalidation)
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,

@@ -42,12 +42,12 @@ const createReportsWithActions = (count: number) => {
     for (let i = 1; i <= count; i++) {
         const reportID = String(i);
         const report = createRandomReport(i, undefined);
-        
+
         const isArchived = i % 10 === 0;
         const reportTypeMod = i % 4;
         const reportType =
             reportTypeMod === 0 ? CONST.REPORT.TYPE.IOU : reportTypeMod === 1 ? CONST.REPORT.TYPE.EXPENSE : CONST.REPORT.TYPE.CHAT;
-        
+
         reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
             ...report,
             type: reportType,
@@ -56,10 +56,10 @@ const createReportsWithActions = (count: number) => {
         reportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`] = {
             private_isArchived: isArchived ? 'true' : 'false',
         };
-        
+
         const lastActorAccountID = report.lastActorAccountID || i;
         personalDetails[String(lastActorAccountID)] = createPersonalDetails(lastActorAccountID);
-        
+
         if (i % 5 === 0) {
             reportMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`] = {
                 lastVisitTime: new Date().toISOString(),
@@ -185,6 +185,7 @@ describe('LHN Performance Baseline', () => {
                     const itemReportMetadata = reportMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
                     getLastMessageTextForReport({
+                        translate: () => '',
                         report,
                         lastActorDetails,
                         movedFromReport,
@@ -193,6 +194,7 @@ describe('LHN Performance Baseline', () => {
                         isReportArchived,
                         policyForMovingExpensesID: undefined,
                         reportMetadata: itemReportMetadata,
+                        currentUserAccountID: 0,
                     });
                 }
             }
@@ -237,6 +239,7 @@ describe('LHN Performance Baseline', () => {
                     const itemReportMetadata = reportMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
                     const lastMessageTextFromReport = getLastMessageTextForReport({
+                        translate: () => '',
                         report: item,
                         lastActorDetails,
                         movedFromReport,
@@ -245,6 +248,7 @@ describe('LHN Performance Baseline', () => {
                         isReportArchived,
                         policyForMovingExpensesID: undefined,
                         reportMetadata: itemReportMetadata,
+                        currentUserAccountID: 0,
                     });
 
                     const canUserPerformWriteActionForLastAction = canUserPerformWriteAction(item, isReportArchived);
