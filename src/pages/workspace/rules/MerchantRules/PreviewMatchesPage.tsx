@@ -7,15 +7,8 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RulePreviewTransaction from '@components/Rule/RulePreviewTransaction';
 import ScreenWrapper from '@components/ScreenWrapper';
-import DateCell from '@components/SelectionListWithSections/Search/DateCell';
-import Text from '@components/Text';
-import CategoryCell from '@components/TransactionItemRow/DataCells/CategoryCell';
-import MerchantOrDescriptionCell from '@components/TransactionItemRow/DataCells/MerchantCell';
-import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
-import TagCell from '@components/TransactionItemRow/DataCells/TagCell';
-import TotalCell from '@components/TransactionItemRow/DataCells/TotalCell';
-import TypeCell from '@components/TransactionItemRow/DataCells/TypeCell';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -26,7 +19,6 @@ import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getCreated, getDescription, getMerchant} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -65,82 +57,8 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const isLoadedAndEmpty = !isLoading && !hasMatchingTransactions;
     const isLoadedWithTransactions = !isLoading && hasMatchingTransactions;
 
-    const renderItem: ListRenderItem<Transaction> = ({item}) => {
-        const createdAt = getCreated(item);
-        const hasCategoryOrTag = !!item.category || !!item.tag;
-        const merchantOrDescription = getMerchant(item) ?? getDescription(item);
-
-        return (
-            <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.overflowHidden, styles.highlightBG, styles.p3, styles.mb2]}>
-                <View style={[styles.flexRow]}>
-                    <ReceiptCell
-                        transactionItem={item}
-                        style={styles.mr3}
-                        isSelected={false}
-                    />
-                    <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
-                            <DateCell
-                                showTooltip
-                                isLargeScreenWidth={false}
-                                date={createdAt}
-                            />
-                            <Text style={[styles.textMicroSupporting]}> • </Text>
-                            <TypeCell
-                                shouldShowTooltip
-                                shouldUseNarrowLayout
-                                transactionItem={item}
-                            />
-                            {!merchantOrDescription && (
-                                <View style={[styles.mlAuto]}>
-                                    <TotalCell
-                                        shouldShowTooltip
-                                        shouldUseNarrowLayout
-                                        transactionItem={item}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                        {!!merchantOrDescription && (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                <MerchantOrDescriptionCell
-                                    shouldShowTooltip
-                                    shouldUseNarrowLayout
-                                    merchantOrDescription={merchantOrDescription}
-                                    isDescription={!merchant}
-                                />
-                                <TotalCell
-                                    shouldShowTooltip
-                                    shouldUseNarrowLayout
-                                    transactionItem={item}
-                                />
-                            </View>
-                        )}
-                    </View>
-                </View>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
-                    <View style={[styles.flexColumn, styles.flex1]}>
-                        {hasCategoryOrTag && (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
-                                <CategoryCell
-                                    shouldShowTooltip
-                                    shouldUseNarrowLayout
-                                    transactionItem={item}
-                                />
-                                <TagCell
-                                    shouldShowTooltip
-                                    shouldUseNarrowLayout
-                                    transactionItem={item}
-                                />
-                            </View>
-                        )}
-                    </View>
-                </View>
-            </View>
-        );
-    };
-
     const keyExtractor = (item: Transaction) => item.transactionID;
+    const renderItem: ListRenderItem<Transaction> = ({item}) => <RulePreviewTransaction transaction={item} />;
 
     const goBack = () => {
         Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
