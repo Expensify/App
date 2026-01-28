@@ -12927,6 +12927,14 @@ function updateSplitExpenseField(
             if (transactionDetails?.created !== item.created) {
                 shouldResetDateRange = true;
             }
+            let quantity: number | undefined;
+            if (splitExpenseDraftTransaction?.routes?.route0?.distance && splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit) {
+                quantity = DistanceRequestUtils.convertDistanceUnit(splitExpenseDraftTransaction?.routes?.route0?.distance, splitExpenseDraftTransaction?.comment?.customUnit?.distanceUnit);
+            } else if (splitExpenseDraftTransaction?.comment?.customUnit?.quantity) {
+                quantity = splitExpenseDraftTransaction?.comment?.customUnit?.quantity;
+            } else {
+                quantity = undefined;
+            }
 
             const updatedItem: SplitExpense = {
                 ...item,
@@ -12935,7 +12943,10 @@ function updateSplitExpenseField(
                 tags: splitExpenseDraftTransaction?.tag ? [splitExpenseDraftTransaction?.tag] : [],
                 created: transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
                 waypoints: splitExpenseDraftTransaction?.modifiedWaypoints ?? splitExpenseDraftTransaction?.comment?.waypoints ?? undefined,
-                customUnit: splitExpenseDraftTransaction?.comment?.customUnit ?? undefined,
+                customUnit: {
+                    ...(splitExpenseDraftTransaction?.comment?.customUnit ?? undefined),
+                    quantity,
+                },
                 odometerStart: splitExpenseDraftTransaction?.comment?.odometerStart ?? undefined,
                 odometerEnd: splitExpenseDraftTransaction?.comment?.odometerEnd ?? undefined,
                 amount: splitExpenseDraftTransaction?.amount ?? 0,
