@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -239,6 +240,17 @@ function IOURequestStepWaypoint({
                     submitButtonText={translate('common.save')}
                     shouldHideFixErrorsAlert
                     onScroll={onScroll}
+                    shouldRenderFooterAboveSubmit
+                    footerContent={
+                        !!waypointAddress && (
+                            <Button
+                                text={translate('common.remove')}
+                                style={[styles.mb3]}
+                                onPress={handleDeleteWaypoint}
+                                large
+                            />
+                        )
+                    }
                 >
                     <View>
                         <InputWrapperWithRef
