@@ -1726,20 +1726,22 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
     },
 ];
 
-// Merchant test data
+// Merchant test data - backend uses hash-based keys (group_<numeric_hash>), not merchant names
 const merchantName1 = 'Starbucks';
 const merchantName2 = 'Whole Foods';
+const merchantHash1 = '1234567890';
+const merchantHash2 = '9876543210';
 
 const searchResultsGroupByMerchant: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {},
-        [`${CONST.SEARCH.GROUP_PREFIX}${merchantName1}` as const]: {
+        [`${CONST.SEARCH.GROUP_PREFIX}${merchantHash1}` as const]: {
             merchant: merchantName1,
             count: 7,
             currency: 'USD',
             total: 350,
         },
-        [`${CONST.SEARCH.GROUP_PREFIX}${merchantName2}` as const]: {
+        [`${CONST.SEARCH.GROUP_PREFIX}${merchantHash2}` as const]: {
             merchant: merchantName2,
             count: 4,
             currency: 'USD',
@@ -2884,15 +2886,16 @@ describe('SearchUIUtils', () => {
         });
 
         it('should handle empty merchant values correctly', () => {
+            // Backend uses hash-based keys (group_<numeric_hash>), not merchant names
             const dataWithEmptyMerchant: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
-                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {
+                [`${CONST.SEARCH.GROUP_PREFIX}111111111` as const]: {
                     merchant: '',
                     count: 2,
                     currency: 'USD',
                     total: 50,
                 },
-                [`${CONST.SEARCH.GROUP_PREFIX}valid` as const]: {
+                [`${CONST.SEARCH.GROUP_PREFIX}222222222` as const]: {
                     merchant: 'Starbucks',
                     count: 1,
                     currency: 'USD',
@@ -2917,9 +2920,10 @@ describe('SearchUIUtils', () => {
         });
 
         it('should normalize empty merchant to MERCHANT_EMPTY_VALUE in transactionsQueryJSON', () => {
+            // Backend uses hash-based keys (group_<numeric_hash>), not merchant names
             const dataWithEmptyMerchant: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
-                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {
+                [`${CONST.SEARCH.GROUP_PREFIX}333333333` as const]: {
                     merchant: '',
                     count: 2,
                     currency: 'USD',
@@ -2963,9 +2967,10 @@ describe('SearchUIUtils', () => {
         });
 
         it('should treat DEFAULT_MERCHANT "Expense" as empty merchant and display "No merchant"', () => {
+            // Backend uses hash-based keys (group_<numeric_hash>), not merchant names
             const dataWithDefaultMerchant: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
-                [`${CONST.SEARCH.GROUP_PREFIX}default` as const]: {
+                [`${CONST.SEARCH.GROUP_PREFIX}444444444` as const]: {
                     merchant: CONST.TRANSACTION.DEFAULT_MERCHANT, // 'Expense'
                     count: 1,
                     currency: 'USD',
@@ -3076,21 +3081,22 @@ describe('SearchUIUtils', () => {
         });
 
         it('should handle Unicode characters in merchant names', () => {
+            // Backend uses hash-based keys (group_<numeric_hash>), not merchant names
             const dataWithUnicode: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
-                [`${CONST.SEARCH.GROUP_PREFIX}japanese` as const]: {
+                [`${CONST.SEARCH.GROUP_PREFIX}555555555` as const]: {
                     merchant: 'カフェ東京',
                     count: 3,
                     currency: 'JPY',
                     total: 50000,
                 },
-                [`${CONST.SEARCH.GROUP_PREFIX}chinese` as const]: {
+                [`${CONST.SEARCH.GROUP_PREFIX}666666666` as const]: {
                     merchant: '北京饭店',
                     count: 2,
                     currency: 'CNY',
                     total: 1000,
                 },
-                [`${CONST.SEARCH.GROUP_PREFIX}emoji` as const]: {
+                [`${CONST.SEARCH.GROUP_PREFIX}777777777` as const]: {
                     merchant: 'Coffee ☕',
                     count: 1,
                     currency: 'USD',
@@ -3116,21 +3122,22 @@ describe('SearchUIUtils', () => {
         });
 
         it('should handle special characters in merchant names', () => {
+            // Backend uses hash-based keys (group_<numeric_hash>), not merchant names
             const dataWithSpecialChars: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},
-                [`${CONST.SEARCH.GROUP_PREFIX}ampersand` as const]: {
+                [`${CONST.SEARCH.GROUP_PREFIX}888888888` as const]: {
                     merchant: "McDonald's & Co.",
                     count: 5,
                     currency: 'USD',
                     total: 2500,
                 },
-                [`${CONST.SEARCH.GROUP_PREFIX}parentheses` as const]: {
+                [`${CONST.SEARCH.GROUP_PREFIX}999999999` as const]: {
                     merchant: 'Walmart (Express)',
                     count: 2,
                     currency: 'USD',
                     total: 1000,
                 },
-                [`${CONST.SEARCH.GROUP_PREFIX}quotes` as const]: {
+                [`${CONST.SEARCH.GROUP_PREFIX}101010101` as const]: {
                     merchant: '"Best" Coffee',
                     count: 1,
                     currency: 'USD',
