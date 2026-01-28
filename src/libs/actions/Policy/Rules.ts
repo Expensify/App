@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {GetTransactionsMatchingCodingRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -156,4 +157,8 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-export {openPolicyRulesPage, setPolicyCodingRule};
+function getTransactionsMatchingCodingRule({merchant, policyID}: GetTransactionsMatchingCodingRuleParams) {
+    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {merchant, policyID});
+}
+
+export {openPolicyRulesPage, setPolicyCodingRule, getTransactionsMatchingCodingRule};
