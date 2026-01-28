@@ -6363,7 +6363,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Esercente',
                 subtitle: 'Imposta le regole per gli esercenti in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
                 addRule: 'Aggiungi regola esercente',
-                ruleSummaryTitle: (merchantName: string) => `Se l’esercente contiene "${merchantName}"`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) =>
+                    `Se l’esercente ${isExactMatch ? 'corrisponde esattamente' : 'contiene'} "${
+                        merchantName //_/\__/_/  \_,_/\__/\__/\_,_/
+                    }"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Rinomina esercente in "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
@@ -6380,7 +6383,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
                 matchType: 'Tipo di corrispondenza',
                 matchTypeContains: 'Contiene',
-                matchTypeExact: 'Corrisponde esattamente',
+                matchTypeExact: 'Corrispondenza esatta',
             },
         },
         planTypePage: {

@@ -6344,7 +6344,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Sprzedawca',
                 subtitle: 'Skonfiguruj reguły dla sprzedawców, aby wydatki trafiały z poprawnym kodowaniem i wymagały mniej poprawek.',
                 addRule: 'Dodaj regułę sprzedawcy',
-                ruleSummaryTitle: (merchantName: string) => `Jeśli sprzedawca zawiera „${merchantName}”`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Jeśli sprzedawca ${isExactMatch ? 'dokładnie pasuje' : 'zawiera'} „${merchantName}”`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Zmień sprzedawcę na „${merchantName}”`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Zaktualizuj ${fieldName} na „${fieldValue}”`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Oznacz jako "${reimbursable ? 'kwalifikujący się do zwrotu kosztów' : 'niepodlegający zwrotowi'}"`,
@@ -6361,7 +6361,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 deleteRuleConfirmation: 'Czy na pewno chcesz usunąć tę regułę?',
                 matchType: 'Typ dopasowania',
                 matchTypeContains: 'Zawiera',
-                matchTypeExact: 'Dokładne dopasowanie',
+                matchTypeExact: 'Dokładne dopasowania',
             },
         },
         planTypePage: {
