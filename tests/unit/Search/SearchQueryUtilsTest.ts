@@ -338,6 +338,33 @@ describe('SearchQueryUtils', () => {
 
                 expect(result).not.toContain('view:');
             });
+
+            test('view is omitted from query when groupBy is not set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    view: CONST.SEARCH.VIEW.BAR,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('view:');
+                expect(result).not.toContain('groupBy:');
+            });
+
+            test('view is omitted when groupBy is cleared but view remains in form', () => {
+                // This simulates the case where groupBy was set (with view), then groupBy was reset
+                // but view wasn't explicitly cleared from the form
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: undefined,
+                    view: CONST.SEARCH.VIEW.BAR,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('view:');
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense');
+            });
         });
     });
 

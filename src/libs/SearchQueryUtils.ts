@@ -608,7 +608,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
     }
 
-    if (view) {
+    // View is only valid when groupBy is set
+    if (view && groupBy) {
         const sanitizedView = sanitizeSearchValue(view);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW}:${sanitizedView}`);
     }
