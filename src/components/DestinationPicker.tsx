@@ -76,7 +76,6 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
     return (
         <SelectionList
             ref={ref}
-            key={selectedDestination}
             sections={sections}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
@@ -84,8 +83,6 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
             ListItem={RadioListItem}
             initiallyFocusedItemKey={selectedOptionKey}
             shouldHideKeyboardOnScroll={false}
-            shouldUpdateFocusedIndex
-            disableMaintainingScrollPosition
         />
     );
 }
