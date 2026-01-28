@@ -104,6 +104,7 @@ import {
     getRenamedAction,
     getReportActionMessage,
     getReportActionText,
+    getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
@@ -1641,10 +1642,9 @@ function PureReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
-            const originalMessage = getOriginalMessage(action) ?? {maskedBankAccountNumber: '', policyID: ''};
             children = (
                 <ReportActionItemBasicMessage>
-                    <RenderHTML html={`<comment><muted-text>${translate('report.actions.type.settlementAccountLocked', originalMessage)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getSettlementAccountLockedMessage(translate, action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else {
