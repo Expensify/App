@@ -5,6 +5,7 @@ import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import * as API from '@libs/API';
 import type {
     AssignCompanyCardParams,
+    ImportCSVCompanyCardsParams,
     OpenPolicyAddCardFeedPageParams,
     OpenPolicyCompanyCardsFeedParams,
     OpenPolicyExpensifyCardsPageParams,
@@ -1037,5 +1038,6 @@ export {
     openPolicyAddCardFeedPage,
     setTransactionStartDate,
     setFeedStatementPeriodEndDay,
+    importCSVCompanyCards,
     clearErrorField,
 };
