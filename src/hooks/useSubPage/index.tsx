@@ -5,6 +5,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex, findPageIndex} from '@libs/SubPageUtils';
 import type {SubPageProps, UseSubPageProps} from './types';
 
+const AMOUNT_OF_FRAMES_TO_WAIT_FOR = 20;
+
 /**
  * @param pages - array of objects with pageName and component to display in each page
  * @param onFinished - callback triggered after finishing the last page
@@ -27,9 +29,24 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
             return;
         }
 
-        requestAnimationFrame(() => {
-            Navigation.navigate(buildRoute(startPageName), {forceReplace: true});
-        });
+        let cancelled = false;
+        const waitFrames = (framesLeft: number) => {
+            if (cancelled) {
+                return;
+            }
+            if (framesLeft <= 0) {
+                Navigation.navigate(buildRoute(startPageName), {forceReplace: true});
+                return;
+            }
+            requestAnimationFrame(() => waitFrames(framesLeft - 1));
+        };
+
+        // We wait before navigating to ensure animations are performed correctly and there is no sudden flickers
+        requestAnimationFrame(() => waitFrames(AMOUNT_OF_FRAMES_TO_WAIT_FOR));
+
+        return () => {
+            cancelled = true;
+        };
     }, [isRedirecting, startPageName, buildRoute]);
 
     const currentPageName = urlPageName ?? startPageName ?? pages.at(0)?.pageName;
