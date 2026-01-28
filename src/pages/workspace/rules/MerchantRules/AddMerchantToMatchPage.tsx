@@ -94,6 +94,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                 onSubmit={onSave}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
+                submitButtonStyles={[styles.ph5]}
             >
                 <View style={styles.mb5}>
                     <InputWrapper
