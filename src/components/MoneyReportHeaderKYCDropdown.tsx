@@ -22,7 +22,7 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
     customText?: string; // Custom text to display on the button
     isSelectedTransactionAction?: boolean;
     /** Whether the button should use success style or not */
-    success?: boolean;
+    shouldShowSuccessStyle?: boolean;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -36,7 +36,7 @@ function MoneyReportHeaderKYCDropdown({
     options,
     customText,
     isSelectedTransactionAction,
-    success,
+    shouldShowSuccessStyle,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
@@ -64,7 +64,7 @@ function MoneyReportHeaderKYCDropdown({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
-                    success={success ?? !!isSelectedTransactionAction}
+                    success={shouldShowSuccessStyle ?? !!isSelectedTransactionAction}
                     onPress={() => {}}
                     onSubItemSelected={(item, _index, event) => {
                         if (!isSecondaryActionAPaymentOption(item)) {
