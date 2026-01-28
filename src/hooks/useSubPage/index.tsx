@@ -29,23 +29,19 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
             return;
         }
 
-        let cancelled = false;
+        let requestID: number;
         const waitFrames = (framesLeft: number) => {
-            if (cancelled) {
-                return;
-            }
             if (framesLeft <= 0) {
                 Navigation.navigate(buildRoute(startPageName), {forceReplace: true});
                 return;
             }
-            requestAnimationFrame(() => waitFrames(framesLeft - 1));
+            requestID = requestAnimationFrame(() => waitFrames(framesLeft - 1));
         };
 
-        // We wait before navigating to ensure animations are performed correctly and there is no sudden flickers
-        requestAnimationFrame(() => waitFrames(AMOUNT_OF_FRAMES_TO_WAIT_FOR));
+        requestID = requestAnimationFrame(() => waitFrames(AMOUNT_OF_FRAMES_TO_WAIT_FOR));
 
         return () => {
-            cancelled = true;
+            cancelAnimationFrame(requestID);
         };
     }, [isRedirecting, startPageName, buildRoute]);
 
