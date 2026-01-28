@@ -237,7 +237,6 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         >
             <ScreenWrapper
                 testID={testID}
-                shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
