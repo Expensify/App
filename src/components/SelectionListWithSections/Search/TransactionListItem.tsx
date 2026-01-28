@@ -23,6 +23,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isInvoiceReport} from '@libs/ReportUtils';
 import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -135,6 +136,7 @@ function TransactionListItem<TItem extends ListItem>({
             shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transactionItem),
     );
 
+    const isInvoice = isInvoiceReport(reportForViolations) || reportForViolations.type === CONST.REPORT.TYPE.INVOICE;
     // Sync missingAttendees violation with current policy category settings (can be removed later when BE handles this)
     // Use live transaction data (attendees, category) to ensure we check against current state, not stale snapshot
     const attendeeOnyxViolations = syncMissingAttendeesViolation(
@@ -145,6 +147,7 @@ function TransactionListItem<TItem extends ListItem>({
         currentUserDetails,
         policyForViolations?.isAttendeeTrackingEnabled ?? false,
         policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
+        isInvoice,
     );
 
     const transactionViolations = mergeProhibitedViolations(attendeeOnyxViolations);
