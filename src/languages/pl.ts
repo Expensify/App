@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nowa funkcja',
         month: 'Miesiąc',
         home: 'Strona główna',
+        week: 'Tydzień',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -6962,6 +6963,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Sprzedawca',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etykieta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Tydzień',
             },
             feed: 'Kanał',
             withdrawalType: {
