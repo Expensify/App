@@ -4800,8 +4800,8 @@ const translations = {
                     uniqueID: 'Unique ID',
                 },
                 csvErrors: {
-                    requiredColumns: 'TEMP MESSAGE - Please map all required columns before continuing.',
-                    duplicateColumns: 'TEMP MESSAGE - Each field can only be mapped once.',
+                    requiredColumns: (missingColumns: string) => `Please assign a column to each of the attributes: ${missingColumns}.`,
+                    duplicateColumns: (duplicateColumn: string) => `Oops! You've mapped a single filed ("${duplicateColumn}") to multiple columns. Please review and try again.`,
                 },
             },
             statementCloseDate: {

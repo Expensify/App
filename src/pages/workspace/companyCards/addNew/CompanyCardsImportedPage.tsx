@@ -66,11 +66,11 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('workspace.companyCards.addNewCard.csvErrors.requiredColumns');
+            errors.required = translate('workspace.companyCards.addNewCard.csvErrors.requiredColumns', missingRequiredColumns.text);
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
-                errors.duplicates = translate('workspace.companyCards.addNewCard.csvErrors.duplicateColumns');
+                errors.duplicates = translate('workspace.companyCards.addNewCard.csvErrors.duplicateColumns', duplicate);
             } else {
                 errors = {};
             }
