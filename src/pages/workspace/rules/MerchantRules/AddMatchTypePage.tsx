@@ -80,6 +80,4 @@ function AddMatchTypePage({route}: AddMatchTypePageProps) {
     );
 }
 
-AddMatchTypePage.displayName = 'AddMatchTypePage';
-
 export default AddMatchTypePage;

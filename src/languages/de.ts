@@ -6382,9 +6382,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 subtitle: 'Legen Sie Händlerregeln fest, damit Ausgaben korrekt codiert ankommen und weniger Nachbearbeitung erfordern.',
                 addRule: 'Händlerregel hinzufügen',
                 ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) =>
-                    `Wenn Händler ${isExactMatch ? 'entspricht genau' : 'enthält'} „${
-                        merchantName //_/\__/_/  \_,_/\__/\__/\_,_/
-                    }“`,
+                    `Wenn Händler ${isExactMatch ? 'genau übereinstimmt mit' : 'enthält'} „${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Händler in „${merchantName}“ umbenennen`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aktualisiere ${fieldName} zu „${fieldValue}“`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Als "${reimbursable ? 'erstattungsfähig' : 'nicht erstattungsfähig'}" markieren`,
