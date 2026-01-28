@@ -19,6 +19,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONFIG from '@src/CONFIG';
@@ -267,44 +268,50 @@ function openReportFromDeepLink(
     onboardingInitialPath: OnyxEntry<string>,
     reports: OnyxCollection<Report>,
     isAuthenticated: boolean,
-    isUrlChangeEvent = false,
+    isUrlChangeEvent: boolean,
+    conciergeReportID: string | undefined,
 ) {
     const reportID = getReportIDFromLink(url);
     const hasReportLocally = !!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID;
-    console.log('[Link] openReportFromDeepLink called, reportID:', reportID, 'isAuthenticated:', isAuthenticated, 'hasReport:', hasReportLocally, 'isUrlChangeEvent:', isUrlChangeEvent);
 
     // For URL change events (app already running), handle differently to avoid placeholder issue
     if (isUrlChangeEvent) {
         const route = getRouteFromLink(url);
-        console.log('[Link] URL change event, route:', route, 'reportID:', reportID, 'isAuthenticated:', isAuthenticated);
-        
+
         if (reportID && !isAuthenticated) {
             // For public rooms with unauthenticated user, call openReport to authenticate
             // Use isFromDeepLink: false to avoid IS_CHECKING_PUBLIC_ROOM side effects
-            console.log('[Link] URL change event: calling openReport for authentication');
+
             openReport(reportID, '', [], undefined, '0', false);
         }
-        
+
         // Navigate directly - the report screen will show the data when it arrives
         if (route) {
-            console.log('[Link] URL change event: navigating to', route);
             Navigation.navigate(route as Route);
         }
         return;
     }
 
     if (reportID && !isAuthenticated) {
+        // Start span for public room API call
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
+        });
+
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
         openReport(reportID, '', [], undefined, '0', true);
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
             doneCheckingPublicRoom();
         }
     } else if (reportID && isAuthenticated && !hasReportLocally) {
         // For authenticated users, if the report doesn't exist locally yet, fetch it
         // This can happen when opening a deep link before the reports collection is loaded
-        console.log('[Link] Authenticated user opening deep link to report not in local cache, fetching report');
+
         openReport(reportID, '', [], undefined, '0', true);
     } else {
         // If we're not opening a public room (no reportID) or the user is authenticated with the report already loaded, we unblock the UI (hide splash screen)
@@ -380,12 +387,10 @@ function openReportFromDeepLink(
                                 const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                                 const currentTopmostReportId = Navigation.getTopmostReportId();
                                 const isNowAuthenticated = hasAuthToken();
-                                console.log('[Link] navigateHandler called, reportParam exists:', !!reportParam, 'report exists:', !!report, 'report.reportID:', report?.reportID, 'notFound:', report?.errorFields?.notFound, 'currentTopmostReportId:', currentTopmostReportId, 'isNowAuthenticated:', isNowAuthenticated);
 
                                 // If we're already on the target report, don't navigate again
                                 // React Navigation's linking config already handled the navigation
                                 if (reportID && currentTopmostReportId === reportID) {
-                                    console.log('[Link] Already on target report, skipping navigation');
                                     return;
                                 }
 
@@ -393,41 +398,35 @@ function openReportFromDeepLink(
                                 // React Navigation's linking should have already handled the navigation.
                                 // Skip explicit navigation to avoid double navigation causing placeholder/flicker.
                                 if (isNowAuthenticated && report?.reportID && !report.errorFields?.notFound) {
-                                    console.log('[Link] User is now authenticated and report exists, letting React Navigation handle it');
                                     return;
                                 }
 
                                 // If the report does not exist, navigate to the last accessed report or Concierge chat
                                 if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                    console.log('[Link] Report not found, navigating away from public room');
                                     const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                        console.log('[Link] Navigating to lastAccessedReport:', lastAccessedReportRoute);
+
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: currentTopmostReportId === reportID});
                                         return;
                                     }
-                                    console.log('[Link] Navigating to Concierge');
-                                    navigateToConciergeChat(false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, false, () => true);
                                     return;
                                 }
 
                                 // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
                                 const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                                console.log('[Link] Navigating to route:', route, 'forceReplace:', forceReplace);
                                 Navigation.navigate(route as Route, {forceReplace});
                             };
                             // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
-                            const shouldWaitForReport = reportID && !isAuthenticated && (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID);
-                            console.log('[Link] shouldWaitForReport:', shouldWaitForReport, 'reportID:', reportID, 'isAuthenticated:', isAuthenticated);
+                            const shouldWaitForReport =
+                                reportID && !isAuthenticated && (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID);
                             if (shouldWaitForReport) {
-                                console.log('[Link] Waiting for report data via Onyx connection');
                                 const reportConnection = Onyx.connectWithoutView({
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
-                                        console.log('[Link] Onyx report callback, reportID:', report?.reportID, 'notFound:', report?.errorFields?.notFound);
                                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             Onyx.disconnect(reportConnection);
@@ -436,7 +435,6 @@ function openReportFromDeepLink(
                                     },
                                 });
                             } else {
-                                console.log('[Link] Not waiting for report, calling navigateHandler immediately');
                                 navigateHandler();
                             }
                         };
