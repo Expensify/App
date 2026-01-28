@@ -6234,6 +6234,8 @@ const translations = {
                 confirmError: 'Enter merchant and apply at least one update',
                 confirmErrorMerchant: 'Please enter merchant',
                 confirmErrorUpdate: 'Please apply at least one update',
+                previewMatchesEmptyStateTitle: 'Nothing to show',
+                previewMatchesEmptyStateSubtitle: 'No unsubmitted expenses match this rule.',
                 ruleSummaryTitle: (merchantName: string) => `If merchant contains "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Rename merchant to "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,

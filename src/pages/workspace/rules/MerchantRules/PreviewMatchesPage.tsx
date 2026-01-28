@@ -87,8 +87,6 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const matchingTransactionsArray = Array.from(matchingTransactions ?? []);
     const hasMatchingTransactions = !!merchant && !!matchingTransactionsArray.length;
 
-    console.log(hasMatchingTransactions);
-
     return (
         <ScreenWrapper
             testID="PreviewMatchesPage"
@@ -106,8 +104,8 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                         icon={illustrations.Telescope}
                         iconWidth={variables.emptyListIconWidth}
                         iconHeight={variables.emptyListIconHeight}
-                        title={translate('workspace.netsuite.noAccountsFound')}
-                        subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+                        title={translate('workspace.rules.merchantRules.previewMatchesEmptyStateTitle')}
+                        subtitle={translate('workspace.rules.merchantRules.previewMatchesEmptyStateSubtitle')}
                         containerStyle={styles.pb10}
                     />
                 )}
