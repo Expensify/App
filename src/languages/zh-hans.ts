@@ -635,6 +635,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: '重复报销',
         newFeature: '新功能',
         month: '月',
+        week: '周',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -6760,11 +6761,13 @@ ${reportName}
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '来自',
+                [CONST.SEARCH.GROUP_BY.FROM]: '发件人',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
+                //_/\__/_/  \_,_/\__/\__/\_,_/
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现编号',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
+                [CONST.SEARCH.GROUP_BY.WEEK]: '周',
             },
             feed: '动态',
             withdrawalType: {

@@ -639,6 +639,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Spesa duplicata',
         newFeature: 'Nuova funzionalità',
         month: 'Mese',
+        week: 'Settimana',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -6945,6 +6946,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
             },
             feed: 'Feed',
             withdrawalType: {

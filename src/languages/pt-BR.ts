@@ -638,6 +638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Despesa duplicada',
         newFeature: 'Novo recurso',
         month: 'Mês',
+        week: 'Semana',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -6915,9 +6916,10 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retirada',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de saque',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
             },
             feed: 'Feed',
             withdrawalType: {

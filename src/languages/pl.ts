@@ -639,6 +639,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Zduplikowany wydatek',
         newFeature: 'Nowa funkcja',
         month: 'Miesiąc',
+        week: 'Tydzień',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -6917,6 +6918,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Tydzień',
             },
             feed: 'Kanał',
             withdrawalType: {

@@ -639,6 +639,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Dubbele uitgave',
         newFeature: 'Nieuwe functie',
         month: 'Maand',
+        week: 'Week',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -6927,6 +6928,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
             },
             feed: 'Feed',
             withdrawalType: {

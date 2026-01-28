@@ -638,6 +638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: '重複した経費',
         newFeature: '新機能',
         month: '月',
+        week: '週',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -6882,9 +6883,10 @@ ${reportName}
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
+                [CONST.SEARCH.GROUP_BY.WEEK]: '週',
             },
             feed: 'フィード',
             withdrawalType: {

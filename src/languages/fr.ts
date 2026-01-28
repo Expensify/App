@@ -640,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Note de frais en double',
         newFeature: 'Nouvelle fonctionnalité',
         month: 'Mois',
+        week: 'Semaine',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -6967,6 +6968,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
             },
             feed: 'Flux',
             withdrawalType: {
