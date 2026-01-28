@@ -6923,6 +6923,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         searchName: 'Cerca nome',
         savedSearchesMenuItemTitle: 'Salvato',
         topCategories: 'Categorie principali',
+        topMerchants: 'Principali commercianti',
         groupedExpenses: 'spese raggruppate',
         bulkActions: {
             approve: 'Approva',
@@ -6985,6 +6986,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerciante',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
             },
@@ -7008,6 +7010,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             accessPlaceHolder: 'Apri per i dettagli',
         },
         noCategory: 'Nessuna categoria',
+        noMerchant: 'Nessun commerciante',
         noTag: 'Nessun tag',
         expenseType: 'Tipo di spesa',
         withdrawalType: 'Tipo di prelievo',
