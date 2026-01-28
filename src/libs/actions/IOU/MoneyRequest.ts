@@ -97,6 +97,8 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
+    receiverPolicy: OnyxEntry<Policy>;
+    chatReceiverPolicy: OnyxEntry<Policy>;
     isSelfTourViewed: boolean;
 };
 
@@ -130,6 +132,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     introSelected?: IntroSelected;
     activePolicyID?: string;
     privateIsArchived?: string;
+    receiverPolicy: OnyxEntry<Policy>;
+    chatReceiverPolicy: OnyxEntry<Policy>;
     gpsCoordinates?: string;
     gpsDistance?: number;
 };
@@ -227,6 +231,8 @@ function getMoneyRequestParticipantOptions(
     currentUserAccountID: number,
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
+    receiverPolicy: OnyxEntry<Policy>,
+    chatReceiverPolicy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived?: string,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
@@ -236,7 +242,7 @@ function getMoneyRequestParticipantOptions(
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, reportAttributesDerived);
+            : getReportOption(participant, privateIsArchived, policy, receiverPolicy, chatReceiverPolicy, currentUserAccountID, personalDetails, reportAttributesDerived);
     });
 }
 
@@ -268,6 +274,8 @@ function handleMoneyRequestStepScanParticipants({
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
+    receiverPolicy,
+    chatReceiverPolicy,
     isSelfTourViewed,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
@@ -302,7 +310,16 @@ function handleMoneyRequestStepScanParticipants({
     // to the confirmation step.
     // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (!initialTransaction?.isFromGlobalCreate && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(
+            currentUserAccountID,
+            report,
+            policy,
+            receiverPolicy,
+            chatReceiverPolicy,
+            personalDetails,
+            privateIsArchived,
+            reportAttributesDerived,
+        );
 
         if (shouldSkipConfirmation) {
             const firstReceiptFile = files.at(0);
@@ -489,6 +506,8 @@ function handleMoneyRequestStepDistanceNavigation({
     introSelected,
     activePolicyID,
     privateIsArchived,
+    receiverPolicy,
+    chatReceiverPolicy,
     gpsCoordinates,
     gpsDistance,
 }: MoneyRequestStepDistanceNavigationParams) {
@@ -510,7 +529,16 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(
+            currentUserAccountID,
+            report,
+            policy,
+            receiverPolicy,
+            chatReceiverPolicy,
+            personalDetails,
+            privateIsArchived,
+            reportAttributesDerived,
+        );
 
         let validWaypoints: WaypointCollection | undefined;
         if (!isManualDistance) {

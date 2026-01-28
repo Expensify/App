@@ -854,6 +854,7 @@ function getLastMessageTextForReport({
 function createOption(
     accountIDs: number[],
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    policyCollection: OnyxCollection<Policy>,
     report: OnyxInputOrEntry<Report>,
     currentUserAccountID: number,
     config?: PreviewConfig,
@@ -945,7 +946,7 @@ function createOption(
         const computedReportName = computeReportName(
             report,
             allReports,
-            allPolicies,
+            policyCollection ?? allPolicies,
             undefined,
             undefined,
             personalDetailsForCompute,
@@ -998,6 +999,8 @@ function getReportOption(
     participant: Participant,
     privateIsArchived: string | undefined,
     policy: OnyxEntry<Policy>,
+    receiverPolicy: OnyxEntry<Policy>,
+    chatReceiverPolicy: OnyxEntry<Policy>,
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
@@ -1006,9 +1009,21 @@ function getReportOption(
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
 
+    const policyCollection: Record<string, OnyxEntry<Policy>> = {};
+    if (policy && policy.id) {
+        policyCollection[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+    }
+    if (receiverPolicy && receiverPolicy.id) {
+        policyCollection[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicy.id}`] = receiverPolicy;
+    }
+    if (chatReceiverPolicy && chatReceiverPolicy.id) {
+        policyCollection[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicy.id}`] = chatReceiverPolicy;
+    }
+
     const option = createOption(
         visibleParticipantAccountIDs,
         personalDetails ?? {},
+        policyCollection,
         !isEmptyObject(report) ? report : undefined,
         currentUserAccountID,
         {
@@ -1066,6 +1081,7 @@ function getReportDisplayOption(
     const option = createOption(
         visibleParticipantAccountIDs,
         personalDetails ?? {},
+        allPolicies,
         !isEmptyObject(report) ? report : undefined,
         currentUserAccountID,
         {
@@ -1117,6 +1133,7 @@ function getPolicyExpenseReportOption(
     const option = createOption(
         visibleParticipantAccountIDs,
         personalDetails ?? {},
+        allPolicies,
         !isEmptyObject(expenseReport) ? expenseReport : null,
         currentUserAccountID,
         {
@@ -1257,7 +1274,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, currentUserAccountID, undefined, reportAttributesDerived),
+            ...createOption(accountIDs, personalDetails, allPolicies, report, currentUserAccountID, reportAttributesDerived),
         },
     };
 }
@@ -1293,6 +1310,7 @@ function createOptionList(
         ...createOption(
             [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
             personalDetails,
+            allPolicies,
             reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
             currentUserAccountID,
             {
@@ -1417,7 +1435,7 @@ function createFilteredOptionList(
 
               return {
                   item: personalDetail,
-                  ...createOption([accountID], personalDetails, reportMapForAccountIDs[accountID], currentUserAccountID, {showPersonalDetails: true}, reportAttributesDerived),
+                  ...createOption([accountID], personalDetails, allPolicies, reportMapForAccountIDs[accountID], currentUserAccountID, {showPersonalDetails: true}, reportAttributesDerived),
               };
           })
         : [];
@@ -1439,7 +1457,7 @@ function createOptionFromReport(
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, currentUserAccountID, config, reportAttributesDerived),
+        ...createOption(accountIDs, personalDetails, allPolicies, report, currentUserAccountID, config, reportAttributesDerived),
     };
 }
 
@@ -1754,7 +1772,7 @@ function getUserToInviteOption({
             login: searchValue,
         },
     };
-    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, currentUserAccountID, {
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, allPolicies, null, currentUserAccountID, {
         showChatPreviewLine,
     });
     userToInvite.isOptimisticAccount = true;
