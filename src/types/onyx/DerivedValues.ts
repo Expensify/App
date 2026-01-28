@@ -2,6 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Card} from '.';
+import type {CardList} from './Card';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
@@ -199,6 +200,11 @@ type CardFeedErrors = {
  */
 type CardFeedErrorsDerivedValue = CardFeedErrors;
 
+/**
+ * The derived value for merged non-personal and workspace card feeds.
+ */
+type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
+
 export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
@@ -206,6 +212,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
+    NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     AllCardFeedErrorsMap,
     CardFeedErrorsObject,
