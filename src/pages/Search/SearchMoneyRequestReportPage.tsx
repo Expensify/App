@@ -164,8 +164,14 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     // Tracks initial mount to ensure openReport is called once for multi-transaction reports
     const isInitialMountRef = useRef(true);
+    const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
 
     useEffect(() => {
+        // Reset flag when reportID changes (screen stays mounted but navigates to different report)
+        if (prevReportIDFromRoute !== reportIDFromRoute) {
+            isInitialMountRef.current = true;
+        }
+
         // Guard prevents calling openReport for multi-transaction reports
         if (visibleTransactions.length > 2 && !isInitialMountRef.current) {
             return;
