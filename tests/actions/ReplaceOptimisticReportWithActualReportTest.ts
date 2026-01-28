@@ -34,7 +34,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 const mockOpenReport = jest.fn();
 jest.mock('@src/libs/actions/Report', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...originalModule,
         openReport: (...args: unknown[]) => mockOpenReport(...args) as void,
@@ -721,23 +723,24 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
         await waitForBatchedUpdates();
 
-        const eventCallback = jest.fn();
-        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, eventCallback);
+        let capturedEventData: SwitchReportEventData | undefined;
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, (data: SwitchReportEventData) => {
+            capturedEventData = data;
+        });
 
         // When replaceOptimisticReportWithActualReport is called
         replaceOptimisticReportWithActualReport(optimisticReport, undefined);
         await waitForBatchedUpdates();
 
         // Then the switchToPreExistingReport event should be emitted
-        expect(eventCallback).toHaveBeenCalled();
-        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
-        expect(eventData).toMatchObject({
+        expect(capturedEventData).toBeDefined();
+        expect(capturedEventData).toMatchObject({
             preexistingReportID,
             reportToCopyDraftTo: preexistingReportID,
         });
 
         // And when the callback is executed (simulating ComposerWithSuggestions behavior)
-        eventData.callback();
+        capturedEventData?.callback();
         await waitForBatchedUpdates();
 
         // Then the navigation should update to the preexisting report
@@ -785,15 +788,16 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
         await waitForBatchedUpdates();
 
-        const eventCallback = jest.fn();
-        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, eventCallback);
+        let capturedEventData: SwitchReportEventData | undefined;
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, (data: SwitchReportEventData) => {
+            capturedEventData = data;
+        });
 
         // When replaceOptimisticReportWithActualReport is called and the callback is executed
         replaceOptimisticReportWithActualReport(optimisticReport, undefined);
         await waitForBatchedUpdates();
 
-        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
-        eventData.callback();
+        capturedEventData?.callback();
         await waitForBatchedUpdates();
 
         // Then the navigation should go to the parent IOU report, not the preexisting thread
@@ -836,15 +840,16 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
         await waitForBatchedUpdates();
 
-        const eventCallback = jest.fn();
-        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, eventCallback);
+        let capturedEventData: SwitchReportEventData | undefined;
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, (data: SwitchReportEventData) => {
+            capturedEventData = data;
+        });
 
         // When replaceOptimisticReportWithActualReport is called and the callback is executed
         replaceOptimisticReportWithActualReport(optimisticReport, undefined);
         await waitForBatchedUpdates();
 
-        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
-        eventData.callback();
+        capturedEventData?.callback();
         await waitForBatchedUpdates();
 
         // Then the navigation should go to the preexisting thread
@@ -894,15 +899,16 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
         await waitForBatchedUpdates();
 
-        const eventCallback = jest.fn();
-        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, eventCallback);
+        let capturedEventData: SwitchReportEventData | undefined;
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, (data: SwitchReportEventData) => {
+            capturedEventData = data;
+        });
 
         // When replaceOptimisticReportWithActualReport is called and the callback is executed
         replaceOptimisticReportWithActualReport(optimisticReport, undefined);
         await waitForBatchedUpdates();
 
-        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
-        eventData.callback();
+        capturedEventData?.callback();
         await waitForBatchedUpdates();
 
         // Then the navigation should go to the preexisting thread, NOT the parent IOU report
@@ -934,15 +940,16 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
         await waitForBatchedUpdates();
 
-        const eventCallback = jest.fn();
-        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, eventCallback);
+        let capturedEventData: SwitchReportEventData | undefined;
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, (data: SwitchReportEventData) => {
+            capturedEventData = data;
+        });
 
         // When replaceOptimisticReportWithActualReport is called and the callback is executed
         replaceOptimisticReportWithActualReport(optimisticReport, undefined);
         await waitForBatchedUpdates();
 
-        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
-        eventData.callback();
+        capturedEventData?.callback();
         await waitForBatchedUpdates();
 
         // Then the navigation should update the backTo route with the preexisting report ID
@@ -986,16 +993,17 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
         await waitForBatchedUpdates();
 
-        const eventCallback = jest.fn();
-        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, eventCallback);
+        let capturedEventData: SwitchReportEventData | undefined;
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, (data: SwitchReportEventData) => {
+            capturedEventData = data;
+        });
 
         // When replaceOptimisticReportWithActualReport is called
         replaceOptimisticReportWithActualReport(optimisticReport, undefined);
         await waitForBatchedUpdates();
 
         // Then the emitted event should have the parent IOU report as reportToCopyDraftTo
-        const eventData: SwitchReportEventData = eventCallback.mock.calls[0][0];
-        expect(eventData.reportToCopyDraftTo).toBe(iouReportID);
+        expect(capturedEventData?.reportToCopyDraftTo).toBe(iouReportID);
 
         subscription.remove();
     });
@@ -1020,15 +1028,17 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, existingReport);
         await waitForBatchedUpdates();
 
-        const eventCallback = jest.fn();
-        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, eventCallback);
+        let capturedEventData: SwitchReportEventData | undefined;
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, (data: SwitchReportEventData) => {
+            capturedEventData = data;
+        });
 
         // When replaceOptimisticReportWithActualReport is called
         replaceOptimisticReportWithActualReport(optimisticReport, undefined);
         await waitForBatchedUpdates();
 
         // Then the switchToPreExistingReport event should NOT be emitted
-        expect(eventCallback).not.toHaveBeenCalled();
+        expect(capturedEventData).toBeUndefined();
 
         // But the optimistic report should still be cleared
         const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
