@@ -7,7 +7,6 @@ import ExportOnyxState from '@libs/ExportOnyxState';
 import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Log} from '@src/types/onyx';
 import BaseRecordTroubleshootDataToolMenu from './BaseRecordTroubleshootDataToolMenu';
 
 function RecordTroubleshootDataToolMenu() {
@@ -15,12 +14,9 @@ function RecordTroubleshootDataToolMenu() {
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
     const zipRef = useRef(new JSZip());
 
-    const createAndSaveFile = (logs: Log[]) => {
-        const newFileName = appendTimeToFileName('logs.txt');
+    const createAndSaveFile = () => {
         const zipFileName = appendTimeToFileName('troubleshoot.zip');
         const tempZipPath = `${RNFetchBlob.fs.dirs.CacheDir}/${zipFileName}`;
-
-        zipRef.current.file(newFileName, JSON.stringify(logs, null, 2));
 
         return ExportOnyxState.readFromOnyxDatabase()
             .then((value: Record<string, unknown>) => {
@@ -64,7 +60,7 @@ function RecordTroubleshootDataToolMenu() {
         <BaseRecordTroubleshootDataToolMenu
             file={file}
             onEnableLogging={() => setFile(undefined)}
-            onDisableLogging={createAndSaveFile}
+            onDisableRecording={createAndSaveFile}
             pathToBeUsed={RNFS.DownloadDirectoryPath}
             showShareButton
             zipRef={zipRef}

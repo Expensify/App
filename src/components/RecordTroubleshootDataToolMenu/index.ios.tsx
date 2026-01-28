@@ -9,7 +9,6 @@ import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import getDownloadFolderPathSuffixForIOS from '@libs/getDownloadFolderPathSuffixForIOS';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Log} from '@src/types/onyx';
 import BaseRecordTroubleshootDataToolMenu from './BaseRecordTroubleshootDataToolMenu';
 
 function RecordTroubleshootDataToolMenu() {
@@ -19,11 +18,7 @@ function RecordTroubleshootDataToolMenu() {
 
     const zipRef = useRef(new JSZip());
 
-    const createFile = (logs: Log[]) => {
-        const newFileName = appendTimeToFileName('logs.txt');
-
-        zipRef.current.file(newFileName, JSON.stringify(logs, null, 2));
-
+    const createFile = () => {
         const dir = RNFetchBlob.fs.dirs.DocumentDir;
         const zipFileName = appendTimeToFileName('troubleshoot.zip');
 
@@ -61,7 +56,7 @@ function RecordTroubleshootDataToolMenu() {
         <BaseRecordTroubleshootDataToolMenu
             file={file}
             onEnableLogging={() => setFile(undefined)}
-            onDisableLogging={createFile}
+            onDisableRecording={createFile}
             pathToBeUsed={RNFS.DocumentDirectoryPath}
             showShareButton
             zipRef={zipRef}
