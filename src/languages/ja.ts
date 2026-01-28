@@ -7110,10 +7110,7 @@ ${reportName}
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `ビジネス銀行口座へのPlaid接続が切断されています。Expensifyカードを引き続きご利用いただくには、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
-                    `ビジネス銀行口座 ${
-                        //_/\__/_/  \_,_/\__/\__/\_,_/
-                        maskedBankAccountNumber
-                    } は、払い戻しまたは Expensify Card の決済に関する問題により自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
+                    `ビジネス銀行口座 ${maskedBankAccountNumber} は、払い戻しまたは Expensify Card の決済に関する問題により自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
