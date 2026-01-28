@@ -84,7 +84,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
 
     // When editing, use the existing rule and merge updated fields; when adding, create a new rule
     const targetRuleID = ruleID ?? NumberUtils.rand64();
-    const operator = form.matchType === CONST.MERCHANT_RULES.MATCH_TYPE.EXACT ? CONST.POLICY.RULE_CONDITIONS.MATCHES : CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+    const operator = form.matchType === CONST.MERCHANT_RULES.MATCH_TYPE.EXACT ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
     const ruleForOptimisticUpdate: CodingRule =
         isEditing && existingRule
             ? {

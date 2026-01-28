@@ -7136,6 +7136,7 @@ const CONST = {
             AND: 'and',
             OR: 'or',
             EQUAL_TO: 'eq',
+            CONTAINS: 'contains',
             NOT_EQUAL_TO: 'neq',
             GREATER_THAN: 'gt',
             GREATER_THAN_OR_EQUAL_TO: 'gte',
