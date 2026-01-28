@@ -1,5 +1,6 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -7,8 +8,8 @@ import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import {isUsingStagingApi} from '@libs/ApiUtils';
-import MultifactorAuthenticationObserver from '@libs/MultifactorAuthentication/Biometrics/Observer';
 import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
@@ -16,13 +17,17 @@ import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/Use
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Account} from '@src/types/onyx';
 import Button from './Button';
-import useNativeBiometrics from './MultifactorAuthentication/useNativeBiometrics';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
+
+function getHasBiometricsRegistered(data: OnyxEntry<Account>) {
+    return data?.multifactorAuthenticationPublicKeyIDs && data.multifactorAuthenticationPublicKeyIDs.length > 0;
+}
 
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
@@ -32,14 +37,7 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReports();
-    const {setup} = useNativeBiometrics();
-
-    useEffect(() => {
-        MultifactorAuthenticationObserver.registerCallback('TestToolMenu', setup.refresh);
-        return () => {
-            MultifactorAuthenticationObserver.unregisterCallback('TestToolMenu');
-        };
-    }, [setup.refresh]);
+    const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: getHasBiometricsRegistered});
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
@@ -57,7 +55,8 @@ function TestToolMenu() {
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
 
-    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: setup.isLocalPublicKeyInAuth});
+    // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
+    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: hasBiometricsRegistered});
 
     return (
         <>
@@ -122,6 +121,15 @@ function TestToolMenu() {
                                 text={translate('multifactorAuthentication.biometricsTest.test')}
                                 onPress={() => navigateToBiometricsTestPage()}
                             />
+                            {hasBiometricsRegistered && (
+                                <Button
+                                    small
+                                    text={translate('multifactorAuthentication.revoke.revoke')}
+                                    onPress={() => {
+                                        revokeMultifactorAuthenticationCredentials();
+                                    }}
+                                />
+                            )}
                         </View>
                     </TestToolRow>
                 </>
