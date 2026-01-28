@@ -35,6 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -5243,7 +5244,6 @@ describe('SearchUIUtils', () => {
         });
 
         test('should correctly map view values to user-friendly values', () => {
-            const {getUserFriendlyValue} = require('@src/libs/SearchQueryUtils');
             const viewValues = Object.values(CONST.SEARCH.VIEW);
             const userFriendlyValues = viewValues.map((value) => getUserFriendlyValue(value));
 
