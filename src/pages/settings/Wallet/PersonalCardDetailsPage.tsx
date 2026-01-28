@@ -1,5 +1,5 @@
 import {format, parseISO} from 'date-fns';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
@@ -81,12 +81,9 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         syncCard(card.cardID, card.lastScrapeResult);
     };
 
-    const lastScrape = useMemo(() => {
-        if (!card?.lastScrape) {
-            return translate('workspace.moreFeatures.companyCards.neverUpdated');
-        }
-        return format(getLocalDateFromDatetime(card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-    }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
+    const lastScrape = card?.lastScrape
+        ? format(getLocalDateFromDatetime(card.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING)
+        : translate('workspace.moreFeatures.companyCards.neverUpdated');
 
     const getCardIconSource = () => {
         return getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons);
