@@ -7633,6 +7633,13 @@ const CONST = {
         CARD_NUMBER: 'cardNumber',
         DATE: 'date',
         MERCHANT: 'merchant',
+        CATEGORY: 'category',
+        TAG: 'tag',
+        COMMENT: 'comment',
+        ORIGINAL_TRANSACTION_DATE: 'originalTransactionDate',
+        ORIGINAL_AMOUNT: 'originalAmount',
+        ORIGINAL_CURRENCY: 'originalCurrency',
+        UNIQUE_ID: 'uniqueID',
     },
 
     IMPORT_SPREADSHEET: {

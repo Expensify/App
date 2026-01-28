@@ -4791,6 +4791,13 @@ const translations = {
                     amount: 'Amount',
                     currency: 'Currency',
                     ignore: 'Ignore',
+                    originalTransactionDate: 'Original transaction date',
+                    originalAmount: 'Original amount',
+                    originalCurrency: 'Original currency',
+                    comment: 'Comment',
+                    category: 'Category',
+                    tag: 'Tag',
+                    uniqueID: 'Unique ID',
                 },
             },
             statementCloseDate: {
