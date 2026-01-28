@@ -38,7 +38,6 @@ const merchantRuleFormSelector = (form: OnyxEntry<MerchantRuleForm>) => form?.me
 
 function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const policyID = route.params.policyID;
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);

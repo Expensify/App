@@ -359,6 +359,9 @@ const ONYXKEYS = {
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
+    /** Is loading policy rules preview? */
+    IS_LOADING_POLICY_CODING_RULES_PREVIEW: 'isLoadingPolicyCodingRulesPreview',
+
     /** Is the app loaded? */
     HAS_LOADED_APP: 'hasLoadedApp',
 
@@ -1282,6 +1285,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID]: string;
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
+    [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.APP_PROFILING_IN_PROGRESS]: boolean;

@@ -1,4 +1,4 @@
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetTransactionsMatchingCodingRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -158,7 +158,29 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
 }
 
 function getTransactionsMatchingCodingRule({merchant, policyID}: GetTransactionsMatchingCodingRuleParams) {
-    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {merchant, policyID});
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW,
+            value: false,
+        },
+    ];
+
+    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {merchant, policyID}, {optimisticData, successData, failureData});
 }
 
 export {openPolicyRulesPage, setPolicyCodingRule, getTransactionsMatchingCodingRule};
