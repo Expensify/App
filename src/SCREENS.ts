@@ -768,6 +768,7 @@ const SCREENS = {
         RULES_MERCHANT_DESCRIPTION: 'Rules_Merchant_Description',
         RULES_MERCHANT_REIMBURSABLE: 'Rules_Merchant_Reimbursable',
         RULES_MERCHANT_BILLABLE: 'Rules_Merchant_Billable',
+        RULES_MERCHANT_EDIT: 'Rules_Merchant_Edit',
         PER_DIEM: 'Per_Diem',
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',

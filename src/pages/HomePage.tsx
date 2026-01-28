@@ -1,12 +1,15 @@
 import React from 'react';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayLHB = !shouldUseNarrowLayout;
+    const {translate} = useLocalize();
 
     return (
         <ScreenWrapper
@@ -23,6 +26,10 @@ function HomePage() {
                 )
             }
         >
+            <TopBar
+                breadcrumbLabel={translate('common.home')}
+                shouldShowLoadingBar={false}
+            />
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
         </ScreenWrapper>
     );

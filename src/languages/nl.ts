@@ -766,14 +766,14 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Intrekken',
-            title: 'Gezichtsherkenning/vingerafdruk & passkeys',
+            title: 'Gezicht/vingerafdruk en passkeys',
             explanation:
                 'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op één of meer apparaten. Toegang intrekken vereist een magische code voor de volgende verificatie op elk apparaat',
             confirmationPrompt: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat',
             cta: 'Toegang intrekken',
-            noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkeys-verificatie. Als je er een registreert, kun je hier die toegang intrekken.',
+            noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkey-verificatie. Als je er een registreert, kun je die toegang hier intrekken.',
             dismiss: 'Begrepen',
-            error: 'Verzoek mislukt. Probeer het later opnieuw.',
+            error: 'Aanvraag mislukt. Probeer het later opnieuw.',
         },
     },
     validateCodeModal: {
@@ -929,6 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Dit is je persoonlijke ruimte. Gebruik het voor notities, taken, concepten en herinneringen.',
         beginningOfChatHistorySystemDM: 'Welkom! Laten we je instellen.',
         chatWithAccountManager: 'Chat hier met je accountmanager',
+        askMeAnything: 'Vraag mij wat je maar wilt!',
         sayHello: 'Zeg hallo!',
         yourSpace: 'Je ruimte',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welkom bij ${roomName}!`,
@@ -6361,6 +6362,9 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 confirmError: 'Voer een leverancier in en pas ten minste één wijziging toe',
                 confirmErrorMerchant: 'Voer handelaar in',
                 confirmErrorUpdate: 'Breng ten minste één wijziging aan alstublieft',
+                editRuleTitle: 'Regel bewerken',
+                deleteRule: 'Regel verwijderen',
+                deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
             },
         },
         planTypePage: {

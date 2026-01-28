@@ -1180,6 +1180,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: {
                             path: ROUTES.RULES_MERCHANT_BILLABLE.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
+                            path: ROUTES.RULES_MERCHANT_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
                         },
