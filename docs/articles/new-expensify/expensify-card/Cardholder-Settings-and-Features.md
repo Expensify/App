@@ -96,6 +96,30 @@ For more details on adding a card to Apple or Android Pay, see this [guide](http
 
 ---
 
+# Freeze or unfreeze your Expensify Card
+
+Need to temporarily pause spending? You can freeze your Expensify Card at any time - without canceling or reissuing it.
+
+Freezing your card:
+- Immediately blocks new purchases on the card
+- Keeps your card number, CVV, and expiration date intact
+- Can be reversed at any time
+
+### To freeze or unfreeze your card:
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet > Expensify Card**.
+2. Click your Expensify Card to view its details.
+3. Tap **Freeze card** or **Unfreeze card**, depending on the card's current state.
+4. Confirm in the popup modal.
+
+Once frozen:
+- You'll see a **Frozen** badge and a scarf graphic over your card
+- All new transactions will be declined until you unfreeze it
+
+**Note:** If your workspace admin froze the card, you'll need to contact them directly via chat to unfreeze it.
+
+---
+
 # FAQ
 
 ## What if I haven’t received my Expensify Card?
