@@ -316,9 +316,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
             // const getLastMessageStartTime = performance.now();
-            const cachedLastMessageText = getCachedLastMessageText(reportID);
-            const lastMessageTextFromReport =
-                cachedLastMessageText ??
+            const lastMessageTextFromReport = getCachedLastMessageText(reportID, () =>
                 getLastMessageTextForReport({
                     translate,
                     report: item,
@@ -330,7 +328,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     policyForMovingExpensesID,
                     reportMetadata: itemReportMetadata,
                     currentUserAccountID,
-                });
+                }),
+            );
             // const getLastMessageEndTime = performance.now();
             // const getLastMessageDuration = getLastMessageEndTime - getLastMessageStartTime;
 

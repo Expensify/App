@@ -248,7 +248,7 @@ function invalidateCacheForReport(reportID: string) {
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
         const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]);
-        
+
         let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
         if (transactionThreadReportID) {
             const transactionThreadReportActionsArray = Object.values(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
@@ -289,23 +289,6 @@ function invalidateCacheForReport(reportID: string) {
                   }
                 : null;
         }
-
-        const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportActionForDisplay, CONST.REPORT.MOVE_TYPE.FROM)}`];
-        const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportActionForDisplay, CONST.REPORT.MOVE_TYPE.TO)}`];
-        const itemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        const itemReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
-
-        const lastMessageText = getLastMessageTextForReport({
-            report,
-            lastActorDetails,
-            movedFromReport,
-            movedToReport,
-            policy: itemPolicy,
-            isReportArchived,
-            policyForMovingExpensesID: undefined,
-            reportMetadata: itemReportMetadata,
-        });
-        lastMessageTextCache[reportID] = lastMessageText;
     }
 }
 
@@ -366,7 +349,7 @@ function logFunctionStats(functionName: keyof typeof functionCallStats) {
     const stats = functionCallStats[functionName];
     stats.count += 1;
     const now = Date.now();
-    
+
     if (now - stats.lastLogTime >= LOG_INTERVAL_MS) {
         Log.info(`[LHN DEBUG] ${functionName} calls`, false, {
             totalCalls: stats.count,
@@ -469,22 +452,9 @@ Onyx.connect({
                     : null;
             }
 
-            const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportActionForDisplay, CONST.REPORT.MOVE_TYPE.FROM)}`];
-            const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportActionForDisplay, CONST.REPORT.MOVE_TYPE.TO)}`];
-            const itemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-            const itemReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
-
-            const lastMessageText = getLastMessageTextForReport({
-                report,
-                lastActorDetails,
-                movedFromReport,
-                movedToReport,
-                policy: itemPolicy,
-                isReportArchived,
-                policyForMovingExpensesID: undefined,
-                reportMetadata: itemReportMetadata,
-            });
-            lastMessageTextCache[reportID] = lastMessageText;
+            // NOTE: We removed cache precomputation here to avoid using deprecated translateLocal.
+            // Cache is now computed lazily on cache miss in getCachedLastMessageText (called from LHNOptionsList renderItem).
+            // This ensures we always use translate from LocaleContext instead of the deprecated translateLocal.
         }
     },
 });
@@ -551,14 +521,27 @@ function getCachedReportActionsForDisplay(reportID: string): ReportAction[] {
     return cached ?? [];
 }
 
-function getCachedLastMessageText(reportID: string): string | undefined {
+/**
+ * Get cached last message text for a report, or compute and cache it if missing.
+ * This uses lazy computation to avoid using deprecated translateLocal in module-level Onyx.connect callbacks.
+ *
+ * @param reportID - The report ID to get cached message text for
+ * @param computeFn - Optional function to compute the message text if cache miss. If provided, result will be cached.
+ * @returns Cached message text, or undefined if cache miss and no computeFn provided
+ */
+function getCachedLastMessageText(reportID: string, computeFn?: () => string): string | undefined {
     const now = Date.now();
-    const cached = lastMessageTextCache[reportID];
+    let cached = lastMessageTextCache[reportID];
 
     if (cached) {
         lastMessageTextCacheStats.hits += 1;
     } else {
         lastMessageTextCacheStats.misses += 1;
+        // Lazy computation on cache miss if computeFn provided
+        if (computeFn) {
+            cached = computeFn();
+            lastMessageTextCache[reportID] = cached;
+        }
     }
 
     if (now - lastMessageTextCacheStats.lastLogTime >= LOG_INTERVAL_MS) {
