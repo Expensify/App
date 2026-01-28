@@ -3,7 +3,6 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
@@ -12,6 +11,7 @@ import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -20,6 +20,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -72,9 +73,20 @@ function SecuritySettingsPage() {
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
-    const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
     const [selectedDelegate, setSelectedDelegate] = useState<Delegate | undefined>();
     const [selectedEmail, setSelectedEmail] = useState<string | undefined>();
+
+    const {showConfirmModal} = useConfirmModal();
+    const showRemoveCopilotModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('delegate.removeCopilot'),
+            prompt: translate('delegate.removeCopilotConfirmation'),
+            confirmText: translate('delegate.removeCopilot'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+    }, [showConfirmModal, translate]);
 
     const errorFields = account?.delegatedAccess?.errorFields ?? {};
 
@@ -344,8 +356,19 @@ function SecuritySettingsPage() {
                 }
                 modalClose(() => {
                     setShouldShowDelegatePopoverMenu(false);
-                    setShouldShowRemoveDelegateModal(true);
                     setSelectedEmail(undefined);
+                    showRemoveCopilotModal().then((result) => {
+                        if (result.action === ModalActions.CLOSE) {
+                            setSelectedDelegate(undefined);
+                        } else {
+                            if (isActingAsDelegate) {
+                                showDelegateNoAccessModal();
+                                return;
+                            }
+                            removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
+                            setSelectedDelegate(undefined);
+                        }
+                    });
                 });
             },
         },
@@ -461,29 +484,6 @@ function SecuritySettingsPage() {
                                     setShouldShowDelegatePopoverMenu(false);
                                     setSelectedEmail(undefined);
                                 }}
-                            />
-                            <ConfirmModal
-                                isVisible={shouldShowRemoveDelegateModal}
-                                title={translate('delegate.removeCopilot')}
-                                prompt={translate('delegate.removeCopilotConfirmation')}
-                                danger
-                                onConfirm={() => {
-                                    if (isActingAsDelegate) {
-                                        setShouldShowRemoveDelegateModal(false);
-                                        showDelegateNoAccessModal();
-                                        return;
-                                    }
-                                    removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
-                                    setShouldShowRemoveDelegateModal(false);
-                                    setSelectedDelegate(undefined);
-                                }}
-                                onCancel={() => {
-                                    setShouldShowRemoveDelegateModal(false);
-                                    setSelectedDelegate(undefined);
-                                }}
-                                confirmText={translate('delegate.removeCopilot')}
-                                cancelText={translate('common.cancel')}
-                                shouldShowCancelButton
                             />
                         </View>
                     </ScrollView>
