@@ -1443,4 +1443,195 @@ describe('CardUtils', () => {
             });
         });
     });
+
+    describe('isUserAssignedPersonalCard', () => {
+        const currentUserAccountID = 12345;
+
+        it('should return true for a personal card assigned to the current user (empty domainName, matching accountID)', () => {
+            const card: Card = {
+                cardID: 1,
+                accountID: currentUserAccountID,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardName: 'My Personal Card',
+                domainName: '', // Empty string for personal card
+                fraud: 'none',
+                lastFourPAN: '1234',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            expect(isUserAssignedPersonalCard(card, currentUserAccountID)).toBe(true);
+        });
+
+        it('should return false for a card with a domainName (company card)', () => {
+            const card: Card = {
+                cardID: 2,
+                accountID: currentUserAccountID,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardName: 'Company Card',
+                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                fraud: 'none',
+                lastFourPAN: '5678',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            expect(isUserAssignedPersonalCard(card, currentUserAccountID)).toBe(false);
+        });
+
+        it('should return false for a card assigned to a different user', () => {
+            const differentUserAccountID = 99999;
+            const card: Card = {
+                cardID: 3,
+                accountID: differentUserAccountID,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardName: 'Other Users Card',
+                domainName: '', // Empty string for personal card
+                fraud: 'none',
+                lastFourPAN: '9999',
+                lastScrape: '',
+                lastUpdated: '',
+                state: 3,
+            };
+            expect(isUserAssignedPersonalCard(card, currentUserAccountID)).toBe(false);
+        });
+
+        it('should return false for undefined card', () => {
+            expect(isUserAssignedPersonalCard(undefined, currentUserAccountID)).toBe(false);
+        });
+    });
+
+    describe('filterPersonalCards', () => {
+        it('should return only cards with a valid fundID', () => {
+            const cardList: CardList = {
+                '1': {
+                    cardID: 1,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Personal Card 1',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '100',
+                },
+                '2': {
+                    cardID: 2,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Company Card',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    // No fundID - company card
+                },
+                '3': {
+                    cardID: 3,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+                    cardName: 'Personal Card 2',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '3333',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '200',
+                },
+            };
+
+            const result = filterPersonalCards(cardList);
+            const cardIDs = Object.keys(result);
+
+            expect(cardIDs).toHaveLength(2);
+            expect(cardIDs).toContain('1');
+            expect(cardIDs).toContain('3');
+            expect(cardIDs).not.toContain('2');
+        });
+
+        it('should filter out cards with fundID of "0"', () => {
+            const cardList: CardList = {
+                '1': {
+                    cardID: 1,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Card with fundID 0',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '0',
+                },
+                '2': {
+                    cardID: 2,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Card with valid fundID',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '123',
+                },
+            };
+
+            const result = filterPersonalCards(cardList);
+            const cardIDs = Object.keys(result);
+
+            expect(cardIDs).toHaveLength(1);
+            expect(cardIDs).toContain('2');
+            expect(cardIDs).not.toContain('1');
+        });
+
+        it('should return empty object for undefined card list', () => {
+            const result = filterPersonalCards(undefined);
+            expect(result).toEqual({});
+        });
+
+        it('should return empty object when no cards have fundID', () => {
+            const cardList: CardList = {
+                '1': {
+                    cardID: 1,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Company Card 1',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+                '2': {
+                    cardID: 2,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+                    cardName: 'Company Card 2',
+                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+            };
+
+            const result = filterPersonalCards(cardList);
+            expect(Object.keys(result)).toHaveLength(0);
+        });
+
+        it('should handle empty card list', () => {
+            const result = filterPersonalCards({});
+            expect(result).toEqual({});
+        });
+    });
 });
