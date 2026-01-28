@@ -1705,13 +1705,19 @@ type CodingRuleTax = {
         /** The external ID of the tax rate */
         externalID: string;
 
-        /** The display value of the tax rate */
+        /** The tax rate value (e.g., "8.5%") */
         value: string;
+
+        /** The name of the tax rate */
+        name: string;
     };
 };
 
 /** Policy coding rule data model */
 type CodingRule = {
+    /** Unique identifier for the rule */
+    ruleID?: string;
+
     /** Filter conditions for when this rule applies */
     filters: CodingRuleFilter;
 
