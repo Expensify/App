@@ -16,16 +16,24 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type IconAsset from '@src/types/utils/IconAsset';
 import SearchBarChart from './SearchBarChart';
 import type {SearchGroupBy, SearchQueryJSON, SearchView} from './types';
 
 type GroupedItem = TransactionMemberGroupListItemType | TransactionCardGroupListItemType | TransactionWithdrawalIDGroupListItemType | TransactionCategoryGroupListItemType;
 
+type ChartGroupByConfig = {
+    title: string;
+    titleIcon: IconAsset;
+    getLabel: (item: GroupedItem) => string;
+    getFilterQuery: (item: GroupedItem) => string;
+};
+
 /**
  * Chart-specific configuration for each groupBy type - defines how to extract label and build filter query
  * for displaying grouped transaction data in charts
  */
-const CHART_GROUP_BY_CONFIG = {
+const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.FROM]: {
         title: 'Submitters',
         titleIcon: Expensicons.Users,
@@ -50,7 +58,7 @@ const CHART_GROUP_BY_CONFIG = {
         getLabel: (item: GroupedItem) => (item as TransactionCategoryGroupListItemType).formattedCategory ?? '',
         getFilterQuery: (item: GroupedItem) => `category:"${(item as TransactionCategoryGroupListItemType).category}"`,
     },
-} as const;
+};
 
 type SearchChartViewProps = {
     /** The current search query JSON */
