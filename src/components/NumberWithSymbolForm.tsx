@@ -484,6 +484,7 @@ function NumberWithSymbolForm({
                                 style={styles.minWidth18}
                                 isContentCentered
                                 text={currency}
+                                accessibilityLabel={translate('common.selectCurrency')}
                             />
                         )}
                         {!!errorText && (
@@ -509,6 +510,7 @@ function NumberWithSymbolForm({
                         style={styles.minWidth18}
                         isContentCentered
                         text={currency}
+                        accessibilityLabel={translate('common.selectCurrency')}
                     />
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
@@ -520,6 +522,7 @@ function NumberWithSymbolForm({
                         style={styles.minWidth18}
                         isContentCentered
                         text={translate('iou.flip')}
+                        accessibilityLabel={translate('iou.flip')}
                     />
                 )}
             </View>
