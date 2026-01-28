@@ -333,7 +333,7 @@ function WorkspaceCompanyCardsTable({
     const headerButtonsComponent = showTableHeaderButtons ? (
         <View style={shouldUseNarrowTableLayout && styles.mb5}>
             <WorkspaceCompanyCardsTableHeaderButtons
-                isLoading={isLoadingPage}
+                isLoading={isLoading}
                 policyID={policyID}
                 feedName={feedName}
                 showTableControls={showTableControls}

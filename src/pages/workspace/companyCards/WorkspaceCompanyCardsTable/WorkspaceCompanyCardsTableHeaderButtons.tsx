@@ -166,7 +166,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     </View>
                 </View>
             </View>
-            {(isFeedConnectionBroken || hasFeedErrors) && (
+            {!isLoading && (isFeedConnectionBroken || hasFeedErrors) && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
                         src={expensifyIcons.DotIndicator}
