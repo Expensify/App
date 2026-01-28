@@ -1,9 +1,7 @@
 import type {ValueOf} from 'type-fest';
-import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {BankAccountList} from '@src/types/onyx';
-import type {ACHData, ACHDataReimbursementAccount, BankAccountStep, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 
 type ReimbursementAccountStepToOpen = ValueOf<typeof REIMBURSEMENT_ACCOUNT_ROUTE_NAMES> | '';
 
