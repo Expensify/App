@@ -225,7 +225,6 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                         renderItem={renderItem}
                         keyExtractor={keyExtractor}
                         contentContainerStyle={[styles.mh5]}
-                        estimatedItemSize={64}
                     />
                 )}
             </View>

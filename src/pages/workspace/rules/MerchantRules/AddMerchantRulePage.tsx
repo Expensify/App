@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -224,20 +224,27 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                         </View>
                     ))}
                 </ScrollView>
-                <Button
-                    text={translate('workspace.rules.merchantRules.previewMatches')}
-                    style={[styles.mh4, styles.mt4]}
-                    large
-                    onPress={previewMatches}
-                />
-                <FormAlertWithSubmitButton
-                    buttonText={translate('workspace.rules.merchantRules.saveRule')}
-                    containerStyles={[styles.m4, styles.mb5]}
-                    isAlertVisible={shouldShowError && !!errorMessage}
-                    message={errorMessage}
-                    onSubmit={handleSubmit}
-                    enabledWhenOffline
-                />
+
+                <View style={[styles.m4, styles.mb5]}>
+                    {!!errorMessage && (
+                        <FormHelpMessage
+                            isError
+                            message={errorMessage}
+                        />
+                    )}
+                    <Button
+                        large
+                        text={translate('workspace.rules.merchantRules.previewMatches')}
+                        style={[styles.mv4]}
+                        onPress={previewMatches}
+                    />
+                    <Button
+                        large
+                        success
+                        text={translate('workspace.rules.merchantRules.saveRule')}
+                        onPress={handleSubmit}
+                    />
+                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
