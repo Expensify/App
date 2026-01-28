@@ -11586,18 +11586,20 @@ function prepareOnboardingOnyxData({
     const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
     const textComment = buildOptimisticAddCommentReportAction(message, undefined, actorAccountID, 1);
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
-    const textMessage: AddCommentOrAttachmentParams = {
-        reportID: targetChatReportID,
-        reportActionID: textCommentAction.reportActionID,
-        reportComment: textComment.commentText,
-    };
+    const textMessage: AddCommentOrAttachmentParams | undefined = shouldPostTasksInAdminsRoom
+        ? undefined
+        : {
+              reportID: targetChatReportID,
+              reportActionID: textCommentAction.reportActionID,
+              reportComment: textComment.commentText,
+          };
 
     let createWorkspaceTaskReportID;
     let addExpenseApprovalsTaskReportID;
     let setupTagsTaskReportID;
     let setupCategoriesAndTagsTaskReportID;
-    const tasks = shouldPostTasksInAdminsRoom ? [] : onboardingMessage.tasks;
     // If shouldPostTasksInAdminsRoom we do not want to generate tasks in favour of followups.
+    const tasks = shouldPostTasksInAdminsRoom ? [] : onboardingMessage.tasks;
     const tasksData = tasks
         .filter((task) => {
             if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
@@ -11903,14 +11905,15 @@ function prepareOnboardingOnyxData({
             },
         },
     );
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-        value: {
-            [textCommentAction.reportActionID]: textCommentAction as ReportAction,
-        },
-    });
+    if (!shouldPostTasksInAdminsRoom) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
+            },
+        });
+    }
 
     if (!wasInvited) {
         optimisticData.push({
@@ -12036,8 +12039,9 @@ function prepareOnboardingOnyxData({
 
     // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = [];
-
-    guidedSetupData.push({type: 'message', ...textMessage});
+    if (textMessage) {
+        guidedSetupData.push({type: 'message', ...textMessage});
+    }
 
     let selfDMParameters: SelfDMParameters = {};
     if (
@@ -12108,7 +12112,6 @@ function prepareOnboardingOnyxData({
             );
         }
     }
-
     guidedSetupData.push(...tasksForParameters);
 
     if (
@@ -12165,6 +12168,8 @@ function prepareOnboardingOnyxData({
             },
         });
     }
+
+    console.log('optimisticData', optimisticData, 'successData', successData, 'failureData', failureData, 'guidedSetupData', guidedSetupData, 'selfDMParameters', selfDMParameters);
 
     return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters};
 }
