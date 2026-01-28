@@ -1,22 +1,22 @@
 import React, {useEffect} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {useMultifactorAuthentication} from '@components/MultifactorAuthentication';
+import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import CONST from '@src/CONST';
 
 const LOADING_DELAY_MS = 400;
 
 function MultifactorAuthenticationBiometricsTestPage() {
-    const {executeScenario} = useMultifactorAuthentication();
+    const {proceed} = useMultifactorAuthenticationContext();
 
     useEffect(() => {
         // Show a short loading state so the RHP transition feels smooth, then move to the magic code flow
         const timeoutId = setTimeout(() => {
-            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
+            proceed(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
         }, LOADING_DELAY_MS);
 
         return () => clearTimeout(timeoutId);
-    }, [executeScenario]);
+    }, [proceed]);
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationBiometricsTestPage.displayName}>
