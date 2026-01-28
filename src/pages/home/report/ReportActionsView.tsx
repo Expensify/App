@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportPreviewAction} from '@libs/actions/IOU';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
+import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -71,7 +72,7 @@ type ReportActionsViewProps = {
     isConciergeProcessing?: boolean;
 
     /** Reasoning history from Concierge */
-    conciergeReasoningHistory?: string[];
+    conciergeReasoningHistory?: ReasoningEntry[];
 
     /** Concierge processing status label */
     conciergeStatusLabel?: string;

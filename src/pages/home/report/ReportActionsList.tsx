@@ -23,6 +23,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
+import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -126,7 +127,7 @@ type ReportActionsListProps = {
     isConciergeProcessing?: boolean;
 
     /** Reasoning history from Concierge */
-    conciergeReasoningHistory?: string[];
+    conciergeReasoningHistory?: ReasoningEntry[];
 
     /** Concierge processing status label */
     conciergeStatusLabel?: string;

@@ -1,12 +1,13 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import * as ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
+import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import {subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 type AgentZeroStatusState = {
     isProcessing: boolean;
-    reasoningHistory: string[];
+    reasoningHistory: ReasoningEntry[];
     statusLabel: string;
     kickoffWaitingIndicator: () => void;
 };
@@ -23,7 +24,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     const [isOptimisticallyProcessing, setIsOptimisticallyProcessing] = useState(false);
     const [serverLabelVersion, setServerLabelVersion] = useState(0);
     const [waitingSessionVersion, setWaitingSessionVersion] = useState<number | null>(null);
-    const [reasoningHistory, setReasoningHistory] = useState<string[]>([]);
+    const [reasoningHistory, setReasoningHistory] = useState<ReasoningEntry[]>([]);
 
     const statusLabel = serverLabel ?? '';
     const isProcessing = isConciergeChat && (!!serverLabel || isOptimisticallyProcessing);
@@ -47,7 +48,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
                 reportID: changedReportID,
                 entriesCount: state?.entries.length ?? 0,
             });
-            setReasoningHistory(state ? state.entries.map((entry) => entry.reasoning) : []);
+            setReasoningHistory(state ? state.entries : []);
         });
 
         setReasoningHistory(ConciergeReasoningStore.getReasoningHistory(reportID));

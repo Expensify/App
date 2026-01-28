@@ -32,8 +32,7 @@ function notifyListeners(reportID: string) {
 
 /**
  * Add a reasoning entry for a report.
- * If the agentZeroRequestID changes, clears previous entries.
- * Ignores entries with loopCount <= last recorded loopCount.
+ * Reset on new request IDs so we don't mix runs, and skip duplicates to avoid replays.
  */
 function addReasoning(reportID: string, data: ReasoningEventData): void {
     const {reasoning, agentZeroRequestID, loopCount} = data;
@@ -67,13 +66,9 @@ function addReasoning(reportID: string, data: ReasoningEventData): void {
         return;
     }
 
-    // Check if we already have a reasoning for this loop count or higher
-    const lastEntry = existing.entries.at(-1);
-    if (lastEntry && loopCount <= lastEntry.loopCount) {
-        console.log('[REASONING_DEBUG] ConciergeReasoningStore skipping - loopCount not newer', {
-            lastLoopCount: lastEntry.loopCount,
-            newLoopCount: loopCount,
-        });
+    const hasDuplicate = existing.entries.some((entry) => entry.loopCount === loopCount && entry.reasoning === reasoning);
+    if (hasDuplicate) {
+        console.log('[REASONING_DEBUG] ConciergeReasoningStore skipping - duplicate reasoning', {loopCount});
         return;
     }
 
@@ -104,14 +99,14 @@ function getReasoningState(reportID: string): ReportReasoningState | undefined {
 }
 
 /**
- * Get all reasoning entries for a report as a formatted array.
+ * Get all reasoning entries for a report.
  */
-function getReasoningHistory(reportID: string): string[] {
+function getReasoningHistory(reportID: string): ReasoningEntry[] {
     const state = reasoningByReport.get(reportID);
     if (!state) {
         return [];
     }
-    return state.entries.map((entry) => entry.reasoning);
+    return state.entries;
 }
 
 /**

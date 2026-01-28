@@ -13,9 +13,10 @@ import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
+import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 
 type ConciergeThinkingMessageProps = {
-    reasoningHistory?: string[];
+    reasoningHistory?: ReasoningEntry[];
     statusLabel?: string;
 };
 
@@ -73,12 +74,12 @@ function ConciergeThinkingMessage({reasoningHistory = [], statusLabel = ''}: Con
                             </PressableWithFeedback>
                             {isExpanded && (
                                 <View style={[styles.mt2, styles.ml2, styles.pl3, styles.borderLeft]}>
-                                    {reasoningHistory.map((item) => (
+                                    {reasoningHistory.map((entry) => (
                                         <View
-                                            key={`reasoning-${StringUtils.hash(item)}`}
+                                            key={`reasoning-${entry.timestamp}-${entry.loopCount}-${StringUtils.hash(entry.reasoning)}`}
                                             style={styles.mb2}
                                         >
-                                            <RenderHTML html={Parser.replace(item)} />
+                                            <RenderHTML html={Parser.replace(entry.reasoning)} />
                                         </View>
                                     ))}
                                 </View>
