@@ -761,7 +761,7 @@ function MenuItem({
                                 role={role}
                                 accessibilityLabel={accessibilityLabel ?? defaultAccessibilityLabel}
                                 accessible={shouldBeAccessible}
-                                tabIndex={tabIndex}
+                                tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >
