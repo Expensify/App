@@ -32,8 +32,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
-import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
@@ -145,9 +145,9 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             }
             invitedEmailsToAccountIDs[login] = accountID;
         }
-        inviteToGroupChat(reportID, invitedEmailsToAccountIDs, formatPhoneNumber);
+        inviteToGroupChat(report, invitedEmailsToAccountIDs, formatPhoneNumber);
         goBack();
-    }, [selectedOptions, goBack, reportID, validate, formatPhoneNumber]);
+    }, [selectedOptions, goBack, report, validate, formatPhoneNumber]);
 
     const headerMessage = useMemo(() => {
         const processedLogin = debouncedSearchTerm.trim().toLowerCase();
