@@ -8197,6 +8197,12 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         },
         fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
     },
+    proactiveAppReview: {
+        title: 'Ti piace il nuovo Expensify?',
+        description: 'Facci sapere così possiamo aiutarti a rendere ancora migliore la tua esperienza di gestione delle spese.',
+        positiveButton: 'Sì!',
+        negativeButton: 'Non proprio',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

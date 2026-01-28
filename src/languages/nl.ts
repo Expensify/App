@@ -8173,6 +8173,12 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         },
         fabGpsTripExplained: 'Ga naar GPS-scherm (Zwevende actie)',
     },
+    proactiveAppReview: {
+        title: 'Geniet je van de nieuwe Expensify?',
+        description: 'Laat het ons weten, zodat we je uitgavenervaring nog beter kunnen maken.',
+        positiveButton: 'Ja!',
+        negativeButton: 'Niet echt',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

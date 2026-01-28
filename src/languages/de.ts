@@ -8211,6 +8211,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         },
         fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
     },
+    proactiveAppReview: {
+        title: 'Gefällt dir das neue Expensify?',
+        description: 'Lass es uns wissen, damit wir dir helfen können, deine Abrechnungserfahrung noch besser zu machen.',
+        positiveButton: 'Ja!',
+        negativeButton: 'Nicht wirklich',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

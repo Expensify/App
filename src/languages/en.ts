@@ -3833,6 +3833,12 @@ const translations = {
         nightIn: 'night in',
         nightsIn: 'nights in',
     },
+    proactiveAppReview: {
+        title: 'Enjoying New Expensify?',
+        description: 'Let us know so we can help make your expensing experience even better.',
+        positiveButton: 'Yeah!',
+        negativeButton: 'Not really',
+    },
     workspace: {
         common: {
             card: 'Cards',

@@ -3566,6 +3566,12 @@ ${amount} para ${merchant} - ${date}`,
         nightIn: 'noche en',
         nightsIn: 'noches en',
     },
+    proactiveAppReview: {
+        title: '¿Disfrutas de New Expensify?',
+        description: 'Dínoslo para que podamos ayudarte a mejorar tu experiencia de expensificación.',
+        positiveButton: '¡Sí!',
+        negativeButton: 'No, gracias',
+    },
     workspace: {
         common: {
             card: 'Tarjetas',

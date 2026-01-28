@@ -8217,6 +8217,12 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
     },
+    proactiveAppReview: {
+        title: 'Vous appréciez le nouveau Expensify ?',
+        description: 'Faites-le-nous savoir afin que nous puissions rendre votre expérience de gestion de notes de frais encore meilleure.',
+        positiveButton: 'Oui !',
+        negativeButton: 'Pas vraiment',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

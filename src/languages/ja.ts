@@ -8110,6 +8110,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         },
         fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
     },
+    proactiveAppReview: {
+        title: '新しい Expensify をお楽しみいただけていますか？',
+        description: '経費精算の体験をさらに良くできるよう、お知らせください。',
+        positiveButton: 'やった！',
+        negativeButton: 'そうでもありません',
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
