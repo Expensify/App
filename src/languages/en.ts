@@ -4786,7 +4786,7 @@ const translations = {
                 },
                 csvColumns: {
                     cardNumber: 'Card number',
-                    date: 'Date',
+                    postedDate: 'Date',
                     merchant: 'Merchant',
                     amount: 'Amount',
                     currency: 'Currency',

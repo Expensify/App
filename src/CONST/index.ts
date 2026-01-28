@@ -7631,7 +7631,7 @@ const CONST = {
         IGNORE: 'ignore',
         DESTINATION: 'destination',
         CARD_NUMBER: 'cardNumber',
-        DATE: 'date',
+        POSTED_DATE: 'postedDate',
         MERCHANT: 'merchant',
         CATEGORY: 'category',
         TAG: 'tag',
