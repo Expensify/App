@@ -12,7 +12,9 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {getCleanedTagName} from '@libs/PolicyUtils';
+import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -46,7 +48,7 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, rule.comment));
     }
     if (rule.tax?.field_id_TAX?.value) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, rule.tax.field_id_TAX.value));
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
     }
     if (rule.reimbursable !== undefined) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
@@ -131,8 +133,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                     description={matchDescription}
                                     title={ruleDescription}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    descriptionTextStyle={[styles.textStrong, styles.themeTextColor]}
-                                    titleStyle={[styles.textLabelSupporting]}
+                                    descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
+                                    titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                     shouldShowRightIcon
                                 />
                             </View>
@@ -147,7 +149,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 iconHeight={20}
                 iconWidth={20}
                 style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
             />
         </Section>
     );

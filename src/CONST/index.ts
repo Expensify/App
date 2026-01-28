@@ -743,6 +743,7 @@ const CONST = {
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
         NEW_DOT_HOME: 'newDotHome',
+        PERSONAL_CARD_IMPORT: 'personalCardImport',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3766,6 +3767,18 @@ const CONST = {
         BULK_ACTION_TYPES: {
             EDIT: 'edit',
             DELETE: 'delete',
+        },
+    },
+    MERCHANT_RULES: {
+        FIELDS: {
+            BILLABLE: 'billable',
+            CATEGORY: 'category',
+            DESCRIPTION: 'comment',
+            MERCHANT_TO_MATCH: 'merchantToMatch',
+            MERCHANT: 'merchant',
+            REIMBURSABLE: 'reimbursable',
+            TAG: 'tag',
+            TAX: 'tax',
         },
     },
 
@@ -6870,6 +6883,7 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawal-id',
             CATEGORY: 'category',
             MERCHANT: 'merchant',
+            TAG: 'tag',
             MONTH: 'month',
         },
         get TYPE_CUSTOM_COLUMNS() {
@@ -6957,6 +6971,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                TAG: {
+                    TAG: this.TABLE_COLUMNS.GROUP_TAG,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
                 MONTH: {
                     MONTH: this.TABLE_COLUMNS.GROUP_MONTH,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
@@ -7005,6 +7024,7 @@ const CONST = {
                 ],
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MERCHANT: [this.TABLE_COLUMNS.GROUP_MERCHANT, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                TAG: [this.TABLE_COLUMNS.GROUP_TAG, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
@@ -7103,6 +7123,7 @@ const CONST = {
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
             GROUP_CATEGORY: 'groupCategory',
             GROUP_MERCHANT: 'groupMerchant',
+            GROUP_TAG: 'groupTag',
             GROUP_MONTH: 'groupmonth',
         },
         SYNTAX_OPERATORS: {
@@ -7294,6 +7315,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
                 [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
                 [this.TABLE_COLUMNS.GROUP_MERCHANT]: 'group-merchant',
+                [this.TABLE_COLUMNS.GROUP_TAG]: 'group-tag',
             };
         },
         NOT_MODIFIER: 'Not',

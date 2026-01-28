@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -1495,6 +1497,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Los het foutieve kilometertarief op en probeer het opnieuw.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleggen</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'heeft de uitgave als „vergoedbaar” gemarkeerd' : 'markeerde de uitgave als ‘niet-terugbetaalbaar’';
+                }
+                if (key === 'billable') {
+                    return value ? 'heeft de uitgave gemarkeerd als ‘factureerbaar’' : 'heeft de uitgave als ‘niet-declarabel’ gemarkeerd';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `stel het belastingtarief in op "${taxRateName}"`;
+                    }
+                    return `belastingtarief naar "${taxRateName}"`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `stel de ${translations.common[key].toLowerCase()} in op "${updatedValue}"`;
+                }
+                return `${translations.common[key].toLowerCase()} naar "${updatedValue}"`;
+            });
+            return `${formatList(fragments)} via <a href="${policyRulesRoute}">werkruimteregels</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -6324,6 +6352,14 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Werk ${fieldName} bij naar "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Markeren als  "${reimbursable ? 'Vergoedbaar' : 'niet-vergoedbaar'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Markeren als "${billable ? 'factureerbaar' : 'niet-factureerbaar'}"`,
+                addRuleTitle: 'Regel toevoegen',
+                expensesWith: 'Voor uitgaven met:',
+                applyUpdates: 'Deze updates toepassen:',
+                merchantHint: 'Een handelsnaam koppelen met hoofdletterongevoelige "bevat"-overeenkomst',
+                saveRule: 'Regel opslaan',
+                confirmError: 'Voer een leverancier in en pas ten minste één wijziging toe',
+                confirmErrorMerchant: 'Voer handelaar in',
+                confirmErrorUpdate: 'Breng ten minste één wijziging aan alstublieft',
             },
         },
         planTypePage: {
@@ -6928,6 +6964,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Verkoper',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Label',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
             },
             feed: 'Feed',
