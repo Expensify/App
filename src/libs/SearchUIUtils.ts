@@ -2252,7 +2252,7 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMerchantGroupListItemType[], number] {
+function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionMerchantGroupListItemType[], number] {
     const merchantSections: Record<string, TransactionMerchantGroupListItemType> = {};
 
     for (const key in data) {
@@ -2274,12 +2274,17 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
 
+            // Format the merchant name - use translated "No merchant" for empty values so it sorts alphabetically
+            const rawMerchant = merchantGroup.merchant;
+            const isEmptyMerchant = !rawMerchant || rawMerchant === CONST.SEARCH.MERCHANT_EMPTY_VALUE;
+            const formattedMerchant = isEmptyMerchant ? translate('search.noMerchant') : rawMerchant;
+
             merchantSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 transactions: [],
                 transactionsQueryJSON,
                 ...merchantGroup,
-                formattedMerchant: merchantGroup.merchant,
+                formattedMerchant,
             };
         }
     }
@@ -2462,7 +2467,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.CATEGORY:
                 return getCategorySections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.MERCHANT:
-                return getMerchantSections(data, queryJSON);
+                return getMerchantSections(data, queryJSON, translate);
             case CONST.SEARCH.GROUP_BY.TAG:
                 return getTagSections(data, queryJSON, translate);
             case CONST.SEARCH.GROUP_BY.MONTH:
@@ -2894,18 +2899,7 @@ function getSortedMerchantData(data: TransactionMerchantGroupListItemType[], loc
         data,
         localeCompare,
         transactionMerchantGroupColumnNamesToSortingProperty,
-        (a, b) => {
-            const merchantA = a.formattedMerchant ?? '';
-            const merchantB = b.formattedMerchant ?? '';
-            // Empty merchants should sort to the bottom
-            if (!merchantA && merchantB) {
-                return 1;
-            }
-            if (merchantA && !merchantB) {
-                return -1;
-            }
-            return localeCompare(merchantA, merchantB);
-        },
+        (a, b) => localeCompare(a.formattedMerchant ?? '', b.formattedMerchant ?? ''),
         sortBy,
         sortOrder,
     );

@@ -3532,6 +3532,58 @@ describe('SearchUIUtils', () => {
             expect(result.at(1)?.count).toBe(4);
         });
 
+        it('should sort "No merchant" alphabetically like other merchant names', () => {
+            // "No merchant" should sort alphabetically, not at the bottom
+            const merchantDataWithEmpty: TransactionMerchantGroupListItemType[] = [
+                {
+                    merchant: '',
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                    groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                    formattedMerchant: 'No merchant', // Translated by getMerchantSections
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    merchant: 'Apple Store',
+                    count: 3,
+                    currency: 'USD',
+                    total: 100,
+                    groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                    formattedMerchant: 'Apple Store',
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    merchant: 'Zebra Coffee',
+                    count: 1,
+                    currency: 'USD',
+                    total: 25,
+                    groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+                    formattedMerchant: 'Zebra Coffee',
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+            ];
+
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                merchantDataWithEmpty,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                CONST.SEARCH.GROUP_BY.MERCHANT,
+            ) as TransactionMerchantGroupListItemType[];
+
+            // Should sort alphabetically: "Apple Store", "No merchant", "Zebra Coffee"
+            expect(result.at(0)?.formattedMerchant).toBe('Apple Store');
+            expect(result.at(1)?.formattedMerchant).toBe('No merchant');
+            expect(result.at(2)?.formattedMerchant).toBe('Zebra Coffee');
+        });
+
         // Tag sorting tests
         it('should return getSortedTagData result when type is EXPENSE and groupBy is tag', () => {
             expect(

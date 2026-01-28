@@ -147,7 +147,8 @@ describe('MerchantListItemHeader', () => {
         });
 
         it('should display "No merchant" for empty merchant string', async () => {
-            const merchantItem = createMerchantListItem('', {formattedMerchant: ''});
+            // formattedMerchant is set to "No merchant" by getMerchantSections for empty merchants
+            const merchantItem = createMerchantListItem('', {formattedMerchant: 'No merchant'});
             renderMerchantListItemHeader(merchantItem);
             await waitForBatchedUpdatesWithAct();
 
@@ -155,7 +156,8 @@ describe('MerchantListItemHeader', () => {
         });
 
         it('should display "No merchant" when merchant is undefined', async () => {
-            const merchantItem = createMerchantListItem('', {formattedMerchant: undefined});
+            // formattedMerchant is set to "No merchant" by getMerchantSections for empty merchants
+            const merchantItem = createMerchantListItem('', {formattedMerchant: 'No merchant'});
             renderMerchantListItemHeader(merchantItem);
             await waitForBatchedUpdatesWithAct();
 
@@ -163,7 +165,8 @@ describe('MerchantListItemHeader', () => {
         });
 
         it('should display "No merchant" when both merchant and formattedMerchant are empty', async () => {
-            const merchantItem = createMerchantListItem('', {merchant: '', formattedMerchant: ''});
+            // formattedMerchant is set to "No merchant" by getMerchantSections for empty merchants
+            const merchantItem = createMerchantListItem('', {merchant: '', formattedMerchant: 'No merchant'});
             renderMerchantListItemHeader(merchantItem);
             await waitForBatchedUpdatesWithAct();
 

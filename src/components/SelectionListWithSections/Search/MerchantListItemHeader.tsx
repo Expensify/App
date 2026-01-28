@@ -1,6 +1,5 @@
 import React from 'react';
 import type {ListItem, TransactionMerchantGroupListItemType} from '@components/SelectionListWithSections/types';
-import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import BaseListItemHeader, {type BaseListItemHeaderProps} from './BaseListItemHeader';
 
@@ -20,9 +19,8 @@ function MerchantListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
 }: MerchantListItemHeaderProps<TItem>) {
-    const {translate} = useLocalize();
-    const rawMerchant = merchantItem.formattedMerchant ?? merchantItem.merchant;
-    const merchantName = rawMerchant || translate('search.noMerchant');
+    // formattedMerchant is already translated to "No merchant" for empty values in SearchUIUtils
+    const merchantName = merchantItem.formattedMerchant ?? merchantItem.merchant ?? '';
 
     return (
         <BaseListItemHeader
