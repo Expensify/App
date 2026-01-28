@@ -13,6 +13,8 @@ import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+const MAX_NUMBER_OF_LINES_TITLE = 4;
+
 function DiscoverSection() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -46,7 +48,7 @@ function DiscoverSection() {
                 onPress={handlePress}
                 style={styles.mb8}
                 wrapperStyle={styles.pl8}
-                numberOfLinesTitle={2}
+                numberOfLinesTitle={MAX_NUMBER_OF_LINES_TITLE}
             />
         </WidgetContainer>
     );

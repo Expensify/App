@@ -28,14 +28,7 @@ type WidgetContainerProps = {
     children: ReactNode;
 };
 
-function WidgetContainer({
-    children,
-    icon,
-    title,
-    titleColor,
-    iconWidth = variables.iconSizeNormal,
-    iconHeight = variables.iconSizeNormal,
-}: WidgetContainerProps) {
+function WidgetContainer({children, icon, title, titleColor, iconWidth = variables.iconSizeNormal, iconHeight = variables.iconSizeNormal}: WidgetContainerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -52,9 +45,7 @@ function WidgetContainer({
                     </View>
                 )}
                 <View style={[styles.flexShrink1, styles.flexGrow1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                    {!!title && (
-                        <Text style={styles.getWidgetContainerTitleStyle(titleColor ?? theme.text)}>{title}</Text>
-                    )}
+                    {!!title && <Text style={styles.getWidgetContainerTitleStyle(titleColor ?? theme.text)}>{title}</Text>}
                 </View>
             </View>
             {children}
