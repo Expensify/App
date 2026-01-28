@@ -94,6 +94,30 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
         });
 
+        test('returns query with updated view', () => {
+            const userQuery = 'from:johndoe@example.com view:bar';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} view:bar from:12345`);
+        });
+
+        test('returns query with view:line', () => {
+            const userQuery = 'type:expense view:line category:travel';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} view:line category:travel`);
+        });
+
+        test('returns query with view:pie', () => {
+            const userQuery = 'type:expense view:pie merchant:Amazon';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} view:pie merchant:Amazon`);
+        });
+
         test('deduplicates conflicting type filters keeping the last occurrence', () => {
             const userQuery = 'type:expense-report action:submit from:me type:expense';
 
