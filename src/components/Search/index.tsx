@@ -30,6 +30,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
