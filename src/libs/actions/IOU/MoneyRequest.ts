@@ -157,6 +157,8 @@ function createTransaction({
     reimbursable = true,
     isSelfTourViewed,
 }: CreateTransactionParams) {
+    const recentWaypoints = getRecentWaypoints();
+
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -188,6 +190,7 @@ function createTransaction({
                 introSelected,
                 activePolicyID,
                 quickAction,
+                recentWaypoints,
             });
         } else {
             requestMoney({
@@ -560,6 +563,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
+                    recentWaypoints,
                 });
                 return;
             }

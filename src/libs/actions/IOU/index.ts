@@ -716,6 +716,7 @@ type CreateTrackExpenseParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -1003,6 +1004,11 @@ function getRecentWaypoints(): OnyxTypes.RecentWaypoint[] {
     return deprecatedRecentWaypoints;
 }
 
+/**
+ * This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72721)
+ * All usages of this function should be replaced with params passed to the functions or useOnyx hook in React components.
+ */
 function getPolicyTags(): OnyxCollection<OnyxTypes.PolicyTagLists> {
     return allPolicyTags;
 }
@@ -6564,6 +6570,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         introSelected,
         activePolicyID,
         quickAction,
+        recentWaypoints = [],
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;

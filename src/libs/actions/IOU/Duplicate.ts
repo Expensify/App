@@ -565,6 +565,7 @@ function duplicateExpenseTransaction({
             introSelected,
             activePolicyID,
             quickAction,
+            recentWaypoints,
         };
         return trackExpense(trackExpenseParams);
     }
