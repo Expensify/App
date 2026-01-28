@@ -60,7 +60,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {GpsDraftDetails} from '@src/types/onyx';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -90,8 +90,6 @@ type MenuData = {
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
-
-const isTrackingSelector = (gpsDraftDetails?: GpsDraftDetails) => gpsDraftDetails?.isTracking;
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons([
@@ -139,7 +137,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [isTrackingGPS] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
@@ -288,7 +286,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             icon: icons.ExpensifyLogoNew,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
-                      action: () => closeReactNativeApp({shouldSetNVP: true}),
+                      action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
                   }
                 : {
                       action() {

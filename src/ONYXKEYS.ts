@@ -52,6 +52,9 @@ const ONYXKEYS = {
     /** Keeps track if OpenApp failure modal is opened */
     IS_OPEN_APP_FAILURE_MODAL_OPEN: 'isOpenAppFailureModalOpen',
 
+    /** Keeps track if 'GPS in progress' modal is opened */
+    IS_GPS_IN_PROGRESS_MODAL_OPEN: 'isGpsInProgressModalOpen',
+
     /** Stores the PIN for an activated UK/EU Expensify card to be shown once after activation */
     ACTIVATED_CARD_PIN: 'activatedCardPin',
 
@@ -1201,6 +1204,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: boolean;
+    [ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN]: boolean;
     [ONYXKEYS.GPS_DRAFT_DETAILS]: OnyxTypes.GpsDraftDetails;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;

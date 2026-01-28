@@ -7287,6 +7287,11 @@ const translations = {
             prompt: 'Are you sure you want to discard the trip and sign out?',
             confirm: 'Discard and sign out',
         },
+        switchToODWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
+            confirm: 'Stop and switch',
+        },
         locationServicesRequiredModal: {
             title: 'Location access required',
             confirm: 'Open settings',

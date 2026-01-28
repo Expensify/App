@@ -73,6 +73,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -189,6 +190,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
         canBeMissing: true,
@@ -329,11 +331,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             return;
         }
         if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSetNVP: true});
+            closeReactNativeApp({shouldSetNVP: true, isTrackingGPS});
             return;
         }
         openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-    }, [showConfirmModal, translate]);
+    }, [showConfirmModal, translate, isTrackingGPS]);
 
     const startScan = useCallback(() => {
         interceptAnonymousUser(() => {
