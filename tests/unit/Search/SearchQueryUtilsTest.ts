@@ -9,6 +9,7 @@ import {
     buildFilterFormValuesFromQuery,
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
+    buildSearchQueryString,
     buildUserReadableQueryString,
     getFilterDisplayValue,
     getQueryWithUpdatedValues,
@@ -947,6 +948,66 @@ describe('SearchQueryUtils', () => {
                 expect(result).toBe('+15553334444');
                 expect(result).not.toContain('@expensify.sms');
             }
+        });
+    });
+
+    describe('buildSearchQueryString', () => {
+        test('includes view when explicitly set in rawFilterList', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense view:line', 'type:expense view:line');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('view:line');
+        });
+
+        test('includes view when differs from default even without rawFilterList', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense view:pie');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('view:pie');
+        });
+
+        test('includes view when set to bar', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense view:bar');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('view:bar');
+        });
+
+        test('skips view when not explicitly set and matches default', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).not.toContain('view:table');
+        });
+
+        test('includes view when explicitly set to table in rawFilterList', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense view:table', 'type:expense view:table');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('view:table');
+        });
+
+        test('preserves view along with other filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense view:line category:travel');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('view:line');
+            expect(result).toContain('category:travel');
+        });
+
+        test('handles view with rawFilterList containing other filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense view:pie merchant:Amazon', 'type:expense view:pie merchant:Amazon');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).toContain('view:pie');
+            expect(result).toContain('merchant:Amazon');
         });
     });
 });
