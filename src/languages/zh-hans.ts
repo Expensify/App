@@ -6804,10 +6804,10 @@ ${reportName}
             purchaseCurrency: '购买货币',
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '来自',
-                [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
+                [CONST.SEARCH.GROUP_BY.CARD]: '卡',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现编号',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: '商家',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: '商户',
                 [CONST.SEARCH.GROUP_BY.TAG]: '标签',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
@@ -7932,6 +7932,16 @@ ${reportName}
         continueGpsTripModal: {title: '是否继续记录 GPS 行程？', prompt: '看起来在您上一次的 GPS 行程中应用已关闭。您想从那次行程继续记录吗？', confirm: '继续行程', cancel: '查看行程'},
         locationServicesRequiredModal: {title: '需要访问位置信息', confirm: '打开设置', prompt: '请在设备设置中允许位置访问，以开始 GPS 距离跟踪。'},
         fabGpsTripExplained: '前往 GPS 屏幕（悬浮操作）',
+    },
+    homePage: {
+        forYou: '为你',
+        announcements: '公告',
+        discoverSection: {
+            title: '发现',
+            menuItemTitleNonAdmin: '了解如何创建费用并提交报表。',
+            menuItemTitleAdmin: '了解如何邀请成员、编辑审批流程以及对公司卡进行对账。',
+            menuItemDescription: '看看 Expensify 在 2 分钟内能为你做什么',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
