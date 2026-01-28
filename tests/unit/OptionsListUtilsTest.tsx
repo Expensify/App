@@ -1614,7 +1614,7 @@ describe('OptionsListUtils', () => {
             const excludeLogins = {'reedrichards@expensify.com': true};
 
             // When we call getMemberInviteOptions with excludeLogins
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, [], excludeLogins);
+            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, [], excludeLogins);
 
             // Then the excluded login should not be in the results
             const excludedUser = results.personalDetails.find((detail) => detail.login === 'reedrichards@expensify.com');
