@@ -60,7 +60,6 @@ import {selectPaymentType} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {
     getIOUActionForReportID,
-    getMostRecentActiveDEWApproveFailedAction,
     getOriginalMessage,
     getReportAction,
     hasPendingDEWApprove,
@@ -519,13 +518,9 @@ function MoneyReportHeader({
         } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
             const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, undefined, isArchivedReport);
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
-            if (hasDEWApproveFailed) {
-                const dewApproveFailedAction = getMostRecentActiveDEWApproveFailedAction(reportActions);
-                const {automaticAction} = getOriginalMessage(dewApproveFailedAction) ?? {};
-                const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
-                if (!automaticAction || isCurrentUserTheApprover) {
-                    optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
-                }
+            const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
+            if (hasDEWApproveFailed && isCurrentUserTheApprover) {
+                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
             } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
                 optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }
