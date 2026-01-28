@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Badge from '@components/Badge';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,6 +14,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -240,14 +242,20 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         onModalHide={() => shouldGoBack.current && Navigation.goBack()}
                     />
                     <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isOfflineModalVisible}
                         onClose={() => setIsOfflineModalVisible(false)}
-                    />
+                        isSmallScreenWidth={isSmallScreenWidth}
+                    >
+                        <DecisionModal.Header title={translate('common.youAppearToBeOffline')} />
+                        <Text>{translate('common.offlinePrompt')}</Text>
+                        <DecisionModal.Footer>
+                            <Button
+                                text={translate('common.buttonConfirm')}
+                                onPress={() => setIsOfflineModalVisible(false)}
+                                large
+                            />
+                        </DecisionModal.Footer>
+                    </DecisionModal>
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

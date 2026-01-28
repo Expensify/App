@@ -3,6 +3,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
@@ -18,6 +19,7 @@ import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
+import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useBulkPayOptions from '@hooks/useBulkPayOptions';
@@ -1255,23 +1257,35 @@ function SearchPage({route}: SearchPageProps) {
             {(!shouldUseNarrowLayout || isMobileSelectionModeEnabled) && (
                 <View>
                     <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={handleOfflineModalClose}
-                        secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isOfflineModalVisible}
                         onClose={handleOfflineModalClose}
-                    />
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
                         isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={handleDownloadErrorModalClose}
-                        secondOptionText={translate('common.buttonConfirm')}
+                    >
+                        <DecisionModal.Header title={translate('common.youAppearToBeOffline')} />
+                        <Text>{translate('common.offlinePrompt')}</Text>
+                        <DecisionModal.Footer>
+                            <Button
+                                text={translate('common.buttonConfirm')}
+                                onPress={handleOfflineModalClose}
+                                large
+                            />
+                        </DecisionModal.Footer>
+                    </DecisionModal>
+                    <DecisionModal
                         isVisible={isDownloadErrorModalVisible}
                         onClose={handleDownloadErrorModalClose}
-                    />
+                        isSmallScreenWidth={isSmallScreenWidth}
+                    >
+                        <DecisionModal.Header title={translate('common.downloadFailedTitle')} />
+                        <Text>{translate('common.downloadFailedDescription')}</Text>
+                        <DecisionModal.Footer>
+                            <Button
+                                text={translate('common.buttonConfirm')}
+                                onPress={handleDownloadErrorModalClose}
+                                large
+                            />
+                        </DecisionModal.Footer>
+                    </DecisionModal>
                     {!!rejectModalAction && (
                         <HoldOrRejectEducationalModal
                             onClose={dismissRejectModalBasedOnAction}

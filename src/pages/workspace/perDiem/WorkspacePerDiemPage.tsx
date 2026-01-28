@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -518,14 +519,20 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     shouldHandleNavigationBack
                 />
                 <DecisionModal
-                    title={translate('common.downloadFailedTitle')}
-                    prompt={translate('common.downloadFailedDescription')}
-                    isSmallScreenWidth={isSmallScreenWidth}
-                    onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                    secondOptionText={translate('common.buttonConfirm')}
                     isVisible={isDownloadFailureModalVisible}
                     onClose={() => setIsDownloadFailureModalVisible(false)}
-                />
+                    isSmallScreenWidth={isSmallScreenWidth}
+                >
+                    <DecisionModal.Header title={translate('common.downloadFailedTitle')} />
+                    <Text>{translate('common.downloadFailedDescription')}</Text>
+                    <DecisionModal.Footer>
+                        <Button
+                            text={translate('common.buttonConfirm')}
+                            onPress={() => setIsDownloadFailureModalVisible(false)}
+                            large
+                        />
+                    </DecisionModal.Footer>
+                </DecisionModal>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

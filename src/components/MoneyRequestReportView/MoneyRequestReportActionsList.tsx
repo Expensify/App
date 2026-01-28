@@ -8,6 +8,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
@@ -799,23 +800,35 @@ function MoneyRequestReportActionsList({
                 )}
             </View>
             <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
                 isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
+            >
+                <DecisionModal.Header title={translate('common.downloadFailedTitle')} />
+                <Text>{translate('common.downloadFailedDescription')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => setIsDownloadErrorModalVisible(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
+            <DecisionModal
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
-            />
+                isSmallScreenWidth={shouldUseNarrowLayout}
+            >
+                <DecisionModal.Header title={translate('common.youAppearToBeOffline')} />
+                <Text>{translate('common.offlinePrompt')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => setOfflineModalVisible(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
             <ConfirmModal
                 onConfirm={() => {
                     setIsExportWithTemplateModalVisible(false);

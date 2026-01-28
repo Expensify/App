@@ -1,11 +1,14 @@
 import React, {useContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -67,6 +70,7 @@ function ProcessMoneyReportHoldMenu({
     hasNonHeldExpenses,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -131,16 +135,29 @@ function ProcessMoneyReportHoldMenu({
 
     return (
         <DecisionModal
-            title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
-            onClose={onClose}
             isVisible={isVisible}
-            prompt={promptText}
-            firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
-            secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
-            onFirstOptionSubmit={() => onSubmit(false)}
-            onSecondOptionSubmit={() => onSubmit(true)}
+            onClose={onClose}
             isSmallScreenWidth={isSmallScreenWidth}
-        />
+        >
+            <DecisionModal.Header title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')} />
+            <Text>{promptText}</Text>
+            <DecisionModal.Footer>
+                {!!hasNonHeldExpenses && (
+                    <Button
+                        success
+                        text={`${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}`}
+                        onPress={() => onSubmit(false)}
+                        large
+                        style={styles.mb4}
+                    />
+                )}
+                <Button
+                    text={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
+                    onPress={() => onSubmit(true)}
+                    large
+                />
+            </DecisionModal.Footer>
+        </DecisionModal>
     );
 }
 

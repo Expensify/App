@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from 'react';
+import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
+import Text from '@components/Text';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -89,14 +91,20 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             </WorkspacePageWithSections>
 
             <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setShouldShowOfflineModal(false)}
-                secondOptionText={translate('common.buttonConfirm')}
                 isVisible={shouldShowOfflineModal}
                 onClose={() => setShouldShowOfflineModal(false)}
-            />
+                isSmallScreenWidth={shouldUseNarrowLayout}
+            >
+                <DecisionModal.Header title={translate('common.youAppearToBeOffline')} />
+                <Text>{translate('common.offlinePrompt')}</Text>
+                <DecisionModal.Footer>
+                    <Button
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => setShouldShowOfflineModal(false)}
+                        large
+                    />
+                </DecisionModal.Footer>
+            </DecisionModal>
         </AccessOrNotFoundWrapper>
     );
 }
