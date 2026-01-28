@@ -649,6 +649,7 @@ function SearchAutocompleteList({
         currentUserAccountID,
         currentUserEmail,
         groupByAutocompleteList,
+        viewAutocompleteList,
         statusAutocompleteList,
         feedAutoCompleteList,
         cardAutocompleteList,
