@@ -1043,6 +1043,12 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
+        badgeNewFeature: {
+            minHeight: 20,
+            height: 20,
+            paddingHorizontal: 8,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,

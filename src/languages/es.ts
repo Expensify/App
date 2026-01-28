@@ -28,6 +28,7 @@ const translations: TranslationDeepObject<typeof en> = {
         in: 'En',
         optional: 'Opcional',
         new: 'Nuevo',
+        newFeature: 'Nueva función',
         center: 'Centrar',
         search: 'Buscar',
         reports: 'Informes',
@@ -293,10 +294,6 @@ const translations: TranslationDeepObject<typeof en> = {
         value: 'Valor',
         downloadFailedTitle: 'Error en la descarga',
         downloadFailedDescription: 'No se pudo completar la descarga. Por favor, inténtalo más tarde.',
-        downloadFailedEmptyReportDescription: () => ({
-            one: 'No puedes exportar un informe vacío.',
-            other: () => `No puedes exportar informes vacíos.`,
-        }),
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
@@ -944,14 +941,8 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '¿Estás seguro de que quieres eliminar esta solicitud?',
             other: '¿Estás seguro de que quieres eliminar estas solicitudes?',
         }),
-        deleteReport: () => ({
-            one: 'Eliminar informe',
-            other: 'Eliminar informes',
-        }),
-        deleteReportConfirmation: () => ({
-            one: '¿Estás seguro de que quieres eliminar este informe?',
-            other: '¿Estás seguro de que quieres eliminar estos informes?',
-        }),
+        deleteReport: 'Eliminar informe',
+        deleteReportConfirmation: '¿Estás seguro de que quieres eliminar este informe?',
         settledExpensify: 'Pagado',
         done: 'Listo',
         settledElsewhere: 'Pagado de otra forma',
@@ -5879,6 +5870,10 @@ ${amount} para ${merchant} - ${date}`,
                     `<muted-text>Establece controles y valores predeterminados para gastos individuales. También puedes crear reglas para <a href="${categoriesPageLink}">categorías</a> y <a href="${tagsPageLink}">etiquetas</a>.</muted-text>`,
                 receiptRequiredAmount: 'Cantidad requerida para los recibos',
                 receiptRequiredAmountDescription: 'Exige recibos cuando los gastos superen este importe, a menos que lo anule una regla de categoría.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `La cantidad no puede ser mayor que la cantidad requerida para recibos detallados (${amount})`,
+                itemizedReceiptRequiredAmount: 'Cantidad requerida para recibos detallados',
+                itemizedReceiptRequiredAmountDescription: 'Exige recibos detallados cuando los gastos superen este importe, a menos que lo anule una regla de categoría.',
+                itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `La cantidad no puede ser menor que la cantidad requerida para recibos regulares (${amount})`,
                 maxExpenseAmount: 'Importe máximo del gasto',
                 maxExpenseAmountDescription: 'Marca los gastos que superen este importe, a menos que una regla de categoría lo anule.',
                 maxAge: 'Antigüedad máxima',
@@ -5941,6 +5936,16 @@ ${amount} para ${merchant} - ${date}`,
                 unlockFeatureEnableWorkflowsSubtitle: (featureName) => `Añade ${featureName} para desbloquear esta función.`,
                 enableFeatureSubtitle: (featureName, moreFeaturesLink) => `Ir a [más características](${moreFeaturesLink}) y habilita ${featureName} para desbloquear esta función.`,
             },
+            merchantRules: {
+                title: 'Comerciante',
+                subtitle: 'Configura las reglas de comerciante para que los gastos lleguen correctamente codificados y requieran menos limpieza.',
+                addRule: 'Añadir regla de comerciante',
+                ruleSummaryTitle: (merchantName: string) => `Si el comerciante contiene "${merchantName}"`,
+                ruleSummarySubtitleMerchant: (merchantName: string) => `Renombrar comerciante a "${merchantName}"`,
+                ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Actualizar ${fieldName} a "${fieldValue}"`,
+                ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marcar como "${reimbursable ? 'reembolsable' : 'no reembolsable'}"`,
+                ruleSummarySubtitleBillable: (billable: boolean) => `Marcar como "${billable ? 'facturable' : 'no facturable'}"`,
+            },
             categoryRules: {
                 title: 'Reglas de categoría',
                 approver: 'Aprobador',
@@ -5969,6 +5974,12 @@ ${amount} para ${merchant} - ${date}`,
                     default: (defaultAmount) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predeterminado`,
                     never: 'Nunca requerir recibos',
                     always: 'Requerir recibos siempre',
+                },
+                requireItemizedReceiptsOver: 'Requerir recibos detallados para importes superiores a',
+                requireItemizedReceiptsOverList: {
+                    default: (defaultAmount: string) => `${defaultAmount} ${CONST.DOT_SEPARATOR} Predeterminado`,
+                    never: 'Nunca requerir recibos detallados',
+                    always: 'Requerir recibos detallados siempre',
                 },
                 defaultTaxRate: 'Tasa de impuesto predeterminada',
                 enableWorkflows: ({moreFeaturesLink}) =>
@@ -6126,6 +6137,12 @@ ${amount} para ${merchant} - ${date}`,
                 return `actualizó la categoría "${categoryName}" cambiando Recibos a ${newValue}`;
             }
             return `cambió la categoría "${categoryName}" a ${newValue} (previamente ${oldValue})`;
+        },
+        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}) => {
+            if (!oldValue) {
+                return `actualizó la categoría "${categoryName}" cambiando Recibos detallados a ${newValue}`;
+            }
+            return `cambió los Recibos detallados de la categoría "${categoryName}" a ${newValue} (previamente ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}) => `renombró la categoría "${oldName}" a "${newName}"`,
         updateTagListName: ({oldName, newName}) => `cambió el nombre de la lista de etiquetas a "${newName}" (previamente "${oldName}")`,
@@ -6536,6 +6553,7 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Tarjeta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retiro',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoría',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7442,6 +7460,7 @@ ${amount} para ${merchant} - ${date}`,
 
             return 'Recibo obligatorio';
         },
+        itemizedReceiptRequired: ({formattedLimit}) => `Recibo detallado requerido${formattedLimit ? ` para importes sobre ${formattedLimit}` : ''}`,
         prohibitedExpense: ({prohibitedExpenseTypes}) => {
             const preMessage = 'Gastos prohibidos:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
@@ -7972,6 +7991,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         outstandingFilter: '<tooltip>Filtra los gastos\nque <strong>necesitan aprobación</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>¡Envía este recibo para\n<strong>completar la prueba</strong>!</tooltip>',
+        gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
@@ -8136,7 +8156,6 @@ ${amount} para ${merchant} - ${date}`,
                 `<comment><muted-text-label>Cuando está habilitada, el contacto principal pagará todos los espacios de trabajo de los miembros de <strong>${domainName}</strong> y recibirá todos los recibos de facturación.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'No se pudo cambiar la facturación consolidada del dominio. Por favor, inténtalo de nuevo más tarde.',
             addAdmin: 'Añadir administrador',
-            invite: 'Invitar',
             addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
             revokeAdminAccess: 'Revocar acceso de administrador',
             cantRevokeAdminAccess: 'No se puede revocar el acceso de administrador del contacto técnico',
@@ -8153,10 +8172,14 @@ ${amount} para ${merchant} - ${date}`,
         members: {
             title: 'Miembros',
             findMember: 'Buscar miembro',
+            addMember: 'Añadir miembro',
+            email: 'Dirección de correo electrónico',
+            errors: {
+                addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.',
+            },
         },
     },
     gps: {
-        tooltip: '¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.',
         disclaimer: 'Utiliza el GPS para crear un gasto a partir de tu trayecto. Toca Iniciar a continuación para comenzar el seguimiento.',
         error: {
             failedToStart: 'No se pudo iniciar el seguimiento de la ubicación.',
