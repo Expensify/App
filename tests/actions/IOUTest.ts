@@ -2519,106 +2519,87 @@ describe('actions/IOU', () => {
     });
 
     describe('createDistanceRequest', () => {
-        it('does not trigger notifyNewAction when doing the money request in a money request report', async () => {
-            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-            createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
-                participants: [],
+        function getDefaultDistanceRequestParams(
+            report: Report | undefined,
+            transactionOverrides: Partial<Parameters<typeof createDistanceRequest>[0]['transactionParams']> = {},
+            recentWaypoints: Awaited<ReturnType<typeof getOnyxValue<typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>>> = [],
+        ): Parameters<typeof createDistanceRequest>[0] {
+            return {
+                report,
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
                 transactionParams: {
-                    amount: 1,
+                    amount: 1000,
                     attendees: [],
                     currency: CONST.CURRENCY.USD,
                     created: '',
                     merchant: '',
                     comment: '',
                     validWaypoints: {},
+                    ...transactionOverrides,
                 },
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                recentWaypoints,
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
+                recentWaypoints: recentWaypoints ?? [],
+            };
+        }
+
+        it('does not trigger notifyNewAction when doing the money request in a money request report', async () => {
+            // Given recent waypoints from Onyx
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request in an expense report
+            createDistanceRequest({
+                ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
+                participants: [],
             });
+
+            // Then notifyNewAction should not be called
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
         it('trigger notifyNewAction when doing the money request in a chat report', async () => {
+            // Given recent waypoints from Onyx
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
+            // When creating a distance request in a chat report
             createDistanceRequest({
-                report: {reportID: '123'},
+                ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1}, recentWaypoints),
                 participants: [],
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: undefined,
-                policyRecentlyUsedCurrencies: [],
-                recentWaypoints,
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
             });
+
+            // Then notifyNewAction should be called once
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
 
         it('correctly sets quickAction', async () => {
+            // Given recent waypoints from Onyx
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
+            // When creating a split distance request for the first time
             createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
+                ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
                 iouType: CONST.IOU.TYPE.SPLIT,
                 participants: [],
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
+            });
+            await waitForBatchedUpdates();
 
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: undefined,
-                policyRecentlyUsedCurrencies: [],
-                recentWaypoints,
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-            });
-            await waitForBatchedUpdates();
+            // Then isFirstQuickAction should be true
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
+
+            // When creating another split distance request with existing quickAction
             createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
+                ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
                 iouType: CONST.IOU.TYPE.SPLIT,
                 participants: [],
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
                 quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
-                policyRecentlyUsedCurrencies: [],
-                recentWaypoints,
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
+
+            // Then quickAction should be updated to SPLIT_DISTANCE with isFirstQuickAction false
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
                 action: CONST.QUICK_ACTIONS.SPLIT_DISTANCE,
                 isFirstQuickAction: false,
@@ -2626,41 +2607,26 @@ describe('actions/IOU', () => {
         });
 
         it('merges policyRecentlyUsedCurrencies into recently used currencies', async () => {
+            // Given initial recently used currencies
             const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
             await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
-
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
+            // When creating a distance request with GBP currency
             createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
+                ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1, currency: CONST.CURRENCY.GBP}, recentWaypoints),
                 iouType: CONST.IOU.TYPE.SPLIT,
-                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.GBP,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: undefined,
                 policyRecentlyUsedCurrencies: initialCurrencies,
-                recentWaypoints,
             });
-
             await waitForBatchedUpdates();
 
+            // Then GBP should be added at the beginning of recently used currencies
             const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
             expect(recentlyUsedCurrencies).toEqual([CONST.CURRENCY.GBP, ...initialCurrencies]);
         });
 
         it('should update policyRecentlyUsedTags when tag is provided', async () => {
-            // Given a policy recently used tags
+            // Given a policy with recently used tags and an IOU report
             const transactionTag = 'new tag';
             const policyID = 'A';
             const tagName = 'Tag';
@@ -2679,35 +2645,16 @@ describe('actions/IOU', () => {
                 [tagName]: {name: tagName},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
-
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-            // When creating a distance request
+            // When creating a distance request with a tag
             createDistanceRequest({
-                report: iouReport,
-                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.GBP,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                    tag: transactionTag,
-                },
+                ...getDefaultDistanceRequestParams(iouReport, {amount: 1, currency: CONST.CURRENCY.GBP, tag: transactionTag}, recentWaypoints),
                 policyParams: {policyRecentlyUsedTags},
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: undefined,
-                policyRecentlyUsedCurrencies: [],
-                recentWaypoints,
             });
             waitForBatchedUpdates();
 
-            // Then the transaction tag should be added to the recently used tags collection
+            // Then the tag should be added to recently used tags collection
             const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
@@ -2722,7 +2669,7 @@ describe('actions/IOU', () => {
         });
 
         it('should update policyRecentlyUsedTags when splitting with tag is provided', async () => {
-            // Given a policy recently used tags
+            // Given a policy expense chat with recently used tags
             const transactionTag = 'new tag';
             const policyID = 'A';
             const tagName = 'Tag';
@@ -2740,36 +2687,18 @@ describe('actions/IOU', () => {
                 [tagName]: {name: tagName},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
-
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-            // When creating a split distance request
+            // When creating a split distance request with a tag
             createDistanceRequest({
-                report: policyExpenseChat,
+                ...getDefaultDistanceRequestParams(policyExpenseChat, {amount: 1, currency: CONST.CURRENCY.GBP, tag: transactionTag}, recentWaypoints),
                 iouType: CONST.IOU.TYPE.SPLIT,
                 participants: [policyExpenseChat],
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.GBP,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                    tag: transactionTag,
-                },
                 policyParams: {policyRecentlyUsedTags},
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: undefined,
-                policyRecentlyUsedCurrencies: [],
-                recentWaypoints,
             });
             waitForBatchedUpdates();
 
-            // Then the transaction tag should be added to the recently used tags collection
+            // Then the tag should be added to recently used tags collection
             const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
@@ -2783,7 +2712,6 @@ describe('actions/IOU', () => {
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
         });
 
-        // ==================== UNIT TESTS ====================
         describe('Unit Tests', () => {
             it('creates a basic distance request with valid waypoints', async () => {
                 // Given a report and valid waypoints
@@ -2802,37 +2730,25 @@ describe('actions/IOU', () => {
                         name: '1 Broadway',
                     },
                 };
-
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request
-                createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 1000,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                        comment: 'Distance request test',
-                        validWaypoints,
-                        distance: 15000,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
-                });
-
+                createDistanceRequest(
+                    getDefaultDistanceRequestParams(
+                        testReport,
+                        {
+                            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                            comment: 'Distance request test',
+                            validWaypoints,
+                            distance: 15000,
+                        },
+                        recentWaypoints,
+                    ),
+                );
                 await waitForBatchedUpdates();
 
-                // Then a transaction should be created
+                // Then a transaction should be created with correct comment
                 let allTransactions: OnyxCollection<Transaction>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -2841,7 +2757,6 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
                 expect(createdTransaction?.comment?.comment).toBe('Distance request test');
@@ -2850,37 +2765,14 @@ describe('actions/IOU', () => {
             it('creates a distance request with zero distance', async () => {
                 // Given a report
                 const testReport = createRandomReport(1, undefined);
-
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with zero distance
-                createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 0,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: '',
-                        comment: '',
-                        validWaypoints: {},
-                        distance: 0,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
-                });
-
+                createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 0, distance: 0}, recentWaypoints));
                 await waitForBatchedUpdates();
 
-                // Then a transaction should be created with zero/negative-zero amount
+                // Then a transaction should be created with zero amount
                 let allTransactions: OnyxCollection<Transaction>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -2892,12 +2784,11 @@ describe('actions/IOU', () => {
 
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
-                // For non-expense reports, amount is not negated
                 expect(createdTransaction?.amount).toBe(0);
             });
 
             it('creates a split distance request between participants', async () => {
-                // Given a report and participants
+                // Given a report, waypoints, and multiple participants
                 const testReport = createRandomReport(1, undefined);
                 const validWaypoints: WaypointCollection = {
                     waypoint0: {
@@ -2913,41 +2804,32 @@ describe('actions/IOU', () => {
                         name: '1 Broadway',
                     },
                 };
-
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a split distance request
                 createDistanceRequest({
-                    report: testReport,
+                    ...getDefaultDistanceRequestParams(
+                        testReport,
+                        {
+                            amount: 3000,
+                            merchant: 'Distance Split',
+                            comment: 'Split distance test',
+                            validWaypoints,
+                            distance: 30000,
+                        },
+                        recentWaypoints,
+                    ),
                     iouType: CONST.IOU.TYPE.SPLIT,
                     participants: [
                         {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
                         {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL},
                     ],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 3000,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: 'Distance Split',
-                        comment: 'Split distance test',
-                        validWaypoints,
-                        distance: 30000,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
 
-                // Then a split transaction should be created
+                // Then at least one transaction should be created
                 let allTransactions: OnyxCollection<Transaction>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -2956,45 +2838,32 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 expect(Object.values(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
             });
 
             it('creates a distance request with odometer values', async () => {
-                // Given a report and odometer values
+                // Given a report
                 const testReport = createRandomReport(1, undefined);
-
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with odometer values
-                createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 500,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: '',
-                        comment: 'Odometer test',
-                        validWaypoints: {},
-                        odometerStart: 10000,
-                        odometerEnd: 10050,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
-                });
+                createDistanceRequest(
+                    getDefaultDistanceRequestParams(
+                        testReport,
+                        {
+                            amount: 500,
+                            comment: 'Odometer test',
+                            odometerStart: 10000,
+                            odometerEnd: 10050,
+                        },
+                        recentWaypoints,
+                    ),
+                );
 
                 await waitForBatchedUpdates();
 
-                // Then a transaction should be created
+                // Then a transaction should be created with odometer comment
                 let allTransactions: OnyxCollection<Transaction>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -3003,50 +2872,29 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
                 expect(createdTransaction?.comment?.comment).toBe('Odometer test');
             });
         });
 
-        // ==================== FUNCTIONAL TESTS ====================
         describe('Functional Tests', () => {
             it('creates distance request and updates recently used currencies', async () => {
                 // Given initial currencies and a report
                 const initialCurrencies = [CONST.CURRENCY.EUR];
                 await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
-
                 const testReport = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-                // When creating a distance request with a new currency
+                // When creating a distance request with GBP currency
                 createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 1000,
-                        attendees: [],
-                        currency: CONST.CURRENCY.GBP,
-                        created: '',
-                        merchant: '',
-                        comment: '',
-                        validWaypoints: {},
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
+                    ...getDefaultDistanceRequestParams(testReport, {currency: CONST.CURRENCY.GBP}, recentWaypoints),
                     policyRecentlyUsedCurrencies: initialCurrencies,
-                    recentWaypoints,
                 });
-
                 await waitForBatchedUpdates();
 
-                // Then the recently used currencies should be updated
+                // Then GBP should be added to recently used currencies
                 const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
                 expect(recentlyUsedCurrencies).toContain(CONST.CURRENCY.GBP);
             });
@@ -3062,7 +2910,6 @@ describe('actions/IOU', () => {
                         enabled: true,
                     },
                 };
-
                 const policyExpenseChat: Report = {
                     ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyID,
@@ -3070,43 +2917,32 @@ describe('actions/IOU', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
-
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, fakeCategories);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with a category
                 createDistanceRequest({
-                    report: policyExpenseChat,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 2500,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: 'Work Trip',
-                        comment: 'Business travel',
-                        validWaypoints: {},
-                        category: testCategory,
-                    },
+                    ...getDefaultDistanceRequestParams(
+                        policyExpenseChat,
+                        {
+                            amount: 2500,
+                            merchant: 'Work Trip',
+                            comment: 'Business travel',
+                            category: testCategory,
+                        },
+                        recentWaypoints,
+                    ),
                     policyParams: {
                         policy: fakePolicy,
                         policyCategories: fakeCategories,
                     },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
                 });
 
                 await waitForBatchedUpdates();
 
-                // Then a transaction with the category should be created
+                // Then a transaction should be created with the category
                 let allTransactions: OnyxCollection<Transaction>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -3115,7 +2951,6 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
                 expect(createdTransaction?.category).toBe(testCategory);
@@ -3138,37 +2973,15 @@ describe('actions/IOU', () => {
                         name: 'Times Square',
                     },
                 };
-
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
                 await Onyx.set(ONYXKEYS.NVP_RECENT_WAYPOINTS, []);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with waypoints
-                createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 1500,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: '',
-                        comment: '',
-                        validWaypoints,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
-                });
-
+                createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 1500, validWaypoints}, recentWaypoints));
                 await waitForBatchedUpdates();
 
-                // Then a transaction should be created
+                // Then at least one transaction should be created
                 let allTransactions: OnyxCollection<Transaction>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -3177,45 +2990,33 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 expect(Object.values(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
             });
         });
 
-        // ==================== QA TESTS (Edge Cases & Error Handling) ====================
         describe('QA Tests', () => {
             it('handles distance request with different currencies', async () => {
                 // Given a report
                 const testReport = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with EUR currency
-                createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 5000,
-                        attendees: [],
-                        currency: CONST.CURRENCY.EUR,
-                        created: '',
-                        merchant: 'Euro Trip',
-                        comment: 'European travel',
-                        validWaypoints: {},
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
-                });
-
+                createDistanceRequest(
+                    getDefaultDistanceRequestParams(
+                        testReport,
+                        {
+                            amount: 5000,
+                            currency: CONST.CURRENCY.EUR,
+                            merchant: 'Euro Trip',
+                            comment: 'European travel',
+                        },
+                        recentWaypoints,
+                    ),
+                );
                 await waitForBatchedUpdates();
 
-                // Then a transaction with EUR currency should be created
+                // Then a transaction should be created with EUR currency
                 let allTransactions: OnyxCollection<Transaction>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -3224,46 +3025,33 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
                 expect(createdTransaction?.currency).toBe(CONST.CURRENCY.EUR);
             });
 
             it('handles distance request with large amount', async () => {
-                // Given a report
+                // Given a report and large amount
                 const testReport = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-
                 const largeAmount = 999999999;
 
-                // When creating a distance request with a large amount
-                createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: largeAmount,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: 'Long Trip',
-                        comment: 'Very long distance',
-                        validWaypoints: {},
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
-                });
-
+                // When creating a distance request with large amount
+                createDistanceRequest(
+                    getDefaultDistanceRequestParams(
+                        testReport,
+                        {
+                            amount: largeAmount,
+                            merchant: 'Long Trip',
+                            comment: 'Very long distance',
+                        },
+                        recentWaypoints,
+                    ),
+                );
                 await waitForBatchedUpdates();
 
-                // Then a transaction with the large amount should be created (negated)
+                // Then a transaction should be created with the large amount
                 let allTransactions: OnyxCollection<Transaction>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -3272,44 +3060,20 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
-                // For non-expense reports, amount is not negated
                 expect(createdTransaction?.amount).toBe(largeAmount);
             });
 
             it('handles distance request with special characters in comment', async () => {
-                // Given a report
+                // Given a report and comment with special characters
                 const testReport = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-
                 const specialComment = 'Trip with special chars: <>&"\'äöü中文🚗';
 
                 // When creating a distance request with special characters
-                createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 1000,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: '',
-                        comment: specialComment,
-                        validWaypoints: {},
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
-                });
-
+                createDistanceRequest(getDefaultDistanceRequestParams(testReport, {comment: specialComment}, recentWaypoints));
                 await waitForBatchedUpdates();
 
                 // Then a transaction should be created
@@ -3321,42 +3085,19 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
             });
 
             it('handles API failure during distance request creation', async () => {
-                // Given a report
+                // Given a report and paused API
                 const testReport = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-                // When API fails
+                // When creating a distance request with paused API
                 mockFetch?.pause?.();
-
-                createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 1000,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: '',
-                        comment: 'API failure test',
-                        validWaypoints: {},
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
-                });
-
+                createDistanceRequest(getDefaultDistanceRequestParams(testReport, {comment: 'API failure test'}, recentWaypoints));
                 await waitForBatchedUpdates();
 
                 // Then optimistic transaction should exist with pending action
@@ -3368,19 +3109,17 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
                 expect(createdTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-                // When API resumes
                 mockFetch?.fail?.();
                 await mockFetch?.resume?.();
                 await waitForBatchedUpdates();
             });
 
             it('handles distance request with billable flag', async () => {
-                // Given a report and policy
+                // Given a policy expense chat with billable enabled
                 const policyID = 'billablePolicy';
                 const fakePolicy = {...createRandomPolicy(1), id: policyID, disabledFields: {defaultBillable: false}};
                 const testReport: Report = {
@@ -3389,38 +3128,25 @@ describe('actions/IOU', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 };
-
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a billable distance request
                 createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 1500,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: '',
-                        comment: 'Billable distance',
-                        validWaypoints: {},
-                        billable: true,
-                    },
+                    ...getDefaultDistanceRequestParams(
+                        testReport,
+                        {
+                            amount: 1500,
+                            comment: 'Billable distance',
+                            billable: true,
+                        },
+                        recentWaypoints,
+                    ),
                     policyParams: {
                         policy: fakePolicy,
                     },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
                 });
-
                 await waitForBatchedUpdates();
 
                 // Then a billable transaction should be created
@@ -3432,14 +3158,13 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
                 expect(createdTransaction?.billable).toBe(true);
             });
 
             it('handles distance request with tax information', async () => {
-                // Given a report and tax settings
+                // Given a policy expense chat with tax settings
                 const policyID = 'taxPolicy';
                 const testTaxCode = 'TAX_20';
                 const testTaxAmount = 200;
@@ -3450,42 +3175,28 @@ describe('actions/IOU', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 };
-
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-                // When creating a distance request with tax
+                // When creating a distance request with tax information
                 createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 1000,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: '',
-                        comment: 'Tax distance',
-                        validWaypoints: {},
-                        taxCode: testTaxCode,
-                        taxAmount: testTaxAmount,
-                    },
+                    ...getDefaultDistanceRequestParams(
+                        testReport,
+                        {
+                            comment: 'Tax distance',
+                            taxCode: testTaxCode,
+                            taxAmount: testTaxAmount,
+                        },
+                        recentWaypoints,
+                    ),
                     policyParams: {
                         policy: fakePolicy,
                     },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
                 });
-
                 await waitForBatchedUpdates();
 
-                // Then a transaction with tax info should be created
+                // Then a transaction should be created with tax info
                 let allTransactions: OnyxCollection<Transaction>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -3494,7 +3205,6 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
                 expect(createdTransaction?.taxCode).toBe(testTaxCode);
@@ -3507,36 +3217,25 @@ describe('actions/IOU', () => {
                     {email: RORY_EMAIL, displayName: 'Rory', avatarUrl: ''},
                     {email: CARLOS_EMAIL, displayName: 'Carlos', avatarUrl: ''},
                 ];
-
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with attendees
-                createDistanceRequest({
-                    report: testReport,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 2000,
-                        attendees: testAttendees,
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: 'Group Trip',
-                        comment: 'Team travel',
-                        validWaypoints: {},
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
-                });
-
+                createDistanceRequest(
+                    getDefaultDistanceRequestParams(
+                        testReport,
+                        {
+                            amount: 2000,
+                            attendees: testAttendees,
+                            merchant: 'Group Trip',
+                            comment: 'Team travel',
+                        },
+                        recentWaypoints,
+                    ),
+                );
                 await waitForBatchedUpdates();
 
-                // Then a transaction with attendees should be created
+                // Then a transaction should be created with attendees
                 let allTransactions: OnyxCollection<Transaction>;
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -3545,49 +3244,24 @@ describe('actions/IOU', () => {
                         allTransactions = transactions;
                     },
                 });
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0);
                 expect(createdTransaction).toBeTruthy();
                 expect(createdTransaction?.comment?.attendees?.length).toBe(2);
             });
 
             it('handles distance request with undefined report', async () => {
+                // Given recent waypoints only (no report)
                 const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
                 // When creating a distance request with undefined report
-                createDistanceRequest({
-                    report: undefined,
-                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                    currentUserLogin: RORY_EMAIL,
-                    currentUserAccountID: RORY_ACCOUNT_ID,
-                    transactionParams: {
-                        amount: 1000,
-                        attendees: [],
-                        currency: CONST.CURRENCY.USD,
-                        created: '',
-                        merchant: '',
-                        comment: '',
-                        validWaypoints: {},
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    transactionViolations: {},
-                    quickAction: undefined,
-                    policyRecentlyUsedCurrencies: [],
-                    recentWaypoints,
-                });
-
+                createDistanceRequest(getDefaultDistanceRequestParams(undefined, {}, recentWaypoints));
                 await waitForBatchedUpdates();
 
-                // Then a new report and transaction should be created since report was undefined
+                // Then a new report and transaction should be created
                 const allReports = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT);
                 const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
-
-                // Should have created at least one report
                 expect(Object.keys(allReports ?? {}).length).toBeGreaterThanOrEqual(1);
-
-                // Should have created a transaction
                 expect(Object.keys(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
-
                 const createdTransaction = Object.values(allTransactions ?? {}).at(0) as Transaction | undefined;
                 expect(createdTransaction).toBeTruthy();
             });
