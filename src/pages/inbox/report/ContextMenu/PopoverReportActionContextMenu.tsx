@@ -58,9 +58,10 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
+    const [reportActionForHooks, setReportActionForHooks] = useState<NonNullable<OnyxEntry<ReportAction>> | null>(null);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
-    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
+    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionForHooks);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
     const cursorRelativePosition = useRef({
@@ -156,6 +157,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const clearActiveReportAction = () => {
         reportActionIDRef.current = undefined;
         reportActionRef.current = null;
+        setReportActionForHooks(null);
     };
 
     /**
@@ -346,6 +348,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = async (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
         reportIDRef.current = reportID;
         reportActionRef.current = reportAction ?? null;
+        setReportActionForHooks(reportAction ?? null);
 
         const result = await showConfirmModal({
             title: translate('reportActionContextMenu.deleteAction', {action: reportAction}),
@@ -377,12 +380,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                         isChatReportArchived: isReportArchived,
                         isChatIOUReportArchived,
                         allTransactionViolationsParam: allTransactionViolations,
+                        currentUserAccountID,
                     });
                 } else if (originalMessage?.IOUTransactionID) {
                     deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
                 }
             } else if (isReportPreviewAction(currentReportAction)) {
-                deleteAppReport(currentReportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
+                deleteAppReport(currentReportAction.childReportID, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList);
             } else if (currentReportAction) {
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     deleteReportComment(reportIDRef.current, currentReportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
