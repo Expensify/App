@@ -3667,7 +3667,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
-            padding: 32,
         },
 
         homePageContentContainer: {

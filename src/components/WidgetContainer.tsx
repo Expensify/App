@@ -41,7 +41,7 @@ function WidgetContainer({
 
     return (
         <View style={styles.widgetContainer}>
-            <View style={[styles.flexRow, styles.alignItemsStart, styles.gap3, styles.mb5]}>
+            <View style={[styles.flexRow, styles.alignItemsStart, styles.mh8, styles.mt8, styles.mb5]}>
                 {!!icon && (
                     <View style={[styles.flexGrow0, styles.flexShrink0]}>
                         <Icon
