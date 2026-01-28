@@ -18,6 +18,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONFIG from '@src/CONFIG';
@@ -252,11 +253,19 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
     const reportID = getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
+        // Start span for public room API call
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
+        });
+
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
         openReport(reportID, '', [], undefined, '0', true);
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
             doneCheckingPublicRoom();
         }
     } else {

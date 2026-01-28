@@ -1,7 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import * as Sentry from '@sentry/react-native';
 import {Audio} from 'expo-av';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -10,7 +10,7 @@ import ConfirmModal from './components/ConfirmModal';
 import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
-import {InitialURLContext} from './components/InitialURLContextProvider';
+import {useInitialURLActions} from './components/InitialURLContextProvider';
 import ProactiveAppReviewModalManager from './components/ProactiveAppReviewModalManager';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
@@ -48,17 +48,17 @@ import './libs/Notification/PushNotification/subscribeToPushNotifications';
 import './libs/registerPaginationConfig';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
-import {endSpan, startSpan} from './libs/telemetry/activeSpans';
+import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
-import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
-import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
+import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
+import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
-import SplashScreenStateContext from './SplashScreenStateContext';
+import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
@@ -106,7 +106,8 @@ function Expensify() {
     const hasHandledMissingIsLoadingAppRef = useRef(false);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
-    const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
+    const {splashScreenState} = useSplashScreenState();
+    const {setSplashScreenState} = useSplashScreenActions();
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate, preferredLocale} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -133,30 +134,24 @@ function Expensify() {
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
     const [initialUrl, setInitialUrl] = useState<Route | null>(null);
-    const {setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
-    useEffect(() => {
-        if (isCheckingPublicRoom) {
-            return;
-        }
-        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
-        setAttemptedToOpenPublicRoom(true);
-
-        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION, {
-            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
-            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
-            parentSpan: bootsplashSpan.current,
-        });
-    }, [isCheckingPublicRoom]);
+    const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
         bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
             name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
             op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
         });
 
         startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX, {
             name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
             op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
+            parentSpan: bootsplashSpan.current,
+        });
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK,
             parentSpan: bootsplashSpan.current,
         });
 
@@ -168,6 +163,35 @@ function Expensify() {
     }, []);
 
     const isAuthenticated = useIsAuthenticated();
+
+    useEffect(() => {
+        if (isCheckingPublicRoom) {
+            return;
+        }
+
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
+
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK);
+
+        // End the PUBLIC_ROOM_API span if it was started (it's started conditionally in openReportFromDeepLink)
+        // endSpan handles non-existent spans gracefully, so it's safe to call unconditionally
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
+
+        setAttemptedToOpenPublicRoom(true);
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
+            parentSpan: bootsplashSpan.current,
+        });
+    }, [isCheckingPublicRoom]);
+
+    useEffect(() => {
+        if (!preferredLocale) {
+            return;
+        }
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
+    }, [preferredLocale]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
@@ -213,8 +237,6 @@ function Expensify() {
 
     const setNavigationReady = useCallback(() => {
         setIsNavigationReady(true);
-
-        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
 
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
@@ -290,6 +312,12 @@ function Expensify() {
 
         setIsAuthenticatedAtStartup(isAuthenticated);
 
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK,
+            parentSpan: bootsplashSpan.current,
+        });
+
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();
         }
@@ -312,11 +340,14 @@ function Expensify() {
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
+
             if (url) {
                 openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID);
             } else {
                 Report.doneCheckingPublicRoom();
             }
+
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
         });
 
         // Open chat report from a deep link (only mobile native)

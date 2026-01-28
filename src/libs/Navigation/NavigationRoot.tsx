@@ -3,7 +3,7 @@ import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationC
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import useCurrentReportID from '@hooks/useCurrentReportID';
+import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
 import useGuardedNavigationState from '@hooks/useGuardedNavigationState';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -18,6 +18,7 @@ import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import CONST from '@src/CONST';
+import {endSpan, getSpan, startSpan} from '@src/libs/telemetry/activeSpans';
 import {navigationIntegration} from '@src/libs/telemetry/integrations';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,7 +91,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
-    const currentReportIDValue = useCurrentReportID();
+    const {updateCurrentReportID} = useCurrentReportIDActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -105,6 +106,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const initialState = useMemo(() => {
         const path = initialUrl ? getPathFromURL(initialUrl) : null;
+
         if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
@@ -165,6 +167,14 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
 
     useEffect(() => {
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
+        });
+    }, []);
+
+    useEffect(() => {
         if (firstRenderRef.current) {
             // we don't want to make the report back button go back to LHN if the user
             // started on the small screen so we don't set it on the first render
@@ -220,7 +230,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         const currentRoute = navigationRef.getCurrentRoute();
         Firebase.log(`[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`);
 
-        currentReportIDValue?.updateCurrentReportID(state);
+        updateCurrentReportID(state);
         parseAndLogRoute(state);
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
@@ -229,6 +239,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     };
 
     const onReadyWithSentry = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
         onReady();
         navigationIntegration.registerNavigationContainer(navigationRef);
     }, [onReady]);
