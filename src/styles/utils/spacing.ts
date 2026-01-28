@@ -31,14 +31,6 @@ export default {
         margin: 20,
     },
 
-    mn5: {
-        margin: -20,
-    },
-
-    mn6: {
-        margin: -24,
-    },
-
     mhAuto: {
         marginHorizontal: 'auto',
     },
@@ -175,16 +167,8 @@ export default {
         marginRight: 40,
     },
 
-    mrn1: {
-        marginRight: -4,
-    },
-
     mrn2: {
         marginRight: -8,
-    },
-
-    mrn3: {
-        marginRight: -12,
     },
 
     mrn5: {
@@ -533,10 +517,6 @@ export default {
 
     pv6: {
         paddingVertical: 24,
-    },
-
-    pv8: {
-        paddingVertical: 32,
     },
 
     pv10: {

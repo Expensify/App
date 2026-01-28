@@ -143,6 +143,83 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ---
 
+### [PERF-4] Memoize objects (including arrays) and functions passed as props
+
+- **Search patterns**: `prop={{`, `prop={[`, `={() =>`, `prop={variable}` (where variable is non-memoized object/function)
+
+- **Applies ONLY to**: Objects (including arrays)/functions passed directly as JSX props. Does NOT apply to:
+  - Code inside callbacks (`.then()`, event handlers)
+  - Code inside `useEffect`/`useMemo`/`useCallback` bodies
+  - Primitives (strings, numbers, booleans)
+  - Already memoized values (`useMemo`/`useCallback`)
+
+- **Reasoning**: New object/function references break memoization of child components. Only matters when child IS memoized AND parent is NOT optimized by React Compiler.
+
+#### Before flagging: Run optimization check
+
+**YOU MUST call `checkReactCompilerOptimization.ts` (available in PATH from `.claude/scripts/`) on EVERY .tsx file from the diff.**
+
+**Call the script ONCE per file, separately. DO NOT use loops or batch processing.**
+
+Example usage:
+```bash
+checkReactCompilerOptimization.ts src/components/File1.tsx
+checkReactCompilerOptimization.ts src/components/File2.tsx
+```
+
+**NEVER use absolute or relative paths for this script. Call it by name only:**
+- ✅ `checkReactCompilerOptimization.ts src/components/Example.tsx`
+- ❌ `/home/runner/work/App/App/.claude/scripts/checkReactCompilerOptimization.ts ...`
+- ❌ `./.claude/scripts/checkReactCompilerOptimization.ts ...`
+
+**"File not found"** → Assume parent is optimized and skip PERF-4.
+
+#### Decision flow
+
+1. **Parent in `parentOptimized`?** → YES = **Skip** (compiler auto-memoizes)
+
+2. **Child has custom memo comparator that PREVENTS re-render for this prop?**
+   → Use `sourcePath` from script output to read child's source file
+   → Grep for `React.memo` or `memo(`
+   → If custom comparator prevents re-render despite new reference for this prop → **Skip**
+
+3. **Child is memoized?** (`optimized: true` OR `React.memo`)
+   - NO → **Skip** (child re-renders anyway)
+   - YES → **Flag PERF-4**
+
+#### Examples
+
+**Flag** (parent NOT optimized, child IS memoized, no custom comparator):
+```tsx
+// Script output: parentOptimized: [], child MemoizedList optimized: true
+// No custom comparator found
+return <MemoizedList options={{ showHeader: true }} />;
+```
+
+**Skip - custom comparator** (comparator prevents re-render for this prop):
+```tsx
+// Script output: sourcePath: "src/components/PopoverMenu.tsx"
+// PopoverMenu.tsx has custom memo comparator that handles anchorPosition
+return <PopoverMenu anchorPosition={{x: 0, y: 0}} />;
+```
+
+**Skip - parent optimized**:
+```tsx
+// Script output: parentOptimized: ["MyComponent"]
+// React Compiler auto-memoizes - no manual memoization needed
+return <MemoizedList options={{ showHeader: true }} />;
+```
+
+**Skip - spread props with stable inner values**:
+```tsx
+// Spread is OK when inner values come from memoized sources
+// illustration from useMemoizedLazyIllustrations, illustrationStyle from useThemeStyles
+const illustration = useAboutSectionIllustration();
+return <Section {...illustration} />;
+```
+
+---
+
 ### [PERF-5] Use shallow comparisons instead of deep comparisons
 
 - **Search patterns**: `React.memo`, `deepEqual`
@@ -470,64 +547,6 @@ function TimerComponent() {
 
   return <Text>Timer</Text>;
 }
-```
-
----
-
-### [PERF-13] Avoid iterator-independent function calls in array methods
-
-- **Search patterns**: `.map(`, `.reduce(`, `.filter(`, `.some(`, `.every(`, `.find(`, `.findIndex(`, `.flatMap(`, `.forEach(`
-
-- **Condition**: Flag when ALL of these are true:
-
-  **For side-effect-free methods** (`.map`, `.reduce`, `.filter`, `.some`, `.every`, `.find`, `.findIndex`, `.flatMap`):
-  - A function call exists inside the callback
-  - The function call does NOT receive:
-    - The iterator variable directly (e.g., `transform(item)`)
-    - A property/value derived from the iterator (e.g., `format(item.name)`)
-    - The index parameter when used meaningfully (e.g., `generateId(index)`)
-  - The function is not a method called ON the iterator or iterator-derived value (e.g., `item.getValue()`)
-
-  **For `.forEach`**:
-  - Same conditions as above, BUT also verify the side effect doesn't depend on iteration context
-  - If the function call would produce the same effect regardless of which iteration it runs in, flag it
-
-  **DO NOT flag if:**
-
-  - Function uses iterator, its parts or derived value based on iterator (e.g. `func(item.process())`)
-  - Function call depends on iterator (e.g. `item.value ?? getDefault()`)
-  - Function is used when mapping to new entities (e.g. `const thing = { id: createID() }`)
-  - Above but applied to index instead of iterator
-
-- **Reasoning**: Function calls inside iteration callbacks that don't use the iterator variable execute redundantly - producing the same result. This creates O(n) overhead that scales with data size. Hoisting these calls outside the loop eliminates redundant computation and improves performance, especially on large datasets like transaction lists or report collections.
-
-Good:
-
-```ts
-// Hoist iterator-independent calls outside the loop
-const config = getConfig();
-
-const results = items.map((item) => item.value * config.multiplier);
-```
-
-```ts
-// Function receives iterator or iterator-derived value
-const formatted = items.map((item) => formatCurrency(item.amount));
-```
-
-```ts
-// Index used meaningfully
-const indexed = items.map((item, index) => ({ ...item, id: generateId(index) }));
-```
-
-Bad:
-
-```ts
-// getConfig() called on every iteration but doesn't use item
-const results = items.map((item) => {
-  const config = getConfig();
-  return item.value * config.multiplier;
-});
 ```
 
 ---

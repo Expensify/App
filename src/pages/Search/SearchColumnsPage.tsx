@@ -25,13 +25,8 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 type ColumnItem = {
-    text: string;
-    value: SearchCustomColumnIds;
-    keyForList: SearchCustomColumnIds;
+    columnId: SearchCustomColumnIds;
     isSelected: boolean;
-    isDisabled: boolean;
-    isDragDisabled: boolean;
-    leftElement: React.JSX.Element;
 };
 
 function SearchColumnsPage() {
@@ -68,19 +63,21 @@ function SearchColumnsPage() {
         const unselected = columnsToSort
             .filter((col) => !col.isSelected)
             .sort((a, b) => {
-                const textA = translate(getSearchColumnTranslationKey(a.value));
-                const textB = translate(getSearchColumnTranslationKey(b.value));
+                const textA = translate(getSearchColumnTranslationKey(a.columnId));
+                const textB = translate(getSearchColumnTranslationKey(b.columnId));
                 return localeCompare(textA, textB);
             });
         return [...selected, ...unselected];
     };
 
-    const defaultColumns = allCustomColumns.map((columnId) => ({
-        columnId,
-        isSelected: defaultCustomColumns.has(columnId),
-    }));
+    const defaultColumns = sortColumns(
+        allCustomColumns.map((columnId) => ({
+            columnId,
+            isSelected: defaultCustomColumns.has(columnId),
+        })),
+    );
 
-    const [columns, setColumns] = useState(() => {
+    const [columns, setColumns] = useState<ColumnItem[]>(() => {
         const selectedColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
 
         if (!selectedColumnIds.length) {
@@ -90,35 +87,33 @@ function SearchColumnsPage() {
         const selected = selectedColumnIds.map((columnId) => ({columnId, isSelected: true}));
         const unselected = allCustomColumns.filter((columnId) => !selectedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
 
-        return [...selected, ...unselected];
+        return sortColumns([...selected, ...unselected]);
     });
 
     const selectedColumnIds = columns.filter((col) => col.isSelected).map((col) => col.columnId);
 
-    const allColumnsList = sortColumns(
-        columns.map(({columnId, isSelected}) => {
-            const isRequired = requiredColumns.has(columnId);
-            const isEffectivelySelected = isRequired || isSelected;
-            const isDragDisabled = !isEffectivelySelected;
-            return {
-                text: translate(getSearchColumnTranslationKey(columnId)),
-                value: columnId,
-                keyForList: columnId,
-                isSelected: isEffectivelySelected,
-                isDisabled: isRequired,
-                isDragDisabled,
-                leftElement: (
-                    <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
-                        <Icon
-                            src={icons.DragHandles}
-                            fill={theme.icon}
-                            additionalStyles={isDragDisabled && styles.opacitySemiTransparent}
-                        />
-                    </View>
-                ),
-            };
-        }),
-    );
+    const allColumnsList = columns.map(({columnId, isSelected}) => {
+        const isRequired = requiredColumns.has(columnId);
+        const isEffectivelySelected = isRequired || isSelected;
+        const isDragDisabled = !isEffectivelySelected;
+        return {
+            text: translate(getSearchColumnTranslationKey(columnId)),
+            value: columnId,
+            keyForList: columnId,
+            isSelected: isEffectivelySelected,
+            isDisabled: isRequired,
+            isDragDisabled,
+            leftElement: (
+                <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
+                    <Icon
+                        src={icons.DragHandles}
+                        fill={theme.icon}
+                        additionalStyles={isDragDisabled && styles.opacitySemiTransparent}
+                    />
+                </View>
+            ),
+        };
+    });
 
     const typeColumnsList = allColumnsList.filter((column) => allTypeCustomColumns.includes(column.keyForList));
     const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
@@ -155,7 +150,7 @@ function SearchColumnsPage() {
             }
 
             const updatedColumns = prevColumns.map((col) => (col.columnId === updatedColumnId ? {...col, isSelected: false} : col));
-            return updatedColumns;
+            return sortColumns(updatedColumns);
         });
     };
 
@@ -163,14 +158,14 @@ function SearchColumnsPage() {
         const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const newColumns = [...existingTypeColumns, ...newGroupColumns];
-        setColumns(newColumns);
+        setColumns(sortColumns(newColumns));
     };
 
     const onTypeDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newTypeColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingGroupColumns = groupColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const newColumns = [...existingGroupColumns, ...newTypeColumns];
-        setColumns(newColumns);
+        setColumns(sortColumns(newColumns));
     };
 
     const resetColumns = () => {

@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -12,7 +12,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -65,8 +64,6 @@ function Confirmation() {
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
-    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
-    const isSuperWideRHPDisplayed = superWideRHPRouteKeys.length > 0;
 
     const [duplicates] = useTransactionsByID(reviewDuplicates?.duplicates);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
@@ -82,16 +79,12 @@ function Confirmation() {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
         mergeDuplicates(transactionsMergeParams);
-        if (isSuperWideRHPDisplayed) {
-            Navigation.dismissToSuperWideRHP();
-            return;
-        }
         Navigation.dismissModal();
-    }, [reportAction?.childReportID, transactionsMergeParams, isSuperWideRHPDisplayed]);
+    }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const handleResolveDuplicates = useCallback(() => {
         resolveDuplicates(transactionsMergeParams);
-        Navigation.dismissToSuperWideRHP();
+        Navigation.dismissModal();
     }, [transactionsMergeParams]);
 
     const contextValue = useMemo(

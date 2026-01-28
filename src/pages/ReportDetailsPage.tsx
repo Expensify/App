@@ -1,4 +1,3 @@
-import {StackActions} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -23,7 +22,6 @@ import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -43,9 +41,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
@@ -70,7 +68,6 @@ import {
     getParticipantsList,
     getReportDescription,
     getReportFieldKey,
-    getReportForHeader,
     isAdminOwnerApproverOrReportOwner,
     isArchivedNonExpenseReport,
     isCanceledTaskReport as isCanceledTaskReportUtil,
@@ -126,7 +123,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -186,8 +183,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -332,6 +327,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
+        Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
                 leaveGroupChat(report.reportID, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID);
@@ -344,10 +340,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
-    const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
-    const reportName = isGroupChat
-        ? getReportNameFromReportNameUtils(reportForHeader, reportAttributes)
-        : Parser.htmlToText(getReportNameFromReportNameUtils(reportForHeader, reportAttributes));
+
+    const reportName = isGroupChat ? getReportNameFromReportNameUtils(report, reportAttributes) : Parser.htmlToText(getReportNameFromReportNameUtils(report, reportAttributes));
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
@@ -448,7 +442,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         CONST.IOU.ACTION.SUBMIT,
                         actionableWhisperReportActionID,
                         introSelected,
-                        allTransactionDrafts,
                         activePolicy,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
@@ -469,7 +462,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             CONST.IOU.ACTION.CATEGORIZE,
                             actionableWhisperReportActionID,
                             introSelected,
-                            allTransactionDrafts,
                             activePolicy,
                         );
                     },
@@ -487,7 +479,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             CONST.IOU.ACTION.SHARE,
                             actionableWhisperReportActionID,
                             introSelected,
-                            allTransactionDrafts,
                             activePolicy,
                         );
                     },
@@ -610,7 +601,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         introSelected,
-        allTransactionDrafts,
         activePolicy,
         parentReport,
     ]);
@@ -881,7 +871,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isSingleTransactionView,
                 isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
-                allTransactionViolationsParam: allTransactionViolations,
             });
         } else if (iouTransactionID) {
             deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, isSingleTransactionView);
@@ -914,39 +903,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
         let urlToNavigateBack: string | undefined;
+
         // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
-            const rootState = navigationRef.getRootState();
-            const rhp = rootState.routes.at(-1);
-            const rhpRoutes = rhp?.state?.routes ?? [];
-            const previousRoute = rhpRoutes.at(-2);
-            const superWideRHPIndex = rhpRoutes.findIndex((rhpRoute) => SUPER_WIDE_RIGHT_MODALS.has(rhpRoute.name));
-
-            // If the deleted expense is displayed directly below, close the entire RHP
-            const isSuperWideRHPDisplayed = superWideRHPIndex > -1;
-            const isSuperWideRHPDisplayedDirectlyBelow = isSuperWideRHPDisplayed && superWideRHPIndex === rhpRoutes.length - 2;
-            if (
-                isSuperWideRHPDisplayedDirectlyBelow &&
-                (previousRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT])?.reportID === route.params.reportID
-            ) {
-                Navigation.dismissModal();
-                return;
-            }
-
-            // If the deleted expense is opened from the super wide rhp, go back there.
-            if (
-                previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT &&
-                (previousRoute.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT])?.reportID === route.params.reportID
-            ) {
-                if (isSuperWideRHPDisplayed) {
-                    const distanceToPop = rhpRoutes.length - 1 - superWideRHPIndex;
-                    navigationRef.dispatch({...StackActions.pop(distanceToPop), target: rhp?.state?.key});
-                    return;
-                }
-                Navigation.dismissModal();
-                return;
-            }
-
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
                 urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
@@ -975,9 +934,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             Navigation.dismissModal();
         } else {
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-            navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
+            navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [requestParentReportAction, route.params.reportID, moneyRequestReport, iouTransactionID, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
     const isTransactionDeleted = useRef<boolean>(false);

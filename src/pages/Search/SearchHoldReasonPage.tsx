@@ -1,5 +1,4 @@
-import React, {useCallback, useContext, useEffect} from 'react';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
@@ -30,14 +29,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const ancestors = useAncestors(report);
 
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-            if (isDelegateAccessRestricted) {
-                showDelegateNoAccessModal();
-                return;
-            }
-
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
                 putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID, ancestors);
                 context.clearSelectedTransactions(true);
@@ -48,7 +41,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
             Navigation.goBack();
         },
-        [route.name, context, reportID, allTransactions, allReportActions, ancestors, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [route.name, context, reportID, allTransactions, allReportActions, ancestors],
     );
 
     const validate = useCallback(

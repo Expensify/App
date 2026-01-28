@@ -2,9 +2,9 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
-import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -52,7 +52,6 @@ function CurrencySelector({
 }: CurrencySelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
 
     const currencyTitleDescStyle = currency && !shouldShowCurrencySymbol ? styles.textNormal : null;
 

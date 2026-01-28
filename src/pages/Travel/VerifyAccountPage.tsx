@@ -29,11 +29,8 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     // Determine where to navigate after successful OTP validation
     const navigateForwardTo = isTravelVerifiedBetaEnabled ? (travelProvisioning?.nextStepRoute ?? ROUTES.TRAVEL_TCS.getRoute(domain ?? '', policyID)) : undefined;
 
-    const handleValidationSuccess = useCallback(() => {
-        requestTravelAccess();
-    }, []);
-
     const handleClose = useCallback(() => {
+        requestTravelAccess();
         Navigation.goBack(backTo);
     }, [backTo]);
 
@@ -42,7 +39,6 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
             navigateBackTo={backTo}
             navigateForwardTo={navigateForwardTo}
             handleClose={!isTravelVerifiedBetaEnabled ? handleClose : undefined}
-            onValidationSuccess={!isTravelVerifiedBetaEnabled ? handleValidationSuccess : undefined}
         />
     );
 }

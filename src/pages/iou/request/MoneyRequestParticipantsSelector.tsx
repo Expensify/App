@@ -52,7 +52,7 @@ import ImportContactButton from './ImportContactButton';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
-    onFinish?: (value?: string, participants?: Participant[]) => void;
+    onFinish?: (value?: string) => void;
 
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
@@ -92,7 +92,7 @@ const sanitizedSelectedParticipant = (option: Option | OptionData, iouType: IOUT
 function MoneyRequestParticipantsSelector({
     participants = CONST.EMPTY_ARRAY,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onFinish = (_value?: string, _participants?: Participant[]) => {},
+    onFinish = (_value?: string) => {},
     onParticipantsAdded,
     iouType,
     action,
@@ -163,7 +163,7 @@ function MoneyRequestParticipantsSelector({
             onParticipantsAdded(newParticipants);
 
             if (!option.isSelfDM) {
-                onFinish(undefined, newParticipants);
+                onFinish();
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
@@ -504,7 +504,7 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
-    const importContactsButtonComponent = useMemo(() => {
+    const footerContentAbovePaginationComponent = useMemo(() => {
         const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
         if (!shouldShowImportContactsButton) {
             return null;
@@ -515,9 +515,10 @@ function MoneyRequestParticipantsSelector({
                 icon={icons.UserPlus}
                 onPress={goToSettings}
                 shouldShowRightIcon
+                style={styles.mb3}
             />
         );
-    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, translate]);
+    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, styles.mb3, translate]);
 
     const ClickableImportContactTextComponent = useMemo(() => {
         if (searchTerm.length || isSearchingForReports) {
@@ -579,8 +580,7 @@ function MoneyRequestParticipantsSelector({
                 }
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
-                listHeaderContent={importContactsButtonComponent}
-                showSectionTitleWithListHeaderContent
+                footerContentAbovePagination={footerContentAbovePaginationComponent}
                 headerMessage={header}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}

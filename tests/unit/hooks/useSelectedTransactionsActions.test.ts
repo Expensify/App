@@ -43,6 +43,7 @@ jest.mock('@libs/actions/MergeTransaction', () => ({
 
 jest.mock('@libs/actions/Report', () => ({
     exportReportToCSV: jest.fn(),
+    getCurrentUserAccountID: jest.fn(() => 1),
     getCurrentUserEmail: jest.fn(() => 'test@example.com'),
 }));
 
@@ -104,16 +105,6 @@ jest.mock('@hooks/useNetworkWithOfflineStatus', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         isOffline: mockIsOffline,
-    })),
-}));
-const CURRENT_USER_ACCOUNT_ID = 1;
-const CURRENT_USER_LOGIN = 'test@example.com';
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: jest.fn(() => ({
-        login: CURRENT_USER_LOGIN,
-        accountID: CURRENT_USER_ACCOUNT_ID,
     })),
 }));
 
@@ -582,34 +573,18 @@ describe('useSelectedTransactionsActions', () => {
 
     it('should show split option when transaction can be split', async () => {
         const transactionID = '123';
-        const report = {
-            ...createRandomReport(1, undefined),
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        };
-        const policy = {
-            ...createRandomPolicy(1),
-            isPolicyExpenseChatEnabled: true,
-            role: CONST.POLICY.ROLE.ADMIN,
-            employeeList: {
-                [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},
-            },
-        };
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        const policy = createRandomPolicy(1);
         const reportActions: ReportAction[] = [];
-        const transaction = {
-            ...createRandomTransaction(1),
-            transactionID,
-            amount: 1000,
-            status: CONST.TRANSACTION.STATUS.POSTED,
-        };
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
 
         mockSelectedTransactionIDs.push(transactionID);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
 
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
         jest.spyOn(require('@libs/TransactionUtils'), 'getOriginalTransactionWithSplitInfo').mockReturnValue({
             isBillSplit: false,
             isExpenseSplit: false,

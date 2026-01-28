@@ -431,8 +431,6 @@ function clearIssueNewCardFlow(policyID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         currentStep: null,
         data: {},
-        isSuccessful: false,
-        isLoading: false,
     });
 }
 

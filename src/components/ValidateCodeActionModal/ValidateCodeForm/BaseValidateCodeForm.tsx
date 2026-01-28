@@ -10,8 +10,6 @@ import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicC
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
-import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -22,6 +20,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidValidateCode} from '@libs/ValidationUtils';
+import ValidateCodeCountdown from '@pages/signin/ValidateCodeCountdown';
+import type {ValidateCodeCountdownHandle} from '@pages/signin/ValidateCodeCountdown/types';
 import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';

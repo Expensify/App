@@ -124,7 +124,7 @@ function ReportFieldsValueSettingsPage({
                 <View style={styles.flexGrow1}>
                     <View style={[styles.mt2, styles.mh5]}>
                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text accessible={false}>{translate('workspace.reportFields.enableValue')}</Text>
+                            <Text>{translate('workspace.reportFields.enableValue')}</Text>
                             <Switch
                                 isOn={!currentValueDisabled}
                                 accessibilityLabel={translate('workspace.reportFields.enableValue')}

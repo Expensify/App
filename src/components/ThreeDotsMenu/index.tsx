@@ -45,7 +45,6 @@ function ThreeDotsMenu({
     shouldSelfPosition = false,
     threeDotsMenuRef,
     sentryLabel,
-    isContainerFocused = true,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
@@ -101,12 +100,13 @@ function ThreeDotsMenu({
         hidePopoverMenu,
         onThreeDotsPress,
     }));
+
     useEffect(() => {
-        if ((!isBehindModal || !isPopupMenuVisible) && isContainerFocused) {
+        if (!isBehindModal || !isPopupMenuVisible) {
             return;
         }
         hidePopoverMenu();
-    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
+    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
 
     useLayoutEffect(() => {
         if (!getMenuPosition || !isPopupMenuVisible) {
@@ -166,7 +166,7 @@ function ThreeDotsMenu({
             <PopoverMenu
                 onClose={hidePopoverMenu}
                 onModalHide={() => setRestoreFocusType(undefined)}
-                isVisible={isPopupMenuVisible && !isBehindModal && isContainerFocused}
+                isVisible={isPopupMenuVisible && !isBehindModal}
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item) => {

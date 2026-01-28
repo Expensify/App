@@ -49,18 +49,7 @@ type SendInvoiceInformation = {
     createdIOUReportActionID: string;
     createdReportActionIDForThread: string | undefined;
     reportActionID: string;
-    onyxData: OnyxData<
-        | typeof ONYXKEYS.COLLECTION.REPORT
-        | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-        | typeof ONYXKEYS.COLLECTION.TRANSACTION
-        | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-        | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
-        | typeof ONYXKEYS.RECENTLY_USED_CURRENCIES
-        | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
-        | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-        | typeof ONYXKEYS.COLLECTION.POLICY
-        | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-    >;
+    onyxData: OnyxData;
 };
 
 type SendInvoiceOptions = {
@@ -109,38 +98,12 @@ type BuildOnyxDataForInvoiceParams = {
 };
 
 /** Builds the Onyx data for an invoice */
-function buildOnyxDataForInvoice(
-    invoiceParams: BuildOnyxDataForInvoiceParams,
-): OnyxData<
-    | typeof ONYXKEYS.COLLECTION.REPORT
-    | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-    | typeof ONYXKEYS.COLLECTION.TRANSACTION
-    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-    | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
-    | typeof ONYXKEYS.RECENTLY_USED_CURRENCIES
-    | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
-    | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-    | typeof ONYXKEYS.COLLECTION.POLICY
-    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-> {
+function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant} = invoiceParams;
     const transaction = transactionParams.transaction;
 
     const clearedPendingFields = Object.fromEntries(Object.keys(transactionParams.transaction.pendingFields ?? {}).map((key) => [key, null]));
-    const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
-            | typeof ONYXKEYS.RECENTLY_USED_CURRENCIES
-            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-        >
-    > = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report?.reportID}`,
@@ -213,17 +176,7 @@ function buildOnyxDataForInvoice(
         });
     }
 
-    const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-        >
-    > = [];
+    const successData: OnyxUpdate[] = [];
 
     if (chat.report) {
         optimisticData.push({
@@ -542,7 +495,7 @@ function buildOnyxDataForInvoice(
         }
     }
 
-    return {optimisticData, successData, failureData};
+    return [optimisticData, successData, failureData];
 }
 
 /**
@@ -672,7 +625,7 @@ function getSendInvoiceInformation({
         });
 
     // STEP 6: Build Onyx Data
-    const onyxData = buildOnyxDataForInvoice({
+    const [optimisticData, successData, failureData] = buildOnyxDataForInvoice({
         chat: {report: chatReport, createdAction: optimisticCreatedActionForChat, reportPreviewAction, isNewReport: isNewChatReport},
         iou: {createdAction: optimisticCreatedActionForIOUReport, action: iouAction, report: optimisticInvoiceReport},
         transactionParams: {
@@ -704,7 +657,11 @@ function getSendInvoiceInformation({
         reportPreviewReportActionID: reportPreviewAction.reportActionID,
         transactionID: optimisticTransaction.transactionID,
         transactionThreadReportID: optimisticTransactionThread.reportID,
-        onyxData,
+        onyxData: {
+            optimisticData,
+            successData,
+            failureData,
+        },
     };
 }
 

@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -56,29 +56,36 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
         config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT;
 
-    const goBack = () => {
+    const goBack = useCallback(() => {
         return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
-    };
+    }, [backTo, shouldGoBackToSpecificRoute]);
 
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
-    const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
+    const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
 
-    const selectedReceivable = findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount);
+    const selectedReceivable = useMemo(() => findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount), [receivableList, config?.receivableAccount]);
 
-    const selectedItem = findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem);
+    const selectedItem = useMemo(() => findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem), [items, config?.invoiceItem]);
 
-    let invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
-    if (config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
-        invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
-    } else if (selectedItem) {
-        invoiceItemValue = selectedItem.name;
-    } else if (config?.invoiceItemPreference) {
-        invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.select.label');
-    }
+    const invoiceItemValue = useMemo(() => {
+        if (!config?.invoiceItemPreference) {
+            return translate('workspace.netsuite.invoiceItem.values.create.label');
+        }
+        if (config.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
+            return translate('workspace.netsuite.invoiceItem.values.create.label');
+        }
+        if (!selectedItem) {
+            return translate('workspace.netsuite.invoiceItem.values.select.label');
+        }
+        return selectedItem.name;
+    }, [config?.invoiceItemPreference, selectedItem, translate]);
 
-    const selectedTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.taxPostingAccount);
+    const selectedTaxPostingAccount = useMemo(() => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.taxPostingAccount), [taxAccountsList, config?.taxPostingAccount]);
 
-    const selectedProvTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.provincialTaxPostingAccount);
+    const selectedProvTaxPostingAccount = useMemo(
+        () => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.provincialTaxPostingAccount),
+        [taxAccountsList, config?.provincialTaxPostingAccount],
+    );
 
     const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {

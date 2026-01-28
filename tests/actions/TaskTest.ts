@@ -764,7 +764,7 @@ describe('actions/Task', () => {
             // Verify optimisticData contains childStateNum and childStatusNum updates
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData];
             const optimisticData = onyxData.optimisticData ?? [];
 
             // Find the optimistic update for parent report action
@@ -826,7 +826,7 @@ describe('actions/Task', () => {
             // Verify optimisticData does NOT contain parent report action updates
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (API.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData];
             const optimisticData = onyxData.optimisticData ?? [];
 
             // Should not have any parent report action updates

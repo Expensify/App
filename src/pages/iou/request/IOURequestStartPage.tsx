@@ -6,7 +6,6 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -94,8 +93,6 @@ function IOURequestStartPage({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
-    const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
-
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
@@ -106,18 +103,6 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
-    };
-
-    const onTabSelectFocusHandler = ({index}: {index: number}) => {
-        // We requestAnimationFrame since the function is called in the animate block in the web implementation
-        // which fixes a locked animation glitch when swiping between tabs, and aligns with the native implementation internal delay
-        requestAnimationFrame(() => {
-            //  2 - PerDiem
-            if (index !== 2) {
-                return;
-            }
-            perDiemInputRef.current?.focus?.();
-        });
     };
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
@@ -271,8 +256,6 @@ function IOURequestStartPage({
 
     useHandleBackButton(onBackButtonPress);
 
-    const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
-
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
@@ -305,7 +288,6 @@ function IOURequestStartPage({
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
                                 onTabSelected={onTabSelected}
-                                onTabSelect={onTabSelectFocusHandler}
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
@@ -357,16 +339,14 @@ function IOURequestStartPage({
                                     <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
-                                                {shouldShowWorkspaceSelectForPerDiem ? (
+                                                {moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled ? (
                                                     <IOURequestStepPerDiemWorkspace
                                                         route={route}
                                                         navigation={navigation}
                                                     />
                                                 ) : (
                                                     <IOURequestStepDestination
-                                                        shouldAutoFocusInput={false}
                                                         openedFromStartPage
-                                                        ref={perDiemInputRef}
                                                         explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}
                                                         route={route}
                                                         navigation={navigation}

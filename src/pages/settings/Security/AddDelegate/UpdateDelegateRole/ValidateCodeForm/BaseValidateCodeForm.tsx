@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
@@ -88,23 +88,25 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
         },
     }));
 
-    useFocusEffect(() => {
-        if (!inputValidateCodeRef.current) {
-            return;
-        }
-        if (focusTimeoutRef.current) {
-            clearTimeout(focusTimeoutRef.current);
-        }
-        focusTimeoutRef.current = setTimeout(() => {
-            inputValidateCodeRef.current?.focusLastSelected();
-        }, CONST.ANIMATED_TRANSITION);
-        return () => {
-            if (!focusTimeoutRef.current) {
+    useFocusEffect(
+        useCallback(() => {
+            if (!inputValidateCodeRef.current) {
                 return;
             }
-            clearTimeout(focusTimeoutRef.current);
-        };
-    });
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+            }
+            focusTimeoutRef.current = setTimeout(() => {
+                inputValidateCodeRef.current?.focusLastSelected();
+            }, CONST.ANIMATED_TRANSITION);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, []),
+    );
 
     /**
      * Request a validate code / magic code be sent to verify this contact method
@@ -121,18 +123,21 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     /**
      * Handle text input and clear formError upon text change
      */
-    const onTextInput = (text: string) => {
-        setValidateCode(text);
-        setFormError({});
-        if (validateLoginError) {
-            clearDelegateErrorsByField({email: currentDelegate?.email ?? '', fieldName: 'updateDelegateRole', delegatedAccess: account?.delegatedAccess});
-        }
-    };
+    const onTextInput = useCallback(
+        (text: string) => {
+            setValidateCode(text);
+            setFormError({});
+            if (validateLoginError) {
+                clearDelegateErrorsByField({email: currentDelegate?.email ?? '', fieldName: 'updateDelegateRole', delegatedAccess: account?.delegatedAccess});
+            }
+        },
+        [currentDelegate?.email, validateLoginError, account?.delegatedAccess],
+    );
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    const validateAndSubmitForm = () => {
+    const validateAndSubmitForm = useCallback(() => {
         if (!validateCode.trim()) {
             setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
             return;
@@ -146,7 +151,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
         setFormError({});
 
         updateDelegateRole({email: delegate, role, validateCode, delegatedAccess: account?.delegatedAccess});
-    };
+    }, [delegate, role, validateCode, account?.delegatedAccess]);
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, wrapperStyle]}>

@@ -110,7 +110,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             return false;
         }
 
-        return isPolicyAdmin(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
+        return isPolicyAdmin(policyID, policies);
     }, [policyID, policies]);
 
     /**

@@ -9,7 +9,6 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
-import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
@@ -34,12 +33,6 @@ jest.mock('react-native-onyx/dist/storage', () => mockStorage);
 
 // Mock NativeEventEmitter as it is needed to provide mocks of libraries which include it
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
-
-// Mock expo-task-manager
-jest.mock('expo-task-manager', () => ({
-    defineTask: jest.fn(),
-    // Add other methods here if you use them
-}));
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
@@ -98,9 +91,6 @@ jest.mock('react-native-sound', () => {
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
-
-// Jest has no access to the native secure store module, so we mock it with the web implementation.
-jest.mock('@src/libs/MultifactorAuthentication/Biometrics/SecureStore', () => MockedSecureStore);
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),

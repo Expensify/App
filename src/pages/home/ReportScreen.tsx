@@ -59,10 +59,10 @@ import {
     isCreatedAction,
     isDeletedParentAction,
     isMoneyRequestAction,
-    isReportActionVisible,
     isSentMoneyReportAction,
     isTransactionThread,
     isWhisperAction,
+    shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {
     canEditReportAction,
@@ -303,7 +303,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
@@ -358,27 +357,11 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
+    const shouldWaitForTransactions = !isOffline && shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
     const {closeSidePanel} = useSidePanel();
-
-    useEffect(() => {
-        if (
-            !isFocused ||
-            !reportIDFromRoute ||
-            report?.reportID ||
-            reportMetadata?.isLoadingInitialReportActions ||
-            reportMetadata?.isOptimisticReport ||
-            isLoadingApp ||
-            userLeavingStatus
-        ) {
-            return;
-        }
-
-        Navigation.goBack();
-    }, [isFocused, reportIDFromRoute, report?.reportID, reportMetadata?.isLoadingInitialReportActions, reportMetadata?.isOptimisticReport, isLoadingApp, userLeavingStatus]);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -411,7 +394,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 return;
             }
             if (isInNarrowPaneModal) {
-                Navigation.goBack();
+                Navigation.dismissModal();
                 return;
             }
             if (backTo) {
@@ -472,16 +455,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
-    const isLinkedActionDeleted = useMemo(() => {
-        if (!linkedAction) {
-            return false;
-        }
-        const actionReportID = linkedAction.reportID ?? reportID;
-        if (!actionReportID) {
-            return true;
-        }
-        return !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
-    }, [linkedAction, report, isReportArchived, reportID, visibleReportActionsData]);
+    const isLinkedActionDeleted = useMemo(
+        () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
+        [linkedAction, report, isReportArchived],
+    );
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
@@ -614,15 +591,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
     useEffect(() => {
-        // If transactionThreadReportID is undefined or CONST.FAKE_REPORT_ID, we do not call fetchReport.
-        // Only when transactionThreadReportID changes to a valid value, the fetchReport will be called to fetch the data again for the current report.
-        // Since fetchReport is always called once when opening a report,
-        // if that initial call is used to create a transactionThreadReport,
-        // then fetchReport needs to be called again after the transactionThreadReport has been fully created.
-        const prevTransactionThreadReportIDWasValid = !!prevTransactionThreadReportID && prevTransactionThreadReportID !== CONST.FAKE_REPORT_ID;
-        const transactionThreadReportIDUpdatedFromValidToFake = transactionThreadReportID === CONST.FAKE_REPORT_ID && !!prevTransactionThreadReportID;
-
-        if (prevTransactionThreadReportIDWasValid || !transactionThreadReportID || transactionThreadReportIDUpdatedFromValidToFake) {
+        if (!!prevTransactionThreadReportID || !transactionThreadReportID) {
             return;
         }
 
@@ -754,7 +723,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             (prevDeletedParentAction && !deletedParentAction)
         ) {
             const currentRoute = navigationRef.getCurrentRoute();
-            const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
+            const topmostReportIDInSearchRHP = Navigation.getTopmostReportIDInSearchRHP();
             const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
             const isHoldScreenOpenInRHP =
                 currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);

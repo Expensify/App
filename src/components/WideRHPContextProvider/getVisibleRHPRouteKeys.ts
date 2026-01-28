@@ -23,6 +23,7 @@ function getVisibleRHPKeys(allSuperWideRHPKeys: string[], allWideRHPKeys: string
     }
 
     const rootState = navigationRef.getRootState();
+
     if (!rootState) {
         return emptyRHPKeysState;
     }

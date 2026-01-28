@@ -72,7 +72,7 @@ function EmojiPickerButtonDropdown(
                 disabled={isDisabled}
                 onPress={onPress}
                 id="emojiDropdownButton"
-                accessibilityLabel={value ? `${value}, ${translate('statusPage.status')}` : translate('statusPage.status')}
+                accessibilityLabel="statusEmoji"
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON_DROPDOWN}
             >

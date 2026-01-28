@@ -101,5 +101,3 @@ export type {EnableGlobalReimbursementsForm} from './EnableGlobalReimbursementsF
 export type {EnterSignerInfoForm} from './EnterSignerInfoForm';
 export type {CreateDomainForm} from './CreateDomainForm';
 export type {SplitExpenseEditDateForm} from './SplitExpenseEditDateForm';
-export type {ResetDomainForm} from './ResetDomainForm';
-export type {ExpenseRuleForm} from './ExpenseRuleForm';

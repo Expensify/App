@@ -29,16 +29,7 @@ function resetUSDBankAccount(
     const isLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 
-    const onyxData: OnyxData<
-        | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
-        | typeof ONYXKEYS.COLLECTION.POLICY
-        | typeof ONYXKEYS.ONFIDO_TOKEN
-        | typeof ONYXKEYS.ONFIDO_APPLICANT_ID
-        | typeof ONYXKEYS.PLAID_DATA
-        | typeof ONYXKEYS.PLAID_LINK_TOKEN
-        | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT
-        | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
-    > = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

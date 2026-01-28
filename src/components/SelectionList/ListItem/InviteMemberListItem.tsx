@@ -35,7 +35,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
-    isMultilineSupported,
     canShowProductTrainingTooltip = true,
     index = 0,
     sectionIndex = 0,
@@ -136,12 +135,11 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 <TextWithTooltip
                                     shouldShowTooltip={showTooltip}
                                     text={Str.removeSMSDomain(item.text ?? '')}
-                                    numberOfLines={isMultilineSupported ? 2 : 1}
                                     style={[
                                         styles.optionDisplayName,
                                         isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                                         item.isBold !== false && styles.sidebarLinkTextBold,
-                                        isMultilineSupported ? styles.preWrap : styles.pre,
+                                        styles.pre,
                                         item.alternateText ? styles.mb1 : null,
                                     ]}
                                 />

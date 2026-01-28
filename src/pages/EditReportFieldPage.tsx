@@ -181,7 +181,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                 />
             )}
 
-            {reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA && !isReportFieldTitle && (
+            {reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA && (
                 <EditReportFieldText
                     fieldName={reportField.name}
                     fieldKey={fieldKey}

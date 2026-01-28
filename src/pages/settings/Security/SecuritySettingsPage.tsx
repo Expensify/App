@@ -385,7 +385,6 @@ function SecuritySettingsPage() {
                                             <TextLink
                                                 style={[styles.link]}
                                                 href={CONST.COPILOT_HELP_URL}
-                                                accessibilityLabel={translate('delegate.copilotDelegatedAccess')}
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>

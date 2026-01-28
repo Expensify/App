@@ -78,7 +78,6 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
@@ -95,12 +94,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     <Text style={[styles.textSupporting, styles.textNormal, styles.ph5]}>{translate('workspace.tags.configureMultiLevelTags')}</Text>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text
-                            style={[styles.textNormal, styles.flex1]}
-                            accessible={false}
-                        >
-                            {translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
-                        </Text>
+                        <Text style={[styles.textNormal, styles.flex1]}>{translate('workspace.tags.importMultiLevelTags.firstRowTitle')}</Text>
                         <Switch
                             isOn={spreadsheet?.containsHeader ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
@@ -111,12 +105,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     </View>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text
-                            style={[styles.textNormal, styles.flex1, styles.mr2]}
-                            accessible={false}
-                        >
-                            {translate('workspace.tags.importMultiLevelTags.independentTags')}
-                        </Text>
+                        <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.importMultiLevelTags.independentTags')}</Text>
                         <Switch
                             isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
@@ -127,12 +116,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                     </View>
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text
-                            style={[styles.textNormal, styles.flex1, styles.mr2]}
-                            accessible={false}
-                        >
-                            {translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
-                        </Text>
+                        <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}</Text>
                         <Switch
                             isOn={spreadsheet?.isGLAdjacent ?? false}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}

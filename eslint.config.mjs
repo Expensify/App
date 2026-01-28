@@ -1,7 +1,6 @@
 import {FlatCompat} from '@eslint/eslintrc';
 import tsParser from '@typescript-eslint/parser';
 import expensifyConfig from 'eslint-config-expensify';
-import fileProgress from 'eslint-plugin-file-progress';
 import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
@@ -163,7 +162,6 @@ const config = defineConfig([
     expensifyConfig,
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
-    fileProgress.configs['recommended-ci'],
 
     {
         extends: new FlatCompat({baseDirectory: dirname}).extends(

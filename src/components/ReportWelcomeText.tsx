@@ -1,5 +1,5 @@
 import {createPersonalDetailsSelector} from '@selectors/PersonalDetails';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useEnvironment from '@hooks/useEnvironment';
@@ -90,20 +90,37 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const reportDetailsLink = report?.reportID ? `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}` : '';
+    const reportDetailsLink = useMemo(() => {
+        if (!report?.reportID) {
+            return '';
+        }
 
-    let welcomeHeroText = translate('reportActionsView.sayHello');
-    if (isInvoiceRoom) {
-        welcomeHeroText = translate('reportActionsView.sayHello');
-    } else if (isChatRoom) {
-        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: reportName});
-    } else if (isSelfDM) {
-        welcomeHeroText = translate('reportActionsView.yourSpace');
-    } else if (isSystemChat) {
-        welcomeHeroText = reportName;
-    } else if (isPolicyExpenseChat) {
-        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: policyName});
-    }
+        return `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}`;
+    }, [environmentURL, report?.reportID]);
+
+    const welcomeHeroText = useMemo(() => {
+        if (isInvoiceRoom) {
+            return translate('reportActionsView.sayHello');
+        }
+
+        if (isChatRoom) {
+            return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
+        }
+
+        if (isSelfDM) {
+            return translate('reportActionsView.yourSpace');
+        }
+
+        if (isSystemChat) {
+            return reportName;
+        }
+
+        if (isPolicyExpenseChat) {
+            return translate('reportActionsView.welcomeToRoom', {roomName: policyName});
+        }
+
+        return translate('reportActionsView.sayHello');
+    }, [isChatRoom, isInvoiceRoom, isPolicyExpenseChat, isSelfDM, isSystemChat, translate, policyName, reportName]);
 
     // If we are the only participant (e.g. solo group chat) then keep the current user personal details so the welcome message does not show up empty.
     const shouldExcludeCurrentUser = participantAccountIDs.length > 0;

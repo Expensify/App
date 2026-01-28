@@ -16,14 +16,6 @@ const POLICY_WITH_CONNECTION_ID = 'policy_with_connection';
 
 // This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
 jest.mock('@components/ConfirmedRoute.tsx');
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    __esModule: true,
-    default: jest.fn(() => ({
-        email: CURRENT_USER_EMAIL,
-        accountID: CURRENT_USER_ACCOUNT_ID,
-    })),
-}));
 
 const createMockReport = (reportID: string, overrides: Partial<Report> = {}): Report =>
     ({

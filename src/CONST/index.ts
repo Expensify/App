@@ -734,10 +734,8 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
-        ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
-        NEW_DOT_HOME: 'newDotHome',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1366,17 +1364,13 @@ const CONST = {
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
-                    UPDATE_INVOICE_COMPANY_NAME: 'POLICYCHANGELOG_UPDATE_INVOICE_COMPANY_NAME',
-                    UPDATE_INVOICE_COMPANY_WEBSITE: 'POLICYCHANGELOG_UPDATE_INVOICE_COMPANY_WEBSITE',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
-                    UPDATE_MAX_EXPENSE_AGE: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AGE',
                     UPDATE_MULTIPLE_TAGS_APPROVER_RULES: 'POLICYCHANGELOG_UPDATE_MULTIPLE_TAGS_APPROVER_RULES',
                     UPDATE_NAME: 'POLICYCHANGELOG_UPDATE_NAME',
                     UPDATE_DESCRIPTION: 'POLICYCHANGELOG_UPDATE_DESCRIPTION',
                     UPDATE_OWNERSHIP: 'POLICYCHANGELOG_UPDATE_OWNERSHIP',
-                    UPDATE_REIMBURSER: 'POLICYCHANGELOG_UPDATE_REIMBURSER',
                     UPDATE_PROHIBITED_EXPENSES: 'POLICYCHANGELOG_UPDATE_PROHIBITED_EXPENSES',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
@@ -1710,7 +1704,6 @@ const CONST = {
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
-        SPAN_NAVIGATE_TO_REPORTS_TAB_RENDER: 'ManualNavigateToReportsTabRender',
         SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',
         SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
@@ -3347,7 +3340,6 @@ const CONST = {
             CONTROL: 'control',
         },
         DEFAULT_MAX_EXPENSE_AGE: 90,
-        DISABLED_MAX_EXPENSE_AGE: 10000000000,
         DEFAULT_MAX_EXPENSE_AMOUNT: 200000,
         DEFAULT_MAX_AMOUNT_NO_RECEIPT: 2500,
         DEFAULT_TAG_LIST: {
@@ -3507,8 +3499,8 @@ const CONST = {
             FIXED: 'fixed',
         },
         LIMIT_VALUE: 21474836,
-        STEP_NAMES: ['1', '2', '3', '4', '5'],
-        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4'],
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4', '5'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
@@ -3703,24 +3695,6 @@ const CONST = {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
             INVOICING: 'invoicing2018',
-        },
-    },
-    EXPENSE_RULES: {
-        FIELDS: {
-            BILLABLE: 'billable',
-            CATEGORY: 'category',
-            DESCRIPTION: 'comment',
-            CREATE_REPORT: 'createReport',
-            MERCHANT: 'merchantToMatch',
-            RENAME_MERCHANT: 'merchant',
-            REIMBURSABLE: 'reimbursable',
-            REPORT: 'report',
-            TAG: 'tag',
-            TAX: 'tax',
-        },
-        BULK_ACTION_TYPES: {
-            EDIT: 'edit',
-            DELETE: 'delete',
         },
     },
 
@@ -5487,10 +5461,6 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
-    MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE: {
-        SUCCESS: 'success',
-        FAILURE: 'failure',
-    },
     MERGE_ACCOUNT_RESULTS: {
         SUCCESS: 'success',
         ERR_2FA: 'err_2fa',
@@ -5754,16 +5724,6 @@ const CONST = {
     },
 
     /**
-     * Feature flag to disable the missingAttendees violation feature.
-     * Set to true to disable the feature if regressions are found.
-     * When true:
-     * - Prevents new missingAttendees violations from being created
-     * - Removes existing missingAttendees violations from transaction lists
-     * - Hides "Require attendees" toggle in category settings
-     */
-    IS_ATTENDEES_REQUIRED_FEATURE_DISABLED: true,
-
-    /**
      * Constants for types of violation.
      */
     VIOLATION_TYPES: {
@@ -5771,11 +5731,6 @@ const CONST = {
         NOTICE: 'notice',
         WARNING: 'warning',
     },
-
-    /**
-     * Constant for prefix of violations.
-     */
-    VIOLATIONS_PREFIX: 'violations.',
 
     /**
      * Constants with different types for the modifiedAmount violation
@@ -5831,8 +5786,6 @@ const CONST = {
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
-        NO_ROUTE: 'noRoute',
-        MISSING_ATTENDEES: 'missingAttendees',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -5995,31 +5948,31 @@ const CONST = {
     /* If we update these values, let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge. */
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
         "AED": {
-            "rate": 428.5,
+            "rate": 414,
             "unit": "km"
         },
         "AFN": {
-            "rate": 7703.93,
+            "rate": 8851,
             "unit": "km"
         },
         "ALL": {
-            "rate": 9633.54,
+            "rate": 10783,
             "unit": "km"
         },
         "AMD": {
-            "rate": 44504.28,
+            "rate": 45116,
             "unit": "km"
         },
         "ANG": {
-            "rate": 208.86,
+            "rate": 203,
             "unit": "km"
         },
         "AOA": {
-            "rate": 106762.22,
+            "rate": 102929,
             "unit": "km"
         },
         "ARS": {
-            "rate": 171174.53,
+            "rate": 118428,
             "unit": "km"
         },
         "AUD": {
@@ -6027,75 +5980,75 @@ const CONST = {
             "unit": "km"
         },
         "AWG": {
-            "rate": 210.31,
+            "rate": 203,
             "unit": "km"
         },
         "AZN": {
-            "rate": 198.35,
+            "rate": 192,
             "unit": "km"
         },
         "BAM": {
-            "rate": 194.86,
+            "rate": 212,
             "unit": "km"
         },
         "BBD": {
-            "rate": 233.35,
+            "rate": 225,
             "unit": "km"
         },
         "BDT": {
-            "rate": 14251.98,
+            "rate": 13697,
             "unit": "km"
         },
         "BGN": {
-            "rate": 195.25,
+            "rate": 211,
             "unit": "km"
         },
         "BHD": {
-            "rate": 43.98,
+            "rate": 42,
             "unit": "km"
         },
         "BIF": {
-            "rate": 345436.14,
+            "rate": 331847,
             "unit": "km"
         },
         "BMD": {
-            "rate": 116.68,
+            "rate": 113,
             "unit": "km"
         },
         "BND": {
-            "rate": 149.25,
+            "rate": 153,
             "unit": "km"
         },
         "BOB": {
-            "rate": 807.7,
+            "rate": 779,
             "unit": "km"
         },
         "BRL": {
-            "rate": 626.95,
+            "rate": 660,
             "unit": "km"
         },
         "BSD": {
-            "rate": 116.68,
+            "rate": 113,
             "unit": "km"
         },
         "BTN": {
-            "rate": 10516.86,
+            "rate": 9761,
             "unit": "km"
         },
         "BWP": {
-            "rate": 1619.97,
+            "rate": 1569,
             "unit": "km"
         },
         "BYN": {
-            "rate": 342.9,
+            "rate": 369,
             "unit": "km"
         },
         "BYR": {
-            "rate": 2336612.1,
+            "rate": 2255979,
             "unit": "km"
         },
         "BZD": {
-            "rate": 234.56,
+            "rate": 227,
             "unit": "km"
         },
         "CAD": {
@@ -6103,7 +6056,7 @@ const CONST = {
             "unit": "km"
         },
         "CDF": {
-            "rate": 264869.39,
+            "rate": 321167,
             "unit": "km"
         },
         "CHF": {
@@ -6111,67 +6064,67 @@ const CONST = {
             "unit": "km"
         },
         "CLP": {
-            "rate": 104301.62,
+            "rate": 111689,
             "unit": "km"
         },
         "CNY": {
-            "rate": 814.84,
+            "rate": 808,
             "unit": "km"
         },
         "COP": {
-            "rate": 439901.44,
+            "rate": 473791,
             "unit": "km"
         },
         "CRC": {
-            "rate": 57973.09,
+            "rate": 57190,
             "unit": "km"
         },
         "CUC": {
-            "rate": 116.68,
+            "rate": 113,
             "unit": "km"
         },
         "CUP": {
-            "rate": 3004.45,
+            "rate": 2902,
             "unit": "km"
         },
         "CVE": {
-            "rate": 11004.01,
+            "rate": 11961,
             "unit": "km"
         },
         "CZK": {
-            "rate": 2413.34,
+            "rate": 2715,
             "unit": "km"
         },
         "DJF": {
-            "rate": 20752.5,
+            "rate": 19956,
             "unit": "km"
         },
         "DKK": {
-            "rate": 394,
+            "rate": 381,
             "unit": "km"
         },
         "DOP": {
-            "rate": 7398.54,
+            "rate": 6948,
             "unit": "km"
         },
         "DZD": {
-            "rate": 15153.28,
+            "rate": 15226,
             "unit": "km"
         },
         "EEK": {
-            "rate": 1704.36,
+            "rate": 1646,
             "unit": "km"
         },
         "EGP": {
-            "rate": 5512.97,
+            "rate": 5657,
             "unit": "km"
         },
         "ERN": {
-            "rate": 1750.16,
+            "rate": 1690,
             "unit": "km"
         },
         "ETB": {
-            "rate": 18077.09,
+            "rate": 14326,
             "unit": "km"
         },
         "EUR": {
@@ -6179,11 +6132,11 @@ const CONST = {
             "unit": "km"
         },
         "FJD": {
-            "rate": 265.25,
+            "rate": 264,
             "unit": "km"
         },
         "FKP": {
-            "rate": 86.44,
+            "rate": 90,
             "unit": "km"
         },
         "GBP": {
@@ -6191,55 +6144,55 @@ const CONST = {
             "unit": "mi"
         },
         "GEL": {
-            "rate": 313.87,
+            "rate": 323,
             "unit": "km"
         },
         "GHS": {
-            "rate": 1246.23,
+            "rate": 1724,
             "unit": "km"
         },
         "GIP": {
-            "rate": 86.44,
+            "rate": 90,
             "unit": "km"
         },
         "GMD": {
-            "rate": 8575.79,
+            "rate": 8111,
             "unit": "km"
         },
         "GNF": {
-            "rate": 1019841.61,
+            "rate": 974619,
             "unit": "km"
         },
         "GTQ": {
-            "rate": 893.94,
+            "rate": 872,
             "unit": "km"
         },
         "GYD": {
-            "rate": 24400.12,
+            "rate": 23585,
             "unit": "km"
         },
         "HKD": {
-            "rate": 908.6,
+            "rate": 877,
             "unit": "km"
         },
         "HNL": {
-            "rate": 3080.03,
+            "rate": 2881,
             "unit": "km"
         },
         "HRK": {
-            "rate": 752.16,
+            "rate": 814,
             "unit": "km"
         },
         "HTG": {
-            "rate": 15266.76,
+            "rate": 14734,
             "unit": "km"
         },
         "HUF": {
-            "rate": 38407.92,
+            "rate": 44127,
             "unit": "km"
         },
         "IDR": {
-            "rate": 1954232.16,
+            "rate": 1830066,
             "unit": "km"
         },
         "ILS": {
@@ -6247,147 +6200,147 @@ const CONST = {
             "unit": "km"
         },
         "INR": {
-            "rate": 10518.19,
+            "rate": 9761,
             "unit": "km"
         },
         "IQD": {
-            "rate": 152781.51,
+            "rate": 147577,
             "unit": "km"
         },
         "IRR": {
-            "rate": 4910488.26,
+            "rate": 4741290,
             "unit": "km"
         },
         "ISK": {
-            "rate": 14694.92,
+            "rate": 15772,
             "unit": "km"
         },
         "JMD": {
-            "rate": 18515.8,
+            "rate": 17738,
             "unit": "km"
         },
         "JOD": {
-            "rate": 82.72,
+            "rate": 80,
             "unit": "km"
         },
         "JPY": {
-            "rate": 18278.93,
+            "rate": 17542,
             "unit": "km"
         },
         "KES": {
-            "rate": 15058.57,
+            "rate": 14589,
             "unit": "km"
         },
         "KGS": {
-            "rate": 10202.68,
+            "rate": 9852,
             "unit": "km"
         },
         "KHR": {
-            "rate": 468558.4,
+            "rate": 453066,
             "unit": "km"
         },
         "KMF": {
-            "rate": 49237.89,
+            "rate": 53269,
             "unit": "km"
         },
         "KPW": {
-            "rate": 105009.73,
+            "rate": 101389,
             "unit": "km"
         },
         "KRW": {
-            "rate": 168722.07,
+            "rate": 162705,
             "unit": "km"
         },
         "KWD": {
-            "rate": 35.82,
+            "rate": 35,
             "unit": "km"
         },
         "KYD": {
-            "rate": 97.19,
+            "rate": 93,
             "unit": "km"
         },
         "KZT": {
-            "rate": 59441.07,
+            "rate": 58319,
             "unit": "km"
         },
         "LAK": {
-            "rate": 2520371.89,
+            "rate": 2452802,
             "unit": "km"
         },
         "LBP": {
-            "rate": 10444573.37,
+            "rate": 10093809,
             "unit": "km"
         },
         "LKR": {
-            "rate": 36161.18,
+            "rate": 33423,
             "unit": "km"
         },
         "LRD": {
-            "rate": 20916.15,
+            "rate": 22185,
             "unit": "km"
         },
         "LSL": {
-            "rate": 1909.99,
+            "rate": 2099,
             "unit": "km"
         },
         "LTL": {
-            "rate": 376.1,
+            "rate": 364,
             "unit": "km"
         },
         "LVL": {
-            "rate": 76.56,
+            "rate": 74,
             "unit": "km"
         },
         "LYD": {
-            "rate": 631.41,
+            "rate": 554,
             "unit": "km"
         },
         "MAD": {
-            "rate": 1070.73,
+            "rate": 1127,
             "unit": "km"
         },
         "MDL": {
-            "rate": 1950.82,
+            "rate": 2084,
             "unit": "km"
         },
         "MGA": {
-            "rate": 537347.25,
+            "rate": 529635,
             "unit": "km"
         },
         "MKD": {
-            "rate": 6144.12,
+            "rate": 6650,
             "unit": "km"
         },
         "MMK": {
-            "rate": 245011.43,
+            "rate": 236413,
             "unit": "km"
         },
         "MNT": {
-            "rate": 415371.81,
+            "rate": 382799,
             "unit": "km"
         },
         "MOP": {
-            "rate": 935.53,
+            "rate": 904,
             "unit": "km"
         },
         "MRO": {
-            "rate": 41653.05,
+            "rate": 40234,
             "unit": "km"
         },
         "MRU": {
-            "rate": 4631.69,
+            "rate": 4506,
             "unit": "km"
         },
         "MUR": {
-            "rate": 5402.17,
+            "rate": 5226,
             "unit": "km"
         },
         "MVR": {
-            "rate": 1803.83,
+            "rate": 1735,
             "unit": "km"
         },
         "MWK": {
-            "rate": 202409.9,
+            "rate": 195485,
             "unit": "km"
         },
         "MXN": {
@@ -6395,23 +6348,23 @@ const CONST = {
             "unit": "km"
         },
         "MYR": {
-            "rate": 472.6,
+            "rate": 494,
             "unit": "km"
         },
         "MZN": {
-            "rate": 7456.85,
+            "rate": 7199,
             "unit": "km"
         },
         "NAD": {
-            "rate": 1910.94,
+            "rate": 2099,
             "unit": "km"
         },
         "NGN": {
-            "rate": 166247.91,
+            "rate": 174979,
             "unit": "km"
         },
         "NIO": {
-            "rate": 4291.54,
+            "rate": 4147,
             "unit": "km"
         },
         "NOK": {
@@ -6419,35 +6372,35 @@ const CONST = {
             "unit": "km"
         },
         "NPR": {
-            "rate": 16827.52,
+            "rate": 15617,
             "unit": "km"
         },
         "NZD": {
-            "rate": 117,
+            "rate": 104,
             "unit": "km"
         },
         "OMR": {
-            "rate": 44.87,
+            "rate": 43,
             "unit": "km"
         },
         "PAB": {
-            "rate": 116.68,
+            "rate": 113,
             "unit": "km"
         },
         "PEN": {
-            "rate": 392.29,
+            "rate": 420,
             "unit": "km"
         },
         "PGK": {
-            "rate": 501.36,
+            "rate": 455,
             "unit": "km"
         },
         "PHP": {
-            "rate": 6917.8,
+            "rate": 6582,
             "unit": "km"
         },
         "PKR": {
-            "rate": 32652.84,
+            "rate": 31411,
             "unit": "km"
         },
         "PLN": {
@@ -6455,43 +6408,43 @@ const CONST = {
             "unit": "km"
         },
         "PYG": {
-            "rate": 787561.7,
+            "rate": 890772,
             "unit": "km"
         },
         "QAR": {
-            "rate": 424.92,
+            "rate": 410,
             "unit": "km"
         },
         "RON": {
-            "rate": 508.07,
+            "rate": 538,
             "unit": "km"
         },
         "RSD": {
-            "rate": 11713.4,
+            "rate": 12656,
             "unit": "km"
         },
         "RUB": {
-            "rate": 9392.54,
+            "rate": 11182,
             "unit": "km"
         },
         "RWF": {
-            "rate": 169805.16,
+            "rate": 156589,
             "unit": "km"
         },
         "SAR": {
-            "rate": 437.58,
+            "rate": 423,
             "unit": "km"
         },
         "SBD": {
-            "rate": 948.61,
+            "rate": 951,
             "unit": "km"
         },
         "SCR": {
-            "rate": 1615.27,
+            "rate": 1611,
             "unit": "km"
         },
         "SDG": {
-            "rate": 70123.16,
+            "rate": 67705,
             "unit": "km"
         },
         "SEK": {
@@ -6499,167 +6452,159 @@ const CONST = {
             "unit": "km"
         },
         "SGD": {
-            "rate": 149.43,
+            "rate": 151,
             "unit": "km"
         },
         "SHP": {
-            "rate": 86.44,
+            "rate": 90,
             "unit": "km"
         },
         "SLL": {
-            "rate": 2446668.74,
+            "rate": 2362357,
             "unit": "km"
         },
         "SLE": {
-            "rate": 2800.26,
+            "rate": 2363,
             "unit": "km"
         },
         "SOS": {
-            "rate": 66591.46,
+            "rate": 64374,
             "unit": "km"
         },
         "SRD": {
-            "rate": 4468.75,
+            "rate": 3954,
             "unit": "km"
         },
         "STD": {
-            "rate": 2599784.99,
+            "rate": 2510095,
             "unit": "km"
         },
         "STN": {
-            "rate": 2440.86,
+            "rate": 2683,
             "unit": "km"
         },
         "SVC": {
-            "rate": 1020.49,
+            "rate": 987,
             "unit": "km"
         },
         "SYP": {
-            "rate": 1517040.54,
+            "rate": 1464664,
             "unit": "km"
         },
         "SZL": {
-            "rate": 1910.2,
+            "rate": 2099,
             "unit": "km"
         },
         "THB": {
-            "rate": 3641.51,
+            "rate": 3801,
             "unit": "km"
         },
         "TJS": {
-            "rate": 1077.65,
+            "rate": 1228,
             "unit": "km"
         },
         "TMT": {
-            "rate": 408.37,
+            "rate": 394,
             "unit": "km"
         },
         "TND": {
-            "rate": 336.58,
+            "rate": 360,
             "unit": "km"
         },
         "TOP": {
-            "rate": 280.93,
+            "rate": 274,
             "unit": "km"
         },
         "TRY": {
-            "rate": 5022.36,
+            "rate": 4035,
             "unit": "km"
         },
         "TTD": {
-            "rate": 791.64,
+            "rate": 763,
             "unit": "km"
         },
         "TWD": {
-            "rate": 3676.16,
+            "rate": 3703,
             "unit": "km"
         },
         "TZS": {
-            "rate": 288716.35,
+            "rate": 286235,
             "unit": "km"
         },
         "UAH": {
-            "rate": 4966.74,
+            "rate": 4725,
             "unit": "km"
         },
         "UGX": {
-            "rate": 422422.35,
+            "rate": 416016,
             "unit": "km"
         },
         "USD": {
-            "rate": 72.5,
+            "rate": 70,
             "unit": "mi"
         },
         "UYU": {
-            "rate": 4544.27,
+            "rate": 4888,
             "unit": "km"
         },
         "UZS": {
-            "rate": 1395513.79,
+            "rate": 1462038,
             "unit": "km"
         },
         "VEB": {
-            "rate": 735113.61,
+            "rate": 709737,
             "unit": "km"
         },
         "VEF": {
-            "rate": 28992910.93,
+            "rate": 27993155,
             "unit": "km"
         },
         "VES": {
-            "rate": 35909.77,
+            "rate": 6457,
             "unit": "km"
         },
         "VND": {
-            "rate": 3065619.41,
+            "rate": 2825526,
             "unit": "km"
         },
         "VUV": {
-            "rate": 14152.58,
+            "rate": 13358,
             "unit": "km"
         },
         "WST": {
-            "rate": 322.95,
+            "rate": 315,
             "unit": "km"
         },
         "XAF": {
-            "rate": 65490.66,
+            "rate": 70811,
             "unit": "km"
         },
         "XCD": {
-            "rate": 315.32,
-            "unit": "km"
-        },
-        "XCG": {
-            "rate": 210.2,
+            "rate": 304,
             "unit": "km"
         },
         "XOF": {
-            "rate": 65490.66,
+            "rate": 70811,
             "unit": "km"
         },
         "XPF": {
-            "rate": 11913.98,
+            "rate": 12875,
             "unit": "km"
         },
         "YER": {
-            "rate": 27815.91,
+            "rate": 28003,
             "unit": "km"
         },
         "ZAR": {
-            "rate": 476,
+            "rate": 484,
             "unit": "km"
         },
         "ZMK": {
-            "rate": 612915.63,
+            "rate": 591756,
             "unit": "km"
         },
         "ZMW": {
-            "rate": 2440.41,
-            "unit": "km"
-        },
-        "ZWG": {
-            "rate": 3023.59,
+            "rate": 3148,
             "unit": "km"
         }
     }`) as Record<string, MileageRate>,
@@ -7017,6 +6962,7 @@ const CONST = {
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
+            TAX: 'tax',
             EXPORTED_TO: 'exportedto',
             EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
@@ -7161,54 +7107,6 @@ const CONST = {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
                 [this.STATUS.EXPENSE.DRAFTS]: 'draft',
-                [this.TABLE_COLUMNS.RECEIPT]: 'receipt',
-                [this.TABLE_COLUMNS.DATE]: 'date',
-                [this.TABLE_COLUMNS.SUBMITTED]: 'submitted',
-                [this.TABLE_COLUMNS.APPROVED]: 'approved',
-                [this.TABLE_COLUMNS.POSTED]: 'posted',
-                [this.TABLE_COLUMNS.EXPORTED]: 'exported',
-                [this.TABLE_COLUMNS.MERCHANT]: 'merchant',
-                [this.TABLE_COLUMNS.DESCRIPTION]: 'description',
-                [this.TABLE_COLUMNS.FROM]: 'from',
-                [this.TABLE_COLUMNS.TO]: 'to',
-                [this.TABLE_COLUMNS.CATEGORY]: 'category',
-                [this.TABLE_COLUMNS.TAG]: 'tag',
-                [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'original-amount',
-                [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
-                [this.TABLE_COLUMNS.BILLABLE]: 'billable',
-                [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
-                [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
-                [this.TABLE_COLUMNS.TOTAL]: 'total',
-                [this.TABLE_COLUMNS.TYPE]: 'type',
-                [this.TABLE_COLUMNS.ACTION]: 'action',
-                [this.TABLE_COLUMNS.TAX_AMOUNT]: 'tax',
-                [this.TABLE_COLUMNS.TITLE]: 'title',
-                [this.TABLE_COLUMNS.ASSIGNEE]: 'assignee',
-                [this.TABLE_COLUMNS.IN]: 'in',
-                [this.TABLE_COLUMNS.COMMENTS]: 'comments',
-                [this.TABLE_COLUMNS.CARD]: 'card',
-                [this.TABLE_COLUMNS.POLICY_NAME]: 'policy-name',
-                [this.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawal-id',
-                [this.TABLE_COLUMNS.AVATAR]: 'avatar',
-                [this.TABLE_COLUMNS.STATUS]: 'status',
-                [this.TABLE_COLUMNS.EXPENSES]: 'expenses',
-                [this.TABLE_COLUMNS.FEED]: 'feed',
-                [this.TABLE_COLUMNS.WITHDRAWN]: 'withdrawn',
-                [this.TABLE_COLUMNS.BANK_ACCOUNT]: 'bank-account',
-                [this.TABLE_COLUMNS.REPORT_ID]: 'long-report-id',
-                [this.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'report-id',
-                [this.TABLE_COLUMNS.EXPORTED_TO]: 'exported-to',
-                [this.TABLE_COLUMNS.EXCHANGE_RATE]: 'exchange-rate',
-                [this.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: 'reimbursable-total',
-                [this.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: 'non-reimbursable-total',
-                [this.TABLE_COLUMNS.GROUP_FROM]: 'group-from',
-                [this.TABLE_COLUMNS.GROUP_EXPENSES]: 'group-expenses',
-                [this.TABLE_COLUMNS.GROUP_TOTAL]: 'group-total',
-                [this.TABLE_COLUMNS.GROUP_CARD]: 'group-card',
-                [this.TABLE_COLUMNS.GROUP_FEED]: 'group-feed',
-                [this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'group-bank-account',
-                [this.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'group-withdrawn',
-                [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
             };
         },
         NOT_MODIFIER: 'Not',
@@ -7776,11 +7674,6 @@ const CONST = {
             REFUND: 'REFUND',
             EXCHANGE: 'EXCHANGE',
         },
-        /**
-         * The Travel Invoicing feed type constant.
-         * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
-         */
-        PROGRAM_TRAVEL_US: 'TRAVEL_US',
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
@@ -7845,15 +7738,6 @@ const CONST = {
     LIST_BEHAVIOR: {
         REGULAR: 'regular',
         INVERTED: 'inverted',
-    },
-
-    VIOLATION_DISMISSAL: {
-        rter: {
-            manual: 'marked this receipt as cash',
-        },
-        duplicatedTransaction: {
-            manual: 'resolved the duplicate',
-        },
     },
 
     SENTRY_LABEL: {

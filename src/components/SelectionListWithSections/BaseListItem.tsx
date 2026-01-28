@@ -80,9 +80,6 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    const defaultAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
-    const accessibilityLabel = item.accessibilityLabel ?? defaultAccessibilityLabel;
-
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -110,7 +107,7 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={accessibilityLabel}
+                accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
                 hoverDimmingValue={1}

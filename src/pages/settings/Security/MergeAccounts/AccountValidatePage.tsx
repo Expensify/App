@@ -1,5 +1,5 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -109,32 +109,40 @@ function AccountValidatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    useFocusEffect(() => {
-        if (!isAccountMerged || !email) {
-            return;
-        }
-        return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, 'success'), {forceReplace: true});
-    });
-
-    useFocusEffect(() => {
-        if (!errorPage || !email) {
-            return;
-        }
-        return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorPage), {forceReplace: true});
-    });
-
-    useFocusEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const task = InteractionManager.runAfterInteractions(() => {
-            if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
+    useFocusEffect(
+        useCallback(() => {
+            if (!isAccountMerged || !email) {
                 return;
             }
+            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, 'success'), {forceReplace: true});
+        }, [isAccountMerged, email]),
+    );
 
-            Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY));
-        });
+    useFocusEffect(
+        useCallback(() => {
+            if (!errorPage || !email) {
+                return;
+            }
+            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorPage), {forceReplace: true});
+        }, [errorPage, email]),
+    );
 
-        return () => task.cancel();
-    });
+    useFocusEffect(
+        useCallback(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const task = InteractionManager.runAfterInteractions(() => {
+                if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                    return;
+                }
+
+                Navigation.navigate(
+                    ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                );
+            });
+
+            return () => task.cancel();
+        }, [privateSubscription?.type, currentUserPersonalDetails.login]),
+    );
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('blur', () => {

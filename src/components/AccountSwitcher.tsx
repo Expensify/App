@@ -185,7 +185,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             <TooltipToRender {...tooltipProps}>
                 <PressableWithFeedback
                     accessible
-                    accessibilityLabel={`${translate('common.profile')}, ${displayName}, ${Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}`}
+                    accessibilityLabel={translate('common.profile')}
                     onPress={onPressSwitcher}
                     ref={buttonRef}
                     interactive={canSwitchAccounts}

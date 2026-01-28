@@ -289,7 +289,6 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
     return (
         <>
             <View
@@ -301,7 +300,7 @@ function BaseTextInput({
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
-                    accessibilityLabel={accessibilityLabel}
+                    accessibilityLabel={label}
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
@@ -448,7 +447,6 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
-                                accessibilityLabel={inputProps.accessibilityLabel}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -481,10 +479,15 @@ function BaseTextInput({
                                     />
                                 </View>
                             )}
-                            {!!inputProps.isLoading && !shouldShowClearButton && (
+                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
-                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
+                                    style={[
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
+                                        styles.ml1,
+                                        loadingSpinnerStyle,
+                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
+                                    ]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (

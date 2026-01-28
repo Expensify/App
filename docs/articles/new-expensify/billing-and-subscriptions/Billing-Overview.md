@@ -47,11 +47,13 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
   <ul>
     <li>£5 per unique member/month</li>
     <li>Fully flexible — add/remove members anytime</li>
+    <li>Optional Expensify Card with 1% cash back (USD only)</li>
   </ul>
   <strong>Control</strong>
   <ul>
-    <li>£14 per active member/month with Annual Subscription</li>
-    <li>£28 pay-per-use</li>
+    <li>£14 per active member/month with Annual Subscription + Card</li>
+    <li>£28 without Card or for pay-per-use</li>
+    <li>Earn up to 2% cash back</li>
   </ul>
 </div>
 
@@ -61,11 +63,12 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
   <ul>
     <li>€5 per unique member/month</li>
     <li>Month-to-month — no contract</li>
+    <li>Optional Expensify Card</li>
   </ul>
   <strong>Control</strong>
   <ul>
-    <li>€16 per active member/month with Annual Subscription</li>
-    <li>€32 pay-per-use</li>
+    <li>€16 per active member/month with Annual Subscription + Card</li>
+    <li>€32 without Card or for pay-per-use</li>
   </ul>
 </div>
 
@@ -78,8 +81,8 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
   </ul>
   <strong>Control</strong>
   <ul>
-    <li>AU$30 per active member/month with Annual Subscription</li>
-    <li>AU$60 pay-per-use</li>
+    <li>AU$30 per active member/month with Annual Subscription + Card</li>
+    <li>AU$60 without Card or for pay-per-use</li>
   </ul>
 </div>
 
@@ -92,8 +95,8 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
   </ul>
   <strong>Control</strong>
   <ul>
-    <li>NZ$32 per active member/month with Annual Subscription</li>
-    <li>NZ$64 pay-per-use</li>
+    <li>NZ$32 per active member/month with Annual Subscription + Card</li>
+    <li>NZ$64 without Card or for pay-per-use</li>
   </ul>
 </div>
 
@@ -135,7 +138,7 @@ Expensify offers two subscription plans — **Collect** and **Control** — desi
 
 # Billing eligibility and details
 
-## 💳 Expensify Card usage (US Only)
+## 💳 Expensify Card usage
 
 - **Collect:** Card is optional — but earns 1% cash back on US spend
 - **Control:** Card is required for discounted pricing and cash back

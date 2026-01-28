@@ -8,15 +8,7 @@ import type PersonalDetails from './PersonalDetails';
 /** Assign card flow steps */
 type AssignCardStep = ValueOf<typeof CONST.COMPANY_CARD.STEP>;
 
-/**
- * Data required to assign a company card.
- *
- * Note on card identifiers:
- * - `cardName`: The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234")
- * - `encryptedCardNumber`: The identifier sent to backend
- *   - For direct feeds (Plaid/OAuth): equals cardName
- *   - For commercial feeds (Visa/Mastercard/Amex): encrypted value from cardList
- */
+/** Data required to be sent to issue a new card */
 type AssignCardData = {
     /** The cardholder personal details */
     cardholder?: PersonalDetails;
@@ -24,25 +16,17 @@ type AssignCardData = {
     /** The email address of the assignee */
     email: string;
 
-    /**
-     * The identifier sent to backend for card assignment.
-     * For direct feeds: equals cardName
-     * For commercial feeds: encrypted value from cardList
-     */
+    /** Encrypted number of the selected card */
     encryptedCardNumber: string;
+
+    /** Number of the selected card */
+    cardNumber: string;
 
     /** The name of the feed */
     bankName: CompanyCardFeed;
 
-    /** The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234"). This is the original card identifier and should not be edited. */
+    /** The name of the card */
     cardName: string;
-
-    /**
-     * The custom card name that can be edited by the user.
-     * Initially set to cardName, but can be changed in CardNameStep.
-     * This value is sent to the backend as the card name when assigning.
-     */
-    customCardName: string;
 
     /** The transaction start date of the card */
     startDate: string;
@@ -50,10 +34,10 @@ type AssignCardData = {
     /** An option based on which the transaction start date is chosen */
     dateOption: string;
 
-    /** Bank ID for Plaid */
+    /** bank id for Plaid */
     institutionId?: string;
 
-    /** Access token for Plaid bank */
+    /** access token for Plaid bank */
     plaidAccessToken?: string;
 
     /** Plaid feed name */

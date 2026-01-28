@@ -1,7 +1,7 @@
 ---
 title: Connect a Personal Bank Account
 description: Learn how to connect your personal bank account to receive reimbursements in Expensify, including support for both US and international accounts.
-keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements, manual bank connection, add bank account for reimbursement, reimbursement account setup, wallet, deposit account, direct deposit]
+keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, global reimbursements]
 ---
 
 You can add a personal bank account to receive reimbursements in over **190 countries**. All personal accounts are managed under **Account > Wallet > Bank Accounts**. The steps differ depending on whether you're connecting a **US** or **non-US** account.
@@ -10,25 +10,17 @@ You can add a personal bank account to receive reimbursements in over **190 coun
 
 # Add a U.S. Bank Account
 
-For U.S. accounts, Expensify offers two ways to connect your bank account:
-
-- **Log into your bank:** Securely link your account using your bank login.
-- **Connect manually:** Enter your routing and account numbers without logging in.
+For U.S. accounts, Expensify uses **Plaid**, a secure third-party provider that verifies your banking information.
 
 To connect a U.S. bank account:
 
 1. Go to **Account > Wallet > Bank Accounts**.
 2. Click **Add Bank Account**.
 3. Select **United States** as your country.
-4. Choose one of the following:
-   - **Log into your bank**:
-     - Select your bank from the list.
-     - Enter your online banking credentials and follow the prompts to complete setup. 
-   - **Connect manually**:
-     - Enter your routing number and account number,
-     - Enter or update your name, address, and phone number to match your bank account details. 
-     - Click **Confirm** to complete setup. 
-5. Your bank account will appear in the **Bank Accounts** section.
+4. Follow the **Plaid** connection flow:
+   - Choose your bank.
+   - Enter your credentials.
+5. Once complete, your account will appear in the **Bank Accounts** section.
 
 ![Click Add bank account on the Wallet page]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-1.png){:width="100%"}
 

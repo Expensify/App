@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -39,34 +39,43 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const existingReportName = report ? getGroupChatName(formatPhoneNumber, undefined, false, report) : getGroupChatName(formatPhoneNumber, groupChatDraft?.participants);
+    const existingReportName = useMemo(
+        () => (report ? getGroupChatName(formatPhoneNumber, undefined, false, report) : getGroupChatName(formatPhoneNumber, groupChatDraft?.participants)),
+        [formatPhoneNumber, groupChatDraft?.participants, report],
+    );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
-        const errors: Errors = {};
-        const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
-        const nameLength = StringUtils.getUTF8ByteLength(name.trim());
-        if (nameLength > CONST.REPORT_NAME_LIMIT) {
-            errors.newChatName = translate('common.error.characterLimitExceedCounter', nameLength, CONST.REPORT_NAME_LIMIT);
-        }
-
-        return errors;
-    };
-
-    const editName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
-        if (isUpdatingExistingReport) {
-            if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                updateChatName(reportID, report.reportName, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.GROUP);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
+            const errors: Errors = {};
+            const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
+            const nameLength = StringUtils.getUTF8ByteLength(name.trim());
+            if (nameLength > CONST.REPORT_NAME_LIMIT) {
+                errors.newChatName = translate('common.error.characterLimitExceedCounter', nameLength, CONST.REPORT_NAME_LIMIT);
             }
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
-            return;
-        }
-        if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-            setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
-        }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM));
-    };
+
+            return errors;
+        },
+        [translate],
+    );
+
+    const editName = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
+            if (isUpdatingExistingReport) {
+                if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
+                    updateChatName(reportID, report.reportName, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.GROUP);
+                }
+                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
+                return;
+            }
+            if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
+                setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
+            }
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM));
+        },
+        [isUpdatingExistingReport, currentChatName, reportID, report?.reportName],
+    );
 
     return (
         <ScreenWrapper

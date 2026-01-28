@@ -1,8 +1,9 @@
 import React, {useCallback, useEffect} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {filterInactiveCards} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -19,6 +20,7 @@ type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNa
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID;
+    const styles = useThemeStyles();
     const defaultFundID = useDefaultFundID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
@@ -40,7 +42,12 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const renderContent = () => {
         if (!!isLoading && !paymentBankAccountID) {
-            return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+            return (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={styles.flex1}
+                />
+            );
         }
         if (paymentBankAccountID) {
             return (

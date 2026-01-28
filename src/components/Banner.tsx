@@ -131,7 +131,7 @@ function Banner({
                                 <PressableWithFeedback
                                     onPress={onClose}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={text ? `${translate('common.close')}, ${text}` : translate('common.close')}
+                                    accessibilityLabel={translate('common.close')}
                                 >
                                     <Icon
                                         src={expensifyIcons.Close}

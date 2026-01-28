@@ -1,10 +1,8 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
-import useOnyx from '@hooks/useOnyx';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchContextData, SearchContextProps, SearchQueryJSON, SelectedTransactions} from './types';
@@ -13,7 +11,6 @@ const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
-    currentSearchResults: undefined,
     selectedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
@@ -28,7 +25,6 @@ const defaultSearchContext: SearchContextProps = {
     areAllMatchingItemsSelected: false,
     showSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
-    currentSearchResults: undefined,
     setLastSearchType: () => {},
     setCurrentSearchHashAndKey: () => {},
     setCurrentSearchQueryJSON: () => {},
@@ -50,8 +46,6 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
-
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContextData.currentSearchHash}`, {canBeMissing: true});
 
     const setCurrentSearchHashAndKey = useCallback((searchHash: number, searchKey: SearchKey | undefined) => {
         setSearchContextData((prevState) => {
@@ -98,7 +92,15 @@ function SearchContextProvider({children}: ChildrenProps) {
 
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
-                .filter((item) => isMoneyRequestReport(item) && item.transactions.length > 0 && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
+                .filter((item) => {
+                    if (!isMoneyRequestReport(item)) {
+                        return false;
+                    }
+                    if (item.transactions.length === 0) {
+                        return !!item.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+                    }
+                    return item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected);
+                })
                 .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, chatReportID}) => ({
                     reportID,
                     action,
@@ -206,7 +208,6 @@ function SearchContextProvider({children}: ChildrenProps) {
     const searchContext = useMemo<SearchContextProps>(
         () => ({
             ...searchContextData,
-            currentSearchResults,
             removeTransaction,
             setCurrentSearchHashAndKey,
             setCurrentSearchQueryJSON,
@@ -224,7 +225,6 @@ function SearchContextProvider({children}: ChildrenProps) {
         }),
         [
             searchContextData,
-            currentSearchResults,
             removeTransaction,
             setCurrentSearchHashAndKey,
             setCurrentSearchQueryJSON,

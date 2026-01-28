@@ -15,7 +15,7 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
 
     // If there's no bankAccountID, we reset locally without making an API call
     if (!bankAccountID) {
-        const updateData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT>> = [
+        const updateData = [
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT,
@@ -34,16 +34,14 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
                 value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
             },
         ];
-        Onyx.update(updateData);
+        Onyx.update(updateData as OnyxUpdate[]);
         return;
     }
 
     const isLastUsedPaymentMethodVBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodVBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 
-    const onyxData: OnyxData<
-        typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT
-    > = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

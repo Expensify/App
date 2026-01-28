@@ -9,7 +9,6 @@ import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useCurrencyList from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +24,8 @@ import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userAc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
@@ -51,7 +51,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {currencyList} = useCurrencyList();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
@@ -59,12 +58,13 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
     const feed = getCompanyCardFeed(feedName);
-    const formattedFeedName = feedName ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[feedName]?.customFeedName) : undefined;
+    const formattedFeedName = feedName ? getCustomOrFormattedFeedName(feed, cardFeeds?.[feedName]?.customFeedName) : undefined;
     const isCommercialFeed = isCustomFeed(feedName);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
 
     const {hasFeedError, isFeedConnectionBroken} = useCompanyCardFeedErrors({policyID, feedName});
     const hasCompanyCardFeedError = useHasWorkspaceCompanyCardErrors({policyID});

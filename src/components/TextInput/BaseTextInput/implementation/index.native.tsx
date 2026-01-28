@@ -280,7 +280,6 @@ function BaseTextInput({
 
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
-    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
 
     return (
         <>
@@ -292,7 +291,7 @@ function BaseTextInput({
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
-                    accessibilityLabel={accessibilityLabel}
+                    accessibilityLabel={label}
                     style={[
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&
@@ -368,7 +367,6 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
@@ -430,10 +428,15 @@ function BaseTextInput({
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}
                                 />
                             )}
-                            {!!inputProps.isLoading && !shouldShowClearButton && (
+                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
-                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
+                                    style={[
+                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
+                                        styles.ml1,
+                                        loadingSpinnerStyle,
+                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
+                                    ]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (

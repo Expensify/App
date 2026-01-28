@@ -29,8 +29,8 @@ function DistanceCounter({report, transaction}: DistanceCounterProps) {
 
     return (
         <View style={[styles.flex1, styles.pb40]}>
-            <View style={[styles.justifyContentCenter, styles.h100, styles.w100]}>
-                <View style={[styles.pRelative, styles.w100, styles.alignItemsCenter]}>
+            <View style={[styles.justifyContentCenter, styles.h100, styles.alignSelfCenter]}>
+                <View style={(styles.pRelative, styles.w100)}>
                     <TripStatusIndicator />
 
                     <Text style={[styles.iouAmountTextInput, styles.colorMuted]}>

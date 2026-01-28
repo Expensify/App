@@ -174,17 +174,17 @@ Escalate to human reviewers when:
 ### Examples
 
 #### Appropriate Response to Valid Feedback
-**AI Comment**: "PERF-1: Spread operator used on object in renderItem creates new object references on each render."
+**AI Comment**: "PERF-4: This object passed as a prop should be memoized to prevent unnecessary re-renders."
 
-✅ **Good Response**: Pass individual props directly instead of using spread operator, or move object creation outside renderItem.
+✅ **Good Response**: Wrap the object in `useMemo` or refactor to avoid creating new references.
 
 ❌ **Bad Response**: Ignore the feedback without consideration.
 
 #### Appropriate Response to False Positive
-**AI Comment**: "PERF-11: Add a selector to `useOnyx` to select only the `name` and `avatar` fields instead of the entire user object."
+**AI Comment**: "PERF-4: This object passed as a prop should be memoized."
 
-**Context**: A selector is already present in the code - the AI reviewer missed it during analysis.
+**Context**: The parent component is already optimized by React Compiler.
 
-✅ **Good Response**: Reach out in the #expensify-open-source Slack channel explaining that a selector is already being used.
+✅ **Good Response**: Reach out in the #expensify-open-source Slack channel with explanation of incorrect suggestion.
 
-❌ **Bad Response**: Add a duplicate selector or ignore the feedback without verifying the claim.
+❌ **Bad Response**: Apply the change anyway, adding unnecessary complexity.

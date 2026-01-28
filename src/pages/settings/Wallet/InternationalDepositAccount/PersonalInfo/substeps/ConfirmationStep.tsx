@@ -4,8 +4,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,6 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
     const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const isManual = bankAccountPersonalDetails?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
 
@@ -33,7 +32,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
         const currentAddress = getCurrentAddress(privatePersonalDetails);
         const phone = bankAccountPersonalDetails?.phoneNumber ?? privatePersonalDetails?.phoneNumber;
         return {
-            phoneNumber: (phone && formatE164PhoneNumber(phone, countryCode)) ?? '',
+            phoneNumber: (phone && parsePhoneNumber(phone, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
             legalFirstName: bankAccountPersonalDetails?.legalFirstName ?? privatePersonalDetails?.legalFirstName ?? '',
             legalLastName: bankAccountPersonalDetails?.legalLastName ?? privatePersonalDetails?.legalLastName ?? '',
             addressStreet: bankAccountPersonalDetails?.addressStreet ?? currentAddress?.street ?? '',

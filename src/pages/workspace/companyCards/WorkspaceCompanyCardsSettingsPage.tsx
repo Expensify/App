@@ -48,7 +48,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
 
     const [cardsList] = useCardsList(selectedFeed);
-    const feedName = selectedFeed ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
+    const feedName = selectedFeed ? getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
     const liabilityType = selectedFeedData?.liabilityType;

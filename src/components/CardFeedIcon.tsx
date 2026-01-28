@@ -12,10 +12,9 @@ type CardFeedIconProps = {
     isExpensifyCardFeed?: boolean;
     selectedFeed?: CompanyCardFeedWithDomainID | undefined;
     iconProps?: Partial<IconProps>;
-    useSkeletonLoader?: boolean;
 };
 
-function CardFeedIcon({iconProps, selectedFeed, isExpensifyCardFeed = false, useSkeletonLoader = false}: CardFeedIconProps) {
+function CardFeedIcon({iconProps, selectedFeed, isExpensifyCardFeed = false}: CardFeedIconProps) {
     const {src, ...restIconProps} = iconProps ?? {};
 
     const illustrations = useThemeIllustrations();
@@ -32,7 +31,6 @@ function CardFeedIcon({iconProps, selectedFeed, isExpensifyCardFeed = false, use
         return (
             <PlaidCardFeedIcon
                 plaidUrl={getPlaidInstitutionIconUrl(selectedFeed)}
-                useSkeletonLoader={useSkeletonLoader}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restIconProps}
             />

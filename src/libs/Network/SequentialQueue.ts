@@ -1,4 +1,4 @@
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
 import {
@@ -80,7 +80,7 @@ function flushOnyxUpdatesQueue() {
     return flushQueue();
 }
 
-let queueFlushedDataToStore: Array<OnyxUpdate<OnyxKey>> = [];
+let queueFlushedDataToStore: OnyxUpdate[] = [];
 
 // Use connectWithoutView since this is for network queue and don't affect to any UI
 Onyx.connectWithoutView({
@@ -93,7 +93,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function saveQueueFlushedData(...onyxUpdates: Array<OnyxUpdate<OnyxKey>>) {
+function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const newValue = [...queueFlushedDataToStore, ...onyxUpdates];
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
@@ -170,7 +170,7 @@ function process(): Promise<void> {
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
                 if (shouldFailAllRequests) {
-                    const onyxUpdates = [...((requestToProcess.failureData ?? []) as never), ...((requestToProcess.finallyData ?? []) as never)] as Array<OnyxUpdate<OnyxKey>>;
+                    const onyxUpdates = [...(requestToProcess.failureData ?? []), ...(requestToProcess.finallyData ?? [])] as OnyxUpdate[];
                     Onyx.update(onyxUpdates);
                 }
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});

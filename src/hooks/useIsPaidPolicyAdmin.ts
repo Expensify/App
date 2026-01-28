@@ -1,3 +1,4 @@
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,9 +12,12 @@ import useOnyx from './useOnyx';
 function useIsPaidPolicyAdmin() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const isUserPaidPolicyAdminSelector = (policies: OnyxCollection<Policy>) => {
-        return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.login));
-    };
+    const isUserPaidPolicyAdminSelector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.login));
+        },
+        [currentUserPersonalDetails?.login],
+    );
 
     const [isCurrentUserPolicyAdmin = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,

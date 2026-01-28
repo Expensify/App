@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {Str} from 'expensify-common';
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
@@ -108,7 +108,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        if (!Str.isValidEmail(userEmail) && !isOffline) {
+        if ((PUBLIC_DOMAINS_SET.has(domain.toLowerCase()) || !Str.isValidEmail(userEmail)) && !isOffline) {
             Log.hmmm('User is trying to add an invalid work email', {userEmail, domain});
             addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.publicEmail'));
         }

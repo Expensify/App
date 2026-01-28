@@ -41,8 +41,7 @@ function MoneyRequestReportPreview({
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetailsList = usePersonalDetails();
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const invoiceReceiverPolicy =
@@ -97,7 +96,7 @@ function MoneyRequestReportPreview({
         }
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
+        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
     const openReportFromPreview = useCallback(() => {
@@ -111,14 +110,8 @@ function MoneyRequestReportPreview({
             name: 'MoneyRequestReportPreview',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        // Small screens navigate to full report view since super wide RHP
-        // is not available on narrow layouts and would break the navigation logic.
-        if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
-        } else {
-            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
-        }
-    }, [iouReportID, isSmallScreenWidth]);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+    }, [iouReportID]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview

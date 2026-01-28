@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
@@ -51,11 +51,16 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
-    const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
-    const excludedUsers: Record<string, boolean> = {};
-    for (const login of ineligibleInvites) {
-        excludedUsers[login] = true;
-    }
+    const excludedUsers = useMemo(() => {
+        const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
+        return ineligibleInvites.reduce(
+            (acc, login) => {
+                acc[login] = true;
+                return acc;
+            },
+            {} as Record<string, boolean>,
+        );
+    }, [policy?.employeeList]);
 
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, selectedOptionsForDisplay, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
@@ -111,15 +116,19 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         clearIssueNewCardFlow(policyID);
     };
 
-    const membersDetails: ListItem[] = [];
-    if (policy?.employeeList) {
+    const membersDetails = useMemo(() => {
+        let membersList: ListItem[] = [];
+        if (!policy?.employeeList) {
+            return membersList;
+        }
+
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 continue;
             }
 
             const personalDetail = getPersonalDetailByEmail(email);
-            membersDetails.push({
+            membersList.push({
                 keyForList: email,
                 text: personalDetail?.displayName,
                 alternateText: email,
@@ -137,11 +146,20 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             });
         }
 
-        sortAlphabetically(membersDetails, 'text', localeCompare);
-    }
+        membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
-    let assignees = membersDetails;
-    if (debouncedSearchTerm && areOptionsInitialized) {
+        return membersList;
+    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber, icons.FallbackAvatar]);
+
+    const assignees = useMemo(() => {
+        if (!debouncedSearchTerm) {
+            return membersDetails;
+        }
+
+        if (!areOptionsInitialized) {
+            return [];
+        }
+
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
 
         const filteredMembers = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
@@ -154,30 +172,42 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
         ];
 
-        assignees = options.map((option) => ({
+        return options.map((option) => ({
             ...option,
             keyForList: option.keyForList ?? option.login ?? '',
         }));
-    } else if (debouncedSearchTerm) {
-        assignees = [];
-    }
+    }, [
+        debouncedSearchTerm,
+        areOptionsInitialized,
+        countryCode,
+        membersDetails,
+        selectedOptionsForDisplay,
+        availableOptions.recentReports,
+        availableOptions.personalDetails,
+        availableOptions.userToInvite,
+    ]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const searchValue = debouncedSearchTerm.trim().toLowerCase();
-    const headerMessage =
-        !availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]
-            ? translate('messages.errorMessageInvalidEmail')
-            : getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    const headerMessage = useMemo(() => {
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    }, [debouncedSearchTerm, availableOptions.userToInvite, assignees.length, countryCode, translate]);
 
-    const textInputOptions = {
-        label: translate('selectionList.nameEmailOrPhoneNumber'),
-        value: searchTerm,
-        onChangeText: setSearchTerm,
-        headerMessage,
-    };
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage,
+        }),
+        [headerMessage, searchTerm, setSearchTerm, translate],
+    );
 
     return (
         <InteractiveStepWrapper

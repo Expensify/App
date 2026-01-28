@@ -119,9 +119,6 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         iouIsReimbursable: false,
         isReceiptEditable: false,
         isDescriptionRequired: false,
-        iouTimeCount: undefined,
-        iouTimeRate: undefined,
-        isTimeRequest: false,
     };
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>

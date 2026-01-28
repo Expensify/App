@@ -58,9 +58,9 @@ function NamePage({
             if (values[INPUT_IDS.NAME] === currentTaxRate?.name) {
                 return {};
             }
-            return validateTaxName(policy, values, translate);
+            return validateTaxName(policy, values);
         },
-        [currentTaxRate?.name, policy, translate],
+        [currentTaxRate?.name, policy],
     );
 
     if (!currentTaxRate) {

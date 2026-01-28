@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -127,7 +126,6 @@ function WorkspacesListRow({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const isFocused = useIsFocused();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass']);
     const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
@@ -210,7 +208,6 @@ function WorkspacesListRow({
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
                     <ThreeDotsMenu
-                        isContainerFocused={isFocused}
                         shouldSelfPosition
                         menuItems={menuItems}
                         anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}

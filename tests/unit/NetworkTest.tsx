@@ -1,6 +1,5 @@
 import NetInfo from '@react-native-community/netinfo';
 import type {NetInfoState} from '@react-native-community/netinfo';
-import {NavigationContainer} from '@react-navigation/native';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {sub as dateSubtract} from 'date-fns/sub';
 import type {Mock} from 'jest-mock';
@@ -9,7 +8,6 @@ import MockedOnyx from 'react-native-onyx';
 import TestToolMenu from '@components/TestToolMenu';
 import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
-import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import * as NetworkActions from '@src/libs/actions/Network';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -482,16 +480,7 @@ describe('NetworkTests', () => {
         const setShouldFailAllRequestsSpy = jest.spyOn(NetworkActions, 'setShouldFailAllRequests');
 
         // Given an opened test tool menu
-        render(
-            <NavigationContainer
-                ref={navigationRef}
-                onReady={() => {
-                    // Navigation is ready, but we still need to handle the timing issue
-                }}
-            >
-                <TestToolMenu />
-            </NavigationContainer>,
-        );
+        render(<TestToolMenu />);
         expect(screen.getByAccessibilityHint('Force offline')).not.toBeDisabled();
         expect(screen.getByAccessibilityHint('Simulate failing network requests')).not.toBeDisabled();
 

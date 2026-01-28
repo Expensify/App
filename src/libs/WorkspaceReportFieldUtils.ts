@@ -1,11 +1,12 @@
 import type {FormInputErrors} from '@components/Form/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
 import {addErrorMessage} from './ErrorUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+import {translateLocal} from './Localize';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 /**
@@ -44,17 +45,19 @@ function validateReportFieldListValueName(
     priorValueName: string,
     listValues: string[],
     inputID: InputID,
-    translate: LocalizedTranslate,
 ): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> {
     const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
     if (!isRequiredFulfilled(valueName)) {
-        errors[inputID] = translate('workspace.reportFields.listValueRequiredError');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        errors[inputID] = translateLocal('workspace.reportFields.listValueRequiredError');
     } else if (priorValueName !== valueName && listValues.some((currentValueName) => currentValueName === valueName)) {
-        errors[inputID] = translate('workspace.reportFields.existingListValueError');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        errors[inputID] = translateLocal('workspace.reportFields.existingListValueError');
     } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
         // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-        addErrorMessage(errors, inputID, translate('common.error.characterLimitExceedCounter', [...valueName].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        addErrorMessage(errors, inputID, translateLocal('common.error.characterLimitExceedCounter', [...valueName].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
     }
 
     return errors;
@@ -69,7 +72,7 @@ function generateFieldID(name: string) {
 /**
  * Gets the initial value for a report field.
  */
-function getReportFieldInitialValue(reportField: PolicyReportField | null, translate: LocalizedTranslate): string {
+function getReportFieldInitialValue(reportField: PolicyReportField | null): string {
     if (!reportField) {
         return '';
     }
@@ -79,7 +82,8 @@ function getReportFieldInitialValue(reportField: PolicyReportField | null, trans
     }
 
     if (reportField.type === CONST.REPORT_FIELD_TYPES.DATE) {
-        return translate('common.currentDate');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('common.currentDate');
     }
 
     return reportField.value ?? reportField.defaultValue;

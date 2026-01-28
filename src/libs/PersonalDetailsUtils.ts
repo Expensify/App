@@ -215,7 +215,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
     newLogins: string[],
     newAccountIDs: number[],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-): OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
+): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 

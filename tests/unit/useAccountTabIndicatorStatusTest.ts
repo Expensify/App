@@ -1,7 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {IndicatorTestCase} from 'tests/utils/IndicatorTestUtils';
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -9,57 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const userID = 'johndoe12@expensify.com';
-
-const brokenCardFeed = {
-    feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-    workspaceAccountID: 12345,
-};
-
-const TEST_CASES = {
-    hasUserWalletErrors: {
-        name: 'has user wallet errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS,
-    },
-    hasPaymentMethodError: {
-        name: 'has payment method error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
-    },
-    hasReimbursementAccountErrors: {
-        name: 'has reimbursement account errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS,
-    },
-    hasLoginListError: {
-        name: 'has login list error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR,
-    },
-    hasWalletTermsErrors: {
-        name: 'has wallet terms errors',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS,
-    },
-    hasCardConnectionError: {
-        name: 'has card connection error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR,
-    },
-    hasPhoneNumberError: {
-        name: 'has phone number error',
-        indicatorColor: defaultTheme.danger,
-        status: CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR,
-    },
-    hasLoginListInfo: {
-        name: 'has login list info',
-        indicatorColor: defaultTheme.success,
-        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO,
-    },
-} as const satisfies Record<string, IndicatorTestCase>;
-
-const getMockForTestCase = ({status}: IndicatorTestCase) =>
+const getMockForStatus = (status: string) =>
     ({
         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -93,9 +42,9 @@ const getMockForTestCase = ({status}: IndicatorTestCase) =>
         },
         [ONYXKEYS.LOGIN_LIST]: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            [userID]: {
+            'johndoe12@expensify.com': {
                 partnerName: 'John Doe',
-                partnerUserID: userID,
+                partnerUserID: 'johndoe12@expensify.com',
                 validatedDate: status !== CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? new Date().toISOString() : undefined,
                 errorFields:
                     status === CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR
@@ -133,24 +82,71 @@ const getMockForTestCase = ({status}: IndicatorTestCase) =>
                       }
                     : undefined,
         },
-        [ONYXKEYS.SESSION]: {
-            email: userID,
-        },
-        [ONYXKEYS.CARD_LIST]: {
-            card1: {
+        [`${ONYXKEYS.CARD_LIST}`]: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            card123: {
                 bank: 'OTHER_BANK',
                 lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 403 : 200,
-                fundID: String(brokenCardFeed.workspaceAccountID),
+            },
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            card456: {
+                bank: 'ANOTHER_BANK',
+                lastScrapeResult: status === CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR ? 403 : 200,
             },
         },
-        [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
-            id: '1',
-            name: 'Workspace 1',
-            owner: userID,
-            role: 'admin',
-            workspaceAccountID: brokenCardFeed.workspaceAccountID,
+        [ONYXKEYS.SESSION]: {
+            email: 'johndoe12@expensify.com',
         },
     }) as unknown as OnyxMultiSetInput;
+
+type TestCase = {
+    name: string;
+    indicatorColor: string;
+    status: string;
+};
+
+const TEST_CASES: TestCase[] = [
+    {
+        name: 'has user wallet errors',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS,
+    },
+    {
+        name: 'has payment method error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
+    },
+    {
+        name: 'has reimbursement account errors',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS,
+    },
+    {
+        name: 'has login list error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR,
+    },
+    {
+        name: 'has wallet terms errors',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS,
+    },
+    {
+        name: 'has card connection error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR,
+    },
+    {
+        name: 'has phone number error',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR,
+    },
+    {
+        name: 'has login list info',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO,
+    },
+];
 
 describe('useAccountTabIndicatorStatus', () => {
     beforeAll(() => {
@@ -159,10 +155,10 @@ describe('useAccountTabIndicatorStatus', () => {
         });
     });
 
-    describe.each(Object.values(TEST_CASES))('$name', (testCase) => {
+    describe.each(TEST_CASES)('$name', (testCase) => {
         beforeAll(async () => {
             await act(async () => {
-                await Onyx.multiSet(getMockForTestCase(testCase));
+                await Onyx.multiSet(getMockForStatus(testCase.status));
                 await waitForBatchedUpdatesWithAct();
             });
         });
@@ -192,7 +188,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.LOGIN_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.CARD_LIST]: {},
+                    [`${ONYXKEYS.CARD_LIST}`]: {},
                     [ONYXKEYS.SESSION]: {
                         email: 'johndoe12@expensify.com',
                     },
@@ -231,7 +227,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.LOGIN_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.CARD_LIST]: {},
+                    [`${ONYXKEYS.CARD_LIST}`]: {},
                     [ONYXKEYS.SESSION]: {
                         email: 'johndoe12@expensify.com',
                     },
@@ -271,7 +267,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.LOGIN_LIST]: {},
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.CARD_LIST]: {},
+                    [`${ONYXKEYS.CARD_LIST}`]: {},
                     [ONYXKEYS.SESSION]: {
                         email: 'johndoe12@expensify.com',
                     },
@@ -318,7 +314,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     },
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                    [ONYXKEYS.CARD_LIST]: {},
+                    [`${ONYXKEYS.CARD_LIST}`]: {},
                     [ONYXKEYS.SESSION]: {
                         email: 'johndoe12@expensify.com',
                     },
@@ -352,7 +348,7 @@ describe('useAccountTabIndicatorStatus', () => {
                     [ONYXKEYS.LOGIN_LIST]: null,
                     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: null,
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: null,
-                    [ONYXKEYS.CARD_LIST]: null,
+                    [`${ONYXKEYS.CARD_LIST}`]: null,
                     [ONYXKEYS.SESSION]: null,
                 } as unknown as OnyxMultiSetInput);
                 await waitForBatchedUpdatesWithAct();
@@ -377,10 +373,9 @@ describe('useAccountTabIndicatorStatus', () => {
         it('shows error for third party card with broken connection', async () => {
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.CARD_LIST]: {
+                    [`${ONYXKEYS.CARD_LIST}`]: {
                         card1: {
-                            bank: brokenCardFeed.feedName,
-                            fundID: String(brokenCardFeed.workspaceAccountID),
+                            bank: 'Chase',
                             lastScrapeResult: 403,
                         },
                     },
@@ -399,10 +394,9 @@ describe('useAccountTabIndicatorStatus', () => {
         it('does not show error for Expensify Card with broken connection', async () => {
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.CARD_LIST]: {
+                    [`${ONYXKEYS.CARD_LIST}`]: {
                         card1: {
                             bank: CONST.EXPENSIFY_CARD.BANK,
-                            fundID: String(brokenCardFeed.workspaceAccountID),
                             lastScrapeResult: 403,
                         },
                     },
@@ -420,10 +414,9 @@ describe('useAccountTabIndicatorStatus', () => {
         it('does not show error for third party card with good connection', async () => {
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.CARD_LIST]: {
+                    [`${ONYXKEYS.CARD_LIST}`]: {
                         card1: {
                             bank: 'Chase',
-                            fundID: String(brokenCardFeed.workspaceAccountID),
                             lastScrapeResult: 200,
                         },
                     },

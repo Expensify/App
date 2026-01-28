@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -42,26 +42,32 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
 
-        const newAmount = values.amount.trim();
-        const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
-        if (backendAmount === 0 || newAmount === '-') {
-            errors.amount = translate('common.error.fieldRequired');
-        }
+            const newAmount = values.amount.trim();
+            const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
+            if (backendAmount === 0 || newAmount === '-') {
+                errors.amount = translate('common.error.fieldRequired');
+            }
 
-        return errors;
-    };
+            return errors;
+        },
+        [translate],
+    );
 
-    const editAmount = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
-        const newAmount = values.amount.trim();
-        const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
-        if (backendAmount !== Number(selectedSubrate?.rate)) {
-            editPerDiemRateAmount(policyID, rateID, subRateID, customUnit, backendAmount);
-        }
-        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
-    };
+    const editAmount = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
+            const newAmount = values.amount.trim();
+            const backendAmount = newAmount ? convertToBackendAmount(Number(newAmount)) : 0;
+            if (backendAmount !== Number(selectedSubrate?.rate)) {
+                editPerDiemRateAmount(policyID, rateID, subRateID, customUnit, backendAmount);
+            }
+            Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
+        },
+        [selectedSubrate?.rate, policyID, rateID, subRateID, customUnit],
+    );
 
     return (
         <AccessOrNotFoundWrapper

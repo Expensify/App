@@ -100,8 +100,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                             disabled={isLockedStep || !onStepSelected}
                             onPress={moveToStep}
                             accessible
-                            accessibilityLabel={`${index + 1}`}
-                            aria-current={currentStep === index ? 'step' : undefined}
+                            accessibilityLabel={stepName[index]}
                             role={CONST.ROLE.BUTTON}
                         >
                             {isCompletedStep ? (

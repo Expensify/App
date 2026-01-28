@@ -112,7 +112,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
 
     // Don't show NotFoundPage if card is being unassigned or data is still loading
-    if ((!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigningRef.current)) {
+    if (!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) {
         return <NotFoundPage />;
     }
 

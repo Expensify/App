@@ -67,7 +67,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
 
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
+            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
         } else {
             const duplicate = findDuplicate(columns);
             const tagsNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
@@ -75,9 +75,9 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             const containsEmptyName = tagsNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());
 
             if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicate});
             } else if (containsEmptyName) {
-                errors.emptyNames = translate('spreadsheet.emptyMappedField', translate('common.name'));
+                errors.emptyNames = translate('spreadsheet.emptyMappedField', {fieldName: translate('common.name')});
             } else {
                 errors = {};
             }

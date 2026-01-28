@@ -5,23 +5,24 @@ keywords: [arrange travel, book for others, travel arranger, expensify travel, c
 ---
 
 
-After you're assigned the Travel Arranger role, you can arrange travel for another member of your organization using Expensify Travel.
+Once granted the Travel Arranger role, you can arrange travel for another member of your organization using Expensify Travel.
 
 ---
 
-## Where to find Expensify Travel
+## How to access the travel tool
 
-Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
+- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
+- **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
 
-If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
+**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
 
 ---
 
-## How to get the Travel Arranger role
+## How to get access
 
 Before arranging travel for another traveler, a Travel Admin must assign you the **Travel Arranger** role.
 
-**To set the Travel Arranger role for another member:**
+**To set the Travel Arranger role for another travel member:**
 
 1. Head to Expensify Travel.
 2. Click on **Program** > **Users** > search and select the name of the user who needs to arrange travel.
@@ -47,7 +48,7 @@ Before arranging travel for another traveler, a Travel Admin must assign you the
 
 ---
 
-## What happens after booking for another member with Expensify Travel 
+## What happens next
 
 - The selected traveler will receive a confirmation email.
 - Receipts will automatically be sent to their Expensify account and added to a trip report.

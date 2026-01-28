@@ -6,14 +6,13 @@ import ScrollView from '@components/ScrollView';
 import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDefaultCardName, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getDomainOrWorkspaceAccountID, isMaskedCardNumberEqual} from '@libs/CardUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
@@ -34,7 +33,7 @@ type WorkspaceCompanyCardsTableProps = {
     policy: Policy | undefined;
 
     /** On assign card callback */
-    onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
+    onAssignCard: (cardID: string) => void;
 
     /** Whether to disable assign card button */
     isAssigningCardDisabled: boolean;
@@ -59,13 +58,12 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
-
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feedName ?? ''}`, {canBeMissing: true});
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
-    const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feedName ?? ''}`, {canBeMissing: true});
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
 
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
@@ -108,36 +106,24 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
         : (cardNames?.map((cardName) => {
-              // For direct feeds cardID equals cardName, for commercial feeds it's looked up from cardList
-              const cardID = isDirectCardFeed ? cardName : (cardList?.[cardName] ?? '');
-              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardID];
+              const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
 
-              if (failedCompanyCardAssignment) {
-                  return failedCompanyCardAssignment;
-              }
-              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === cardID || card.cardName === cardName);
+              const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
+
+              const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardName];
+
               const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
-              return {
-                  cardName,
-                  encryptedCardNumber: cardID,
-                  customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
-                  isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                  isAssigned: !!assignedCard,
-                  hasFailedCardAssignment: false,
-                  assignedCard,
-                  cardholder,
-                  errors: assignedCard?.errors,
-                  pendingAction: assignedCard?.pendingAction,
-              };
+              const customCardName = assignedCard?.cardID ? customCardNames?.[assignedCard.cardID] : undefined;
+
+              const isCardDeleted = assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+              const isAssigned = !!assignedCard;
+
+              return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, failedCompanyCardAssignment};
           }) ?? []);
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
-
-    const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: true,
-        addOfflineIndicatorBottomSafeAreaPadding: true,
-    });
 
     const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
@@ -227,7 +213,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 additionalStyles: styles.cardIcon,
             }}
             selectedFeed={feedName}
-            useSkeletonLoader
         />
     );
 
@@ -322,7 +307,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             {showCards && (
                 <>
                     {!shouldUseNarrowTableLayout && !isLoadingFeed && <Table.Header />}
-                    <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
+                    <Table.Body />
                 </>
             )}
         </Table>

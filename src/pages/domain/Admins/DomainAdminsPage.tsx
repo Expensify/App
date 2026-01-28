@@ -2,7 +2,6 @@ import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSet
 import React from 'react';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,6 +12,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import {clearAdminError} from '@userActions/Domain';
+import {getCurrentUserAccountID} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -47,7 +47,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         selector: technicalContactSettingsSelector,
     });
 
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     const getCustomRightElement = (accountID: number) => {

@@ -55,12 +55,7 @@ function RulesProhibitedDefaultPage({
                             key={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
-                                <Text
-                                    style={[styles.flex1, styles.mr2]}
-                                    accessible={false}
-                                >
-                                    {translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
-                                </Text>
+                                <Text style={[styles.flex1, styles.mr2]}>{translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}</Text>
                                 <Switch
                                     isOn={policy?.prohibitedExpenses?.[prohibitedExpense] ?? false}
                                     accessibilityLabel={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}

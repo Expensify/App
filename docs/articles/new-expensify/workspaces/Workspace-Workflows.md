@@ -19,9 +19,9 @@ To get started, enable the **Workflows** feature for your workspace.
 3. Click **More Features**.
 4. Under the **Spend** section, toggle on **Workflows**.
 
-![Click Account Settings > Workspaces > click on the workspace]({{site.url}}/assets/images/submissions-01.png){:width="100%"}
+![Click Account Settings > Workspaces > click on the workspace]({{site.url}}/assets/images/ExpensifyHelp-Workflows-1.png){:width="100%"}
 
-![Click More Features > Enable Workflows]({{site.url}}/assets/images/submissions-02.png){:width="100%"}
+![Click More Features > Enable Workflows]({{site.url}}/assets/images/ExpensifyHelp-Workflows-2.png){:width="100%"}
 
 ---
 
@@ -32,7 +32,7 @@ Once enabled, go to the **Workflows** tab in the left menu to customize your sub
 1. Click **Workflows**.
 2. Use the toggles to enable the workflows you want to use.
 
-![Enable workflow features]({{site.url}}/assets/images/submissions-03.png){:width="100%"}
+![Enable workflow features]({{site.url}}/assets/images/ExpensifyHelp-Workflows-3.png){:width="100%"}
 
 ## Add Approvals
 

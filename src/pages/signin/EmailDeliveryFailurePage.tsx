@@ -1,4 +1,5 @@
-import React, {useEffect} from 'react';
+import {Str} from 'expensify-common';
+import React, {useEffect, useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -7,7 +8,6 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {normalizeLogin} from '@libs/LoginUtils';
 import {clearSignInData} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -16,8 +16,12 @@ function EmailDeliveryFailurePage() {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
-
-    const login = normalizeLogin(credentials?.login);
+    const login = useMemo(() => {
+        if (!credentials?.login) {
+            return '';
+        }
+        return Str.isSMSLogin(credentials.login) ? Str.removeSMSDomain(credentials.login) : credentials.login;
+    }, [credentials?.login]);
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {

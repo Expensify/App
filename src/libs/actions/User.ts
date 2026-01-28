@@ -49,7 +49,6 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExpenseRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -525,16 +524,7 @@ function validateSecondaryLogin(
             },
         },
     ];
-    const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.LOGIN_LIST
-            | typeof ONYXKEYS.ACCOUNT
-            | typeof ONYXKEYS.SESSION
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.VALIDATE_ACTION_CODE
-        >
-    > = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -624,7 +614,7 @@ function validateSecondaryLogin(
         }
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -1394,10 +1384,10 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
 function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
-        value: typeof value === 'object' && value != null ? JSON.stringify(value) : value,
+        value,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof name>> = [
+    const optimisticData: OnyxUpdate[] = [
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1407,7 +1397,7 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
     ];
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureData: Array<OnyxUpdate<typeof name>> | undefined = shouldRevertValue
+    const failureData: OnyxUpdate[] | undefined = shouldRevertValue
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -1515,7 +1505,7 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
     // For positive/negative responses, create an optimistic Concierge message
     if (message && conciergeChatReportID && response !== 'skip') {
         const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
-        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message, undefined, conciergeAccountID, undefined, conciergeChatReportID);
+        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message, undefined, conciergeAccountID, undefined, undefined, conciergeChatReportID);
         const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
         const currentTime = DateUtils.getDBTime();
 
@@ -1596,7 +1586,7 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
  */
 function verifyAddSecondaryLoginCode(validateCode: string) {
     resetValidateActionCodeSent();
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
@@ -1610,7 +1600,7 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
@@ -1621,7 +1611,7 @@ function verifyAddSecondaryLoginCode(validateCode: string) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION>> = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
@@ -1647,18 +1637,6 @@ function updateIsVerifiedValidateActionCode(isVerifiedValidateActionCode: boolea
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
         isVerifiedValidateActionCode,
     });
-}
-
-function setDraftRule(ruleData: Partial<ExpenseRuleForm>) {
-    Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
-}
-
-function updateDraftRule(ruleData: Partial<ExpenseRuleForm>) {
-    Onyx.merge(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
-}
-
-function clearDraftRule() {
-    Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, null);
 }
 
 export {
@@ -1704,7 +1682,4 @@ export {
     respondToProactiveAppReview,
     verifyAddSecondaryLoginCode,
     updateIsVerifiedValidateActionCode,
-    setDraftRule,
-    updateDraftRule,
-    clearDraftRule,
 };

@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
-import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, saveWaypoint} from '@libs/actions/Transaction';
+import {changeTransactionsReport, markAsCash, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -125,7 +125,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -172,7 +172,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -234,7 +234,7 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -298,7 +298,7 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -350,7 +350,7 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 reportNextStep: undefined,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -413,7 +413,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -468,7 +468,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: report,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -520,7 +520,7 @@ describe('Transaction', () => {
                 accountID: customAccountID,
                 email: customEmail,
                 newReport: report,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -578,7 +578,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: expenseReport,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -636,7 +636,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: expenseReport,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -701,7 +701,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: newExpenseReport,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -765,7 +765,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: newExpenseReport,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -822,7 +822,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: fakeReport,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -881,7 +881,7 @@ describe('Transaction', () => {
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
                 newReport: fakeReport,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
             await waitForBatchedUpdates();
 
@@ -935,7 +935,7 @@ describe('Transaction', () => {
                 policy,
                 reportNextStep: undefined,
                 policyCategories,
-                allTransactions,
+                allTransactionsCollection: allTransactions,
             });
 
             await waitForBatchedUpdates();
@@ -990,6 +990,20 @@ describe('Transaction', () => {
 
             expect(transaction?.comment?.waypoints?.[`waypoint${index}`]).toEqual(waypoint);
             expect(updatedRecentWaypoints?.[0]?.address).toBe('123 Main St');
+        });
+
+        it('should not save waypoint if missing lat/lng', async () => {
+            const transactionID = 'txn2';
+            const index = '1';
+            const waypoint: RecentWaypoint = {
+                address: 'No LatLng',
+            };
+            const recentWaypointsList: RecentWaypoint[] = [];
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList});
+            await waitForBatchedUpdates();
+
+            const updatedRecentWaypoints = await OnyxUtils.get(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+            expect(updatedRecentWaypoints?.length ?? 0).toBe(0);
         });
 
         it('should not save waypoint if address is YOUR_LOCATION_TEXT', async () => {
@@ -1197,222 +1211,6 @@ describe('Transaction', () => {
             expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
 
             await mockFetch.resume();
-        });
-    });
-
-    describe('dismissDuplicateTransactionViolation', () => {
-        it('should optimistically remove DUPLICATED_TRANSACTION violation and add dismissed violation report action', async () => {
-            const transactionID = 'dismissTxn1';
-            const threadReportID = 'threadDismiss1';
-            const mockViolations: TransactionViolation[] = [
-                {name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'},
-                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'},
-            ];
-
-            mockFetch.pause();
-
-            // Put violations into Onyx so module-level Onyx.connect in Transaction.ts picks them up
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
-
-            // Prepare a transaction and its IOU action so getIOUActionForReportID finds a childReportID
-            const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
-            const iouAction = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                childReportID: threadReportID,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
-            // Ensure transaction exists in the passed allTransactions mapping
-            const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
-
-            // Ensure the child report actions collection exists
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
-
-            // Call the function
-            dismissDuplicateTransactionViolation({
-                transactionIDs: [transactionID],
-                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
-                expenseReport: newReport,
-                policy: undefined,
-                isASAPSubmitBetaEnabled: false,
-                allTransactions,
-            });
-            await waitForBatchedUpdates();
-
-            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-            expect(optimisticViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
-
-            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
-            const reportActionValues = Object.values(reportActions ?? {});
-            expect(reportActionValues.length).toBe(1);
-            expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
-
-            // Let the mocked API resolve and ensure optimistic state behaves as implementation expects:
-            // The implementation clears the optimistic dismissed-violation report action on success to avoid duplicates,
-            // so after the API resolves the report action should be removed while the filtered violations persist.
-            await mockFetch.resume();
-            await waitForBatchedUpdates();
-
-            const finalViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-            expect(finalViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
-
-            const finalReportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
-            const finalReportActionValues = Object.values(finalReportActions ?? {});
-            // The optimistic dismissed violation report action is removed on successful API response to avoid duplicates
-            expect(finalReportActionValues.length).toBe(0);
-        });
-
-        it('should restore DUPLICATED_TRANSACTION violation and remove report action when API fails', async () => {
-            const transactionID = 'dismissTxn2';
-            const threadReportID = 'threadDismiss2';
-            const mockViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'}];
-
-            mockFetch.pause();
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
-
-            const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
-            const iouAction = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                childReportID: threadReportID,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
-            const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
-
-            // Make the API fail
-            mockFetch.fail();
-
-            dismissDuplicateTransactionViolation({
-                transactionIDs: [transactionID],
-                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
-                expenseReport: newReport,
-                policy: undefined,
-                isASAPSubmitBetaEnabled: false,
-                allTransactions,
-            });
-            await waitForBatchedUpdates();
-
-            // Resume (the mock is set to fail) and wait for failure handling
-            await mockFetch.resume();
-            await waitForBatchedUpdates();
-
-            const failureViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-            expect(failureViolations).toEqual(mockViolations);
-
-            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
-            expect(Object.keys(reportActions ?? {}).length).toBe(0);
-        });
-
-        it('should not modify Onyx data when tag list does not exist at given index (empty violations array)', async () => {
-            const transactionID = 'dismissTxn3';
-            const threadReportID = 'threadDismiss3';
-            const mockViolations: TransactionViolation[] = [];
-
-            mockFetch.pause();
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
-
-            const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
-            const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
-
-            dismissDuplicateTransactionViolation({
-                transactionIDs: [transactionID],
-                dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
-                expenseReport: newReport,
-                policy: undefined,
-                isASAPSubmitBetaEnabled: false,
-                allTransactions,
-            });
-            await waitForBatchedUpdates();
-
-            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-            expect(optimisticViolations).toEqual([]);
-
-            await mockFetch.resume();
-        });
-
-        describe('integration with useOnyx', () => {
-            it('works when violations are read via useOnyx hook', async () => {
-                const transactionID = 'dismissTxn4';
-                const threadReportID = 'threadDismiss4';
-                const mockViolations: TransactionViolation[] = [
-                    {name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: 'warning'},
-                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'},
-                ];
-
-                mockFetch.pause();
-
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
-
-                const transaction = generateTransaction({transactionID, reportID: FAKE_OLD_REPORT_ID});
-                const iouAction = {
-                    reportActionID: rand64(),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    childReportID: threadReportID,
-                    actorAccountID: CURRENT_USER_ID,
-                    created: DateUtils.getDBTime(),
-                    originalMessage: {
-                        IOUReportID: FAKE_OLD_REPORT_ID,
-                        IOUTransactionID: transactionID,
-                        amount: transaction.amount,
-                        currency: transaction.currency,
-                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    },
-                };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[iouAction.reportActionID]: iouAction});
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {});
-                const allTransactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction};
-
-                const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`));
-                await waitFor(() => {
-                    expect(result.current[0]).toBeDefined();
-                });
-
-                await act(async () => {
-                    dismissDuplicateTransactionViolation({
-                        transactionIDs: [transactionID],
-                        dismissedPersonalDetails: {login: 'tester@example.com', accountID: CURRENT_USER_ID},
-                        expenseReport: newReport,
-                        policy: undefined,
-                        isASAPSubmitBetaEnabled: false,
-                        allTransactions,
-                    });
-                    await waitForBatchedUpdates();
-                });
-
-                // The useOnyx hook should reflect the optimistic change
-                await waitFor(() => {
-                    expect(result.current[0]).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
-                });
-
-                const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`);
-                const reportActionValues = Object.values(reportActions ?? {});
-                expect(reportActionValues.length).toBe(1);
-                expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
-
-                await mockFetch.resume();
-            });
         });
     });
 });

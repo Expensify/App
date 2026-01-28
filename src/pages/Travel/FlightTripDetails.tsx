@@ -60,7 +60,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                         width={variables.iconSizeNormal}
                         fill={theme.icon}
                     />
-                    <RenderHTML html={translate('travel.flightDetails.layover', layover)} />
+                    <RenderHTML html={translate('travel.flightDetails.layover', {layover})} />
                 </View>
             )}
             <MenuItemWithTopDescription

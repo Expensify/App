@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -30,27 +30,30 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const tagListName = getTagListName(policyTags, route.params.orderWeight);
+    const tagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const {inputCallbackRef} = useAutoFocusInput();
     const backTo = route.params.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT;
     const isMultiLevelTagsEnabled = isMultiLevelTags(policyTags);
 
-    const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};
-        if (!values[INPUT_IDS.POLICY_TAGS_NAME] && values[INPUT_IDS.POLICY_TAGS_NAME].trim() === '') {
-            errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('common.error.fieldRequired');
-        }
-        if (values[INPUT_IDS.POLICY_TAGS_NAME]?.trim() === '0') {
-            errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.invalidTagNameError');
-        }
-        if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== route.params.orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
-            errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
-        }
-        return errors;
-    };
+    const validateTagName = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};
+            if (!values[INPUT_IDS.POLICY_TAGS_NAME] && values[INPUT_IDS.POLICY_TAGS_NAME].trim() === '') {
+                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('common.error.fieldRequired');
+            }
+            if (values[INPUT_IDS.POLICY_TAGS_NAME]?.trim() === '0') {
+                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.invalidTagNameError');
+            }
+            if (policyTags && Object.values(policyTags).find((tag) => tag.orderWeight !== route.params.orderWeight && tag.name === values[INPUT_IDS.POLICY_TAGS_NAME])) {
+                errors[INPUT_IDS.POLICY_TAGS_NAME] = translate('workspace.tags.existingTagError');
+            }
+            return errors;
+        },
+        [translate, policyTags, route.params.orderWeight],
+    );
 
-    const goBackToTagsSettings = () => {
+    const goBackToTagsSettings = useCallback(() => {
         if (isQuickSettingsFlow) {
             Navigation.goBack(backTo);
             return;
@@ -60,14 +63,17 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                 ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, route.params.orderWeight)
                 : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
         );
-    };
+    }, [isQuickSettingsFlow, isMultiLevelTagsEnabled, route.params?.policyID, route.params.orderWeight, backTo]);
 
-    const updateTagListName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-        if (values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
-            renamePolicyTagList(route.params.policyID, {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
-        }
-        goBackToTagsSettings();
-    };
+    const updateTagListName = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
+            if (values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
+                renamePolicyTagList(route.params.policyID, {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
+            }
+            goBackToTagsSettings();
+        },
+        [tagListName, goBackToTagsSettings, route.params.policyID, route.params.orderWeight, policyTags],
+    );
 
     return (
         <AccessOrNotFoundWrapper

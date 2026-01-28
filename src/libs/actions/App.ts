@@ -270,16 +270,8 @@ function getOnyxDataForOpenOrReconnect(
     isFullReconnect = false,
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
-): OnyxData<
-    typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.IS_LOADING_REPORT_DATA | typeof ONYXKEYS.HAS_LOADED_APP | typeof ONYXKEYS.IS_LOADING_APP | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
-> {
-    const result: OnyxData<
-        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
-        | typeof ONYXKEYS.HAS_LOADED_APP
-        | typeof ONYXKEYS.IS_LOADING_APP
-        | typeof ONYXKEYS.COLLECTION.REPORT
-        | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
-    > = {
+): OnyxData {
+    const result: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

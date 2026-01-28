@@ -20,8 +20,6 @@ const defaultWideRHPContextValue: WideRHPContextType = {
     removeSuperWideRHPRouteKey: () => {},
     syncRHPKeys: () => {},
     clearWideRHPKeys: () => {},
-    setIsWideRHPClosing: () => {},
-    setIsSuperWideRHPClosing: () => {},
 };
 
 export default defaultWideRHPContextValue;

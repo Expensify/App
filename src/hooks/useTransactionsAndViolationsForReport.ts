@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,14 +17,25 @@ function useTransactionsAndViolationsForReport(reportID?: string) {
 
     const {transactions, violations} = reportID ? (allReportsTransactionsAndViolations?.[reportID] ?? DEFAULT_RETURN_VALUE) : DEFAULT_RETURN_VALUE;
 
-    const filteredViolations: Record<string, TransactionViolations> = {};
-    for (const transactionViolationKey of Object.keys(violations)) {
-        const transactionID = transactionViolationKey.split('_').at(1) ?? '';
-        const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        filteredViolations[transactionViolationKey] = getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, report, policy) ?? [];
-    }
+    const transactionsAndViolations = useMemo<ReportTransactionsAndViolations>(() => {
+        const filteredViolations = Object.keys(violations).reduce(
+            (filteredTransactionViolations, transactionViolationKey) => {
+                const transactionID = transactionViolationKey.split('_').at(1) ?? '';
+                const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-    return {transactions, violations: filteredViolations};
+                // This is our accumulator, it's okay to reassign
+                // eslint-disable-next-line no-param-reassign
+                filteredTransactionViolations[transactionViolationKey] =
+                    getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, report, policy) ?? [];
+                return filteredTransactionViolations;
+            },
+            {} as Record<string, TransactionViolations>,
+        );
+
+        return {transactions, violations: filteredViolations};
+    }, [transactions, violations, currentUserDetails?.email, currentUserDetails?.accountID, report, policy]);
+
+    return transactionsAndViolations;
 }
 
 export default useTransactionsAndViolationsForReport;

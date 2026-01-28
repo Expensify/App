@@ -1,5 +1,4 @@
 import * as IOU from '@userActions/IOU';
-import {startSplitBill} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 
@@ -22,7 +21,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             const startSplitBillParams = {...retryParams} as IOU.StartSplitBilActionParams;
             startSplitBillParams.receipt = file;
             startSplitBillParams.shouldPlaySound = false;
-            startSplitBill(startSplitBillParams);
+            IOU.startSplitBill(startSplitBillParams);
             break;
         }
         case CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE: {

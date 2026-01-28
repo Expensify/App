@@ -1,7 +1,7 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
@@ -71,40 +71,56 @@ function WorkspaceReportFieldsPage({
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    const filteredPolicyFieldList = useMemo(() => {
+        if (!policy?.fieldList) {
+            return {};
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
+    }, [policy?.fieldList]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
 
-    const onDisabledOrganizeSwitchPress = () => {
+    const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnections) {
             return;
         }
         setIsOrganizeWarningModalOpen(true);
-    };
+    }, [hasAccountingConnections]);
 
-    const {isOffline} = useNetwork({onReconnect: () => openPolicyReportFieldsPage(policyID)});
-
-    useEffect(() => {
+    const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
     }, [policyID]);
 
-    const reportFieldsSections: ReportFieldForList[] = policy?.fieldList
-        ? Object.entries(policy.fieldList)
-              .filter(([, value]) => value.fieldID !== 'text_title')
-              .map(([, reportField]) => ({
-                  text: reportField.name,
-                  keyForList: String(reportField.fieldID),
-                  fieldID: reportField.fieldID,
-                  pendingAction: reportField.pendingAction,
-                  isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                  rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
-              }))
-              .sort((a, b) => localeCompare(a.text, b.text))
-        : [];
+    const {isOffline} = useNetwork({onReconnect: fetchReportFields});
 
-    const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
-        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
-    };
+    useEffect(() => {
+        fetchReportFields();
+    }, [fetchReportFields]);
+
+    const reportFieldsSections = useMemo(() => {
+        if (!policy) {
+            return [];
+        }
+        return Object.values(filteredPolicyFieldList)
+            .sort((a, b) => localeCompare(a.name, b.name))
+            .map((reportField) => ({
+                text: reportField.name,
+                keyForList: String(reportField.fieldID),
+                fieldID: reportField.fieldID,
+                pendingAction: reportField.pendingAction,
+                isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type))),
+            }));
+    }, [filteredPolicyFieldList, policy, translate, localeCompare]);
+
+    const navigateToReportFieldsSettings = useCallback(
+        (reportField: ReportFieldForList) => {
+            Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_SETTINGS.getRoute(policyID, reportField.fieldID));
+        },
+        [policyID],
+    );
 
     const getHeaderText = () =>
         !hasSyncError && isConnectionVerified && currentConnectionName ? (
@@ -122,19 +138,23 @@ function WorkspaceReportFieldsPage({
 
     const isLoading = !isOffline && policy === undefined;
 
-    const renderItem = ({item}: ListRenderItemInfo<ReportFieldForList>) => (
-        <OfflineWithFeedback pendingAction={item.pendingAction}>
-            <MenuItem
-                style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                onPress={() => navigateToReportFieldsSettings(item)}
-                description={item.text}
-                disabled={item.isDisabled}
-                shouldShowRightIcon={!item.isDisabled}
-                interactive={!item.isDisabled}
-                rightLabel={item.rightLabel}
-                descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
-            />
-        </OfflineWithFeedback>
+    const renderItem = useCallback(
+        ({item}: ListRenderItemInfo<ReportFieldForList>) => (
+            <OfflineWithFeedback pendingAction={item.pendingAction}>
+                <MenuItem
+                    style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                    onPress={() => navigateToReportFieldsSettings(item)}
+                    description={item.text}
+                    disabled={item.isDisabled}
+                    shouldShowRightIcon={!item.isDisabled}
+                    interactive={!item.isDisabled}
+                    rightLabel={item.rightLabel}
+                    descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
+                />
+            </OfflineWithFeedback>
+        ),
+
+        [shouldUseNarrowLayout, styles.ph5, styles.ph8, styles.popoverMenuText, styles.textStrong, navigateToReportFieldsSettings],
     );
 
     const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
@@ -146,28 +166,27 @@ function WorkspaceReportFieldsPage({
         clearPolicyTitleFieldError(policyID);
     };
 
-    const toggleTitleStyle = [styles.pv2, styles.pr3];
+    const toggleTitleStyle = useMemo(() => [styles.pv2, styles.pr3], [styles.pv2, styles.pr3]);
 
-    const renderReportTitle = () => (
-        <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-            <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}>{translate('workspace.common.reportTitle')}</Text>
-        </OfflineWithFeedback>
+    const renderReportTitle = useCallback(
+        () => (
+            <OfflineWithFeedback pendingAction={policy?.pendingAction}>
+                <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}>{translate('workspace.common.reportTitle')}</Text>
+            </OfflineWithFeedback>
+        ),
+        [policy?.pendingAction, styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1, translate],
     );
 
-    const renderReportSubtitle = () => (
-        <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-            <View style={[[styles.renderHTML, styles.mt1]]}>
-                <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
-            </View>
-        </OfflineWithFeedback>
+    const renderReportSubtitle = useCallback(
+        () => (
+            <OfflineWithFeedback pendingAction={policy?.pendingAction}>
+                <View style={[[styles.renderHTML, styles.mt1]]}>
+                    <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
+                </View>
+            </OfflineWithFeedback>
+        ),
+        [policy?.pendingAction, styles.renderHTML, styles.mt1, translate],
     );
-
-    const reportFieldsAccessibilityLabel = useMemo(() => {
-        if (!hasSyncError && isConnectionVerified && currentConnectionName) {
-            return `${translate('workspace.common.reportFields')}, ${translate('workspace.reportFields.importedFromAccountingSoftware')} ${currentConnectionName} ${translate('workspace.accounting.settings')}`;
-        }
-        return `${translate('workspace.common.reportFields')}, ${translate('workspace.reportFields.subtitle')}`;
-    }, [hasSyncError, isConnectionVerified, currentConnectionName, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -212,7 +231,7 @@ function WorkspaceReportFieldsPage({
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
-                                    title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue ?? '')}
+                                    title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
                                     style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
@@ -224,7 +243,7 @@ function WorkspaceReportFieldsPage({
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                                 titleStyle={toggleTitleStyle}
-                                isActive={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.deletable === false}
+                                isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
                                 onToggle={(isEnabled) => {
                                     if (isEnabled && !isControlPolicy(policy)) {
                                         Navigation.navigate(
@@ -248,7 +267,7 @@ function WorkspaceReportFieldsPage({
                             <ToggleSettingOptionRow
                                 pendingAction={policy?.pendingFields?.areReportFieldsEnabled}
                                 title={translate('workspace.common.reportFields')}
-                                switchAccessibilityLabel={reportFieldsAccessibilityLabel}
+                                switchAccessibilityLabel={translate('workspace.common.reportFields')}
                                 subtitle={getHeaderText()}
                                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                                 isActive={!!policy?.areReportFieldsEnabled}

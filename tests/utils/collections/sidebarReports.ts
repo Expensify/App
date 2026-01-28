@@ -17,7 +17,6 @@ function createSidebarReport(
         type?: ValueOf<typeof CONST.REPORT.TYPE>;
         isPinned?: boolean;
         hasErrorsOtherThanFailedReceipt?: boolean;
-        requiresAttention?: boolean;
         lastVisibleActionCreated?: string;
         isOwnPolicyExpenseChat?: boolean;
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -25,7 +24,7 @@ function createSidebarReport(
         policyID?: string;
         currency?: string;
     } = {},
-): Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean} {
+): Report & {hasErrorsOtherThanFailedReceipt?: boolean} {
     const reportID = index.toString();
     const baseReport = createRandomReport(index, options.chatType ?? CONST.REPORT.CHAT_TYPE.POLICY_ROOM);
 
@@ -36,7 +35,6 @@ function createSidebarReport(
         type: options.type ?? CONST.REPORT.TYPE.CHAT,
         isPinned: options.isPinned ?? false,
         hasErrorsOtherThanFailedReceipt: options.hasErrorsOtherThanFailedReceipt ?? false,
-        requiresAttention: options.requiresAttention ?? false,
         lastVisibleActionCreated: options.lastVisibleActionCreated ?? '2024-01-01 10:00:00',
         isOwnPolicyExpenseChat: options.isOwnPolicyExpenseChat ?? false,
         ownerAccountID: options.ownerAccountID ?? index,
@@ -60,10 +58,9 @@ function createSidebarReportsCollection(
         ownerAccountID?: number;
         policyID?: string;
         currency?: string;
-        requiresAttention?: boolean;
     }>,
 ): ReportsToDisplayInLHN {
-    return createCollection<Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>(
+    return createCollection<Report & {hasErrorsOtherThanFailedReceipt?: boolean}>(
         (item) => item.reportID,
         (index) => createSidebarReport(index, reportConfigs.at(index) ?? {}),
         reportConfigs.length,

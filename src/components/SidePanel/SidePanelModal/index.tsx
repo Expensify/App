@@ -27,9 +27,8 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector, canBeMissing: true});
     const uniqueModalId = ComposerFocusManager.getId();
 
-    const {wideRHPRouteKeys, isWideRHPFocused, superWideRHPRouteKeys, isSuperWideRHPFocused} = useContext(WideRHPContext);
-
-    const shouldOverlayBeVisible = (!!wideRHPRouteKeys.length && isWideRHPFocused) || (!!superWideRHPRouteKeys.length && isSuperWideRHPFocused) || !isRHPVisible;
+    const {wideRHPRouteKeys, isWideRHPFocused} = useContext(WideRHPContext);
+    const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
     const onCloseSidePanelOnSmallScreens = () => {
         if (isExtraLargeScreenWidth) {
@@ -66,7 +65,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
                         {!shouldHideSidePanelBackdrop && (
                             <SidePanelOverlay
                                 onBackdropPress={closeSidePanel}
-                                shouldBeVisible={shouldOverlayBeVisible}
+                                shouldBeVisible={isWideRHPVisible ? isWideRHPFocused : !isRHPVisible}
                             />
                         )}
                     </View>

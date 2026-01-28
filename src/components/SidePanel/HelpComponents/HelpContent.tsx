@@ -53,7 +53,6 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     });
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || String(CONST.DEFAULT_NUMBER_ID)}`, {canBeMissing: true});
-    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
 
@@ -90,7 +89,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
         const cleanedPath = path.replaceAll('?', '');
         const expenseType = getExpenseType(transaction);
-        const reportType = getHelpPaneReportType(report, conciergeReportID);
+        const reportType = getHelpPaneReportType(report);
 
         if (expenseType && reportType !== CONST.REPORT.HELP_TYPE.EXPENSE_REPORT) {
             return cleanedPath.replaceAll(':reportID', `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}`);
@@ -101,7 +100,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
         }
 
         return cleanedPath;
-    }, [routeName, transaction, report, conciergeReportID]);
+    }, [routeName, transaction, report]);
 
     const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
     useEffect(() => {

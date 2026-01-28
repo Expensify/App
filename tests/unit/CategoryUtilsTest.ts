@@ -1,7 +1,4 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import {getAvailableNonPersonalPolicyCategories, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import {isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
 import type {PolicyCategories} from '@src/types/onyx';
 
 describe(`isMissingCategory`, () => {
@@ -103,62 +100,5 @@ describe('isCategoryDescriptionRequired', () => {
             },
         };
         expect(isCategoryDescriptionRequired(categoriesWithUndefinedComments, 'TestCategory', true)).toBe(false);
-    });
-});
-
-describe('getAvailableNonPersonalPolicyCategories', () => {
-    it('returns empty object when input is undefined or no available categories', () => {
-        expect(getAvailableNonPersonalPolicyCategories(undefined, 'p_1')).toEqual({});
-        const onlyDeleted: OnyxCollection<PolicyCategories> = {
-            [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}p_2`]: {
-                TestCategory: {
-                    enabled: true,
-                    name: 'TestCategory',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                },
-            },
-        };
-        expect(getAvailableNonPersonalPolicyCategories(onlyDeleted, 'p_1')).toEqual({});
-    });
-
-    it('excludes personal policy and policies with only deleted categories, keeps policies with at least one non-deleted category', () => {
-        const personalPolicyID = 'personal_1';
-        const keyPersonal = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`;
-        const keyOther = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy_2`;
-        const keyAllDeleted = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy_3`;
-
-        const policyCategories: OnyxCollection<PolicyCategories> = {
-            [keyPersonal]: {
-                cTestCategory1at1: {
-                    enabled: true,
-                    name: 'TestCategory1',
-                    pendingAction: null,
-                },
-            },
-            [keyOther]: {
-                TestCategory2: {
-                    enabled: true,
-                    name: 'TestCategory2',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                },
-                TestCategory3: {
-                    enabled: true,
-                    name: 'TestCategory3',
-                    pendingAction: null,
-                },
-            },
-            [keyAllDeleted]: {
-                TestCategory4: {
-                    enabled: true,
-                    name: 'TestCategory4',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                },
-            },
-        };
-
-        const result: OnyxCollection<PolicyCategories> = getAvailableNonPersonalPolicyCategories(policyCategories, personalPolicyID);
-        expect(Object.keys(result)).toEqual([keyOther]);
-        expect(result[keyOther]?.TestCategory2).toBeDefined();
-        expect(result[keyOther]?.TestCategory3).toBeDefined();
     });
 });

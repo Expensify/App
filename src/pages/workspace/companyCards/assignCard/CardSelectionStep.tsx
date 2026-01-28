@@ -31,7 +31,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {UnassignedCard} from '@src/types/onyx/Card';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
 
@@ -58,12 +57,12 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
-    const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
-        keyForList: card.cardID,
-        value: card.cardID,
-        text: maskCardNumber(card.cardName, feed),
-        alternateText: lastFourNumbersFromCardName(card.cardName),
-        isSelected: cardSelected === card.cardID,
+    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
+        keyForList: encryptedCardNumber,
+        value: encryptedCardNumber,
+        text: maskCardNumber(cardNumber, feed),
+        alternateText: lastFourNumbersFromCardName(cardNumber),
+        isSelected: cardSelected === encryptedCardNumber,
         leftElement: plaidUrl ? (
             <PlaidCardFeedIcon
                 plaidUrl={plaidUrl}
@@ -101,14 +100,13 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
             return;
         }
 
-        // Find the card by its ID to get the display name
-        const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
-        const cardName = selectedCard?.cardName ?? '';
-
-        const customCardName = assignCard?.cardToAssign?.customCardName ?? '';
+        const cardNumber =
+            Object.entries(filteredCardList)
+                .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
+                ?.at(0) ?? '';
 
         setAssignCardStepAndData({
-            cardToAssign: {encryptedCardNumber: cardSelected, cardName, customCardName},
+            cardToAssign: {encryptedCardNumber: cardSelected, cardNumber},
             isEditing: false,
         });
 

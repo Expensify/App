@@ -779,57 +779,6 @@ const keywordTests = [
             },
         },
     },
-    {
-        query: 'columns:original-amount,tax,report-id',
-        expected: {
-            type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            sortBy: 'date',
-            sortOrder: 'desc',
-            columns: ['originalamount', 'taxAmount', 'base62ReportID'],
-            filters: null,
-        },
-    },
-    {
-        query: 'columns:tax',
-        expected: {
-            type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            sortBy: 'date',
-            sortOrder: 'desc',
-            columns: 'taxAmount',
-            filters: null,
-        },
-    },
-    {
-        query: 'merchant:tax',
-        expected: {
-            type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            sortBy: 'date',
-            sortOrder: 'desc',
-            filters: {
-                operator: 'eq',
-                left: 'merchant',
-                right: 'tax',
-            },
-        },
-    },
-    {
-        query: 'type:expense action:submit columns:group-bank-account,group-from',
-        expected: {
-            type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            sortBy: 'date',
-            sortOrder: 'desc',
-            columns: ['groupBankAccount', 'groupFrom'],
-            filters: {
-                left: 'action',
-                operator: 'eq',
-                right: 'submit',
-            },
-        },
-    },
 ];
 
 describe('search parser', () => {

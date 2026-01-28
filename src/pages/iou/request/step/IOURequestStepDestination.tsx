@@ -1,5 +1,4 @@
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -7,7 +6,7 @@ import Button from '@components/Button';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -44,16 +43,10 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepDestinationRef = {
-    focus?: () => void;
-};
-
 type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         openedFromStartPage?: boolean;
         explicitPolicyID?: string;
-        shouldAutoFocusInput?: boolean;
-        ref: ForwardedRef<IOURequestStepDestinationRef>;
     };
 
 function IOURequestStepDestination({
@@ -64,8 +57,6 @@ function IOURequestStepDestination({
     transaction,
     openedFromStartPage = false,
     explicitPolicyID,
-    shouldAutoFocusInput = true,
-    ref,
 }: IOURequestStepDestinationProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const personalPolicy = usePersonalPolicy();
@@ -78,12 +69,6 @@ function IOURequestStepDestination({
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {translate} = useLocalize();
-
-    const destinationSelectionListRef = useRef<SelectionListHandle | null>(null);
-
-    useImperativeHandle(ref, () => ({
-        focus: destinationSelectionListRef.current?.focusTextInput,
-    }));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEmptyObject(policy);
@@ -211,8 +196,6 @@ function IOURequestStepDestination({
                 )}
                 {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
                     <DestinationPicker
-                        textInputAutoFocus={shouldAutoFocusInput}
-                        ref={destinationSelectionListRef}
                         selectedDestination={selectedDestination}
                         policyID={policy.id}
                         onSubmit={updateDestination}

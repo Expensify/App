@@ -1,11 +1,10 @@
 import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FloatingCameraButton from '@components/FloatingCameraButton';
-import FloatingGPSButton from '@components/FloatingGPSButton';
 import Icon from '@components/Icon';
 // import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -52,10 +51,10 @@ import NAVIGATION_TABS from './NAVIGATION_TABS';
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTopLevelBar?: boolean;
-    shouldShowFloatingButtons?: boolean;
+    shouldShowFloatingCameraButton?: boolean;
 };
 
-function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingCameraButton = true}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -173,7 +172,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            const parentSpan = startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
+            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
                 name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
                 op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
             });
@@ -181,7 +180,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             startSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS, {
                 name: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
                 op: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
-                parentSpan,
             });
 
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
@@ -240,10 +238,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain});
     }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, lastViewedDomain]);
 
-    const inboxAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.HOME}), [selectedTab]);
-    const searchAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.SEARCH}), [selectedTab]);
-    const workspacesAccessibilityState = useMemo(() => ({selected: selectedTab === NAVIGATION_TABS.WORKSPACES}), [selectedTab]);
-
     if (!shouldUseNarrowLayout) {
         return (
             <>
@@ -274,9 +268,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         </PressableWithFeedback>
                         <PressableWithFeedback
                             onPress={navigateToChats}
-                            role={CONST.ROLE.TAB}
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.inbox')}
-                            accessibilityState={inboxAccessibilityState}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                         >
@@ -316,9 +309,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         </PressableWithFeedback>
                         <PressableWithFeedback
                             onPress={navigateToSearch}
-                            role={CONST.ROLE.TAB}
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.reports')}
-                            accessibilityState={searchAccessibilityState}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                         >
@@ -349,9 +341,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         </PressableWithFeedback>
                         <PressableWithFeedback
                             onPress={showWorkspaces}
-                            role={CONST.ROLE.TAB}
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.workspacesTabTitle')}
-                            accessibilityState={workspacesAccessibilityState}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                         >
@@ -417,9 +408,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             >
                 <PressableWithFeedback
                     onPress={navigateToChats}
-                    role={CONST.ROLE.TAB}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.inbox')}
-                    accessibilityState={inboxAccessibilityState}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
@@ -455,9 +445,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     onPress={navigateToSearch}
-                    role={CONST.ROLE.TAB}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.reports')}
-                    accessibilityState={searchAccessibilityState}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
@@ -488,9 +477,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 </View>
                 <PressableWithFeedback
                     onPress={showWorkspaces}
-                    role={CONST.ROLE.TAB}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.workspacesTabTitle')}
-                    accessibilityState={workspacesAccessibilityState}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
@@ -523,12 +511,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     onPress={navigateToSettings}
                 />
             </View>
-            {shouldShowFloatingButtons && (
-                <>
-                    <FloatingGPSButton />
-                    <FloatingCameraButton />
-                </>
-            )}
+            {shouldShowFloatingCameraButton && <FloatingCameraButton />}
         </>
     );
 }

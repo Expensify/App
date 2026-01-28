@@ -173,7 +173,7 @@ function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccount
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  */
-function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = true): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> {
+function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = true): OnyxData {
     return {
         optimisticData: [
             {
@@ -221,10 +221,7 @@ function addBusinessWebsiteForDraft(websiteUrl: string) {
 /**
  * Get the Onyx data required to set the last used payment method to VBBA for a given policyID
  */
-function getOnyxDataForConnectingVBBAAndLastPaymentMethod(
-    policyID: string,
-    lastPaymentMethod?: LastPaymentMethodType | string,
-): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> {
+function getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID: string, lastPaymentMethod?: LastPaymentMethodType | string): OnyxData {
     const onyxData = getVBBADataForOnyx();
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
@@ -304,7 +301,7 @@ function addPersonalBankAccount(
         parameters.source = source;
     }
 
-    const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -393,10 +390,10 @@ function deletePaymentBankAccount(bankAccountID: number, personalPolicyID: strin
     const bankAccountFailureData = {
         ...bankAccount,
         errors: getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.deletePaymentBankAccount'),
-        pendingAction: null,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -539,7 +536,7 @@ function validateBankAccount(bankAccountID: number, validateCode: string, policy
         policyID,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -582,7 +579,7 @@ function getCorpayBankAccountFields(country: string, currency: string) {
         isBusinessBankAccount: true,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.CORPAY_FIELDS> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -627,7 +624,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
         policyID,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -676,7 +673,7 @@ function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingComp
         bankAccountID,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -714,7 +711,7 @@ function saveCorpayOnboardingCompanyDetails(parameters: SaveCorpayOnboardingComp
 }
 
 function saveCorpayOnboardingBeneficialOwners(parameters: SaveCorpayOnboardingBeneficialOwnerParams) {
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -752,7 +749,7 @@ function saveCorpayOnboardingBeneficialOwners(parameters: SaveCorpayOnboardingBe
 }
 
 function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardingDirectorInformationParams) {
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -815,7 +812,7 @@ function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardin
 }
 
 function askForCorpaySignerInformation(parameters: AskForCorpaySignerInformationParams) {
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -857,7 +854,7 @@ function clearReimbursementAccount() {
 }
 
 function finishCorpayBankAccountOnboarding(parameters: FinishCorpayBankAccountOnboardingParams) {
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -895,7 +892,7 @@ function finishCorpayBankAccountOnboarding(parameters: FinishCorpayBankAccountOn
 }
 
 function sendReminderForCorpaySignerInformation(parameters: SendReminderForCorpaySignerInformationParams) {
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -933,7 +930,7 @@ function sendReminderForCorpaySignerInformation(parameters: SendReminderForCorpa
 }
 
 function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalReimbursementsForUSDBankAccountParams) {
-    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1014,7 +1011,7 @@ function clearReimbursementAccountSendReminderForCorpaySignerInformation() {
  * @param policyID - policy ID
  */
 function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subStep: ReimbursementAccountSubStep, localCurrentStep: ReimbursementAccountStep, policyID: string) {
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1254,7 +1251,7 @@ function unshareBankAccount(bankAccountID: number, ownerEmail: string) {
         ownerEmail,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.UNSHARE_BANK_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1311,7 +1308,7 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
         inputs: JSON.stringify(inputData),
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1369,7 +1366,7 @@ function shareBankAccount(bankAccountID: number, emailList: string[]) {
         emailList,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.SHARE_BANK_ACCOUNT> = {
+    const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1418,21 +1415,21 @@ function getBankAccountFromID(bankAccountID: number | undefined) {
 }
 
 function openBankAccountSharePage() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS>> = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
             value: true,
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS>> = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
             value: false,
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS>> = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,

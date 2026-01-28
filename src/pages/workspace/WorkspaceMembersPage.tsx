@@ -400,18 +400,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
             const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
-            let roleBadgeText = '';
-            if (policy?.owner === details.login) {
-                roleBadgeText = translate('common.owner');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.ADMIN) {
-                roleBadgeText = translate('common.admin');
-            } else if (policyEmployee.role === CONST.POLICY.ROLE.AUDITOR) {
-                roleBadgeText = translate('common.auditor');
-            }
-            const memberName = formatPhoneNumber(getDisplayNameOrDefault(details));
-            const memberEmail = formatPhoneNumber(details?.login ?? '');
-            const accessibilityLabel = [memberName, memberEmail, roleBadgeText].filter(Boolean).join(', ');
-
             result.push({
                 keyForList: details.login ?? '',
                 accountID,
@@ -422,9 +410,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 isDisabled: isPendingDeleteOrError,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
-                text: memberName,
-                alternateText: memberEmail,
-                accessibilityLabel,
+                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: isControlPolicyWithWideLayout ? (
                     <>
                         <View style={[styles.flex1, styles.pr3]}>
@@ -448,7 +435,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                                 role={policyEmployee.role}
                                 owner={policy?.owner}
                                 login={details.login}
-                                badgeStyles={[styles.alignSelfEnd]}
                             />
                         </View>
                     </>
@@ -487,7 +473,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         styles.flex1,
         styles.pr3,
         styles.alignSelfStart,
-        styles.alignSelfEnd,
         isControlPolicyWithWideLayout,
         StyleUtils,
         formatPhoneNumber,

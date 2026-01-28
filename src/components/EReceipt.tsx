@@ -1,6 +1,5 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import useCurrencyList from '@hooks/useCurrencyList';
 import useEReceipt from '@hooks/useEReceipt';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -9,7 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {filterPersonalCards, getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToDisplayString, getCurrencySymbol} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -41,7 +40,6 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark']);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
@@ -62,8 +60,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
-    const cardDescription =
-        getCompanyCardDescription(transactionCardName, transactionCardID, cardList) ?? (transactionCardID ? getCardDescription(cardList?.[transactionCardID], translate) : '');
+    const cardDescription = getCompanyCardDescription(transactionCardName, transactionCardID, cardList) ?? (transactionCardID ? getCardDescription(cardList?.[transactionCardID]) : '');
     const secondaryBgcolorStyle = secondaryColor ? StyleUtils.getBackgroundColorStyle(secondaryColor) : undefined;
     const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;
     const titleTextColorStyle = titleColor ? StyleUtils.getColorStyle(titleColor) : undefined;

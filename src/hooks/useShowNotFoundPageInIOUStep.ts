@@ -54,7 +54,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     let shouldShowNotFoundPage = false;
-    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction, iouReport);
+    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     const canEditSplitExpense = isSplitExpense && !!transaction;
 
     if (isEditing) {

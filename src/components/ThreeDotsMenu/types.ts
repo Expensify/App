@@ -51,9 +51,6 @@ type ThreeDotsMenuProps = WithSentryLabel & {
 
     /** Ref to the menu */
     threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean} | null>;
-
-    /** Whether the menu is focused */
-    isContainerFocused?: boolean;
 };
 
 type ThreeDotsMenuWithOptionalAnchorProps =

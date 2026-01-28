@@ -52,7 +52,7 @@ function getTitleFieldFromRNVP(reportID: string) {
  * Update title field in report's rNVP to match the policy's title field configuration
  * This is the JavaScript equivalent of the backend updateTitleFieldToMatchPolicy function
  */
-function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>> {
+function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): OnyxUpdate[] {
     if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, betas, betaConfiguration)) {
         return [];
     }
@@ -86,7 +86,7 @@ function updateTitleFieldToMatchPolicy(reportID: string, policy?: Policy): Array
 /**
  * Remove title field from report's rNVP when report is manually renamed to indicate that the manual name should be preserved, and the custom report name formula should no longer update the name.
  */
-function removeTitleFieldFromReport(reportID: string): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>> {
+function removeTitleFieldFromReport(reportID: string): OnyxUpdate[] {
     if (!Permissions.isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES, betas, betaConfiguration)) {
         return [];
     }

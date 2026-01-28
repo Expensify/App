@@ -140,10 +140,10 @@ function IOURequestStepWaypoint({
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
-                address: waypointValue,
-                name: values.name,
-                lat: values.lat,
-                lng: values.lng,
+                address: waypointValue ?? '',
+                name: values.name ?? '',
+                lat: values.lat ?? 0,
+                lng: values.lng ?? 0,
                 keyForList: `${(values.name ?? 'waypoint') as string}_${Date.now()}`,
             };
             save(waypoint);
@@ -175,10 +175,10 @@ function IOURequestStepWaypoint({
 
     const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
-            lat: values.lat,
-            lng: values.lng,
-            address: values.address,
-            name: values.name,
+            lat: values.lat ?? 0,
+            lng: values.lng ?? 0,
+            address: values.address ?? '',
+            name: values.name ?? '',
             keyForList: `${values.name ?? 'waypoint'}_${Date.now()}`,
         };
 

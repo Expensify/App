@@ -83,7 +83,7 @@ function UploadFile({
         }
 
         if (fileLimit && resultedFiles.length > 0 && resultedFiles.length > fileLimit) {
-            setError(translate('attachmentPicker.tooManyFiles', fileLimit));
+            setError(translate('attachmentPicker.tooManyFiles', {fileLimit}));
             return;
         }
 

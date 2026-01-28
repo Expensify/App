@@ -10,7 +10,6 @@ import type {SearchQueryItem, SearchQueryListItemProps} from '@components/Select
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
-import useCurrencyList from '@hooks/useCurrencyList';
 import useDebounce from '@hooks/useDebounce';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,12 +23,9 @@ import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
@@ -196,7 +192,6 @@ function SearchAutocompleteList({
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -220,9 +215,8 @@ function SearchAutocompleteList({
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
             loginList,
-            visibleReportActionsData,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, visibleReportActionsData]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -311,8 +305,8 @@ function SearchAutocompleteList({
         [policies, currentUserLogin],
     );
 
-    const {currencyList} = useCurrencyList();
-    const currencyAutocompleteList = useMemo(() => Object.keys(currencyList).filter((currency) => !currencyList[currency]?.retired), [currencyList]);
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
+    const currencyAutocompleteList = useMemo(() => Object.keys(currencyList ?? {}).filter((currency) => !currencyList?.[currency]?.retired), [currencyList]);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS, {canBeMissing: true});
@@ -431,7 +425,6 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                    visibleReportActionsData,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
@@ -463,7 +456,6 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                    visibleReportActionsData,
                 }).recentReports.filter((chat) => {
                     if (!chat.text) {
                         return false;
@@ -538,14 +530,14 @@ function SearchAutocompleteList({
                     .filter(
                         (card) =>
                             (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue)) &&
-                            !alreadyAutocompletedKeys.has(getCardDescription(card, translate).toLowerCase()),
+                            !alreadyAutocompletedKeys.has(getCardDescription(card).toLowerCase()),
                     )
                     .sort()
                     .slice(0, 10);
 
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
-                    text: getCardDescription(card, translate),
+                    text: getCardDescription(card),
                     autocompleteID: card.cardID.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
@@ -638,11 +630,9 @@ function SearchAutocompleteList({
         statusAutocompleteList,
         feedAutoCompleteList,
         cardAutocompleteList,
-        translate,
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
-        visibleReportActionsData,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -800,22 +790,13 @@ function SearchAutocompleteList({
     if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
-    const styledRecentReports = useMemo(
-        () =>
-            recentReportsOptions.map((option) => {
-                const report = getReportOrDraftReport(option.reportID);
-                const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-                const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-                return {
-                    ...option,
-                    pressableStyle: styles.br2,
-                    text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-                    wrapperStyle: [styles.pr3, styles.pl3],
-                };
-            }),
-        [recentReportsOptions, styles.br2, styles.pr3, styles.pl3],
-    );
 
+    const styledRecentReports = recentReportsOptions.map((item) => ({
+        ...item,
+        pressableStyle: styles.br2,
+        text: StringUtils.lineBreaksToSpaces(item.text),
+        wrapperStyle: [styles.pr3, styles.pl3],
+    }));
     sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {

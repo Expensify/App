@@ -268,7 +268,7 @@ describe('ReportUtils', () => {
             requiresTag: true,
         };
 
-        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
+        const onyxData: OnyxData = {
             optimisticData: [],
             failureData: [],
             successData: [],

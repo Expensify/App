@@ -111,7 +111,7 @@ function ReportFieldsSettingsPage({
                         <MenuItemWithTopDescription
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            title={getReportFieldInitialValue(reportField, translate)}
+                            title={getReportFieldInitialValue(reportField)}
                             description={translate('common.initialValue')}
                             shouldShowRightIcon={!isDateFieldType}
                             interactive={!isDateFieldType}

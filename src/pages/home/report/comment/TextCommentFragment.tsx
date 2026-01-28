@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-import React, {useEffect} from 'react';
+import React, {memo, useEffect, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
@@ -62,7 +62,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
-    const processedTextArray = splitTextWithEmojis(message);
+    const processedTextArray = useMemo(() => splitTextWithEmojis(message), [message]);
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
@@ -74,7 +74,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = containsOnlyEmojisUtil(text ?? '');
-    const containsOnlyCustomEmoji = containsOnlyCustomEmojiUtil(text);
+    const containsOnlyCustomEmoji = useMemo(() => containsOnlyCustomEmojiUtil(text), [text]);
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
@@ -158,4 +158,4 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     );
 }
 
-export default TextCommentFragment;
+export default memo(TextCommentFragment);

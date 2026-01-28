@@ -7,6 +7,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -14,7 +15,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 import {revokeDomainAdminAccess} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
@@ -23,6 +23,7 @@ type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
 
+    const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign'] as const);
 
@@ -71,17 +72,11 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             domainAccountID={domainAccountID}
             accountID={accountID}
         >
-            {domainHasOnlyOneAdmin && (
-                <MenuItem
-                    title={translate('domain.admins.resetDomain')}
-                    icon={icons.ClosedSign}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
-                />
-            )}
             {!domainHasOnlyOneAdmin && (
                 <MenuItem
                     disabled={isCurrentUserPrimaryContact}
                     hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
+                    style={styles.mb5}
                     title={translate('domain.admins.revokeAdminAccess')}
                     icon={icons.ClosedSign}
                     onPress={handleRevokeAdminAccess}

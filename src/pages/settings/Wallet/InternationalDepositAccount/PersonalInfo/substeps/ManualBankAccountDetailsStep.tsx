@@ -28,6 +28,11 @@ function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const getDefaultValues = () => ({
+        routingNumber: bankAccountPersonalDetails?.routingNumber,
+        accountNumber: bankAccountPersonalDetails?.accountNumber,
+    });
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS);
         const routingNumber = values.routingNumber?.trim();
@@ -54,6 +59,8 @@ function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
         shouldSaveDraft: true,
     });
 
+    const defaultValues = getDefaultValues();
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
@@ -72,7 +79,7 @@ function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
                 label={translate('bankAccount.routingNumber')}
                 aria-label={translate('bankAccount.routingNumber')}
                 role={CONST.ROLE.PRESENTATION}
-                value={bankAccountPersonalDetails?.routingNumber ?? ''}
+                defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ROUTING_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 shouldSaveDraft
             />
@@ -83,7 +90,7 @@ function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
                 label={translate('bankAccount.accountNumber')}
                 aria-label={translate('bankAccount.accountNumber')}
                 role={CONST.ROLE.PRESENTATION}
-                value={bankAccountPersonalDetails?.accountNumber ?? ''}
+                defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 shouldSaveDraft
             />

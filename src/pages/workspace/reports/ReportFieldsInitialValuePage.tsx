@@ -42,7 +42,7 @@ function ReportFieldsInitialValuePage({
 
     const reportField = policy?.fieldList?.[getReportFieldKey(reportFieldID)] ?? null;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
-    const currentInitialValue = getReportFieldInitialValue(reportField, translate);
+    const currentInitialValue = getReportFieldInitialValue(reportField);
     const [initialValue, setInitialValue] = useState(currentInitialValue);
 
     const submitForm = useCallback(

@@ -16,7 +16,7 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     unreadMarkerTime: string | undefined;
 
     /** User accountID */
-    currentUserAccountID: number;
+    accountID: number | undefined;
 
     /** Map of reportActions saved via usePrev */
     prevSortedVisibleReportActionsObjects: Record<string, OnyxTypes.ReportAction>;
@@ -37,7 +37,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     nextMessage,
     isEarliestReceivedOfflineMessage,
     unreadMarkerTime,
-    currentUserAccountID,
+    accountID,
     prevSortedVisibleReportActionsObjects,
     prevUnreadMarkerReportActionID,
     scrollingVerticalOffset,
@@ -66,7 +66,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     };
 
     // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
-    const isFromCurrentUser = currentUserAccountID === (isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
+    const isFromCurrentUser = accountID === (isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
     const isNewMessage = !prevSortedVisibleReportActionsObjects[message.reportActionID];
 
     // The unread marker will show if the action's `created` time is later than `unreadMarkerTime`.

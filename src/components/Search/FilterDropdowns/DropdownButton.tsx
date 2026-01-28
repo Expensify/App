@@ -141,7 +141,6 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                     style={[styles.flex1, styles.mw100, caretWrapperStyle]}
                     caretWidth={variables.iconSizeSmall}
                     caretHeight={variables.iconSizeSmall}
-                    isActive={isOverlayVisible}
                 >
                     <Text
                         numberOfLines={1}

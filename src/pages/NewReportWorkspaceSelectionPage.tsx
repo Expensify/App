@@ -139,7 +139,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                         policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                         reportNextStep,
                         policyCategories: undefined,
-                        allTransactions,
+                        allTransactionsCollection: allTransactions,
                     });
 
                     // eslint-disable-next-line rulesdir/no-default-id-values

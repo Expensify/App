@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 type SearchFilterPageFooterButtonsProps = {
     /** Function to reset changes made in the filter */
-    resetChanges?: () => void;
+    resetChanges: () => void;
 
     /** Function to apply changes made in the filter */
     applyChanges: () => void;
@@ -18,14 +18,12 @@ function SearchFilterPageFooterButtons({resetChanges, applyChanges}: SearchFilte
 
     return (
         <View>
-            {!!resetChanges && (
-                <Button
-                    large
-                    style={[styles.mt3]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                />
-            )}
+            <Button
+                large
+                style={[styles.mt3]}
+                text={translate('common.reset')}
+                onPress={resetChanges}
+            />
             <Button
                 large
                 success

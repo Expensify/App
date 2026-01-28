@@ -120,6 +120,10 @@ function TestSearchFullscreenNavigator() {
                 name={SCREENS.SEARCH.ROOT}
                 getComponent={getEmptyComponent()}
             />
+            <SearchStack.Screen
+                name={SCREENS.SEARCH.MONEY_REQUEST_REPORT}
+                getComponent={getEmptyComponent()}
+            />
         </SearchStack.Navigator>
     );
 }
