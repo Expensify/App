@@ -1,8 +1,8 @@
 diff --git a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-index 2eacddf..346bbb9 100644
+index 5dd4ba7..04396bb 100644
 --- a/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
 +++ b/node_modules/expo-modules-core/ios/Fabric/ExpoFabricViewObjC.mm
-@@ -138,6 +138,11 @@ - (void)finalizeUpdates:(RNComponentViewUpdateMask)updateMask
+@@ -140,6 +140,11 @@ static std::unordered_map<std::string, ExpoViewComponentDescriptor::Flavor> _com
    }
  }
  
