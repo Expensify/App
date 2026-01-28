@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {memo, useContext, useEffect, useRef} from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
@@ -34,7 +34,7 @@ type EmojiPickerButtonProps = {
 };
 
 function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertical = 0, onPress, onModalHide, onEmojiSelected}: EmojiPickerButtonProps) {
-    const actionSheetContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
@@ -47,7 +47,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
             return;
         }
 
-        actionSheetContext.transitionActionSheetState({
+        transitionActionSheetState({
             type: ActionSheetAwareScrollView.Actions.CLOSE_KEYBOARD,
         });
 
