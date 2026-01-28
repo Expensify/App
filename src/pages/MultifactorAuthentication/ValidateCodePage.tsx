@@ -6,9 +6,9 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
+import {useMultifactorAuthentication, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -45,7 +45,8 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const {trigger, update} = useMultifactorAuthenticationContext();
+    const {cancel} = useMultifactorAuthentication();
+    const {setValidateCode} = useMultifactorAuthenticationState();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -117,13 +118,19 @@ function MultifactorAuthenticationValidateCodePage() {
      * Validate and submit form
      */
     const validateAndSubmitForm = () => {
+        console.debug('[ValidateCodePage] validateAndSubmitForm called');
+        console.debug('[ValidateCodePage] inputCode:', inputCode);
+        console.debug('[ValidateCodePage] account?.isLoading:', account?.isLoading);
+
         // Check if already loading
         if (account?.isLoading) {
+            console.debug('[ValidateCodePage] Returning early - account is loading');
             return;
         }
 
         // Clear backend errors before validation
         if (account?.errors) {
+            console.debug('[ValidateCodePage] Clearing account messages');
             clearAccountMessages();
         }
 
@@ -136,11 +143,13 @@ function MultifactorAuthenticationValidateCodePage() {
 
         // Validate input
         if (!inputCode.trim()) {
+            console.debug('[ValidateCodePage] Validation failed - empty code');
             setFormError({inputCode: 'validateCodeForm.error.pleaseFillMagicCode'});
             return;
         }
 
         if (!isValidValidateCode(inputCode)) {
+            console.debug('[ValidateCodePage] Validation failed - invalid code format');
             setFormError({inputCode: 'validateCodeForm.error.incorrectMagicCode'});
             return;
         }
@@ -148,13 +157,15 @@ function MultifactorAuthenticationValidateCodePage() {
         // Clear errors before submit
         setFormError({});
 
-        // Call the submit callback (from context)
-        update({validateCode: Number(inputCode)});
+        console.debug('[ValidateCodePage] Calling setValidateCode with:', inputCode);
+        // Set validate code in state context - the process function will handle the rest
+        setValidateCode(inputCode);
+        console.debug('[ValidateCodePage] setValidateCode called successfully');
     };
 
     const onGoBackPress = () => {
         // TODO: We probably do not need to trigger anything as the RHP is closed
-        trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE);
+        cancel();
         // Close the RHP instead of returning to the invisible biometrics test screen
         Navigation.dismissModal();
     };
