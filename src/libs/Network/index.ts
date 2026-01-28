@@ -33,7 +33,7 @@ function clearProcessQueueInterval() {
  */
 function post(command: string, data: Record<string, unknown> = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
     return new Promise((resolve, reject) => {
-        const request: Request = {
+        const request: Request<never> = {
             command,
             data,
             type,
