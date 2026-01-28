@@ -14,13 +14,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
-import useTransactionDrafts from '@hooks/useTransactionDrafts';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
@@ -150,7 +150,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const {allTransactionDrafts, draftTransactionIDs} = useTransactionDrafts();
+    const [transactionDrafts] = useOptimisticDraftTransactions(undefined);
+    const draftTransactionIDs = transactionDrafts?.map((item) => item.transactionID);
     const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -196,7 +197,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
             for (const item of transactions) {
                 const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
-                const existingTransactionDraft = allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`];
+                const existingTransactionDraft = transactionDrafts?.find((t) => t.transactionID === existingTransactionID);
 
                 duplicateTransactionAction({
                     transaction: item,
@@ -220,7 +221,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         [
             activePolicyExpenseChat,
             allPolicyCategories,
-            allTransactionDrafts,
+            transactionDrafts,
             defaultExpensePolicy,
             draftTransactionIDs,
             isASAPSubmitBetaEnabled,

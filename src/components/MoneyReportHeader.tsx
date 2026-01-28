@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
@@ -32,7 +33,6 @@ import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
-import useTransactionDrafts from '@hooks/useTransactionDrafts';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
@@ -103,7 +103,7 @@ import {
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
-import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
+import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import {
     approveMoneyRequest,
@@ -257,7 +257,8 @@ function MoneyReportHeader({
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`, {canBeMissing: true});
-    const {allTransactionDrafts, draftTransactionIDs} = useTransactionDrafts();
+    const [transactionDrafts] = useOptimisticDraftTransactions(undefined);
+    const draftTransactionIDs = transactionDrafts?.map((item) => item.transactionID);
     const {translate, localeCompare} = useLocalize();
 
     const exportTemplates = useMemo(
@@ -650,7 +651,7 @@ function MoneyReportHeader({
 
             for (const item of transactionList) {
                 const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
-                const existingTransactionDraft = allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`];
+                const existingTransactionDraft = transactionDrafts?.find((t) => t.transactionID === existingTransactionID);
 
                 duplicateTransactionAction({
                     transaction: item,
@@ -675,7 +676,7 @@ function MoneyReportHeader({
             activePolicyExpenseChat,
             activePolicyID,
             allPolicyCategories,
-            allTransactionDrafts,
+            transactionDrafts,
             defaultExpensePolicy,
             draftTransactionIDs,
             introSelected,
