@@ -991,7 +991,12 @@ const translations = {
     homePage: {
         forYou: 'For you',
         announcements: 'Announcements',
-        discover: 'Discover',
+        discoverSection: {
+            title: 'Discover',
+            menuItemTitleNonAdmin: 'Learn how to create expenses and submit reports',
+            menuItemTitleAdmin: 'Learn how to invite members, edit approval workflows, and reconcile company cards.',
+            menuItemDescription: 'See what Expensify can do in 2 min',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',

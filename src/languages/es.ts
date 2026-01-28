@@ -736,7 +736,12 @@ const translations: TranslationDeepObject<typeof en> = {
     homePage: {
         forYou: 'Para ti',
         announcements: 'Anuncios',
-        discover: 'Descubrir',
+        discoverSection: {
+            title: 'Descubrir',
+            menuItemTitleNonAdmin: 'Aprende a crear gastos y enviar informes.',
+            menuItemTitleAdmin: 'Aprende a invitar a miembros, editar flujos de aprobación y conciliar tarjetas corporativas.',
+            menuItemDescription: 'Descubre lo que Expensify puede hacer en 2 minutos',
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
