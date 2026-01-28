@@ -1887,8 +1887,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Transacción sospechosa',
         suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haz click abajo para revisarla.',
         cardLocked: 'La tarjeta está temporalmente bloqueada mientras nuestro equipo revisa la cuenta de tu empresa.',
-        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
-        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
+        markTransactionsAsReimbursable: 'Marcar transacciones como reembolsables',
+        markTransactionsDescription: 'Cuando está habilitado, las transacciones importadas de esta tarjeta se marcan como reembolsables por defecto.',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',
