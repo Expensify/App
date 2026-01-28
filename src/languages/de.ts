@@ -6933,6 +6933,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         searchName: 'Name suchen',
         savedSearchesMenuItemTitle: 'Gespeichert',
         topCategories: 'Top-Kategorien',
+        topMerchants: 'Top-Händler',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
             approve: 'Genehmigen',
@@ -6995,6 +6996,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Stichwort',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
             },
@@ -7018,6 +7020,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             accessPlaceHolder: 'Für Details öffnen',
         },
         noCategory: 'Keine Kategorie',
+        noMerchant: 'Kein Händler',
         noTag: 'Kein Tag',
         expenseType: 'Ausgabenart',
         withdrawalType: 'Auszahlungsart',
