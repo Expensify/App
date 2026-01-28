@@ -2449,7 +2449,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 {
-                includeUserToInvite: true,
+                    includeUserToInvite: true,
                 },
             );
 
