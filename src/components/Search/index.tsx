@@ -425,7 +425,6 @@ function Search({
         return [filteredData1, filteredData1.length, allLength];
     }, [
         searchKey,
-        isFocused,
         exportReportActions,
         validGroupBy,
         isDataLoaded,

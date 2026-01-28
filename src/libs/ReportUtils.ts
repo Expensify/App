@@ -64,7 +64,7 @@ import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValue
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type {ErrorFields, Errors, Icon, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
     OriginalMessageChangeLog,
     OriginalMessageChangePolicy,
@@ -6211,14 +6211,6 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, isPolicyNamePreferred = 
 function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers: PendingChatMember[], pendingAction: PendingAction): PendingChatMember[] {
     const pendingChatMembers = accountIDs.map((accountID) => ({accountID: accountID.toString(), pendingAction}));
     return [...previousPendingChatMembers, ...pendingChatMembers];
-}
-
-/**
- * Get pendingFields of a report
- */
-function getReportPendingFields(reportID: string): PendingFields<string> | undefined {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return report?.pendingFields;
 }
 
 /**
@@ -13103,7 +13095,6 @@ export {
     getParticipantsList,
     getParticipants,
     getPendingChatMembers,
-    getReportPendingFields,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,
