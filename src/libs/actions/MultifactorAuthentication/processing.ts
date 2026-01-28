@@ -19,6 +19,7 @@ type RegistrationParams = {
     validateCode: string;
     authenticationMethod: MarqetaAuthTypeName;
     challenge: string;
+    currentPublicKeyIDs: string[];
 };
 
 function createKeyInfoObject({publicKey, challenge}: {publicKey: string; challenge: string}): MultifactorAuthenticationKeyInfo {
@@ -65,6 +66,8 @@ async function processRegistration(params: RegistrationParams): Promise<ProcessR
         keyInfo,
         validateCode: Number(params.validateCode),
         authenticationMethod: params.authenticationMethod,
+        publicKey: params.publicKey,
+        currentPublicKeyIDs: params.currentPublicKeyIDs,
     });
 
     const success = String(httpCode).startsWith('2');

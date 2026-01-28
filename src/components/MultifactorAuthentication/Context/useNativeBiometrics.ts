@@ -57,6 +57,9 @@ type UseNativeBiometricsReturn = {
     /** Whether any device is registered for this account (from Onyx) */
     isAnyDeviceRegistered: boolean;
 
+    /** List of registered public key IDs from backend */
+    registeredPublicKeyIDs: string[];
+
     /** Check if device supports biometrics */
     doesDeviceSupportBiometrics: () => boolean;
 
@@ -307,6 +310,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     return {
         info,
         isAnyDeviceRegistered,
+        registeredPublicKeyIDs: multifactorAuthenticationPublicKeyIDs ?? [],
         doesDeviceSupportBiometrics,
         isRegisteredLocally,
         isRegisteredInAuth,

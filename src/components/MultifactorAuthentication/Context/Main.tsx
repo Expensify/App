@@ -122,6 +122,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     validateCode,
                     authenticationMethod: result.authenticationMethod as MarqetaAuthTypeName,
                     challenge: result.challenge,
+                    currentPublicKeyIDs: biometrics.registeredPublicKeyIDs,
                 });
 
                 if (!registrationResult.success) {

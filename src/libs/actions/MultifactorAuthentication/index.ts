@@ -27,12 +27,41 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Please consult before using this pattern.
  */
 
-async function registerAuthenticationKey({keyInfo, validateCode, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
+type RegisterAuthenticationKeyParams = {
+    keyInfo: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']['keyInfo'];
+    validateCode: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']['validateCode'];
+    authenticationMethod: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']['authenticationMethod'];
+    publicKey: string;
+    currentPublicKeyIDs: string[];
+};
+
+async function registerAuthenticationKey({keyInfo, validateCode, authenticationMethod, publicKey, currentPublicKeyIDs}: RegisterAuthenticationKeyParams) {
+    const optimisticPublicKeyIDs = [...currentPublicKeyIDs, publicKey];
+
     try {
         const response = await makeRequestWithSideEffects(
             SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY,
             {keyInfo: JSON.stringify(keyInfo), validateCode, authenticationMethod},
-            {},
+            {
+                optimisticData: [
+                    {
+                        onyxMethod: 'merge',
+                        key: ONYXKEYS.ACCOUNT,
+                        value: {
+                            multifactorAuthenticationPublicKeyIDs: optimisticPublicKeyIDs,
+                        },
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: 'merge',
+                        key: ONYXKEYS.ACCOUNT,
+                        value: {
+                            multifactorAuthenticationPublicKeyIDs: currentPublicKeyIDs,
+                        },
+                    },
+                ],
+            },
         );
 
         const {jsonCode, message} = response ?? {};
