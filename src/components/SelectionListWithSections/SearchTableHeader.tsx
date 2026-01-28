@@ -265,10 +265,12 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
         {
             columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
             translationKey: 'common.expenses' as TranslationPaths,
+            isColumnSortable: true,
         },
         {
             columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
             translationKey: 'common.total' as TranslationPaths,
+            isColumnSortable: true,
         },
     ];
     switch (groupBy) {
