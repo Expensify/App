@@ -925,887 +925,869 @@ describe('actions/IOU', () => {
             expect(policyOnyx?.employeeList?.[accountant.login].role).toBe(CONST.POLICY.ROLE.ADMIN);
         });
 
-        // =====================================================
-        // UNIT TESTS - Testing trackExpense function behavior
-        // =====================================================
+        it('should create optimistic transaction with correct amount and currency', async () => {
+            // Given a selfDM report and transaction data
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-unit-1',
+            };
+            const testAmount = 15000; // $150.00
+            const testCurrency = 'USD';
+            const testMerchant = 'Unit Test Merchant';
 
-        describe('Unit Tests', () => {
-            it('should create optimistic transaction with correct amount and currency', async () => {
-                // Given a selfDM report and transaction data
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-unit-1',
-                };
-                const testAmount = 15000; // $150.00
-                const testCurrency = 'USD';
-                const testMerchant = 'Unit Test Merchant';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            // When trackExpense is called with specific amount and currency
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: testAmount,
+                    currency: testCurrency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: testMerchant,
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
 
-                // When trackExpense is called with specific amount and currency
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: testAmount,
-                        currency: testCurrency,
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: testMerchant,
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Then transaction should be created with correct values
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
-
-                const createdTransaction = Object.values(transactions ?? {}).at(0);
-                expect(createdTransaction).toBeTruthy();
-                // Amount is stored as negative for track expenses
-                expect(Math.abs(createdTransaction?.amount ?? 0)).toBe(testAmount);
-                expect(createdTransaction?.currency).toBe(testCurrency);
-                expect(createdTransaction?.merchant).toBe(testMerchant);
+            // Then transaction should be created with correct values
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
             });
 
-            it('should create actionable track expense whisper for selfDM reports', async () => {
-                // Given a selfDM report
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-unit-2',
-                };
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-
-                // When trackExpense is called on selfDM
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 5000,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Test Merchant',
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Then an actionable track expense whisper should be created
-                const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
-
-                const actionableWhisper = Object.values(reportActions ?? {}).find((action) => isActionableTrackExpense(action));
-                expect(actionableWhisper).toBeTruthy();
-            });
-
-            it('should set correct tax fields when tax parameters are provided', async () => {
-                // Given a selfDM report and transaction with tax
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-unit-3',
-                };
-                const testTaxCode = 'TAX_CODE_1';
-                const testTaxAmount = 500; // $5.00 tax
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-
-                // When trackExpense is called with tax parameters
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 10000,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Tax Test Merchant',
-                        taxCode: testTaxCode,
-                        taxAmount: testTaxAmount,
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Then transaction should have correct tax fields
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
-
-                const createdTransaction = Object.values(transactions ?? {}).at(0);
-                expect(createdTransaction?.taxCode).toBe(testTaxCode);
-                expect(createdTransaction?.taxAmount).toBe(testTaxAmount);
-            });
-
-            it('should set billable and reimbursable flags correctly', async () => {
-                // Given a selfDM report
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-unit-4',
-                };
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-
-                // When trackExpense is called with billable=true and reimbursable=true
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 7500,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Billable Test',
-                        billable: true,
-                        reimbursable: true,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Then transaction should have correct billable and reimbursable flags
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
-
-                const createdTransaction = Object.values(transactions ?? {}).at(0);
-                expect(createdTransaction?.billable).toBe(true);
-                expect(createdTransaction?.reimbursable).toBe(true);
-            });
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            // Amount is stored as negative for track expenses
+            expect(Math.abs(createdTransaction?.amount ?? 0)).toBe(testAmount);
+            expect(createdTransaction?.currency).toBe(testCurrency);
+            expect(createdTransaction?.merchant).toBe(testMerchant);
         });
 
-        // =====================================================
-        // FUNCTIONAL TESTS - Testing complete workflows
-        // =====================================================
+        it('should create actionable track expense whisper for selfDM reports', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-unit-2',
+            };
 
-        describe('Functional Tests', () => {
-            it('should complete full track expense flow: create -> categorize -> submit to workspace', async () => {
-                // Given a selfDM report, policy, and expense chat
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-func-1',
-                };
-                const policy = createRandomPolicy(1);
-                const policyExpenseChat: Report = {
-                    ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                    reportID: 'expense-chat-func-1',
-                    policyID: policy.id,
-                    type: CONST.REPORT.TYPE.CHAT,
-                    isOwnPolicyExpenseChat: true,
-                };
-                const policyCategories = createRandomPolicyCategories(3);
-                const selectedCategory = Object.keys(policyCategories).at(0) ?? '';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-
-                // STEP 1: Create tracked expense in selfDM
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 25000,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Functional Test Restaurant',
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Verify initial expense was created
-                const selfDMReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
-
-                expect(Object.values(selfDMReportActions ?? {}).length).toBe(2);
-                const moneyRequestAction = Object.values(selfDMReportActions ?? {}).find((action) => isMoneyRequestAction(action));
-                const actionableWhisper = Object.values(selfDMReportActions ?? {}).find((action) => isActionableTrackExpense(action));
-                expect(moneyRequestAction).toBeTruthy();
-                expect(actionableWhisper).toBeTruthy();
-
-                // Get the created transaction
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
-                const createdTransaction = Object.values(transactions ?? {}).at(0);
-                expect(createdTransaction).toBeTruthy();
-
-                // STEP 2: Create draft for categorization
-                createDraftTransactionAndNavigateToParticipantSelector(
-                    createdTransaction?.transactionID,
-                    selfDMReport.reportID,
-                    CONST.IOU.ACTION.CATEGORIZE,
-                    actionableWhisper?.reportActionID,
-                    {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                    {},
-                    undefined,
-                );
-                await waitForBatchedUpdates();
-
-                // Verify draft was created
-                let transactionDrafts: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactionDrafts = val;
-                    },
-                });
-                const draftTransaction = transactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${createdTransaction?.transactionID}`];
-                expect(draftTransaction).toBeTruthy();
-
-                // STEP 3: Categorize and submit to workspace
-                trackExpense({
-                    report: policyExpenseChat,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CATEGORIZE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
-                    },
-                    policyParams: {
-                        policy,
-                        policyCategories,
-                    },
-                    transactionParams: {
-                        amount: draftTransaction?.amount ?? 25000,
-                        currency: draftTransaction?.currency ?? 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: draftTransaction?.merchant ?? 'Functional Test Restaurant',
-                        category: selectedCategory,
-                        actionableWhisperReportActionID: draftTransaction?.actionableWhisperReportActionID,
-                        linkedTrackedExpenseReportAction: moneyRequestAction,
-                        linkedTrackedExpenseReportID: selfDMReport.reportID,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Verify transaction was categorized
-                let finalTransactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        finalTransactions = val;
-                    },
-                });
-                const categorizedTransaction = finalTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${createdTransaction?.transactionID}`];
-                expect(categorizedTransaction?.category).toBe(selectedCategory);
+            // When trackExpense is called on selfDM
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 5000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Test Merchant',
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
             });
+            await waitForBatchedUpdates();
 
-            it('should handle expense with attendees correctly', async () => {
-                // Given a selfDM report with attendees data
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-func-2',
-                };
-                const testAttendees = [
-                    {email: 'attendee1@test.com', displayName: 'Attendee One', avatarUrl: ''},
-                    {email: 'attendee2@test.com', displayName: 'Attendee Two', avatarUrl: ''},
-                ];
+            // Then an actionable track expense whisper should be created
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-
-                // When trackExpense is called with attendees
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 30000,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Team Lunch',
-                        attendees: testAttendees,
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Then transaction should have attendees
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
-
-                const createdTransaction = Object.values(transactions ?? {}).at(0);
-                expect(createdTransaction?.comment?.attendees).toHaveLength(2);
-                expect(createdTransaction?.comment?.attendees?.at(0)?.email).toBe('attendee1@test.com');
-            });
-
-            it('should update quick action when tracking expense to policy expense chat', async () => {
-                // Given a policy expense chat
-                const policy = createRandomPolicy(1);
-                const policyExpenseChat: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                    reportID: 'expense-chat-func-2',
-                    policyID: policy.id,
-                    type: CONST.REPORT.TYPE.CHAT,
-                    isOwnPolicyExpenseChat: true,
-                };
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-
-                // When trackExpense is called on policy expense chat
-                trackExpense({
-                    report: policyExpenseChat,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
-                    },
-                    policyParams: {
-                        policy,
-                    },
-                    transactionParams: {
-                        amount: 12000,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Quick Action Test',
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Then quick action should be updated
-                const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-                expect(quickAction).toBeTruthy();
-                expect(quickAction?.chatReportID).toBe(policyExpenseChat.reportID);
-            });
+            const actionableWhisper = Object.values(reportActions ?? {}).find((action) => isActionableTrackExpense(action));
+            expect(actionableWhisper).toBeTruthy();
         });
 
-        // =====================================================
-        // QA TESTS - Testing edge cases and error scenarios
-        // =====================================================
+        it('should set correct tax fields when tax parameters are provided', async () => {
+            // Given a selfDM report and transaction with tax
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-unit-3',
+            };
+            const testTaxCode = 'TAX_CODE_1';
+            const testTaxAmount = 500; // $5.00 tax
 
-        describe('QA Tests', () => {
-            it('should handle tracking expense without merchant gracefully', async () => {
-                // Given a selfDM report and no merchant
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-qa-1',
-                };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            // When trackExpense is called with tax parameters
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 10000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Tax Test Merchant',
+                    taxCode: testTaxCode,
+                    taxAmount: testTaxAmount,
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
 
-                // When trackExpense is called without merchant
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 5000,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: '', // Empty merchant
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
+            // Then transaction should have correct tax fields
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
 
-                // Then transaction should still be created
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction?.taxCode).toBe(testTaxCode);
+            expect(createdTransaction?.taxAmount).toBe(testTaxAmount);
+        });
+
+        it('should set billable and reimbursable flags correctly', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-unit-4',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with billable=true and reimbursable=true
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 7500,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Billable Test',
+                    billable: true,
+                    reimbursable: true,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then transaction should have correct billable and reimbursable flags
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction?.billable).toBe(true);
+            expect(createdTransaction?.reimbursable).toBe(true);
+        });
+
+        it('should complete full track expense flow: create -> categorize -> submit to workspace', async () => {
+            // Given a selfDM report, policy, and expense chat
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-func-1',
+            };
+            const policy = createRandomPolicy(1);
+            const policyExpenseChat: Report = {
+                ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: 'expense-chat-func-1',
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+            const policyCategories = createRandomPolicyCategories(3);
+            const selectedCategory = Object.keys(policyCategories).at(0) ?? '';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // STEP 1: Create tracked expense in selfDM
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 25000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Functional Test Restaurant',
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Verify initial expense was created
+            const selfDMReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+
+            expect(Object.values(selfDMReportActions ?? {}).length).toBe(2);
+            const moneyRequestAction = Object.values(selfDMReportActions ?? {}).find((action) => isMoneyRequestAction(action));
+            const actionableWhisper = Object.values(selfDMReportActions ?? {}).find((action) => isActionableTrackExpense(action));
+            expect(moneyRequestAction).toBeTruthy();
+            expect(actionableWhisper).toBeTruthy();
+
+            // Get the created transaction
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+
+            // STEP 2: Create draft for categorization
+            createDraftTransactionAndNavigateToParticipantSelector(
+                createdTransaction?.transactionID,
+                selfDMReport.reportID,
+                CONST.IOU.ACTION.CATEGORIZE,
+                actionableWhisper?.reportActionID,
+                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                {},
+                undefined,
+            );
+            await waitForBatchedUpdates();
+
+            // Verify draft was created
+            let transactionDrafts: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactionDrafts = val;
+                },
+            });
+            const draftTransaction = transactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${createdTransaction?.transactionID}`];
+            expect(draftTransaction).toBeTruthy();
+
+            // STEP 3: Categorize and submit to workspace
+            trackExpense({
+                report: policyExpenseChat,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CATEGORIZE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                    policyCategories,
+                },
+                transactionParams: {
+                    amount: draftTransaction?.amount ?? 25000,
+                    currency: draftTransaction?.currency ?? 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: draftTransaction?.merchant ?? 'Functional Test Restaurant',
+                    category: selectedCategory,
+                    actionableWhisperReportActionID: draftTransaction?.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: moneyRequestAction,
+                    linkedTrackedExpenseReportID: selfDMReport.reportID,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Verify transaction was categorized
+            let finalTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    finalTransactions = val;
+                },
+            });
+            const categorizedTransaction = finalTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${createdTransaction?.transactionID}`];
+            expect(categorizedTransaction?.category).toBe(selectedCategory);
+        });
+
+        it('should handle expense with attendees correctly', async () => {
+            // Given a selfDM report with attendees data
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-func-2',
+            };
+            const testAttendees = [
+                {email: 'attendee1@test.com', displayName: 'Attendee One', avatarUrl: ''},
+                {email: 'attendee2@test.com', displayName: 'Attendee Two', avatarUrl: ''},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with attendees
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 30000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Team Lunch',
+                    attendees: testAttendees,
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then transaction should have attendees
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction?.comment?.attendees).toHaveLength(2);
+            expect(createdTransaction?.comment?.attendees?.at(0)?.email).toBe('attendee1@test.com');
+        });
+
+        it('should update quick action when tracking expense to policy expense chat', async () => {
+            // Given a policy expense chat
+            const policy = createRandomPolicy(1);
+            const policyExpenseChat: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: 'expense-chat-func-2',
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When trackExpense is called on policy expense chat
+            trackExpense({
+                report: policyExpenseChat,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                },
+                transactionParams: {
+                    amount: 12000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Quick Action Test',
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then quick action should be updated
+            const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+            expect(quickAction).toBeTruthy();
+            expect(quickAction?.chatReportID).toBe(policyExpenseChat.reportID);
+        });
+
+        it('should handle tracking expense without merchant gracefully', async () => {
+            // Given a selfDM report and no merchant
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-qa-1',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called without merchant
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 5000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: '', // Empty merchant
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then transaction should still be created
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            expect(Object.values(transactions ?? {}).length).toBeGreaterThan(0);
+        });
+
+        it('should handle zero amount expense', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-qa-2',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with zero amount
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 0,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Zero Amount Test',
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then transaction should be created with zero amount
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            // trackExpense negates the amount, so 0 becomes -0, defaults to 1 to be able to use Math.abs
+            expect(createdTransaction).toBeTruthy();
+            expect(Object.is(Math.abs(createdTransaction?.amount ?? 1), 0)).toBe(true);
+        });
+
+        it('should handle different currency codes correctly', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-qa-3',
+            };
+            const testCurrency = 'EUR';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with EUR currency
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 8500,
+                    currency: testCurrency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'European Merchant',
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then transaction should have correct currency
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction?.currency).toBe(testCurrency);
+        });
+
+        it('should create optimistic selfDM report when none exists', async () => {
+            // Given no selfDM report exists (cleared Onyx)
+            // The function should handle this by creating an optimistic selfDM
+
+            // When trackExpense is called with undefined report (will trigger selfDM creation)
+            trackExpense({
+                report: undefined,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 3000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Optimistic SelfDM Test',
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then a selfDM report should be created optimistically
+            const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
                     waitForCollectionCallback: true,
                     callback: (val) => {
-                        transactions = val;
+                        Onyx.disconnect(connection);
+                        resolve(val);
                     },
                 });
-
-                expect(Object.values(transactions ?? {}).length).toBeGreaterThan(0);
             });
 
-            it('should handle zero amount expense', async () => {
-                // Given a selfDM report
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-qa-2',
-                };
+            const selfDMReports = Object.values(reports ?? {}).filter((r) => r?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM);
+            expect(selfDMReports.length).toBeGreaterThan(0);
+        });
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        it('should handle API failure gracefully with failure data', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-qa-5',
+            };
 
-                // When trackExpense is called with zero amount
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 0,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Zero Amount Test',
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-                // Then transaction should be created with zero amount
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
+            // Simulate API failure
+            mockFetch?.fail?.();
 
-                const createdTransaction = Object.values(transactions ?? {}).at(0);
-                // trackExpense negates the amount, so 0 becomes -0, defaults to 1 to be able to use Math.abs
-                expect(createdTransaction).toBeTruthy();
-                expect(Object.is(Math.abs(createdTransaction?.amount ?? 1), 0)).toBe(true);
+            // When trackExpense is called
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 5000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Failure Test',
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then optimistic data should still be created initially
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
             });
 
-            it('should handle different currency codes correctly', async () => {
-                // Given a selfDM report
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-qa-3',
-                };
-                const testCurrency = 'EUR';
+            // Transaction should exist (optimistically)
+            expect(Object.values(transactions ?? {}).length).toBeGreaterThan(0);
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            // Reset mock to succeed for other tests
+            mockFetch?.succeed?.();
+        });
 
-                // When trackExpense is called with EUR currency
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 8500,
-                        currency: testCurrency,
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'European Merchant',
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
+        it('should handle category and tag together correctly', async () => {
+            // Given a selfDM report with category and tag
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-qa-6',
+            };
+            const testCategory = 'Travel';
+            const testTag = 'Business Trip';
 
-                // Then transaction should have correct currency
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-                const createdTransaction = Object.values(transactions ?? {}).at(0);
-                expect(createdTransaction?.currency).toBe(testCurrency);
+            // When trackExpense is called with category and tag
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 50000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Airline',
+                    category: testCategory,
+                    tag: testTag,
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then transaction should have correct category and tag
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
             });
 
-            it('should create optimistic selfDM report when none exists', async () => {
-                // Given no selfDM report exists (cleared Onyx)
-                // The function should handle this by creating an optimistic selfDM
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction?.category).toBe(testCategory);
+            expect(createdTransaction?.tag).toBe(testTag);
+        });
 
-                // When trackExpense is called with undefined report (will trigger selfDM creation)
-                trackExpense({
-                    report: undefined,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 3000,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Optimistic SelfDM Test',
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
+        it('should handle very large expense amounts', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-qa-7',
+            };
+            const largeAmount = 99999999; // Large amount in cents
 
-                // Then a selfDM report should be created optimistically
-                const reports = await new Promise<OnyxCollection<Report>>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.REPORT,
-                        waitForCollectionCallback: true,
-                        callback: (val) => {
-                            Onyx.disconnect(connection);
-                            resolve(val);
-                        },
-                    });
-                });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-                const selfDMReports = Object.values(reports ?? {}).filter((r) => r?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM);
-                expect(selfDMReports.length).toBeGreaterThan(0);
+            // When trackExpense is called with very large amount
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: largeAmount,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Large Purchase',
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then transaction should handle large amount correctly
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
             });
 
-            it('should handle API failure gracefully with failure data', async () => {
-                // Given a selfDM report
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-qa-5',
-                };
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(Math.abs(createdTransaction?.amount ?? 0)).toBe(largeAmount);
+        });
 
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        it('should handle expense with special characters in merchant name', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-qa-8',
+            };
+            const specialMerchant = "McDonald's & Café ñ 日本語";
 
-                // Simulate API failure
-                mockFetch?.fail?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-                // When trackExpense is called
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 5000,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Failure Test',
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
+            // When trackExpense is called with special characters in merchant
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount: 1500,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: specialMerchant,
+                    billable: false,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints: [],
+            });
+            await waitForBatchedUpdates();
 
-                // Then optimistic data should still be created initially
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
-
-                // Transaction should exist (optimistically)
-                expect(Object.values(transactions ?? {}).length).toBeGreaterThan(0);
-
-                // Reset mock to succeed for other tests
-                mockFetch?.succeed?.();
+            // Then transaction should preserve special characters
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
             });
 
-            it('should handle category and tag together correctly', async () => {
-                // Given a selfDM report with category and tag
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-qa-6',
-                };
-                const testCategory = 'Travel';
-                const testTag = 'Business Trip';
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-
-                // When trackExpense is called with category and tag
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 50000,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Airline',
-                        category: testCategory,
-                        tag: testTag,
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Then transaction should have correct category and tag
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
-
-                const createdTransaction = Object.values(transactions ?? {}).at(0);
-                expect(createdTransaction?.category).toBe(testCategory);
-                expect(createdTransaction?.tag).toBe(testTag);
-            });
-
-            it('should handle very large expense amounts', async () => {
-                // Given a selfDM report
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-qa-7',
-                };
-                const largeAmount = 99999999; // Large amount in cents
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-
-                // When trackExpense is called with very large amount
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: largeAmount,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: 'Large Purchase',
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Then transaction should handle large amount correctly
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
-
-                const createdTransaction = Object.values(transactions ?? {}).at(0);
-                expect(Math.abs(createdTransaction?.amount ?? 0)).toBe(largeAmount);
-            });
-
-            it('should handle expense with special characters in merchant name', async () => {
-                // Given a selfDM report
-                const selfDMReport: Report = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                    reportID: 'selfDM-qa-8',
-                };
-                const specialMerchant = "McDonald's & Café ñ 日本語";
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-
-                // When trackExpense is called with special characters in merchant
-                trackExpense({
-                    report: selfDMReport,
-                    isDraftPolicy: false,
-                    action: CONST.IOU.ACTION.CREATE,
-                    participantParams: {
-                        payeeEmail: RORY_EMAIL,
-                        payeeAccountID: RORY_ACCOUNT_ID,
-                        participant: {accountID: RORY_ACCOUNT_ID},
-                    },
-                    transactionParams: {
-                        amount: 1500,
-                        currency: 'USD',
-                        created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                        merchant: specialMerchant,
-                        billable: false,
-                    },
-                    isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                    currentUserEmailParam: RORY_EMAIL,
-                    introSelected: undefined,
-                    activePolicyID: undefined,
-                    quickAction: undefined,
-                    recentWaypoints: [],
-                });
-                await waitForBatchedUpdates();
-
-                // Then transaction should preserve special characters
-                let transactions: OnyxCollection<Transaction>;
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (val) => {
-                        transactions = val;
-                    },
-                });
-
-                const createdTransaction = Object.values(transactions ?? {}).at(0);
-                expect(createdTransaction?.merchant).toBe(specialMerchant);
-            });
+            const createdTransaction = Object.values(transactions ?? {}).at(0);
+            expect(createdTransaction?.merchant).toBe(specialMerchant);
         });
     });
 
