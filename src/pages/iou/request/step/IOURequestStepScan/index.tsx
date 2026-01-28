@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {InteractionManager, PanResponder, StyleSheet, View} from 'react-native';
@@ -29,6 +28,7 @@ import useIOUUtils from '@hooks/useIOUUtils';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -118,16 +118,8 @@ function IOURequestStepScan({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
 
-    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
-
-    const transactions = useMemo(() => {
-        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
-        return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, optimisticTransactions]);
+    const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const isTabActive = useIsFocused();

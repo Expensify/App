@@ -35,8 +35,8 @@ import {
     isMapDistanceRequest as isMapDistanceRequestUtil,
     isScanning,
 } from '@libs/TransactionUtils';
-import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
-import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
+import withReportAndReportActionOrNotFound from '@pages/inbox/report/withReportAndReportActionOrNotFound';
+import type {WithReportAndReportActionOrNotFoundProps} from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
