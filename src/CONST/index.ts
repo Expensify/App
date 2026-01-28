@@ -1261,6 +1261,7 @@ const CONST = {
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
+                PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
@@ -6886,6 +6887,7 @@ const CONST = {
             FROM: 'from',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
+            MERCHANT: 'merchant',
             CATEGORY: 'category',
             TAG: 'tag',
             MONTH: 'month',
@@ -6970,6 +6972,11 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                MERCHANT: {
+                    MERCHANT: this.TABLE_COLUMNS.GROUP_MERCHANT,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
                 TAG: {
                     TAG: this.TABLE_COLUMNS.GROUP_TAG,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
@@ -7022,6 +7029,7 @@ const CONST = {
                     this.TABLE_COLUMNS.GROUP_TOTAL,
                 ],
                 CATEGORY: [this.TABLE_COLUMNS.GROUP_CATEGORY, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                MERCHANT: [this.TABLE_COLUMNS.GROUP_MERCHANT, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 TAG: [this.TABLE_COLUMNS.GROUP_TAG, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
@@ -7120,6 +7128,7 @@ const CONST = {
             GROUP_WITHDRAWN: 'groupWithdrawn',
             GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
             GROUP_CATEGORY: 'groupCategory',
+            GROUP_MERCHANT: 'groupMerchant',
             GROUP_TAG: 'groupTag',
             GROUP_MONTH: 'groupmonth',
         },
@@ -7203,6 +7212,7 @@ const CONST = {
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
+        MERCHANT_EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
@@ -7310,6 +7320,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'group-withdrawn',
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'group-withdrawal-id',
                 [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
+                [this.TABLE_COLUMNS.GROUP_MERCHANT]: 'group-merchant',
                 [this.TABLE_COLUMNS.GROUP_TAG]: 'group-tag',
             };
         },
@@ -7354,6 +7365,7 @@ const CONST = {
             RECONCILIATION: 'reconciliation',
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
+            TOP_MERCHANTS: 'topMerchants',
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {
