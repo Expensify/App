@@ -141,7 +141,7 @@ Create dynamic flight budgets for domestic and international flights.
 Set budgets in two ways:
 - **Maximum price per booking** for all flights booked under the policy
   - Further customization is possible, setting a maximum price based on the flight duration, allowing higher budgets for longer flights.
-- Dynmaic **Amount or % over** the maximum price per booking, which includes the following options:
+- Dynamic **Amount or % over** the maximum price per booking, which includes the following options:
   - None
   - More than lowest fare
   - More than median fare
