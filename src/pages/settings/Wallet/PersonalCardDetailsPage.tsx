@@ -64,7 +64,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const reimbursableSetting = card?.reimbursable ?? true;
     const isCSVImportedPersonalCard = !!(isPersonalCard && card && (card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
 
-    const handleUnassignCard = () => {
+    const removeCardFromUser = () => {
         setIsUnassignModalVisible(false);
         if (!card) {
             Navigation.goBack();
@@ -244,7 +244,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                 <ConfirmModal
                     title={translate('workspace.moreFeatures.companyCards.unassignCard')}
                     isVisible={isUnassignModalVisible}
-                    onConfirm={handleUnassignCard}
+                    onConfirm={removeCardFromUser}
                     onCancel={() => setIsUnassignModalVisible(false)}
                     shouldSetModalVisibility={false}
                     prompt={translate('workspace.moreFeatures.companyCards.unassignCardDescription')}
