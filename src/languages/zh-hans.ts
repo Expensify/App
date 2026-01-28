@@ -6984,6 +6984,8 @@ ${reportName}
                     `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您的企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用您的 Expensify 卡。`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `企业银行账户 ${maskedBankAccountNumber} 由于报销或 Expensify Card 结算问题已被自动锁定。请前往<a href="${linkURL}">工作区设置</a>中解决该问题。`,
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',
