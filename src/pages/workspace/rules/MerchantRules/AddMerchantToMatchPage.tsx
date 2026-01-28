@@ -113,6 +113,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                     title={getMatchTypeLabel()}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined))}
+                    wrapperStyle={styles.mhn5}
                 />
             </FormProvider>
         </ScreenWrapper>
