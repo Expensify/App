@@ -1,8 +1,10 @@
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isOpenExpenseReport} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -25,6 +28,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [merchant = ''] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true, selector: merchantRuleFormSelector});
 
     const matchingReportIDsSelector = useCallback(
@@ -77,8 +81,13 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     }, [merchant, policyID]);
 
     const onBack = () => {
-        Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+        Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
+
+    const matchingTransactionsArray = Array.from(matchingTransactions ?? []);
+    const hasMatchingTransactions = !!merchant && !!matchingTransactionsArray.length;
+
+    console.log(hasMatchingTransactions);
 
     return (
         <ScreenWrapper
@@ -91,7 +100,18 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                 title={translate('workspace.rules.merchantRules.previewMatches')}
                 onBackButtonPress={onBack}
             />
-            <View style={[styles.flex1]}></View>
+            <View style={[styles.flex1]}>
+                {!hasMatchingTransactions && (
+                    <BlockingView
+                        icon={illustrations.Telescope}
+                        iconWidth={variables.emptyListIconWidth}
+                        iconHeight={variables.emptyListIconHeight}
+                        title={translate('workspace.netsuite.noAccountsFound')}
+                        subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+                        containerStyle={styles.pb10}
+                    />
+                )}
+            </View>
         </ScreenWrapper>
     );
 }
