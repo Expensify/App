@@ -53,7 +53,7 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-        resetSplitExpensesByDateRange(transaction, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE]);
+        resetSplitExpensesByDateRange(transaction, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE], currentPolicy);
         Navigation.goBack(backTo);
     };
 

@@ -50,7 +50,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -114,6 +114,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
+    const isDistance = isDistanceRequest(transaction);
     const isCard = isManagedCardTransaction(transaction);
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const iouActions = getIOUActionForTransactions([originalTransactionID], expenseReport?.reportID);
@@ -147,14 +148,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        addSplitExpenseField(transaction, draftTransaction);
+        addSplitExpenseField(transaction, draftTransaction, currentPolicy);
     };
 
     const onMakeSplitsEven = () => {
         if (!draftTransaction) {
             return;
         }
-        evenlyDistributeSplitExpenseAmounts(draftTransaction);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, currentPolicy);
     };
 
     const onSaveSplitExpense = () => {
@@ -182,12 +183,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        if (sumOfSplitExpenses > transactionDetailsAmount) {
+        if (sumOfSplitExpenses > transactionDetailsAmount && !isDistance) {
             const difference = sumOfSplitExpenses - transactionDetailsAmount;
             setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
         }
-        if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard)) {
+        if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard) && !isDistance) {
             const difference = transactionDetailsAmount - sumOfSplitExpenses;
             setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
             return;
@@ -232,10 +233,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy);
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy);
         }
     };
 
@@ -392,6 +393,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
+            Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID, Navigation.getActiveRoute()));
         });
     };
 

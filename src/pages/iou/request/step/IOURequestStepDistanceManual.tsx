@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -17,7 +18,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMoneyRequestParticipantsFromReport, setMoneyRequestDistance, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {getMoneyRequestParticipantsFromReport, setDraftSplitTransaction, setMoneyRequestDistance, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -86,7 +87,11 @@ function IOURequestStepDistanceManual({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
 
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
+    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isCreatingNewRequest = !(backTo || isEditing);
 
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
@@ -95,9 +100,9 @@ function IOURequestStepDistanceManual({
 
     const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
 
-    const customUnitRateID = getRateID(transaction);
-    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
-    const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
+    const customUnitRateID = getRateID(currentTransaction);
+    const unit = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
+    const distance = typeof currentTransaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(currentTransaction.comment.customUnit.quantity) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     useEffect(() => {
@@ -145,6 +150,13 @@ function IOURequestStepDistanceManual({
             setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft);
 
             if (action === CONST.IOU.ACTION.EDIT) {
+                // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+                if (isEditingSplit && transaction) {
+                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
+                    Navigation.goBack(backTo);
+                    return;
+                }
+
                 if (distance !== distanceAsFloat) {
                     updateMoneyRequestDistance({
                         transactionID: transaction?.transactionID,
@@ -200,35 +212,38 @@ function IOURequestStepDistanceManual({
             transactionID,
             isTransactionDraft,
             action,
-            backTo,
-            report,
-            isArchived,
             iouType,
-            distance,
-            transaction,
-            parentReport,
+            report,
             policy,
-            policyTags,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            shouldSkipConfirmation,
-            personalDetails,
+            transaction,
+            reportID,
             reportAttributesDerived,
-            translate,
-            lastSelectedDistanceRates,
+            personalDetails,
+            customUnitRateID,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
+            backTo,
             backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            isArchived,
+            personalPolicy?.autoReporting,
+            isASAPSubmitBetaEnabled,
             transactionViolations,
+            lastSelectedDistanceRates,
+            translate,
             quickAction,
             policyRecentlyUsedCurrencies,
-            customUnitRateID,
             introSelected,
             activePolicyID,
-            defaultExpensePolicy,
-            personalPolicy?.autoReporting,
-            reportID,
-            currentUserPersonalDetails.accountID,
+            reportNameValuePairs?.private_isArchived,
+            isEditingSplit,
+            distance,
+            splitDraftTransaction,
+            parentReport,
+            policyTags,
+            policyCategories,
+            parentReportNextStep,
         ],
     );
 
