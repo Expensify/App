@@ -13,10 +13,12 @@ import type SCREENS from '@src/SCREENS';
 type AddMerchantToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH>;
 
 function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
-    const policyID = route.params.policyID;
+    const {policyID, ruleID} = route.params;
+    const isEditing = ruleID !== ROUTES.NEW;
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+        const backRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
+        Navigation.goBack(backRoute);
     };
 
     const onSave = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
