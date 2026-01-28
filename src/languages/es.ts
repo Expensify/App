@@ -8137,6 +8137,7 @@ ${amount} para ${merchant} - ${date}`,
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',
         conciergeWillSend: 'Concierge te enviará el archivo en breve.',
+        openConcierge: 'Abrir Concierge',
     },
     openAppFailureModal: {
         title: 'Algo salió mal...',
