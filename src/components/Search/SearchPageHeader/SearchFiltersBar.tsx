@@ -193,7 +193,7 @@ function SearchFiltersBar({
             {text: translate('search.view.table'), value: CONST.SEARCH.VIEW.TABLE},
             {text: translate('search.view.bar'), value: CONST.SEARCH.VIEW.BAR},
         ];
-        const value = options.find((option) => option.value === unsafeView) ?? options.at(0);
+        const value = options.find((option) => option.value === unsafeView) ?? options.at(0) ?? null;
         return [options, value];
     }, [translate, unsafeView]);
 
