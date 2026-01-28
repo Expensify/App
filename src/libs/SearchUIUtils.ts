@@ -2292,25 +2292,6 @@ function getMerchantSections(data: OnyxTypes.SearchResults['data'], queryJSON: S
                 rawMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT;
             const formattedMerchant = isEmptyMerchant ? translate('search.noMerchant') : rawMerchant;
 
-            // DEBUG: Log merchant processing to identify edge cases
-            // eslint-disable-next-line no-console
-            console.log(
-                '[getMerchantSections] DEBUG:',
-                JSON.stringify({
-                    key,
-                    rawMerchant,
-                    rawMerchantType: typeof rawMerchant,
-                    rawMerchantLength: rawMerchant?.length,
-                    rawMerchantCharCodes: rawMerchant ? Array.from(rawMerchant).map((c) => c.charCodeAt(0)) : [],
-                    MERCHANT_EMPTY_VALUE: CONST.SEARCH.MERCHANT_EMPTY_VALUE,
-                    DEFAULT_MERCHANT: CONST.TRANSACTION.DEFAULT_MERCHANT,
-                    PARTIAL_TRANSACTION_MERCHANT: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                    UNKNOWN_MERCHANT: CONST.TRANSACTION.UNKNOWN_MERCHANT,
-                    isEmptyMerchant,
-                    formattedMerchant,
-                }),
-            );
-
             merchantSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                 transactions: [],
