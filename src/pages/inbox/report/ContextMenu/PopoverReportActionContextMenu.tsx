@@ -108,6 +108,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
     const onPopoverHideActionCallback = useRef(() => {});
     const callbackWhenDeleteModalHide = useRef(() => {});
+    const resolveShowDeleteModalPromiseRef = useRef<(() => void) | null>(null);
 
     /** Get the Context menu anchor position. We calculate the anchor coordinates from measureInWindow async method */
     const getContextMenuMeasuredLocation = useCallback(
@@ -409,14 +410,17 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
 
     /** Opens the Confirm delete action modal */
     const showDeleteModal: ReportActionContextMenu['showDeleteModal'] = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
-        onCancelDeleteModal.current = onCancel;
+        return new Promise<void>((resolve) => {
+            resolveShowDeleteModalPromiseRef.current = resolve;
+            onCancelDeleteModal.current = onCancel;
 
-        onConfirmDeleteModal.current = onConfirm;
-        reportIDRef.current = reportID;
-        reportActionRef.current = reportAction ?? null;
+            onConfirmDeleteModal.current = onConfirm;
+            reportIDRef.current = reportID;
+            reportActionRef.current = reportAction ?? null;
 
-        setShouldSetModalVisibilityForDeleteConfirmation(shouldSetModalVisibility);
-        setIsDeleteCommentConfirmModalVisible(true);
+            setShouldSetModalVisibilityForDeleteConfirmation(shouldSetModalVisibility);
+            setIsDeleteCommentConfirmModalVisible(true);
+        });
     };
 
     useImperativeHandle(ref, () => ({
@@ -480,6 +484,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 onModalHide={() => {
                     clearActiveReportAction();
                     callbackWhenDeleteModalHide.current();
+                    resolveShowDeleteModalPromiseRef.current?.();
+                    resolveShowDeleteModalPromiseRef.current = null;
                 }}
                 prompt={translate('reportActionContextMenu.deleteConfirmation', {action: reportAction})}
                 confirmText={translate('common.delete')}
