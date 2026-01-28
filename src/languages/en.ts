@@ -6244,6 +6244,9 @@ const translations = {
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+                matchType: 'Match type',
+                matchTypeContains: 'Contains',
+                matchTypeExact: 'Exactly matches',
             },
             categoryRules: {
                 title: 'Category rules',
