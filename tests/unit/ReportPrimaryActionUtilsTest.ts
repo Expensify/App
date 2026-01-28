@@ -144,8 +144,7 @@ describe('getPrimaryAction', () => {
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
-
-    it('should not return SUBMIT option for admin with only pending/incomplete transactions', async () => {
+    it('should not return SUBMIT option for admin with only pending transactions', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -164,19 +163,6 @@ describe('getPrimaryAction', () => {
             amount: 10,
             merchant: 'Merchant',
             date: '2025-01-01',
-            bank: CONST.EXPENSIFY_CARD.BANK,
-        } as unknown as Transaction;
-
-        const transaction1 = {
-            reportID: `${REPORT_ID}`,
-            amount: 0,
-            modifiedAmount: 0,
-            receipt: {
-                source: 'test',
-                state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
-            },
-            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-            modifiedMerchant: undefined,
         } as unknown as Transaction;
 
         expect(
@@ -185,7 +171,7 @@ describe('getPrimaryAction', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
-                reportTransactions: [transaction, transaction1],
+                reportTransactions: [transaction],
                 violations: {},
                 bankAccountList: {},
                 policy: policy as Policy,
@@ -213,8 +199,6 @@ describe('getPrimaryAction', () => {
             comment: {
                 hold: 'Hold',
             },
-            amount: 10,
-            merchant: 'merchant',
         } as unknown as Transaction;
 
         expect(
@@ -247,14 +231,12 @@ describe('getPrimaryAction', () => {
             approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         };
         const transaction = {
-            amount: 0,
             reportID: `${REPORT_ID}`,
             comment: {
                 hold: 'Hold',
             },
             receipt: {
                 state: CONST.IOU.RECEIPT_STATE.SCANNING,
-                source: 'test',
             },
         } as unknown as Transaction;
 

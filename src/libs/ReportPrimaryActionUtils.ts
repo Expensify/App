@@ -103,12 +103,7 @@ function isSubmitAction(
     }
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
-    if (
-        reportTransactions.length > 0 &&
-        reportTransactions.every((transaction) =>
-            hasSubmissionBlockingViolations(transaction, violations, currentUserEmail ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy),
-        )
-    ) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 

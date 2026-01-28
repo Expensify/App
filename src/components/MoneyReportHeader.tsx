@@ -47,7 +47,7 @@ import Log from '@libs/Log';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {
     buildOptimisticNextStepForDEWOfflineSubmission,
     buildOptimisticNextStepForDynamicExternalWorkflowError,
