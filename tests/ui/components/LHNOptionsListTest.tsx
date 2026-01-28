@@ -15,7 +15,7 @@ import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {getFakeReport} from '../../utils/LHNTestUtils';
 
 // Mock the context menu
-jest.mock('@pages/home/report/ContextMenu/ReportActionContextMenu', () => ({
+jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
     showContextMenu: jest.fn(),
 }));
 

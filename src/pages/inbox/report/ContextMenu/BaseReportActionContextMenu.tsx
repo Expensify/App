@@ -129,7 +129,7 @@ function BaseReportActionContextMenu({
     disabledActions = [],
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const icons = useMemoizedLazyExpensifyIcons([
         'Download',
@@ -147,6 +147,7 @@ function BaseReportActionContextMenu({
         'Bug',
         'Trashcan',
         'Checkmark',
+        'Concierge',
     ] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -196,7 +197,7 @@ function BaseReportActionContextMenu({
     const [childChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.chatReportID}`, {canBeMissing: true});
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportID = useMemo(
         () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
         [paginatedReportActions, isOffline, childReport, childChatReport],
@@ -365,11 +366,18 @@ function BaseReportActionContextMenu({
                             reportAction: (reportAction ?? null) as ReportAction,
                             reportID,
                             report,
+<<<<<<< krishna2323/issue/52984_pr3
                             policy,
                             draftMessage,
                             selection,
                             close: () => setShouldKeepOpen(false),
                             transitionActionSheetState: actionSheetAwareScrollViewContext.transitionActionSheetState,
+=======
+                            draftMessage,
+                            selection,
+                            close: () => setShouldKeepOpen(false),
+                            transitionActionSheetState,
+>>>>>>> main
                             openContextMenu: () => setShouldKeepOpen(true),
                             interceptAnonymousUser,
                             openOverflowMenu,
@@ -383,12 +391,21 @@ function BaseReportActionContextMenu({
                             movedFromReport,
                             movedToReport,
                             getLocalDateFromDatetime,
+<<<<<<< krishna2323/issue/52984_pr3
+=======
+                            policy,
+>>>>>>> main
                             policyTags,
                             translate,
                             harvestReport,
                             isDelegateAccessRestricted,
                             showDelegateNoAccessModal,
+<<<<<<< krishna2323/issue/52984_pr3
                             currentUserAccountID,
+=======
+                            currentUserAccountID: currentUserPersonalDetails?.accountID,
+                            currentUserPersonalDetails,
+>>>>>>> main
                         };
 
                         if ('renderContent' in contextAction) {

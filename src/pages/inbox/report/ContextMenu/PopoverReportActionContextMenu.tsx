@@ -1,10 +1,12 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
+import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -58,6 +60,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
+    const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -69,9 +72,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         horizontal: 0,
         vertical: 0,
     });
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
     const instanceIDRef = useRef('');
-    const {email} = useCurrentUserPersonalDetails();
+    const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
@@ -302,7 +304,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
 
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
+        transitionActionSheetState({
             type: Actions.CLOSE_POPOVER,
         });
 
@@ -363,12 +365,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
                     allTransactionViolationsParam: allTransactionViolations,
+                    currentUserAccountID,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
+            deleteAppReport(reportAction.childReportID, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList);
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
@@ -393,6 +396,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         isOriginalReportArchived,
         allTransactionViolations,
         bankAccountList,
+        currentUserAccountID,
     ]);
 
     const hideDeleteModal = () => {

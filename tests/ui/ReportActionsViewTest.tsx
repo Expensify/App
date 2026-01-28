@@ -46,7 +46,7 @@ jest.mock('@hooks/useLoadReportActions', () =>
 );
 jest.mock('@hooks/usePrevious', () => jest.fn());
 
-jest.mock('@pages/home/report/ReportActionsList', () =>
+jest.mock('@pages/inbox/report/ReportActionsList', () =>
     jest.fn(({sortedReportActions}: {sortedReportActions: OnyxTypes.ReportAction[]}) => {
         if (sortedReportActions && sortedReportActions.length > 0) {
             return null; // Simulate normal content
@@ -54,7 +54,7 @@ jest.mock('@pages/home/report/ReportActionsList', () =>
         return null;
     }),
 );
-jest.mock('@pages/home/report/UserTypingEventListener', () => jest.fn(() => null));
+jest.mock('@pages/inbox/report/UserTypingEventListener', () => jest.fn(() => null));
 
 jest.mock('@libs/actions/Report', () => ({
     updateLoadingInitialReportAction: jest.fn(),

@@ -175,6 +175,8 @@ import {
     getActionableCardFraudAlertResolutionMessage,
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
@@ -2872,6 +2874,7 @@ function hasOutstandingChildRequest(
     chatReport: Report,
     iouReportOrID: OnyxEntry<Report> | string,
     currentUserEmailParam: string,
+    currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
 ) {
@@ -2895,7 +2898,7 @@ function hasOutstandingChildRequest(
 
         const hasAutoRejectedTransactionsForManager =
             !!iouReport &&
-            iouReport.managerID === currentUserAccountID &&
+            iouReport.managerID === currentUserAccountIDParam &&
             transactions.length > 0 &&
             transactions.every((transaction) => {
                 const transactionID = transaction?.transactionID;
@@ -2905,7 +2908,7 @@ function hasOutstandingChildRequest(
                 const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
                 return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
             });
-        const canSubmit = !hasAutoRejectedTransactionsForManager && canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam);
+        const canSubmit = !hasAutoRejectedTransactionsForManager && canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam, currentUserAccountIDParam);
         return canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmit;
     });
 }
@@ -5745,6 +5748,14 @@ function getReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getWorkspaceAttendeeTrackingUpdateMessage(translateLocal, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getAutoPayApprovedReportsEnabledMessage(translateLocal, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getAutoReimbursementMessage(translateLocal, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated

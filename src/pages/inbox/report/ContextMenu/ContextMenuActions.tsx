@@ -10,6 +10,7 @@ import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
+import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
@@ -27,8 +28,9 @@ import {
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
-    getAddedBudgetMessage,
     getAddedConnectionMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
@@ -36,7 +38,6 @@ import {
     getCreatedReportForUnapprovedTransactionsMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
-    getDeletedBudgetMessage,
     getDismissedViolationMessageText,
     getDynamicExternalWorkflowRoutedMessage,
     getExportIntegrationMessageHTML,
@@ -55,6 +56,7 @@ import {
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
@@ -89,6 +91,9 @@ import {
     getUpdateRoomDescriptionMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoriesUpdatedMessage,
+    getUpdatedManualApprovalThresholdMessage,
+    getUpdateRoomDescriptionMessage,
+    getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -97,6 +102,7 @@ import {
     getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitSubRateDeletedMessage,
     getWorkspaceCustomUnitSubRateUpdatedMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
@@ -108,6 +114,7 @@ import {
     getWorkspaceTagUpdateMessage,
     getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    hasReasoning,
     isActionableJoinRequest,
     isActionableMentionWhisper,
     isActionableTrackExpense,
@@ -163,6 +170,7 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {setDownload} from '@userActions/Download';
 import {
     deleteReportActionDraft,
+    explain,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
     openReport,
@@ -256,11 +264,13 @@ type ContextMenuActionPayload = {
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+    policy?: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
     isDelegateAccessRestricted?: boolean;
     showDelegateNoAccessModal?: () => void;
+    currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -280,6 +290,21 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
         | Extract<
               ExpensifyIconName,
               'Download' | 'ThreeDots' | 'ChatBubbleReply' | 'ChatBubbleUnread' | 'Mail' | 'Pencil' | 'Stopwatch' | 'Bell' | 'Copy' | 'LinkCopy' | 'Pin' | 'Flag' | 'Bug' | 'Trashcan'
+              | 'Download'
+              | 'ThreeDots'
+              | 'ChatBubbleReply'
+              | 'ChatBubbleUnread'
+              | 'Mail'
+              | 'Pencil'
+              | 'Stopwatch'
+              | 'Bell'
+              | 'Copy'
+              | 'LinkCopy'
+              | 'Pin'
+              | 'Flag'
+              | 'Bug'
+              | 'Trashcan'
+              | 'Concierge'
           >;
     successTextTranslateKey?: TranslationPaths;
     successIcon?:
@@ -301,6 +326,7 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
               | 'Bug'
               | 'Trashcan'
               | 'ThreeDots'
+              | 'Concierge'
           >;
     onPress: OnPress;
     getDescription: GetDescription;
@@ -413,6 +439,37 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_UNREAD,
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.explain',
+        icon: 'Concierge',
+        shouldShow: ({type, reportAction, isArchivedRoom}): boolean => {
+            if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || isArchivedRoom || !reportAction) {
+                return false;
+            }
+
+            return hasReasoning(reportAction);
+        },
+        onPress: (closePopover, {reportAction, reportID, translate, currentUserPersonalDetails}) => {
+            if (!reportID) {
+                return;
+            }
+
+            const originalReportID = getOriginalReportID(reportID, reportAction);
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    KeyboardUtils.dismiss().then(() => {
+                        explain(reportAction, originalReportID, translate, currentUserPersonalDetails?.timezone);
+                    });
+                });
+                return;
+            }
+
+            explain(reportAction, originalReportID, translate, currentUserPersonalDetails?.timezone);
+        },
+        getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,
     },
     {
         isAnonymousAction: false,
@@ -675,6 +732,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 childReport,
                 policy,
                 getLocalDateFromDatetime,
+                getLocalDateFromDatetime,
+                policy,
                 policyTags,
                 translate,
                 harvestReport,
@@ -789,6 +848,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getSubmitsToUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
                     Clipboard.setString(getForwardsToUpdateMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
+                    Clipboard.setString(getAutoPayApprovedReportsEnabledMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
+                    Clipboard.setString(getAutoReimbursementMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
                     Clipboard.setString(getInvoiceCompanyNameUpdateMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
@@ -815,6 +878,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
                     setClipboardMessage(Parser.htmlToText(getUpdatedOwnershipMessage(translate, reportAction, policy) ?? ''));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE) {
+                    Clipboard.setString(getPolicyChangeLogDefaultTitleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     setClipboardMessage(getUnreportedTransactionMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {

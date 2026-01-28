@@ -63,6 +63,7 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionsFollowupUtils';
 import {
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
@@ -70,6 +71,9 @@ import {
     getAddedApprovalRuleMessage,
     getAddedBudgetMessage,
     getAddedConnectionMessage,
+    getAddedConnectionMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
@@ -92,6 +96,7 @@ import {
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
@@ -108,6 +113,8 @@ import {
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
+    getSubmitsToUpdateMessage,
+    getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
@@ -126,6 +133,9 @@ import {
     getWhisperedTo,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoriesUpdatedMessage,
+    getUpdatedManualApprovalThresholdMessage,
+    getWhisperedTo,
+    getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -134,6 +144,7 @@ import {
     getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitSubRateDeletedMessage,
     getWorkspaceCustomUnitSubRateUpdatedMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceFrequencyUpdateMessage,
@@ -218,6 +229,7 @@ import {
     resolveActionableMentionConfirmWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
+    resolveSuggestedFollowup,
 } from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -241,6 +253,7 @@ import ReportActionItemDraft from './ReportActionItemDraft';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import ReportActionItemMessage from './ReportActionItemMessage';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
+import ReportActionItemMessageWithExplain from './ReportActionItemMessageWithExplain';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import TripSummary from './TripSummary';
@@ -535,7 +548,7 @@ function PureReportActionItem({
     reportNameValuePairsOriginalID,
     reportMetadata,
 }: PureReportActionItemProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
@@ -727,7 +740,7 @@ function PureReportActionItem({
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
             popoverAnchorRef.current?.measureInWindow((_fx, frameY, _width, height) => {
-                actionSheetAwareScrollViewContext.transitionActionSheetState({
+                transitionActionSheetState({
                     type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
                     payload: {
                         popoverHeight: 0,
@@ -739,7 +752,7 @@ function PureReportActionItem({
                 callback();
             });
         },
-        [actionSheetAwareScrollViewContext],
+        [transitionActionSheetState],
     );
 
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
@@ -889,6 +902,20 @@ function PureReportActionItem({
                     resolveConciergeDescriptionOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
+        }
+        const messageHtml = getReportActionMessage(action)?.html;
+        if (messageHtml && reportActionReport) {
+            const followups = parseFollowupsFromHtml(messageHtml);
+            if (followups && followups.length > 0) {
+                return followups.map((followup) => ({
+                    text: followup.text,
+                    shouldUseLocalization: false,
+                    key: `${action.reportActionID}-followup-${followup.text}`,
+                    onPress: () => {
+                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup.text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                    },
+                }));
+            }
         }
 
         if (!isActionableWhisper && !isActionableCardFraudAlert(action) && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
@@ -1277,21 +1304,24 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = (
-                <ReportActionItemBasicMessage>
-                    <RenderHTML html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`} />
-                </ReportActionItemBasicMessage>
+                <ReportActionItemMessageWithExplain
+                    message={modifiedExpenseMessage}
+                    action={action}
+                    reportID={reportID}
+                />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
             const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-
             if (wasSubmittedViaHarvesting) {
                 children = (
-                    <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
-                    </ReportActionItemBasicMessage>
+                    <ReportActionItemMessageWithExplain
+                        message={translate('iou.automaticallySubmitted')}
+                        action={action}
+                        reportID={reportID}
+                    />
                 );
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
@@ -1707,6 +1737,14 @@ function PureReportActionItem({
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
 
             const isConciergeOptions = isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action);
+            const actionContainsFollowUps = containsActionableFollowUps(action);
+            let actionableButtonsNoLines = 1;
+            if (isConciergeOptions) {
+                actionableButtonsNoLines = 2;
+            }
+            if (actionContainsFollowUps) {
+                actionableButtonsNoLines = 0;
+            }
             children = (
                 <MentionReportContext.Provider value={mentionReportContextValue}>
                     <ShowContextMenuContext.Provider value={contextValue}>
@@ -1746,13 +1784,14 @@ function PureReportActionItem({
                                                 isActionableTrackExpense(action) ||
                                                 isConciergeCategoryOptions(action) ||
                                                 isConciergeDescriptionOptions(action) ||
-                                                isActionableMentionWhisper(action)
+                                                isActionableMentionWhisper(action) ||
+                                                actionContainsFollowUps
                                                     ? 'vertical'
                                                     : 'horizontal'
                                             }
-                                            shouldUseLocalization={!isConciergeOptions}
-                                            primaryTextNumberOfLines={isConciergeOptions ? 2 : 1}
-                                            textStyles={isConciergeOptions ? styles.textAlignLeft : undefined}
+                                            shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
+                                            primaryTextNumberOfLines={actionableButtonsNoLines}
+                                            textStyles={isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined}
                                         />
                                     )}
                                 </View>
