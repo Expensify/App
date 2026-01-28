@@ -65,6 +65,7 @@ import type {
     SearchTransactionAction,
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
@@ -3914,20 +3915,19 @@ function updateQueryStringOnSearchTypeChange(type: SearchDataTypes, searchAdvanc
     };
 
     // If the type has changed, reset the columns
-    if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
-        const newStatus = [];
+    if (type !== searchAdvancedFiltersForm.type) {
+        // Filter Status options for current type
         const currentStatus = typeof updatedFilterFormValues.status === 'string' ? updatedFilterFormValues.status.split(',') : (updatedFilterFormValues.status ?? []);
+        const validStatusSet = new Set(getStatusOptions(() => '', type).map((option) => option.value)) as Set<string>;
+        updatedFilterFormValues.status = currentStatus.filter((value) => validStatusSet.has(value));
+        updatedFilterFormValues.status = isEmptyObject(updatedFilterFormValues.status) ? CONST.SEARCH.STATUS.EXPENSE.ALL : updatedFilterFormValues.status;
 
-        for (const status of currentStatus) {
-            if (
-                (type === CONST.SEARCH.DATA_TYPES.EXPENSE && Object.values(CONST.SEARCH.STATUS.EXPENSE).includes(status)) ||
-                (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && Object.values(CONST.SEARCH.STATUS.EXPENSE_REPORT).includes(status))
-            ) {
-                newStatus.push(status);
-            }
-        }
+        // Filter Has options for current type
+        const currentHas = updatedFilterFormValues.has;
+        const validHasSet = new Set(getHasOptions(() => '', type).map((option) => option.value)) as Set<string>;
+        updatedFilterFormValues.has = currentHas?.filter((value) => validHasSet.has(value));
+        updatedFilterFormValues.has = isEmptyObject(updatedFilterFormValues.has) ? undefined : updatedFilterFormValues.has;
 
-        updatedFilterFormValues.status = newStatus.length === 0 ? CONST.SEARCH.STATUS.EXPENSE.ALL : newStatus;
         updatedFilterFormValues.columns = [];
     }
 

@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStickySearchFilters from '@hooks/useStickySearchFilters';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
@@ -32,9 +33,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
@@ -80,7 +80,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const taxRates = getAllTaxRates(allPolicies);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const {clearSelectedTransactions} = useSearchContext();
-    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
@@ -217,6 +216,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type],
     );
 
+    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton);
     return (
         <>
             {CreateReportConfirmationModal}
@@ -250,8 +250,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                 setSearchContext(false);
                                                 let queryString = item.searchQuery;
 
-                                                if (isExploreSectionActive && section.translationPath === 'common.explore') {
-                                                    queryString = updateQueryStringOnSearchTypeChange(item.type, searchAdvancedFiltersForm, queryJSON);
+                                                if (section.translationPath === 'common.explore' && !isEmptyObject(allSearchAdvancedFilters)) {
+                                                    queryString = updateQueryStringOnSearchTypeChange(item.type, allSearchAdvancedFilters, queryJSON);
                                                 }
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
                                             });

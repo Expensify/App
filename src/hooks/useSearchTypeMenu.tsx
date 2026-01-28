@@ -16,15 +16,15 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Report} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useSingleExecution from './useSingleExecution';
+import useStickySearchFilters from './useStickySearchFilters';
 import useSuggestedSearchDefaultNavigation from './useSuggestedSearchDefaultNavigation';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -66,7 +66,6 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
-    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     useSuggestedSearchDefaultNavigation({
         shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
@@ -154,6 +153,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON?.type],
     );
 
+    const allSearchAdvancedFilters = useStickySearchFilters(isExploreSectionActive && !shouldShowSuggestedSearchSkeleton);
+
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
             .map((section, sectionIndex) => {
@@ -189,8 +190,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                                 setSearchContext(false);
                                 let queryString = item.searchQuery;
 
-                                if (isExploreSectionActive && section.translationPath === 'common.explore') {
-                                    queryString = updateQueryStringOnSearchTypeChange(item.type, searchAdvancedFiltersForm, queryJSON);
+                                if (section.translationPath === 'common.explore' && !isEmptyObject(allSearchAdvancedFilters)) {
+                                    queryString = updateQueryStringOnSearchTypeChange(item.type, allSearchAdvancedFilters, queryJSON);
                                 }
                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
                             }),
@@ -201,20 +202,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [
-        typeMenuSections,
-        translate,
-        styles.textSupporting,
-        savedSearchesMenuItems,
-        activeItemIndex,
-        expensifyIcons,
-
-        theme.border,
-        singleExecution,
-        isExploreSectionActive,
-        searchAdvancedFiltersForm,
-        queryJSON,
-    ]);
+    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, expensifyIcons, theme.border, singleExecution, allSearchAdvancedFilters, queryJSON]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);
