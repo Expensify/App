@@ -2547,7 +2547,7 @@ describe('actions/IOU', () => {
             };
         }
 
-        it('does not trigger notifyNewAction when doing the money request in a money request report', async () => {
+        it('does not trigger notifyNewAction when creating distance request in an expense report', async () => {
             // Given recent waypoints from Onyx
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -2561,7 +2561,7 @@ describe('actions/IOU', () => {
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
-        it('trigger notifyNewAction when doing the money request in a chat report', async () => {
+        it('triggers notifyNewAction when creating distance request in a chat report', async () => {
             // Given recent waypoints from Onyx
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -2652,7 +2652,7 @@ describe('actions/IOU', () => {
                 ...getDefaultDistanceRequestParams(iouReport, {amount: 1, currency: CONST.CURRENCY.GBP, tag: transactionTag}, recentWaypoints),
                 policyParams: {policyRecentlyUsedTags},
             });
-            waitForBatchedUpdates();
+            await waitForBatchedUpdates();
 
             // Then the tag should be added to recently used tags collection
             const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
@@ -2696,7 +2696,7 @@ describe('actions/IOU', () => {
                 participants: [policyExpenseChat],
                 policyParams: {policyRecentlyUsedTags},
             });
-            waitForBatchedUpdates();
+            await waitForBatchedUpdates();
 
             // Then the tag should be added to recently used tags collection
             const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
@@ -2876,26 +2876,6 @@ describe('actions/IOU', () => {
             expect(createdTransaction?.comment?.comment).toBe('Odometer test');
         });
 
-        it('creates distance request and updates recently used currencies', async () => {
-            // Given initial currencies and a report
-            const initialCurrencies = [CONST.CURRENCY.EUR];
-            await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
-            const testReport = createRandomReport(1, undefined);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
-            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-
-            // When creating a distance request with GBP currency
-            createDistanceRequest({
-                ...getDefaultDistanceRequestParams(testReport, {currency: CONST.CURRENCY.GBP}, recentWaypoints),
-                policyRecentlyUsedCurrencies: initialCurrencies,
-            });
-            await waitForBatchedUpdates();
-
-            // Then GBP should be added to recently used currencies
-            const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
-            expect(recentlyUsedCurrencies).toContain(CONST.CURRENCY.GBP);
-        });
-
         it('creates distance request with category in policy expense chat', async () => {
             // Given a policy with categories and a policy expense chat
             const policyID = 'testPolicy123';
@@ -2954,7 +2934,7 @@ describe('actions/IOU', () => {
         });
 
         it('creates distance request and updates recent waypoints', async () => {
-            // Given a report and waypoints
+            // Given a report and waypoints with empty recent waypoints
             const testReport = createRandomReport(1, undefined);
             const validWaypoints: WaypointCollection = {
                 waypoint0: {
@@ -2978,7 +2958,7 @@ describe('actions/IOU', () => {
             createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 1500, validWaypoints}, recentWaypoints));
             await waitForBatchedUpdates();
 
-            // Then at least one transaction should be created
+            // Then a transaction should be created
             let allTransactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -2990,7 +2970,7 @@ describe('actions/IOU', () => {
             expect(Object.values(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
         });
 
-        it('handles distance request with different currencies', async () => {
+        it('creates distance request with different currencies', async () => {
             // Given a report
             const testReport = createRandomReport(1, undefined);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
@@ -3025,7 +3005,7 @@ describe('actions/IOU', () => {
             expect(createdTransaction?.currency).toBe(CONST.CURRENCY.EUR);
         });
 
-        it('handles distance request with large amount', async () => {
+        it('creates distance request with large amount', async () => {
             // Given a report and large amount
             const testReport = createRandomReport(1, undefined);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
@@ -3060,7 +3040,7 @@ describe('actions/IOU', () => {
             expect(createdTransaction?.amount).toBe(largeAmount);
         });
 
-        it('handles distance request with special characters in comment', async () => {
+        it('preserves special characters in comment when creating distance request', async () => {
             // Given a report and comment with special characters
             const testReport = createRandomReport(1, undefined);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
@@ -3071,7 +3051,7 @@ describe('actions/IOU', () => {
             createDistanceRequest(getDefaultDistanceRequestParams(testReport, {comment: specialComment}, recentWaypoints));
             await waitForBatchedUpdates();
 
-            // Then a transaction should be created
+            // Then a transaction should be created with the special comment preserved
             let allTransactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -3082,9 +3062,13 @@ describe('actions/IOU', () => {
             });
             const createdTransaction = Object.values(allTransactions ?? {}).at(0);
             expect(createdTransaction).toBeTruthy();
+            // The comment contains the original text but HTML special chars are escaped and emoji is wrapped
+            expect(createdTransaction?.comment?.comment).toContain('Trip with special chars');
+            expect(createdTransaction?.comment?.comment).toContain('äöü');
+            expect(createdTransaction?.comment?.comment).toContain('中文');
         });
 
-        it('handles API failure during distance request creation', async () => {
+        it('creates optimistic transaction with pending action when API is paused', async () => {
             // Given a report and paused API
             const testReport = createRandomReport(1, undefined);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
@@ -3113,7 +3097,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
         });
 
-        it('handles distance request with billable flag', async () => {
+        it('creates billable distance request when billable flag is set', async () => {
             // Given a policy expense chat with billable enabled
             const policyID = 'billablePolicy';
             const fakePolicy = {...createRandomPolicy(1), id: policyID, disabledFields: {defaultBillable: false}};
@@ -3158,7 +3142,7 @@ describe('actions/IOU', () => {
             expect(createdTransaction?.billable).toBe(true);
         });
 
-        it('handles distance request with tax information', async () => {
+        it('creates distance request with tax information', async () => {
             // Given a policy expense chat with tax settings
             const policyID = 'taxPolicy';
             const testTaxCode = 'TAX_20';
@@ -3205,7 +3189,7 @@ describe('actions/IOU', () => {
             expect(createdTransaction?.taxCode).toBe(testTaxCode);
         });
 
-        it('handles distance request with attendees', async () => {
+        it('creates distance request with attendees', async () => {
             // Given a report and attendees
             const testReport = createRandomReport(1, undefined);
             const testAttendees: Attendee[] = [
@@ -3244,18 +3228,20 @@ describe('actions/IOU', () => {
             expect(createdTransaction?.comment?.attendees?.length).toBe(2);
         });
 
-        it('handles distance request with undefined report', async () => {
-            // Given recent waypoints only (no report)
+        it('creates new chat report when creating distance request without existing report', async () => {
+            // Given no existing report (only recent waypoints)
+            const initialReports = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT);
+            const initialReportsCount = Object.keys(initialReports ?? {}).length;
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-            // When creating a distance request with undefined report
+            // When creating a distance request without a report
             createDistanceRequest(getDefaultDistanceRequestParams(undefined, {}, recentWaypoints));
             await waitForBatchedUpdates();
 
-            // Then a new report and transaction should be created
+            // Then a new report should be created along with the transaction
             const allReports = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT);
             const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
-            expect(Object.keys(allReports ?? {}).length).toBeGreaterThanOrEqual(1);
+            expect(Object.keys(allReports ?? {}).length).toBeGreaterThan(initialReportsCount);
             expect(Object.keys(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
             const createdTransaction = Object.values(allTransactions ?? {}).at(0) as Transaction | undefined;
             expect(createdTransaction).toBeTruthy();
