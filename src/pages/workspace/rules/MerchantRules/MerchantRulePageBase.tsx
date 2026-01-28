@@ -24,6 +24,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 type MerchantRulePageBaseProps = {
     policyID: string;
@@ -53,7 +54,7 @@ const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTransla
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
     const merchantToMatchField = CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH;
-    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => key !== merchantToMatchField && !!value);
+    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => key !== merchantToMatchField && value !== undefined);
     if (form?.merchantToMatch && hasAtLeastOneUpdate) {
         return '';
     }
@@ -221,6 +222,10 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             ],
         },
     ];
+
+    if (ruleID && !existingRule) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
