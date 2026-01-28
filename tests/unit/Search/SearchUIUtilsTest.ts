@@ -14,6 +14,7 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionTagGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -1724,6 +1725,61 @@ const transactionCategoryGroupListItemsSorted: TransactionCategoryGroupListItemT
     },
 ];
 
+const tagName1 = 'Project A';
+const tagName2 = 'Project B';
+
+const searchResultsGroupByTag: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}${tagName1}` as const]: {
+            tag: tagName1,
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${tagName2}` as const]: {
+            tag: tagName2,
+            count: 3,
+            currency: 'USD',
+            total: 75,
+        },
+    },
+    search: {
+        count: 8,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 325,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const transactionTagGroupListItems: TransactionTagGroupListItemType[] = [
+    {
+        tag: tagName1,
+        count: 5,
+        currency: 'USD',
+        total: 250,
+        groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+        formattedTag: tagName1,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+    {
+        tag: tagName2,
+        count: 3,
+        currency: 'USD',
+        total: 75,
+        groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+        formattedTag: tagName2,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+];
+
 const searchResultsGroupByMonth: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {},
@@ -2722,6 +2778,147 @@ describe('SearchUIUtils', () => {
             const quotesItem = result.find((item) => item.category === '&quot;Special&quot; Category');
             expect(quotesItem?.formattedCategory).toBe('"Special" Category');
         });
+
+        it('should return getTagSections result when type is EXPENSE and groupBy is tag', () => {
+            expect(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByTag.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                })[0],
+            ).toStrictEqual(transactionTagGroupListItems);
+        });
+
+        it('should handle empty tag values correctly', () => {
+            const dataWithEmptyTag: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {
+                    tag: '',
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}none` as const]: {
+                    tag: CONST.SEARCH.TAG_EMPTY_VALUE,
+                    count: 1,
+                    currency: 'USD',
+                    total: 25,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithEmptyTag,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            }) as [TransactionTagGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.tag === '')).toBe(true);
+            expect(result.some((item) => item.tag === CONST.SEARCH.TAG_EMPTY_VALUE)).toBe(true);
+        });
+
+        it('should handle "(untagged)" value from backend', () => {
+            const dataWithUntagged: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}untagged` as const]: {
+                    tag: '(untagged)',
+                    count: 3,
+                    currency: 'USD',
+                    total: 100,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithUntagged,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            }) as [TransactionTagGroupListItemType[], number];
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.tag).toBe('(untagged)');
+        });
+
+        it('should return isTransactionTagGroupListItemType true for tag group items', () => {
+            const tagItem: TransactionTagGroupListItemType = {
+                tag: 'Project A',
+                count: 5,
+                currency: 'USD',
+                total: 250,
+                groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                formattedTag: 'Project A',
+                transactions: [],
+                transactionsQueryJSON: undefined,
+            };
+
+            expect(SearchUIUtils.isTransactionTagGroupListItemType(tagItem)).toBe(true);
+        });
+
+        it('should return isTransactionTagGroupListItemType false for non-tag group items', () => {
+            const categoryItem: TransactionCategoryGroupListItemType = {
+                category: 'Travel',
+                count: 5,
+                currency: 'USD',
+                total: 250,
+                groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                formattedCategory: 'Travel',
+                transactions: [],
+                transactionsQueryJSON: undefined,
+            };
+
+            expect(SearchUIUtils.isTransactionTagGroupListItemType(categoryItem)).toBe(false);
+        });
+
+        it('should generate transactionsQueryJSON with valid hash for tag sections', () => {
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByTag.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                queryJSON: {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    status: '',
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    view: CONST.SEARCH.VIEW.TABLE,
+                    hash: 12345,
+                    flatFilters: [],
+                    inputQuery: 'type:expense groupBy:tag',
+                    recentSearchHash: 12345,
+                    similarSearchHash: 12345,
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                        right: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    },
+                },
+            }) as [TransactionTagGroupListItemType[], number];
+
+            // Each tag section should have a transactionsQueryJSON with a hash
+            for (const item of result) {
+                expect(item.transactionsQueryJSON).toBeDefined();
+                expect(item.transactionsQueryJSON?.hash).toBeDefined();
+                expect(typeof item.transactionsQueryJSON?.hash).toBe('number');
+            }
+        });
     });
 
     describe('Test getSortedSections', () => {
@@ -2899,6 +3096,133 @@ describe('SearchUIUtils', () => {
             // Travel (5 expenses) should come before Food & Drink (3 expenses) when sorted by count descending
             expect(result.at(0)?.count).toBe(5);
             expect(result.at(1)?.count).toBe(3);
+        });
+
+        it('should return getSortedTagData result when type is EXPENSE and groupBy is tag', () => {
+            expect(
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    '',
+                    transactionTagGroupListItems,
+                    localeCompare,
+                    translateLocal,
+                    CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    CONST.SEARCH.SORT_ORDER.ASC,
+                    CONST.SEARCH.GROUP_BY.TAG,
+                ),
+            ).toStrictEqual(transactionTagGroupListItems);
+        });
+
+        it('should sort tag data by tag name in ascending order', () => {
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                transactionTagGroupListItems,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                CONST.SEARCH.GROUP_BY.TAG,
+            ) as TransactionTagGroupListItemType[];
+
+            // "Project A" should come before "Project B" in ascending alphabetical order
+            expect(result.at(0)?.tag).toBe(tagName1);
+            expect(result.at(1)?.tag).toBe(tagName2);
+        });
+
+        it('should sort tag data by tag name in descending order', () => {
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                transactionTagGroupListItems,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                CONST.SEARCH.GROUP_BY.TAG,
+            ) as TransactionTagGroupListItemType[];
+
+            // "Project B" should come before "Project A" in descending alphabetical order
+            expect(result.at(0)?.tag).toBe(tagName2);
+            expect(result.at(1)?.tag).toBe(tagName1);
+        });
+
+        it('should sort tag data by total amount', () => {
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                transactionTagGroupListItems,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                CONST.SEARCH.GROUP_BY.TAG,
+            ) as TransactionTagGroupListItemType[];
+
+            // Project A (250) should come before Project B (75) when sorted by total descending
+            expect(result.at(0)?.total).toBe(250);
+            expect(result.at(1)?.total).toBe(75);
+        });
+
+        it('should sort "No tag" alphabetically with other tags (not at the top)', () => {
+            // Create raw search results data WITHOUT formattedTag -
+            // this is what comes from the backend. getSections will call getTagSections
+            // which populates formattedTag with the translated "No tag" text for empty tags.
+            const dataWithEmptyTag: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}123456` as const]: {
+                    tag: 'Zulu',
+                    count: 2,
+                    currency: 'USD',
+                    total: 100,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}789012` as const]: {
+                    // Empty tag - should become "No tag" in formattedTag
+                    tag: '',
+                    count: 1,
+                    currency: 'USD',
+                    total: 50,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}345678` as const]: {
+                    tag: 'Alpha',
+                    count: 3,
+                    currency: 'USD',
+                    total: 150,
+                },
+            };
+
+            // First, call getSections to process raw data through getTagSections.
+            // This is where formattedTag gets populated
+            const [sections] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithEmptyTag,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            }) as [TransactionTagGroupListItemType[], number];
+
+            // Then sort the sections
+            const result = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                '',
+                sections,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                CONST.SEARCH.GROUP_BY.TAG,
+            ) as TransactionTagGroupListItemType[];
+
+            const emptyTagDisplayText = translateLocal('search.noTag');
+
+            // In ascending alphabetical order: Alpha < No tag < Zulu
+            // "No tag" should NOT be at the top (that was the bug with empty string sorting)
+            expect(result.at(0)?.formattedTag).toBe('Alpha');
+            expect(result.at(1)?.formattedTag).toBe(emptyTagDisplayText);
+            expect(result.at(2)?.formattedTag).toBe('Zulu');
         });
     });
 

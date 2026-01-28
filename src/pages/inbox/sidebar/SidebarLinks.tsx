@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp, setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
@@ -60,7 +60,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
 
             // Prevent opening a new Report page if the user quickly taps on another conversation
             // before the first one is displayed.
-            const shouldBlockReportNavigation = Navigation.getActiveRoute() !== '/home' && shouldUseNarrowLayout;
+            const shouldBlockReportNavigation = Navigation.getActiveRoute() !== `/${ROUTES.INBOX}` && shouldUseNarrowLayout;
 
             if (
                 (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||

@@ -39,6 +39,7 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionReportGroupListItemType,
+    TransactionTagGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import type {ThemeColors} from '@styles/theme/types';
@@ -58,6 +59,7 @@ import type {
     SearchCategoryGroup,
     SearchDataTypes,
     SearchMemberGroup,
+    SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWithdrawalIDGroup,
@@ -151,6 +153,7 @@ type TransactionMemberGroupSorting = ColumnSortMapping<TransactionMemberGroupLis
 type TransactionCardGroupSorting = ColumnSortMapping<TransactionCardGroupListItemType>;
 type TransactionWithdrawalIDGroupSorting = ColumnSortMapping<TransactionWithdrawalIDGroupListItemType>;
 type TransactionCategoryGroupSorting = ColumnSortMapping<TransactionCategoryGroupListItemType>;
+type TransactionTagGroupSorting = ColumnSortMapping<TransactionTagGroupListItemType>;
 type TransactionMonthGroupSorting = ColumnSortMapping<TransactionMonthGroupListItemType>;
 
 type GetReportSectionsParams = {
@@ -212,12 +215,17 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
 };
 
+// Base sorting properties common to all transaction group types
+const transactionGroupBaseSortingProperties = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+};
+
 const transactionMemberGroupColumnNamesToSortingProperty: TransactionMemberGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: 'formattedFrom' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+    ...transactionGroupBaseSortingProperties,
 };
 
 const transactionCardGroupColumnNamesToSortingProperty: TransactionCardGroupSorting = {
@@ -225,8 +233,7 @@ const transactionCardGroupColumnNamesToSortingProperty: TransactionCardGroupSort
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: 'formattedCardName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CARD]: 'formattedCardName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED]: 'formattedFeedName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+    ...transactionGroupBaseSortingProperties,
 };
 
 const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithdrawalIDGroupSorting = {
@@ -235,15 +242,19 @@ const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithd
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'debitPosted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'debitPosted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+    ...transactionGroupBaseSortingProperties,
 };
 
 const transactionCategoryGroupColumnNamesToSortingProperty: TransactionCategoryGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]: 'formattedCategory' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'formattedCategory' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
+    ...transactionGroupBaseSortingProperties,
+};
+
+const transactionTagGroupColumnNamesToSortingProperty: TransactionTagGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG]: 'formattedTag' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'formattedTag' as const,
+    ...transactionGroupBaseSortingProperties,
 };
 
 const transactionMonthGroupColumnNamesToSortingProperty: TransactionMonthGroupSorting = {
@@ -926,6 +937,13 @@ function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is Tra
  */
 function isTransactionCategoryGroupListItemType(item: ListItem): item is TransactionCategoryGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.CATEGORY;
+}
+
+/**
+ * Type guard that checks if something is a TransactionTagGroupListItemType
+ */
+function isTransactionTagGroupListItemType(item: ListItem): item is TransactionTagGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.TAG;
 }
 
 /**
@@ -2201,7 +2219,54 @@ function getCategorySections(data: OnyxTypes.SearchResults['data'], queryJSON: S
 
 /**
  * @private
- * Organizes data into List Sections grouped by member for display, for the TransactionGroupListItemType of Search Results.
+ * Organizes data into List Sections grouped by tag for display, for the TransactionGroupListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate): [TransactionTagGroupListItemType[], number] {
+    const tagSections: Record<string, TransactionTagGroupListItemType> = {};
+
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const tagGroup = data[key] as SearchTagGroup;
+
+            let transactionsQueryJSON: SearchQueryJSON | undefined;
+            if (queryJSON && tagGroup.tag !== undefined) {
+                // Normalize empty tag or "(untagged)" to TAG_EMPTY_VALUE to avoid invalid query like "tag:"
+                const tagValue = tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag;
+
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: tagValue}]});
+
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+
+                const newQuery = buildSearchQueryString(newQueryJSON);
+
+                transactionsQueryJSON = buildSearchQueryJSON(newQuery);
+            }
+
+            // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
+            const rawTag = tagGroup.tag;
+            const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
+            const formattedTag = isEmptyTag ? translate('search.noTag') : rawTag;
+
+            tagSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                transactions: [],
+                transactionsQueryJSON,
+                ...tagGroup,
+                formattedTag,
+            };
+        }
+    }
+
+    const tagSectionsValues = Object.values(tagSections);
+    return [tagSectionsValues, tagSectionsValues.length];
+}
+
+/**
+ * @private
+ * Organizes data into List Sections grouped by month for display, for the TransactionGroupListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
  */
@@ -2325,6 +2390,8 @@ function getSections({
                 return getWithdrawalIDSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.CATEGORY:
                 return getCategorySections(data, queryJSON);
+            case CONST.SEARCH.GROUP_BY.TAG:
+                return getTagSections(data, queryJSON, translate);
             case CONST.SEARCH.GROUP_BY.MONTH:
                 return getMonthSections(data, queryJSON);
         }
@@ -2368,6 +2435,8 @@ function getSortedSections(
                 return getSortedWithdrawalIDData(data as TransactionWithdrawalIDGroupListItemType[], localeCompare, sortBy, sortOrder);
             case CONST.SEARCH.GROUP_BY.CATEGORY:
                 return getSortedCategoryData(data as TransactionCategoryGroupListItemType[], localeCompare, sortBy, sortOrder);
+            case CONST.SEARCH.GROUP_BY.TAG:
+                return getSortedTagData(data as TransactionTagGroupListItemType[], localeCompare, sortBy, sortOrder);
             case CONST.SEARCH.GROUP_BY.MONTH:
                 return getSortedMonthData(data as TransactionMonthGroupListItemType[], localeCompare, sortBy, sortOrder);
         }
@@ -2743,6 +2812,14 @@ function getSortedCategoryData(data: TransactionCategoryGroupListItemType[], loc
 
 /**
  * @private
+ * Sorts tag sections based on a specified column and sort order.
+ */
+function getSortedTagData(data: TransactionTagGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    return getSortedData(data, localeCompare, transactionTagGroupColumnNamesToSortingProperty, (a, b) => localeCompare(a.formattedTag ?? '', b.formattedTag ?? ''), sortBy, sortOrder);
+}
+
+/**
+ * @private
  * Sorts month sections based on a specified column and sort order.
  */
 function getSortedMonthData(data: TransactionMonthGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
@@ -2802,6 +2879,8 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID);
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY);
+        case CONST.SEARCH.GROUP_BY.TAG:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG);
         case CONST.SEARCH.GROUP_BY.MONTH:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH);
         default:
@@ -2831,6 +2910,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID;
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CATEGORY;
+        case CONST.SEARCH.GROUP_BY.TAG:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.TAG;
         case CONST.SEARCH.GROUP_BY.MONTH:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH;
         default:
@@ -2919,6 +3000,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'search.filters.feed';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
             return 'common.category';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG:
+            return 'common.tag';
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
             return 'search.exportedTo';
     }
@@ -3396,6 +3479,7 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM,
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY,
+            [CONST.SEARCH.GROUP_BY.TAG]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG,
             [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH,
         }[groupBy];
 
@@ -3404,6 +3488,7 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM,
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CATEGORY,
+            [CONST.SEARCH.GROUP_BY.TAG]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.TAG,
             [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH,
         }[groupBy];
 
@@ -3463,6 +3548,23 @@ function getColumnsToShow(
 
         if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
             const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                    result.push(col);
+                }
+            }
+
+            for (const col of columnsToShow) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.TAG) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG]);
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
@@ -3777,6 +3879,7 @@ export {
     isTransactionCardGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
     isTransactionCategoryGroupListItemType,
+    isTransactionTagGroupListItemType,
     isTransactionMonthGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,

@@ -641,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Zduplikowany wydatek',
         newFeature: 'Nowa funkcja',
         month: 'Miesiąc',
+        home: 'Strona główna',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -765,13 +766,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Unieważnij',
-            title: 'Rozpoznawanie twarzy/odcisku palca i klucze dostępu',
+            title: 'Rozpoznawanie twarzy/odcisk palca i klucze dostępu',
             explanation:
-                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub kilku urządzeniach. Odwołanie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
-            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do kolejnej weryfikacji na każdym urządzeniu',
+                'Weryfikacja za pomocą twarzy/odcisku palca lub klucza dostępu (passkey) jest włączona na jednym lub większej liczbie urządzeń. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
+            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do następnej weryfikacji na dowolnym urządzeniu',
             cta: 'Cofnij dostęp',
             noDevices:
-                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą/odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
+                'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą, odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp w tym miejscu.',
             dismiss: 'Rozumiem',
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
         },
@@ -928,6 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'To jest Twoja osobista przestrzeń. Używaj jej do notatek, zadań, szkiców i przypomnień.',
         beginningOfChatHistorySystemDM: 'Witamy! Skonfigurujmy wszystko.',
         chatWithAccountManager: 'Czat z Twoim opiekunem klienta tutaj',
+        askMeAnything: 'Zapytaj mnie o cokolwiek!',
         sayHello: 'Przywitaj się!',
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witamy w ${roomName}!`,
@@ -6354,6 +6356,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 confirmError: 'Wprowadź sprzedawcę i zastosuj co najmniej jedną aktualizację',
                 confirmErrorMerchant: 'Wprowadź sprzedawcę',
                 confirmErrorUpdate: 'Proszę wprowadzić co najmniej jedną zmianę',
+                editRuleTitle: 'Edytuj regułę',
+                deleteRule: 'Usuń regułę',
+                deleteRuleConfirmation: 'Czy na pewno chcesz usunąć tę regułę?',
             },
         },
         planTypePage: {
@@ -6952,6 +6957,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Etykieta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
             },
             feed: 'Kanał',

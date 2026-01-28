@@ -640,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Despesa duplicada',
         newFeature: 'Novo recurso',
         month: 'Mês',
+        home: 'Início',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -766,12 +767,12 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Revogar',
             title: 'Rosto/digital & chaves de acesso',
             explanation:
-                'Verificação por rosto/digital ou passkey está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
+                'A verificação por rosto/digital ou chave de acesso está ativada em um ou mais dispositivos. Revogar o acesso exigirá um código mágico para a próxima verificação em qualquer dispositivo',
             confirmationPrompt: 'Tem certeza? Você precisará de um código mágico para a próxima verificação em qualquer dispositivo',
             cta: 'Revogar acesso',
-            noDevices: 'Você não tem nenhum dispositivo registrado para verificação com rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
+            noDevices: 'Você não tem nenhum dispositivo registrado para verificação por rosto/digital ou passkey. Se você registrar algum, poderá revogar esse acesso aqui.',
             dismiss: 'Entendi',
-            error: 'A solicitação falhou. Tente novamente mais tarde.',
+            error: 'Falha na solicitação. Tente novamente mais tarde.',
         },
     },
     validateCodeModal: {
@@ -927,6 +928,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Este é o seu espaço pessoal. Use-o para anotações, tarefas, rascunhos e lembretes.',
         beginningOfChatHistorySystemDM: 'Bem-vindo(a)! Vamos configurar tudo para você.',
         chatWithAccountManager: 'Converse com o seu gerente de conta aqui',
+        askMeAnything: 'Pergunte-me qualquer coisa!',
         sayHello: 'Diga olá!',
         yourSpace: 'Seu espaço',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) a ${roomName}!`,
@@ -6354,6 +6356,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 confirmError: 'Insira o estabelecimento e aplique pelo menos uma atualização',
                 confirmErrorMerchant: 'Insira o comerciante',
                 confirmErrorUpdate: 'Por favor, aplique pelo menos uma atualização',
+                editRuleTitle: 'Editar regra',
+                deleteRule: 'Excluir regra',
+                deleteRuleConfirmation: 'Tem certeza de que deseja excluir esta regra?',
             },
         },
         planTypePage: {
@@ -6951,8 +6956,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retirada',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID da retirada',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
             },
             feed: 'Feed',

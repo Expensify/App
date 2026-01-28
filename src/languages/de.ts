@@ -640,6 +640,7 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Doppelte Ausgabe',
         newFeature: 'Neue Funktion',
         month: 'Monat',
+        home: 'Startseite',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -764,15 +765,14 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Widerrufen',
-            title: 'Gesichts-/Fingerabdruck & Passkeys',
+            title: 'Gesicht/Fingerabdruck & Passkeys',
             explanation:
-                'Die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert beim nächsten Verifizierungsvorgang auf jedem Gerät einen Magic Code',
+                'Die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Durch das Widerrufen des Zugriffs wird für die nächste Verifizierung auf jedem Gerät ein magischer Code erforderlich',
             confirmationPrompt: 'Bist du sicher? Du benötigst einen magischen Code für die nächste Verifizierung auf jedem Gerät',
             cta: 'Zugriff widerrufen',
-            noDevices:
-                'Sie haben keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier wieder entziehen.',
+            noDevices: 'Du hast keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn du welche registrierst, kannst du den Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
-            error: 'Anfrage fehlgeschlagen. Versuchen Sie es später erneut.',
+            error: 'Anfrage fehlgeschlagen. Versuchen Sie es später noch einmal.',
         },
     },
     validateCodeModal: {
@@ -796,7 +796,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Gehe zurück zum ursprünglichen Gerät und fordere einen neuen Code an',
         successfulNewCodeRequest: 'Code angefordert. Bitte überprüfe dein Gerät.',
         tfaRequiredTitle: dedent(`
-            Zwei-Faktor-Authentifizierung  
+            Zwei-Faktor-Authentifizierung
             erforderlich
         `),
         tfaRequiredDescription: dedent(`
@@ -929,6 +929,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Dies ist dein persönlicher Bereich. Verwende ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
         beginningOfChatHistorySystemDM: 'Willkommen! Lass uns alles für dich einrichten.',
         chatWithAccountManager: 'Chatten Sie hier mit Ihrem Account Manager',
+        askMeAnything: 'Frag mich alles!',
         sayHello: 'Sag Hallo!',
         yourSpace: 'Ihr Bereich',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Willkommen bei ${roomName}!`,
@@ -6391,6 +6392,9 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 confirmError: 'Geben Sie den Händler ein und nehmen Sie mindestens eine Änderung vor',
                 confirmErrorMerchant: 'Bitte geben Sie den Händler ein',
                 confirmErrorUpdate: 'Bitte wenden Sie mindestens eine Aktualisierung an',
+                editRuleTitle: 'Regel bearbeiten',
+                deleteRule: 'Regel löschen',
+                deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
             },
         },
         planTypePage: {
@@ -6991,6 +6995,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Stichwort',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
             },
             feed: 'Feed',

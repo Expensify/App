@@ -286,6 +286,7 @@ type InitMoneyRequestParams = {
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     hasOnlyPersonalPolicies: boolean;
+    draftTransactions: OnyxCollection<OnyxTypes.Transaction>;
 };
 
 type MoneyRequestInformation = {
@@ -1095,6 +1096,7 @@ function initMoneyRequest({
     lastSelectedDistanceRates,
     currentUserPersonalDetails,
     hasOnlyPersonalPolicies,
+    draftTransactions,
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -1105,7 +1107,7 @@ function initMoneyRequest({
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
 
     // We remove draft transactions created during multi scanning if there are some
-    removeDraftTransactions(true);
+    removeDraftTransactions(true, draftTransactions);
 
     // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
     // we should keep most of the existing data by using the ONYX MERGE operation

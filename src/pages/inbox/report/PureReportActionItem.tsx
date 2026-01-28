@@ -63,6 +63,7 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionsFollowupUtils';
 import {
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
@@ -189,7 +190,7 @@ import {
 } from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
-import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
@@ -202,6 +203,7 @@ import {
     resolveActionableMentionConfirmWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
+    resolveSuggestedFollowup,
 } from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -874,6 +876,20 @@ function PureReportActionItem({
                     resolveConciergeDescriptionOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
+        }
+        const messageHtml = getReportActionMessage(action)?.html;
+        if (messageHtml && reportActionReport) {
+            const followups = parseFollowupsFromHtml(messageHtml);
+            if (followups && followups.length > 0) {
+                return followups.map((followup) => ({
+                    text: followup.text,
+                    shouldUseLocalization: false,
+                    key: `${action.reportActionID}-followup-${followup.text}`,
+                    onPress: () => {
+                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup.text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                    },
+                }));
+            }
         }
 
         if (!isActionableWhisper && !isActionableCardFraudAlert(action) && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
@@ -1645,6 +1661,14 @@ function PureReportActionItem({
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
 
             const isConciergeOptions = isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action);
+            const actionContainsFollowUps = containsActionableFollowUps(action);
+            let actionableButtonsNoLines = 1;
+            if (isConciergeOptions) {
+                actionableButtonsNoLines = 2;
+            }
+            if (actionContainsFollowUps) {
+                actionableButtonsNoLines = 0;
+            }
             children = (
                 <MentionReportContext.Provider value={mentionReportContextValue}>
                     <ShowContextMenuContext.Provider value={contextValue}>
@@ -1684,13 +1708,14 @@ function PureReportActionItem({
                                                 isActionableTrackExpense(action) ||
                                                 isConciergeCategoryOptions(action) ||
                                                 isConciergeDescriptionOptions(action) ||
-                                                isActionableMentionWhisper(action)
+                                                isActionableMentionWhisper(action) ||
+                                                actionContainsFollowUps
                                                     ? 'vertical'
                                                     : 'horizontal'
                                             }
-                                            shouldUseLocalization={!isConciergeOptions}
-                                            primaryTextNumberOfLines={isConciergeOptions ? 2 : 1}
-                                            textStyles={isConciergeOptions ? styles.textAlignLeft : undefined}
+                                            shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
+                                            primaryTextNumberOfLines={actionableButtonsNoLines}
+                                            textStyles={isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined}
                                         />
                                     )}
                                 </View>
