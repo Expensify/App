@@ -236,11 +236,12 @@ const ROUTES = {
     },
     SETTINGS_SUBSCRIPTION_SIZE: {
         route: 'settings/subscription/subscription-size/:subPage?',
-        getRoute: (canChangeSize: 0 | 1, subPage?: string) => {
-            if (!subPage) {
-                return `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const;
-            }
-            return `settings/subscription/subscription-size/${subPage}?canChangeSize=${canChangeSize as number}` as const;
+        getRoute: (canChangeSize?: 0 | 1, subPage?: string) => {
+            const baseRoute = 'settings/subscription/subscription-size';
+            const subPageParam = subPage ? `/${subPage}` : '';
+            const canChangeSizeParam = canChangeSize !== undefined ? `?canChangeSize=${canChangeSize as number}` : '';
+
+            return `${baseRoute}${subPageParam}${canChangeSizeParam}` as const;
         },
     },
     SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS: 'settings/subscription/details',
