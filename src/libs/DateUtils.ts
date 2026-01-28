@@ -933,7 +933,11 @@ function getMonthDateRange(year: number, month: number): {start: string; end: st
  * @param weekStartDate - Week start date string in YYYY-MM-DD format
  */
 function getWeekDateRange(weekStartDate: string): {start: string; end: string} {
-    const weekStart = new Date(weekStartDate);
+    // Parse the date string as a local date to avoid timezone issues
+    // Using parse with explicit format ensures it's treated as local time, not UTC
+    // This prevents dates like '2026-01-25' from being interpreted as UTC midnight
+    // which would shift to the previous day in timezones behind UTC (e.g., PST)
+    const weekStart = parse(weekStartDate, 'yyyy-MM-dd', new Date());
     const weekEnd = addDays(weekStart, 6);
     return {
         start: format(weekStart, 'yyyy-MM-dd'),
@@ -960,11 +964,13 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
 /**
  * Returns a formatted date range.
  */
-function getFormattedDateRangeForSearch(startDate: Date, endDate: Date): string {
-    if (isSameYear(startDate, endDate)) {
-        return `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
+function getFormattedDateRangeForSearch(startDate: string, endDate: string): string {
+    const start = parse(startDate, 'yyyy-MM-dd', new Date());
+    const end = parse(endDate, 'yyyy-MM-dd', new Date());
+    if (isSameYear(new Date(start), new Date(end))) {
+        return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
     }
-    return `${format(startDate, 'MMM d, yyyy')} - ${format(endDate, 'MMM d, yyyy')}`;
+    return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
 }
 
 const DateUtils = {
