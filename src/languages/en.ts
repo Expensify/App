@@ -6911,7 +6911,7 @@ const translations = {
         view: {
             label: 'View',
             table: 'Table',
-            bar: 'Chart',
+            bar: 'Bar',
         },
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
