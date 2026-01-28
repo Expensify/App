@@ -8,6 +8,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
     filterInactiveCards,
+    filterPersonalCards,
     flatAllCardsList,
     formatCardExpiration,
     getAllCardsForWorkspace,
@@ -35,6 +36,7 @@ import {
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
+    isUserAssignedPersonalCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
