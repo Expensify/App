@@ -55,7 +55,6 @@ function useAttachmentUploadValidation({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const personalPolicy = usePersonalPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
@@ -102,7 +101,6 @@ function useAttachmentUploadValidation({
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
-            draftTransactions,
         });
 
         for (const [index, file] of files.entries()) {

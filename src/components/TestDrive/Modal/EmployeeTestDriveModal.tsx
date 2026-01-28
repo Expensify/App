@@ -49,7 +49,6 @@ function EmployeeTestDriveModal() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const onBossEmailChange = useCallback((value: string) => {
@@ -86,7 +85,6 @@ function EmployeeTestDriveModal() {
                             currentDate,
                             currentUserPersonalDetails,
                             hasOnlyPersonalPolicies,
-                            draftTransactions,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);
