@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
@@ -63,6 +64,10 @@ type MemberChangeMessageRoomReferenceElement = {
 } & MessageElementBase;
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
+
+type Followup = {
+    text: string;
+};
 
 function isPolicyExpenseChat(report: OnyxInputOrEntry<Report>): boolean {
     return report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || !!(report && typeof report === 'object' && 'isPolicyExpenseChat' in report && report.isPolicyExpenseChat);
@@ -1729,6 +1734,21 @@ function getMemberChangeMessageElements(
     ];
 }
 
+/**
+ * Used for generating preview text in LHN and other places where followups should not be displayed.
+ * Implemented here instead of ReportActionFollowupUtils due to circular ref
+ * @param html message.html from the report COMMENT actions
+ * @returns html with the <followup-list> element and its contents stripped out or undefined if html is undefined
+ */
+function stripFollowupListFromHtml(html?: string): string | undefined {
+    if (!html) {
+        return;
+    }
+    // Matches a <followup-list> HTML element and its entire contents. (<followup-list><followup><followup-text>Question?</followup-text></followup></followup-list>)
+    const followUpListRegex = /<followup-list(\s[^>]*)?>[\s\S]*?<\/followup-list>/i;
+    return html.replace(followUpListRegex, '').trim();
+}
+
 function getReportActionHtml(reportAction: PartialReportAction): string {
     return getReportActionMessage(reportAction)?.html ?? '';
 }
@@ -1737,7 +1757,7 @@ function getReportActionText(reportAction: PartialReportAction): string {
     const message = getReportActionMessage(reportAction);
     // Sometime html can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const text = (message?.html || message?.text) ?? '';
+    const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
     return text ? Parser.htmlToText(text) : '';
 }
 
@@ -3725,6 +3745,15 @@ function getCompanyCardConnectionBrokenMessage(translate: LocalizedTranslate, ac
     });
 }
 
+function getPlaidBalanceFailureMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const {maskedAccountNumber} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE>) ?? {maskedAccountNumber: ''};
+    const walletRoute = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
+    return translate('report.actions.type.plaidBalanceFailure', {
+        maskedAccountNumber,
+        walletRoute,
+    });
+}
+
 function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
     if (!isApprovedAction(action)) {
         return;
@@ -3957,6 +3986,7 @@ export {
     isRetractedAction,
     getIntegrationSyncFailedMessage,
     getCompanyCardConnectionBrokenMessage,
+    getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,
     getVacationer,
@@ -3972,6 +4002,7 @@ export {
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,
     getReportActionActorAccountID,
+    stripFollowupListFromHtml,
 };
 
-export type {LastVisibleMessage};
+export type {LastVisibleMessage, Followup};

@@ -1600,6 +1600,7 @@ const staticStyles = (theme: ThemeColors) =>
         searchSidebar: {
             width: variables.sideBarWithLHBWidth,
             height: '100%',
+            backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
@@ -1665,11 +1666,36 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
+        floatingCameraButtonAboveFab: {
+            position: 'absolute',
+            // floatingActionButton top property value (componentSizeLarge + 16) +
+            // + floatingCameraButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
+            top: 2 * -variables.componentSizeLarge - 28,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingActionButtonPosition: {
+            position: 'absolute',
+            top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
         floatingGpsButton: {
             position: 'absolute',
             // floatingCameraButton top property value (componentSizeLarge + 16) +
             // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
             top: 2 * -variables.componentSizeLarge - 28,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingGpsButtonAboveFab: {
+            position: 'absolute',
+            // floatingActionButton top property value (componentSizeLarge + 16) +
+            // + floatingCameraButton height (componentSizeLarge) + gap (12) + floatingGpsButton height (componentSizeLarge) + gap (12) = 3 * variables.componentSizeLarge + 40
+            top: 3 * -variables.componentSizeLarge - 40,
             right: 16,
             zIndex: 10,
         },

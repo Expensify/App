@@ -1,4 +1,5 @@
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetTransactionsMatchingCodingRuleParams} from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -79,21 +80,38 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
         return;
     }
 
-    const optimisticRuleID = ruleID ?? NumberUtils.rand64();
+    const isEditing = !!ruleID;
+    const existingRule = isEditing ? policy?.rules?.codingRules?.[ruleID] : undefined;
     const ruleFields = mapFormFieldsToRule(form, policy);
 
-    const optimisticRule: CodingRule = {
-        ruleID: optimisticRuleID,
-        filters: {
-            left: 'merchant',
-            operator: 'eq',
-            right: form.merchantToMatch,
-        },
-        ...ruleFields,
-        created: new Date().toISOString(),
-    };
+    // When editing, use the existing rule and merge updated fields; when adding, create a new rule
+    const targetRuleID = ruleID ?? NumberUtils.rand64();
+    const ruleForOptimisticUpdate: CodingRule =
+        isEditing && existingRule
+            ? {
+                  ...existingRule,
+                  ...ruleFields,
+                  filters: {
+                      ...existingRule.filters,
+                      right: form.merchantToMatch,
+                  },
+              }
+            : {
+                  ruleID: targetRuleID,
+                  filters: {
+                      left: 'merchant',
+                      operator: 'eq',
+                      right: form.merchantToMatch,
+                  },
+                  ...ruleFields,
+                  created: new Date().toISOString(),
+              };
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    // On failure: for new rules, remove the optimistic rule; for edits, restore the original rule
+    const failureRuleValue = isEditing ? existingRule : null;
 
     const onyxData = {
         optimisticData: [
@@ -103,11 +121,11 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                 value: {
                     rules: {
                         codingRules: {
-                            [optimisticRuleID]: optimisticRule,
+                            [targetRuleID]: ruleForOptimisticUpdate,
                         },
                     },
                     pendingFields: {
-                        rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        rules: pendingAction,
                     },
                 },
             },
@@ -133,7 +151,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                 value: {
                     rules: {
                         codingRules: {
-                            [optimisticRuleID]: null,
+                            [targetRuleID]: failureRuleValue,
                         },
                     },
                     pendingFields: {
@@ -149,8 +167,8 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
 
     const parameters: SetPolicyCodingRuleParams = {
         policyID,
-        ruleID: optimisticRuleID,
-        value: JSON.stringify(optimisticRule),
+        ruleID: targetRuleID,
+        value: JSON.stringify(ruleForOptimisticUpdate),
         shouldUpdateMatchingTransactions,
     };
 
@@ -183,4 +201,80 @@ function getTransactionsMatchingCodingRule({merchant, policyID}: GetTransactions
     return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {merchant, policyID}, {optimisticData, successData, failureData});
 }
 
-export {openPolicyRulesPage, setPolicyCodingRule, getTransactionsMatchingCodingRule};
+/**
+ * Deletes a coding rule from the given policy
+ * @param policyID - The ID of the policy to delete the rule from
+ * @param ruleID - The ID of the rule to delete
+ */
+function deletePolicyCodingRule(policy: Policy, ruleID: string) {
+    if (!policy.id || !ruleID) {
+        Log.warn('Invalid params for deletePolicyCodingRule');
+        return;
+    }
+
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
+    const existingRule = policy.rules?.codingRules?.[ruleID];
+
+    const onyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        codingRules: {
+                            [ruleID]: null,
+                        },
+                    },
+                    pendingFields: {
+                        rules: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    pendingFields: {
+                        rules: null,
+                    },
+                    errorFields: {
+                        rules: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: policyKey,
+                value: {
+                    rules: {
+                        codingRules: {
+                            [ruleID]: existingRule,
+                        },
+                    },
+                    pendingFields: {
+                        rules: null,
+                    },
+                    errorFields: {
+                        rules: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyCodingRuleParams = {
+        policyID: policy.id,
+        ruleID,
+        value: '',
+        shouldUpdateMatchingTransactions: false,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
+}
+
+export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule, getTransactionsMatchingCodingRule};

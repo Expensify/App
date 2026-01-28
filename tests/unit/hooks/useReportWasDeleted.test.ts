@@ -1,5 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
-import useReportWasDeleted from '@src/pages/home/hooks/useReportWasDeleted';
+import useReportWasDeleted from '@pages/inbox/hooks/useReportWasDeleted';
 import type {Report} from '@src/types/onyx';
 
 describe('useReportWasDeleted', () => {
