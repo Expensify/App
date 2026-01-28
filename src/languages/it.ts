@@ -6378,6 +6378,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 editRuleTitle: 'Modifica regola',
                 deleteRule: 'Elimina regola',
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
+                matchType: 'Tipo di corrispondenza',
+                matchTypeContains: 'Contiene',
+                matchTypeExact: 'Corrisponde esattamente',
             },
         },
         planTypePage: {

@@ -6224,6 +6224,9 @@ ${reportName}
                 editRuleTitle: '编辑规则',
                 deleteRule: '删除规则',
                 deleteRuleConfirmation: '您确定要删除此规则吗？',
+                matchType: '匹配类型',
+                matchTypeContains: '包含',
+                matchTypeExact: '完全匹配',
             },
         },
         planTypePage: {

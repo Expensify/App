@@ -6407,6 +6407,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
+                matchType: 'Type de correspondance',
+                matchTypeContains: 'Contient',
+                matchTypeExact: 'Correspond exactement',
             },
         },
         planTypePage: {

@@ -6334,6 +6334,9 @@ ${reportName}
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
+                matchType: '一致タイプ',
+                matchTypeContains: '含む',
+                matchTypeExact: '完全一致',
             },
         },
         planTypePage: {
