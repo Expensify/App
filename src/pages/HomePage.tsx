@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import CONST from '@src/CONST';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -14,7 +15,8 @@ function HomePage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const firstName = currentUserPersonalDetails?.firstName;
-    const greeting = firstName ? translate('common.greetingsWithName', firstName) : translate('common.greetings');
+    const shouldShowPersonalizedGreeting = firstName && firstName.length <= CONST.DISPLAY_NAME_MAX_LENGTH;
+    const greeting = shouldShowPersonalizedGreeting ? translate('common.greetingsWithName', firstName) : translate('common.greetings');
 
     return (
         <ScreenWrapper
