@@ -533,9 +533,6 @@ type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedB
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
         /** Final and formatted "year" value used for displaying */
         formattedYear: string;
-
-        /** Key used for sorting (year as number) */
-        sortKey: number;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {

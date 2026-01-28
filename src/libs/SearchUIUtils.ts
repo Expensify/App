@@ -3067,17 +3067,8 @@ function getSortedWeekData(data: TransactionWeekGroupListItemType[], localeCompa
  * Sorts year group data based on a specified column and sort order.
  */
 function getSortedYearData(data: TransactionYearGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
-    // For year groups, sortKey is a number (year), so we compare numbers
-    // Default to descending order for year groups (newest years first)
-    // The default comparator sorts descending: b.sortKey - a.sortKey (larger values first)
-    const defaultComparator = (a: TransactionYearGroupListItemType, b: TransactionYearGroupListItemType) => b.sortKey - a.sortKey;
-
-    // For year groups, always default to descending order when sortOrder is not explicitly provided
-    // This ensures year groups are sorted with newest years first by default, even if the parser
-    // didn't set sortOrder (e.g., when sortBy was already "groupyear" before groupBy was set)
-    const effectiveSortOrder = sortOrder || CONST.SEARCH.SORT_ORDER.DESC;
-
-    return getSortedData(data, localeCompare, transactionYearGroupColumnNamesToSortingProperty, defaultComparator, sortBy, effectiveSortOrder);
+    const defaultComparator = (a: TransactionYearGroupListItemType, b: TransactionYearGroupListItemType) => a.year - b.year;
+    return getSortedData(data, localeCompare, transactionYearGroupColumnNamesToSortingProperty, defaultComparator, sortBy, sortOrder);
 }
 
 /**
