@@ -476,6 +476,7 @@ type DuplicateExpenseTransactionParams = {
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     targetReport?: OnyxTypes.Report;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 function duplicateExpenseTransaction({
@@ -492,6 +493,7 @@ function duplicateExpenseTransaction({
     targetPolicy,
     targetPolicyCategories,
     targetReport,
+    personalDetails,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -598,6 +600,7 @@ function duplicateExpenseTransaction({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 customUnitPolicyID,
+                personalDetails,
             };
             return createDistanceRequest(distanceParams);
         }

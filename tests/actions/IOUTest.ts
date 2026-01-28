@@ -2519,6 +2519,19 @@ describe('actions/IOU', () => {
     });
 
     describe('createDistanceRequest', () => {
+        const mockPersonalDetails: PersonalDetailsList = {
+            [RORY_ACCOUNT_ID]: {
+                accountID: RORY_ACCOUNT_ID,
+                login: RORY_EMAIL,
+                displayName: 'Rory',
+            },
+            [CARLOS_ACCOUNT_ID]: {
+                accountID: CARLOS_ACCOUNT_ID,
+                login: CARLOS_EMAIL,
+                displayName: 'Carlos',
+            },
+        };
+
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
@@ -2538,6 +2551,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                personalDetails: mockPersonalDetails,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2561,6 +2575,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                personalDetails: mockPersonalDetails,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
@@ -2586,6 +2601,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                personalDetails: mockPersonalDetails,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
@@ -2608,6 +2624,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
+                personalDetails: mockPersonalDetails,
             });
             await waitForBatchedUpdates();
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
@@ -2639,6 +2656,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: initialCurrencies,
+                personalDetails: mockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -2689,6 +2707,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                personalDetails: mockPersonalDetails,
             });
             waitForBatchedUpdates();
 
@@ -2748,6 +2767,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
+                personalDetails: mockPersonalDetails,
             });
             waitForBatchedUpdates();
 
