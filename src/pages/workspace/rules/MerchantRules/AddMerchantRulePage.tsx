@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -219,6 +220,11 @@ function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
                         </View>
                     ))}
                 </ScrollView>
+                <Button
+                    text={translate('common.reset')}
+                    style={[styles.mh4, styles.mt4]}
+                    large
+                />
                 <FormAlertWithSubmitButton
                     buttonText={translate('workspace.rules.merchantRules.saveRule')}
                     containerStyles={[styles.m4, styles.mb5]}

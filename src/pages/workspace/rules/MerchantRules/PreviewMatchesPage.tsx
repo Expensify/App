@@ -1,6 +1,11 @@
 import {useCallback, useEffect} from 'react';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -16,6 +21,8 @@ const merchantRuleFormSelector = (form: OnyxEntry<MerchantRuleForm>) => form?.me
 
 function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const policyID = route.params.policyID;
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [merchant = ''] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true, selector: merchantRuleFormSelector});
 
     const matchingReportIDsSelector = useCallback(
@@ -25,12 +32,10 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                     return matchingReports;
                 }
 
-                const reportPolicyID = report?.policyID;
-                const isOpen = isOpenExpenseReport(report);
-
-                if (isOpen && reportPolicyID === policyID) {
+                if (isOpenExpenseReport(report) && report?.policyID === policyID) {
                     matchingReports.add(report.reportID);
                 }
+
                 return matchingReports;
             }, new Set<string>());
         },
@@ -44,11 +49,7 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
             return Object.values(transactions ?? {}).reduce((matchingTransactions, transaction) => {
                 const transactionReportID = transaction?.reportID;
 
-                if (!transactionReportID) {
-                    return matchingTransactions;
-                }
-
-                if (!matchingReportIDs?.has(transactionReportID)) {
+                if (!transactionReportID || !matchingReportIDs?.has(transactionReportID)) {
                     return matchingTransactions;
                 }
 
@@ -73,7 +74,22 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
         getTransactionsMatchingCodingRule({merchant, policyID});
     }, [merchant, policyID]);
 
-    return <></>;
+    const onBack = () => {};
+
+    return (
+        <ScreenWrapper
+            testID="PreviewMatchesPage"
+            shouldShowOfflineIndicatorInWideScreen
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                title={'Preview Matches'}
+                onBackButtonPress={onBack}
+            />
+            <View style={[styles.flex1]}></View>
+        </ScreenWrapper>
+    );
 }
 
 PreviewMatchesPage.displayName = 'PreviewMatchesPage';

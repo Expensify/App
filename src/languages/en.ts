@@ -6230,6 +6230,7 @@ const translations = {
                 applyUpdates: 'Apply these updates:',
                 merchantHint: 'Match a merchant name with case-insensitive "contains" matching',
                 saveRule: 'Save rule',
+                previewMatches: 'Preview matches',
                 confirmError: 'Enter merchant and apply at least one update',
                 confirmErrorMerchant: 'Please enter merchant',
                 confirmErrorUpdate: 'Please apply at least one update',
