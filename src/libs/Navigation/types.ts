@@ -1428,7 +1428,7 @@ type SettingsNavigatorParamList = {
         rateID: string;
         subRateID: string;
     };
-    [SCREENS.WORKSPACE.TIME_TRACKING_RATE]: {
+    [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
         policyID: string;
     };
     [SCREENS.DOMAIN.VERIFY]: {

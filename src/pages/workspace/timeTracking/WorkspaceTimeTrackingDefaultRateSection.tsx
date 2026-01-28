@@ -11,7 +11,7 @@ import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-function WorkspaceTimeTrackingHourlyRateSection({policyID}: {policyID: string}) {
+function WorkspaceTimeTrackingDefaultRateSection({policyID}: {policyID: string}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -32,7 +32,7 @@ function WorkspaceTimeTrackingHourlyRateSection({policyID}: {policyID: string}) 
                     shouldShowRightIcon
                     title={policy ? convertAmountToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency) : ''}
                     description={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_RATE.getRoute(policyID))}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID))}
                     style={styles.sectionMenuItemTopDescription}
                 />
             </OfflineWithFeedback>
@@ -40,4 +40,4 @@ function WorkspaceTimeTrackingHourlyRateSection({policyID}: {policyID: string}) 
     );
 }
 
-export default WorkspaceTimeTrackingHourlyRateSection;
+export default WorkspaceTimeTrackingDefaultRateSection;

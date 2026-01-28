@@ -2632,7 +2632,7 @@ const ROUTES = {
             return `workspaces/${policyID}/time-tracking` as const;
         },
     },
-    WORKSPACE_TIME_TRACKING_RATE: {
+    WORKSPACE_TIME_TRACKING_DEFAULT_RATE: {
         route: 'workspaces/:policyID/time-tracking/rate',
         getRoute: (policyID: string) => `workspaces/${policyID}/time-tracking/rate` as const,
     },

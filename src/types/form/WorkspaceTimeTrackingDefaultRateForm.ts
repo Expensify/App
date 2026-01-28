@@ -7,12 +7,12 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type WorkspaceTimeTrackingRateForm = Form<
+type WorkspaceTimeTrackingDefaultRateForm = Form<
     InputID,
     {
         [INPUT_IDS.RATE]: string;
     }
 >;
 
-export type {WorkspaceTimeTrackingRateForm};
+export type {WorkspaceTimeTrackingDefaultRateForm};
 export default INPUT_IDS;

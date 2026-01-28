@@ -1176,8 +1176,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
                         },
-                        [SCREENS.WORKSPACE.TIME_TRACKING_RATE]: {
-                            path: ROUTES.WORKSPACE_TIME_TRACKING_RATE.route,
+                        [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
+                            path: ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.route,
                         },
                         [SCREENS.DOMAIN.VERIFY]: {
                             path: ROUTES.DOMAIN_VERIFY.route,

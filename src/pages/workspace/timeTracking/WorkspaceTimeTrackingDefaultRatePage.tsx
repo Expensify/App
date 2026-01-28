@@ -20,15 +20,15 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/WorkspaceTimeTrackingRateForm';
+import INPUT_IDS from '@src/types/form/WorkspaceTimeTrackingDefaultRateForm';
 
-type WorkspaceTimeTrackingRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TIME_TRACKING_RATE>;
+type WorkspaceTimeTrackingDefaultRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE>;
 
-function WorkspaceTimeTrackingRatePage({
+function WorkspaceTimeTrackingDefaultRatePage({
     route: {
         params: {policyID},
     },
-}: WorkspaceTimeTrackingRatePageProps) {
+}: WorkspaceTimeTrackingDefaultRatePageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
@@ -45,10 +45,10 @@ function WorkspaceTimeTrackingRatePage({
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED}
         >
-            <ScreenWrapper testID="WorkspaceTimeTrackingRatePage">
+            <ScreenWrapper testID="WorkspaceTimeTrackingDefaultRatePage">
                 <HeaderWithBackButton title={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')} />
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_RATE_FORM}
+                    formID={ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_DEFAULT_RATE_FORM}
                     submitButtonText={translate('common.save')}
                     onSubmit={(values) => {
                         setPolicyTimeTrackingDefaultRate(policyID, Number.parseFloat(values[INPUT_IDS.RATE]));
@@ -74,4 +74,4 @@ function WorkspaceTimeTrackingRatePage({
     );
 }
 
-export default WorkspaceTimeTrackingRatePage;
+export default WorkspaceTimeTrackingDefaultRatePage;

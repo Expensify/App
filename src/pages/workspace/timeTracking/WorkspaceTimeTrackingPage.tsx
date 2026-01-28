@@ -11,7 +11,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import WorkspaceTimeTrackingHourlyRateSection from './WorkspaceTimeTrackingHourlyRateSection';
+import WorkspaceTimeTrackingDefaultRateSection from './WorkspaceTimeTrackingDefaultRateSection';
 
 type WorkspaceTimeTrackingPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TIME_TRACKING>;
 
@@ -40,7 +40,7 @@ function WorkspaceTimeTrackingPage({route}: WorkspaceTimeTrackingPageProps) {
                 {(_, policyID) =>
                     !!policyID && (
                         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                            <WorkspaceTimeTrackingHourlyRateSection policyID={policyID} />
+                            <WorkspaceTimeTrackingDefaultRateSection policyID={policyID} />
                         </View>
                     )
                 }

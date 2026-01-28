@@ -105,4 +105,4 @@ export type {SplitExpenseEditDateForm} from './SplitExpenseEditDateForm';
 export type {ResetDomainForm} from './ResetDomainForm';
 export type {ExpenseRuleForm} from './ExpenseRuleForm';
 export type {AddDomainMemberForm} from './AddDomainMemberForm';
-export type {WorkspaceTimeTrackingRateForm} from './WorkspaceTimeTrackingRateForm';
+export type {WorkspaceTimeTrackingDefaultRateForm} from './WorkspaceTimeTrackingDefaultRateForm';
