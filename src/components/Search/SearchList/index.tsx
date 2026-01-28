@@ -1,6 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
-import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
 import React, {useCallback, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
