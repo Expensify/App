@@ -476,12 +476,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         return result;
     }, [
         policy?.employeeList,
-        policy?.ownerAccountID,
         policy?.owner,
+        policy?.ownerAccountID,
         policyMemberEmailsToAccountIDs,
         isOffline,
         personalDetails,
         isPolicyAdmin,
+        formatPhoneNumber,
         session?.accountID,
         styles.cursorDefault,
         styles.flex1,
@@ -490,11 +491,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         styles.alignSelfEnd,
         isControlPolicyWithWideLayout,
         StyleUtils,
-        formatPhoneNumber,
+        icons.FallbackAvatar,
         invitedPrimaryToSecondaryLogins,
         policyOwner,
         currentUserLogin,
-        icons.FallbackAvatar,
+        translate,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {

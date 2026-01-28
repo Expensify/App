@@ -90,6 +90,7 @@ function IOURequestStepDistanceMap({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+
     const waypoints = useMemo(
         () =>
             optimisticWaypoints ??
@@ -309,37 +310,39 @@ function IOURequestStepDistanceMap({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
+            policyTags,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
         });
     }, [
-        transaction,
-        backTo,
-        report,
-        isArchived,
         iouType,
-        defaultExpensePolicy,
-        currentUserAccountIDParam,
-        setDistanceRequestData,
-        shouldSkipConfirmation,
-        transactionID,
-        personalDetails,
-        reportAttributesDerived,
-        translate,
-        currentUserEmailParam,
+        report,
         policy,
+        transaction,
+        reportID,
+        transactionID,
+        reportAttributesDerived,
+        personalDetails,
         waypoints,
-        lastSelectedDistanceRates,
+        customUnitRateID,
+        currentUserEmailParam,
+        currentUserAccountIDParam,
+        backTo,
         backToReport,
+        shouldSkipConfirmation,
+        defaultExpensePolicy,
+        isArchived,
+        personalPolicy?.autoReporting,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        lastSelectedDistanceRates,
+        setDistanceRequestData,
+        translate,
         quickAction,
         policyRecentlyUsedCurrencies,
-        customUnitRateID,
         introSelected,
         activePolicyID,
-        personalPolicy?.autoReporting,
-        reportID,
-        currentUserPersonalDetails.accountID,
+        policyTags,
+        reportNameValuePairs?.private_isArchived,
     ]);
 
     const getError = () => {
@@ -434,27 +437,28 @@ function IOURequestStepDistanceMap({
 
         navigateToNextStep();
     }, [
-        atLeastTwoDifferentWaypointsError,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
         duplicateWaypointsError,
+        atLeastTwoDifferentWaypointsError,
         hasRouteError,
-        isASAPSubmitBetaEnabled,
-        isCreatingNewRequest,
+        isLoadingRoute,
         isEditing,
         isLoading,
-        isLoadingRoute,
-        navigateBack,
+        isCreatingNewRequest,
         navigateToNextStep,
+        transactionBackup,
+        waypoints,
+        transaction?.routes,
+        transaction?.transactionID,
+        report,
+        navigateBack,
         parentReport,
         policy,
         policyTags,
         policyCategories,
-        report,
-        transaction?.routes,
-        transaction?.transactionID,
-        transactionBackup,
-        waypoints,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
+        parentReportNextStep,
     ]);
 
     const renderItem = useCallback(

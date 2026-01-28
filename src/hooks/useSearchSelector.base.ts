@@ -167,6 +167,7 @@ function useSearchSelectorBase({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -204,9 +205,10 @@ function useSearchSelectorBase({
                     loginList,
                     currentUserAccountID,
                     currentUserEmail,
+                    policyTags,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, loginList, currentUserAccountID, currentUserEmail, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -219,7 +221,7 @@ function useSearchSelectorBase({
                     personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, loginList, currentUserAccountID, currentUserEmail, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
@@ -235,6 +237,7 @@ function useSearchSelectorBase({
                     allPolicies,
                     draftComments,
                     nvpDismissedProductTraining,
+                    policyTags,
                     loginList,
                     currentUserAccountID,
                     currentUserEmail,
@@ -255,7 +258,7 @@ function useSearchSelectorBase({
                     countryCode,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, loginList, currentUserAccountID, currentUserEmail, {
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,
@@ -274,7 +277,7 @@ function useSearchSelectorBase({
                     personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, loginList, currentUserAccountID, currentUserEmail, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,
@@ -305,6 +308,8 @@ function useSearchSelectorBase({
         includeUserToInvite,
         countryCode,
         loginList,
+        policyTags,
+        allPolicies,
         excludeLogins,
         includeRecentReports,
         maxRecentReportsToShow,

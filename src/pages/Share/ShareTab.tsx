@@ -51,6 +51,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -80,11 +81,12 @@ function ShareTab({ref}: ShareTabProps) {
             maxResults: 20,
             includeUserToInvite: true,
             countryCode,
+            policyTags,
             loginList,
             currentUserAccountID,
             currentUserEmail,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, policyTags, loginList, currentUserAccountID, currentUserEmail]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {

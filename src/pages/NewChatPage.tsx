@@ -70,6 +70,7 @@ function useOptions() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const allPersonalDetails = usePersonalDetails();
 
     const {
@@ -102,6 +103,7 @@ function useOptions() {
         allPolicies,
         draftComments,
         nvpDismissedProductTraining,
+        policyTags,
         loginList,
         currentUserAccountID,
         currentUserEmail,
@@ -270,6 +272,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
+        undefined,
         currentUserAccountID,
         allPersonalDetails,
         undefined,

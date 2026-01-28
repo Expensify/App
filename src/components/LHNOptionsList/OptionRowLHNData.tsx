@@ -51,6 +51,8 @@ function OptionRowLHNData({
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`, {canBeMissing: true});
     // Check the report errors equality to avoid re-rendering when there are no changes
     const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
@@ -77,6 +79,7 @@ function OptionRowLHNData({
             lastActionReport,
             movedFromReport,
             movedToReport,
+            policyTags,
             currentUserAccountID,
         });
         if (deepEqual(item, optionItemRef.current)) {
@@ -113,6 +116,7 @@ function OptionRowLHNData({
         isReportArchived,
         movedFromReport,
         movedToReport,
+        policyTags,
         currentUserAccountID,
     ]);
 

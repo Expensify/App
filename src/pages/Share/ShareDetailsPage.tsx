@@ -64,12 +64,13 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const ancestors = useAncestors(report);
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, personalDetail.accountID, personalDetails, privateIsArchived, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, personalDetail.accountID],
+        () => getReportDisplayOption(report, unknownUserDetails, policyTags, personalDetail.accountID, personalDetails, privateIsArchived, reportAttributesDerived),
+        [report, unknownUserDetails, policyTags, personalDetail.accountID, personalDetails, privateIsArchived, reportAttributesDerived],
     );
 
     const shouldShowAttachment = !isTextShared;

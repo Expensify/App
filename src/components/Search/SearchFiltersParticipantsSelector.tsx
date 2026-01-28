@@ -60,6 +60,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -74,6 +75,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             allPolicies,
             draftComments,
             nvpDismissedProductTraining,
+            policyTags,
             loginList,
             currentUserAccountID,
             currentUserEmail,
@@ -91,11 +93,12 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         allPolicies,
         draftComments,
         nvpDismissedProductTraining,
+        policyTags,
         loginList,
-        countryCode,
-        personalDetails,
         currentUserAccountID,
         currentUserEmail,
+        personalDetails,
+        countryCode,
     ]);
 
     const unselectedOptions = useMemo(() => {
@@ -118,7 +121,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, currentUserAccountID, currentUserEmail]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -131,6 +134,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            undefined,
             currentUserAccountID,
             personalDetails,
             true,

@@ -640,12 +640,12 @@ describe('OptionsListUtils', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         await waitForBatchedUpdates();
 
-        OPTIONS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS);
-        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CONCIERGE);
-        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CHRONOS);
-        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_RECEIPTS);
-        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_WORKSPACE_ROOMS);
-        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST, CURRENT_USER_ACCOUNT_ID);
+        OPTIONS = createOptionList(PERSONAL_DETAILS, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS);
+        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CONCIERGE);
+        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CHRONOS);
+        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_RECEIPTS);
+        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST, undefined, CURRENT_USER_ACCOUNT_ID);
     });
 
     describe('getSearchOptions()', () => {
@@ -656,6 +656,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 draftComments: {},
                 nvpDismissedProductTraining,
+                policyTags: undefined,
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -684,6 +685,7 @@ describe('OptionsListUtils', () => {
                 includeUserToInvite: false,
                 includeRecentReports: true,
                 includeCurrentUser: true,
+                policyTags: {},
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -713,6 +715,7 @@ describe('OptionsListUtils', () => {
                 maxResults: undefined,
                 includeUserToInvite: false,
                 includeRecentReports: true,
+                policyTags: undefined,
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -739,6 +742,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -778,6 +783,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -808,7 +815,17 @@ describe('OptionsListUtils', () => {
         it('should return empty options when no reports or personal details are provided', () => {
             // Given empty arrays of reports and personalDetails
             // When we call getValidOptions()
-            const results = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
+            const results = getValidOptions(
+                {reports: [], personalDetails: []},
+                allPolicies,
+                {},
+                nvpDismissedProductTraining,
+                undefined,
+
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+            );
 
             // Then the result should be empty
             expect(results.personalDetails).toEqual([]);
@@ -827,6 +844,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -849,6 +868,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -871,6 +892,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -896,6 +919,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -923,6 +948,8 @@ describe('OptionsListUtils', () => {
                         timestamp: DateUtils.getDBTime(new Date().valueOf()),
                     },
                 },
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -947,6 +974,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -980,6 +1009,8 @@ describe('OptionsListUtils', () => {
                         allPolicies,
                         {},
                         nvpDismissedProductTraining,
+                        undefined,
+
                         loginList,
                         CURRENT_USER_ACCOUNT_ID,
                         CURRENT_USER_EMAIL,
@@ -1037,6 +1068,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1091,6 +1124,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1143,6 +1178,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1199,6 +1236,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1234,6 +1273,8 @@ describe('OptionsListUtils', () => {
                 {},
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1253,12 +1294,23 @@ describe('OptionsListUtils', () => {
         it('should include all reports by default', () => {
             // Given a set of reports and personalDetails that includes workspace rooms
             // When we call getValidOptions()
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, {
-                includeRecentReports: true,
-                includeMultipleParticipantReports: true,
-                includeP2P: true,
-                includeOwnedWorkspaceChats: true,
-            });
+            const results = getValidOptions(
+                OPTIONS_WITH_WORKSPACE_ROOM,
+                allPolicies,
+                {},
+                nvpDismissedProductTraining,
+                undefined,
+
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                {
+                    includeRecentReports: true,
+                    includeMultipleParticipantReports: true,
+                    includeP2P: true,
+                    includeOwnedWorkspaceChats: true,
+                },
+            );
 
             // Then the result should include all reports except the currently logged in user
             expect(results.recentReports.length).toBe(OPTIONS_WITH_WORKSPACE_ROOM.reports.length - 1);
@@ -1275,6 +1327,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1296,6 +1350,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1317,6 +1373,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1339,6 +1397,8 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1362,6 +1422,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1388,6 +1450,8 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1412,6 +1476,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1432,6 +1498,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1441,6 +1509,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1461,6 +1531,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1470,6 +1542,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1492,6 +1566,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1526,6 +1602,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1567,6 +1645,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -1787,6 +1867,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 draftComments: {},
                 nvpDismissedProductTraining,
+                policyTags: undefined,
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1808,6 +1889,7 @@ describe('OptionsListUtils', () => {
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
+                policyTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -1837,6 +1919,8 @@ describe('OptionsListUtils', () => {
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
+                policyTags: undefined,
+
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -1859,6 +1943,8 @@ describe('OptionsListUtils', () => {
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
+                policyTags: undefined,
+
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -1876,12 +1962,14 @@ describe('OptionsListUtils', () => {
             // cspell:disable-next-line
             const searchText = 'barryallen';
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
-            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, CURRENT_USER_ACCOUNT_ID, REPORTS);
+            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS);
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS_WITH_PERIODS,
                 draftComments: {},
                 nvpDismissedProductTraining,
+                policyTags: undefined,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1906,6 +1994,8 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS_WITH_WORKSPACE_ROOM,
                 draftComments: {},
                 nvpDismissedProductTraining,
+                policyTags: undefined,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1927,6 +2017,7 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 draftComments: {},
                 nvpDismissedProductTraining,
+                policyTags: undefined,
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1944,12 +2035,14 @@ describe('OptionsListUtils', () => {
         it('should prioritize options with matching display name over chat rooms', () => {
             const searchText = 'spider';
             // Given a set of options with chat rooms
-            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CHAT_ROOM);
+            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, {}, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CHAT_ROOM);
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS_WITH_CHAT_ROOMS,
                 draftComments: {},
                 nvpDismissedProductTraining,
+                policyTags: undefined,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -1972,6 +2065,8 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 draftComments: {},
                 nvpDismissedProductTraining,
+                policyTags: undefined,
+
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
@@ -1993,6 +2088,8 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions({
                 options: OPTIONS,
                 draftComments: {},
+                policyTags: undefined,
+
                 loginList,
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2013,6 +2110,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2039,6 +2138,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyTags: undefined,
             });
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
@@ -2059,6 +2159,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyTags: undefined,
             });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
@@ -2089,6 +2190,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyTags: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -2136,6 +2238,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2178,6 +2282,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2220,6 +2326,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2252,6 +2360,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2274,6 +2384,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2295,6 +2407,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2316,6 +2430,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2336,6 +2452,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2354,6 +2472,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2377,6 +2497,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2400,6 +2522,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2423,6 +2547,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2444,6 +2570,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2462,6 +2590,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2486,6 +2616,8 @@ describe('OptionsListUtils', () => {
                 allPolicies,
                 {},
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -2515,6 +2647,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyTags: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -2534,6 +2667,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                policyTags: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -2549,20 +2683,31 @@ describe('OptionsListUtils', () => {
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
                 .then(() => {
                     // Given a set of options with periods
-                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, CURRENT_USER_ACCOUNT_ID, REPORTS);
+                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS);
                     // When we call getSearchOptions
                     const results = getSearchOptions({
                         options: OPTIONS_WITH_PERIODS,
                         draftComments: {},
                         nvpDismissedProductTraining,
+                        policyTags: undefined,
+
                         loginList,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserEmail: CURRENT_USER_EMAIL,
                     });
                     // When we pass the returned options to filterAndOrderOptions with a search value
-                    const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
-                        sortByReportTypeInSearch: true,
-                    });
+                    const filteredResults = filterAndOrderOptions(
+                        results,
+                        'barry.allen@expensify.com',
+
+                        COUNTRY_CODE,
+                        loginList,
+                        CURRENT_USER_EMAIL,
+                        CURRENT_USER_ACCOUNT_ID,
+                        {
+                            sortByReportTypeInSearch: true,
+                        },
+                    );
 
                     // Then only one report should be returned
                     expect(filteredResults.recentReports.length).toBe(1);
@@ -2582,6 +2727,8 @@ describe('OptionsListUtils', () => {
                 options: OPTIONS,
                 draftComments: {},
                 nvpDismissedProductTraining,
+                policyTags: undefined,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2599,13 +2746,15 @@ describe('OptionsListUtils', () => {
 
         it('should order self dm always on top if the search matches with the self dm login', () => {
             const searchTerm = 'tonystark@expensify.com';
-            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_SELF_DM);
+            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_SELF_DM);
 
             // Given a set of options with self dm and all betas
             const options = getSearchOptions({
                 options: OPTIONS_WITH_SELF_DM,
                 draftComments: {},
                 nvpDismissedProductTraining,
+                policyTags: undefined,
+
                 loginList,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -2659,7 +2808,7 @@ describe('OptionsListUtils', () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
-            const reports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS).reports;
+            const reports = createOptionList(PERSONAL_DETAILS, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS).reports;
 
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
@@ -2670,7 +2819,7 @@ describe('OptionsListUtils', () => {
                     .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
                     .then(() => {
                         // When we call createOptionList again
-                        const newReports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS).reports;
+                        const newReports = createOptionList(PERSONAL_DETAILS, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS).reports;
                         // Then the returned reports should change to Spanish
                         // cspell:disable-next-line
                         expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
@@ -2750,7 +2899,7 @@ describe('OptionsListUtils', () => {
                 },
             });
             // When we call createOptionList
-            const reports = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS).reports;
+            const reports = createOptionList(PERSONAL_DETAILS, undefined, CURRENT_USER_ACCOUNT_ID, REPORTS).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
 
             // Then the returned report should contain default archived reason
@@ -3164,7 +3313,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, CURRENT_USER_ACCOUNT_ID, {showChatPreviewLine: true});
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, CONST.POLICY.DEFAULT_TAG_LIST, CURRENT_USER_ACCOUNT_ID, {showChatPreviewLine: true});
 
             expect(result.alternateText).toBe('Iron Man owes ₫34');
         });
@@ -3227,6 +3376,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    policyTags: undefined,
                 });
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
                 const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
@@ -3260,6 +3410,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyTags: undefined,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
@@ -3284,6 +3435,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    policyTags: undefined,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
@@ -3309,6 +3461,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    policyTags: undefined,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
@@ -3334,6 +3487,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    policyTags: undefined,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
@@ -3356,6 +3510,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    policyTags: undefined,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
@@ -3377,6 +3532,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyTags: undefined,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
@@ -3397,6 +3553,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyTags: undefined,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
@@ -3417,6 +3574,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyTags: undefined,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
@@ -3441,6 +3599,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyTags: undefined,
             });
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
@@ -3466,6 +3625,7 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
+                policyTags: {},
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(result).toBe(expectedVisibleText);
@@ -3517,6 +3677,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     policy,
                     reportMetadata,
+                    policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
@@ -3550,6 +3711,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    policyTags: undefined,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
             });
@@ -3579,6 +3741,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    policyTags: undefined,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
@@ -3811,7 +3974,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
+            const result = getReportDisplayOption(report, undefined, undefined, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
 
             // Then it should return an option with isSelfDM and alternateText set
             expect(result.isSelfDM).toBe(true);
@@ -3831,7 +3994,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
+            const result = getReportDisplayOption(report, undefined, undefined, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
 
             // Then it should return an option with invoice room text and alternateText
             expect(result.isInvoiceRoom).toBe(true);
@@ -3853,7 +4016,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, unknownUserDetails, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
+            const result = getReportDisplayOption(report, unknownUserDetails, undefined, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
 
             // Then it should return an option with unknownUserDetails data
             expect(result.text).toBe('Unknown User');
@@ -3874,7 +4037,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
+            const result = getReportDisplayOption(report, undefined, undefined, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
 
             // Then it should return an option with workspace name
             expect(result.text).toBe(POLICY.name);
@@ -3901,7 +4064,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getReportDisplayOption with custom personalDetails
-            const result = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, customPersonalDetails, undefined);
+            const result = getReportDisplayOption(report, undefined, undefined, CURRENT_USER_ACCOUNT_ID, customPersonalDetails, undefined);
 
             // Then it should use the custom personalDetails parameter
             expect(result).toBeDefined();
@@ -3918,7 +4081,7 @@ describe('OptionsListUtils', () => {
             const emptyPersonalDetails: PersonalDetailsList = {};
 
             // When we call getReportDisplayOption
-            const result = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, emptyPersonalDetails, undefined);
+            const result = getReportDisplayOption(report, undefined, undefined, CURRENT_USER_ACCOUNT_ID, emptyPersonalDetails, undefined);
 
             // Then it should not throw and return a valid option
             expect(result).toBeDefined();
@@ -3930,7 +4093,7 @@ describe('OptionsListUtils', () => {
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
 
             // When we call getReportDisplayOption with undefined report
-            const result = getReportDisplayOption(undefined, undefined, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
+            const result = getReportDisplayOption(undefined, undefined, undefined, CURRENT_USER_ACCOUNT_ID, personalDetails, undefined);
 
             // Then it should return a valid option (createOption handles undefined)
             expect(result).toBeDefined();
@@ -3955,7 +4118,17 @@ describe('OptionsListUtils', () => {
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
 
             // Test that getValidOptions accepts policies collection as second parameter
-            const results = getValidOptions({reports: [], personalDetails: []}, policies, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
+            const results = getValidOptions(
+                {reports: [], personalDetails: []},
+                policies,
+                undefined,
+                nvpDismissedProductTraining,
+                undefined,
+
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+            );
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -3964,7 +4137,7 @@ describe('OptionsListUtils', () => {
 
         it('should work with undefined policies', () => {
             const options = {reports: [], personalDetails: []};
-            const results = getValidOptions(options, undefined, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
+            const results = getValidOptions(options, undefined, undefined, nvpDismissedProductTraining, undefined, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -3973,7 +4146,7 @@ describe('OptionsListUtils', () => {
 
         it('should work with empty policies collection', () => {
             const options = {reports: [], personalDetails: []};
-            const results = getValidOptions(options, {}, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
+            const results = getValidOptions(options, {}, undefined, nvpDismissedProductTraining, undefined, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -4002,6 +4175,8 @@ describe('OptionsListUtils', () => {
                 policies,
                 undefined,
                 nvpDismissedProductTraining,
+                undefined,
+
                 loginList,
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
@@ -4055,7 +4230,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, undefined, policy, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.text).toBe('Test Workspace');
             expect(option.alternateText).toBe(translateLocal('workspace.common.workspace'));
@@ -4110,7 +4285,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, undefined, policy, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.text).toBe('Test Workspace with Submit');
             // The submitsTo logic may or may not apply depending on complex approval rules
@@ -4133,7 +4308,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.isDisabled).toBe(true);
         });
@@ -4169,7 +4344,7 @@ describe('OptionsListUtils', () => {
                 isSelfDM: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, personalDetails);
+            const option = getReportOption(participant, undefined, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, personalDetails);
 
             // The option.isSelfDM is set by createOption based on the report type
             // Just verify the alternateText is correct for self DM
@@ -4204,7 +4379,7 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.isInvoiceRoom).toBe(true);
             expect(option.alternateText).toBe(translateLocal('workspace.common.invoices'));
@@ -4245,7 +4420,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.text).toBe(POLICY.name);
             expect(option.alternateText).toBeTruthy();
@@ -4289,7 +4464,7 @@ describe('OptionsListUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            const option = getReportOption(participant, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, draftReports);
+            const option = getReportOption(participant, undefined, reportNameValuePair?.private_isArchived, POLICY, CURRENT_USER_ACCOUNT_ID, {}, undefined, draftReports);
 
             expect(option.isDisabled).toBe(true);
         });
@@ -4311,7 +4486,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -4334,7 +4509,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -4354,7 +4529,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, undefined);
+            const option = getReportDisplayOption(report, undefined, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, undefined);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -4378,7 +4553,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -4402,7 +4577,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const option = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, reportNameValuePair?.private_isArchived);
+            const option = getReportDisplayOption(report, undefined, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, reportNameValuePair?.private_isArchived);
 
             expect(option).toBeDefined();
             expect(option.reportID).toBe(reportID);
@@ -4425,7 +4600,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option.isSelected).toBe(true);
             expect(option.selected).toBe(true);
@@ -4446,7 +4621,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, undefined, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, undefined, undefined, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -4468,7 +4643,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Test that the function works with reportAttributesDerived parameter (optional)
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option).toBeDefined();
         });
@@ -4502,7 +4677,7 @@ describe('OptionsListUtils', () => {
                 reportID,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+            const option = getReportOption(participant, undefined, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
 
             expect(option).toBeDefined();
             // The createOption function uses personalDetails to build display names
@@ -4563,7 +4738,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getReportOption(participant, undefined, policy, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+            const option = getReportOption(participant, undefined, undefined, policy, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace with Approver');
@@ -4588,7 +4763,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass empty personalDetails
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getReportOption(participant, undefined, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -4610,7 +4785,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Pass undefined personalDetails
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, undefined);
+            const option = getReportOption(participant, undefined, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBeDefined();
@@ -4656,7 +4831,7 @@ describe('OptionsListUtils', () => {
                 isInvoiceRoom: true,
             };
 
-            const option = getReportOption(participant, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+            const option = getReportOption(participant, undefined, undefined, POLICY, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
 
             expect(option).toBeDefined();
             expect(option.isInvoiceRoom).toBe(true);
@@ -4713,7 +4888,7 @@ describe('OptionsListUtils', () => {
                 selected: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+            const option = getPolicyExpenseReportOption(participant, undefined, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Test Workspace Policy');
@@ -4774,7 +4949,7 @@ describe('OptionsListUtils', () => {
                 isPolicyExpenseChat: true,
             };
 
-            const option = getPolicyExpenseReportOption(participant, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
+            const option = getPolicyExpenseReportOption(participant, undefined, CURRENT_USER_ACCOUNT_ID, testPersonalDetails);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Team Workspace');
@@ -4818,7 +4993,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Should not throw when personalDetails is empty
-            const option = getPolicyExpenseReportOption(participant, CURRENT_USER_ACCOUNT_ID, {});
+            const option = getPolicyExpenseReportOption(participant, undefined, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Workspace Without Details');
@@ -4862,7 +5037,7 @@ describe('OptionsListUtils', () => {
             };
 
             // Should not throw when personalDetails is undefined
-            const option = getPolicyExpenseReportOption(participant, CURRENT_USER_ACCOUNT_ID, undefined);
+            const option = getPolicyExpenseReportOption(participant, undefined, CURRENT_USER_ACCOUNT_ID, undefined);
 
             expect(option).toBeDefined();
             expect(option.text).toBe('Workspace Undefined Details');
@@ -4914,10 +5089,10 @@ describe('OptionsListUtils', () => {
                 selected: false,
             };
 
-            const optionSelected = getPolicyExpenseReportOption(participantSelected, CURRENT_USER_ACCOUNT_ID, {});
+            const optionSelected = getPolicyExpenseReportOption(participantSelected, undefined, CURRENT_USER_ACCOUNT_ID, {});
 
             // eslint-disable-next-line rulesdir/no-negated-variables
-            const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, CURRENT_USER_ACCOUNT_ID, {});
+            const optionNotSelected = getPolicyExpenseReportOption(participantNotSelected, undefined, CURRENT_USER_ACCOUNT_ID, {});
 
             expect(optionSelected.isSelected).toBe(true);
             expect(optionSelected.selected).toBe(true);
