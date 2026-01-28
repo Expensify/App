@@ -4325,7 +4325,7 @@ function peg$parse(input, options) {
     card: "card",
     "withdrawal-id": "withdrawn",
     category: "category",
-    merchant: "groupmerchant",
+    merchant: "groupMerchant",
     month: "groupmonth",
   };
 
