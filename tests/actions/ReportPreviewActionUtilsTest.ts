@@ -76,7 +76,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [],
@@ -104,6 +104,9 @@ describe('getReportPreviewAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const transaction = {
             reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
         } as unknown as Transaction;
 
         // Simulate how components use a hook to pass the isReportArchived parameter
@@ -115,7 +118,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -147,6 +150,9 @@ describe('getReportPreviewAction', () => {
 
         const transaction = {
             reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
         } as unknown as Transaction;
 
         // Simulate how components use a hook to pass the isReportArchived parameter
@@ -155,7 +161,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -198,7 +204,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -250,7 +256,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -286,6 +292,9 @@ describe('getReportPreviewAction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             const transaction = {
                 reportID: `${REPORT_ID}`,
+                amount: 100,
+                merchant: 'Test Merchant',
+                created: '2025-01-01',
             } as unknown as Transaction;
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
@@ -294,7 +303,7 @@ describe('getReportPreviewAction', () => {
                 getReportPreviewAction({
                     isReportArchived: isReportArchived.current,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserEmail: CURRENT_USER_EMAIL,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                     report,
                     policy,
                     transactions: [transaction],
@@ -332,7 +341,7 @@ describe('getReportPreviewAction', () => {
                 getReportPreviewAction({
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserEmail: CURRENT_USER_EMAIL,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                     report,
                     policy,
                     transactions: [transaction],
@@ -371,7 +380,7 @@ describe('getReportPreviewAction', () => {
                 getReportPreviewAction({
                     isReportArchived: false,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserEmail: CURRENT_USER_EMAIL,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                     report,
                     policy,
                     transactions: [transaction],
@@ -401,6 +410,9 @@ describe('getReportPreviewAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const transaction = {
             reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
@@ -409,7 +421,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -444,7 +456,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -480,7 +492,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -519,7 +531,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -575,7 +587,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -619,7 +631,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -658,7 +670,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isChatReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -692,7 +704,7 @@ describe('getReportPreviewAction', () => {
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserLogin: CURRENT_USER_EMAIL,
                 report,
                 policy,
                 transactions: [transaction],
@@ -727,7 +739,7 @@ describe('getReportPreviewAction', () => {
             const result = getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: '',
+                currentUserLogin: '',
                 report,
                 policy,
                 transactions: [transaction],
@@ -772,7 +784,7 @@ describe('getReportPreviewAction', () => {
             const result = getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: '',
+                currentUserLogin: '',
                 report,
                 policy,
                 transactions: [transaction],
@@ -817,7 +829,7 @@ describe('getReportPreviewAction', () => {
             const result = getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: '',
+                currentUserLogin: '',
                 report,
                 policy,
                 transactions: [transaction],

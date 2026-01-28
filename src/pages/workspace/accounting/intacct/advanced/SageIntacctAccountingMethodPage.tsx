@@ -2,8 +2,8 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -33,7 +33,7 @@ function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
         value: accountingMethodType,
         text: translate(`workspace.sageIntacct.accountingMethods.values.${accountingMethodType}` as TranslationPaths),
         alternateText: translate(`workspace.sageIntacct.accountingMethods.alternateText.${accountingMethodType}` as TranslationPaths),
-        keyForList: accountingMethodType,
+        keyForList: `${accountingMethodType}`,
         isSelected: accountingMethod === accountingMethodType,
     }));
 
@@ -64,7 +64,7 @@ function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
             displayName="SageIntacctAccountingMethodPage"
             headerTitleAlreadyTranslated={translate('workspace.sageIntacct.accountingMethods.label')}
             headerContent={headerContent}
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExpenseReportApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

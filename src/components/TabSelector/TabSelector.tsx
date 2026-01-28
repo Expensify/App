@@ -51,6 +51,7 @@ const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = [
     'Percent',
     'Crosshair',
     'Meter',
+    'Clock',
 ] as const;
 
 function getIconTitleAndTestID(
@@ -95,6 +96,8 @@ function getIconTitleAndTestID(
             return {icon: icons.Percent, title: translate('iou.percent'), testID: 'split-percentage'};
         case CONST.TAB.SPLIT.DATE:
             return {icon: icons.CalendarSolid, title: translate('iou.date'), testID: 'split-date'};
+        case CONST.TAB_REQUEST.TIME:
+            return {icon: icons.Clock, title: translate('iou.time'), testID: 'time'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }

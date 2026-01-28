@@ -18,6 +18,7 @@ import type {SearchFilterKey, SearchQueryString} from '@components/Search/types'
 import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -100,6 +101,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchContext();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const {areOptionsInitialized} = useOptionsList();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
@@ -131,7 +134,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         }
 
         const focusedRoute = findFocusedRoute(state);
-        if (focusedRoute?.name === SCREENS.REPORT) {
+        if (focusedRoute?.name === SCREENS.REPORT || focusedRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
             // We're guaranteed that the type of params is of SCREENS.REPORT
             return (focusedRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID;
         }
@@ -161,7 +164,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = createOptionFromReport(report, personalDetails, undefined, {showPersonalDetails: true});
+                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, undefined, {showPersonalDetails: true});
                 reportForContextualSearch = option;
             }
 
@@ -193,9 +196,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     data: [
                         {
                             text: StringUtils.lineBreaksToSpaces(
-                                shouldParserToHTML
-                                    ? Parser.htmlToText(reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
-                                    : (reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? ''),
+                                `${translate('search.searchIn')} ${
+                                    shouldParserToHTML
+                                        ? Parser.htmlToText(reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
+                                        : (reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
+                                }`,
                             ),
                             singleIcon: expensifyIcons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
@@ -210,7 +215,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, isSearchRouterDisplayed, reports, personalDetails, expensifyIcons.MagnifyingGlass],
+        [contextualReportID, textInputValue, isSearchRouterDisplayed, translate, expensifyIcons.MagnifyingGlass, styles.activeComponentBG, reports, personalDetails, currentUserAccountID],
     );
 
     const searchQueryItem = textInputValue
