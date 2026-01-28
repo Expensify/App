@@ -54,10 +54,9 @@ function HomePage() {
             >
                 <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
                     <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
-                        {/* <ForYouSection /> */}
                         {!isSelfTourViewed && <DiscoverSection />}
                     </View>
-                    <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>{/* <AnnouncementsSection /> */}</View>
+                    <View style={styles.homePageRightColumn(shouldUseNarrowLayout)} />
                 </View>
             </ScrollView>
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
