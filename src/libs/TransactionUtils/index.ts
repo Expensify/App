@@ -1185,7 +1185,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
     if (creatorAccountID) {
         const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
         const creatorEmail = creatorDetails?.login ?? '';
-        const creatorDisplayName = (creatorDetails?.displayName ?? creatorEmail) || `Account ${creatorAccountID}`;
+        const creatorDisplayName = (creatorDetails?.displayName ?? creatorEmail) || translateLocal('common.fallbackAccountName', {accountID: creatorAccountID});
 
         return {
             email: creatorEmail,

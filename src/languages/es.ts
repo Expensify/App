@@ -247,6 +247,7 @@ const translations: TranslationDeepObject<typeof en> = {
         kilometer: 'kilómetro',
         kilometers: 'kilómetros',
         recent: 'Reciente',
+        fallbackAccountName: ({accountID}: {accountID: number}) => `Cuenta ${accountID}`,
         all: 'Todo',
         am: 'AM',
         pm: 'PM',

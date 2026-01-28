@@ -248,6 +248,7 @@ const translations = {
         optional: 'Optional',
         new: 'New',
         newFeature: 'New feature',
+        fallbackAccountName: ({accountID}: {accountID: number}) => `Account ${accountID}`,
         search: 'Search',
         reports: 'Reports',
         find: 'Find',
