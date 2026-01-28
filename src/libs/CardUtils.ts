@@ -142,10 +142,10 @@ function isCardClosed(card: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
 }
 
-function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldExcludeCardHiddenFromSearch = false) {
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldFilterOutPersonalCards = false) {
     const feedCards: CardList = {};
     for (const card of Object.values(cardList ?? {})) {
-        if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
+        if (!isCard(card) || (shouldFilterOutPersonalCards && !isPersonalCard(card))) {
             continue;
         }
 
@@ -154,7 +154,7 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
 
     for (const currentCardFeed of Object.values(workspaceFeeds ?? {})) {
         for (const card of Object.values(currentCardFeed ?? {})) {
-            if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
+            if (!isCard(card)) {
                 continue;
             }
             feedCards[card.cardID] = card;
@@ -624,11 +624,20 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
-function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
-    const {cardList, ...assignedCards} = cardsList ?? {};
+function filterAllInactiveCards(cards: CardList | undefined) {
+    if (!cards) {
+        return {};
+    }
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
-    const filteredAssignedCards = filterObject(assignedCards, (_key, card) => !closedStates.has(card.state));
+    const filteredCards = filterObject(cards, (_key, card) => !closedStates.has(card.state));
+
+    return filteredCards;
+}
+
+function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
+    const {cardList, ...assignedCards} = cardsList ?? {};
+    const filteredAssignedCards = filterAllInactiveCards(assignedCards);
 
     return {
         ...(cardList ? {cardList} : {}),
@@ -647,6 +656,7 @@ function getAllCardsForWorkspace(
     const expensifyCardsDomainIDs = Object.keys(expensifyCardSettings ?? {})
         .map((key) => key.split('_').at(-1))
         .filter((id): id is string => !!id);
+
     for (const [key, values] of Object.entries(allCardList ?? {})) {
         const isWorkspaceAccountCards = workspaceAccountID !== CONST.DEFAULT_NUMBER_ID && key.includes(workspaceAccountID.toString());
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
@@ -716,19 +726,13 @@ function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, work
 }
 
 /**
- * Check if any card from the provided feed(s) has a broken connection
+ * Check if the card has a broken connection
  *
- * @param feedCards the list of the cards, related to one or several feeds
- * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
+ * @param card the card to check
+ * @returns true if the card has a broken connection, false otherwise
  */
-function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefined, feedToExclude?: string): boolean {
-    if (!feedCards || isEmptyObject(feedCards)) {
-        return false;
-    }
-
-    return Object.values(feedCards).some(
-        (card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult),
-    );
+function isCardConnectionBroken(card: Card): boolean {
+    return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
 }
 
 /**
@@ -800,7 +804,7 @@ function getFundIdFromSettingsKey(key: string) {
  * @param feedCards the list of the cards, related to one or several feeds
  * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
  */
-function getFeedConnectionBrokenCard(feedCards: Record<string, Card> | undefined, feedToExclude?: string): Card | undefined {
+function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExclude?: string): Card | undefined {
     if (!feedCards || isEmptyObject(feedCards)) {
         return undefined;
     }
@@ -825,13 +829,6 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
  */
 function isPersonalCard(card?: Card) {
     return !!card?.fundID && card.fundID !== '0';
-}
-
-/**
- * Filter out personal (including cash) cards from the card list.
- */
-function filterPersonalCards(cards: CardList | undefined): CardList {
-    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
 }
 
 type SplitMaskedCardNumberResult = {
@@ -914,7 +911,7 @@ export {
     isCardHiddenFromSearch,
     getFeedType,
     flatAllCardsList,
-    checkIfFeedConnectionIsBroken,
+    isCardConnectionBroken,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
@@ -937,7 +934,6 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
-    filterPersonalCards,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,

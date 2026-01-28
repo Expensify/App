@@ -10,7 +10,6 @@ import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
-import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -52,6 +51,7 @@ import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
@@ -59,6 +59,7 @@ import type {
     OnyxInputOrEntry,
     Policy,
     PolicyCategories,
+    PolicyTagLists,
     RecentWaypoint,
     Report,
     ReviewDuplicates,
@@ -137,6 +138,28 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.BETAS,
     callback: (value) => (allBetas = value),
 });
+
+let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+        allPolicyTags = value;
+    },
+});
+
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72719)
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
+function getPolicyTagsData(policyID: string | undefined) {
+    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+}
 
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     const type = transaction?.comment?.type;
@@ -330,27 +353,30 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
 }
 
 /**
- * Determines the transaction type based on custom unit name or card name.
+ * Determines the transaction type based on custom unit name, comment type or card name.
  * Returns 'distance' for Distance transactions, 'perDiem' for Per Diem International transactions,
+ * 'time' for time transactions,
  * 'cash' for cash transactions, or 'card' for card transactions.
  *
  * @param transaction - The transaction to check
  * @param cardList - Optional card list to check for cash transactions
- * @returns The transaction type: 'distance', 'perDiem', 'cash', or 'card'
+ * @returns The transaction type: 'distance', 'perDiem', 'time', 'cash', or 'card'
  */
 function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: CardList): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
-    const customUnitName = transaction?.comment?.customUnit?.name;
-
-    if (customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE) {
+    if (isDistanceRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.DISTANCE;
     }
 
-    if (customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL) {
+    if (isPerDiemRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM;
     }
 
     if (isTimeRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.TIME;
+    }
+
+    if (isManagedCardTransaction(transaction)) {
+        return CONST.SEARCH.TRANSACTION_TYPE.CARD;
     }
 
     const cardID = transaction?.cardID;
@@ -363,6 +389,25 @@ function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: Card
     }
 
     return CONST.SEARCH.TRANSACTION_TYPE.CARD;
+}
+
+/**
+ * Returns the corresponding translation key for expense type
+ */
+function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>): TranslationPaths {
+    // eslint-disable-next-line default-case
+    switch (expenseType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+            return 'common.distance';
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
+            return 'common.card';
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+            return 'iou.cash';
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
+            return 'common.perDiem';
+        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
+            return 'iou.time';
+    }
 }
 
 function isManualRequest(transaction: Transaction): boolean {
@@ -1142,7 +1187,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
     const creatorAccountID = isExpenseUnreported(transaction) ? currentUserPersonalDetails?.accountID : report?.ownerAccountID;
 
     if (creatorAccountID) {
-        const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID]});
+        const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: currentUserPersonalDetails?.accountID});
         const creatorEmail = creatorDetails?.login ?? '';
         const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
 
@@ -1487,7 +1532,7 @@ function getTransactionViolations(
             (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
         ) ?? [];
 
-    if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
+    if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED) {
         return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
     }
 
@@ -1928,7 +1973,7 @@ function hasViolation(
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
             !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
-            (!CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES),
+            (CONST.IS_ATTENDEES_REQUIRED_ENABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES),
     );
 }
 
@@ -2434,6 +2479,8 @@ function compareDuplicateTransactionFields(
                     keep[fieldName] = firstTransaction?.[keys[0]] ?? firstTransaction?.[keys[1]];
                 }
             } else if (fieldName === 'tag') {
+                // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/72719)
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const policyTags = report?.policyID ? getPolicyTagsData(report?.policyID) : {};
                 const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
                 if (isMultiLevelTags) {
@@ -2643,9 +2690,9 @@ function isExpenseUnreported(transaction?: Transaction): transaction is Unreport
 }
 
 /**
- * Check if there is a smartscan failed or no route violation for the transaction.
+ * Returns true if a transaction have violations that should block report submission.
  */
-function hasSmartScanFailedOrNoRouteViolation(
+function hasSubmissionBlockingViolations(
     transaction: Transaction,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
@@ -2761,7 +2808,7 @@ export {
     hasViolation,
     hasDuplicateTransactions,
     hasBrokenConnectionViolation,
-    hasSmartScanFailedOrNoRouteViolation,
+    hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
@@ -2816,6 +2863,7 @@ export {
     getConvertedAmount,
     shouldShowExpenseBreakdown,
     isTimeRequest,
+    getExpenseTypeTranslationKey,
 };
 
 export type {TransactionChanges};
