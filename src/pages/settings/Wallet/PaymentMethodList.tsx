@@ -221,9 +221,12 @@ function PaymentMethodList({
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
-                    const domainCardDescription = lastFourPAN
-                        ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                        : getDescriptionForPolicyDomainCard(card.domainName);
+                    let domainCardDescription = translate('cardPage.csvCardDescription');
+                    if (!isCSVImportCard) {
+                        domainCardDescription = lastFourPAN
+                            ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
+                            : getDescriptionForPolicyDomainCard(card.domainName);
+                    }
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl,
