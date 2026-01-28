@@ -243,6 +243,10 @@ function SearchAutocompleteList({
         }
     }, [currentType]);
 
+    const viewAutocompleteList = useMemo(() => {
+        return Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
+    }, []);
+
     const statusAutocompleteList = useMemo(() => {
         let suggestedStatuses;
         switch (currentType) {
@@ -494,6 +498,12 @@ function SearchAutocompleteList({
                     (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
                 );
                 return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
+            }
+            case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW: {
+                const filteredViews = viewAutocompleteList.filter(
+                    (viewValue) => viewValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(viewValue.toLowerCase()),
+                );
+                return filteredViews.map((viewValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW, text: viewValue}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
