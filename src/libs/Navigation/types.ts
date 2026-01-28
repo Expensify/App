@@ -371,6 +371,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -1369,6 +1373,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT]: {
         policyID: string;
     };
@@ -1386,6 +1393,45 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_CUSTOM]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_TAG]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
+        policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;
@@ -1443,6 +1489,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.MEMBER_DETAILS]: {
         domainAccountID: number;
         accountID: number;
+    };
+    [SCREENS.DOMAIN.ADD_MEMBER]: {
+        domainAccountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;
 
@@ -2273,6 +2322,7 @@ type WorkspacesDomainModalNavigatorParamList = {
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: undefined;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
@@ -2402,7 +2452,7 @@ type TravelNavigatorParamList = {
 };
 
 type ReportsSplitNavigatorParamList = {
-    [SCREENS.HOME]: undefined;
+    [SCREENS.INBOX]: undefined;
     [SCREENS.REPORT]: {
         reportID: string;
         reportActionID?: string;
@@ -2801,6 +2851,7 @@ type AuthScreensParamList = SharedScreensParamList &
         [SCREENS.CONCIERGE]: undefined;
         [SCREENS.TRACK_EXPENSE]: undefined;
         [SCREENS.SUBMIT_EXPENSE]: undefined;
+        [SCREENS.HOME]: undefined;
         [SCREENS.WORKSPACES_LIST]: {
             // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
             backTo?: Routes;
@@ -2892,7 +2943,10 @@ type RestrictedActionParamList = {
 };
 
 type MissingPersonalDetailsParamList = {
-    [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: undefined;
+    [SCREENS.MISSING_PERSONAL_DETAILS]: {
+        subPage?: string;
+        action?: 'edit';
+    };
     [SCREENS.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: undefined;
 };
 
@@ -2991,8 +3045,8 @@ type TestToolsModalModalNavigatorParamList = {
 type MultifactorAuthenticationParamList = {
     [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: undefined;
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOTIFICATION]: {
-        notificationType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE>;
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME]: {
+        outcomeType: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE>;
     };
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
         promptType: string;
@@ -3007,7 +3061,7 @@ type SplitNavigatorName = keyof SplitNavigatorParamList;
 
 type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
-type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST;
+type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST | typeof SCREENS.HOME;
 
 // There are three screens/navigators which can be displayed when the Workspaces tab is selected
 type WorkspacesTabNavigatorName = typeof SCREENS.WORKSPACES_LIST | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR;
