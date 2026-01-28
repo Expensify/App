@@ -2660,7 +2660,7 @@ describe('OptionsListUtils', () => {
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
             const reports = createOptionList(PERSONAL_DETAILS, {}, CURRENT_USER_ACCOUNT_ID, REPORTS).reports;
-            
+
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
 
