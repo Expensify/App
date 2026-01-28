@@ -2210,6 +2210,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount}，商户：${merchant} - ${date}`,
         },
+        csvCardDescription: 'CSV 导入',
     },
     workflowsPage: {
         workflowTitle: '支出',

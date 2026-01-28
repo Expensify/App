@@ -2237,6 +2237,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${merchant} への ${amount}（${date}）`,
         },
+        csvCardDescription: 'CSVインポート',
     },
     workflowsPage: {
         workflowTitle: '支出',

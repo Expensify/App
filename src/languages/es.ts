@@ -1938,6 +1938,7 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Transacción sospechosa',
         suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haz click abajo para revisarla.',
         cardLocked: 'La tarjeta está temporalmente bloqueada mientras nuestro equipo revisa la cuenta de tu empresa.',
+        csvCardDescription: 'Importación CSV',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',
