@@ -3232,8 +3232,13 @@ const ROUTES = {
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/existing-connections` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
-        route: 'workspaces/:policyID/accounting/netsuite/token-input',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/token-input` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/token-input/:subPage?',
+        getRoute: (policyID: string | undefined, subPage?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/token-input${subPage ? `/${subPage}` : ''}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'workspaces/:policyID/accounting/netsuite/import',

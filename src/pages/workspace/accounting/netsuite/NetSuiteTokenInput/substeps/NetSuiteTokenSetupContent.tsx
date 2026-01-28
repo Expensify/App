@@ -7,16 +7,16 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
-import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepWithPolicy) {
+function NetSuiteTokenSetupContent({onNext, currentPageName}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const stepKeys = CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_KEYS;
-    const currentStepKey = stepKeys[(screenIndex ?? 0) as keyof typeof stepKeys];
+    const currentStepKey = stepKeys[currentPageName as keyof typeof stepKeys];
 
     const titleKey = `workspace.netsuite.tokenInput.formSteps.${currentStepKey}.title` as TranslationPaths;
     const description = `workspace.netsuite.tokenInput.formSteps.${currentStepKey}.description` as TranslationPaths;
