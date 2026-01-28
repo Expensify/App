@@ -2456,7 +2456,6 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 transactionsQueryJSON,
                 ...weekGroup,
                 formattedWeek,
-                sortKey: weekGroup.week,
             };
         }
     }
