@@ -61,6 +61,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Basket',
         'Bookmark',
         'Pencil',
         'Receipt',
@@ -70,6 +71,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'MoneyHourglass',
         'CreditCardHourglass',
         'Bank',
+        'User',
+        'Folder',
     ] as const);
     const {showDeleteModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});

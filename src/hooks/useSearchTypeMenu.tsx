@@ -50,6 +50,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Basket',
         'Bookmark',
         'Checkmark',
         'Pencil',
@@ -60,6 +61,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'MoneyHourglass',
         'CreditCardHourglass',
         'Bank',
+        'User',
+        'Folder',
     ] as const);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
