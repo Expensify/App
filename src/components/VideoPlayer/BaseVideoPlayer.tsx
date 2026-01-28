@@ -172,7 +172,7 @@ function BaseVideoPlayer({
             return;
         }
 
-        if (isEnded && currentTime === duration) {
+        if (isEnded && currentTime >= duration) {
             replayVideo();
             return;
         }
