@@ -3663,6 +3663,18 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: variables.sectionMargin,
         },
 
+        widgetContainer: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            overflow: 'hidden',
+            padding: 32,
+        },
+
+        homePageContentContainer: {
+            flexGrow: 1,
+            padding: 20,
+        },
+
         cardSectionIllustration: {
             width: 'auto',
             height: variables.sectionIllustrationHeight,
@@ -6193,6 +6205,31 @@ const plainStyles = (theme: ThemeColors) =>
         searchTopBarZIndexStyle: {
             zIndex: variables.searchTopBarZIndex,
         },
+
+        getWidgetContainerTitleStyle: (color: string) =>
+            ({
+                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+                fontSize: 17,
+                lineHeight: 20,
+                color,
+            }) satisfies TextStyle,
+
+        homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
+                gap: 20,
+                width: '100%',
+            }) satisfies ViewStyle,
+
+        homePageLeftColumn: (shouldUseNarrowLayout: boolean) =>
+            shouldUseNarrowLayout
+                ? ({width: '100%', flexDirection: 'column', gap: 20}) satisfies ViewStyle
+                : ({flex: 2, flexBasis: '66.666%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20}) satisfies ViewStyle,
+
+        homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
+            shouldUseNarrowLayout
+                ? ({width: '100%'}) satisfies ViewStyle
+                : ({flex: 1, flexBasis: '33.333%', maxWidth: variables.homePageRightColumnMaxWidth}) satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
