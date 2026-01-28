@@ -34,6 +34,7 @@ import type {
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     VisibleReportActionsDerivedValue,
+    NonPersonalAndWorkspaceCardListDerivedValue
 } from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
@@ -316,6 +317,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,

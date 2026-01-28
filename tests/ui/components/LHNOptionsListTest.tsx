@@ -8,14 +8,14 @@ import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import type {LHNOptionsListProps} from '@components/LHNOptionsList/types';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {getFakeReport} from '../../utils/LHNTestUtils';
 
 // Mock the context menu
-jest.mock('@pages/home/report/ContextMenu/ReportActionContextMenu', () => ({
+jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
     showContextMenu: jest.fn(),
 }));
 
