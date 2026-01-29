@@ -192,6 +192,7 @@ const SCREENS = {
             UNSHARE_BANK_ACCOUNT: 'Settings_Wallet_Unshare_Bank_Account',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
             SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
+            TRAVEL_CVV: 'Settings_Wallet_Travel_CVV',
         },
 
         EXIT_SURVEY: {
@@ -731,6 +732,8 @@ const SCREENS = {
         OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
         DISTANCE_RATES: 'Distance_Rates',
         TRAVEL: 'Travel',
+        TRAVEL_SETTINGS_ACCOUNT: 'Workspace_Travel_Settings_Account',
+        TRAVEL_SETTINGS_FREQUENCY: 'Workspace_Travel_Settings_Frequency',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',

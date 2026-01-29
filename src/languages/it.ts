@@ -2179,6 +2179,12 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderà l'accesso a questo conto bancario aziendale. Completeremo comunque tutti i pagamenti in corso.`,
         reachOutForHelp: 'È in uso con la carta Expensify. <concierge-link>Contatta il Concierge</concierge-link> se devi revocare la condivisione.',
         unshareErrorModalTitle: 'Impossibile revocare la condivisione del conto bancario',
+        travelCVV: {
+            title: 'CVV di viaggio',
+            subtitle: 'Usa questo quando prenoti viaggi',
+            description: 'Questa carta consolida spese come voli aerei, treni, noleggi auto e talvolta hotel in un unico conto.',
+            instructions: 'Ti verranno richieste le ultime 4 cifre. Puoi visualizzarle qui sotto usando il pulsante.',
+        },
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -5135,6 +5141,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             currentTravelLimitLabel: 'Limite di viaggio attuale',
                             settlementAccountLabel: 'Conto di regolamento',
                             settlementFrequencyLabel: 'Frequenza di regolamento',
+                            settlementFrequencyDescription:
+                                'Con quale frequenza Expensify preleverà dal tuo conto bancario aziendale per saldare le recenti transazioni di Expensify Travel.',
                         },
                     },
                 },

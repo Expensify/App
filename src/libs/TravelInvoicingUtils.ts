@@ -1,8 +1,18 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {BankAccountList} from '@src/types/onyx';
+import type {BankAccountList, Beta, Card, CardList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
+import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
+import Permissions from './Permissions';
+
+/**
+ * Feature flag to enable Travel CVV testing on Dev and Staging environments.
+ * When enabled, it allows using any card for CVV reveal testing if no specific Travel Card is found.
+ */
+function isTravelCVVTestingEnabled(): boolean {
+    return isDevelopment() || isInternalTestBuild() || isStaging();
+}
 
 /**
  * Checks whether Travel Invoicing is enabled based on the card settings.
@@ -77,15 +87,57 @@ function getTravelSettlementAccount(cardSettings: OnyxEntry<ExpensifyCardSetting
 
 /**
  * Gets the settlement frequency for Travel Invoicing.
- * Returns 'daily' or 'monthly' based on whether a monthly settlement date is configured.
+ * - If monthlySettlementDate is truthy (a Date), frequency is Monthly.
+ * - If monthlySettlementDate is falsy (null/undefined), frequency is Daily.
+ * - If cardSettings is missing, default to Monthly per design doc.
  */
 function getTravelSettlementFrequency(cardSettings: OnyxEntry<ExpensifyCardSettings>): string {
+    // Default to monthly per design doc when no settings exist
     if (!cardSettings) {
-        return CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+        return CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
     }
+    // If monthlySettlementDate is set, it's monthly; otherwise it's daily
     return cardSettings.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
 }
 
-export {getIsTravelInvoicingEnabled, hasTravelInvoicingSettlementAccount, getTravelLimit, getTravelSpend, getTravelSettlementAccount, getTravelSettlementFrequency};
+/**
+ * Gets the user's Travel Invoicing card from the card list.
+ * Returns the first card with isTravelCard NVP set to true.
+ */
+function getTravelInvoicingCard(cardList: OnyxEntry<CardList>): Card | undefined {
+    if (!cardList) {
+        return undefined;
+    }
+
+    const travelCard = Object.values(cardList)?.find((card) => card?.nameValuePairs?.isTravelCard);
+    // If no travel card is found and testing is enabled, return the first available card
+    if (!travelCard && isTravelCVVTestingEnabled()) {
+        return Object.values(cardList)?.at(0);
+    }
+
+    return travelCard;
+}
+
+/**
+ * Checks if user is eligible to see Travel CVV in Wallet.
+ * Requires: TRAVEL_INVOICING beta AND having a travel card.
+ */
+function isTravelCVVEligible(betas: OnyxEntry<Beta[]>, cardList: OnyxEntry<CardList>): boolean {
+    const hasBeta = Permissions.isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING as Beta, betas);
+    const hasTravelCard = !!getTravelInvoicingCard(cardList);
+    return hasBeta && hasTravelCard;
+}
+
+export {
+    getIsTravelInvoicingEnabled,
+    hasTravelInvoicingSettlementAccount,
+    getTravelLimit,
+    getTravelSpend,
+    getTravelSettlementAccount,
+    getTravelSettlementFrequency,
+    getTravelInvoicingCard,
+    isTravelCVVEligible,
+    isTravelCVVTestingEnabled,
+};
 
 export type {TravelSettlementAccountInfo};

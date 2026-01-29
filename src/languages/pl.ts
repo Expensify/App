@@ -2175,6 +2175,12 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} utraci dostęp do tego firmowego konta bankowego. Nadal będziemy realizować wszystkie płatności w toku.`,
         reachOutForHelp: 'Jest ono używane z kartą Expensify. <concierge-link>Skontaktuj się z Concierge</concierge-link>, jeśli chcesz je anulować.',
         unshareErrorModalTitle: 'Nie można anulować udostępniania konta bankowego',
+        travelCVV: {
+            title: 'CVV podróży',
+            subtitle: 'Użyj tego podczas rezerwacji podróży',
+            description: 'Ta karta konsoliduje wydatki, takie jak przeloty, kolej, wynajem samochodów, a czasem także hotele, na jednym koncie.',
+            instructions: 'Zostaniesz poproszony o podanie ostatnich 4 cyfr. Możesz je wyświetlić poniżej za pomocą przycisku.',
+        },
     },
     cardPage: {
         expensifyCard: 'Karta Expensify',
@@ -5118,6 +5124,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                             currentTravelLimitLabel: 'Obecny limit podróży',
                             settlementAccountLabel: 'Konto rozliczeniowe',
                             settlementFrequencyLabel: 'Częstotliwość rozliczeń',
+                            settlementFrequencyDescription: 'Jak często Expensify będzie pobierać środki z firmowego konta bankowego, aby rozliczyć ostatnie transakcje Expensify Travel.',
                         },
                     },
                 },
