@@ -11586,13 +11586,11 @@ function prepareOnboardingOnyxData({
     const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
     const textComment = buildOptimisticAddCommentReportAction(message, undefined, actorAccountID, 1);
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
-    const textMessage: AddCommentOrAttachmentParams | undefined = shouldPostTasksInAdminsRoom
-        ? undefined
-        : {
-              reportID: targetChatReportID,
-              reportActionID: textCommentAction.reportActionID,
-              reportComment: textComment.commentText,
-          };
+    const textMessage: AddCommentOrAttachmentParams = {
+        reportID: targetChatReportID,
+        reportActionID: textCommentAction.reportActionID,
+        reportComment: textComment.commentText,
+    };
 
     let createWorkspaceTaskReportID;
     let addExpenseApprovalsTaskReportID;
@@ -11699,22 +11697,17 @@ function prepareOnboardingOnyxData({
             };
         });
 
-    // Sign-off welcome message - excluded when posting tasks in admins room
-    let welcomeSignOffCommentAction: OptimisticAddCommentReportAction | undefined;
-    let welcomeSignOffMessage: {reportID: string; reportActionID: string; reportComment: string} | undefined;
-
-    if (!shouldPostTasksInAdminsRoom) {
-        const welcomeSignOffText =
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
-        const welcomeSignOffComment = buildOptimisticAddCommentReportAction(welcomeSignOffText, undefined, actorAccountID, tasksData.length + 3);
-        welcomeSignOffCommentAction = welcomeSignOffComment.reportAction;
-        welcomeSignOffMessage = {
-            reportID: targetChatReportID,
-            reportActionID: welcomeSignOffCommentAction.reportActionID,
-            reportComment: welcomeSignOffComment.commentText,
-        };
-    }
+    // Sign-off welcome message
+    const welcomeSignOffText =
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
+    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(welcomeSignOffText, undefined, actorAccountID, tasksData.length + 3);
+    const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
+    const welcomeSignOffMessage = {
+        reportID: targetChatReportID,
+        reportActionID: welcomeSignOffCommentAction.reportActionID,
+        reportComment: welcomeSignOffComment.commentText,
+    };
 
     const tasksForParameters = tasksData.map<TaskForParameters>(({task, currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => ({
         type: 'task',
@@ -11882,7 +11875,7 @@ function prepareOnboardingOnyxData({
     }, []);
 
     const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [...tasksForOptimisticData];
-    const lastVisibleActionCreated = welcomeSignOffCommentAction?.created ?? textCommentAction.created;
+    const lastVisibleActionCreated = shouldPostTasksInAdminsRoom ? textCommentAction.created : welcomeSignOffCommentAction.created;
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12039,7 +12032,7 @@ function prepareOnboardingOnyxData({
 
     // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = [];
-    if (textMessage) {
+    if (!shouldPostTasksInAdminsRoom) {
         guidedSetupData.push({type: 'message', ...textMessage});
     }
 
@@ -12114,20 +12107,12 @@ function prepareOnboardingOnyxData({
     }
     guidedSetupData.push(...tasksForParameters);
 
-    if (
-        !shouldPostTasksInAdminsRoom &&
-        (!introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) &&
-        welcomeSignOffCommentAction &&
-        welcomeSignOffMessage
-    ) {
-        const signOffAction = welcomeSignOffCommentAction;
-        const signOffMessage = welcomeSignOffMessage;
-
+    if (!shouldPostTasksInAdminsRoom && (!introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [signOffAction.reportActionID]: signOffAction as ReportAction,
+                [welcomeSignOffCommentAction.reportActionID]: welcomeSignOffCommentAction as ReportAction,
             },
         });
 
@@ -12135,7 +12120,7 @@ function prepareOnboardingOnyxData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [signOffAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
+                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
             },
         });
 
@@ -12143,12 +12128,12 @@ function prepareOnboardingOnyxData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
-                [signOffAction.reportActionID]: {
+                [welcomeSignOffCommentAction.reportActionID]: {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
                 } as ReportAction,
             },
         });
-        guidedSetupData.push({type: 'message', ...signOffMessage});
+        guidedSetupData.push({type: 'message', ...welcomeSignOffMessage});
     }
 
     if (isOptimisticAssignedGuide) {
@@ -12168,8 +12153,6 @@ function prepareOnboardingOnyxData({
             },
         });
     }
-
-    console.log('optimisticData', optimisticData, 'successData', successData, 'failureData', failureData, 'guidedSetupData', guidedSetupData, 'selfDMParameters', selfDMParameters);
 
     return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters};
 }
