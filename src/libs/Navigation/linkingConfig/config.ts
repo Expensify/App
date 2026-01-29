@@ -1159,6 +1159,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
                             path: ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_MATCH_TYPE]: {
+                            path: ROUTES.RULES_MERCHANT_MATCH_TYPE.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT]: {
                             path: ROUTES.RULES_MERCHANT_MERCHANT.route,
                         },
@@ -1209,6 +1212,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
+                        },
+                        [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
+                            path: ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.route,
                         },
                         [SCREENS.DOMAIN.VERIFY]: {
                             path: ROUTES.DOMAIN_VERIFY.route,
@@ -2107,6 +2113,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.RULES]: {
                     path: ROUTES.WORKSPACE_RULES.route,
+                },
+                [SCREENS.WORKSPACE.TIME_TRACKING]: {
+                    path: ROUTES.WORKSPACE_TIME_TRACKING.route,
                 },
             },
         },

@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -641,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Neue Funktion',
         month: 'Monat',
         home: 'Startseite',
+        week: 'Woche',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -2250,6 +2251,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} für ${merchant} – ${date}`,
         },
+        csvCardDescription: 'CSV-Import',
     },
     workflowsPage: {
         workflowTitle: 'Ausgabe',
@@ -4951,6 +4953,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             editStartDateDescription:
                 'Wählen Sie ein neues Startdatum für Transaktionen. Wir synchronisieren alle Transaktionen ab diesem Datum, ausgenommen diejenigen, die wir bereits importiert haben.',
             unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Kartenfeeds konnten nicht geladen werden',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Beim Laden der Workspace-Kartenfeeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder wende dich an deine Administratorin bzw. deinen Administrator.',
+                feedCouldNotBeLoadedTitle: 'Dieser Feed konnte nicht geladen werden',
+                feedCouldNotBeLoadedMessage: 'Beim Laden dieses Feeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder kontaktiere deine Administratorin/deinen Administrator.',
+                tryAgain: 'Erneut versuchen',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',
@@ -5294,7 +5304,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Regeln',
                 subtitle: 'Belege verlangen, hohe Ausgaben kennzeichnen und mehr.',
             },
-            timeTracking: {title: 'Zeit', subtitle: 'Legen Sie einen abrechenbaren Stundensatz fest, damit Mitarbeitende für ihre Zeit bezahlt werden.'},
+            timeTracking: {
+                title: 'Zeit',
+                subtitle: 'Legen Sie einen abrechenbaren Stundensatz für die Zeiterfassung fest.',
+                defaultHourlyRate: 'Standardstundensatz',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -6381,7 +6395,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 title: 'Händler',
                 subtitle: 'Legen Sie Händlerregeln fest, damit Ausgaben korrekt codiert ankommen und weniger Nachbearbeitung erfordern.',
                 addRule: 'Händlerregel hinzufügen',
-                ruleSummaryTitle: (merchantName: string) => `Wenn Händler „${merchantName}“ enthält`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Wenn Händler ${isExactMatch ? 'stimmt genau überein' : 'enthält'} „${merchantName}“`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Händler in „${merchantName}“ umbenennen`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aktualisiere ${fieldName} zu „${fieldValue}“`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Als "${reimbursable ? 'erstattungsfähig' : 'nicht erstattungsfähig'}" markieren`,
@@ -6389,7 +6403,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 addRuleTitle: 'Regel hinzufügen',
                 expensesWith: 'Für Ausgaben mit:',
                 applyUpdates: 'Diese Updates anwenden:',
-                merchantHint: 'Einem Händlernamen mit groß-/kleinschreibungsunabhängiger „Enthält“-Übereinstimmung zuordnen',
                 saveRule: 'Regel speichern',
                 confirmError: 'Geben Sie den Händler ein und nehmen Sie mindestens eine Änderung vor',
                 confirmErrorMerchant: 'Bitte geben Sie den Händler ein',
@@ -6400,6 +6413,10 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 previewMatches: 'Übereinstimmungen anzeigen',
                 previewMatchesEmptyStateTitle: 'Nichts anzuzeigen',
                 previewMatchesEmptyStateSubtitle: 'Keine nicht eingereichten Ausgaben entsprechen dieser Regel.',
+                matchType: 'Abgleichstyp',
+                matchTypeContains: 'Enthält',
+                matchTypeExact: 'Exakte Übereinstimmung',
+                expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
             },
         },
         planTypePage: {
@@ -7002,8 +7019,9 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Stichwort',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7184,6 +7202,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                     `Die ${feedName}-Verbindung ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `die Plaid-Verbindung zu Ihrem Geschäftsbankkonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify-Karten weiterhin nutzen können.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `Geschäftsbankkonto ${maskedBankAccountNumber} wurde aufgrund eines Problems mit der Erstattung oder der Expensify Card-Abrechnung automatisch gesperrt. Bitte behebe das Problem in deinen <a href="${linkURL}">Workspace-Einstellungen</a>.`,
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten. Bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
@@ -8215,6 +8235,16 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
         },
         fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
+    },
+    homePage: {
+        forYou: 'Für dich',
+        announcements: 'Ankündigungen',
+        discoverSection: {
+            title: 'Entdecken',
+            menuItemTitleNonAdmin: 'Erfahren Sie, wie Sie Ausgaben erstellen und Berichte einreichen.',
+            menuItemTitleAdmin: 'Erfahren Sie, wie Sie Mitglieder einladen, Genehmigungsworkflows bearbeiten und Firmenkarten abstimmen.',
+            menuItemDescription: 'Sehen Sie, was Expensify in 2 Minuten kann',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

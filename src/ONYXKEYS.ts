@@ -914,6 +914,8 @@ const ONYXKEYS = {
         WORKSPACE_INVOICES_COMPANY_NAME_FORM_DRAFT: 'workspaceInvoicesCompanyNameFormDraft',
         WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM: 'workspaceInvoicesCompanyWebsiteForm',
         WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM_DRAFT: 'workspaceInvoicesCompanyWebsiteFormDraft',
+        WORKSPACE_TIME_TRACKING_DEFAULT_RATE_FORM: 'workspaceTimeTrackingDefaultRateForm',
+        WORKSPACE_TIME_TRACKING_DEFAULT_RATE_FORM_DRAFT: 'workspaceTimeTrackingDefaultRateFormDraft',
         NEW_CHAT_NAME_FORM: 'newChatNameForm',
         NEW_CHAT_NAME_FORM_DRAFT: 'newChatNameFormDraft',
         SUBSCRIPTION_SIZE_FORM: 'subscriptionSizeForm',
@@ -1074,6 +1076,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
     [ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM]: FormTypes.WorkspaceInvoicesCompanyNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM]: FormTypes.WorkspaceInvoicesCompanyWebsiteForm;
+    [ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_DEFAULT_RATE_FORM]: FormTypes.WorkspaceTimeTrackingDefaultRateForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
     [ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM]: FormTypes.SubscriptionSizeForm;
     [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;

@@ -2624,6 +2624,21 @@ const ROUTES = {
         route: 'workspaces/:policyID/per-diem/edit/currency/:rateID/:subRateID',
         getRoute: (policyID: string, rateID: string, subRateID: string) => `workspaces/${policyID}/per-diem/edit/currency/${rateID}/${subRateID}` as const,
     },
+
+    WORKSPACE_TIME_TRACKING: {
+        route: 'workspaces/:policyID/time-tracking',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TIME_TRACKING route');
+            }
+            return `workspaces/${policyID}/time-tracking` as const;
+        },
+    },
+    WORKSPACE_TIME_TRACKING_DEFAULT_RATE: {
+        route: 'workspaces/:policyID/time-tracking/rate',
+        getRoute: (policyID: string) => `workspaces/${policyID}/time-tracking/rate` as const,
+    },
+
     REPORTS_DEFAULT_TITLE: {
         route: 'workspaces/:policyID/reports/name',
         getRoute: (policyID: string) => `workspaces/${policyID}/reports/name` as const,
@@ -2679,6 +2694,10 @@ const ROUTES = {
     RULES_MERCHANT_MERCHANT_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-to-match',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-to-match` as const,
+    },
+    RULES_MERCHANT_MATCH_TYPE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-to-match/type',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-to-match/type` as const,
     },
     RULES_MERCHANT_MERCHANT: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant',

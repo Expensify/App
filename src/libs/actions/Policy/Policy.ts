@@ -190,6 +190,7 @@ type BuildPolicyDataOptions = {
     allReportsParam?: OnyxCollection<Report>;
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
+    shouldCreateControlPolicy?: boolean;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -2187,6 +2188,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
         allReportsParam,
         shouldAddGuideWelcomeMessage = true,
         onboardingPurposeSelected,
+        shouldCreateControlPolicy = false,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2218,7 +2220,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
     // Determine workspace type based on selected features or user reported integration
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
     const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
-    const workspaceType = isCorporateFeature || isCorporateIntegration ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+    const workspaceType = isCorporateFeature || isCorporateIntegration || shouldCreateControlPolicy ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
 
     const areDistanceRatesEnabled = !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
@@ -4807,6 +4809,44 @@ function enablePolicyTimeTracking(policyID: string, enabled: boolean) {
     }
 }
 
+/**
+ * Update policy's time tracking default hourly rate.
+ * The rate should be passed in currency units, not subunits.
+ */
+function setPolicyTimeTrackingDefaultRate(policyID: string, rate: number) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    units: {
+                        time: {
+                            rate,
+                        },
+                    },
+                    pendingFields: {
+                        timeTrackingDefaultRate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        timeTrackingDefaultRate: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TIME_TRACKING_DEFAULT_RATE, {policyID, defaultRate: rate}, onyxData);
+}
+
 function openPolicyMoreFeaturesPage(policyID: string) {
     const params: OpenPolicyMoreFeaturesPageParams = {policyID};
 
@@ -6890,4 +6930,5 @@ export {
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,
     setPolicyRequireCompanyCardsEnabled,
+    setPolicyTimeTrackingDefaultRate,
 };
