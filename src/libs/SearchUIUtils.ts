@@ -20,6 +20,7 @@ import type {
     SearchQueryJSON,
     SearchStatus,
     SearchWithdrawalType,
+    SelectedTransactionInfo,
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
@@ -86,7 +87,16 @@ import interceptAnonymousUser from './interceptAnonymousUser';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, getSubmitToAccountID, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    canSendInvoice,
+    getCleanedTagName,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
+    getPolicy,
+    getSubmitToAccountID,
+    isPaidGroupPolicy,
+    isPolicyPayer,
+} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -100,6 +110,7 @@ import {
 } from './ReportActionsUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
+    canDeleteMoneyRequestReport,
     canUserPerformWriteAction,
     findSelfDMReportID,
     generateReportID,
@@ -170,6 +181,7 @@ type GetReportSectionsParams = {
     translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isActionLoadingSet: ReadonlySet<string> | undefined;
+    isOffline: boolean | undefined;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
@@ -415,6 +427,7 @@ type GetSectionsParams = {
     archivedReportsIDList?: ArchivedReportsIDSet;
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
+    isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
@@ -1241,7 +1254,15 @@ function shouldShowYear(
  * Extracts all transaction violations from the search data.
  */
 function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.TransactionViolation[]> {
-    return Object.fromEntries(Object.entries(data).filter(([key]) => isViolationEntry(key))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    const violations: OnyxCollection<OnyxTypes.TransactionViolation[]> = {};
+
+    for (const key in data) {
+        if (isViolationEntry(key)) {
+            violations[key] = data[key];
+        }
+    }
+
+    return violations;
 }
 
 /**
@@ -1856,6 +1877,7 @@ function getReportSections({
     currentAccountID,
     currentUserEmail,
     translate,
+    isOffline,
     formatPhoneNumber,
     isActionLoadingSet,
     allTransactionViolations,
@@ -1947,6 +1969,8 @@ function getReportSections({
                 const policyFromKey = getPolicyFromKey(data, reportItem);
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID ?? String(CONST.DEFAULT_NUMBER_ID)}`] ?? policyFromKey;
 
+                const shouldShowStatusAsPending = !!isOffline && reportItem?.pendingFields?.nextStep === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
                 const hasAnyViolationsForReport = hasAnyViolations(
                     reportItem.reportID,
                     allTransactionViolations ?? allViolations,
@@ -1980,6 +2004,7 @@ function getReportSections({
                     formattedTo,
                     formattedStatus,
                     transactions,
+                    shouldShowStatusAsPending,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                     shouldShowYear: shouldShowYearCreatedReport,
                     shouldShowYearSubmitted: shouldShowYearSubmittedReport,
@@ -2342,7 +2367,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
             // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
             const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
-            const formattedTag = isEmptyTag ? translate('search.noTag') : rawTag;
+            const formattedTag = isEmptyTag ? translate('search.noTag') : getCleanedTagName(rawTag);
 
             tagSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.TAG,
@@ -2446,6 +2471,7 @@ function getSections({
     archivedReportsIDList,
     queryJSON,
     isActionLoadingSet,
+    isOffline,
     cardFeeds,
     allTransactionViolations,
     visibleReportActionsData,
@@ -2465,6 +2491,7 @@ function getSections({
             currentAccountID,
             currentUserEmail,
             translate,
+            isOffline,
             formatPhoneNumber,
             isActionLoadingSet,
             allTransactionViolations,
@@ -4004,6 +4031,31 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+function shouldShowDeleteOption(selectedTransactions: Record<string, SelectedTransactionInfo>, currentSearchResults: SearchResults['data'] | undefined, isOffline: boolean) {
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
+
+    return (
+        !isOffline &&
+        selectedTransactionsKeys.every((id) => {
+            const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id];
+            if (!transaction) {
+                return false;
+            }
+            const parentReportID = transaction.reportID;
+            const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
+            if (!parentReport) {
+                return false;
+            }
+            const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+            const parentReportAction =
+                Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
+                selectedTransactions[id].reportAction;
+
+            return canDeleteMoneyRequestReport(parentReport, [transaction as OnyxTypes.Transaction], parentReportAction ? [parentReportAction] : []);
+        })
+    );
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -4056,6 +4108,7 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    shouldShowDeleteOption,
     getToFieldValueForTransaction,
     isTodoSearch,
 };
