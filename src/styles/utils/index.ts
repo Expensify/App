@@ -1986,10 +1986,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         const correctedHeaderHeight = paddingTop + headerHeight;
 
+        const keyboardHeightValue = keyboardHeight.get();
+
         const getComposerHeight = (): number => {
             if (isComposerFullSize) {
                 if (isKeyboardActive) {
-                    return windowHeight - keyboardHeight.get() - correctedHeaderHeight;
+                    return windowHeight - keyboardHeightValue - correctedHeaderHeight;
                 }
 
                 return windowHeight - correctedHeaderHeight - 24;
@@ -1999,8 +2001,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         };
 
         const getTransform = () => {
-            if (keyboardHeight.get() > paddingBottom) {
-                return [{translateY: -keyboardHeight.get()}];
+            if (keyboardHeightValue > paddingBottom) {
+                return [{translateY: -keyboardHeightValue}];
             }
 
             return [{translateY: -paddingBottom}];
@@ -2017,10 +2019,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getOfflineIndicatorKeyboardHandlingStyles: (keyboardHeight: SharedValue<number>, paddingBottom: number): ViewStyle => {
         'worklet';
 
+        const keyboardHeightValue = keyboardHeight.get();
+
         return {
             position: 'absolute',
             bottom: 0,
-            transform: [{translateY: keyboardHeight.get() > paddingBottom ? -keyboardHeight.get() + paddingBottom : 0}],
+            transform: [{translateY: keyboardHeightValue > paddingBottom ? -keyboardHeightValue + paddingBottom : 0}],
         };
     },
 });
