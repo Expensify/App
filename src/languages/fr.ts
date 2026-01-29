@@ -6997,6 +6997,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
             limit: 'Limite',
+            limitDescription: 'Définissez une limite pour les résultats de votre recherche.',
             currency: 'Devise',
             completed: 'Terminé',
             amount: {

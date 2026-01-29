@@ -6793,6 +6793,7 @@ ${reportName}
             keyword: '关键字',
             keywords: '关键词',
             limit: '限制',
+            limitDescription: '为搜索结果设置限制。',
             currency: '货币',
             completed: '已完成',
             amount: {
