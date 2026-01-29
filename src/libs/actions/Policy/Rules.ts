@@ -120,7 +120,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     const ruleFieldsForAPI = mapFormFieldsToRuleForAPI(form, policy);
 
     const targetRuleID = ruleID ?? NumberUtils.rand64();
-    const operator = form.matchType;
+    const operator = form.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
     const created = existingRule?.created ?? new Date().toISOString();
 
     // Rule for Onyx optimistic update (includes null values to remove cleared fields)

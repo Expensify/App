@@ -97,7 +97,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             return;
         }
         // Convert the operator to matchType for the form
-        // 'matches' = exact match, 'eq' = contains match
+        // 'eq' = exact match, 'contains' = contains match
         const matchType = existingRule.filters?.operator;
         setDraftMerchantRule({
             merchantToMatch: existingRule.filters?.right,
