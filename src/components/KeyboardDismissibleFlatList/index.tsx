@@ -11,7 +11,11 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, inverted, ref, 
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true, inverted});
 
     const additionalOnScroll = useAnimatedScrollHandler({
-        onScroll: emitComposerScrollEvents,
+        onScroll: () => {
+            'worklet';
+
+            emitComposerScrollEvents();
+        },
     });
 
     const onScroll = useComposedEventHandler([onScrollHandleKeyboard, additionalOnScroll, onScrollProp ?? null]);
