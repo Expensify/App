@@ -1,12 +1,14 @@
 import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
+import {Platform, View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
 import ImageSVG from '@components/ImageSVG';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import type {LinkProps, PressProps} from '@components/TextLink';
 import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
 import variables from '@styles/variables';
+import {openLink as openLinkUtil} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SignInPageLayoutProps} from './types';
@@ -147,6 +150,7 @@ function Footer({navigateFocus}: FooterProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyFooterLogo', 'ExpensifyFooterLogoVertical']);
     const isVertical = shouldUseNarrowLayout;
@@ -158,6 +162,7 @@ function Footer({navigateFocus}: FooterProps) {
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, isMediumScreenWidth ? styles.w50 : styles.w25];
     const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
     const getTextLinkStyle: (hovered: boolean) => StyleProp<TextStyle> = (hovered) => [styles.footerRow, hovered ? styles.textBlue : {}];
+    const shouldUseAccessiblePressable = Platform.OS !== 'web';
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
@@ -180,25 +185,56 @@ function Footer({navigateFocus}: FooterProps) {
                                 <View style={[styles.footerRow]}>
                                     {column.rows.map(({href, onPress, translationPath}) => (
                                         <Hoverable key={translationPath}>
-                                            {(hovered) => (
-                                                <View>
-                                                    {onPress ? (
+                                            {(hovered) => {
+                                                let linkContent: React.JSX.Element;
+
+                                                if (shouldUseAccessiblePressable) {
+                                                    linkContent = (
+                                                        <PressableWithoutFeedback
+                                                            accessible
+                                                            accessibilityRole={CONST.ROLE.LINK}
+                                                            accessibilityLabel={translate(translationPath)}
+                                                            onPress={(event) => {
+                                                                if (onPress) {
+                                                                    onPress(event as GestureResponderEvent);
+                                                                    return;
+                                                                }
+                                                                if (href) {
+                                                                    openLinkUtil(href, environmentURL);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Text
+                                                                accessible={false}
+                                                                suppressHighlighting
+                                                                style={[styles.link, getTextLinkStyle(hovered)]}
+                                                            >
+                                                                {translate(translationPath)}
+                                                            </Text>
+                                                        </PressableWithoutFeedback>
+                                                    );
+                                                } else if (onPress) {
+                                                    linkContent = (
                                                         <TextLink
                                                             style={getTextLinkStyle(hovered)}
                                                             onPress={onPress}
                                                         >
                                                             {translate(translationPath)}
                                                         </TextLink>
-                                                    ) : (
+                                                    );
+                                                } else {
+                                                    linkContent = (
                                                         <TextLink
                                                             style={getTextLinkStyle(hovered)}
                                                             href={href}
                                                         >
                                                             {translate(translationPath)}
                                                         </TextLink>
-                                                    )}
-                                                </View>
-                                            )}
+                                                    );
+                                                }
+
+                                                return <View>{linkContent}</View>;
+                                            }}
                                         </Hoverable>
                                     ))}
                                     {i === 2 && (
