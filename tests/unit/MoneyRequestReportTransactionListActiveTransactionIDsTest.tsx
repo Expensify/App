@@ -50,11 +50,10 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
     const mockSetActiveTransactionIDs = setActiveTransactionIDs as jest.MockedFunction<typeof setActiveTransactionIDs>;
     const mockClearActiveTransactionIDs = clearActiveTransactionIDs as jest.MockedFunction<typeof clearActiveTransactionIDs>;
     const mockFindFocusedRoute = findFocusedRoute as jest.MockedFunction<typeof findFocusedRoute>;
-    const mockGetRootState = navigationRef.getRootState as jest.MockedFunction<typeof navigationRef.getRootState>;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetRootState.mockReturnValue({} as ReturnType<typeof navigationRef.getRootState>);
+        (navigationRef.getRootState as jest.Mock).mockReturnValue({} as ReturnType<typeof navigationRef.getRootState>);
     });
 
     it('should call setActiveTransactionIDs when focused route is SEARCH_REPORT', () => {
