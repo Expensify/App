@@ -41,7 +41,6 @@ const CSV_DATE_FORMATS = [
 
 /**
  * Parses a date string from various formats and returns it in yyyy-MM-dd format
- * Mirrors Web-Expensify's uploadcsv_validateDate function behavior
  */
 function parseCSVDate(input: string): string | null {
     if (!input || typeof input !== 'string') {
