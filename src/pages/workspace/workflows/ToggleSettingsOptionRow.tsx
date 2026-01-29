@@ -178,7 +178,6 @@ function ToggleSettingOptionRow({
     );
 
     const shouldMakeContentPressable = isActive && onPress;
-    const isSwitchAccessibilityLabelAndSubtitleAreEqual = switchAccessibilityLabel === subtitle;
 
     return (
         <OfflineWithFeedback
@@ -203,7 +202,7 @@ function ToggleSettingOptionRow({
                     <Switch
                         disabledAction={disabledAction}
                         accessibilityLabel={
-                            typeof subtitle === 'string' && subtitle && isSwitchAccessibilityLabelAndSubtitleAreEqual ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel
+                            typeof subtitle === 'string' && subtitle && switchAccessibilityLabel !== subtitle ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel
                         }
                         onToggle={(isOn) => {
                             shouldAnimateAccordionSection.set(true);
