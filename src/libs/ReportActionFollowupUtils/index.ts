@@ -1,8 +1,13 @@
 import {DomUtils, parseDocument} from 'htmlparser2';
-import type {Followup} from '@libs/ReportActionsUtils';
 import {getReportActionMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
+
+type Followup = {
+    text: string;
+    response?: string;
+};
+
 
 /**
  * Checks if a report action contains actionable (unresolved) followup suggestions.
@@ -44,7 +49,14 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
         return [];
     }
 
-    const followupTextElements = DomUtils.getElementsByTagName('followup-text', followupList, true);
-    return followupTextElements.map((el) => ({text: DomUtils.textContent(el)}));
+    const followupElements = DomUtils.getElementsByTagName('followup', followupList, true);
+    return followupElements.map((followupEl) => {
+        const followupTextElement = DomUtils.getElementsByTagName('followup-text', followupEl, true).at(0);
+        const followupResponseElement = DomUtils.getElementsByTagName('followup-response', followupEl, true).at(0);
+        const text = followupTextElement ? DomUtils.textContent(followupTextElement) : '';
+        const response = followupResponseElement ? DomUtils.textContent(followupResponseElement) : undefined;
+        return {text, response};
+    });
 }
 export {containsActionableFollowUps, parseFollowupsFromHtml};
+export type {Followup};

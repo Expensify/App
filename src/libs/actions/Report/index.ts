@@ -567,6 +567,12 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
     };
 }
 
+type PregeneratedResponseParams = {
+    optimisticConciergeReportActionID: string;
+    pregeneratedResponse: string;
+    optimisticConciergeAction: OptimisticAddCommentReportAction;
+};
+
 /**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
@@ -577,8 +583,20 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
  * @param report - The report where the comment should be added
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  * @param isInSidePanel - Whether the comment is being added from the side panel
+ * @param pregeneratedResponseParams - Optional params for pre-generated Concierge response handling (includes optimistic action)
+ * @param apiOnlyPregeneratedParams - Optional params for pre-generated response (API only, no optimistic action - used when response display is delayed)
  */
-function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject, isInSidePanel = false) {
+function addActions(
+    report: OnyxEntry<Report>,
+    notifyReportID: string,
+    ancestors: Ancestor[],
+    timezoneParam: Timezone,
+    text = '',
+    file?: FileObject,
+    isInSidePanel = false,
+    pregeneratedResponseParams?: PregeneratedResponseParams,
+    apiOnlyPregeneratedParams?: ApiOnlyPregeneratedResponseParams,
+) {
     if (!report?.reportID) {
         return;
     }
@@ -652,6 +670,11 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         optimisticReportActions[lastActionReportActionID] = resolvedAction;
     }
 
+    // Add the pre-generated Concierge response to optimistic actions if provided
+    if (pregeneratedResponseParams) {
+        optimisticReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = pregeneratedResponseParams.optimisticConciergeAction;
+    }
+
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
         reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
@@ -671,6 +694,18 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         if (pageHTML) {
             parameters.pageHTML = pageHTML;
         }
+    }
+
+    // Add pre-generated response parameters for the backend to reconcile
+    if (pregeneratedResponseParams) {
+        parameters.optimisticConciergeReportActionID = pregeneratedResponseParams.optimisticConciergeReportActionID;
+        parameters.pregeneratedResponse = pregeneratedResponseParams.pregeneratedResponse;
+    }
+
+    // Add API-only pregenerated params (for delayed response display - optimistic action added separately after delay)
+    if (apiOnlyPregeneratedParams) {
+        parameters.optimisticConciergeReportActionID = apiOnlyPregeneratedParams.optimisticConciergeReportActionID;
+        parameters.pregeneratedResponse = apiOnlyPregeneratedParams.pregeneratedResponse;
     }
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
@@ -728,6 +763,11 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     // In case of error bring back the follow up buttons to the cast comment
     if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID) {
         failureReportActions[lastActionReportActionID] = lastVisibleAction;
+    }
+
+    // In case of error, remove the optimistic Concierge response
+    if (pregeneratedResponseParams) {
+        failureReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = null as unknown as ReportAction;
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
@@ -804,12 +844,67 @@ function addAttachmentWithComment(
     handlePlaySound();
 }
 
+type ApiOnlyPregeneratedResponseParams = {
+    optimisticConciergeReportActionID: string;
+    pregeneratedResponse: string;
+};
+
 /** Add a single comment to a report */
-function addComment(report: OnyxEntry<Report>, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean, isInSidePanel?: boolean) {
+function addComment(
+    report: OnyxEntry<Report>,
+    notifyReportID: string,
+    ancestors: Ancestor[],
+    text: string,
+    timezoneParam: Timezone,
+    shouldPlaySound?: boolean,
+    isInSidePanel?: boolean,
+    apiOnlyPregeneratedParams?: ApiOnlyPregeneratedResponseParams,
+) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(report, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel);
+    addActions(report, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel, undefined, apiOnlyPregeneratedParams);
+}
+
+/**
+ * Add a comment to a report with a pre-generated Concierge response.
+ * This is used when the user selects a followup question that has a cached response.
+ * @param report - The report where the comment should be added
+ * @param notifyReportID - The report ID to notify for new actions
+ * @param ancestors - Array of ancestor reports for proper threading
+ * @param text - The user's question/comment text
+ * @param timezoneParam - The user's timezone
+ * @param optimisticConciergeReportActionID - The pre-generated ID for the Concierge response action
+ * @param pregeneratedResponse - The pre-generated response content from Concierge
+ */
+function addCommentWithPregeneratedResponse(
+    report: OnyxEntry<Report>,
+    notifyReportID: string,
+    ancestors: Ancestor[],
+    text: string,
+    timezoneParam: Timezone,
+    optimisticConciergeReportActionID: string,
+    pregeneratedResponse: string,
+) {
+    if (!report?.reportID) {
+        return;
+    }
+
+    // Create the optimistic Concierge response action
+    const optimisticConciergeAction = buildOptimisticAddCommentReportAction(
+        pregeneratedResponse,
+        undefined,
+        CONST.ACCOUNT_ID.CONCIERGE,
+        1, // offset to ensure it appears after the user's comment
+        report.reportID,
+        optimisticConciergeReportActionID,
+    );
+
+    addActions(report, notifyReportID, ancestors, timezoneParam, text, undefined, false, {
+        optimisticConciergeReportActionID,
+        pregeneratedResponse,
+        optimisticConciergeAction: optimisticConciergeAction.reportAction,
+    });
 }
 
 function reportActionsExist(reportID: string): boolean {
@@ -6577,11 +6672,12 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
-export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
+export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, ApiOnlyPregeneratedResponseParams};
 
 export {
     addAttachmentWithComment,
     addComment,
+    addCommentWithPregeneratedResponse,
     addPolicyReport,
     broadcastUserIsLeavingRoom,
     broadcastUserIsTyping,
