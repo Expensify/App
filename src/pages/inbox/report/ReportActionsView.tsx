@@ -87,9 +87,9 @@ function ReportActionsView({
 
     const getTransactionThreadReportActions = useCallback(
         (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxTypes.ReportAction[] => {
-            return getSortedReportActionsForDisplay(reportActions, canPerformWriteAction, true);
+            return getSortedReportActionsForDisplay(reportActions, canPerformWriteAction, true, undefined, transactionThreadReportID);
         },
-        [canPerformWriteAction],
+        [canPerformWriteAction, transactionThreadReportID],
     );
 
     const [transactionThreadReportActions] = useOnyx(

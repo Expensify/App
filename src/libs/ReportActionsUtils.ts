@@ -1409,6 +1409,7 @@ function getSortedReportActionsForDisplay(
     canUserPerformWriteAction?: boolean,
     shouldIncludeInvisibleActions = false,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
+    reportID?: string,
 ): ReportAction[] {
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
@@ -1420,11 +1421,11 @@ function getSortedReportActionsForDisplay(
     } else {
         filteredReportActions = Object.entries(reportActions)
             .filter(([, reportAction]) => {
-                const reportID = reportAction?.reportID;
-                if (!reportID) {
+                const actionReportID = reportAction?.reportID ?? reportID;
+                if (!actionReportID) {
                     return false;
                 }
-                return isReportActionVisible(reportAction, reportID, canUserPerformWriteAction, visibleReportActionsData);
+                return isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActionsData);
             })
             .map(([, reportAction]) => reportAction);
     }
