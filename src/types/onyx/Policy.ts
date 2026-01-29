@@ -1685,6 +1685,67 @@ type ExpenseRule = {
     id?: string;
 };
 
+/** Coding rule filter condition */
+type CodingRuleFilter = {
+    /** The left side of the filter condition (e.g., 'merchant') */
+    left: string;
+
+    /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
+    operator: string;
+
+    /** The right side of the filter condition (e.g., 'Snoop') */
+    right: string;
+};
+
+/** Tax configuration for coding rule */
+type CodingRuleTax = {
+    /** Object wrapping the tax field - field_id_TAX matches the backend API format */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    field_id_TAX: {
+        /** The external ID of the tax rate */
+        externalID: string;
+
+        /** The tax rate value (e.g., "8.5%") */
+        value: string;
+
+        /** The name of the tax rate */
+        name: string;
+    };
+};
+
+/** Policy coding rule data model */
+type CodingRule = {
+    /** Unique identifier for the rule */
+    ruleID?: string;
+
+    /** Filter conditions for when this rule applies */
+    filters: CodingRuleFilter;
+
+    /** The merchant name to set on matching expenses */
+    merchant?: string;
+
+    /** Whether the expense should be billable */
+    billable?: boolean;
+
+    /** The category to set on matching expenses */
+    category?: string;
+
+    /** The comment/description to set on matching expenses */
+    comment?: string;
+
+    /** Whether the expense should be reimbursable */
+    reimbursable?: boolean;
+
+    /** The tag to set on matching expenses */
+    tag?: string;
+
+    /** Tax configuration for the expense */
+    tax?: CodingRuleTax;
+
+    /** When this rule was created */
+    created?: string;
+};
+
 /** Model of policy data */
 type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
@@ -1892,6 +1953,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** A set of rules related to the workspace expenses */
             expenseRules?: ExpenseRule[];
+
+            /** A set of coding rules for automatic expense field population based on merchant matching */
+            codingRules?: Record<string, CodingRule>;
         };
 
         /** A set of custom rules defined with natural language */
@@ -1963,6 +2027,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
         isLoadingWorkspaceReimbursement?: boolean;
 
+        /** Indicates if the receipt partners page is loading */
+        isLoadingReceiptPartners?: boolean;
+
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;
 
@@ -1986,6 +2053,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Max amount for an expense with no receipt violation */
         maxExpenseAmountNoReceipt?: number;
+
+        /** Max amount for an expense with no itemized receipt violation */
+        maxExpenseAmountNoItemizedReceipt?: number;
 
         /** Whether GL codes are enabled */
         glCodes?: boolean;
@@ -2098,6 +2168,9 @@ export type {
     ACHAccount,
     ApprovalRule,
     ExpenseRule,
+    CodingRule,
+    CodingRuleFilter,
+    CodingRuleTax,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,

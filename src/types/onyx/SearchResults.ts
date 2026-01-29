@@ -172,6 +172,69 @@ type SearchWithdrawalIDGroup = {
     state: number;
 };
 
+/** Model of category grouped search result */
+type SearchCategoryGroup = {
+    /** Category name */
+    category: string;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of merchant grouped search result */
+type SearchMerchantGroup = {
+    /** Merchant name */
+    merchant: string;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of tag grouped search result */
+type SearchTagGroup = {
+    /** Tag name */
+    tag: string;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of month grouped search result */
+type SearchMonthGroup = {
+    /** Year */
+    year: number;
+
+    /** Month (1-12) */
+    month: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
@@ -186,7 +249,10 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
-        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
+        PrefixedRecord<
+            typeof CONST.SEARCH.GROUP_PREFIX,
+            SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchMerchantGroup | SearchTagGroup | SearchMonthGroup
+        >;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -197,4 +263,18 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {ListItemType, ListItemDataType, SearchTask, SearchTransactionAction, SearchDataTypes, SearchResultsInfo, SearchMemberGroup, SearchCardGroup, SearchWithdrawalIDGroup};
+export type {
+    ListItemType,
+    ListItemDataType,
+    SearchTask,
+    SearchTransactionAction,
+    SearchDataTypes,
+    SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
+    SearchWithdrawalIDGroup,
+    SearchCategoryGroup,
+    SearchMerchantGroup,
+    SearchTagGroup,
+    SearchMonthGroup,
+};
