@@ -94,6 +94,8 @@ const lightTheme = {
     tooltipSupportingText: colors.productDark800,
     tooltipPrimaryText: colors.productDark900,
     trialBannerBackgroundColor: colors.green100,
+    widgetIconBG: colors.green100,
+    widgetIconFill: colors.green500,
     skeletonLHNIn: colors.productLight400,
     skeletonLHNOut: colors.productLight600,
     QRLogo: colors.green400,
@@ -113,6 +115,10 @@ const lightTheme = {
     // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
     PAGE_THEMES: {
         [SCREENS.HOME]: {
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.INBOX]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },

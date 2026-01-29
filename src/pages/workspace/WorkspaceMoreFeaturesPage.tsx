@@ -25,7 +25,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getDistanceRateCustomUnit, getPerDiemCustomUnit, hasAccountingConnections, isControlPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getPerDiemCustomUnit, hasAccountingConnections, isControlPolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enablePolicyDistanceRates} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
@@ -38,6 +38,7 @@ import {
     enablePolicyReceiptPartners,
     enablePolicyRules,
     enablePolicyTaxes,
+    enablePolicyTimeTracking,
     enablePolicyWorkflows,
     openPolicyMoreFeaturesPage,
 } from '@userActions/Policy/Policy';
@@ -96,6 +97,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const [cardFeeds] = useCardFeeds(policyID);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
@@ -133,6 +135,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'Car',
         'Gears',
         'ReceiptPartners',
+        'Clock',
     ] as const);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
@@ -254,6 +257,28 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
         },
     });
+
+    if (isBetaEnabled(CONST.BETAS.TIME_TRACKING)) {
+        spendItems.push({
+            icon: illustrations.Clock,
+            titleTranslationKey: 'workspace.moreFeatures.timeTracking.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.timeTracking.subtitle',
+            isActive: isTimeTrackingEnabled(policy),
+            pendingAction: policy?.pendingFields?.isTimeTrackingEnabled,
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                enablePolicyTimeTracking(policyID, isEnabled);
+            },
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policyID));
+            },
+        });
+    }
 
     const manageItems: Item[] = [
         {
@@ -666,7 +691,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableExpensifyCardWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableExpensifyCardWarningModalOpen(false);
-                        navigateToConciergeChat();
+                        navigateToConciergeChat(conciergeReportID, false);
                     }}
                     onCancel={() => setIsDisableExpensifyCardWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.expensifyCard.disableCardPrompt')}
@@ -678,7 +703,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableCompanyCardsWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableCompanyCardsWarningModalOpen(false);
-                        navigateToConciergeChat();
+                        navigateToConciergeChat(conciergeReportID, false);
                     }}
                     onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}

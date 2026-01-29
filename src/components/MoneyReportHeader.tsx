@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {getArchiveReason} from '@selectors/Report';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -48,15 +49,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {
-    buildOptimisticNextStepForDEWOfflineSubmission,
-    buildOptimisticNextStepForDynamicExternalWorkflowError,
+    buildOptimisticNextStepForDEWOffline,
+    buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
+    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
 } from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getIOUActionForReportID, getOriginalMessage, getReportAction, hasPendingDEWSubmit, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getOriginalMessage, getReportAction, hasPendingDEWApprove, hasPendingDEWSubmit, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -69,6 +71,7 @@ import {
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getPolicyExpenseChat,
+    getReasonAndReportActionThatRequiresAttention,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
@@ -100,7 +103,7 @@ import {
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
-import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
+import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import {
     approveMoneyRequest,
@@ -327,6 +330,7 @@ function MoneyReportHeader({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isDEWPolicy = isDEWBetaEnabled && hasDynamicExternalWorkflow(policy);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
 
@@ -358,6 +362,7 @@ function MoneyReportHeader({
     const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
 
     useEffect(() => {
         canTriggerAutomaticPDFDownload.current = isPDFModalVisible;
@@ -465,8 +470,8 @@ function MoneyReportHeader({
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const shouldShowApproveButton = useMemo(
-        () => (canApproveIOU(moneyRequestReport, policy, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
-        [moneyRequestReport, policy, transactions, hasOnlyPendingTransactions, isApprovedAnimationRunning],
+        () => (canApproveIOU(moneyRequestReport, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
+        [moneyRequestReport, policy, reportMetadata, transactions, hasOnlyPendingTransactions, isApprovedAnimationRunning],
     );
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
@@ -487,19 +492,31 @@ function MoneyReportHeader({
 
     let optimisticNextStep = isBlockSubmitDueToPreventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
-    // Check for DEW submit failed or pending - show appropriate next step
-    if (isDEWBetaEnabled && hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
-        const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
-            if (action.reportActionID) {
-                acc[action.reportActionID] = action;
+    // Check for DEW submit/approve failed or pending - show appropriate next step
+    if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
+        if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+            const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
+                if (action.reportActionID) {
+                    acc[action.reportActionID] = action;
+                }
+                return acc;
+            }, {});
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
+
+            if (errors?.dewSubmitFailed) {
+                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
+            } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
+                optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }
-            return acc;
-        }, {});
-        const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
-        if (errors?.dewSubmitFailed) {
-            optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowError(theme.danger);
-        } else if (isOffline && hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
-            optimisticNextStep = buildOptimisticNextStepForDEWOfflineSubmission();
+        } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, undefined, isArchivedReport);
+            const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
+            const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
+            if (hasDEWApproveFailed && isCurrentUserTheApprover) {
+                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
+            } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
+                optimisticNextStep = buildOptimisticNextStepForDEWOffline();
+            }
         }
     }
 
@@ -556,7 +573,16 @@ function MoneyReportHeader({
                 });
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, nextStep, undefined, true, activePolicy, policy);
+                payMoneyRequest({
+                    paymentType: type,
+                    chatReport,
+                    iouReport: moneyRequestReport,
+                    introSelected,
+                    iouReportCurrentNextStepDeprecated: nextStep,
+                    currentUserAccountID: accountID,
+                    activePolicy,
+                    policy,
+                });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
@@ -606,7 +632,7 @@ function MoneyReportHeader({
     };
 
     const confirmApproval = () => {
-        if (hasDynamicExternalWorkflow(policy)) {
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
             showDWEModal();
             return;
         }
@@ -653,6 +679,7 @@ function MoneyReportHeader({
                     activePolicyID,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    isSelfTourViewed,
                     customUnitPolicyID: policy?.id,
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
@@ -660,7 +687,18 @@ function MoneyReportHeader({
                 });
             }
         },
-        [activePolicyExpenseChat, activePolicyID, allPolicyCategories, defaultExpensePolicy, introSelected, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies, policy?.id],
+        [
+            activePolicyExpenseChat,
+            activePolicyID,
+            allPolicyCategories,
+            defaultExpensePolicy,
+            introSelected,
+            isASAPSubmitBetaEnabled,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            policy?.id,
+            isSelfTourViewed,
+        ],
     );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
@@ -1438,7 +1476,7 @@ function MoneyReportHeader({
                     Navigation.goBack(backToRoute);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
-                        deleteAppReport(moneyRequestReport?.reportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
+                        deleteAppReport(moneyRequestReport?.reportID, email ?? '', accountID, reportTransactions, allTransactionViolations, bankAccountList);
                     });
                 });
             },
