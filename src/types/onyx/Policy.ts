@@ -1512,6 +1512,9 @@ type ACHAccount = {
 
     /** Bank account state */
     state?: string;
+
+    /** All user emails that have access to this bank account */
+    sharees?: string[];
 };
 
 /** Prohibited expense types */
