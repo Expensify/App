@@ -17,6 +17,7 @@ import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
+import useCloseReactNativeApp from '@hooks/useCloseReactNativeApp';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +26,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
-import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
@@ -37,7 +37,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
 
@@ -59,12 +58,12 @@ function TroubleshootPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoading, setIsLoading] = useState(false);
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
     const {resetOptions} = useOptionsList({shouldInitialize: false});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
     const {setShouldResetSearchQuery} = useSearchContext();
+    const {closeReactNativeAppWithGPSCheck} = useCloseReactNativeApp();
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
@@ -107,7 +106,8 @@ function TroubleshootPage() {
             icon: icons.ExpensifyLogoNew,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
-                      action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
+                      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                      action: () => closeReactNativeAppWithGPSCheck({shouldSetNVP: true}),
                   }
                 : {
                       action() {
@@ -126,7 +126,7 @@ function TroubleshootPage() {
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage, isTrackingGPS]);
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage, closeReactNativeAppWithGPSCheck]);
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
