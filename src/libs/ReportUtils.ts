@@ -4449,7 +4449,8 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     return fields.filter(Boolean) as PolicyReportField[];
 }
 
-/** Gets transaction created, amount, currency, comment, and waypoints (for distance expense)
+/**
+ * Gets transaction created, amount, currency, comment, and waypoints (for distance expense)
  * into a flat object. Used for displaying transactions and sending them in API commands
  */
 
