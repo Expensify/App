@@ -146,7 +146,7 @@ import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PrivateIsArchivedMap} from '@src/selectors/ReportNameValuePairs';
+import type {PrivateIsArchivedMap} from '@src/selectors/ReportNameValuePairs';
 import type {
     Beta,
     DismissedProductTraining,
