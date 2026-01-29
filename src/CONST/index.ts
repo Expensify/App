@@ -1712,12 +1712,7 @@ const CONST = {
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
-        CONTEXT_MEMORY: 'Memory',
         CONTEXT_POLICIES: 'Policies',
-        // Breadcrumb names
-        BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
-        BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
-        BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
         TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
@@ -1774,11 +1769,6 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         CONFIG: {
             SKELETON_MIN_DURATION: 10_000,
-            MEMORY_THRESHOLD_CRITICAL_PERCENTAGE: 90,
-            MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
-            // Memory Thresholds (in MB)
-            MEMORY_THRESHOLD_WARNING: 120,
-            MEMORY_THRESHOLD_CRITICAL: 50,
         },
     },
     PRIORITY_MODE: {
