@@ -281,7 +281,7 @@ function ReportActionsList({
             if (shouldDisplayNewMarker) {
                 // TODO: update the code to use reversedReportActions
                 // sortedVisibleReportActions.length - index <==> reversedReportActions index
-                return [reportAction.reportActionID, sortedVisibleReportActions.length - index];
+                return [reportAction.reportActionID, index === 0 ? 0 : sortedVisibleReportActions.length - index];
             }
         }
 
