@@ -106,11 +106,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if ((!hasPerDiemTransactions || !hasTimeTransactions) && !policyForMovingExpenses?.id) {
+        if (!hasPerDiemTransactions && !policyForMovingExpenses?.id) {
             return;
         }
 
-        const policyForNewReport = hasPerDiemTransactions || hasTimeTransactions ? selectedReportPolicy : policyForMovingExpenses;
+        const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
         const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
@@ -123,11 +123,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        if (hasPerDiemTransactions || hasTimeTransactions) {
+        if (hasPerDiemTransactions) {
             handleCreateReport();
             return;
         }
-        if ((!hasPerDiemTransactions || !hasTimeTransactions) && !policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {

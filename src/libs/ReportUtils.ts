@@ -168,6 +168,7 @@ import {
     isPolicyMember,
     isPolicyOwner,
     isSubmitAndClose,
+    isTimeTrackingEnabled,
     shouldShowPolicy,
 } from './PolicyUtils';
 import {
@@ -340,6 +341,7 @@ import {
     isReceiptBeingScanned,
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
+    isTimeRequest,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import type {AvatarSource} from './UserAvatarUtils';
@@ -12411,6 +12413,11 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
     return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
 }
 
+function doesReportContainTimeRequests(iouReport: OnyxEntry<Report>): boolean {
+    const transactions = getReportTransactions(iouReport?.reportID);
+    return transactions.some((transaction) => isTimeRequest(transaction));
+}
+
 /**
  * Determines whether the report can be moved to the workspace.
  */
@@ -12419,6 +12426,9 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
         return false;
     }
     if (report && report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
+        return false;
+    }
+    if (!isTimeTrackingEnabled(newPolicy) && doesReportContainTimeRequests(report)) {
         return false;
     }
     return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role;
