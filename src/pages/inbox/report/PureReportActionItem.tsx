@@ -107,6 +107,7 @@ import {
     getRenamedAction,
     getReportActionMessage,
     getReportActionText,
+    getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
@@ -1661,6 +1662,12 @@ function PureReportActionItem({
             children = (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(translate, action)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${getSettlementAccountLockedMessage(translate, action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else {
