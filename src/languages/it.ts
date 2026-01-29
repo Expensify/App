@@ -6399,6 +6399,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Corrisponde esattamente',
                 expensesExactlyMatching: 'Per le spese che corrispondono esattamente:',
+                applyToExistingUnsubmittedExpenses: 'Applica alle spese esistenti non inviate',
             },
         },
         planTypePage: {

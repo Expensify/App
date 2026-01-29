@@ -6270,6 +6270,7 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
+                applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
             },
             categoryRules: {
                 title: 'Category rules',
