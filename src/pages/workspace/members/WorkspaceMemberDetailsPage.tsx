@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -211,7 +211,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         removeMemberAndCloseModal();
     };
 
-    const showRemoveMemberModal = useCallback(async () => {
+    const showRemoveMemberModal = async () => {
         const result = await showConfirmModal({
             danger: true,
             title: translate('workspace.people.removeMemberTitle'),
@@ -224,7 +224,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             return;
         }
         removeUser();
-    }, [confirmModalPrompt, removeUser, showConfirmModal, translate]);
+    };
 
     const askForConfirmationToRemove = () => {
         if (isReimburser) {
