@@ -7,7 +7,7 @@ import type {ChartBounds, PointsArray} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltip from '@components/Charts/ChartTooltip';
-import ChartHeader from '@components/Charts/components/ChartHeader';
+import ChartHeader from '@components/Charts/ChartHeader';
 import {
     BAR_INNER_PADDING,
     BAR_ROUNDED_CORNERS,

@@ -3,16 +3,18 @@ import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import type {BarChartProps} from '@components/Charts/types';
-import colors from '@styles/theme/colors';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 function BarChart(props: BarChartProps) {
+    const styles = useThemeStyles();
+
     return (
         <WithSkiaWeb
             opts={{locateFile: (file: string) => `/${file}`}}
             getComponent={() => import('./BarChartContent')}
             componentProps={props}
             fallback={
-                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.productLight200, borderRadius: 16, padding: 20}}>
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.highlightBG, styles.br4, styles.p5]}>
                     <ActivityIndicator size="large" />
                 </View>
             }
