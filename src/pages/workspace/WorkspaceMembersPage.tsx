@@ -492,6 +492,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         styles.cursorDefault,
         styles.flex1,
         styles.pr3,
+        translate,
         styles.alignSelfStart,
         styles.alignSelfEnd,
         isControlPolicyWithWideLayout,
@@ -673,7 +674,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         return options;
     };
 
-    const showRequiresInternetModal = () => {
+    const showRequiresInternetModal = useCallback(() => {
         showConfirmModal({
             title: translate('common.youAppearToBeOffline'),
             prompt: translate('common.thisFeatureRequiresInternet'),
@@ -681,7 +682,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldShowCancelButton: false,
             shouldHandleNavigationBack: true,
         });
-    };
+    }, []);
 
     const secondaryActions = useMemo(() => {
         if (!isPolicyAdmin) {
