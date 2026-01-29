@@ -634,7 +634,6 @@ const SCREENS = {
         COMPANY_CARDS_SETTINGS: 'Workspace_CompanyCards_Settings',
         COMPANY_CARDS_SETTINGS_FEED_NAME: 'Workspace_CompanyCards_Settings_Feed_Name',
         COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: 'Workspace_CompanyCards_Settings_Statement_Close_Date',
-        COMPANY_CARDS_IMPORT_TRANSACTIONS: 'Workspace_CompanyCards_Import_Transactions',
         COMPANY_CARD_DETAILS: 'Workspace_CompanyCard_Details',
         COMPANY_CARD_EDIT_CARD_NAME: 'Workspace_CompanyCard_Edit_Card_Name',
         COMPANY_CARD_EDIT_TRANSACTION_START_DATE: 'Workspace_CompanyCard_Edit_Transaction_Start_Date',

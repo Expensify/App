@@ -1315,10 +1315,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_TRANSACTIONS]: {
-        policyID: string;
-        feed: string;
-    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
         cardID: string;

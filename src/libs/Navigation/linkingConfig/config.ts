@@ -818,9 +818,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.route,
                         },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_TRANSACTIONS]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_TRANSACTIONS.route,
-                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
                         },
