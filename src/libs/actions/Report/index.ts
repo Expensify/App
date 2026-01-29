@@ -1517,7 +1517,7 @@ function createTransactionThreadReport(
         }
     }
 
-    if (!reportToUse) {
+    if (!reportToUse?.reportID) {
         Log.warn('Cannot build transaction thread report without a valid report');
         return;
     }
@@ -4152,12 +4152,9 @@ function inviteToGroupChat(report: Report, inviteeEmailsToAccountIDs: InvitedEma
 /** Removes people from a room
  *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+function removeFromRoom(report: Report, targetAccountIDs: number[]) {
+    const reportID = report.reportID;
     const reportMetadata = getReportMetadata(reportID);
-    if (!report) {
-        return;
-    }
 
     const removeParticipantsData: Record<number, null> = {};
     for (const accountID of targetAccountIDs) {
@@ -4222,8 +4219,8 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     API.write(WRITE_COMMANDS.REMOVE_FROM_ROOM, parameters, {optimisticData, failureData, successData});
 }
 
-function removeFromGroupChat(reportID: string, accountIDList: number[]) {
-    removeFromRoom(reportID, accountIDList);
+function removeFromGroupChat(report: Report, accountIDList: number[]) {
+    removeFromRoom(report, accountIDList);
 }
 
 function optimisticReportLastData(
@@ -5071,6 +5068,7 @@ function deleteAppReport(
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.SELF_DM_REPORT_ID
         >
     > = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -5101,6 +5099,11 @@ function deleteAppReport(
                         createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: selfDMReportID,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,

@@ -2093,6 +2093,42 @@ describe('actions/Report', () => {
         });
     });
 
+    it('should create the empty report with draft status if submission is instant with approval disabled', async () => {
+        const accountID = 1234;
+        const policyID = '5678';
+        // Given a policy with instant submission and approval disabled
+        const policy: OnyxTypes.Policy = {
+            ...createRandomPolicy(Number(policyID)),
+            isPolicyExpenseChatEnabled: true,
+            type: CONST.POLICY.TYPE.TEAM,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        };
+        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+        if (parentReport?.reportID) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`, parentReport);
+        }
+
+        // When create new report
+        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy);
+
+        await waitForBatchedUpdates();
+        // Then the report's status should be draft.
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportData.reportID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    expect(report?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                    expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+
+                    resolve();
+                },
+            });
+        });
+    });
+
     it('should add the report preview action to the chat snapshot when it is created', async () => {
         jest.spyOn(require('@src/libs/SearchQueryUtils'), 'getCurrentSearchQueryJSON').mockImplementationOnce(
             () =>
