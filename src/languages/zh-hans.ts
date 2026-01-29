@@ -7130,8 +7130,8 @@ ${reportName}
     },
     cardTransactions: {
         notActivated: '未激活',
-        outOfPocket: '自掏腰包支出',
-        companySpend: '公司支出',
+        outOfPocket: '可报销',
+        companySpend: '不可报销',
     },
     distance: {
         addStop: '添加站点',

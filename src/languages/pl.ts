@@ -7290,8 +7290,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
     },
     cardTransactions: {
         notActivated: 'Nieaktywne',
-        outOfPocket: 'Wydatki z własnej kieszeni',
-        companySpend: 'Wydatki firmowe',
+        outOfPocket: 'Zwrotne',
+        companySpend: 'Niezgodne z refundacją',
     },
     distance: {
         addStop: 'Dodaj przystanek',

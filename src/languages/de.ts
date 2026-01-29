@@ -7330,8 +7330,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
     },
     cardTransactions: {
         notActivated: 'Nicht aktiviert',
-        outOfPocket: 'Auslagen',
-        companySpend: 'Firmenausgaben',
+        outOfPocket: 'Erstattungsfähig',
+        companySpend: 'Nicht erstattungsfähig',
     },
     distance: {
         addStop: 'Stopp hinzufügen',

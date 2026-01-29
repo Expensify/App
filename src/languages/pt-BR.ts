@@ -7291,8 +7291,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
     },
     cardTransactions: {
         notActivated: 'Não ativado',
-        outOfPocket: 'Gasto do próprio bolso',
-        companySpend: 'Gastos da empresa',
+        outOfPocket: 'Reembolsável',
+        companySpend: 'Não reembolsável',
     },
     distance: {
         addStop: 'Adicionar parada',
