@@ -12,6 +12,7 @@ import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFo
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -148,6 +149,7 @@ function IOURequestStepDistanceMap({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const {initialURL} = useInitialURLState();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
@@ -310,36 +312,38 @@ function IOURequestStepDistanceMap({
             introSelected,
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
+            isFromDeepLink: !!initialURL,
         });
     }, [
-        transaction,
-        backTo,
-        report,
-        isArchived,
         iouType,
-        defaultExpensePolicy,
-        currentUserAccountIDParam,
-        setDistanceRequestData,
-        shouldSkipConfirmation,
-        transactionID,
-        personalDetails,
-        reportAttributesDerived,
-        translate,
-        currentUserEmailParam,
+        report,
         policy,
+        transaction,
+        reportID,
+        transactionID,
+        reportAttributesDerived,
+        personalDetails,
         waypoints,
-        lastSelectedDistanceRates,
+        customUnitRateID,
+        currentUserEmailParam,
+        currentUserAccountIDParam,
+        backTo,
         backToReport,
+        shouldSkipConfirmation,
+        defaultExpensePolicy,
+        isArchived,
+        personalPolicy?.autoReporting,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        lastSelectedDistanceRates,
+        setDistanceRequestData,
+        translate,
         quickAction,
         policyRecentlyUsedCurrencies,
-        customUnitRateID,
         introSelected,
         activePolicyID,
-        personalPolicy?.autoReporting,
-        reportID,
-        currentUserPersonalDetails.accountID,
+        reportNameValuePairs?.private_isArchived,
+        initialURL,
     ]);
 
     const getError = () => {

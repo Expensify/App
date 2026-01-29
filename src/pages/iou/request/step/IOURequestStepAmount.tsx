@@ -3,6 +3,7 @@ import reportsSelector from '@selectors/Attributes';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -127,6 +128,7 @@ function IOURequestStepAmount({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {initialURL} = useInitialURLState();
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -295,9 +297,9 @@ function IOURequestStepAmount({
             return;
         }
 
-        // Starting from global + menu means no participant context exists yet,
+        // Starting from global + menu or from shortcut means no participant context exists yet,
         // so we need to handle participant selection based on available workspace settings
-        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
+        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, !!initialURL)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;

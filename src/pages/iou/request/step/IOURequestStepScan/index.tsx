@@ -16,6 +16,7 @@ import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import Icon from '@components/Icon';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
@@ -116,6 +117,7 @@ function IOURequestStepScan({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const {initialURL} = useInitialURLState();
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
@@ -342,39 +344,42 @@ function IOURequestStepScan({
                 isTestTransaction,
                 locationPermissionGranted,
                 isSelfTourViewed,
+                isFromDeepLink: !!initialURL,
             });
         },
         [
-            backTo,
-            backToReport,
-            shouldGenerateTransactionThreadReport,
-            transactions,
-            initialTransaction?.isFromGlobalCreate,
-            initialTransaction?.currency,
-            initialTransaction?.participants,
-            initialTransaction?.reportID,
-            isArchived,
             iouType,
-            defaultExpensePolicy,
+            policy,
             report,
-            initialTransactionID,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails?.login,
-            shouldSkipConfirmation,
-            personalDetails,
-            reportAttributesDerived,
             reportID,
+            reportAttributesDerived,
+            transactions,
+            initialTransactionID,
+            initialTransaction?.reportID,
+            initialTransaction?.currency,
+            initialTransaction?.isFromGlobalCreate,
+            initialTransaction?.participants,
             transactionTaxCode,
             transactionTaxAmount,
-            quickAction,
-            policyRecentlyUsedCurrencies,
-            policy,
+            personalDetails,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            backTo,
+            backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            shouldGenerateTransactionThreadReport,
+            isArchived,
             personalPolicy?.autoReporting,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
+            policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
+            reportNameValuePairs?.private_isArchived,
             isSelfTourViewed,
+            initialURL,
         ],
     );
 

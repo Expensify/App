@@ -12,6 +12,7 @@ import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFo
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -91,6 +92,7 @@ function IOURequestStepDistance({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const {initialURL} = useInitialURLState();
     const waypoints = useMemo(
         () =>
             optimisticWaypoints ??
@@ -310,35 +312,38 @@ function IOURequestStepDistance({
             introSelected,
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
+            isFromDeepLink: !!initialURL,
         });
     }, [
-        transaction,
-        backTo,
-        report,
-        isArchived,
         iouType,
-        defaultExpensePolicy,
-        setDistanceRequestData,
-        shouldSkipConfirmation,
+        report,
+        policy,
+        transaction,
+        reportID,
         transactionID,
-        personalDetails,
         reportAttributesDerived,
-        translate,
+        personalDetails,
+        waypoints,
+        customUnitRateID,
         currentUserEmailParam,
         currentUserAccountIDParam,
-        policy,
-        waypoints,
-        lastSelectedDistanceRates,
+        backTo,
         backToReport,
+        shouldSkipConfirmation,
+        defaultExpensePolicy,
+        isArchived,
+        personalPolicy?.autoReporting,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        lastSelectedDistanceRates,
+        setDistanceRequestData,
+        translate,
         quickAction,
         policyRecentlyUsedCurrencies,
-        customUnitRateID,
         introSelected,
         activePolicyID,
-        personalPolicy?.autoReporting,
-        reportID,
+        reportNameValuePairs?.private_isArchived,
+        initialURL,
     ]);
 
     const getError = () => {

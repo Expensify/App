@@ -4,6 +4,7 @@ import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -85,6 +86,7 @@ function IOURequestStepDistanceManual({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const {initialURL} = useInitialURLState();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -197,42 +199,45 @@ function IOURequestStepDistanceManual({
                 introSelected,
                 activePolicyID,
                 privateIsArchived: reportNameValuePairs?.private_isArchived,
+                isFromDeepLink: !!initialURL,
             });
         },
         [
             transactionID,
             isTransactionDraft,
             action,
-            backTo,
-            report,
-            isArchived,
             iouType,
-            distance,
-            transaction,
-            parentReport,
+            report,
             policy,
-            policyTags,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            shouldSkipConfirmation,
-            personalDetails,
+            transaction,
+            reportID,
             reportAttributesDerived,
-            translate,
-            lastSelectedDistanceRates,
+            personalDetails,
+            customUnitRateID,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
+            backTo,
             backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            isArchived,
+            personalPolicy?.autoReporting,
+            isASAPSubmitBetaEnabled,
             transactionViolations,
+            lastSelectedDistanceRates,
+            translate,
             quickAction,
             policyRecentlyUsedCurrencies,
-            customUnitRateID,
             introSelected,
             activePolicyID,
-            defaultExpensePolicy,
-            personalPolicy?.autoReporting,
-            reportID,
+            reportNameValuePairs?.private_isArchived,
+            initialURL,
+            distance,
+            parentReport,
+            policyTags,
+            policyCategories,
+            parentReportNextStep,
             recentWaypoints,
-            currentUserPersonalDetails.accountID,
         ],
     );
 
