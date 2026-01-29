@@ -3030,6 +3030,21 @@ function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: On
     return populateOptimisticReportFormula(titleFormula, iouReport as Parameters<typeof populateOptimisticReportFormula>[1], policy);
 }
 
+function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): OnyxTypes.Report {
+    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+    const titleField = reportNameValuePairs?.expensify_text_title;
+    if (titleField?.type !== 'formula') {
+        return iouReport;
+    }
+
+    const updatedReportName = recalculateOptimisticReportName(iouReport, policy);
+    if (!updatedReportName) {
+        return iouReport;
+    }
+
+    return {...iouReport, reportName: updatedReportName};
+}
+
 /**
  * Gathers all the data needed to submit an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
@@ -3174,15 +3189,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     }
                 }
 
-                const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
-                const titleField = reportNameValuePairs?.expensify_text_title;
-                const isFormulaTitle = titleField?.type === 'formula';
-                if (isFormulaTitle) {
-                    const updatedReportName = recalculateOptimisticReportName(iouReport, policy);
-                    if (updatedReportName) {
-                        iouReport.reportName = updatedReportName;
-                    }
-                }
+                iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
             }
             if (typeof iouReport.unheldTotal === 'number') {
                 // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
@@ -4311,15 +4318,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
 
         // Only recalculate reportName when reimbursable status changes and the report uses a formula title
         if ('reimbursable' in transactionChanges) {
-            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-            const titleField = reportNameValuePairs?.expensify_text_title;
-            const isFormulaTitle = titleField?.type === 'formula';
-            if (isFormulaTitle) {
-                const updatedReportName = recalculateOptimisticReportName(updatedMoneyRequestReport, policy);
-                if (updatedReportName) {
-                    updatedMoneyRequestReport.reportName = updatedReportName;
-                }
-            }
+            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy);
         }
     } else {
         updatedMoneyRequestReport = updateIOUOwnerAndTotal(
