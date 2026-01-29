@@ -6804,13 +6804,13 @@ ${reportName}
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '来自',
-                [CONST.SEARCH.GROUP_BY.CARD]: '卡',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现编号',
+                [CONST.SEARCH.GROUP_BY.FROM]: '发件人',
+                [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: '商户',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: '商家',
                 [CONST.SEARCH.GROUP_BY.TAG]: '标签',
-                [CONST.SEARCH.GROUP_BY.MONTH]: '月',
+                [CONST.SEARCH.GROUP_BY.MONTH]: '月份',
             },
             feed: '动态',
             withdrawalType: {
@@ -7941,9 +7941,17 @@ ${reportName}
         announcements: '公告',
         discoverSection: {
             title: '发现',
-            menuItemTitleNonAdmin: '了解如何创建费用并提交报表。',
-            menuItemTitleAdmin: '了解如何邀请成员、编辑审批流程以及对公司卡进行对账。',
+            menuItemTitleNonAdmin: '了解如何创建报销和提交报告。',
+            menuItemTitleAdmin: '了解如何邀请成员、编辑审批流程以及对公司信用卡进行对账。',
             menuItemDescription: '看看 Expensify 在 2 分钟内能为你做什么',
+        },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `提交 ${count} ${count === 1 ? '报销单' : '报销单'}`,
+            approve: ({count}: {count: number}) => `批准 ${count} ${count === 1 ? '报销单' : '报销单'}`,
+            pay: ({count}: {count: number}) => `支付 ${count} ${count === 1 ? '报销单' : '报销单'}`,
+            export: ({count}: {count: number}) => `导出 ${count} ${count === 1 ? '报销单' : '报销单'}`,
+            begin: '开始',
+            emptyStateMessages: {nicelyDone: '做得很好', keepAnEyeOut: '敬请关注接下来的更新！', allCaughtUp: '你已经全部看完了', upcomingTodos: '即将进行的待办事项会显示在此处。'},
         },
     },
 };

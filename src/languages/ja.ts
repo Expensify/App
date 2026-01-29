@@ -6926,7 +6926,7 @@ ${reportName}
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
@@ -8119,8 +8119,21 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         discoverSection: {
             title: '発見',
             menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
-            menuItemTitleAdmin: 'メンバーの招待方法、承認ワークフローの編集方法、会社カードの照合方法について学びましょう。',
-            menuItemDescription: '2 分で Expensify でできることを確認する',
+            menuItemTitleAdmin: 'メンバーの招待方法、承認ワークフローの編集方法、会社カードの照合作業について学びましょう。',
+            menuItemDescription: '2分でExpensifyでできることを確認する',
+        },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `${count} ${count === 1 ? 'レポート' : 'レポート'} を提出`,
+            approve: ({count}: {count: number}) => `${count} ${count === 1 ? 'レポート' : 'レポート'} を承認`,
+            pay: ({count}: {count: number}) => `${count} ${count === 1 ? 'レポート' : 'レポート'} を支払う`,
+            export: ({count}: {count: number}) => `${count} ${count === 1 ? 'レポート' : 'レポート'} をエクスポート`,
+            begin: '開始',
+            emptyStateMessages: {
+                nicelyDone: 'よくできました',
+                keepAnEyeOut: '次に何が来るか注目していてください！',
+                allCaughtUp: 'すべて確認済みです',
+                upcomingTodos: '今後のTo-doがここに表示されます。',
+            },
         },
     },
 };

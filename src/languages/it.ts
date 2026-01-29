@@ -6989,7 +6989,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
             },
             feed: 'Feed',
@@ -8206,8 +8206,21 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         discoverSection: {
             title: 'Scopri',
             menuItemTitleNonAdmin: 'Scopri come creare spese e inviare report.',
-            menuItemTitleAdmin: 'Scopri come invitare membri, modificare i flussi di approvazione e riconciliare le carte aziendali.',
+            menuItemTitleAdmin: 'Scopri come invitare i membri, modificare i flussi di approvazione e riconciliare le carte aziendali.',
             menuItemDescription: 'Scopri cosa può fare Expensify in 2 minuti',
+        },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `Invia ${count} ${count === 1 ? 'rendiconto' : 'rapporti'}`,
+            approve: ({count}: {count: number}) => `Approva ${count} ${count === 1 ? 'rendiconto' : 'rapporti'}`,
+            pay: ({count}: {count: number}) => `Paga ${count} ${count === 1 ? 'rendiconto' : 'rapporti'}`,
+            export: ({count}: {count: number}) => `Esporta ${count} ${count === 1 ? 'rendiconto' : 'rapporti'}`,
+            begin: 'Inizia',
+            emptyStateMessages: {
+                nicelyDone: 'Ben fatto',
+                keepAnEyeOut: 'Tieni d’occhio cosa arriverà dopo!',
+                allCaughtUp: 'Sei in pari',
+                upcomingTodos: 'Le prossime attività da fare verranno visualizzate qui.',
+            },
         },
     },
 };
