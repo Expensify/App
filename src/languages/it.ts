@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nuova funzionalità',
         month: 'Mese',
         home: 'Home',
+        week: 'Settimana',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -2246,6 +2247,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} per ${merchant} - ${date}`,
         },
+        csvCardDescription: 'Importazione CSV',
     },
     workflowsPage: {
         workflowTitle: 'Spese',
@@ -4936,6 +4938,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Scegli una nuova data di inizio per le transazioni. Sincronizzeremo tutte le transazioni da quella data in poi, escludendo quelle già importate.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed delle carte',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Si è verificato un errore durante il caricamento dei feed della scheda dell’area di lavoro. Riprova o contatta il tuo amministratore.',
+                feedCouldNotBeLoadedTitle: 'Impossibile caricare questo feed',
+                feedCouldNotBeLoadedMessage: 'Si è verificato un errore durante il caricamento di questo feed. Riprova o contatta il tuo amministratore.',
+                tryAgain: 'Riprova',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
@@ -5280,7 +5290,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Regole',
                 subtitle: 'Richiedi ricevute, segnala spese elevate e altro ancora.',
             },
-            timeTracking: {title: 'Ora', subtitle: 'Imposta una tariffa oraria fatturabile per consentire ai dipendenti di essere pagati per il loro tempo.'},
+            timeTracking: {
+                title: 'Ora',
+                subtitle: 'Imposta una tariffa oraria fatturabile per il monitoraggio del tempo.',
+                defaultHourlyRate: 'Tariffa oraria predefinita',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',
@@ -6363,7 +6377,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Esercente',
                 subtitle: 'Imposta le regole per gli esercenti in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
                 addRule: 'Aggiungi regola esercente',
-                ruleSummaryTitle: (merchantName: string) => `Se l’esercente contiene "${merchantName}"`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Se l'esercente ${isExactMatch ? 'corrisponde esattamente' : 'contiene'} "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Rinomina esercente in "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
@@ -6371,7 +6385,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 addRuleTitle: 'Aggiungi regola',
                 expensesWith: 'Per spese con:',
                 applyUpdates: 'Applica questi aggiornamenti:',
-                merchantHint: 'Abbina un nome commerciante con una corrispondenza "contiene" che non distingue tra maiuscole e minuscole',
                 saveRule: 'Salva regola',
                 confirmError: 'Inserisci l’esercente e applica almeno un aggiornamento',
                 confirmErrorMerchant: 'Per favore inserisci l’esercente',
@@ -6379,6 +6392,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 editRuleTitle: 'Modifica regola',
                 deleteRule: 'Elimina regola',
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
+                matchType: 'Tipo di corrispondenza',
+                matchTypeContains: 'Contiene',
+                matchTypeExact: 'Corrisponde esattamente',
+                expensesExactlyMatching: 'Per le spese che corrispondono esattamente:',
             },
         },
         planTypePage: {
@@ -6987,9 +7004,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerciante',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7170,6 +7188,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     `La connessione ${feedName} non funziona. Per ripristinare le importazioni delle carte, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al tuo conto bancario aziendale è interrotta. <a href='${walletRoute}'>Ricollega il tuo conto bancario ${maskedAccountNumber}</a> per continuare a usare le tue carte Expensify.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `il conto bancario aziendale ${maskedBankAccountNumber} è stato bloccato automaticamente a causa di un problema con il rimborso o con il regolamento della Expensify Card. Risolvi il problema nelle <a href="${linkURL}">impostazioni dello spazio di lavoro</a>.`,
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della connessione.',
@@ -8198,6 +8218,16 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per avviare il tracciamento della distanza tramite GPS.',
         },
         fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
+    },
+    homePage: {
+        forYou: 'Per te',
+        announcements: 'Annunci',
+        discoverSection: {
+            title: 'Scopri',
+            menuItemTitleNonAdmin: 'Scopri come creare spese e inviare report.',
+            menuItemTitleAdmin: 'Scopri come invitare membri, modificare i flussi di approvazione e riconciliare le carte aziendali.',
+            menuItemDescription: 'Scopri cosa può fare Expensify in 2 minuti',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
