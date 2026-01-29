@@ -1,4 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
+import {filterPersonalCards} from '@selectors/Card';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement} from 'react';
@@ -21,7 +22,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
-    filterPersonalCards,
     getAssignedCardSortKey,
     getCardFeedIcon,
     getCompanyCardFeedWithDomainID,
@@ -188,7 +188,7 @@ function PaymentMethodList({
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
                 // Filter by active cards associated with a domain
-                .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
+                .filter((card) => (!!card.domainName || card.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
 
@@ -220,13 +220,18 @@ function PaymentMethodList({
                     const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
+                    const isCSVImportCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
+                    let domainCardDescription = translate('cardPage.csvCardDescription');
+                    if (!isCSVImportCard) {
+                        domainCardDescription = lastFourPAN
+                            ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
+                            : getDescriptionForPolicyDomainCard(card.domainName);
+                    }
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl,
                         title: maskCardNumber(card.cardName, card.bank),
-                        description: lastFourPAN
-                            ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                            : getDescriptionForPolicyDomainCard(card.domainName),
+                        description: isCSVImportCard ? translate('cardPage.csvCardDescription') : domainCardDescription,
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
