@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
-import { clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft } from '@userActions/ReimbursementAccount';
-import type { Country } from '@src/CONST';
+import {clearReimbursementAccountDraft, navigateToBankAccountRoute, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-
 
 function CountrySelection() {
     const [country] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});

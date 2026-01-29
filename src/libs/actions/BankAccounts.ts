@@ -1007,7 +1007,13 @@ function clearReimbursementAccountSendReminderForCorpaySignerInformation() {
  * @param policyID - policy ID
  * @param bankAccountID - bank account ID
  */
-function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subStep: ReimbursementAccountSubStep, localCurrentStep: ReimbursementAccountStep, policyID?: string, bankAccountID?: number) {
+function openReimbursementAccountPage(
+    stepToOpen: ReimbursementAccountStep,
+    subStep: ReimbursementAccountSubStep,
+    localCurrentStep: ReimbursementAccountStep,
+    policyID?: string,
+    bankAccountID?: number,
+) {
     const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
         optimisticData: [
             {

@@ -56,11 +56,5 @@ const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorksp
     return hasInProgressUSDVBBA(achData);
 };
 
-export {
-    getRouteForCurrentStep,
-    hasInProgressUSDVBBA,
-    hasInProgressNonUSDVBBA,
-    hasInProgressVBBA,
-    REIMBURSEMENT_ACCOUNT_ROUTE_NAMES,
-};
+export {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressNonUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES};
 export type {ReimbursementAccountStepToOpen};
