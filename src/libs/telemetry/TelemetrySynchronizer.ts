@@ -54,6 +54,17 @@ Onyx.connectWithoutView({
 });
 
 Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        sendReportsCountTag(Object.keys(value).length);
+    },
+});
+
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (value) => {
         tryNewDot = value;
@@ -67,6 +78,7 @@ function sendPoliciesContext() {
     }
     const activePolicies = getActivePolicies(policies, session.email).map((policy) => policy.id);
     Sentry.setTag(CONST.TELEMETRY.TAG_ACTIVE_POLICY, activePolicyID);
+    Sentry.setMeasurement(CONST.TELEMETRY.TAG_POLICIES_COUNT, activePolicies.length, 'none')
     Sentry.setContext(CONST.TELEMETRY.CONTEXT_POLICIES, {activePolicyID, activePolicies});
 }
 
@@ -76,4 +88,11 @@ function sendTryNewDotCohortTag() {
         return;
     }
     Sentry.setTag(CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT, cohort);
+}
+
+function sendReportsCountTag(reportsCount: number) {
+    if (!reportsCount) {
+        return;
+    }
+    Sentry.setMeasurement(CONST.TELEMETRY.TAG_REPORTS_COUNT, reportsCount, 'none')
 }
