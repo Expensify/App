@@ -157,7 +157,7 @@ function searchHelpsite(query) {
     })
         .then((response) => response.json())
         .then((data) => {
-            const results = data.searchResults || [];
+            const results = (data.searchResults || []).filter((result) => !result.url.includes('/Unlisted/'));
             resultsContainer.innerHTML = '';
 
             if (results.length === 0) {
