@@ -1,6 +1,6 @@
-import type GetReportPaddingBottomParams from './types';
+import type {GetReportPaddingBottom} from './types';
 
-const getReportPaddingBottom = ({safePaddingBottom, isKeyboardActive, composerHeight, isComposerFullSize}: GetReportPaddingBottomParams) => {
+const getReportPaddingBottom: GetReportPaddingBottom = ({safePaddingBottom, isKeyboardActive, composerHeight, isComposerFullSize}) => {
     const safeAreaBottom = isKeyboardActive ? 0 : safePaddingBottom;
     return isComposerFullSize ? safeAreaBottom : composerHeight + safeAreaBottom;
 };

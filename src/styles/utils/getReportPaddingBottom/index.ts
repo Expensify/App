@@ -1,6 +1,5 @@
-import type GetReportPaddingBottomParams from './types';
+import type {GetReportPaddingBottom} from './types';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getReportPaddingBottom = (_: GetReportPaddingBottomParams) => 0;
+const getReportPaddingBottom: GetReportPaddingBottom = () => 0;
 
 export default getReportPaddingBottom;

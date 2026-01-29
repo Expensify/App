@@ -5,4 +5,6 @@ type GetReportPaddingBottomParams = {
     isComposerFullSize?: boolean;
 };
 
-export default GetReportPaddingBottomParams;
+type GetReportPaddingBottom = (params: GetReportPaddingBottomParams) => number;
+
+export type {GetReportPaddingBottomParams, GetReportPaddingBottom};
