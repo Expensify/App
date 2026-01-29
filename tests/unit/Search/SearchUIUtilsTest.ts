@@ -5183,8 +5183,6 @@ describe('SearchUIUtils', () => {
             const TEST_TRANSACTION_ID = '123456789';
             const TEST_REPORT_ACTION_ID = '987654321';
             const TEST_PARENT_REPORT_ACTION_ID = '555555555';
-            const TEST_CUSTOM_UNIT_ID = 'TEST123';
-            const TEST_CUSTOM_UNIT_RATE_ID = 'RATE456';
             const TEST_AMOUNT = 23897;
             const TEST_DISTANCE = 341.38;
 
@@ -5210,6 +5208,34 @@ describe('SearchUIUtils', () => {
 
             const selectedTransactions = {
                 [TEST_TRANSACTION_ID]: {
+                    transaction: {
+                        amount: -TEST_AMOUNT,
+                        bank: '',
+                        billable: false,
+                        cardID,
+                        cardName: 'Cash Expense',
+                        category: '',
+                        comment: {
+                            comment: '',
+                        },
+                        created: '2024-01-01 00:00:00',
+                        currency: 'USD',
+                        groupAmount: -TEST_AMOUNT,
+                        groupCurrency: 'USD',
+                        groupExchangeRate: '1.0',
+                        hasEReceipt: false,
+                        managedCard: false,
+                        merchant: '',
+                        modifiedAmount: '',
+                        modifiedCreated: '',
+                        modifiedCurrency: '',
+                        modifiedMerchant: '',
+                        originalAmount: -TEST_AMOUNT,
+                        originalCurrency: 'USD',
+                        parentTransactionID: '',
+                        policyID: TEST_POLICY_ID,
+                        transactionID: TEST_TRANSACTION_ID,
+                    },
                     action: 'approve',
                     canHold: true,
                     isHeld: false,
@@ -5302,37 +5328,262 @@ describe('SearchUIUtils', () => {
                         type: 'expense',
                         unheldTotal: -TEST_AMOUNT,
                     },
-                    transactionID: TEST_TRANSACTION_ID,
-                    managedCard: false,
+                },
+            } as unknown as Record<string, SelectedTransactionInfo>;
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
+
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, false)).toBe(true);
+        });
+
+        it('should show delete option for unreported expense which can be deleted', async () => {
+            const TEST_ACCOUNT_ID = 1234567;
+            const TEST_TRANSACTION_ID = '123456789';
+            const TEST_CHILD_REPORT_ID = '1111111';
+            const TEST_REPORT_ACTION_ID = '987654321';
+            const TEST_AMOUNT_HKD = 1101223;
+            const TEST_GROUP_AMOUNT_USD = 141269;
+            const TEST_DISTANCE_KM = 1212;
+            const TEST_RATE_PER_KM = 908.6;
+            const TEST_DATE = '2024-01-01';
+            const TEST_DATETIME = '2024-01-01 08:00:00';
+
+            const currentSearchResults = {
+                personalDetailsList: {
+                    [TEST_ACCOUNT_ID]: {
+                        accountID: TEST_ACCOUNT_ID,
+                        avatar: '',
+                        displayName: 'Test User',
+                        email: submitterEmail,
+                        firstName: 'Test',
+                        lastName: 'User',
+                        login: submitterEmail,
+                        pronouns: '',
+                        timezone: {
+                            automatic: true,
+                            selected: 'America/New_York',
+                        },
+                        phoneNumber: '',
+                        validated: true,
+                        localCurrencyCode: 'HKD',
+                    },
+                },
+                [`transactions_${TEST_TRANSACTION_ID}`]: {
+                    amount: -TEST_AMOUNT_HKD,
+                    bank: '',
+                    billable: false,
+                    cardID,
+                    cardName: 'Cash Expense',
+                    category: '',
                     comment: {
                         comment: '',
                         customUnit: {
                             attributes: [],
-                            customUnitID: TEST_CUSTOM_UNIT_ID,
-                            customUnitRateID: TEST_CUSTOM_UNIT_RATE_ID,
-                            distanceUnit: 'mi',
+                            customUnitID: '_FAKE_P2P_ID_',
+                            customUnitRateID: '_FAKE_P2P_ID_',
+                            defaultP2PRate: TEST_RATE_PER_KM,
+                            distanceUnit: 'km',
                             name: 'Distance',
-                            quantity: TEST_DISTANCE,
+                            quantity: TEST_DISTANCE_KM,
                             subRates: [],
                         },
                         type: 'customUnit',
-                        waypoints: {
-                            waypoint0: {
-                                address: 'Test City, ST, USA',
-                                keyForList: 'TestCity_1704067200',
-                                lat: 40.7128,
-                                lng: -74.006,
-                                name: 'Test City',
-                            },
-                            waypoint1: {
-                                address: 'Test Destination, ST, USA',
-                                keyForList: 'TestDestination_1704067201',
-                                lat: 34.0522,
-                                lng: -118.2437,
-                                name: 'Test Destination',
-                            },
-                        },
                     },
+                    created: TEST_DATE,
+                    currency: 'HKD',
+                    groupAmount: -TEST_GROUP_AMOUNT_USD,
+                    groupCurrency: 'USD',
+                    groupExchangeRate: '0.1282',
+                    hasEReceipt: false,
+                    managedCard: false,
+                    merchant: '1,212.00 km @ HK$9.086 / km',
+                    modifiedAmount: '',
+                    modifiedCreated: '',
+                    modifiedCurrency: '',
+                    modifiedMerchant: '',
+                    originalAmount: -TEST_AMOUNT_HKD,
+                    originalCurrency: 'HKD',
+                    parentTransactionID: '',
+                    policyID: '',
+                    posted: '',
+                    reimbursable: true,
+                    reportID: '0',
+                    status: 'Posted',
+                    tag: '',
+                    taxCode: '',
+                    transactionID: TEST_TRANSACTION_ID,
+                    transactionType: 'distance',
+                },
+            } as unknown as OnyxTypes.SearchResults['data'];
+
+            const selectedTransactions = {
+                [TEST_TRANSACTION_ID]: {
+                    transaction: {
+                        amount: -TEST_AMOUNT_HKD,
+                        bank: '',
+                        billable: false,
+                        cardID,
+                        cardName: 'Cash Expense',
+                        category: '',
+                        comment: {
+                            comment: '',
+                            customUnit: {
+                                attributes: [],
+                                customUnitID: '_FAKE_P2P_ID_',
+                                customUnitRateID: '_FAKE_P2P_ID_',
+                                defaultP2PRate: TEST_RATE_PER_KM,
+                                distanceUnit: 'km',
+                                name: 'Distance',
+                                quantity: TEST_DISTANCE_KM,
+                                subRates: [],
+                            },
+                            type: 'customUnit',
+                        },
+                        created: TEST_DATE,
+                        currency: 'HKD',
+                        groupAmount: -TEST_GROUP_AMOUNT_USD,
+                        groupCurrency: 'USD',
+                        groupExchangeRate: '0.1282',
+                        hasEReceipt: false,
+                        managedCard: false,
+                        merchant: '1,212.00 km @ HK$9.086 / km',
+                        modifiedAmount: '',
+                        modifiedCreated: '',
+                        modifiedCurrency: '',
+                        modifiedMerchant: '',
+                        originalAmount: -TEST_AMOUNT_HKD,
+                        originalCurrency: 'HKD',
+                        parentTransactionID: '',
+                        policyID: '',
+                        posted: '',
+                        reimbursable: true,
+                        reportID: '0',
+                        status: 'Posted',
+                        tag: '',
+                        taxCode: '',
+                        transactionID: TEST_TRANSACTION_ID,
+                        transactionType: 'distance',
+                        keyForList: TEST_TRANSACTION_ID,
+                        action: 'view',
+                        allActions: ['view'],
+                        reportAction: {
+                            actionName: 'IOU',
+                            actorAccountID: TEST_ACCOUNT_ID,
+                            avatar: '',
+                            childReportID: TEST_CHILD_REPORT_ID,
+                            created: TEST_DATETIME,
+                            lastModified: TEST_DATETIME,
+                            originalMessage: {
+                                IOUReportID: 0,
+                                IOUTransactionID: TEST_TRANSACTION_ID,
+                                amount: TEST_AMOUNT_HKD,
+                                comment: `${TEST_DISTANCE_KM} kilometers`,
+                                currency: 'HKD',
+                                isNewDot: true,
+                                lastModified: TEST_DATETIME,
+                                participantAccountIDs: [TEST_ACCOUNT_ID],
+                                type: 'track',
+                            },
+                            person: [
+                                {
+                                    style: 'strong',
+                                    text: 'Test User',
+                                    type: 'TEXT',
+                                },
+                            ],
+                            reportActionID: TEST_REPORT_ACTION_ID,
+                            shouldShow: true,
+                        },
+                        from: {
+                            accountID: TEST_ACCOUNT_ID,
+                            avatar: '',
+                            displayName: 'Test User',
+                            email: submitterEmail,
+                            firstName: 'Test',
+                            lastName: 'User',
+                            login: submitterEmail,
+                            pronouns: '',
+                            timezone: {
+                                automatic: true,
+                                selected: 'America/New_York',
+                            },
+                            phoneNumber: '',
+                            validated: true,
+                            localCurrencyCode: 'HKD',
+                        },
+                        to: {
+                            accountID: 0,
+                            avatar: '',
+                        },
+                        formattedFrom: 'Test User',
+                        formattedTo: '',
+                        formattedTotal: TEST_AMOUNT_HKD,
+                        formattedMerchant: '1,212.00 km @ HK$9.086 / km',
+                        date: TEST_DATE,
+                        exported: '',
+                        shouldShowMerchant: true,
+                        shouldShowYear: false,
+                        shouldShowYearSubmitted: false,
+                        shouldShowYearApproved: false,
+                        shouldShowYearPosted: false,
+                        shouldShowYearExported: false,
+                        isAmountColumnWide: false,
+                        isTaxAmountColumnWide: false,
+                        violations: [],
+                    },
+                    action: 'view',
+                    canHold: false,
+                    isHeld: false,
+                    canUnhold: false,
+                    canSplit: false,
+                    hasBeenSplit: false,
+                    canChangeReport: true,
+                    isSelected: true,
+                    canReject: false,
+                    reportID: '0',
+                    amount: -TEST_AMOUNT_HKD,
+                    groupAmount: -TEST_GROUP_AMOUNT_USD,
+                    groupCurrency: 'USD',
+                    groupExchangeRate: '0.1282',
+                    currency: 'HKD',
+                    ownerAccountID: TEST_ACCOUNT_ID,
+                    reportAction: {
+                        actionName: 'IOU',
+                        actorAccountID: TEST_ACCOUNT_ID,
+                        avatar: '',
+                        childReportID: TEST_CHILD_REPORT_ID,
+                        created: TEST_DATETIME,
+                        lastModified: TEST_DATETIME,
+                        message: [
+                            {
+                                html: `tracked HK$${(TEST_AMOUNT_HKD / 100).toFixed(2).replaceAll(/\B(?=(\d{3})+(?!\d))/g, ',')} for ${TEST_DISTANCE_KM} kilometers`,
+                                text: `tracked HK$${(TEST_AMOUNT_HKD / 100).toFixed(2).replaceAll(/\B(?=(\d{3})+(?!\d))/g, ',')} for ${TEST_DISTANCE_KM} kilometers`,
+                                type: 'COMMENT',
+                                whisperedTo: [],
+                            },
+                        ],
+                        originalMessage: {
+                            IOUReportID: 0,
+                            IOUTransactionID: TEST_TRANSACTION_ID,
+                            amount: TEST_AMOUNT_HKD,
+                            comment: `${TEST_DISTANCE_KM} kilometers`,
+                            currency: 'HKD',
+                            isNewDot: true,
+                            lastModified: TEST_DATETIME,
+                            participantAccountIDs: [TEST_ACCOUNT_ID],
+                            type: 'track',
+                        },
+                        person: [
+                            {
+                                style: 'strong',
+                                text: 'Test User',
+                                type: 'TEXT',
+                            },
+                        ],
+                        reportActionID: TEST_REPORT_ACTION_ID,
+                        shouldShow: true,
+                    },
+                    isFromOneTransactionReport: false,
                 },
             } as unknown as Record<string, SelectedTransactionInfo>;
 

@@ -4108,21 +4108,18 @@ function shouldShowDeleteOption(selectedTransactions: Record<string, SelectedTra
     return (
         !isOffline &&
         selectedTransactionsKeys.every((id) => {
-            const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id];
+            const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
             if (!transaction) {
                 return false;
             }
             const parentReportID = transaction.reportID;
             const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-            if (!parentReport) {
-                return false;
-            }
             const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
             const parentReportAction =
                 Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                 selectedTransactions[id].reportAction;
 
-            return canDeleteMoneyRequestReport(parentReport, [transaction as OnyxTypes.Transaction], parentReportAction ? [parentReportAction] : []);
+            return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
         })
     );
 }
