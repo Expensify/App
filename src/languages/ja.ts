@@ -1132,6 +1132,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: '分割を削除',
         splitExpenseCannotBeEditedModalTitle: 'この経費は編集できません',
         splitExpenseCannotBeEditedModalDescription: '承認済みまたは支払済みの経費は編集できません',
+        splitExpenseDistanceErrorModalDescription: '距離レートのエラーを修正して、もう一度お試しください。',
         paySomeone: ({name}: PaySomeoneParams = {}) => `${name ?? '誰か'} を支払う`,
         expense: '経費',
         categorize: 'カテゴリ分け',
