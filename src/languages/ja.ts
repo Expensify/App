@@ -2236,6 +2236,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${merchant} への ${amount}（${date}）`,
         },
+        csvCardDescription: 'CSVインポート',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -4906,6 +4907,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             assign: '割り当て',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription: '新しい取引の開始日を選択してください。その日以降のすべての取引を、すでに取り込んだものを除いて同期します。',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
         },
         expensifyCard: {
@@ -7106,6 +7108,8 @@ ${reportName}
                 leftTheChat: 'チャットを退出しました',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} との接続が切断されています。カードの取引明細の取り込みを再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `ビジネス銀行口座へのPlaid接続が切断されています。Expensifyカードを引き続きご利用いただくには、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',

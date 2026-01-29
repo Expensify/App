@@ -2209,6 +2209,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount}，商户：${merchant} - ${date}`,
         },
+        csvCardDescription: 'CSV 导入',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -4827,6 +4828,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             assign: '分配',
             assignCardFailedError: '卡片分配失败。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription: '选择一个新的交易起始日期。我们将从该日期起同步所有交易，但不包括已经导入的交易。',
             unassignCardFailedError: '卡片取消分配失败。',
         },
         expensifyCard: {
@@ -6981,6 +6983,8 @@ ${reportName}
                 leftTheChat: '已离开聊天',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `您的企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用您的 Expensify 卡。`,
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',

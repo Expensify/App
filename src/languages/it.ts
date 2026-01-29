@@ -2246,6 +2246,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} per ${merchant} - ${date}`,
         },
+        csvCardDescription: 'Importazione CSV',
     },
     workflowsPage: {
         workflowTitle: 'Spese',
@@ -4934,6 +4935,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             assign: 'Assegna',
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription: 'Scegli una nuova data di inizio per le transazioni. Sincronizzeremo tutte le transazioni da quella data in poi, escludendo quelle già importate.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
         },
         expensifyCard: {
@@ -7167,6 +7169,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 leftTheChat: 'ha lasciato la chat',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La connessione ${feedName} non funziona. Per ripristinare le importazioni delle carte, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `la connessione Plaid al tuo conto bancario aziendale è interrotta. <a href='${walletRoute}'>Ricollega il tuo conto bancario ${maskedAccountNumber}</a> per continuare a usare le tue carte Expensify.`,
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della connessione.',

@@ -1261,6 +1261,7 @@ const CONST = {
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
+                PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
@@ -3487,6 +3488,13 @@ const CONST = {
         SMALL_NORMAL: 'small-normal',
         LARGE_NORMAL: 'large-normal',
     },
+
+    PERSONAL_CARD: {
+        BANK_NAME: {
+            CSV: 'upload',
+        },
+    },
+
     COMPANY_CARD: {
         FEED_BANK_NAME: {
             MASTER_CARD: 'cdf',

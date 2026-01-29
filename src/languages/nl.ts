@@ -2245,6 +2245,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} voor ${merchant} - ${date}`,
         },
+        csvCardDescription: 'CSV-import',
     },
     workflowsPage: {
         workflowTitle: 'Uitgaven',
@@ -4930,6 +4931,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             assign: 'Toewijzen',
             assignCardFailedError: 'Toewijzing van kaart mislukt.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription:
+                'Kies een nieuwe startdatum voor transacties. We synchroniseren alle transacties vanaf die datum, met uitzondering van de transacties die we al hebben geïmporteerd.',
             unassignCardFailedError: 'Kaartontkoppeling mislukt.',
         },
         expensifyCard: {
@@ -7149,6 +7152,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 leftTheChat: 'heeft de chat verlaten',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `De ${feedName}-verbinding is verbroken. Om kaartimporten te herstellen, <a href='${workspaceCompanyCardRoute}'>log in bij uw bank</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `de Plaid-verbinding met uw zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind uw bankrekening ${maskedAccountNumber} opnieuw</a> om uw Expensify-kaarten te kunnen blijven gebruiken.`,
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van uw verbinding.',
