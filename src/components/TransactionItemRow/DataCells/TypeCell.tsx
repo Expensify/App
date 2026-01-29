@@ -36,6 +36,8 @@ const getTypeText = (type?: string): TranslationPaths => {
             return 'iou.card';
         case CONST.SEARCH.TRANSACTION_TYPE.TIME:
             return 'iou.time';
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
+            return 'common.perDiem';
         case CONST.SEARCH.TRANSACTION_TYPE.CASH:
         default:
             return 'iou.cash';
