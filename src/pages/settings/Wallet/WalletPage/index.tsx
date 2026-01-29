@@ -27,6 +27,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
+import usePermissions from '@hooks/usePermissions';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -83,6 +84,7 @@ function WalletPage() {
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
+    const {isBetaEnabled} = usePermissions();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
@@ -499,15 +501,17 @@ function WalletPage() {
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 />
                             )}
-                            <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
-                                <MenuItem
-                                    title={translate('workspace.companyCards.importTransactions.importButton')}
-                                    icon={icons.Table}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
-                                    wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                                />
-                            </View>
+                            {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
+                                <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                    <MenuItem
+                                        title={translate('workspace.companyCards.importTransactions.importButton')}
+                                        icon={icons.Table}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                    />
+                                </View>
+                            )}
                         </Section>
 
                         {hasWallet && (
