@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {BankAccountList} from '@src/types/onyx';
 import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 
 type ReimbursementAccountStepToOpen = ValueOf<typeof REIMBURSEMENT_ACCOUNT_ROUTE_NAMES> | '';
@@ -57,22 +56,11 @@ const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorksp
     return hasInProgressUSDVBBA(achData);
 };
 
-/**
- * Helper function to get the first SETUP state bank account without policyID
- * @param bankAccountList - List of bank accounts to search
- * @returns First matching bank account or null
- */
-function getSetupStateBankAccount(bankAccountList?: BankAccountList) {
-    if (!bankAccountList) {
-        return null;
-    }
-
-    const setupStateBankAccounts = Object.values(bankAccountList).filter(
-        (bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP && !bankAccount?.accountData?.additionalData?.policyID,
-    );
-
-    return setupStateBankAccounts.at(0) ?? null;
-}
-
-export {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressNonUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES, getSetupStateBankAccount};
+export {
+    getRouteForCurrentStep,
+    hasInProgressUSDVBBA,
+    hasInProgressNonUSDVBBA,
+    hasInProgressVBBA,
+    REIMBURSEMENT_ACCOUNT_ROUTE_NAMES,
+};
 export type {ReimbursementAccountStepToOpen};

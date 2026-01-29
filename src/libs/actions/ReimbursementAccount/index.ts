@@ -41,6 +41,10 @@ function clearReimbursementAccountDraft() {
     Onyx.set(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {});
 }
 
+function clearReimbursementAccount() {
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
+}
+
 /**
  * Triggers a modal to open allowing the user to reset their bank account
  */
@@ -70,6 +74,7 @@ export {
     updateReimbursementAccountDraft,
     requestResetBankAccount,
     cancelResetBankAccount,
+    clearReimbursementAccount,
     clearReimbursementAccountDraft,
     setBankAccountState,
     setReimbursementAccountOptionPressed,

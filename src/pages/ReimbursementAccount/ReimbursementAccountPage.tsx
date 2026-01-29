@@ -43,7 +43,7 @@ import {
 } from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
-import {clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -147,13 +147,16 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     useEffect(() => {
         return () => {
-            // we only want to refresh payment methods if user has an in progress VBBA
-            if (!hasInProgressVBBA(achData) && backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE) {
+            // we want to clear reimbursementAccount and reimbursementAccountDraft when the setup is initiated from the Wallet
+            if (backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE || backTo === ROUTES.SETTINGS_WALLET) {
+                clearReimbursementAccountDraft();
+                clearReimbursementAccount();
                 return;
             }
             getPaymentMethods(true);
         };
-    }, [achData, backTo]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (!policyCurrency || isNonUSDSetup === (policyCurrency !== CONST.CURRENCY.USD)) {
@@ -202,9 +205,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      * Retrieve verified business bank account currently being set up.
      */
     function fetchData(preserveCurrentStep = false) {
-        if (!policyIDParam) {
-            return;
-        }
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = preserveCurrentStep ? currentStep : getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
