@@ -5067,8 +5067,6 @@ describe('SearchUIUtils', () => {
             const TEST_TRANSACTION_ID = '123456789';
             const TEST_REPORT_ACTION_ID = '987654321';
             const TEST_PARENT_REPORT_ACTION_ID = '555555555';
-            const TEST_CUSTOM_UNIT_ID = 'TEST123';
-            const TEST_CUSTOM_UNIT_RATE_ID = 'RATE456';
             const TEST_AMOUNT = 23897;
             const TEST_DISTANCE = 341.38;
 
@@ -5213,37 +5211,6 @@ describe('SearchUIUtils', () => {
                         transactionCount: 1,
                         type: 'expense',
                         unheldTotal: -TEST_AMOUNT,
-                    },
-                    transactionID: TEST_TRANSACTION_ID,
-                    managedCard: false,
-                    comment: {
-                        comment: '',
-                        customUnit: {
-                            attributes: [],
-                            customUnitID: TEST_CUSTOM_UNIT_ID,
-                            customUnitRateID: TEST_CUSTOM_UNIT_RATE_ID,
-                            distanceUnit: 'mi',
-                            name: 'Distance',
-                            quantity: TEST_DISTANCE,
-                            subRates: [],
-                        },
-                        type: 'customUnit',
-                        waypoints: {
-                            waypoint0: {
-                                address: 'Test City, ST, USA',
-                                keyForList: 'TestCity_1704067200',
-                                lat: 40.7128,
-                                lng: -74.006,
-                                name: 'Test City',
-                            },
-                            waypoint1: {
-                                address: 'Test Destination, ST, USA',
-                                keyForList: 'TestDestination_1704067201',
-                                lat: 34.0522,
-                                lng: -118.2437,
-                                name: 'Test Destination',
-                            },
-                        },
                     },
                 },
             } as unknown as Record<string, SelectedTransactionInfo>;
@@ -5501,22 +5468,6 @@ describe('SearchUIUtils', () => {
                         shouldShow: true,
                     },
                     isFromOneTransactionReport: false,
-                    transactionID: TEST_TRANSACTION_ID,
-                    managedCard: false,
-                    comment: {
-                        comment: '',
-                        customUnit: {
-                            attributes: [],
-                            customUnitID: '_FAKE_P2P_ID_',
-                            customUnitRateID: '_FAKE_P2P_ID_',
-                            defaultP2PRate: TEST_RATE_PER_KM,
-                            distanceUnit: 'km',
-                            name: 'Distance',
-                            quantity: TEST_DISTANCE_KM,
-                            subRates: [],
-                        },
-                        type: 'customUnit',
-                    },
                 },
             } as unknown as Record<string, SelectedTransactionInfo>;
 
