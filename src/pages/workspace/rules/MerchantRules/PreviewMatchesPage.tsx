@@ -7,7 +7,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import RulePreviewTransaction from '@components/Rule/RulePreviewTransaction';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +18,7 @@ import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -58,7 +58,14 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const isLoadedWithTransactions = !isLoading && hasMatchingTransactions;
 
     const keyExtractor = (item: Transaction) => item.transactionID;
-    const renderItem: ListRenderItem<Transaction> = ({item}) => <RulePreviewTransaction transaction={item} />;
+    const renderItem: ListRenderItem<Transaction> = ({item}) => (
+        <UnreportedExpenseListItem
+            readOnly
+            showTooltip
+            item={item}
+            onSelectRow={() => {}}
+        />
+    );
 
     const goBack = () => {
         Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
@@ -103,7 +110,6 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                             data={matchingTransactionsArray}
                             renderItem={renderItem}
                             keyExtractor={keyExtractor}
-                            contentContainerStyle={[styles.mh5]}
                         />
                     )}
                 </View>
