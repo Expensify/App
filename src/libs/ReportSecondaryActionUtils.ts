@@ -102,13 +102,18 @@ function isSplitAction(
     }
 
     const reportTransaction = reportTransactions.at(0);
+    const {amount} = getTransactionDetails(reportTransaction) ?? {};
 
-    const isScanning = hasReceiptTransactionUtils(reportTransaction) && isReceiptBeingScanned(reportTransaction);
-    if (isPending(reportTransaction) || isScanning || !!reportTransaction?.errors) {
+    if (isPending(reportTransaction) || !!reportTransaction?.errors) {
         return false;
     }
 
-    const {amount} = getTransactionDetails(reportTransaction) ?? {};
+    const isScanning = hasReceiptTransactionUtils(reportTransaction) && isReceiptBeingScanned(reportTransaction);
+
+    if (isScanning && !amount) {
+        return false;
+    }
+
     if (!amount) {
         return false;
     }
