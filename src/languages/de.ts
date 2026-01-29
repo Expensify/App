@@ -5250,7 +5250,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Regeln',
                 subtitle: 'Belege verlangen, hohe Ausgaben kennzeichnen und mehr.',
             },
-            timeTracking: {title: 'Zeit', subtitle: 'Legen Sie einen abrechenbaren Stundensatz fest, damit Mitarbeitende für ihre Zeit bezahlt werden.'},
+            timeTracking: {title: 'Zeit', subtitle: 'Legen Sie einen abrechnungsfähigen Stundensatz fest, damit Mitarbeitende für ihre Arbeitszeit bezahlt werden.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -7277,7 +7277,16 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         error: {
             selectSuggestedAddress: 'Bitte wählen Sie eine vorgeschlagene Adresse aus oder verwenden Sie den aktuellen Standort',
         },
-        odometer: {startReading: 'Mit dem Lesen beginnen', endReading: 'Lesen beenden', saveForLater: 'Für später speichern', totalDistance: 'Gesamtdistanz'},
+        odometer: {
+            startReading: 'Mit dem Lesen beginnen',
+            endReading: 'Lesen beenden',
+            saveForLater: 'Für später speichern',
+            totalDistance: 'Gesamtdistanz',
+            startTitle: 'Foto des Kilometerzähler-Starts',
+            endTitle: 'Kilometerzähler-Endfoto',
+            startMessageWeb: 'Füge ein Foto deines Kilometerzählers vom <strong>Beginn</strong> deiner Fahrt hinzu. Ziehe eine Datei hierher oder wähle eine zum Hochladen aus.',
+            endMessageWeb: 'Fügen Sie ein Foto Ihres Kilometerzählers vom <strong>Ende</strong> Ihrer Fahrt hinzu. Ziehen Sie eine Datei hierher oder wählen Sie eine zum Hochladen aus.',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Zeugnis verloren oder beschädigt',

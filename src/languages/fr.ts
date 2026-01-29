@@ -5258,7 +5258,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Règles',
                 subtitle: 'Exigez des reçus, signalez les dépenses élevées, et plus encore.',
             },
-            timeTracking: {title: 'Heure', subtitle: 'Définissez un taux horaire facturable pour que les employés soient rémunérés pour leur temps.'},
+            timeTracking: {title: 'Heure', subtitle: 'Définissez un taux horaire facturable pour que les employés soient payés pour leur temps.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -7288,7 +7288,17 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
         },
-        odometer: {startReading: 'Commencer la lecture', endReading: 'Fin de lecture', saveForLater: 'Enregistrer pour plus tard', totalDistance: 'Distance totale'},
+        odometer: {
+            startReading: 'Commencer la lecture',
+            endReading: 'Fin de lecture',
+            saveForLater: 'Enregistrer pour plus tard',
+            totalDistance: 'Distance totale',
+            startTitle: 'Photo du compteur au départ',
+            endTitle: 'Photo de fin d’odomètre',
+            startMessageWeb:
+                'Ajoutez une photo de votre compteur kilométrique prise au <strong>début</strong> de votre trajet. Faites glisser un fichier ici ou choisissez-en un à télécharger.',
+            endMessageWeb: 'Ajoutez une photo du compteur kilométrique prise à la <strong>fin</strong> de votre trajet. Faites glisser un fichier ici ou choisissez-en un à télécharger.',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Bulletin perdu ou endommagé',

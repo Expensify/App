@@ -5219,7 +5219,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Zasady',
                 subtitle: 'Wymagaj paragonów, oznaczaj wysokie wydatki i nie tylko.',
             },
-            timeTracking: {title: 'Czas', subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy byli wynagradzani za swój czas.'},
+            timeTracking: {title: 'Czas', subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy otrzymywali wynagrodzenie za swój czas.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -7238,7 +7238,16 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         error: {
             selectSuggestedAddress: 'Wybierz sugerowany adres lub użyj bieżącej lokalizacji',
         },
-        odometer: {startReading: 'Rozpocznij czytanie', endReading: 'Zakończ czytanie', saveForLater: 'Zapisz na później', totalDistance: 'Całkowity dystans'},
+        odometer: {
+            startReading: 'Rozpocznij czytanie',
+            endReading: 'Zakończ czytanie',
+            saveForLater: 'Zapisz na później',
+            totalDistance: 'Całkowity dystans',
+            startTitle: 'Zdjęcie początku stanu licznika',
+            endTitle: 'Zdjęcie końcowe licznika przebiegu',
+            startMessageWeb: 'Dodaj zdjęcie licznika kilometrów z <strong>początku</strong> swojej podróży. Przeciągnij tutaj plik lub wybierz go, aby przesłać.',
+            endMessageWeb: 'Dodaj zdjęcie licznika przebiegu z <strong>końca</strong> swojej podróży. Przeciągnij tutaj plik lub wybierz jeden, aby go przesłać.',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Świadectwo zgubione lub uszkodzone',

@@ -6320,7 +6320,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Esercente',
                 subtitle: 'Imposta le regole per gli esercenti in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
                 addRule: 'Aggiungi regola esercente',
-                ruleSummaryTitle: (merchantName: string) => `Se l’esercente contiene "${merchantName}"`,
+                ruleSummaryTitle: (merchantName: string) => `Se l'esercente contiene "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Rinomina esercente in "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
@@ -6888,7 +6888,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 on: (date?: string) => `Su ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Il mese scorso',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Ultimo mese',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultimo estratto conto',
                 },
@@ -6929,7 +6929,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
             },
             feed: 'Feed',
@@ -7267,7 +7267,16 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         error: {
             selectSuggestedAddress: 'Seleziona un indirizzo suggerito o usa la posizione attuale',
         },
-        odometer: {startReading: 'Inizia a leggere', endReading: 'Termina lettura', saveForLater: 'Salva per dopo', totalDistance: 'Distanza totale'},
+        odometer: {
+            startReading: 'Inizia a leggere',
+            endReading: 'Termina lettura',
+            saveForLater: 'Salva per dopo',
+            totalDistance: 'Distanza totale',
+            startTitle: 'Foto iniziale del contachilometri',
+            endTitle: 'Foto del contachilometri finale',
+            startMessageWeb: 'Aggiungi una foto del contachilometri all’<strong>inizio</strong> del tuo viaggio. Trascina qui un file oppure scegli un file da caricare.',
+            endMessageWeb: 'Aggiungi una foto del contachilometri scattata alla <strong>fine</strong> del viaggio. Trascina qui un file oppure scegli un file da caricare.',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Pagella smarrita o danneggiata',

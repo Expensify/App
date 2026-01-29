@@ -7240,7 +7240,16 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         error: {
             selectSuggestedAddress: 'Selecione um endereço sugerido ou use a localização atual',
         },
-        odometer: {startReading: 'Começar a ler', endReading: 'Encerrar leitura', saveForLater: 'Salvar para depois', totalDistance: 'Distância total'},
+        odometer: {
+            startReading: 'Começar a ler',
+            endReading: 'Encerrar leitura',
+            saveForLater: 'Salvar para depois',
+            totalDistance: 'Distância total',
+            startTitle: 'Foto inicial do hodômetro',
+            endTitle: 'Foto do hodômetro final',
+            startMessageWeb: 'Adicione uma foto do hodômetro do <strong>início</strong> da sua viagem. Arraste um arquivo aqui ou escolha um para enviar.',
+            endMessageWeb: 'Adicione uma foto do hodômetro do <strong>final</strong> da sua viagem. Arraste um arquivo aqui ou escolha um para enviar.',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Boletim perdido ou danificado',

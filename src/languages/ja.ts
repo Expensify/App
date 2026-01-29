@@ -5203,7 +5203,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 title: 'ルール',
                 subtitle: 'レシートの必須化や高額支出のフラグ付けなどを設定できます。',
             },
-            timeTracking: {title: '時間', subtitle: '従業員が作業時間に対して支払いを受けられるよう、時間単位の請求レートを設定します。'},
+            timeTracking: {title: '時間', subtitle: '従業員が勤務時間に対して支払われるよう、時間単位の請求可能なレートを設定します。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -6277,7 +6277,7 @@ ${reportName}
                 title: '加盟店',
                 subtitle: '取引先ルールを設定して、経費が正しくコード化された状態で届くようにし、後処理を最小限に抑えましょう。',
                 addRule: '店舗ルールを追加',
-                ruleSummaryTitle: (merchantName: string) => `もし取引先に「${merchantName}」が含まれている場合`,
+                ruleSummaryTitle: (merchantName: string) => `取引先に「${merchantName}」が含まれている場合`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `支払先名を「${merchantName}」に変更`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `${fieldName} を「${fieldValue}」に更新`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `「${reimbursable ? '払い戻し対象' : '精算対象外'}」としてマーク`,
@@ -6831,7 +6831,7 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'しない',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '今月',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新の明細',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最終明細書',
                 },
             },
             status: 'ステータス',
@@ -6871,7 +6871,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
-                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -7207,7 +7207,16 @@ ${reportName}
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
         },
-        odometer: {startReading: '読み始める', endReading: '読み取り終了', saveForLater: '後で保存', totalDistance: '合計距離'},
+        odometer: {
+            startReading: '読み始める',
+            endReading: '読み取り終了',
+            saveForLater: '後で保存',
+            totalDistance: '合計距離',
+            startTitle: '走行距離計の開始写真',
+            endTitle: '走行距離計終了時の写真',
+            startMessageWeb: '旅行の<strong>開始時</strong>のオドメーターの写真を追加してください。ここにファイルをドラッグするか、またはアップロードするファイルを選択してください。',
+            endMessageWeb: '旅行の<strong>終了時</strong>の走行距離計の写真を追加してください。ここにファイルをドラッグするか、アップロードするファイルを選択してください。',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: '成績証明書の紛失または損傷',

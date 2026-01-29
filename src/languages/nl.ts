@@ -5226,7 +5226,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Regels',
                 subtitle: 'Vereis bonnetjes, markeer hoge uitgaven en meer.',
             },
-            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurtarief in waarmee medewerkers worden betaald voor hun tijd.'},
+            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurtarief in waarmee werknemers worden betaald voor hun tijd.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -6307,7 +6307,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 title: 'Handelaar',
                 subtitle: 'Stel de merchantregels zo in dat onkosten met de juiste codering binnenkomen en er minder nabewerking nodig is.',
                 addRule: 'Merchantregel toevoegen',
-                ruleSummaryTitle: (merchantName: string) => `Als handelaar "${merchantName}" bevat`,
+                ruleSummaryTitle: (merchantName: string) => `Als de handelaar "${merchantName}" bevat`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Naam handelaar wijzigen in "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Werk ${fieldName} bij naar "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Markeren als  "${reimbursable ? 'Vergoedbaar' : 'niet-vergoedbaar'}"`,
@@ -7249,7 +7249,16 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         error: {
             selectSuggestedAddress: 'Selecteer een voorgesteld adres of gebruik huidige locatie',
         },
-        odometer: {startReading: 'Begin met lezen', endReading: 'Lezen beëindigen', saveForLater: 'Voor later bewaren', totalDistance: 'Totale afstand'},
+        odometer: {
+            startReading: 'Begin met lezen',
+            endReading: 'Lezen beëindigen',
+            saveForLater: 'Voor later bewaren',
+            totalDistance: 'Totale afstand',
+            startTitle: 'Foto beginstand kilometerteller',
+            endTitle: 'Eindfoto kilometerteller',
+            startMessageWeb: 'Voeg een foto toe van de kilometerteller aan het <strong>begin</strong> van je reis. Sleep een bestand hierheen of kies er een om te uploaden.',
+            endMessageWeb: 'Voeg een foto toe van je kilometerteller aan het <strong>einde</strong> van je reis. Sleep hier een bestand naartoe of kies er één om te uploaden.',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Rapportkaart kwijt of beschadigd',
