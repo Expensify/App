@@ -737,6 +737,22 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Zaloguj się ponownie.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Przejrzyj transakcję',
+            pleaseReview: 'Proszę przejrzeć tę transakcję',
+            requiresYourReview: 'Transakcja kartą Expensify wymaga poniżej Twojej recenzji.',
+            transactionDetails: 'Szczegóły transakcji',
+            deny: 'Odmów',
+            approve: 'Zatwierdź',
+            denyTransaction: 'Odmów transakcję',
+            transactionDenied: 'Transakcja odrzucona',
+            transactionApproved: 'Transakcja zatwierdzona!',
+            areYouSureToDeny: 'Czy jesteś pewien? Transakcja zostanie odrzucona, jeśli zamkniesz ten ekran.',
+            youCanTryAgainAtMerchantOrReachOut: 'Możesz spróbować ponownie u sprzedawcy. Jeśli nie próbowałeś tej transakcji, skontaktuj się z Concierge, aby zgłosić potencjalne oszustwo.',
+            youNeedToTryAgainAtMerchant: 'Ta transakcja nie została zweryfikowana, więc została odrzucona. Musisz spróbować ponownie u sprzedawcy.',
+            goBackToTheMerchant: 'Wróć na stronę sprzedawcy, aby kontynuować transakcję.',
+            authorizationFailed: 'Twoja autoryzacja nie powiodła się, więc odrzuciliśmy tę transakcję. Możesz spróbować ponownie u sprzedawcy.',
+        },
         biometricsTest: {
             biometricsTest: 'Test biometryczny',
             authenticationSuccessful: 'Autentykacja zakończona sukcesem',

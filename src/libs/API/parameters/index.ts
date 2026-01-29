@@ -471,3 +471,4 @@ export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRulePa
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
 export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';
 export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';
+export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';

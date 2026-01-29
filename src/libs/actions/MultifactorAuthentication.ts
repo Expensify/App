@@ -88,4 +88,17 @@ async function revokeMultifactorAuthenticationCredentials() {
     }
 }
 
-export {registerAuthenticationKey, requestAuthenticationChallenge, troubleshootMultifactorAuthentication, revokeMultifactorAuthenticationCredentials};
+async function authorizeTransaction({transactionID, signedChallenge}: MultifactorAuthenticationScenarioParameters['AUTHORIZE-TRANSACTION']) {
+    try {
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION, {transactionID, signedChallenge}, {});
+
+        const {jsonCode, message} = response ?? {};
+
+        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.AUTHORIZE_TRANSACTION, message);
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to authorize transaction', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.AUTHORIZE_TRANSACTION, undefined);
+    }
+}
+
+export {registerAuthenticationKey, requestAuthenticationChallenge, troubleshootMultifactorAuthentication, revokeMultifactorAuthenticationCredentials, authorizeTransaction};

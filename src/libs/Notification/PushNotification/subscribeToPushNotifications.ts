@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import PushNotification from '.';
-import type {PushNotificationData} from './NotificationType';
+import type {AuthorizeTransactionPushNotificationData, PushNotificationData} from './NotificationType';
 
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
@@ -34,6 +34,9 @@ Onyx.connectWithoutView({
 
             PushNotification.onReceived(PushNotification.TYPE.TRANSACTION, applyOnyxData);
             PushNotification.onSelected(PushNotification.TYPE.TRANSACTION, navigateToReport);
+
+            PushNotification.onReceived(PushNotification.TYPE.AUTHORIZE_TRANSACTION, applyOnyxData);
+            PushNotification.onSelected(PushNotification.TYPE.AUTHORIZE_TRANSACTION, navigateToTransactionApproval);
         } else {
             PushNotification.deregister();
             PushNotification.clearNotifications();
@@ -108,6 +111,30 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
     return getLastUpdateIDAppliedToClient()
         .then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}))
         .then(() => NativeModules.PushNotificationBridge?.finishBackgroundProcessing());
+}
+
+function navigateToTransactionApproval({transactionID}: AuthorizeTransactionPushNotificationData): Promise<void> {
+    Log.info('[PushNotification] Navigating to transaction approval screen', false, {transactionID});
+
+    Navigation.waitForProtectedRoutes().then(() => {
+        try {
+            Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {transactionID});
+
+            const route = ROUTES.MULTIFACTOR_AUTHENTICATION_AUTHORIZE_TRANSACTION.getRoute(transactionID);
+
+            Navigation.navigate(route);
+            updateLastVisitedPath(route);
+        } catch (error) {
+            let errorMessage = String(error);
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+
+            Log.alert('[PushNotification] onSelected() - failed', {transactionID, error: errorMessage});
+        }
+    });
+
+    return Promise.resolve();
 }
 
 function navigateToReport({reportID}: PushNotificationData): Promise<void> {
