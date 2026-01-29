@@ -126,6 +126,9 @@ type ReceiptImageProps = (
 
     /** Callback to be called when the image fails to load */
     onLoadFailure?: () => void;
+
+    /** Whether the receipt is a map distance request */
+    isMapDistanceRequest?: boolean;
 };
 
 function ReceiptImage({
@@ -154,6 +157,7 @@ function ReceiptImage({
     thumbnailContainerStyles,
     onLoad,
     onLoadFailure,
+    isMapDistanceRequest,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
     const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
@@ -235,7 +239,7 @@ function ReceiptImage({
                 lastUpdateWidthTimestampRef.current = e.timeStamp;
             }}
             source={typeof source === 'string' ? {uri: source} : source}
-            style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
+            style={isMapDistanceRequest && styles.flex1}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
