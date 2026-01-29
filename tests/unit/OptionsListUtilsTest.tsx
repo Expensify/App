@@ -58,6 +58,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
@@ -608,6 +609,46 @@ describe('OptionsListUtils', () => {
     };
 
     let OPTIONS: OptionList;
+
+    const createMockReportAttributesDerived = (reports: OnyxCollection<Report>): Record<string, ReportAttributes> => {
+        const derived: Record<string, ReportAttributes> = {};
+        const reportValues = Object.values(reports ?? {});
+        for (const report of reportValues) {
+            if (!report?.reportID) {
+                continue;
+            }
+            let name = report.reportName;
+            if (!name) {
+                if (report.oldPolicyName) {
+                    name = report.oldPolicyName;
+                } else {
+                    name = `Report ${report.reportID}`;
+                }
+            }
+            derived[report.reportID] = {
+                reportName: name,
+                isEmpty: false,
+                brickRoadStatus: undefined,
+                requiresAttention: false,
+                reportErrors: {},
+            };
+        }
+        return derived;
+    };
+
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_RAW = createMockReportAttributesDerived(REPORTS);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED: Record<string, ReportAttributes> = {
+        ...MOCK_REPORT_ATTRIBUTES_DERIVED_RAW,
+        '10': {
+            ...MOCK_REPORT_ATTRIBUTES_DERIVED_RAW['10'],
+            reportName: `${MOCK_REPORT_ATTRIBUTES_DERIVED_RAW['10']?.reportName || ''} (Archived)`,
+        },
+    };
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE = createMockReportAttributesDerived(REPORTS_WITH_CONCIERGE);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS = createMockReportAttributesDerived(REPORTS_WITH_CHRONOS);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS = createMockReportAttributesDerived(REPORTS_WITH_RECEIPTS);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM = createMockReportAttributesDerived(REPORTS_WITH_WORKSPACE_ROOMS);
+
     let OPTIONS_WITH_CONCIERGE: OptionList;
     let OPTIONS_WITH_CHRONOS: OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionList;
@@ -640,11 +681,11 @@ describe('OptionsListUtils', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         await waitForBatchedUpdates();
 
-        OPTIONS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS);
-        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CONCIERGE);
-        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CHRONOS);
-        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_RECEIPTS);
-        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED);
+        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CONCIERGE, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE);
+        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CHRONOS, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS);
+        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_RECEIPTS, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS);
+        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_WORKSPACE_ROOMS, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM);
         OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST, CURRENT_USER_ACCOUNT_ID);
     });
 
@@ -654,6 +695,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const results = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1785,6 +1827,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1805,6 +1848,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1834,6 +1878,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1856,6 +1901,7 @@ describe('OptionsListUtils', () => {
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1925,6 +1971,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1944,7 +1991,8 @@ describe('OptionsListUtils', () => {
         it('should prioritize options with matching display name over chat rooms', () => {
             const searchText = 'spider';
             // Given a set of options with chat rooms
-            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CHAT_ROOM);
+            const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM = createMockReportAttributesDerived(REPORTS_WITH_CHAT_ROOM);
+            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, REPORTS_WITH_CHAT_ROOM, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM);
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS_WITH_CHAT_ROOMS,
@@ -1970,6 +2018,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -1992,6 +2041,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
                 nvpDismissedProductTraining,
@@ -2034,6 +2084,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
                 nvpDismissedProductTraining,
@@ -2054,6 +2105,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 loginList,
                 nvpDismissedProductTraining,
@@ -2083,6 +2135,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options with all betas
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -2510,6 +2563,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -2529,6 +2583,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -2580,6 +2635,7 @@ describe('OptionsListUtils', () => {
             // Given a set of options
             const options = getSearchOptions({
                 options: OPTIONS,
+                reportAttributesDerived: MOCK_REPORT_ATTRIBUTES_DERIVED,
                 draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
@@ -3226,7 +3282,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
                 const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
@@ -3259,7 +3314,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
@@ -3283,7 +3337,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
@@ -3308,7 +3361,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
@@ -3333,7 +3385,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
@@ -3355,7 +3406,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
@@ -3376,7 +3426,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
@@ -3396,7 +3445,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
@@ -3416,7 +3464,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
@@ -3440,7 +3487,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
@@ -3466,7 +3512,6 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(result).toBe(expectedVisibleText);
         });
@@ -3517,7 +3562,6 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     policy,
                     reportMetadata,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
@@ -3549,7 +3593,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
             });
@@ -3578,7 +3621,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
