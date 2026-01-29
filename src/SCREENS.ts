@@ -6,6 +6,7 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 
 const PROTECTED_SCREENS = {
     HOME: 'Home',
+    INBOX: 'Inbox',
     CONCIERGE: 'Concierge',
     REPORT_ATTACHMENTS: 'ReportAttachments',
     REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',
@@ -759,6 +760,18 @@ const SCREENS = {
         RULES_REIMBURSABLE_DEFAULT: 'Rules_Reimbursable_Default',
         RULES_CUSTOM: 'Rules_Custom',
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
+        RULES_MERCHANT_NEW: 'Rules_Merchant_New',
+        RULES_MERCHANT_MERCHANT_TO_MATCH: 'Rules_Merchant_Merchant_To_Match',
+        RULES_MERCHANT_MATCH_TYPE: 'Rules_Merchant_Match_Type',
+        RULES_MERCHANT_MERCHANT: 'Rules_Merchant_Merchant',
+        RULES_MERCHANT_CATEGORY: 'Rules_Merchant_Category',
+        RULES_MERCHANT_TAG: 'Rules_Merchant_Tag',
+        RULES_MERCHANT_TAX: 'Rules_Merchant_Tax',
+        RULES_MERCHANT_DESCRIPTION: 'Rules_Merchant_Description',
+        RULES_MERCHANT_REIMBURSABLE: 'Rules_Merchant_Reimbursable',
+        RULES_MERCHANT_BILLABLE: 'Rules_Merchant_Billable',
+        RULES_MERCHANT_PREVIEW_MATCHES: 'Rules_Merchant_Preview_Matches',
+        RULES_MERCHANT_EDIT: 'Rules_Merchant_Edit',
         PER_DIEM: 'Per_Diem',
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',
@@ -768,6 +781,8 @@ const SCREENS = {
         PER_DIEM_EDIT_SUBRATE: 'Per_Diem_Edit_Subrate',
         PER_DIEM_EDIT_AMOUNT: 'Per_Diem_Edit_Amount',
         PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency',
+        TIME_TRACKING: 'Time_Tracking',
+        TIME_TRACKING_DEFAULT_RATE: 'Time_Tracking_Default_Rate',
     },
 
     EDIT_REQUEST: {

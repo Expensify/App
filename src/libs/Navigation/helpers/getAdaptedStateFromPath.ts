@@ -180,7 +180,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
 
         return getInitialSplitNavigatorState(
             {
-                name: SCREENS.HOME,
+                name: SCREENS.INBOX,
             },
             {
                 name: SCREENS.REPORT,
