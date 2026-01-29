@@ -69,10 +69,10 @@ export default createOnyxDerivedValueConfig({
             return result;
         }
 
+        const result: VisibleReportActionsDerivedValue = currentValue ? {...currentValue} : {};
+
         // Reports changed - recompute actions that depend on report existence
         if (reportUpdates) {
-            const result: VisibleReportActionsDerivedValue = currentValue ? {...currentValue} : {};
-
             for (const [reportActionsKey, reportActions] of Object.entries(allReportActions)) {
                 if (!reportActions) {
                     continue;
@@ -96,10 +96,11 @@ export default createOnyxDerivedValueConfig({
                 }
             }
 
-            return result;
+            if (!reportActionsUpdates) {
+                return result;
+            }
         }
 
-        const result: VisibleReportActionsDerivedValue = currentValue ? {...currentValue} : {};
         const reportActionsToProcess = reportActionsUpdates ? Object.keys(reportActionsUpdates) : Object.keys(allReportActions);
 
         for (const reportActionsKey of reportActionsToProcess) {
