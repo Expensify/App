@@ -1,15 +1,16 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -26,6 +27,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
+import type {CodingRule} from '@src/types/onyx/Policy';
 
 type MerchantRulePageBaseProps = {
     policyID: string;
@@ -87,7 +89,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [shouldShowError, setShouldShowError] = useState(false);
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
 
     // Get the existing rule from the policy (for edit mode)
@@ -151,7 +153,49 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         return tax ? `${tax.name} (${tax.value})` : undefined;
     };
 
+    /**
+     * Checks if there's a duplicate rule with the same merchant name and match type.
+     * A duplicate is a rule that has the same merchant to match AND the same match type (contains/exact).
+     * When editing, we exclude the current rule from the comparison.
+     */
+    const checkForDuplicateRule = (codingRules: Record<string, CodingRule> | undefined, merchantToMatch: string | undefined, matchType: string | undefined): boolean => {
+        if (!codingRules || !merchantToMatch) {
+            return false;
+        }
+
+        const normalizedMerchant = merchantToMatch.toLowerCase();
+        const currentMatchType = matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+        const defaultMatchType = CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+
+        return Object.entries(codingRules).some(([existingRuleID, rule]) => {
+            // Skip the rule being edited
+            if (isEditing && existingRuleID === ruleID) {
+                return false;
+            }
+
+            if (!rule?.filters?.right) {
+                return false;
+            }
+
+            const existingMerchant = rule.filters.right.toLowerCase();
+            const existingMatchType = rule.filters.operator ?? defaultMatchType;
+
+            return existingMerchant === normalizedMerchant && existingMatchType === currentMatchType;
+        });
+    };
+
     const errorMessage = getErrorMessage(translate, form);
+
+    /**
+     * Saves the rule to the backend and navigates back.
+     */
+    const saveRule = () => {
+        if (!form) {
+            return;
+        }
+        setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
+        Navigation.goBack();
+    };
 
     const handleSubmit = () => {
         if (errorMessage) {
@@ -162,19 +206,45 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             return;
         }
 
-        setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
-        Navigation.goBack();
+        // Check for duplicate rules
+        const hasDuplicate = checkForDuplicateRule(policy?.rules?.codingRules, form.merchantToMatch, form.matchType);
+        if (hasDuplicate) {
+            showConfirmModal({
+                title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
+                prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', form.merchantToMatch ?? ''),
+                confirmText: translate('workspace.rules.merchantRules.saveAnyway'),
+                cancelText: translate('common.cancel'),
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                saveRule();
+            });
+            return;
+        }
+
+        saveRule();
     };
 
     const handleDelete = () => {
         if (!ruleID || !policy) {
             return;
         }
-        setIsDeleting(true);
-        deletePolicyCodingRule(policy, ruleID);
 
-        setIsDeleteModalVisible(false);
-        Navigation.goBack();
+        showConfirmModal({
+            title: translate('workspace.rules.merchantRules.deleteRule'),
+            prompt: translate('workspace.rules.merchantRules.deleteRuleConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            setIsDeleting(true);
+            deletePolicyCodingRule(policy, ruleID);
+            Navigation.goBack();
+        });
     };
 
     const sections: SectionType[] = [
@@ -297,7 +367,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                             {isEditing && (
                                 <Button
                                     text={translate('workspace.rules.merchantRules.deleteRule')}
-                                    onPress={() => setIsDeleteModalVisible(true)}
+                                    onPress={handleDelete}
                                     style={[styles.mb4]}
                                     large
                                 />
@@ -305,18 +375,6 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                         </>
                     }
                 />
-                {isEditing && (
-                    <ConfirmModal
-                        title={translate('workspace.rules.merchantRules.deleteRule')}
-                        isVisible={isDeleteModalVisible}
-                        onConfirm={handleDelete}
-                        onCancel={() => setIsDeleteModalVisible(false)}
-                        prompt={translate('workspace.rules.merchantRules.deleteRuleConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
