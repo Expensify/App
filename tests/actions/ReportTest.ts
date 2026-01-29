@@ -9,6 +9,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useAncestors from '@hooks/useAncestors';
+import resolveSuggestedFollowup from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -3697,7 +3698,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.resolveSuggestedFollowup(report, undefined, reportAction, 'test question', CONST.DEFAULT_TIME_ZONE);
+            resolveSuggestedFollowup(report, undefined, reportAction, 'test question', CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // The report action should remain unchanged (no followup-list to resolve)
@@ -3725,7 +3726,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.resolveSuggestedFollowup(report, undefined, reportAction, 'How do I set up QuickBooks?', CONST.DEFAULT_TIME_ZONE);
+            resolveSuggestedFollowup(report, undefined, reportAction, 'How do I set up QuickBooks?', CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected

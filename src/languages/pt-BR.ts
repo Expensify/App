@@ -641,7 +641,6 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Novo recurso',
         month: 'Mês',
         home: 'Início',
-        week: 'Semana',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -6968,7 +6967,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Estabelecimento',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
-                [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
             },
             feed: 'Feed',
             withdrawalType: {
