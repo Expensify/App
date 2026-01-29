@@ -386,11 +386,11 @@ const ROUTES = {
     SETTINGS_WALLET_IMPORT_TRANSACTIONS_CURRENCY: 'settings/wallet/import-transactions/currency',
     SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET: {
         route: 'settings/wallet/import-transactions-spreadsheet/:cardID?',
-        getRoute: (cardID?: number) => (cardID ? `settings/wallet/import-transactions-spreadsheet/${cardID}` : 'settings/wallet/import-transactions-spreadsheet') as const,
+        getRoute: (cardID?: number) => (cardID ? `settings/wallet/import-transactions-spreadsheet/${cardID}` as const : 'settings/wallet/import-transactions-spreadsheet' as const),
     },
     SETTINGS_WALLET_TRANSACTIONS_IMPORTED: {
         route: 'settings/wallet/transactions-imported/:cardID?',
-        getRoute: (cardID?: number) => (cardID ? `settings/wallet/transactions-imported/${cardID}` : 'settings/wallet/transactions-imported') as const,
+        getRoute: (cardID?: number) => (cardID ? `settings/wallet/transactions-imported/${cardID}` as const : 'settings/wallet/transactions-imported' as const),
     },
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
