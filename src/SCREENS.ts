@@ -779,6 +779,8 @@ const SCREENS = {
         PER_DIEM_EDIT_SUBRATE: 'Per_Diem_Edit_Subrate',
         PER_DIEM_EDIT_AMOUNT: 'Per_Diem_Edit_Amount',
         PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency',
+        TIME_TRACKING: 'Time_Tracking',
+        TIME_TRACKING_DEFAULT_RATE: 'Time_Tracking_Default_Rate',
     },
 
     EDIT_REQUEST: {
