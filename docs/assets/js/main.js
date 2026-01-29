@@ -186,20 +186,12 @@ function searchHelpsite(query) {
 }
 
 function initSearch() {
-    const searchInput = document.getElementById('search-input');
-    const searchButton = document.getElementById('search-button');
+    const searchForm = document.getElementById('search-form');
 
-    if (searchInput) {
-        searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                searchHelpsite(searchInput.value);
-            }
-        });
-    }
-
-    if (searchButton) {
-        searchButton.addEventListener('click', () => {
-            searchHelpsite(searchInput.value);
+    if (searchForm) {
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            searchHelpsite(document.getElementById('search-input').value);
         });
     }
 }
