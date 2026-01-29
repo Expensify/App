@@ -2,8 +2,8 @@ type ImportCSVTransactionsParams = {
     /** JSON string of the transaction list */
     transactionList: string;
 
-    /** Card ID - passed as string to avoid JS number precision loss with 64-bit integers */
-    cardID: string;
+    /** Card ID (0 for new card) */
+    cardID: number;
 
     /** Display name for the card */
     cardName: string;

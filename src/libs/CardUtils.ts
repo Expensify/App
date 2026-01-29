@@ -885,8 +885,8 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
  * so we live with the 1 in 4 billion chance of a collision with an older ID until we can switch to 64-bit IDs.
  *
  */
-function generateCardID(): string {
-    return (Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32)).toString();
+function generateCardID(): number {
+    return Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32);
 }
 
 export {
