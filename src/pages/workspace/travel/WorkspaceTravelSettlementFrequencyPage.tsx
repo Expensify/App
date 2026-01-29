@@ -14,7 +14,7 @@ import {updateTravelInvoiceSettlementFrequency} from '@libs/actions/TravelInvoic
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getTravelSettlementFrequency, PROGRAM_TRAVEL_US} from '@libs/TravelInvoicingUtils';
+import {getTravelSettlementFrequency} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -30,7 +30,7 @@ function WorkspaceTravelSettlementFrequencyPage({route}: WorkspaceTravelSettleme
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}` as const, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as const, {canBeMissing: true});
 
     const currentFrequency = getTravelSettlementFrequency(cardSettings);
     const frequencies = [CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY];

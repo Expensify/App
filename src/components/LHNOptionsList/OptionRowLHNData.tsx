@@ -1,6 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
-import useCurrentReportID from '@hooks/useCurrentReportID';
+import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -41,11 +41,12 @@ function OptionRowLHNData({
     isReportArchived = false,
     lastAction,
     lastActionReport,
+    currentUserAccountID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
-    const currentReportIDValue = useCurrentReportID();
-    const isReportFocused = isOptionFocused && currentReportIDValue?.currentReportID === reportID;
+    const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
+    const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const optionItemRef = useRef<OptionData | undefined>(undefined);
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
@@ -76,6 +77,7 @@ function OptionRowLHNData({
             lastActionReport,
             movedFromReport,
             movedToReport,
+            currentUserAccountID,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -111,6 +113,7 @@ function OptionRowLHNData({
         isReportArchived,
         movedFromReport,
         movedToReport,
+        currentUserAccountID,
     ]);
 
     return (

@@ -8,7 +8,6 @@ import {
 // We need to import API because it is used in the tests
 // eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
-import {PROGRAM_TRAVEL_US} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -30,7 +29,7 @@ describe('TravelInvoicing', () => {
         const workspaceAccountID = 456;
         const settlementBankAccountID = 789;
         const previousPaymentBankAccountID = 111;
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
+        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
 
         setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, settlementBankAccountID, previousPaymentBankAccountID);
 
@@ -87,7 +86,7 @@ describe('TravelInvoicing', () => {
     it('clearTravelInvoicingSettlementAccountErrors clears errors and pendingFields', () => {
         const workspaceAccountID = 456;
         const restoredAccountID = 111;
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
+        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
 
         clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, restoredAccountID);
 
@@ -112,7 +111,7 @@ describe('TravelInvoicing', () => {
 
     it('clearTravelInvoicingSettlementFrequencyErrors clears errors', () => {
         const workspaceAccountID = 456;
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
+        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
 
         clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, undefined);
 
@@ -133,7 +132,7 @@ describe('TravelInvoicing', () => {
         const workspaceAccountID = 456;
         const frequency = CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
         const currentMonthlySettlementDate = new Date('2024-01-01');
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`;
+        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
 
         // Set fake time to ensure deterministic optimistic data
         const mockDate = new Date('2024-05-20');

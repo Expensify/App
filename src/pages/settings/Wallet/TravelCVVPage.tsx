@@ -1,3 +1,4 @@
+import {filterPersonalCards} from '@selectors/Card';
 import React, {useCallback, useContext, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -18,7 +19,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
-import {filterPersonalCards} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowMissingDetailsPage} from '@libs/PersonalDetailsUtils';
@@ -75,32 +75,29 @@ function TravelCVVPage() {
         setIsVerifying(true);
     }, [isAccountLocked, showLockedAccountModal, travelCard, privatePersonalDetails]);
 
-    const handleValidateCode = useCallback(
-        (validateCode: string) => {
-            if (!travelCard?.cardID) {
-                return;
-            }
+    const handleValidateCode = (validateCode: string) => {
+        if (!travelCard?.cardID) {
+            return;
+        }
 
-            setIsLoading(true);
+        setIsLoading(true);
 
-            // Call revealVirtualCardDetails and only extract CVV
-            // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-            revealVirtualCardDetails(travelCard.cardID, validateCode)
-                .then((cardDetails) => {
-                    // Only store CVV in local state - never persist PAN or other details
-                    setCvv(cardDetails.cvv ?? null);
-                    setIsVerifying(false);
-                    setValidateError({});
-                })
-                .catch((error: TranslationPaths) => {
-                    setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error));
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                });
-        },
-        [travelCard?.cardID],
-    );
+        // Call revealVirtualCardDetails and only extract CVV
+        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+        revealVirtualCardDetails(travelCard.cardID, validateCode)
+            .then((cardDetails) => {
+                // Only store CVV in local state - never persist PAN or other details
+                setCvv(cardDetails.cvv ?? null);
+                setIsVerifying(false);
+                setValidateError({});
+            })
+            .catch((error: TranslationPaths) => {
+                setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error));
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
+    };
 
     const handleCloseVerification = useCallback(() => {
         resetValidateActionCodeSent();

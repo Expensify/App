@@ -7,12 +7,6 @@ import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Envir
 import Permissions from './Permissions';
 
 /**
- * The Travel Invoicing feed type constant for PROGRAM_TRAVEL_US.
- * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
- */
-const PROGRAM_TRAVEL_US = 'TRAVEL_US';
-
-/**
  * Feature flag to enable Travel CVV testing on Dev and Staging environments.
  * When enabled, it allows using any card for CVV reveal testing if no specific Travel Card is found.
  */
@@ -135,7 +129,6 @@ function isTravelCVVEligible(betas: OnyxEntry<Beta[]>, cardList: OnyxEntry<CardL
 }
 
 export {
-    PROGRAM_TRAVEL_US,
     getIsTravelInvoicingEnabled,
     hasTravelInvoicingSettlementAccount,
     getTravelLimit,

@@ -66,12 +66,12 @@ function TestWorkspaceSplitNavigator() {
 function TestReportsSplitNavigator() {
     return (
         <ReportsSplit.Navigator
-            sidebarScreen={SCREENS.HOME}
+            sidebarScreen={SCREENS.INBOX}
             defaultCentralScreen={SCREENS.REPORT}
             parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
         >
             <ReportsSplit.Screen
-                name={SCREENS.HOME}
+                name={SCREENS.INBOX}
                 getComponent={getEmptyComponent}
             />
             <ReportsSplit.Screen

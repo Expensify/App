@@ -8,12 +8,12 @@ import Section from '@components/Section';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {openExternalLink} from '@libs/actions/Link';
-import {clearTravelInvoicingSettlementAccountErrors, clearTravelInvoicingSettlementFrequencyErrors} from '@libs/actions/TravelInvoicing';
+import {clearTravelInvoicingSettlementAccountErrors} from '@libs/actions/TravelInvoicing';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
@@ -23,7 +23,6 @@ import {
     getTravelSettlementFrequency,
     getTravelSpend,
     hasTravelInvoicingSettlementAccount,
-    PROGRAM_TRAVEL_US,
 } from '@libs/TravelInvoicingUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -49,16 +48,13 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {isExecuting, singleExecution} = useSingleExecution();
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isCentralInvoicingEnabled, setIsCentralInvoicingEnabled] = useState(true);
 
     // For Travel Invoicing, we use a travel-specific card settings key
     // The format is: private_expensifyCardSettings_{workspaceAccountID}_{feedType}
     // where feedType is PROGRAM_TRAVEL_US for Travel Invoicing
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${PROGRAM_TRAVEL_US}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     // Use pure selectors to derive state
@@ -78,16 +74,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
 
     // Settlement account display - show empty if no account is selected
-    const settlementAccountNumber = hasSettlementAccount && settlementAccount?.last4 ? CONST.MASKED_PAN_PREFIX + settlementAccount.last4 : '';
-
+    const settlementAccountNumber = hasSettlementAccount && settlementAccount?.last4 ? `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(settlementAccount?.last4 ?? '')}` : '';
     // Get any errors from the settlement account update
-    // Get errors for specific fields
-    const settlementAccountErrorKey = 'paymentBankAccountID';
-    const settlementFrequencyErrorKey = 'monthlySettlementDate';
-    const hasSettlementAccountError = !!cardSettings?.errorFields?.[settlementAccountErrorKey];
-    const hasSettlementFrequencyError = !!cardSettings?.errorFields?.[settlementFrequencyErrorKey];
-    const settlementAccountErrors = hasSettlementAccountError ? cardSettings?.errorFields?.[settlementAccountErrorKey] : null;
-    const settlementFrequencyErrors = hasSettlementFrequencyError ? cardSettings?.errorFields?.[settlementFrequencyErrorKey] : null;
+    const hasSettlementAccountError = Object.keys(cardSettings?.errors ?? {}).length > 0;
 
     const getCentralInvoicingSubtitle = () => {
         if (!isCentralInvoicingEnabled) {
@@ -142,7 +131,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                         // brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                     <OfflineWithFeedback
-                        errors={settlementAccountErrors}
+                        errors={cardSettings?.errors}
                         pendingAction={cardSettings?.pendingFields?.paymentBankAccountID}
                         onClose={() => clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, cardSettings?.previousPaymentBankAccountID ?? null)}
                         errorRowStyles={styles.mh2half}
@@ -159,24 +148,16 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                             brickRoadIndicator={hasSettlementAccountError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
-                    <OfflineWithFeedback
-                        errors={settlementFrequencyErrors}
-                        pendingAction={cardSettings?.pendingFields?.monthlySettlementDate}
-                        onClose={() => clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, cardSettings?.previousMonthlySettlementDate)}
-                        errorRowStyles={styles.mh2half}
-                        errorRowTextStyles={styles.mr3}
-                    >
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
-                            title={localizedFrequency}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))}
-                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                            titleStyle={styles.textNormalThemeText}
-                            descriptionTextStyle={styles.textLabelSupportingNormal}
-                            shouldShowRightIcon
-                            brickRoadIndicator={hasSettlementFrequencyError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
-                    </OfflineWithFeedback>
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
+                        title={localizedFrequency}
+                        onPress={() => {}}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        titleStyle={styles.textNormalThemeText}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        shouldShowRightIcon
+                        // brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
                 </>
             ),
         },
@@ -184,9 +165,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
         <Section
-            containerStyles={isSmallScreenWidth ? styles.p5 : styles.p8}
             key={`toggleSettingOptionItem-${index}`}
-            renderTitle={() => <View />}
+            isCentralPane
         >
             <ToggleSettingOptionRow
                 title={item.title}
@@ -215,16 +195,14 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             <Section
                 title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.title')}
                 subtitle={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.subtitle')}
-                containerStyles={[styles.ph0, isSmallScreenWidth ? styles.pv5 : styles.pv8]}
-                titleStyles={[styles.textStrong, isSmallScreenWidth ? styles.ph5 : styles.ph8]}
-                subtitleStyles={[styles.mb6, isSmallScreenWidth ? styles.ph5 : styles.ph8]}
+                isCentralPane
                 subtitleMuted
             >
                 <MenuItem
                     title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.manageTravelLabel')}
                     onPress={singleExecution(() => openExternalLink(CONST.FOOTER.TRAVEL_URL))}
                     disabled={isExecuting}
-                    wrapperStyle={styles.ph8}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
                     iconRight={icons.NewWindow}
                     icon={icons.LuggageWithLines}
                     shouldShowRightIcon
@@ -234,7 +212,5 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         </>
     );
 }
-
-WorkspaceTravelInvoicingSection.displayName = 'WorkspaceTravelInvoicingSection';
 
 export default WorkspaceTravelInvoicingSection;
