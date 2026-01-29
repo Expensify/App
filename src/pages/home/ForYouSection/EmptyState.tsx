@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {Fireworks, ThumbsUpStars} from '@components/Icon/Illustrations';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -12,12 +12,12 @@ const EMPTY_STATE_MESSAGES = [
     {
         titleKey: 'homePage.forYouSection.emptyStateMessages.nicelyDone',
         subtitleKey: 'homePage.forYouSection.emptyStateMessages.keepAnEyeOut',
-        illustration: Illustrations.ThumbsUpStars,
+        illustration: ThumbsUpStars,
     },
     {
         titleKey: 'homePage.forYouSection.emptyStateMessages.allCaughtUp',
         subtitleKey: 'homePage.forYouSection.emptyStateMessages.upcomingTodos',
-        illustration: Illustrations.Fireworks,
+        illustration: Fireworks,
     },
 ] as const;
 

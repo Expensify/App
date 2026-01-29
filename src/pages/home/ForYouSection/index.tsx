@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BaseWidgetItem from '@components/BaseWidgetItem';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {Send,ThumbsUp, Cash, Export} from '@components/Icon/Expensicons';
 import WidgetContainer from '@components/WidgetContainer';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -50,28 +50,28 @@ function ForYouSection() {
         {
             key: 'submit',
             count: submitCount,
-            icon: Expensicons.Send,
+            icon: Send,
             translationKey: 'homePage.forYouSection.submit' as const,
             handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.SUBMIT, {from: [`${accountID}`]}),
         },
         {
             key: 'approve',
             count: approveCount,
-            icon: Expensicons.ThumbsUp,
+            icon: ThumbsUp,
             translationKey: 'homePage.forYouSection.approve' as const,
             handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.APPROVE, {to: [`${accountID}`]}),
         },
         {
             key: 'pay',
             count: payCount,
-            icon: Expensicons.Cash,
+            icon: Cash,
             translationKey: 'homePage.forYouSection.pay' as const,
             handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.PAY, {reimbursable: CONST.SEARCH.BOOLEAN.YES, payer: accountID?.toString()}),
         },
         {
             key: 'export',
             count: exportCount,
-            icon: Expensicons.Export,
+            icon: Export,
             translationKey: 'homePage.forYouSection.export' as const,
             handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.EXPORT, {exporter: [`${accountID}`], exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER}),
         },
