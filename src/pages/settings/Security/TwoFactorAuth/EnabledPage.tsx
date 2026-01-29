@@ -65,6 +65,11 @@ function EnabledPage() {
                     </View>
                 </Section>
                 <MenuItem
+                    title={translate('twoFactorAuth.replaceDevice')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_OLD)}
+                    icon={Expensicons.Sync}
+                />
+                <MenuItem
                     title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onPress={() => {
                         if (hasPolicyWithXeroConnection(adminPolicies)) {

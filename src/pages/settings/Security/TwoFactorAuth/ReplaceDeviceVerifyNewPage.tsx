@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
@@ -6,29 +6,20 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethod} from '@libs/UserUtils';
-import {clearAccountMessages} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
 import TwoFactorAuthSecretDisplay from './TwoFactorAuthSecretDisplay';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
-const TROUBLESHOOTING_LINK = 'https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication';
-
-type VerifyPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.VERIFY>;
-
-function VerifyPage({route}: VerifyPageProps) {
+function ReplaceDeviceVerifyNewPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -36,40 +27,29 @@ function VerifyPage({route}: VerifyPageProps) {
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
-    useEffect(() => {
-        clearAccountMessages();
-        return () => {
-            clearAccountMessages();
-        };
-    }, []);
+    const scrollViewRef = useRef<RNScrollView>(null);
 
+    // Navigate back to 2FA settings after successful device replacement
     useEffect(() => {
-        if (!account?.requiresTwoFactorAuth || !account.codesAreCopied) {
+        if (!account || account.twoFactorAuthSecretKey) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.getRoute(route.params?.backTo, route.params?.forwardTo), {forceReplace: true});
-    }, [account?.codesAreCopied, account?.requiresTwoFactorAuth, route.params?.backTo, route.params?.forwardTo]);
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.route, {forceReplace: true});
+    }, [account, account?.twoFactorAuthSecretKey]);
 
-    const scrollViewRef = useRef<RNScrollView>(null);
-    const handleInputFocus = useCallback(() => {
+    const handleInputFocus = () => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 scrollViewRef.current?.scrollToEnd({animated: true});
             });
         });
-    }, []);
+    };
 
     return (
         <TwoFactorAuthWrapper
-            stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
-            title={translate('twoFactorAuth.headerTitle')}
-            stepCounter={{
-                step: 2,
-                text: translate('twoFactorAuth.stepVerify'),
-                total: 3,
-            }}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(route.params?.backTo, route.params?.forwardTo))}
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_NEW}
+            title={translate('twoFactorAuth.replaceDeviceTitle')}
             shouldEnableViewportOffsetTop
         >
             <ScrollView
@@ -81,20 +61,14 @@ function VerifyPage({route}: VerifyPageProps) {
                     <TwoFactorAuthSecretDisplay
                         contactMethod={contactMethod}
                         secretKey={account?.twoFactorAuthSecretKey ?? ''}
-                        description={
-                            <Text>
-                                {translate('twoFactorAuth.scanCode')}
-                                <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
-                            </Text>
-                        }
+                        description={<Text style={[styles.textLabel, styles.mb4]}>{translate('twoFactorAuth.verifyNewDeviceDescription')}</Text>}
                     />
-                    <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
-                </View>
-                <View style={[styles.mh5, styles.mb4, styles.mt3]}>
+                    <Text style={[styles.mt5, styles.mb3, styles.textLabel]}>{translate('twoFactorAuth.enterCode')}</Text>
                     <TwoFactorAuthForm
                         innerRef={formRef}
-                        shouldAutoFocusOnMobile={false}
                         onFocus={handleInputFocus}
+                        validateInsteadOfDisable
+                        step={CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_NEW}
                     />
                 </View>
             </ScrollView>
@@ -102,7 +76,7 @@ function VerifyPage({route}: VerifyPageProps) {
                 <Button
                     success
                     large
-                    text={translate('common.next')}
+                    text={translate('common.continue')}
                     isLoading={account?.isLoading}
                     onPress={() => {
                         if (!formRef.current) {
@@ -116,4 +90,4 @@ function VerifyPage({route}: VerifyPageProps) {
     );
 }
 
-export default VerifyPage;
+export default ReplaceDeviceVerifyNewPage;
