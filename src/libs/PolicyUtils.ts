@@ -107,6 +107,10 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: 
     });
 }
 
+function getActivePoliciesWithExpenseChatAndTimeEnabled(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter(isTimeTrackingEnabled);
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -537,6 +541,27 @@ function getTagLists(policyTagList: OnyxEntry<PolicyTagLists>): Array<ValueOf<Po
 }
 
 /**
+ * Checks if a policy has any tags
+ */
+function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
+    const tagLists = getTagLists(policyTagList);
+    return tagLists.some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
+}
+
+/**
+ * Checks if a policy has any custom categories (categories not in the default list)
+ */
+function hasCustomCategories(policyCategories: OnyxEntry<PolicyCategories>): boolean {
+    if (!policyCategories) {
+        return false;
+    }
+
+    const defaultCategoryNames = new Set<string>(Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
+
+    return Object.values(policyCategories).some((category) => category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !defaultCategoryNames.has(category.name));
+}
+
+/**
  * Gets a tag list of a policy by a tag index
  */
 function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number): ValueOf<PolicyTagLists> {
@@ -841,6 +866,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED) {
+        return isTimeTrackingEnabled(policy);
     }
 
     return !!policy?.[featureName];
@@ -1552,6 +1580,54 @@ function hasOtherControlWorkspaces(adminPolicies: Policy[] | undefined, currentP
     return (otherControlWorkspaces?.length ?? 0) > 0;
 }
 
+/**
+ * Determines whether workspace deletion should be blocked for an Invoicify user.
+ *
+ * The function normalizes owner policies to a flat `Policy[]` regardless of whether
+ * they are provided as an `OnyxCollection` or a precomputed array. For Invoicify users,
+ * it ensures that at least one other controllable workspace exists after excluding
+ * policies with pending ADD or DELETE actions.
+ *
+ * The filtering is done lazily to avoid unnecessary work for non-Invoicify users.
+ *
+ * @param isSubscriptionTypeOfInvoicing - Whether the user is on an Invoicify subscription
+ * @param ownerPolicies - Owner policies as an Onyx collection or a normalized array
+ * @param currentPolicyID - Policy ID of the workspace being evaluated
+ * @param accountID - Account ID used to resolve owned paid policies when needed
+ *
+ */
+function shouldBlockWorkspaceDeletionForInvoicifyUser(
+    isSubscriptionTypeOfInvoicing: boolean,
+    ownerPolicies: OnyxCollection<Policy> | Policy[] | undefined,
+    currentPolicyID: string | undefined,
+    accountID?: number,
+) {
+    if (!isSubscriptionTypeOfInvoicing || !currentPolicyID) {
+        return false;
+    }
+    const normalizedOwnerPolicies: Policy[] = (() => {
+        if (!ownerPolicies) {
+            return [];
+        }
+
+        if (Array.isArray(ownerPolicies)) {
+            return ownerPolicies;
+        }
+
+        if (accountID) {
+            return getOwnedPaidPolicies(ownerPolicies, accountID);
+        }
+
+        return Object.values(ownerPolicies).filter((policy): policy is Policy => !!policy);
+    })();
+
+    const ownerPoliciesWithoutPendingActions = (normalizedOwnerPolicies ?? []).filter(
+        (policy) => policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+
+    return !hasOtherControlWorkspaces(ownerPoliciesWithoutPendingActions, currentPolicyID);
+}
+
 // If no policyID is provided, it indicates the workspace upgrade/downgrade URL
 // is being accessed from the Subscriptions page without a specific policyID.
 // In this case, check if the user is an admin on more than one policy.
@@ -1735,6 +1811,8 @@ export {
     getTagListByOrderWeight,
     getTagListName,
     getTagLists,
+    hasTags,
+    hasCustomCategories,
     getTaxByID,
     getUnitRateValue,
     getRateDisplayValue,
@@ -1846,6 +1924,7 @@ export {
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     hasOtherControlWorkspaces,
+    shouldBlockWorkspaceDeletionForInvoicifyUser,
     getManagerAccountEmail,
     getRuleApprovers,
     canModifyPlan,
@@ -1873,6 +1952,7 @@ export {
     isDefaultTagName,
     isTimeTrackingEnabled,
     getDefaultTimeTrackingRate,
+    getActivePoliciesWithExpenseChatAndTimeEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
