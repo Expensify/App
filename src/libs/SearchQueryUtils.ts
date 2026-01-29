@@ -18,6 +18,7 @@ import type {
     SearchQueryString,
     SearchStatus,
     SearchWithdrawalType,
+    SingularSearchStatus,
     UserFriendlyKey,
     UserFriendlyValue,
 } from '@components/Search/types';
@@ -46,6 +47,7 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetai
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import {formatTranslatedValue, getAllStatusOptions, getStatusOptions} from './SearchTranslationUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -427,9 +429,32 @@ function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
     return undefined;
 }
 
-function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString) {
+function normalizeStatusValue(value: string, translate: LocaleContextProps['translate'], type: SearchDataTypes): SingularSearchStatus {
+    const statusOptions = getStatusOptions(translate, type);
+    const statusMap = new Map(statusOptions.map((option) => [formatTranslatedValue(option.text), option.value]));
+    const allStatusOptions = getAllStatusOptions(translate);
+    const allStatusMap = new Map(allStatusOptions.map((option) => [formatTranslatedValue(option.text), option.value]));
+    const normalizedValue = formatTranslatedValue(value.replaceAll('\u2009', ' '));
+    return (statusMap.get(normalizedValue) ?? allStatusMap.get(normalizedValue) ?? value) as SingularSearchStatus;
+}
+
+function normalizeStatusValues(status: SearchStatus, translate: LocaleContextProps['translate'], type: SearchDataTypes): SearchStatus {
+    if (Array.isArray(status)) {
+        return status.map((value) => normalizeStatusValue(value, translate, type));
+    }
+
+    return normalizeStatusValue(status, translate, type);
+}
+
+function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString, translate?: LocaleContextProps['translate']) {
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
+
+        if (translate && result.status) {
+            const type = result.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+            result.status = normalizeStatusValues(result.status, translate, type);
+        }
+
         const flatFilters = getFilters(result);
 
         // Add the full input and hash to the results
@@ -1094,17 +1119,33 @@ function getFilterDisplayValue(
     return filterValue;
 }
 
-function getDisplayQueryFiltersForKey(
-    key: string,
-    queryFilter: QueryFilter[],
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    taxRates: Record<string, string[]>,
-    cardList: OnyxTypes.CardList | undefined,
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    currentUserAccountID: number,
-) {
+type GetDisplayQueryFiltersForKeyParams = {
+    key: string;
+    queryFilter: QueryFilter[];
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    taxRates: Record<string, string[]>;
+    cardList: OnyxTypes.CardList | undefined;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    translate?: LocaleContextProps['translate'];
+    type?: SearchDataTypes;
+};
+
+function getDisplayQueryFiltersForKey({
+    key,
+    queryFilter,
+    personalDetails,
+    reports,
+    taxRates,
+    cardList,
+    cardFeeds,
+    policies,
+    currentUserAccountID,
+    translate,
+    type,
+}: GetDisplayQueryFiltersForKeyParams) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
         const taxRateNames = taxRateIDs
@@ -1162,13 +1203,35 @@ function getDisplayQueryFiltersForKey(
         }, [] as QueryFilter[]);
     }
 
-    return queryFilter.map((filter) => ({
-        operator: filter.operator,
-        value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
-    }));
+    return queryFilter.map((filter) => {
+        const filterValue = filter.value.toString();
+        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type) {
+            const statusOptions = getStatusOptions(translate, type);
+            const statusOption = statusOptions.find((option) => option.value === filterValue);
+            if (statusOption) {
+                return {operator: filter.operator, value: formatTranslatedValue(statusOption.text)};
+            }
+            const allStatusOptions = getAllStatusOptions(translate);
+            const fallbackStatusOption = allStatusOptions.find((option) => option.value === filterValue);
+            if (fallbackStatusOption) {
+                return {operator: filter.operator, value: formatTranslatedValue(fallbackStatusOption.text)};
+            }
+        }
+
+        return {
+            operator: filter.operator,
+            value: getFilterDisplayValue(key, getUserFriendlyValue(filterValue), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
+        };
+    });
 }
 
-function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
+function formatDefaultRawFilterSegment(
+    rawFilter: RawQueryFilter,
+    policies: OnyxCollection<OnyxTypes.Policy>,
+    reports?: OnyxCollection<OnyxTypes.Report>,
+    type?: SearchDataTypes,
+    translate?: LocaleContextProps['translate'],
+) {
     const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
     const cleanedValues = rawValues.map((val) => (typeof val === 'string' ? val.trim() : '')).filter((val) => val.length > 0);
 
@@ -1215,7 +1278,21 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
             break;
     }
 
-    const formattedValues = cleanedValues.map((val) => sanitizeSearchValue(getUserFriendlyValue(val)));
+    const formattedValues = cleanedValues.map((val) => {
+        if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type) {
+            const statusOptions = getStatusOptions(translate, type);
+            const statusOption = statusOptions.find((option) => option.value === val);
+            if (statusOption) {
+                return sanitizeSearchValue(formatTranslatedValue(statusOption.text));
+            }
+            const allStatusOptions = getAllStatusOptions(translate);
+            const fallbackStatusOption = allStatusOptions.find((option) => option.value === val);
+            if (fallbackStatusOption) {
+                return sanitizeSearchValue(formatTranslatedValue(fallbackStatusOption.text));
+            }
+        }
+        return sanitizeSearchValue(getUserFriendlyValue(val));
+    });
 
     if (!formattedValues.length) {
         return;
@@ -1240,19 +1317,51 @@ function buildUserReadableQueryString(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     autoCompleteWithSpace = false,
+    translate?: LocaleContextProps['translate'],
 ) {
     const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
-    if (rawFilterList && rawFilterList.length > 0) {
+    const translateStatusValue = (statusValue: string): string => {
+        if (!translate || !type) {
+            return getUserFriendlyValue(statusValue);
+        }
+        const statusOptions = getStatusOptions(translate, type);
+        const statusOption = statusOptions.find((option) => option.value === statusValue);
+        if (!statusOption) {
+            const allStatusOptions = getAllStatusOptions(translate);
+            const fallbackStatusOption = allStatusOptions.find((option) => option.value === statusValue);
+            if (!fallbackStatusOption) {
+                return getUserFriendlyValue(statusValue);
+            }
+            return formatTranslatedValue(fallbackStatusOption.text);
+        }
+        return formatTranslatedValue(statusOption.text);
+    };
+
+    const normalizedRawFilterList =
+        translate && type && status && rawFilterList
+            ? rawFilterList.map((rawFilter) => {
+                  if (rawFilter.key !== CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS) {
+                      return rawFilter;
+                  }
+
+                  return {
+                      ...rawFilter,
+                      value: Array.isArray(status) ? status : [status],
+                  };
+              })
+            : rawFilterList;
+
+    if (normalizedRawFilterList && normalizedRawFilterList.length > 0) {
         const segments: string[] = [];
 
-        for (const rawFilter of rawFilterList) {
+        for (const rawFilter of normalizedRawFilterList) {
             if (!rawFilter) {
                 continue;
             }
 
             if (rawFilter.isDefault) {
-                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports);
+                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports, type, translate);
                 if (defaultSegment) {
                     segments.push(defaultSegment);
                 }
@@ -1272,7 +1381,19 @@ function buildUserReadableQueryString(
                 continue;
             }
 
-            const displayQueryFilters = getDisplayQueryFiltersForKey(rawFilter.key, queryFilters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+            const displayQueryFilters = getDisplayQueryFiltersForKey({
+                key: rawFilter.key,
+                queryFilter: queryFilters,
+                personalDetails: PersonalDetails,
+                reports,
+                taxRates,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                translate,
+                type,
+            });
 
             if (!displayQueryFilters.length) {
                 continue;
@@ -1291,7 +1412,7 @@ function buildUserReadableQueryString(
     }
 
     let title = status
-        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
+        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(translateStatusValue).join(',') : translateStatusValue(status)}`
         : `type:${getUserFriendlyValue(type)}`;
 
     if (groupBy) {
@@ -1309,7 +1430,19 @@ function buildUserReadableQueryString(
 
     for (const filterObject of filters) {
         const key = filterObject.key;
-        const displayQueryFilters = getDisplayQueryFiltersForKey(key, filterObject.filters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+        const displayQueryFilters = getDisplayQueryFiltersForKey({
+            key,
+            queryFilter: filterObject.filters,
+            personalDetails: PersonalDetails,
+            reports,
+            taxRates,
+            cardList,
+            cardFeeds,
+            policies,
+            currentUserAccountID,
+            translate,
+            type,
+        });
 
         if (!displayQueryFilters.length) {
             continue;
@@ -1434,8 +1567,8 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
  */
-function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false) {
-    const queryJSON = buildSearchQueryJSON(query);
+function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false, translate?: LocaleContextProps['translate']) {
+    const queryJSON = buildSearchQueryJSON(query, undefined, translate);
 
     if (!queryJSON) {
         Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} user query failed to parse`, {}, false);

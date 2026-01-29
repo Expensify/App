@@ -101,7 +101,18 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, allPolicies, currentUserAccountID);
+                title = buildUserReadableQueryString(
+                    jsonQuery,
+                    personalDetails,
+                    reports,
+                    taxRates,
+                    nonPersonalAndWorkspaceCards,
+                    allFeeds,
+                    allPolicies,
+                    currentUserAccountID,
+                    undefined,
+                    translate,
+                );
             }
 
             const isItemFocused = Number(key) === hash;
@@ -150,6 +161,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             allFeeds,
             currentUserAccountID,
             allPolicies,
+            translate,
         ],
     );
 
