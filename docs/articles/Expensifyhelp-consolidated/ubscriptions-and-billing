@@ -1,4 +1,0 @@
-layout: default
-title: Subscriptions and Billing
-—
-{% include platform.html %}
