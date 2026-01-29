@@ -1,14 +1,15 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -87,8 +88,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [shouldShowError, setShouldShowError] = useState(false);
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const [isDuplicateWarningVisible, setIsDuplicateWarningVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     // Get the existing rule from the policy (for edit mode)
     const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;
@@ -210,15 +210,20 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         // Check for duplicate rules
         const hasDuplicate = checkForDuplicateRule(policy?.rules?.codingRules, form.merchantToMatch, form.matchType);
         if (hasDuplicate) {
-            setIsDuplicateWarningVisible(true);
+            showConfirmModal({
+                title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
+                prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', form.merchantToMatch ?? ''),
+                confirmText: translate('workspace.rules.merchantRules.saveAnyway'),
+                cancelText: translate('common.cancel'),
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                saveRule();
+            });
             return;
         }
 
-        saveRule();
-    };
-
-    const handleDuplicateConfirm = () => {
-        setIsDuplicateWarningVisible(false);
         saveRule();
     };
 
@@ -226,11 +231,21 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         if (!ruleID || !policy) {
             return;
         }
-        setIsDeleting(true);
-        deletePolicyCodingRule(policy, ruleID);
 
-        setIsDeleteModalVisible(false);
-        Navigation.goBack();
+        showConfirmModal({
+            title: translate('workspace.rules.merchantRules.deleteRule'),
+            prompt: translate('workspace.rules.merchantRules.deleteRuleConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            setIsDeleting(true);
+            deletePolicyCodingRule(policy, ruleID);
+            Navigation.goBack();
+        });
     };
 
     const sections: SectionType[] = [
@@ -344,33 +359,12 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                         isEditing ? (
                             <Button
                                 text={translate('workspace.rules.merchantRules.deleteRule')}
-                                onPress={() => setIsDeleteModalVisible(true)}
+                                onPress={handleDelete}
                                 style={[styles.mb4]}
                                 large
                             />
                         ) : null
                     }
-                />
-                {isEditing && (
-                    <ConfirmModal
-                        title={translate('workspace.rules.merchantRules.deleteRule')}
-                        isVisible={isDeleteModalVisible}
-                        onConfirm={handleDelete}
-                        onCancel={() => setIsDeleteModalVisible(false)}
-                        prompt={translate('workspace.rules.merchantRules.deleteRuleConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                )}
-                <ConfirmModal
-                    title={translate('workspace.rules.merchantRules.duplicateRuleTitle')}
-                    isVisible={isDuplicateWarningVisible}
-                    onConfirm={handleDuplicateConfirm}
-                    onCancel={() => setIsDuplicateWarningVisible(false)}
-                    prompt={translate('workspace.rules.merchantRules.duplicateRulePrompt', form?.merchantToMatch ?? '')}
-                    confirmText={translate('workspace.rules.merchantRules.saveAnyway')}
-                    cancelText={translate('common.cancel')}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
