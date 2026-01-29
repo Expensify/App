@@ -69,7 +69,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     console.log(bankAccountID);
     console.log('bankAccountConnectedToWorkspace');
     console.log(bankAccountConnectedToWorkspace);
-    const bankAccountInfo = bankAccountID ? bankAccountList?.[bankAccountID] : bankAccountConnectedToWorkspace;
+    const bankAccountFromList = bankAccountID ? bankAccountList?.[bankAccountID] : undefined;
+    const bankAccountInfo = bankAccountFromList ?? bankAccountConnectedToWorkspace;
     console.log('bankAccountList');
     console.log(bankAccountList);
     console.log('bankAccountInfo');
