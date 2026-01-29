@@ -39,6 +39,9 @@ const BAR_ROUNDED_CORNERS: RoundedCorners = {
 /** Chart padding */
 const CHART_PADDING = 5;
 
+/** Minimum height for the chart content area (bars, Y-axis, grid lines) */
+const CHART_CONTENT_MIN_HEIGHT = 250;
+
 /** Default bar color index when useSingleColor is true (ice blue) */
 const DEFAULT_SINGLE_BAR_COLOR_INDEX = 4;
 
@@ -98,6 +101,7 @@ export {
     Y_AXIS_LABEL_OFFSET,
     BAR_ROUNDED_CORNERS,
     CHART_PADDING,
+    CHART_CONTENT_MIN_HEIGHT,
     DEFAULT_SINGLE_BAR_COLOR_INDEX,
     DOMAIN_PADDING_SAFETY_BUFFER,
     EXPENSIFY_NEUE_FONT_URL,

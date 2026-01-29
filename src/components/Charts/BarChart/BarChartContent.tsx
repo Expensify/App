@@ -12,6 +12,7 @@ import {
     BAR_INNER_PADDING,
     BAR_ROUNDED_CORNERS,
     CHART_COLORS,
+    CHART_CONTENT_MIN_HEIGHT,
     CHART_PADDING,
     DEFAULT_SINGLE_BAR_COLOR_INDEX,
     DOMAIN_PADDING,
@@ -203,9 +204,11 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         [data, useSingleColor, defaultBarColor],
     );
 
+    // When labels are rotated 90°, add measured label height to container
+    // This keeps bar area at ~250px while giving labels their needed vertical space
     const dynamicChartStyle = useMemo(
         () => ({
-            height: 250 + (maxLabelLength ?? 0) + 100,
+            height: CHART_CONTENT_MIN_HEIGHT + (maxLabelLength ?? 0),
         }),
         [maxLabelLength],
     );
@@ -221,6 +224,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     if (data.length === 0) {
         return null;
     }
+
     return (
         <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8]}>
             <ChartHeader
