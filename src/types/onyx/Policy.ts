@@ -1705,13 +1705,19 @@ type CodingRuleTax = {
         /** The external ID of the tax rate */
         externalID: string;
 
-        /** The display value of the tax rate */
+        /** The tax rate value (e.g., "8.5%") */
         value: string;
+
+        /** The name of the tax rate */
+        name: string;
     };
 };
 
 /** Policy coding rule data model */
 type CodingRule = {
+    /** Unique identifier for the rule */
+    ruleID?: string;
+
     /** Filter conditions for when this rule applies */
     filters: CodingRuleFilter;
 
@@ -2021,6 +2027,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
         isLoadingWorkspaceReimbursement?: boolean;
 
+        /** Indicates if the receipt partners page is loading */
+        isLoadingReceiptPartners?: boolean;
+
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;
 
@@ -2081,7 +2090,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */
