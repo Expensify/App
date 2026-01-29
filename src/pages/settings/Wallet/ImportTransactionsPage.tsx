@@ -47,10 +47,7 @@ function ImportTransactionsPage() {
     }, [cardDisplayName, currency, isReimbursable, flipAmountSign]);
 
     return (
-        <ScreenWrapper
-            testID="ImportTransactionsPage"
-            includeSafeAreaPaddingBottom={false}
-        >
+        <ScreenWrapper testID="ImportTransactionsPage">
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.importTransactions.title')}
                 onBackButtonPress={Navigation.goBack}

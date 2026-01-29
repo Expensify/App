@@ -43,25 +43,22 @@ function ImportTransactionsCardNamePage() {
 
     return (
         <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
+            shouldEnablePickerAvoiding={false}
             testID="ImportTransactionsCardNamePage"
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.importTransactions.cardDisplayName')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-
             <FormProvider
                 formID={ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM}
                 submitButtonText={translate('common.save')}
                 style={[styles.flexGrow1, styles.ph5]}
-                scrollContextEnabled
                 validate={validate}
                 onSubmit={submit}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
-                addBottomSafeAreaPadding
             >
                 <View style={styles.mb4}>
                     <InputWrapper
@@ -71,7 +68,6 @@ function ImportTransactionsCardNamePage() {
                         label={translate('workspace.companyCards.importTransactions.cardDisplayName')}
                         accessibilityLabel={translate('workspace.companyCards.importTransactions.cardDisplayName')}
                         defaultValue={importedSpreadsheet?.importTransactionSettings?.cardDisplayName}
-                        spellCheck={false}
                         autoFocus
                     />
                 </View>
