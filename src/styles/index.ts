@@ -3682,7 +3682,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemButton: {
-            width: 68,
+            minWidth: 68,
         },
 
         widgetItemSubtitle: {

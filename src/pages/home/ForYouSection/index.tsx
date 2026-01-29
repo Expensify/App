@@ -34,98 +34,62 @@ function ForYouSection() {
 
     const hasAnyTodos = submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0;
 
-    const handleSubmitPress = () => {
+    const createNavigationHandler = (action: string, queryParams: Record<string, unknown>) => () => {
         Navigation.navigate(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                    action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
-                    from: [`${accountID}`],
+                    action,
+                    ...queryParams,
                 }),
             }),
         );
     };
 
-    const handleApprovePress = () => {
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                    action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                    to: [`${accountID}`],
-                }),
-            }),
-        );
-    };
-
-    const handlePayPress = () => {
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                    action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                    reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                    payer: accountID?.toString(),
-                }),
-            }),
-        );
-    };
-
-    const handleExportPress = () => {
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                    action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                    exporter: [`${accountID}`],
-                    exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
-                }),
-            }),
-        );
-    };
+    const todoItems = [
+        {
+            key: 'submit',
+            count: submitCount,
+            icon: Expensicons.Send,
+            translationKey: 'homePage.forYouSection.submit' as const,
+            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.SUBMIT, {from: [`${accountID}`]}),
+        },
+        {
+            key: 'approve',
+            count: approveCount,
+            icon: Expensicons.ThumbsUp,
+            translationKey: 'homePage.forYouSection.approve' as const,
+            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.APPROVE, {to: [`${accountID}`]}),
+        },
+        {
+            key: 'pay',
+            count: payCount,
+            icon: Expensicons.Cash,
+            translationKey: 'homePage.forYouSection.pay' as const,
+            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.PAY, {reimbursable: CONST.SEARCH.BOOLEAN.YES, payer: accountID?.toString()}),
+        },
+        {
+            key: 'export',
+            count: exportCount,
+            icon: Expensicons.Export,
+            translationKey: 'homePage.forYouSection.export' as const,
+            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.EXPORT, {exporter: [`${accountID}`], exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER}),
+        },
+    ].filter((item) => item.count > 0);
 
     const renderTodoItems = () => (
         <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-            {submitCount > 0 && (
+            {todoItems.map(({key, count, icon, translationKey, handler}) => (
                 <BaseWidgetItem
-                    icon={Expensicons.Send}
+                    key={key}
+                    icon={icon}
                     iconBackgroundColor={theme.widgetIconBG}
                     iconFill={theme.widgetIconFill}
-                    title={translate('homePage.forYouSection.submit', {count: submitCount})}
+                    title={translate(translationKey, {count})}
                     ctaText={translate('homePage.forYouSection.begin')}
-                    onCtaPress={handleSubmitPress}
+                    onCtaPress={handler}
                 />
-            )}
-            {approveCount > 0 && (
-                <BaseWidgetItem
-                    icon={Expensicons.ThumbsUp}
-                    iconBackgroundColor={theme.widgetIconBG}
-                    iconFill={theme.widgetIconFill}
-                    title={translate('homePage.forYouSection.approve', {count: approveCount})}
-                    ctaText={translate('homePage.forYouSection.begin')}
-                    onCtaPress={handleApprovePress}
-                />
-            )}
-            {payCount > 0 && (
-                <BaseWidgetItem
-                    icon={Expensicons.Cash}
-                    iconBackgroundColor={theme.widgetIconBG}
-                    iconFill={theme.widgetIconFill}
-                    title={translate('homePage.forYouSection.pay', {count: payCount})}
-                    ctaText={translate('homePage.forYouSection.begin')}
-                    onCtaPress={handlePayPress}
-                />
-            )}
-            {exportCount > 0 && (
-                <BaseWidgetItem
-                    icon={Expensicons.Export}
-                    iconBackgroundColor={theme.widgetIconBG}
-                    iconFill={theme.widgetIconFill}
-                    title={translate('homePage.forYouSection.export', {count: exportCount})}
-                    ctaText={translate('homePage.forYouSection.begin')}
-                    onCtaPress={handleExportPress}
-                />
-            )}
+            ))}
         </View>
     );
 

@@ -62,7 +62,5 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
     );
 }
 
-BaseWidgetItem.displayName = 'BaseWidgetItem';
-
 export default BaseWidgetItem;
 export type {BaseWidgetItemProps};

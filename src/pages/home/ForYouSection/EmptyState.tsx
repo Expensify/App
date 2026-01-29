@@ -26,6 +26,8 @@ function EmptyState() {
     const {translate} = useLocalize();
 
     // Select a random empty state message on mount (will change on refresh/remount)
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Array.at() with calculated index always returns a value since length is checked
+    // eslint-disable-next-line react-hooks/purity -- Random selection is intentional and should only happen once on mount
     const emptyStateMessage = useMemo(
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, react-hooks/purity
         () => EMPTY_STATE_MESSAGES.at(Math.floor(Math.random() * EMPTY_STATE_MESSAGES.length))!,
