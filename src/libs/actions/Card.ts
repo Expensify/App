@@ -700,19 +700,8 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
  * The backend will handle deleting transactions on unsubmitted/open reports.
  */
 function deletePersonalCard(cardID: number, card?: Card) {
+    // Optimistically remove the card immediately for instant UI feedback
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                },
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
@@ -740,7 +729,7 @@ function deletePersonalCard(cardID: number, card?: Card) {
         cardID,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_PERSONAL_CARD, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_PERSONAL_CARD, parameters, {optimisticData, failureData});
 }
 
 function startIssueNewCardFlow(policyID: string | undefined) {
