@@ -29,7 +29,7 @@ function SearchEditMultipleTaxPage() {
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
 
-    const selectedTaxRate = getTaxName(policy, draftTransaction);
+    const selectedTaxRate = draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : '';
 
     const onSubmit = (taxes: TaxRatesOption) => {
         updateBulkEditDraftTransaction({
