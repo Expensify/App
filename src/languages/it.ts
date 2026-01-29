@@ -934,8 +934,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Usa il pulsante + per ${additionalText} una spesa.`,
-        askConcierge: 'Fai domande e ottieni supporto in tempo reale 24/7.',
-        conciergeSupport: 'Assistenza 24/7',
+        askConcierge: ' Il tuo assistente spese AI 24/7 è qui per aiutarti.',
+        conciergeSupport: 'il tuo assistente spese 24/7',
         create: 'Crea',
         iouTypes: {
             pay: 'paga',
@@ -2582,8 +2582,6 @@ ${amount} per ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Benvenuto!',
-        welcomeSignOffTitleManageTeam: 'Una volta completate le attività sopra, potremo esplorare altre funzionalità come i flussi di approvazione e le regole!',
-        welcomeSignOffTitle: 'È un piacere conoscerti!',
         explanationModal: {
             title: 'Benvenuto in Expensify',
             description: 'Un’unica app per gestire le spese aziendali e personali alla velocità della chat. Provala e facci sapere cosa ne pensi. E molto altro è in arrivo!',
@@ -2915,8 +2913,6 @@ ${
                 '# Iniziamo con la configurazione\n👋 Ciao, sono il tuo specialista per la configurazione di Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire ricevute e spese. Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui semplicemente i passaggi di configurazione rimanenti qui sotto!',
             onboardingChatSplitMessage: 'Dividere il conto con gli amici è facile quanto inviare un messaggio. Ecco come.',
             onboardingAdminMessage: 'Scopri come gestire lo spazio di lavoro del tuo team come amministratore e inviare le tue note spese.',
-            onboardingLookingAroundMessage:
-                'Expensify è conosciuto soprattutto per la gestione di note spese, viaggi e carte aziendali, ma facciamo molto di più. Dimmi che cosa ti interessa e ti aiuterò a iniziare.',
             onboardingTestDriveReceiverMessage: '*Hai 3 mesi gratis! Inizia qui sotto.*',
         },
         workspace: {

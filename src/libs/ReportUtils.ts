@@ -11695,18 +11695,6 @@ function prepareOnboardingOnyxData({
             };
         });
 
-    // Sign-off welcome message
-    const welcomeSignOffText =
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
-    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(welcomeSignOffText, undefined, actorAccountID, tasksData.length + 3);
-    const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
-    const welcomeSignOffMessage = {
-        reportID: targetChatReportID,
-        reportActionID: welcomeSignOffCommentAction.reportActionID,
-        reportComment: welcomeSignOffComment.commentText,
-    };
-
     const tasksForParameters = tasksData.map<TaskForParameters>(({task, currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => ({
         type: 'task',
         task: task.type,
@@ -11872,8 +11860,8 @@ function prepareOnboardingOnyxData({
         return acc;
     }, []);
 
-    const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [...tasksForOptimisticData];
-    const lastVisibleActionCreated = welcomeSignOffCommentAction.created;
+    const optimisticData: OnyxUpdate[] = [...tasksForOptimisticData];
+    const lastVisibleActionCreated = textCommentAction.created;
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12030,7 +12018,10 @@ function prepareOnboardingOnyxData({
     // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = [];
 
-    guidedSetupData.push({type: 'message', ...textMessage});
+    // Only add the onboarding message if it's not empty
+    if (message) {
+        guidedSetupData.push({type: 'message', ...textMessage});
+    }
 
     let selfDMParameters: SelfDMParameters = {};
     if (
@@ -12103,35 +12094,6 @@ function prepareOnboardingOnyxData({
     }
 
     guidedSetupData.push(...tasksForParameters);
-
-    if (!introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [welcomeSignOffCommentAction.reportActionID]: welcomeSignOffCommentAction as ReportAction,
-            },
-        });
-
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [welcomeSignOffCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
-            },
-        });
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [welcomeSignOffCommentAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
-        guidedSetupData.push({type: 'message', ...welcomeSignOffMessage});
-    }
 
     if (isOptimisticAssignedGuide) {
         successData.push({

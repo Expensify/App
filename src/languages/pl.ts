@@ -934,8 +934,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witamy w ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Użyj przycisku +, aby ${additionalText} wydatek.`,
-        askConcierge: 'Zadawaj pytania i otrzymuj całodobowe wsparcie w czasie rzeczywistym.',
-        conciergeSupport: 'Całodobowa pomoc',
+        askConcierge: ' Twój całodobowy asystent wydatków AI jest tutaj, aby pomóc.',
+        conciergeSupport: 'twój całodobowy asystent wydatków',
         create: 'Utwórz',
         iouTypes: {
             pay: 'Zapłać',
@@ -2574,8 +2574,6 @@ ${amount} dla ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Witamy!',
-        welcomeSignOffTitleManageTeam: 'Gdy ukończysz powyższe zadania, możemy odkrywać więcej funkcji, takich jak przepływy zatwierdzania i reguły!',
-        welcomeSignOffTitle: 'Miło cię poznać!',
         explanationModal: {
             title: 'Witamy w Expensify',
             description: 'Jedna aplikacja do obsługi wydatków firmowych i osobistych z prędkością czatu. Wypróbuj ją i daj nam znać, co o niej sądzisz. To dopiero początek!',
@@ -2909,8 +2907,6 @@ ${
                 '# Skonfigurujmy wszystko\n\n👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Utworzyłem już miejsce pracy, które pomoże Ci zarządzać paragonami i wydatkami. Aby jak najlepiej wykorzystać 30-dniowy bezpłatny okres próbny, po prostu wykonaj pozostałe kroki konfiguracji poniżej!',
             onboardingChatSplitMessage: 'Dzieleniem rachunków ze znajomymi jest tak proste jak wysłanie wiadomości. Oto jak to działa.',
             onboardingAdminMessage: 'Dowiedz się, jak zarządzać przestrzenią roboczą swojego zespołu jako administrator oraz jak składać własne rozliczenia wydatków.',
-            onboardingLookingAroundMessage:
-                'Expensify jest najlepiej znane z rozliczania wydatków, podróży służbowych i zarządzania kartami firmowymi, ale robimy znacznie więcej. Daj znać, czym jesteś zainteresowany, a pomogę Ci zacząć.',
             onboardingTestDriveReceiverMessage: '*Masz 3 miesiące za darmo! Zacznij poniżej.*',
         },
         workspace: {

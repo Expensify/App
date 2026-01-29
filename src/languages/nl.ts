@@ -934,8 +934,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Je ruimte',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welkom bij ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Gebruik de knop + om een uitgave te ${additionalText}.`,
-        askConcierge: 'Stel vragen en krijg 24/7 realtime ondersteuning.',
-        conciergeSupport: '24/7 ondersteuning',
+        askConcierge: ' Uw 24/7 AI-uitgavenassistent is er om u te helpen.',
+        conciergeSupport: 'uw 24/7-uitgavenassistent',
         create: 'Maken',
         iouTypes: {
             pay: 'Betalen',
@@ -2580,8 +2580,6 @@ ${amount} voor ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Welkom!',
-        welcomeSignOffTitleManageTeam: 'Zodra je de bovenstaande taken hebt voltooid, kunnen we meer functionaliteit verkennen, zoals goedkeuringsworkflows en regels!',
-        welcomeSignOffTitle: 'Het is geweldig om je te ontmoeten!',
         explanationModal: {
             title: 'Welkom bij Expensify',
             description:
@@ -2913,8 +2911,6 @@ ${
                 '# Laten we je instellen\n👋 Hoi, ik ben je Expensify-installatiespecialist. Ik heb al een workspace aangemaakt om je bonnetjes en uitgaven te beheren. Volg gewoon de resterende installatiestappen hieronder om het meeste uit je gratis proefperiode van 30 dagen te halen!',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als het versturen van een bericht. Zo werkt het.',
             onboardingAdminMessage: 'Leer hoe je als beheerder de werkruimte van je team beheert en je eigen declaraties indient.',
-            onboardingLookingAroundMessage:
-                'Expensify staat vooral bekend om onkosten-, reis- en bedrijfskaartbeheer, maar we doen veel meer dan dat. Laat me weten waarin je geïnteresseerd bent, dan help ik je op weg.',
             onboardingTestDriveReceiverMessage: '*Je krijgt 3 maanden gratis! Ga hieronder aan de slag.*',
         },
         workspace: {

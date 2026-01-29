@@ -394,8 +394,9 @@ const getOnboardingMessages = (locale?: Locale) => {
         message: translate(resolvedLocale, 'onboarding.messages.onboardingAdminMessage'),
         tasks: [reviewWorkspaceSettingsTask, adminSubmitExpenseTask],
     };
+    // Empty message for LOOKING_AROUND - users will only see the backend welcome message
     const onboardingLookingAroundMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingLookingAroundMessage'),
+        message: '',
         tasks: [],
     };
 

@@ -931,8 +931,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName} へようこそ！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `「＋」ボタンを使って経費を${additionalText}してください。`,
-        askConcierge: '質問して、24時間365日リアルタイムのサポートを受けましょう。',
-        conciergeSupport: '24時間年中無休サポート',
+        askConcierge: ' あなたの24時間365日対応のAI経費アシスタントがサポートします。',
+        conciergeSupport: 'あなたの24時間365日対応の経費アシスタント',
         create: '作成',
         iouTypes: {
             pay: '支払う',
@@ -2570,8 +2570,6 @@ ${merchant} への ${amount}（${date}）`,
     },
     onboarding: {
         welcome: 'ようこそ！',
-        welcomeSignOffTitleManageTeam: '上記のタスクが完了したら、承認ワークフローやルールなど、さらに多くの機能を試してみましょう！',
-        welcomeSignOffTitle: 'お会いできてうれしいです！',
         explanationModal: {
             title: 'Expensify へようこそ',
             description:
@@ -2905,8 +2903,6 @@ ${
                 '# セットアップを始めましょう\n👋 こんにちは、私はあなたの Expensify セットアップ担当です。すでに領収書や経費を管理するためのワークスペースを作成してあります。30日間の無料トライアルを最大限に活用するには、以下の残りのセットアップ手順に従ってください！',
             onboardingChatSplitMessage: '友だちとの割り勘は、メッセージを送るくらい簡単です。やり方は次のとおりです。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を申請する方法を学びましょう。',
-            onboardingLookingAroundMessage:
-                'Expensify は経費精算、出張管理、法人カード管理で最も知られていますが、それだけではありません。ご興味のある内容を教えていただければ、開始できるようお手伝いします。',
             onboardingTestDriveReceiverMessage: '3か月間無料です！以下から始めましょう。',
         },
         workspace: {

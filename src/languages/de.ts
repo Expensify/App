@@ -934,8 +934,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Ihr Bereich',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Willkommen bei ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Verwende die +‑Taste, um eine Ausgabe zu ${additionalText}.`,
-        askConcierge: 'Stellen Sie Fragen und erhalten Sie rund um die Uhr Echtzeit-Support.',
-        conciergeSupport: 'Support rund um die Uhr',
+        askConcierge: ' Ihr 24/7-KI-Spesenassistent ist hier, um zu helfen.',
+        conciergeSupport: 'Ihr 24/7-Spesenassistent',
         create: 'Erstellen',
         iouTypes: {
             pay: 'bezahlen',
@@ -2585,8 +2585,6 @@ ${amount} für ${merchant} – ${date}`,
     },
     onboarding: {
         welcome: 'Willkommen!',
-        welcomeSignOffTitleManageTeam: 'Sobald du die oben genannten Aufgaben abgeschlossen hast, können wir weitere Funktionen wie Genehmigungs-Workflows und -Regeln erkunden!',
-        welcomeSignOffTitle: 'Es ist schön, dich kennenzulernen!',
         explanationModal: {
             title: 'Willkommen bei Expensify',
             description:
@@ -2920,8 +2918,6 @@ ${
                 '# Richten wir dich ein\n👋 Hallo, ich bin dein Expensify-Einrichtungsspezialist. Ich habe bereits einen Workspace erstellt, um dir beim Verwalten deiner Belege und Ausgaben zu helfen. Um deine 30-tägige kostenlose Testphase optimal zu nutzen, folge einfach den verbleibenden Einrichtungsschritten unten!',
             onboardingChatSplitMessage: 'Rechnungen mit Freunden zu teilen ist so einfach wie das Senden einer Nachricht. So geht’s.',
             onboardingAdminMessage: 'Erfahren Sie, wie Sie als Admin den Workspace Ihres Teams verwalten und Ihre eigenen Ausgaben einreichen.',
-            onboardingLookingAroundMessage:
-                'Expensify ist vor allem für Ausgaben-, Reise- und Firmenkartenverwaltung bekannt, aber wir bieten noch viel mehr. Sag mir, woran du interessiert bist, und ich helfe dir beim Einstieg.',
             onboardingTestDriveReceiverMessage: '*Du erhältst 3 Monate gratis! Leg unten los.*',
         },
         workspace: {
