@@ -1240,4 +1240,96 @@ describe('replaceOptimisticReportWithActualReport', () => {
         const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
         expect(deletedReport).toBeFalsy();
     });
+
+    it('should clean up optimistic IOU report action when money request report has preexistingReportID', async () => {
+        // Given an optimistic transaction thread with an optimistic parent IOU report action
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+        const reportActionID = 'action123';
+
+        // Create the parent IOU report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+        });
+
+        // Create the parent IOU action with isOptimisticAction = true
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans123'},
+                childReportID: optimisticReportID,
+                isOptimisticAction: true,
+            },
+        });
+
+        // Create the optimistic transaction thread report
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: reportActionID,
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        await waitForBatchedUpdates();
+
+        // Then the optimistic parent IOU action should be deleted
+        const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+        expect(parentActions?.[reportActionID]).toBeFalsy();
+    });
+
+    it('should NOT clean up non-optimistic IOU report action when money request report has preexistingReportID', async () => {
+        // Given an optimistic transaction thread with a non-optimistic parent IOU report action
+        const iouReportID = '9999';
+        const optimisticReportID = '1234';
+        const preexistingReportID = '5555';
+        const reportActionID = 'action123';
+
+        // Create the parent IOU report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+            reportID: iouReportID,
+            type: CONST.REPORT.TYPE.IOU,
+        });
+
+        // Create the parent IOU action without isOptimisticAction
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans123'},
+                childReportID: optimisticReportID,
+            },
+        });
+
+        // Create the optimistic transaction thread report
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: iouReportID,
+            parentReportActionID: reportActionID,
+            preexistingReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        await waitForBatchedUpdates();
+
+        // Then the non-optimistic parent IOU action should NOT be deleted
+        const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+        expect(parentActions?.[reportActionID]).toBeDefined();
+
+        // And it should be updated to point to the preexisting report
+        expect(parentActions?.[reportActionID]?.childReportID).toBe(preexistingReportID);
+    });
 });

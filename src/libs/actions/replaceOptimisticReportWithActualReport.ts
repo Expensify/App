@@ -2,7 +2,7 @@ import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
+import {isMoneyRequest, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -63,12 +63,22 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
     }
 
     // Handle cleanup of stale optimistic IOU report and its report preview separately
-    if (isMoneyRequestReport(report) && parentReportActionID) {
+    if (isMoneyRequestReport(report) && parentReportID && parentReportActionID) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
             [parentReportActionID]: null,
         });
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
         return;
+    }
+
+    // Handle cleanup of stale optimistic IOU report action
+    if (isMoneyRequest(report) && parentReportID && parentReportActionID) {
+        const parentReportAction = allReportActions?.[parentReportID]?.[parentReportActionID];
+        if (parentReportAction?.isOptimisticAction) {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                [parentReportActionID]: null,
+            });
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -102,7 +112,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                 });
                 // Update the parent report action to point to the preexisting thread report
                 const parentReportAction = parentReportID ? allReportActions?.[parentReportID]?.[parentReportActionID] : null;
-                if (parentReportAction) {
+                if (parentReportAction && !parentReportAction.isOptimisticAction) {
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                         [parentReportActionID]: {childReportID: preexistingReportID},
                     });
