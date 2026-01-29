@@ -2807,6 +2807,7 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionWeekGroupListItems);
         });
@@ -2837,6 +2838,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                allReportMetadata: {},
             }) as [TransactionWeekGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -3486,6 +3488,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                allReportMetadata: {},
             }) as [TransactionTagGroupListItemType[], number];
 
             // formattedTag should have unescaped colons for display
