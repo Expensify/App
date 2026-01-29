@@ -26,6 +26,7 @@ type UseCompanyCardsResult = Partial<{
     cardList: AssignableCardsList;
     assignedCards: CardList;
     cardNames: string[];
+    cardNamesToEncryptedCardNumberMapping: Record<string, string>;
     allCardFeeds: CombinedCardFeeds;
     companyCardFeeds: CompanyFeeds;
     selectedFeed: CombinedCardFeed;
@@ -67,7 +68,16 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
     }
 
     const {cardList, ...assignedCards} = cardsList ?? {};
-    const cardNames = cardFeedType === 'directFeed' ? (selectedFeed?.accountList ?? []) : Object.keys(cardList ?? {});
+    const cardNamesToEncryptedCardNumberMapping: Record<string, string> = {};
+
+    for (const cardName of selectedFeed?.accountList ?? []) {
+        cardNamesToEncryptedCardNumberMapping[cardName] = cardName;
+    }
+    for (const [cardName, encryptedCardNumber] of Object.entries(cardList ?? {})) {
+        cardNamesToEncryptedCardNumberMapping[cardName] = encryptedCardNumber;
+    }
+
+    const cardNames = Object.keys(cardNamesToEncryptedCardNumberMapping);
 
     const onyxMetadata = {
         cardListMetadata,
@@ -91,6 +101,7 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
         cardList,
         assignedCards,
         cardNames,
+        cardNamesToEncryptedCardNumberMapping,
         selectedFeed,
         bankName,
         cardFeedType,
