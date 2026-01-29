@@ -85,6 +85,7 @@ function CardSection() {
             confirmText: translate('subscription.cardSection.requestRefundModal.confirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
+            danger: true,
         });
     };
 
