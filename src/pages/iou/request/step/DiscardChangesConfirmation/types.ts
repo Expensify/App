@@ -1,7 +1,6 @@
 type DiscardChangesConfirmationProps = {
-    getHasUnsavedChanges: () => boolean;
     onCancel?: () => void;
-    isEnabled?: boolean;
+    hasUnsavedChanges: boolean;
 };
 
 export default DiscardChangesConfirmationProps;
