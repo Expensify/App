@@ -376,8 +376,8 @@ function isHoldAction(reportAction: OnyxInputOrEntry<ReportAction>): reportActio
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.HOLD);
 }
 
-function isCardBrokenConnectionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_CONNECTION_BROKEN> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_CONNECTION_BROKEN);
+function isCardBrokenConnectionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN);
 }
 
 function isReimbursementDirectionInformationRequiredAction(
