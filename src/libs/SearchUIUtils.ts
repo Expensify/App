@@ -89,7 +89,16 @@ import interceptAnonymousUser from './interceptAnonymousUser';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getCleanedTagName, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, getSubmitToAccountID, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    canSendInvoice,
+    getCleanedTagName,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
+    getPolicy,
+    getSubmitToAccountID,
+    isPaidGroupPolicy,
+    isPolicyPayer,
+} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
