@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import type {BlurEvent} from 'react-native';
 import {View} from 'react-native';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
@@ -27,8 +27,8 @@ type SplitAmountInputProps = {
 
 function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onSplitExpenseValueChange, focusHandler, onInputBlur, inputCallbackRef}: SplitAmountInputProps) {
     const styles = useThemeStyles();
-
-    const isNegative = useMemo(() => splitItem.originalAmount < 0, [splitItem.originalAmount]);
+    const isNegative = splitItem.originalAmount < 0;
+    const displayedAmount = Math.abs(splitItem.amount);
 
     const onSplitExpenseAmountChange = useCallback(
         (amount: string) => {
@@ -37,8 +37,6 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
         },
         [onSplitExpenseValueChange, isNegative],
     );
-
-    const displayedAmount = useMemo(() => Math.abs(splitItem.amount), [splitItem.amount]);
 
     if (splitItem.isEditable) {
         return (
