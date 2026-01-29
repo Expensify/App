@@ -841,7 +841,7 @@ function isPersonalCard(card?: Card) {
 /**
  * Filter out personal (including cash) cards from the card list.
  */
-function filterPersonalCards(cards: CardList | undefined): CardList {
+function filterOutPersonalCards(cards: CardList | undefined): CardList {
     return filterObject(cards ?? {}, (_key, card) => !isPersonalCard(card));
 }
 
@@ -965,7 +965,7 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
-    filterPersonalCards,
+    filterOutPersonalCards,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,

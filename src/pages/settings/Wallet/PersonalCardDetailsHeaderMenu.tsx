@@ -102,7 +102,7 @@ function PersonalCardDetailsHeaderMenu({
                 onToggle={(isOn) => card && setPersonalCardReimbursable(card.cardID, isOn, reimbursableSetting)}
                 pendingAction={card?.pendingFields?.reimbursable}
                 errors={card?.errorFields?.reimbursable ?? undefined}
-                onCloseError={() => card && clearCardErrorField(card.cardID, 'markTransactionsAsReimbursable')}
+                onCloseError={() => card && clearCardErrorField(card.cardID, 'reimbursable')}
                 wrapperStyle={[styles.ph5, styles.mb3]}
             />
 

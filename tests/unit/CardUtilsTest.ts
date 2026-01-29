@@ -8,7 +8,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
     filterInactiveCards,
-    filterPersonalCards,
+    filterOutPersonalCards,
     flatAllCardsList,
     formatCardExpiration,
     getAllCardsForWorkspace,
@@ -1497,7 +1497,7 @@ describe('CardUtils', () => {
                 },
             };
 
-            const result = filterPersonalCards(cardList);
+            const result = filterOutPersonalCards(cardList);
             const cardIDs = Object.keys(result);
 
             expect(cardIDs).toHaveLength(2);
@@ -1536,7 +1536,7 @@ describe('CardUtils', () => {
                 },
             };
 
-            const result = filterPersonalCards(cardList);
+            const result = filterOutPersonalCards(cardList);
             const cardIDs = Object.keys(result);
 
             expect(cardIDs).toHaveLength(1);
@@ -1545,7 +1545,7 @@ describe('CardUtils', () => {
         });
 
         it('should return empty object for undefined card list', () => {
-            const result = filterPersonalCards(undefined);
+            const result = filterOutPersonalCards(undefined);
             expect(result).toEqual({});
         });
 
@@ -1577,12 +1577,12 @@ describe('CardUtils', () => {
                 },
             };
 
-            const result = filterPersonalCards(cardList);
+            const result = filterOutPersonalCards(cardList);
             expect(Object.keys(result)).toHaveLength(0);
         });
 
         it('should handle empty card list', () => {
-            const result = filterPersonalCards({});
+            const result = filterOutPersonalCards({});
             expect(result).toEqual({});
         });
     });
