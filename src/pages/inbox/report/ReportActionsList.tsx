@@ -417,8 +417,6 @@ function ReportActionsList({
             return;
         }
 
-        const hasNewMessagesInView = scrollingVerticalOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
-
         // Do not try to mark the report as read if the report has not been loaded and shared with the user
         if (!reportMetadata?.hasOnceLoadedReportActions) {
             return;
@@ -429,7 +427,8 @@ function ReportActionsList({
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
             const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollingVerticalOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            const hasNewMessagesInView = scrollingVerticalOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
+            if ((isVisible || isFromNotification) && hasNewMessagesInView) {
                 readNewestAction(report.reportID);
                 if (isFromNotification) {
                     Navigation.setParams({referrer: undefined});
