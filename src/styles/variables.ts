@@ -104,6 +104,8 @@ export default {
     sideBarWidth: 375,
     sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
+    homePageLeftColumnMaxWidth: 920,
+    homePageRightColumnMaxWidth: 460,
     superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,

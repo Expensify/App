@@ -8165,6 +8165,16 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
         },
         fabGpsTripExplained: 'Przejdź do ekranu GPS (przycisk akcji)',
     },
+    homePage: {
+        forYou: 'Dla ciebie',
+        announcements: 'Ogłoszenia',
+        discoverSection: {
+            title: 'Odkryj',
+            menuItemTitleNonAdmin: 'Dowiedz się, jak tworzyć wydatki i składać raporty.',
+            menuItemTitleAdmin: 'Dowiedz się, jak zapraszać członków, edytować przepływy akceptacji i uzgadniać karty firmowe.',
+            menuItemDescription: 'Zobacz, co Expensify potrafi w 2 minuty',
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

@@ -8174,6 +8174,16 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         },
         fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
     },
+    homePage: {
+        forYou: 'Para você',
+        announcements: 'Anúncios',
+        discoverSection: {
+            title: 'Descobrir',
+            menuItemTitleNonAdmin: 'Aprenda a criar despesas e enviar relatórios.',
+            menuItemTitleAdmin: 'Aprenda a convidar membros, editar fluxos de aprovação e reconciliar cartões corporativos.',
+            menuItemDescription: 'Veja o que o Expensify pode fazer em 2 minutos',
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

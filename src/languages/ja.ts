@@ -8116,6 +8116,16 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         },
         fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
     },
+    homePage: {
+        forYou: 'あなた向け',
+        announcements: 'お知らせ',
+        discoverSection: {
+            title: '発見',
+            menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
+            menuItemTitleAdmin: 'メンバーの招待方法、承認ワークフローの編集方法、会社カードの照合方法について学びましょう。',
+            menuItemDescription: '2 分で Expensify でできることを確認する',
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

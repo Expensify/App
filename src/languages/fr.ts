@@ -8223,6 +8223,16 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
     },
+    homePage: {
+        forYou: 'Pour vous',
+        announcements: 'Annonces',
+        discoverSection: {
+            title: 'Découvrir',
+            menuItemTitleNonAdmin: 'Découvrez comment créer des dépenses et soumettre des rapports.',
+            menuItemTitleAdmin: 'Apprenez à inviter des membres, à modifier les circuits d’approbation et à rapprocher les cartes de l’entreprise.',
+            menuItemDescription: 'Découvrez ce qu’Expensify peut faire en 2 minutes',
+        },
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.

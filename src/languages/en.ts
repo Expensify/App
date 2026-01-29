@@ -988,6 +988,16 @@ const translations = {
             description: "We're fine-tuning a few more bits and pieces of New Expensify to accommodate your specific setup. In the meantime, head over to Expensify Classic.",
         },
     },
+    homePage: {
+        forYou: 'For you',
+        announcements: 'Announcements',
+        discoverSection: {
+            title: 'Discover',
+            menuItemTitleNonAdmin: 'Learn how to create expenses and submit reports.',
+            menuItemTitleAdmin: 'Learn how to invite members, edit approval workflows, and reconcile company cards.',
+            menuItemDescription: 'See what Expensify can do in 2 min',
+        },
+    },
     allSettingsScreen: {
         subscription: 'Subscription',
         domains: 'Domains',
