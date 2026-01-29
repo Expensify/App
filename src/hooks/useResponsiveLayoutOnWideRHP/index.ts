@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {useContext} from 'react';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutOnWideRHPResult from './types';
 
@@ -16,7 +15,7 @@ export default function useResponsiveLayoutOnWideRHP(): ResponsiveLayoutOnWideRH
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInNarrowPaneModal} = responsiveLayoutValues;
 
-    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useContext(WideRHPContext);
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useWideRHPState();
 
     const isWideRHPDisplayedOnWideLayout = !isSmallScreenWidth && wideRHPRouteKeys.includes(route?.key);
 

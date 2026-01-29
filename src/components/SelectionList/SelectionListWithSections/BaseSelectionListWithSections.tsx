@@ -302,7 +302,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         extraData={flattenedData.length}
                         getItemType={getItemType}
                         initialScrollIndex={initialFocusedIndex}
-                        keyExtractor={(item) => item.keyForList}
+                        keyExtractor={(item) => ('flatListKey' in item ? item.flatListKey : item.keyForList)}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         onScrollBeginDrag={onScrollBeginDrag}

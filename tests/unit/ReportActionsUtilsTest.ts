@@ -11,6 +11,8 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getCardIssuedMessage,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -31,6 +33,7 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1000,6 +1003,43 @@ describe('ReportActionsUtils', () => {
         it('should return true for an active IOU report action', () => {
             const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
             expect(result).toBe(true);
+        });
+
+        it('should return true for a report that has transactions from both sides when reportActions are unloaded', async () => {
+            const unloadedActionsReportID = '5';
+            const iouReport = {
+                type: CONST.REPORT.TYPE.IOU,
+                reportID: unloadedActionsReportID,
+            };
+            const transactionFromCurrentUser = {
+                ...createRandomTransaction(1),
+                reportID: unloadedActionsReportID,
+                amount: -100,
+            };
+            const transactionFromOtherUser = {
+                ...createRandomTransaction(2),
+                reportID: unloadedActionsReportID,
+                amount: 500,
+            };
+
+            // When: there are non-deleted transactions from both
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, transactionFromCurrentUser);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
+
+            // Then: should return true
+            let result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            expect(result).toBe(true);
+
+            // When: all transactions from the current user account have been deleted
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, {
+                ...transactionFromCurrentUser,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            });
+
+            // Then: should return false
+            result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            expect(result).toBe(false);
         });
     });
 
@@ -3009,6 +3049,91 @@ describe('ReportActionsUtils', () => {
 
             const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
             expect(result).toBe('set the invoice company website to "https://newwebsite.com"');
+        });
+    });
+
+    describe('getAutoPayApprovedReportsEnabledMessage', () => {
+        it('should return enabled message when auto-pay is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoPayApprovedReportsEnabledMessage(translateLocal, action);
+            expect(result).toBe('enabled auto-pay approved reports');
+        });
+
+        it('should return disabled message when auto-pay is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoPayApprovedReportsEnabledMessage(translateLocal, action);
+            expect(result).toBe('disabled auto-pay approved reports');
+        });
+    });
+
+    describe('getAutoReimbursementMessage', () => {
+        it('should return set message when setting limit for the first time from zero', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldLimit: 0,
+                    newLimit: 50000,
+                    currency: 'USD',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoReimbursementMessage(translateLocal, action);
+            expect(result).toBe('set the auto-pay approved reports threshold to "$500.00"');
+        });
+
+        it('should return removed message when limit is set to zero', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldLimit: 100000,
+                    newLimit: 0,
+                    currency: 'USD',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoReimbursementMessage(translateLocal, action);
+            expect(result).toBe('removed the auto-pay approved reports threshold');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldLimit: 50000,
+                    newLimit: 100000,
+                    currency: 'USD',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoReimbursementMessage(translateLocal, action);
+            expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
         });
     });
 });

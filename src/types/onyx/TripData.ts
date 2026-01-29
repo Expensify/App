@@ -584,8 +584,8 @@ type AirPnr = {
                 flightIdx: number;
                 /** Amount for the seat. */
                 amount: number;
-                /** Number of the seat. */
-                number: number;
+                /** Number of the seat (e.g., "12A", "7F"). */
+                number: string;
             }>;
         };
         /** Passenger type for the traveler. */

@@ -1,4 +1,5 @@
 import {useRoute} from '@react-navigation/native';
+import {filterPersonalCards} from '@selectors/Card';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -8,7 +9,6 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterPersonalCards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';

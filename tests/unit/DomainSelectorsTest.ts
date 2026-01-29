@@ -1,6 +1,7 @@
 import {
     adminAccountIDsSelector,
     adminPendingActionSelector,
+    defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSettingsPrimaryContactSelector,
     memberAccountIDsSelector,
@@ -159,8 +160,12 @@ describe('domainSelectors', () => {
         it('Should return the admin pending actions when they exist', () => {
             const pendingAction: OnyxEntry<DomainPendingActions> = {
                 admin: {
-                    [userID1]: {pendingAction: 'update'},
-                    [userID2]: {pendingAction: 'delete'},
+                    [userID1]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    [userID2]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
                 },
             };
 
@@ -269,6 +274,27 @@ describe('domainSelectors', () => {
             } as unknown as OnyxEntry<Domain>;
 
             expect(memberAccountIDsSelector(domain).sort()).toEqual([123, 456]);
+        });
+    });
+
+    describe('defaultSecurityGroupIDSelector', () => {
+        it('Should return the default security group ID when it exists', () => {
+            const domain = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '12345',
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(defaultSecurityGroupIDSelector(domain)).toBe('12345');
+        });
+
+        it('Should return undefined if the domain object is undefined', () => {
+            expect(defaultSecurityGroupIDSelector(undefined)).toBeUndefined();
+        });
+
+        it('Should return undefined if the domain_defaultSecurityGroupID property is missing', () => {
+            const domain = {} as OnyxEntry<Domain>;
+
+            expect(defaultSecurityGroupIDSelector(domain)).toBeUndefined();
         });
     });
 });

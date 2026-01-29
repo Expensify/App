@@ -1,3 +1,4 @@
+import {filterPersonalCards} from '@selectors/Card';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -12,7 +13,6 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ReplacementReason} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
-import {filterPersonalCards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';

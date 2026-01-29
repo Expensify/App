@@ -8,6 +8,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import ReceiptAlternativeMethods from './ReceiptAlternativeMethods';
+import Text from './Text';
 
 type ReceiptEmptyStateProps = {
     /** Callback to be called on onPress */
@@ -29,10 +31,22 @@ type ReceiptEmptyStateProps = {
 
     /** Callback to be called when the image loads */
     onLoad?: () => void;
+
+    /** Whether it's displayed in Wide RHP */
+    isDisplayedInWideRHP?: boolean;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style, onLoad}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({
+    onPress,
+    disabled = false,
+    isThumbnail = false,
+    isInMoneyRequestView = false,
+    shouldUseFullHeight = false,
+    style,
+    onLoad,
+    isDisplayedInWideRHP = false,
+}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -44,6 +58,7 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
         styles.alignItemsCenter,
         styles.justifyContentCenter,
         styles.moneyRequestViewImage,
+        isDisplayedInWideRHP && !disabled && styles.pb5,
         isThumbnail && !isInMoneyRequestView ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
         shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
         style,
@@ -66,22 +81,33 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
             disabledStyle={styles.cursorDefault}
             style={containerStyle}
         >
-            <View>
-                <Icon
-                    fill={theme.border}
-                    src={icons.Receipt}
-                    width={variables.eReceiptEmptyIconWidth}
-                    height={variables.eReceiptEmptyIconWidth}
-                />
-                {!isThumbnail && (
-                    <Icon
-                        src={icons.ReceiptPlaceholderPlus}
-                        width={variables.avatarSizeSmall}
-                        height={variables.avatarSizeSmall}
-                        additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
-                    />
-                )}
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <View style={styles.pRelative}>
+                        <Icon
+                            fill={theme.border}
+                            src={icons.Receipt}
+                            width={variables.eReceiptEmptyIconWidth}
+                            height={variables.eReceiptEmptyIconWidth}
+                        />
+                        {!isThumbnail && (
+                            <Icon
+                                src={icons.ReceiptPlaceholderPlus}
+                                width={variables.avatarSizeSmall}
+                                height={variables.avatarSizeSmall}
+                                additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
+                            />
+                        )}
+                    </View>
+                    {!isThumbnail && isDisplayedInWideRHP && (
+                        <>
+                            <Text style={[styles.textHeadline, styles.mt4]}>{translate('receipt.addAReceipt.phrase1')}</Text>
+                            <Text style={[styles.textSupporting, styles.textNormal]}>{translate('receipt.addAReceipt.phrase2')}</Text>
+                        </>
+                    )}
+                </View>
             </View>
+            {isDisplayedInWideRHP && !disabled && <ReceiptAlternativeMethods />}
         </Wrapper>
     );
 }

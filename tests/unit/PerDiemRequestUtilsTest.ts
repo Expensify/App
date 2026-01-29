@@ -65,9 +65,8 @@ describe('PerDiemRequestUtils', () => {
                         tooltipText: 'Antigua and Barbuda',
                     },
                 ],
-                indexOffset: 1,
-                shouldShow: true,
                 title: '',
+                sectionIndex: 0,
             },
         ];
 

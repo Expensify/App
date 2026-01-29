@@ -1,6 +1,6 @@
 import React from 'react';
 import Reanimated from 'react-native-reanimated';
-import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
+import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
@@ -34,4 +34,4 @@ const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = (props)
     return <ActionSheetAwareScrollView {...props} />;
 };
 
-export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
+export {renderScrollComponent, ActionSheetAwareScrollViewProvider, Actions, useActionSheetAwareScrollViewState, useActionSheetAwareScrollViewActions};

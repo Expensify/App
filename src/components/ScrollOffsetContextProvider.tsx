@@ -71,7 +71,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 
         // If the priority mode changes, we need to clear the scroll offsets for the home and search screens because it affects the size of the elements and scroll positions wouldn't be correct.
         for (const key of Object.keys(scrollOffsetsRef.current)) {
-            if (key.includes(SCREENS.HOME) || key.includes(SCREENS.SEARCH.ROOT)) {
+            if (key.includes(SCREENS.INBOX) || key.includes(SCREENS.SEARCH.ROOT)) {
                 delete scrollOffsetsRef.current[key];
             }
         }

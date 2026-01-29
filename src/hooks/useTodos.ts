@@ -221,10 +221,12 @@ export default function useTodos() {
     ]);
 
     return {
-        reportsToSubmit,
-        reportsToApprove,
-        reportsToPay,
-        reportsToExport,
         todoSearchResultsData,
+        reportCounts: {
+            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: reportsToSubmit.length,
+            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: reportsToApprove.length,
+            [CONST.SEARCH.SEARCH_KEYS.PAY]: reportsToPay.length,
+            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: reportsToExport.length,
+        },
     };
 }

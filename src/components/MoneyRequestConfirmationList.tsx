@@ -60,6 +60,7 @@ import {
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
+import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -84,6 +85,7 @@ import SelectionList from './SelectionListWithSections';
 import type {SectionListDataType} from './SelectionListWithSections/types';
 import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
+import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
@@ -398,7 +400,7 @@ function MoneyRequestConfirmationList({
     // to calculate the distance stored in transaction.comment.customUnit.quantity
     const gpsDistance = transaction?.comment?.customUnit?.quantity;
     const gpsDistanceWithCurrentDistanceUnit = calculateGPSDistance(distance, unit);
-    const shouldUpdateGpsDistance = gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
+    const shouldUpdateGpsDistance = isGPSDistanceRequest && gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
     useEffect(() => {
         if (!shouldUpdateGpsDistance || !transactionID || isReadOnly) {
             return;
@@ -457,6 +459,18 @@ function MoneyRequestConfirmationList({
         [iouCategory, policyCategories, policy?.areRulesEnabled],
     );
 
+    const isViolationFixed = getIsViolationFixed(formError, {
+        category: iouCategory,
+        tag: getTag(transaction),
+        taxCode: transaction?.taxCode,
+        policyCategories,
+        policyTagLists: policyTags,
+        policyTaxRates: policy?.taxRates?.taxes,
+        iouAttendees,
+        currentUserPersonalDetails,
+        isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
+    });
+
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -466,20 +480,21 @@ function MoneyRequestConfirmationList({
             setFormError('iou.receiptScanningFailed');
             return;
         }
+        // Check 1: If formError does NOT start with "violations.", clear it and return
         // Reset the form error whenever the screen gains or loses focus
         // but preserve violation-related errors since those represent real validation issues
-        // that can only be fixed by changing the underlying data
+        // that can only be resolved by fixing the underlying issue
         if (!formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
             setFormError('');
             return;
         }
-        // Clear missingAttendees violation if user fixed it by changing category or attendees
-        const isMissingAttendeesViolation = getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
-        if (formError === 'violations.missingAttendees' && !isMissingAttendeesViolation) {
+        // Check 2: Only reached if formError STARTS with "violations."
+        // Clear any violation error if the user has fixed the underlying issue
+        if (isViolationFixed) {
             setFormError('');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
-    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, iouCategory, iouAttendees, policyCategories, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled]);
+    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed]);
 
     useEffect(() => {
         // We want this effect to run only when the transaction is moving from Self DM to a expense chat
@@ -943,7 +958,7 @@ function MoneyRequestConfirmationList({
      * @param {String} paymentMethod
      */
     const confirm = useCallback(
-        (paymentMethod: PaymentMethodType | undefined) => {
+        ({paymentType}: PaymentActionParams) => {
             if (!!routeError || !transactionID) {
                 return;
             }
@@ -1037,7 +1052,7 @@ function MoneyRequestConfirmationList({
 
                 onConfirm?.(selectedParticipants);
             } else {
-                if (!paymentMethod) {
+                if (!paymentType) {
                     return;
                 }
                 if (isDelegateAccessRestricted) {
@@ -1047,8 +1062,8 @@ function MoneyRequestConfirmationList({
                 if (formError) {
                     return;
                 }
-                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                onSendMoney?.(paymentMethod);
+                Log.info(`[IOU] Sending money via: ${paymentType}`);
+                onSendMoney?.(paymentType);
             }
         },
         [
@@ -1167,7 +1182,7 @@ function MoneyRequestConfirmationList({
                     <View>
                         <ButtonWithDropdownMenu
                             pressOnEnter
-                            onPress={(event, value) => confirm(value as PaymentMethodType)}
+                            onPress={(event, value) => confirm({paymentType: value as PaymentMethodType})}
                             options={splitOrRequestOptions}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             enterKeyEventListenerPriority={1}

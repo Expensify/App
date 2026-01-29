@@ -23,7 +23,7 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
-import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from '@userActions/Policy/Tag';
+import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {removeDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -34,7 +34,7 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getReceiptError, getSearchOnyxUpdate, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from '.';
+import {getAllPersonalDetails, getPolicyTags, getReceiptError, getSearchOnyxUpdate, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from '.';
 import type {BasePolicyParams} from '.';
 
 type SendInvoiceInformation = {
@@ -107,6 +107,16 @@ type BuildOnyxDataForInvoiceParams = {
     companyWebsite?: string;
     participant?: Participant;
 };
+
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getPolicyTagsData` from this file https://github.com/Expensify/App/issues/80048
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
+function getPolicyTagsData(policyID: string | undefined) {
+    const allPolicyTags = getPolicyTags();
+    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+}
 
 /** Builds the Onyx data for an invoice */
 function buildOnyxDataForInvoice(
@@ -635,6 +645,8 @@ function getSendInvoiceInformation({
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
+        // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80048
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         policyTags: getPolicyTagsData(optimisticInvoiceReport.policyID),
         policyRecentlyUsedTags,
         transactionTags: tag,

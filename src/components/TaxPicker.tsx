@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -6,7 +6,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
-import type {Tax, TaxRatesOption} from '@libs/TaxOptionsListUtils';
+import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getEnabledTaxRateCount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
@@ -68,44 +68,33 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const selectedOptions = useMemo<Tax[]>(() => {
-        if (!selectedTaxRate) {
-            return [];
+    const selectedOptions = selectedTaxRate
+        ? [
+              {
+                  modifiedName: selectedTaxRate,
+                  isDisabled: false,
+                  accountID: null,
+              },
+          ]
+        : [];
+
+    const sections = getTaxRatesSection({
+        policy,
+        searchValue,
+        localeCompare,
+        selectedOptions,
+        transaction: currentTransaction,
+    });
+
+    const selectedOptionKey = sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList;
+
+    const handleSelectRow = (newSelectedOption: TaxRatesOption) => {
+        if (selectedOptionKey === newSelectedOption.keyForList) {
+            onDismiss();
+            return;
         }
-
-        return [
-            {
-                modifiedName: selectedTaxRate,
-                isDisabled: false,
-                accountID: null,
-            },
-        ];
-    }, [selectedTaxRate]);
-
-    const sections = useMemo(
-        () =>
-            getTaxRatesSection({
-                policy,
-                searchValue,
-                localeCompare,
-                selectedOptions,
-                transaction: currentTransaction,
-            }),
-        [searchValue, selectedOptions, policy, currentTransaction, localeCompare],
-    );
-
-    const selectedOptionKey = useMemo(() => sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
-
-    const handleSelectRow = useCallback(
-        (newSelectedOption: TaxRatesOption) => {
-            if (selectedOptionKey === newSelectedOption.keyForList) {
-                onDismiss();
-                return;
-            }
-            onSubmit(newSelectedOption);
-        },
-        [onSubmit, onDismiss, selectedOptionKey],
-    );
+        onSubmit(newSelectedOption);
+    };
 
     const textInputOptions = {
         label: translate('common.search'),

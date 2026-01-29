@@ -5,6 +5,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,6 +23,9 @@ function FloatingGpsButton() {
     const {textMutedReversed} = useTheme();
     const styles = useThemeStyles();
 
+    const {isBetaEnabled} = usePermissions();
+    const isNewDotHomeEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_HOME);
+
     if (!gpsDraftDetails?.isTracking) {
         return null;
     }
@@ -33,7 +37,7 @@ function FloatingGpsButton() {
 
     return (
         <PressableWithoutFeedback
-            style={[styles.navigationTabBarFABItem, styles.ph0, styles.userSelectNone, styles.floatingGpsButton]}
+            style={[styles.navigationTabBarFABItem, styles.ph0, styles.userSelectNone, isNewDotHomeEnabled ? styles.floatingGpsButtonAboveFab : styles.floatingGpsButton]}
             accessibilityLabel={translate('gps.fabGpsTripExplained')}
             onPress={navigateToGpsScreen}
             role={CONST.ROLE.BUTTON}
