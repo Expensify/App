@@ -3126,6 +3126,7 @@ describe('actions/IOU', () => {
                         currentUserEmailParam: 'existing@example.com',
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3208,6 +3209,7 @@ describe('actions/IOU', () => {
                         currentUserEmailParam: 'existing@example.com',
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3281,6 +3283,7 @@ describe('actions/IOU', () => {
                         currentUserEmailParam: 'existing@example.com',
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3349,6 +3352,7 @@ describe('actions/IOU', () => {
                         currentUserEmailParam: 'existing@example.com',
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3418,6 +3422,7 @@ describe('actions/IOU', () => {
                         currentUserEmailParam: RORY_EMAIL,
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
