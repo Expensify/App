@@ -77,7 +77,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const shouldShowSelector = Object.keys(allExpensifyCardFeeds ?? {}).length > 1;
 
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
@@ -107,7 +107,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             showLockedAccountModal();
             return;
         }
-        if (isActingAsDelegate) {
+        if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
