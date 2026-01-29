@@ -1,4 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const fontSource = require('@assets/fonts/native/ExpensifyNeue-Regular.otf');
+import type { DataSourceParam } from '@shopify/react-native-skia';
+
+const fontSource = require('@assets/fonts/native/ExpensifyNeue-Regular.otf') as DataSourceParam;
 
 export default fontSource;
