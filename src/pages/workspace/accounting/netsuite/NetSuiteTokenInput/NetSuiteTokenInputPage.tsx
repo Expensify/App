@@ -22,6 +22,7 @@ const pages = [
     {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT_PAGE_NAME.ACCESS_TOKEN, component: NetSuiteTokenSetupContent},
     {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT_PAGE_NAME.CREDENTIALS, component: NetSuiteTokenInputForm},
 ];
+const CREDENTIALS_PAGE_INDEX = 4;
 
 function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
@@ -36,7 +37,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const {CurrentPage, nextPage, prevPage, pageIndex, moveTo, currentPageName} = useSubPage<CustomSubPageTokenInputProps>({
         pages,
         onFinished: submit,
-        startFrom: hasAuthError ? 4 : 0,
+        startFrom: hasAuthError ? CREDENTIALS_PAGE_INDEX : 0,
         buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, pageName),
     });
 
