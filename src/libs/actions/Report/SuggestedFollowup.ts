@@ -2,7 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {rand64} from '@libs/NumberUtils';
 import type {Followup} from '@libs/ReportActionFollowupUtils';
-import type {Ancestor} from '@libs/ReportUtils';
+import type {Ancestor, OptimisticReportAction} from '@libs/ReportUtils';
 import {buildOptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,7 +11,7 @@ import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import {addComment, buildOptimisticResolvedFollowups} from '.';
 
 /** Delay before showing pre-generated Concierge response (in milliseconds) */
-const CONCIERGE_RESPONSE_DELAY_MS = 500;
+const CONCIERGE_RESPONSE_DELAY_MS = 1500;
 
 /**
  * Resolves a suggested followup by posting the selected question as a comment
@@ -57,39 +57,41 @@ function resolveSuggestedFollowup(
     }
 
     // If there's a pre-generated response, show typing indicator then display response after delay
-    // Generate optimistic Concierge response action ID
+
     const optimisticConciergeReportActionID = rand64();
 
-    // Post user's comment immediately (API call includes pregenerated params for backend reconciliation)
+    // Post user's comment immediately
     addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup.text, timezoneParam, false, false, {
         optimisticConciergeReportActionID,
         pregeneratedResponse: selectedFollowup.response,
     });
 
+    const optimisticConciergeAction = buildOptimisticAddCommentReportAction(
+        selectedFollowup.response,
+        undefined,
+        CONST.ACCOUNT_ID.CONCIERGE,
+        CONCIERGE_RESPONSE_DELAY_MS,
+        reportID,
+        optimisticConciergeReportActionID,
+    );
+
+    addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction);
+}
+
+function addOptimisticConciergeActionWithDelay(reportID: string, optimisticConciergeAction: OptimisticReportAction) {
     // Show "Concierge is typing..." indicator
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {
         [CONST.ACCOUNT_ID.CONCIERGE]: true,
     });
 
-    // After a brief delay, clear typing indicator and show the Concierge response
     setTimeout(() => {
         // Clear the typing indicator
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {
             [CONST.ACCOUNT_ID.CONCIERGE]: false,
         });
 
-        // Create and add the optimistic Concierge response action
-        const optimisticConciergeAction = buildOptimisticAddCommentReportAction(
-            selectedFollowup.response,
-            undefined,
-            CONST.ACCOUNT_ID.CONCIERGE,
-            0,
-            reportID,
-            optimisticConciergeReportActionID,
-        );
-
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-            [optimisticConciergeReportActionID]: optimisticConciergeAction.reportAction,
+            [optimisticConciergeAction.reportAction.reportActionID]: optimisticConciergeAction.reportAction,
         });
     }, CONCIERGE_RESPONSE_DELAY_MS);
 }

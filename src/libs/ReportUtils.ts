@@ -13413,4 +13413,5 @@ export type {
     OptimisticNewReport,
     PrepareOnboardingOnyxDataParams,
     SelfDMParameters,
+    OptimisticReportAction,
 };
