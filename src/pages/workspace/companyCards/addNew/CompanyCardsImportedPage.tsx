@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
+import {rand64} from '@libs/NumberUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -28,8 +29,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const policyID = route.params.policyID;
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
-    // TODO: Identify how to move forward with possibly an optimistic layout type.
-    const layoutType = 'ccuploadxyz';
+    const layoutType = useMemo(() => `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_${rand64()}_`, []);
 
     const columnNames = useMemo(() => generateColumnNames(spreadsheet?.data?.length ?? 0), [spreadsheet?.data?.length]);
 
