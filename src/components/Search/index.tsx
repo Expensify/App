@@ -908,13 +908,12 @@ function Search({
             }
 
             if (isTransactionWeekGroupListItemType(item)) {
-                const weekGroupItem = item;
-                if (!weekGroupItem.week) {
+                if (!item.week) {
                     return;
                 }
                 // Extract the existing date filter to check for year-to-date or other date limits
                 const existingDateFilter = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(weekGroupItem.week), existingDateFilter);
+                const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(item.week), existingDateFilter);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -933,8 +932,8 @@ function Search({
                 return;
             }
 
-            // After handling all group types, item should be TransactionListItemType or ReportActionListItemType
-            if (!isTransactionItem && !isReportActionListItemType(item)) {
+            // After handling all group types, item should be TransactionListItemType, ReportActionListItemType, or TransactionGroupListItemType
+            if (!isTransactionItem && !isReportActionListItemType(item) && !isTransactionGroupListItemType(item)) {
                 return;
             }
 
