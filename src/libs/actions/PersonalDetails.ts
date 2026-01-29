@@ -529,6 +529,15 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
                 },
             },
         ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    hasConfirmedShippingDetails: true,
+                },
+            },
+        ],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
