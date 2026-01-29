@@ -51,40 +51,41 @@ function resolveSuggestedFollowup(
         [reportActionID]: resolvedAction,
     });
 
-    // If there's a pre-generated response, show typing indicator then display response after delay
-    if (followup.response) {
-        // Generate optimistic Concierge response action ID
-        const optimisticConciergeReportActionID = rand64();
-
-        // Post user's comment immediately (API call includes pregenerated params for backend reconciliation)
-        addComment(report, notifyReportID ?? reportID, ancestors, followup.text, timezoneParam, false, false, {
-            optimisticConciergeReportActionID,
-            pregeneratedResponse: followup.response,
-        });
-
-        // Show "Concierge is typing..." indicator
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {
-            [CONST.ACCOUNT_ID.CONCIERGE]: true,
-        });
-
-        // After a brief delay, clear typing indicator and show the Concierge response
-        setTimeout(() => {
-            // Clear the typing indicator
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {
-                [CONST.ACCOUNT_ID.CONCIERGE]: false,
-            });
-
-            // Create and add the optimistic Concierge response action
-            const optimisticConciergeAction = buildOptimisticAddCommentReportAction(followup.response, undefined, CONST.ACCOUNT_ID.CONCIERGE, 0, reportID, optimisticConciergeReportActionID);
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                [optimisticConciergeReportActionID]: optimisticConciergeAction.reportAction,
-            } as ReportActions);
-        }, CONCIERGE_RESPONSE_DELAY_MS);
-    } else {
-        // Post the selected followup question as a comment
+    if (!followup.response) {
         addComment(report, notifyReportID ?? reportID, ancestors, followup.text, timezoneParam);
+        return;
     }
+
+    // If there's a pre-generated response, show typing indicator then display response after delay
+    // Generate optimistic Concierge response action ID
+    const optimisticConciergeReportActionID = rand64();
+
+    // Post user's comment immediately (API call includes pregenerated params for backend reconciliation)
+    addComment(report, notifyReportID ?? reportID, ancestors, followup.text, timezoneParam, false, false, {
+        optimisticConciergeReportActionID,
+        pregeneratedResponse: followup.response,
+    });
+
+    // Show "Concierge is typing..." indicator
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {
+        [CONST.ACCOUNT_ID.CONCIERGE]: true,
+    });
+
+    // After a brief delay, clear typing indicator and show the Concierge response
+    setTimeout(() => {
+        // Clear the typing indicator
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {
+            [CONST.ACCOUNT_ID.CONCIERGE]: false,
+        });
+
+        // Create and add the optimistic Concierge response action
+        const optimisticConciergeAction = buildOptimisticAddCommentReportAction(followup.response, undefined, CONST.ACCOUNT_ID.CONCIERGE, 0, reportID, optimisticConciergeReportActionID);
+
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [optimisticConciergeReportActionID]: optimisticConciergeAction.reportAction,
+        } as ReportActions);
+    }, CONCIERGE_RESPONSE_DELAY_MS);
+
 }
 
 export default resolveSuggestedFollowup;
