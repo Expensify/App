@@ -7157,6 +7157,8 @@ const CONST = {
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
+            LINE: 'line',
+            PIE: 'pie',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7227,6 +7229,7 @@ const CONST = {
             SORT_ORDER: 'sort-order',
             POLICY_ID: 'workspace',
             GROUP_BY: 'group-by',
+            VIEW: 'view',
             DATE: 'date',
             AMOUNT: 'amount',
             TOTAL: 'total',

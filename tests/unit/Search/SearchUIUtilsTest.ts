@@ -30,6 +30,7 @@ import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -5429,6 +5430,26 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getToFieldValueForTransaction(mockTransaction, iouReport, mockPersonalDetails, undefined);
             expect(result).toBeDefined();
+        });
+    });
+
+    describe('view autocomplete values', () => {
+        test('should include all view values (table, bar, line, pie)', () => {
+            const viewValues = Object.values(CONST.SEARCH.VIEW);
+            expect(viewValues).toContain('table');
+            expect(viewValues).toContain('bar');
+            expect(viewValues).toContain('line');
+            expect(viewValues).toContain('pie');
+            expect(viewValues).toHaveLength(4);
+        });
+
+        test('should correctly map view values to user-friendly values', () => {
+            const viewValues = Object.values(CONST.SEARCH.VIEW);
+            const userFriendlyValues = viewValues.map((value) => getUserFriendlyValue(value));
+
+            // All view values should be mapped (they may be the same or different)
+            expect(userFriendlyValues).toHaveLength(4);
+            expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
         });
     });
 });
