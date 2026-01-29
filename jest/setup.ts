@@ -125,12 +125,6 @@ jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
     return scheduleOnLiveMarkdownRuntime;
 });
 
-jest.mock('@src/libs/actions/Timing', () => ({
-    start: jest.fn(),
-    end: jest.fn(),
-    clearData: jest.fn(),
-}));
-
 jest.mock('@src/setup/telemetry', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,

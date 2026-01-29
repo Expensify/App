@@ -78,7 +78,6 @@ export type {default as ResolveActionableReportMentionWhisperParams} from './Res
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
 export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
-export type {default as SendPerformanceTimingParams} from './SendPerformanceTimingParams';
 export type {default as GraphiteParams} from './GraphiteParams';
 export type {default as SetContactMethodAsDefaultParams} from './SetContactMethodAsDefaultParams';
 export type {default as SignInUserWithLinkParams} from './SignInUserWithLinkParams';

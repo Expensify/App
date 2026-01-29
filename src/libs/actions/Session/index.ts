@@ -53,7 +53,6 @@ import * as HybridAppActions from '@userActions/HybridApp';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
-import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
@@ -930,7 +929,6 @@ function cleanupSession() {
         Log.info('Cleared all cache data', true, {}, true);
     });
     clearSoundAssetsCache();
-    Timing.clearData();
 }
 
 function clearAccountMessages() {
