@@ -1,16 +1,22 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import {getReportActionBadge} from '@libs/ReportPrimaryActionUtils';
+import {isExpenseReport as isExpenseReportUtils} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BankAccountList} from '@src/types/onyx';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
+
+const getEmptyObject = <T,>() => ({}) as T;
 
 /*
  * This component gets the data from onyx for the actual
@@ -48,9 +54,15 @@ function OptionRowLHNData({
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const optionItemRef = useRef<OptionData | undefined>(undefined);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserLogin = currentUserPersonalDetails.login ?? '';
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
+
+    // Only fetch bankAccountList for expense reports to avoid unnecessary data fetching
+    const isExpenseReport = isExpenseReportUtils(fullReport);
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     // Check the report errors equality to avoid re-rendering when there are no changes
     const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
@@ -116,6 +128,30 @@ function OptionRowLHNData({
         currentUserAccountID,
     ]);
 
+    // Compute action badge for expense reports
+    const actionBadge = useMemo(() => {
+        if (!isExpenseReport || !fullReport) {
+            return null;
+        }
+
+        // Convert receiptTransactions collection to array
+        const reportTransactions = receiptTransactions ? Object.values(receiptTransactions).filter((t): t is NonNullable<typeof t> => t !== null && t !== undefined) : [];
+
+        // Convert reportActions object to array
+        const reportActionsList = reportActions ? Object.values(reportActions).filter((a): a is NonNullable<typeof a> => a !== null && a !== undefined) : [];
+
+        return getReportActionBadge({
+            report: fullReport,
+            currentUserAccountID,
+            currentUserLogin,
+            bankAccountList,
+            policy: policy ?? undefined,
+            reportNameValuePairs: reportNameValuePairs ?? undefined,
+            reportTransactions,
+            reportActions: reportActionsList,
+        });
+    }, [isExpenseReport, fullReport, receiptTransactions, reportActions, currentUserAccountID, currentUserLogin, bankAccountList, policy, reportNameValuePairs]);
+
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -123,6 +159,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={optionItem}
             report={fullReport}
+            actionBadge={actionBadge}
         />
     );
 }

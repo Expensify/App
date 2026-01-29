@@ -4,6 +4,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
+import type {ActionBadge} from '@src/libs/ReportPrimaryActionUtils';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {
     Locale,
@@ -208,6 +209,9 @@ type OptionRowLHNProps = {
 
     /** The testID of the row */
     testID: number;
+
+    /** The action badge to display for expense reports (e.g., Submit, Approve, Pay, Export) */
+    actionBadge?: ActionBadge | null;
 };
 
 type RenderItemProps = {item: Report; index: number};
