@@ -1,15 +1,15 @@
 import React from 'react';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
-import getBankIcon from '@components/Icon/BankIcons';
-import MenuItem from '@components/MenuItem';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankName} from '@src/types/onyx/Bank';
+import Icon from './Icon';
+import getBankIcon from './Icon/BankIcons';
+import MenuItem from './MenuItem';
+import SelectionList from './SelectionList';
+import RadioListItem from './SelectionList/ListItem/RadioListItem';
+import type {ListItem} from './SelectionList/types';
 
 type BankAccountListItem = ListItem & {value: number | undefined};
 
