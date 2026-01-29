@@ -67,7 +67,7 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    hasSmartScanFailedOrNoRouteViolation,
+    hasSubmissionBlockingViolations,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
@@ -195,7 +195,7 @@ function isSubmitAction({
     }
 
     if (violations && currentUserLogin && currentUserAccountID !== undefined) {
-        if (reportTransactions.some((transaction) => hasSmartScanFailedOrNoRouteViolation(transaction, violations, currentUserLogin, currentUserAccountID, report, policy))) {
+        if (reportTransactions.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserLogin, currentUserAccountID, report, policy))) {
             return false;
         }
     }
