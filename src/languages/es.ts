@@ -392,6 +392,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
         month: 'Monat',
+        week: 'Semana',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -6665,6 +6666,7 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciante',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mes',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
             },
             feed: 'Feed',
             withdrawalType: {
