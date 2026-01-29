@@ -33,6 +33,7 @@
     card: "card",
     "withdrawal-id": "withdrawn",
     category: "category",
+    tag: "tag",
     merchant: "groupMerchant",
     month: "groupmonth",
   };
@@ -42,6 +43,7 @@
     card: "asc",
     "withdrawal-id": "desc",
     category: "asc",
+    tag: "asc",
     merchant: "asc",
     month: "desc"
   };

@@ -1261,6 +1261,7 @@ const CONST = {
                 HOLD_COMMENT: 'HOLDCOMMENT',
                 INTEGRATION_SYNC_FAILED: 'INTEGRATIONSYNCFAILED',
                 COMPANY_CARD_CONNECTION_BROKEN: 'COMPANYCARDCONNECTIONBROKEN',
+                PLAID_BALANCE_FAILURE: 'PLAIDBALANCEFAILURE',
                 IOU: 'IOU',
                 INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
                 MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
@@ -3487,6 +3488,13 @@ const CONST = {
         SMALL_NORMAL: 'small-normal',
         LARGE_NORMAL: 'large-normal',
     },
+
+    PERSONAL_CARD: {
+        BANK_NAME: {
+            CSV: 'upload',
+        },
+    },
+
     COMPANY_CARD: {
         FEED_BANK_NAME: {
             MASTER_CARD: 'cdf',
@@ -3582,6 +3590,8 @@ const CONST = {
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
         CONNECTION_ERROR: 'connectionError',
+        WORKSPACE_FEEDS_LOAD_ERROR: 'workspaceFeedsLoadError',
+        FEED_LOAD_ERROR: 'feedLoadError',
         STEP: {
             SELECT_BANK: 'SelectBank',
             SELECT_FEED_TYPE: 'SelectFeedType',
@@ -3774,6 +3784,7 @@ const CONST = {
             BILLABLE: 'billable',
             CATEGORY: 'category',
             DESCRIPTION: 'comment',
+            MATCH_TYPE: 'matchType',
             MERCHANT_TO_MATCH: 'merchantToMatch',
             MERCHANT: 'merchant',
             REIMBURSABLE: 'reimbursable',
@@ -7130,6 +7141,7 @@ const CONST = {
             AND: 'and',
             OR: 'or',
             EQUAL_TO: 'eq',
+            CONTAINS: 'contains',
             NOT_EQUAL_TO: 'neq',
             GREATER_THAN: 'gt',
             GREATER_THAN_OR_EQUAL_TO: 'gte',
@@ -7149,6 +7161,8 @@ const CONST = {
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
+            LINE: 'line',
+            PIE: 'pie',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7219,6 +7233,7 @@ const CONST = {
             SORT_ORDER: 'sort-order',
             POLICY_ID: 'workspace',
             GROUP_BY: 'group-by',
+            VIEW: 'view',
             DATE: 'date',
             AMOUNT: 'amount',
             TOTAL: 'total',

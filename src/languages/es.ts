@@ -733,6 +733,16 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
         },
     },
+    homePage: {
+        forYou: 'Para ti',
+        announcements: 'Anuncios',
+        discoverSection: {
+            title: 'Descubrir',
+            menuItemTitleNonAdmin: 'Aprende a crear gastos y enviar informes.',
+            menuItemTitleAdmin: 'Aprende a invitar a miembros, editar flujos de aprobación y conciliar tarjetas corporativas.',
+            menuItemDescription: 'Descubre lo que Expensify puede hacer en 2 minutos',
+        },
+    },
     allSettingsScreen: {
         subscription: 'Suscripcion',
         domains: 'Dominios',
@@ -1937,6 +1947,7 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Transacción sospechosa',
         suspiciousBannerDescription: 'Hemos detectado una transacción sospechosa en la tarjeta. Haz click abajo para revisarla.',
         cardLocked: 'La tarjeta está temporalmente bloqueada mientras nuestro equipo revisa la cuenta de tu empresa.',
+        csvCardDescription: 'Importación CSV',
         cardDetails: {
             cardNumber: 'Número de tarjeta virtual',
             expiration: 'Expiración',
@@ -4518,6 +4529,14 @@ ${amount} para ${merchant} - ${date}`,
         companyCards: {
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Error al cargar las fuentes de tarjetas del espacio de trabajo',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Ocurrió un error al cargar las fuentes de tarjetas del espacio de trabajo. Por favor, inténtelo de nuevo o contacte a su administrador.',
+                feedCouldNotBeLoadedTitle: 'Error al cargar esta fuente de tarjetas',
+                feedCouldNotBeLoadedMessage: 'Ocurrió un error al cargar esta fuente de tarjetas. Por favor, inténtelo de nuevo o contacte a su administrador.',
+                tryAgain: 'Inténtalo de nuevo',
+            },
             addNewCard: {
                 other: 'Otros',
                 cardProviders: {
@@ -6015,19 +6034,22 @@ ${amount} para ${merchant} - ${date}`,
                 addRuleTitle: 'Añadir regla',
                 editRuleTitle: 'Editar regla',
                 expensesWith: 'Para gastos con:',
+                expensesExactlyMatching: 'Para gastos que coincidan exactamente con:',
                 applyUpdates: 'Aplicar estas actualizaciones:',
-                merchantHint: 'Coincide con un nombre de comerciante con coincidencia "contiene" sin distinción de mayúsculas y minúsculas',
                 saveRule: 'Guardar regla',
                 confirmError: 'Ingresa comerciante y aplica al menos una actualización',
                 confirmErrorMerchant: 'Por favor ingresa comerciante',
                 confirmErrorUpdate: 'Por favor aplica al menos una actualización',
                 deleteRule: 'Eliminar regla',
                 deleteRuleConfirmation: '¿Estás seguro de que quieres eliminar esta regla?',
-                ruleSummaryTitle: (merchantName: string) => `Si el comerciante contiene "${merchantName}"`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Si el comerciante ${isExactMatch ? 'coincide exactamente con' : 'contiene'} "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Renombrar comerciante a "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Actualizar ${fieldName} a "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marcar como "${reimbursable ? 'reembolsable' : 'no reembolsable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Marcar como "${billable ? 'facturable' : 'no facturable'}"`,
+                matchType: 'Tipo de coincidencia',
+                matchTypeContains: 'Contiene',
+                matchTypeExact: 'Coincide exactamente',
             },
             categoryRules: {
                 title: 'Reglas de categoría',
@@ -6805,6 +6827,8 @@ ${amount} para ${merchant} - ${date}`,
                     `hubo un problema al sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Por favor, soluciona el problema en la <a href="${workspaceAccountingLink}">configuración del espacio de trabajo</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email, role) => `agregó a ${email} como ${role}`,
                 updateRole: ({email, currentRole, newRole}) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 updatedCustomField1: ({email, previousValue, newValue}) => {

@@ -2238,6 +2238,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} para ${merchant} - ${date}`,
         },
+        csvCardDescription: 'Importar CSV',
     },
     workflowsPage: {
         workflowTitle: 'Gastos',
@@ -4921,6 +4922,13 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Escolha uma nova data de início das transações. Vamos sincronizar todas as transações a partir dessa data, excluindo aquelas que já importamos.',
             unassignCardFailedError: 'Falha ao desatribuir o cartão.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Não foi possível carregar os feeds do cartão',
+                workspaceFeedsCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar os feeds de cartões do workspace. Tente novamente ou entre em contato com o administrador.',
+                feedCouldNotBeLoadedTitle: 'Não foi possível carregar este feed',
+                feedCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar este feed. Tente novamente ou entre em contato com o seu administrador.',
+                tryAgain: 'Tentar novamente',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir e gerenciar seus Cartões Expensify',
@@ -6344,7 +6352,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 title: 'Estabelecimento',
                 subtitle: 'Defina as regras de comerciante para que as despesas cheguem corretamente categorizadas e exijam menos retrabalho.',
                 addRule: 'Adicionar regra de estabelecimento',
-                ruleSummaryTitle: (merchantName: string) => `Se o comerciante contiver "${merchantName}"`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Se o comerciante ${isExactMatch ? 'corresponde exatamente' : 'contém'} "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Renomear comerciante para "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Atualizar ${fieldName} para "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marcar como "${reimbursable ? 'reembolsável' : 'não reembolsável'}"`,
@@ -6352,7 +6360,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 addRuleTitle: 'Adicionar regra',
                 expensesWith: 'Para despesas com:',
                 applyUpdates: 'Aplicar estas atualizações:',
-                merchantHint: 'Corresponder um nome de comerciante com correspondência "contém" sem diferenciação entre maiúsculas e minúsculas',
                 saveRule: 'Salvar regra',
                 confirmError: 'Insira o estabelecimento e aplique pelo menos uma atualização',
                 confirmErrorMerchant: 'Insira o comerciante',
@@ -6360,6 +6367,10 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 editRuleTitle: 'Editar regra',
                 deleteRule: 'Excluir regra',
                 deleteRuleConfirmation: 'Tem certeza de que deseja excluir esta regra?',
+                matchType: 'Tipo de correspondência',
+                matchTypeContains: 'Contém',
+                matchTypeExact: 'Corresponde exatamente',
+                expensesExactlyMatching: 'Para despesas que correspondem exatamente:',
             },
         },
         planTypePage: {
@@ -6958,9 +6969,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID da retirada',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de saque',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciante',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Estabelecimento',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
             },
@@ -7141,6 +7152,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 leftTheChat: 'saiu do chat',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `A conexão ${feedName} está quebrada. Para restaurar as importações do cartão, <a href='${workspaceCompanyCardRoute}'>faça login no seu banco</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `a conexão Plaid com sua conta bancária empresarial está quebrada. Por favor, <a href='${walletRoute}'>reconecte sua conta bancária ${maskedAccountNumber}</a> para continuar usando seus Cartões Expensify.`,
             },
             error: {
                 invalidCredentials: 'Credenciais inválidas, verifique a configuração da sua conexão.',
@@ -8173,6 +8186,16 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         description: 'Avise-nos para que possamos ajudar a tornar sua experiência com despesas ainda melhor.',
         positiveButton: 'Sim!',
         negativeButton: 'Na verdade, não',
+    },
+    homePage: {
+        forYou: 'Para você',
+        announcements: 'Anúncios',
+        discoverSection: {
+            title: 'Descobrir',
+            menuItemTitleNonAdmin: 'Aprenda a criar despesas e enviar relatórios.',
+            menuItemTitleAdmin: 'Aprenda a convidar membros, editar fluxos de aprovação e reconciliar cartões corporativos.',
+            menuItemDescription: 'Veja o que o Expensify pode fazer em 2 minutos',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
