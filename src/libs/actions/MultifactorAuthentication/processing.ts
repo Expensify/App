@@ -64,7 +64,7 @@ async function processRegistration(params: RegistrationParams): Promise<ProcessR
 
     const {httpCode, reason} = await registerAuthenticationKey({
         keyInfo,
-        validateCode: Number(params.validateCode),
+        validateCode: params.validateCode,
         authenticationMethod: params.authenticationMethod,
         publicKey: params.publicKey,
         currentPublicKeyIDs: params.currentPublicKeyIDs,

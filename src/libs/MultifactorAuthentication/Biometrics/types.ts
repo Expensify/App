@@ -73,7 +73,7 @@ type MultifactorAuthenticationFactor = ValueOf<typeof VALUES.FACTORS>;
  */
 type AllMultifactorAuthenticationFactors = {
     signedChallenge: SignedChallenge;
-    validateCode?: number | undefined;
+    validateCode?: string | undefined;
 };
 
 /**
