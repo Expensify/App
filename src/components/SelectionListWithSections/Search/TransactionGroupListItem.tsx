@@ -114,8 +114,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [isExpanded, setIsExpanded] = useState(false);
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const shouldOpenGroupOnPress =
-        !isExpenseReportType && (groupBy === CONST.SEARCH.GROUP_BY.YEAR || groupBy === CONST.SEARCH.GROUP_BY.QUARTER || groupBy === CONST.SEARCH.GROUP_BY.WEEK);
+    const shouldOpenGroupOnPress = !isExpenseReportType && (groupBy === CONST.SEARCH.GROUP_BY.YEAR || groupBy === CONST.SEARCH.GROUP_BY.QUARTER || groupBy === CONST.SEARCH.GROUP_BY.WEEK);
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
