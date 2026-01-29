@@ -643,6 +643,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Miesiąc',
         home: 'Strona główna',
         week: 'Tydzień',
+        year: 'Rok',
+        quarter: 'Kwartał',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -6988,6 +6990,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Tydzień',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Rok',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartał',
             },
             feed: 'Kanał',
             withdrawalType: {

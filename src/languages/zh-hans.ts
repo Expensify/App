@@ -639,6 +639,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: '月',
         home: '首页',
         week: '周',
+        year: '年',
+        quarter: '季度',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -6836,6 +6838,8 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.TAG]: '标签',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
                 [CONST.SEARCH.GROUP_BY.WEEK]: '周',
+                [CONST.SEARCH.GROUP_BY.YEAR]: '年',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
             },
             feed: '动态',
             withdrawalType: {
