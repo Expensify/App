@@ -69,9 +69,7 @@ describe('ReportActionsFollowupUtils', () => {
     <followup-response>To set up QuickBooks, go to Settings > Integrations...</followup-response>
   </followup>
 </followup-list>`;
-            expect(parseFollowupsFromHtml(html)).toEqual([
-                {text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings > Integrations...'},
-            ]);
+            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings > Integrations...'}]);
         });
 
         it('should parse multiple followups with mixed response availability', () => {

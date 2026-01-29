@@ -75,14 +75,7 @@ function resolveSuggestedFollowup(
             });
 
             // Create and add the optimistic Concierge response action
-            const optimisticConciergeAction = buildOptimisticAddCommentReportAction(
-                followup.response,
-                undefined,
-                CONST.ACCOUNT_ID.CONCIERGE,
-                0,
-                reportID,
-                optimisticConciergeReportActionID,
-            );
+            const optimisticConciergeAction = buildOptimisticAddCommentReportAction(followup.response, undefined, CONST.ACCOUNT_ID.CONCIERGE, 0, reportID, optimisticConciergeReportActionID);
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                 [optimisticConciergeReportActionID]: optimisticConciergeAction.reportAction,

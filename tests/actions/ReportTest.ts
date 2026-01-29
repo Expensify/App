@@ -3762,13 +3762,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(
-                report,
-                undefined,
-                reportAction,
-                {text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings...'},
-                CONST.DEFAULT_TIME_ZONE,
-            );
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings...'}, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected

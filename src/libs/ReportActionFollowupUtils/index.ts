@@ -8,7 +8,6 @@ type Followup = {
     response?: string;
 };
 
-
 /**
  * Checks if a report action contains actionable (unresolved) followup suggestions.
  * @param reportAction - The report action to check
