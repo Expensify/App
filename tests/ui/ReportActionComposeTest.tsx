@@ -44,6 +44,7 @@ TestHelper.setupGlobalFetchMock();
 const defaultReport = LHNTestUtils.getFakeReport();
 const defaultProps: ReportActionComposeProps = {
     onSubmit: jest.fn(),
+    onLayout: jest.fn(),
     isComposerFullSize: false,
     reportID: defaultReport.reportID,
     report: defaultReport,
