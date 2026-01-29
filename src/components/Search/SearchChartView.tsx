@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDisplayInfoForCharts} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -82,7 +83,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
         getFilterQuery: (item: GroupedItem) => {
             const monthItem = item as TransactionMonthGroupListItemType;
-            return `date>=${monthItem.year}-${String(monthItem.month).padStart(2, '0')}-01 date<${monthItem.month === 12 ? monthItem.year + 1 : monthItem.year}-${String(monthItem.month === 12 ? 1 : monthItem.month + 1).padStart(2, '0')}-01`;
+            const {start, end} = DateUtils.getMonthDateRange(monthItem.year, monthItem.month);
+            return `date>=${start} date<=${end}`;
         },
     },
     [CONST.SEARCH.GROUP_BY.WEEK]: {
@@ -90,12 +92,8 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item as TransactionWeekGroupListItemType).formattedWeek ?? '',
         getFilterQuery: (item: GroupedItem) => {
             const weekItem = item as TransactionWeekGroupListItemType;
-            // week is in YYYY-MM-DD format (start of week)
-            const startDate = new Date(weekItem.week);
-            const endDate = new Date(startDate);
-            endDate.setDate(endDate.getDate() + 7);
-            const endDateStr = endDate.toISOString().split('T').at(0);
-            return `date>=${weekItem.week} date<${endDateStr}`;
+            const {start, end} = DateUtils.getWeekDateRange(weekItem.week);
+            return `date>=${start} date<=${end}`;
         },
     },
 };
