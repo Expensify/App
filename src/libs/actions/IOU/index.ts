@@ -177,6 +177,7 @@ import {
     isReportManager,
     isSelectedManagerMcTest,
     isSelfDM,
+    isGroupChat,
     isSettled,
     isTestTransactionReport,
     isTrackExpenseReport,
@@ -3140,7 +3141,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // the participants don't match, we'll find/create the correct 1:1 DM chat report.
     // We also check if the chatReport itself is a Policy Expense Chat to avoid incorrectly validating Policy Expense Chats.
     // We also skip validation for self-DM reports since they use accountID 0 for the participant (representing the report itself).
-    if (chatReport && !isPolicyExpenseChat && !isPolicyExpenseChatReportUtil(chatReport) && !isSelfDM(chatReport)) {
+    // We also skip validation for group chats since they can have more than 2 participants.
+    if (chatReport && !isPolicyExpenseChat && !isPolicyExpenseChatReportUtil(chatReport) && !isSelfDM(chatReport) && !isGroupChat(chatReport)) {
         const parentChatReportParticipants = Object.keys(chatReport.participants ?? {}).map(Number);
         const expectedParticipants = [payerAccountID, payeeAccountID].sort();
         const sortedParentChatReportParticipants = parentChatReportParticipants.sort();
