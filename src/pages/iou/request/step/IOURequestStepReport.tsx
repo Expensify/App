@@ -6,6 +6,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
@@ -80,6 +81,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const isPerDiemTransaction = isPerDiemRequest(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
+    const [transactions] = useOptimisticDraftTransactions(transaction);
 
     const handleGoBack = () => {
         if (isEditing) {
@@ -112,14 +114,16 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         const newPerDiemCustomUnit = getPerDiemCustomUnit(newPolicy);
         const newCustomUnitID = newPerDiemCustomUnit?.customUnitID;
 
-        setTransactionReport(
-            transaction.transactionID,
-            {
-                reportID: item.value,
-                participants,
-            },
-            true,
-        );
+        for (const transactionItem of transactions) {
+            setTransactionReport(
+                transactionItem.transactionID,
+                {
+                    reportID: item.value,
+                    participants,
+                },
+                true,
+            );
+        }
 
         // Clear subrates, and update customUnitID if policy changed for per diem transactions
         if (policyChanged && isPerDiemTransaction) {
