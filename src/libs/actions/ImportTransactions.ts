@@ -279,20 +279,22 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
         reimbursable: isReimbursable,
     };
 
+    const optimisticTransactionUpdates: OnyxUpdate[] = optimisticTransactions.map(
+        (transaction) =>
+            ({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: transaction,
+            }) as OnyxUpdate,
+    );
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
             value: optimisticCardList,
         },
-        ...optimisticTransactions.map(
-            (transaction) =>
-                ({
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                    value: transaction,
-                }) as OnyxUpdate,
-        ),
+        ...optimisticTransactionUpdates,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IMPORTED_SPREADSHEET,
@@ -307,6 +309,15 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
         },
     ];
 
+    const failureTransactionUpdates: OnyxUpdate[] = optimisticTransactions.map(
+        (transaction) =>
+            ({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: null,
+            }) as OnyxUpdate,
+    );
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -315,14 +326,7 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
                 [cardID]: null,
             },
         },
-        ...optimisticTransactions.map(
-            (transaction) =>
-                ({
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                    value: null,
-                }) as OnyxUpdate,
-        ),
+        ...failureTransactionUpdates,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IMPORTED_SPREADSHEET,
