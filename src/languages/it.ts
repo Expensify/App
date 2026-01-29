@@ -6391,6 +6391,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Corrisponde esattamente',
                 expensesExactlyMatching: 'Per le spese che corrispondono esattamente:',
+                duplicateRuleTitle: 'Esiste già una regola esercente simile',
+                duplicateRulePrompt: (merchantName: string) => `Vuoi salvare una nuova regola per "${merchantName}" anche se ne hai già una esistente?`,
+                saveAnyway: 'Salva comunque',
             },
         },
         planTypePage: {

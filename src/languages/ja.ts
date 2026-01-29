@@ -6346,6 +6346,9 @@ ${reportName}
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
                 expensesExactlyMatching: '以下と完全一致する経費について:',
+                duplicateRuleTitle: '類似の取引先ルールが既に存在します',
+                duplicateRulePrompt: (merchantName: string) => `既存のルールがあるにもかかわらず、「${merchantName}」の新しいルールを保存しますか？`,
+                saveAnyway: 'それでも保存',
             },
         },
         planTypePage: {

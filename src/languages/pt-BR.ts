@@ -6371,6 +6371,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 matchTypeContains: 'Contém',
                 matchTypeExact: 'Corresponde exatamente',
                 expensesExactlyMatching: 'Para despesas que correspondem exatamente:',
+                duplicateRuleTitle: 'Já existe uma regra de comerciante semelhante',
+                duplicateRulePrompt: (merchantName: string) => `Você deseja salvar uma nova regra para "${merchantName}" mesmo já tendo uma existente?`,
+                saveAnyway: 'Salvar mesmo assim',
             },
         },
         planTypePage: {

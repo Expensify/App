@@ -6265,6 +6265,9 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
+                duplicateRuleTitle: 'Similar merchant rule already exists',
+                duplicateRulePrompt: (merchantName: string) => `Do you want to save a new rule for "${merchantName}" even though you already have an existing one?`,
+                saveAnyway: 'Save anyway',
             },
             categoryRules: {
                 title: 'Category rules',

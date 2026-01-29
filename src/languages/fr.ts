@@ -6420,6 +6420,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
+                duplicateRuleTitle: 'Une règle commerçant similaire existe déjà',
+                duplicateRulePrompt: (merchantName: string) => `Voulez-vous enregistrer une nouvelle règle pour « ${merchantName} » même si vous en avez déjà une ?`,
+                saveAnyway: 'Enregistrer quand même',
             },
         },
         planTypePage: {

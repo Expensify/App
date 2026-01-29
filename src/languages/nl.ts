@@ -6379,6 +6379,9 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 matchTypeContains: 'Bevat',
                 matchTypeExact: 'Komt exact overeen',
                 expensesExactlyMatching: 'Voor uitgaven die exact overeenkomen met:',
+                duplicateRuleTitle: 'Er bestaat al een vergelijkbare handelaarsregel',
+                duplicateRulePrompt: (merchantName: string) => `Wilt u een nieuwe regel opslaan voor "${merchantName}" hoewel u al een bestaande heeft?`,
+                saveAnyway: 'Toch opslaan',
             },
         },
         planTypePage: {

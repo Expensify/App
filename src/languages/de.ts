@@ -6409,6 +6409,9 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Exakte Übereinstimmung',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
+                duplicateRuleTitle: 'Eine ähnliche Händlerregel existiert bereits',
+                duplicateRulePrompt: (merchantName: string) => `Möchten Sie eine neue Regel für „${merchantName}" speichern, obwohl Sie bereits eine bestehende haben?`,
+                saveAnyway: 'Trotzdem speichern',
             },
         },
         planTypePage: {
