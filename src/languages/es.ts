@@ -4722,10 +4722,10 @@ ${amount} para ${merchant} - ${date}`,
                 },
                 settings: {
                     autoAddTripName: {
-                        title: 'Añadir nombres de viaje a los gastos',
-                        subtitle: 'Añade automáticamente los nombres de viaje a las descripciones de los gastos reservados en Expensify.',
+                        title: 'Añadir nombres de viajes a los gastos',
+                        subtitle: 'Añade automáticamente los nombres de viajes a las descripciones de los gastos reservados en Expensify.',
                     },
-                },                
+                },
                 travelInvoicing: {
                     travelBookingSection: {
                         title: 'Reserva de viajes',
