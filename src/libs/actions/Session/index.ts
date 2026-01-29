@@ -253,7 +253,7 @@ function signOut(): Promise<void | Response> {
 
 function callSAMLSignOut(params: LogOutParams): Promise<void | Response> {
     const queryString = `appversion=${pkg.version}&referer=ecash&authToken=${session.authToken}`;
-    return openAuthSessionAsync(`${CONST.EXPENSIFY_URL}/authentication/saml/logout?${queryString}`).then(() => {
+    return openAuthSessionAsync(`${CONST.EXPENSIFY_URL}/authentication/saml/logout?${queryString}`, CONST.SAML_REDIRECT_URL).then((r) => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, params, {});
     });
