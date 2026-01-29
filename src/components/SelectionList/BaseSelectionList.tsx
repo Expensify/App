@@ -4,7 +4,7 @@ import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/fl
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -104,6 +104,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const hasKeyBeenPressed = useRef(false);
     const listRef = useRef<FlashListRef<TItem> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const keyboardListenerRef = useRef<ReturnType<typeof Keyboard.addListener> | null>(null);
 
     const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
@@ -396,22 +397,52 @@ function BaseSelectionList<TItem extends ListItem>({
     // The function scrolls to the focused input to prevent keyboard occlusion.
     // It ensures the entire list item is visible, not just the input field.
     // Added specifically for SplitExpensePage
-    const scrollToFocusedInput = useCallback((item: TItem) => {
-        if (!listRef.current) {
-            return;
-        }
+    const scrollToFocusedInput = useCallback(
+        (item: TItem) => {
+            if (!listRef.current) {
+                return;
+            }
 
-        // Clear any existing timer before starting a new one
-        if (scrollTimeoutRef.current) {
-            clearTimeout(scrollTimeoutRef.current);
-        }
+            // Clear any existing timer and listener before starting new ones
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+            }
+            if (keyboardListenerRef.current) {
+                keyboardListenerRef.current.remove();
+            }
 
-        // Delay scrolling by 300ms to allow the keyboard to open.
-        // This ensures FlashList calculates the correct window size.
-        setTimeout(() => {
-            listRef.current?.scrollToItem({item, viewPosition: 1, animated: true, viewOffset: 4});
-        }, CONST.ANIMATED_TRANSITION);
-    }, []);
+            const performScroll = () => {
+                const index = data.findIndex((dataItem) => dataItem.keyForList === item.keyForList);
+                if (index === -1) {
+                    return;
+                }
+                // Use scrollToIndex with viewPosition 0.5 to center the item in the visible area
+                // This ensures the item is visible above the keyboard
+                listRef.current?.scrollToIndex({index, animated: true, viewPosition: 0.5});
+            };
+
+            // Wait for keyboard to fully appear, then scroll
+            keyboardListenerRef.current = Keyboard.addListener('keyboardDidShow', () => {
+                keyboardListenerRef.current?.remove();
+                keyboardListenerRef.current = null;
+                // Clear fallback timeout since keyboard event fired
+                if (scrollTimeoutRef.current) {
+                    clearTimeout(scrollTimeoutRef.current);
+                    scrollTimeoutRef.current = null;
+                }
+                // Add small delay after keyboard is shown for layout to settle
+                scrollTimeoutRef.current = setTimeout(performScroll, 100);
+            });
+
+            // Fallback timeout in case keyboard event doesn't fire (e.g., keyboard already open)
+            scrollTimeoutRef.current = setTimeout(() => {
+                keyboardListenerRef.current?.remove();
+                keyboardListenerRef.current = null;
+                performScroll();
+            }, CONST.ANIMATED_TRANSITION);
+        },
+        [data],
+    );
 
     const scrollAndHighlightItem = useCallback(
         (items: string[]) => {
