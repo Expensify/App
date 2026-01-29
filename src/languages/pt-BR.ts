@@ -6361,6 +6361,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 editRuleTitle: 'Editar regra',
                 deleteRule: 'Excluir regra',
                 deleteRuleConfirmation: 'Tem certeza de que deseja excluir esta regra?',
+                previewMatches: 'Visualizar correspondências',
+                previewMatchesEmptyStateTitle: 'Nada para mostrar',
+                previewMatchesEmptyStateSubtitle: 'Nenhuma despesa não enviada corresponde a esta regra.',
             },
         },
         planTypePage: {

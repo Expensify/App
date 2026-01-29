@@ -225,6 +225,15 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         },
     ];
 
+    const previewMatches = () => {
+        if (errorMessage) {
+            setShouldShowError(true);
+            return;
+        }
+
+        Navigation.navigate(ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID));
+    };
+
     if (ruleID && !existingRule && !isDeleting) {
         return <NotFoundPage />;
     }
@@ -271,14 +280,25 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     enabledWhenOffline
                     shouldRenderFooterAboveSubmit
                     footerContent={
-                        isEditing ? (
-                            <Button
-                                text={translate('workspace.rules.merchantRules.deleteRule')}
-                                onPress={() => setIsDeleteModalVisible(true)}
-                                style={[styles.mb4]}
-                                large
-                            />
-                        ) : null
+                        <>
+                            {isEditing && (
+                                <Button
+                                    text={translate('workspace.rules.merchantRules.deleteRule')}
+                                    onPress={() => setIsDeleteModalVisible(true)}
+                                    style={[styles.mb4]}
+                                    large
+                                />
+                            )}
+
+                            {!isEditing && (
+                                <Button
+                                    text={translate('workspace.rules.merchantRules.previewMatches')}
+                                    onPress={previewMatches}
+                                    style={[styles.mb4]}
+                                    large
+                                />
+                            )}
+                        </>
                     }
                 />
                 {isEditing && (

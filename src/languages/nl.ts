@@ -6368,6 +6368,9 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 editRuleTitle: 'Regel bewerken',
                 deleteRule: 'Regel verwijderen',
                 deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
+                previewMatches: 'Voorvertoning komt overeen',
+                previewMatchesEmptyStateTitle: 'Niets om weer te geven',
+                previewMatchesEmptyStateSubtitle: 'Geen niet-ingediende uitgaven komen overeen met deze regel.',
             },
         },
         planTypePage: {
