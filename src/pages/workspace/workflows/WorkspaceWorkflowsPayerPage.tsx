@@ -19,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -208,7 +209,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             onButtonPress();
             return;
         }
-        if (bankAccountInfo?.accountData?.state === CONST.BANK_ACCOUNT.STATE.PENDING || bankAccountInfo?.accountData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
+        if (isBankAccountPartiallySetup(bankAccountInfo?.accountData?.state)) {
             setShowValidationModal(true);
             return;
         }
