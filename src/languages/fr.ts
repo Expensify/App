@@ -6412,6 +6412,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 matchType: 'Type de correspondance',
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
+                expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
             },
         },
         planTypePage: {

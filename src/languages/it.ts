@@ -6365,7 +6365,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Esercente',
                 subtitle: 'Imposta le regole per gli esercenti in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
                 addRule: 'Aggiungi regola esercente',
-                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Se l'esercente ${isExactMatch ? 'corrisponde esattamente a' : 'contiene'} "${merchantName}"`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Se l'esercente ${isExactMatch ? 'corrisponde esattamente' : 'contiene'} "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Rinomina esercente in "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
@@ -6382,7 +6382,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
                 matchType: 'Tipo di corrispondenza',
                 matchTypeContains: 'Contiene',
-                matchTypeExact: 'Corrispondenza esatta',
+                matchTypeExact: 'Corrisponde esattamente',
+                expensesExactlyMatching: 'Per le spese che corrispondono esattamente:',
             },
         },
         planTypePage: {
@@ -6991,7 +6992,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerciante',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
