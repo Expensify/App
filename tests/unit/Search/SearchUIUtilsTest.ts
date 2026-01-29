@@ -4592,6 +4592,110 @@ describe('SearchUIUtils', () => {
             const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response2.export).toBe(true);
         });
+
+        test('Should show Top Categories when areCategoriesEnabled is true', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(true);
+        });
+
+        test('Should hide Top Categories when areCategoriesEnabled is false', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
+
+        test('Should show Top Categories when areCategoriesEnabled is undefined', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: undefined,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(true);
+        });
+
+        test('Should not show Top Categories for free policies even if categories are enabled', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
+
+        test('Should show Top Categories if at least one policy has categories enabled', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policy_1: {
+                    id: 'policy_1',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+                policy_2: {
+                    id: 'policy_2',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(true);
+        });
+
+        test('Should hide Top Categories if all policies have categories disabled', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policy_1: {
+                    id: 'policy_1',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+                policy_2: {
+                    id: 'policy_2',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
     });
 
     describe('Test getColumnsToShow', () => {
