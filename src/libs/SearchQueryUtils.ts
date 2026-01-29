@@ -747,7 +747,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     const limitValue = limit ?? options?.limit;
-    if (limitValue !== undefined) {
+    if (limitValue !== undefined && limitValue !== '') {
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${limitValue}`);
     }
 
