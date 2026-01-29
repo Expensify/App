@@ -55,6 +55,7 @@ type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 // This map contains chars that match each operator
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS]: '*:' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>' as const,
@@ -473,8 +474,9 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
 
-    // Check if view was explicitly set by the user (exists in rawFilterList)
-    const wasViewExplicitlySet = queryJSON?.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW);
+    // Check if view was explicitly set by the user (exists in rawFilterList or differs from default)
+    const wasViewExplicitlySet =
+        (queryJSON?.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false) || (queryJSON?.view && queryJSON.view !== defaultQueryJSON?.view);
 
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
         // Skip view if it wasn't explicitly set by the user

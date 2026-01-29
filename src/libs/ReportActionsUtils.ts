@@ -45,6 +45,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, createPersonalDetailsLookupByAccountID, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -1735,21 +1736,6 @@ function getMemberChangeMessageElements(
         ...formatMessageElementList(mentionElements),
         ...buildRoomElements(),
     ];
-}
-
-/**
- * Used for generating preview text in LHN and other places where followups should not be displayed.
- * Implemented here instead of ReportActionFollowupUtils due to circular ref
- * @param html message.html from the report COMMENT actions
- * @returns html with the <followup-list> element and its contents stripped out or undefined if html is undefined
- */
-function stripFollowupListFromHtml(html?: string): string | undefined {
-    if (!html) {
-        return;
-    }
-    // Matches a <followup-list> HTML element and its entire contents. (<followup-list><followup><followup-text>Question?</followup-text></followup></followup-list>)
-    const followUpListRegex = /<followup-list(\s[^>]*)?>[\s\S]*?<\/followup-list>/i;
-    return html.replace(followUpListRegex, '').trim();
 }
 
 function getReportActionHtml(reportAction: PartialReportAction): string {
@@ -3570,6 +3556,12 @@ function getDynamicExternalWorkflowRoutedMessage(
     return translate('iou.routedDueToDEW', {to: getOriginalMessage(action)?.to ?? ''});
 }
 
+function getSettlementAccountLockedMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED>) ?? {maskedBankAccountNumber: '', policyID: ''};
+    const workspaceSettingsURL = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(originalMessage.policyID)}`;
+    return translate('report.actions.type.settlementAccountLocked', originalMessage, workspaceSettingsURL);
+}
+
 function isCardIssuedAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<
@@ -4009,6 +4001,7 @@ export {
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,
     getReportActionActorAccountID,
+    getSettlementAccountLockedMessage,
     stripFollowupListFromHtml,
 };
 

@@ -89,7 +89,16 @@ import interceptAnonymousUser from './interceptAnonymousUser';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, getSubmitToAccountID, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    canSendInvoice,
+    getCleanedTagName,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
+    getPolicy,
+    getSubmitToAccountID,
+    isPaidGroupPolicy,
+    isPolicyPayer,
+} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -175,6 +184,7 @@ type GetReportSectionsParams = {
     translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isActionLoadingSet: ReadonlySet<string> | undefined;
+    isOffline: boolean | undefined;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
@@ -425,6 +435,7 @@ type GetSectionsParams = {
     archivedReportsIDList?: ArchivedReportsIDSet;
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
+    isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
 };
@@ -1877,6 +1888,7 @@ function getReportSections({
     currentAccountID,
     currentUserEmail,
     translate,
+    isOffline,
     formatPhoneNumber,
     isActionLoadingSet,
     allTransactionViolations,
@@ -1968,6 +1980,8 @@ function getReportSections({
                 const policyFromKey = getPolicyFromKey(data, reportItem);
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID ?? String(CONST.DEFAULT_NUMBER_ID)}`] ?? policyFromKey;
 
+                const shouldShowStatusAsPending = !!isOffline && reportItem?.pendingFields?.nextStep === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+
                 const hasAnyViolationsForReport = hasAnyViolations(
                     reportItem.reportID,
                     allTransactionViolations ?? allViolations,
@@ -2001,6 +2015,7 @@ function getReportSections({
                     formattedTo,
                     formattedStatus,
                     transactions,
+                    shouldShowStatusAsPending,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                     shouldShowYear: shouldShowYearCreatedReport,
                     shouldShowYearSubmitted: shouldShowYearSubmittedReport,
@@ -2363,7 +2378,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
             // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
             const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
-            const formattedTag = isEmptyTag ? translate('search.noTag') : rawTag;
+            const formattedTag = isEmptyTag ? translate('search.noTag') : getCleanedTagName(rawTag);
 
             tagSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.TAG,
@@ -2514,6 +2529,7 @@ function getSections({
     archivedReportsIDList,
     queryJSON,
     isActionLoadingSet,
+    isOffline,
     cardFeeds,
     allTransactionViolations,
 }: GetSectionsParams) {
@@ -2532,6 +2548,7 @@ function getSections({
             currentAccountID,
             currentUserEmail,
             translate,
+            isOffline,
             formatPhoneNumber,
             isActionLoadingSet,
             allTransactionViolations,
@@ -3077,6 +3094,8 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG);
         case CONST.SEARCH.GROUP_BY.MONTH:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH);
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK);
         default:
             return [];
     }
@@ -3110,6 +3129,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.TAG;
         case CONST.SEARCH.GROUP_BY.MONTH:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH;
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WEEK;
         default:
             return [];
     }
@@ -3190,6 +3211,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
             return 'common.month';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
+            return 'common.week';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
             return 'search.filters.withdrawn';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
@@ -4112,21 +4135,18 @@ function shouldShowDeleteOption(selectedTransactions: Record<string, SelectedTra
     return (
         !isOffline &&
         selectedTransactionsKeys.every((id) => {
-            const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id];
+            const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
             if (!transaction) {
                 return false;
             }
             const parentReportID = transaction.reportID;
             const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-            if (!parentReport) {
-                return false;
-            }
             const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
             const parentReportAction =
                 Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                 selectedTransactions[id].reportAction;
 
-            return canDeleteMoneyRequestReport(parentReport, [transaction as OnyxTypes.Transaction], parentReportAction ? [parentReportAction] : []);
+            return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
         })
     );
 }

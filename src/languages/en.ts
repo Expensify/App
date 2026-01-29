@@ -6,7 +6,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type {
     ChangeFieldParams,
@@ -987,6 +987,16 @@ const translations = {
         redirectToExpensifyClassicModal: {
             title: 'Coming soon',
             description: "We're fine-tuning a few more bits and pieces of New Expensify to accommodate your specific setup. In the meantime, head over to Expensify Classic.",
+        },
+    },
+    homePage: {
+        forYou: 'For you',
+        announcements: 'Announcements',
+        discoverSection: {
+            title: 'Discover',
+            menuItemTitleNonAdmin: 'Learn how to create expenses and submit reports.',
+            menuItemTitleAdmin: 'Learn how to invite members, edit approval workflows, and reconcile company cards.',
+            menuItemDescription: 'See what Expensify can do in 2 min',
         },
     },
     allSettingsScreen: {
@@ -4767,6 +4777,13 @@ const translations = {
         companyCards: {
             addCards: 'Add cards',
             selectCards: 'Select cards',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: "Couldn't load card feeds",
+                workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
+                feedCouldNotBeLoadedTitle: "Couldn't load this feed",
+                feedCouldNotBeLoadedMessage: 'An error occurred while loading this feed. Please try again or contact your administrator.',
+                tryAgain: 'Try again',
+            },
             addNewCard: {
                 other: 'Other',
                 cardProviders: {
@@ -5209,7 +5226,8 @@ const translations = {
             },
             timeTracking: {
                 title: 'Time',
-                subtitle: 'Set an hourly billable rate for employees to get paid for their time.',
+                subtitle: 'Set a billable hourly rate for time tracking.',
+                defaultHourlyRate: 'Default hourly rate',
             },
         },
         reports: {
@@ -6233,19 +6251,26 @@ const translations = {
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 expensesWith: 'For expenses with:',
+                expensesExactlyMatching: 'For expenses exactly matching:',
                 applyUpdates: 'Apply these updates:',
-                merchantHint: 'Match a merchant name with case-insensitive "contains" matching',
                 saveRule: 'Save rule',
                 confirmError: 'Enter merchant and apply at least one update',
                 confirmErrorMerchant: 'Please enter merchant',
                 confirmErrorUpdate: 'Please apply at least one update',
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
-                ruleSummaryTitle: (merchantName: string) => `If merchant contains "${merchantName}"`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `If merchant ${isExactMatch ? 'exactly matches' : 'contains'} "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Rename merchant to "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+                matchType: 'Match type',
+                matchTypeContains: 'Contains',
+                matchTypeExact: 'Exactly matches',
+                duplicateRuleTitle: 'Similar merchant rule already exists',
+                duplicateRulePrompt: (merchantName: string) => `Do you want to save a new rule for "${merchantName}" even though you already have an existing one?`,
+                saveAnyway: 'Save anyway',
+                applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
             },
             categoryRules: {
                 title: 'Category rules',
@@ -7071,6 +7096,8 @@ const translations = {
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'left the chat',
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `business bank account ${maskedBankAccountNumber} has been automatically locked due to an issue with either Reimbursement or Expensify Card settlement. Please fix the issue in your <a href="${linkURL}">workspace settings</a>.`,
             },
             error: {
                 invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',
