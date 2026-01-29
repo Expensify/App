@@ -41,8 +41,8 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
-    createAndOpenSearchTransactionThread,
     adjustTimeRangeToDateFilters,
+    createAndOpenSearchTransactionThread,
     getColumnsToShow,
     getListItem,
     getSections,
@@ -62,8 +62,8 @@ import {
     isTransactionMonthGroupListItemType,
     isTransactionQuarterGroupListItemType,
     isTransactionTagGroupListItemType,
-    isTransactionWithdrawalIDGroupListItemType,
     isTransactionWeekGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
     isTransactionYearGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
