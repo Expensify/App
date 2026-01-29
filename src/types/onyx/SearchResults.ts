@@ -187,6 +187,21 @@ type SearchCategoryGroup = {
     currency: string;
 };
 
+/** Model of merchant grouped search result */
+type SearchMerchantGroup = {
+    /** Merchant name */
+    merchant: string;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
 /** Model of tag grouped search result */
 type SearchTagGroup = {
     /** Tag name */
@@ -220,6 +235,21 @@ type SearchMonthGroup = {
     currency: string;
 };
 
+/** Model of week grouped search result */
+type SearchWeekGroup = {
+    /** Week start date in YYYY-MM-DD format */
+    week: string;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
@@ -234,7 +264,10 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
-        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchTagGroup | SearchMonthGroup>;
+        PrefixedRecord<
+            typeof CONST.SEARCH.GROUP_PREFIX,
+            SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchMerchantGroup | SearchTagGroup | SearchMonthGroup | SearchWeekGroup
+        >;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -256,6 +289,8 @@ export type {
     SearchCardGroup,
     SearchWithdrawalIDGroup,
     SearchCategoryGroup,
+    SearchMerchantGroup,
     SearchTagGroup,
     SearchMonthGroup,
+    SearchWeekGroup,
 };
