@@ -5226,7 +5226,8 @@ const translations = {
             },
             timeTracking: {
                 title: 'Time',
-                subtitle: 'Set an hourly billable rate for employees to get paid for their time.',
+                subtitle: 'Set a billable hourly rate for time tracking.',
+                defaultHourlyRate: 'Default hourly rate',
             },
         },
         reports: {
