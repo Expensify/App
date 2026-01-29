@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nuova funzionalità',
         month: 'Mese',
         home: 'Home',
+        week: 'Settimana',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -4948,6 +4949,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 flipAmountSign: 'Inverti segno importo',
                 importButton: 'Importa transazioni',
             },
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed delle carte',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Si è verificato un errore durante il caricamento dei feed della scheda dell’area di lavoro. Riprova o contatta il tuo amministratore.',
+                feedCouldNotBeLoadedTitle: 'Impossibile caricare questo feed',
+                feedCouldNotBeLoadedMessage: 'Si è verificato un errore durante il caricamento di questo feed. Riprova o contatta il tuo amministratore.',
+                tryAgain: 'Riprova',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
@@ -5292,7 +5301,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Regole',
                 subtitle: 'Richiedi ricevute, segnala spese elevate e altro ancora.',
             },
-            timeTracking: {title: 'Ora', subtitle: 'Imposta una tariffa oraria fatturabile per consentire ai dipendenti di essere pagati per il loro tempo.'},
+            timeTracking: {
+                title: 'Ora',
+                subtitle: 'Imposta una tariffa oraria fatturabile per il monitoraggio del tempo.',
+                defaultHourlyRate: 'Tariffa oraria predefinita',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',
@@ -7005,6 +7018,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7185,6 +7199,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     `La connessione ${feedName} non funziona. Per ripristinare le importazioni delle carte, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al tuo conto bancario aziendale è interrotta. <a href='${walletRoute}'>Ricollega il tuo conto bancario ${maskedAccountNumber}</a> per continuare a usare le tue carte Expensify.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `il conto bancario aziendale ${maskedBankAccountNumber} è stato bloccato automaticamente a causa di un problema con il rimborso o con il regolamento della Expensify Card. Risolvi il problema nelle <a href="${linkURL}">impostazioni dello spazio di lavoro</a>.`,
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della connessione.',

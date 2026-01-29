@@ -1476,6 +1476,9 @@ type SettingsNavigatorParamList = {
         rateID: string;
         subRateID: string;
     };
+    [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
+        policyID: string;
+    };
     [SCREENS.DOMAIN.VERIFY]: {
         domainAccountID: number;
     };
@@ -2643,6 +2646,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TIME_TRACKING]: {
         policyID: string;
     };
 };

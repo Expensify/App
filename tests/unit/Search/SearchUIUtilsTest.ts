@@ -17,6 +17,7 @@ import type {
     TransactionMonthGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -1072,6 +1073,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: false,
         isOneTransactionReport: true,
+        shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: '123456789',
         managerID: 18439984,
@@ -1173,6 +1175,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: true,
         isOneTransactionReport: true,
+        shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: '11111',
         managerID: 18439984,
@@ -1281,6 +1284,7 @@ const transactionReportGroupListItems = [
         formattedTo: 'Approver',
         hasVisibleViolations: false,
         isOneTransactionReport: false,
+        shouldShowStatusAsPending: false,
         isOwnPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         managerID: 1111111,
@@ -1461,6 +1465,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: false,
         isOneTransactionReport: true,
+        shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: reportID5,
         managerID: 18439984,
@@ -1859,6 +1864,62 @@ const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemT
         total: 120,
         groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
         formattedMerchant: merchantName2,
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+];
+
+const searchResultsGroupByWeek: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {
+            week: '2026-01-25',
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}2025-12-28` as const]: {
+            week: '2025-12-28',
+            count: 3,
+            currency: 'USD',
+            total: 75,
+        },
+    },
+    search: {
+        count: 8,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 325,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+// Note: formattedWeek uses DateUtils.getFormattedDateRangeForSearch which returns a date range format
+// For week starting 2026-01-25 (Sunday), it would format as "Jan 25 - Jan 31, 2026" (if same year)
+// or "Jan 25, 2026 - Feb 1, 2026" (if different year)
+// We'll use a placeholder that matches the actual format
+const transactionWeekGroupListItems: TransactionWeekGroupListItemType[] = [
+    {
+        week: '2026-01-25',
+        count: 5,
+        currency: 'USD',
+        total: 250,
+        groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+        formattedWeek: 'Jan 25 - Jan 31, 2026',
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+    {
+        week: '2025-12-28',
+        count: 3,
+        currency: 'USD',
+        total: 75,
+        groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+        formattedWeek: 'Dec 28, 2025 - Jan 3, 2026',
         transactions: [],
         transactionsQueryJSON: undefined,
     },
@@ -2699,6 +2760,70 @@ describe('SearchUIUtils', () => {
             };
 
             expect(SearchUIUtils.isTransactionMonthGroupListItemType(monthItem)).toBe(true);
+        });
+
+        it('should return isTransactionWeekGroupListItemType true for week group items', () => {
+            const weekItem: TransactionWeekGroupListItemType = {
+                week: '2026-01-25',
+                count: 5,
+                currency: 'USD',
+                total: 250,
+                groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+                formattedWeek: 'Jan 25 - Jan 31, 2026',
+                transactions: [],
+                transactionsQueryJSON: undefined,
+            };
+
+            expect(SearchUIUtils.isTransactionWeekGroupListItemType(weekItem)).toBe(true);
+        });
+
+        it('should return getWeekSections result when type is EXPENSE and groupBy is week', () => {
+            expect(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByWeek.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                })[0],
+            ).toStrictEqual(transactionWeekGroupListItems);
+        });
+
+        it('should format week dates correctly', () => {
+            const dataWithDifferentWeeks: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {
+                    week: '2026-01-25',
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-06-15` as const]: {
+                    week: '2026-06-15',
+                    count: 1,
+                    currency: 'USD',
+                    total: 25,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithDifferentWeeks,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+            }) as [TransactionWeekGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            // Check that formatted week contains the start date
+            expect(result.some((item) => item.formattedWeek.includes('Jan 25'))).toBe(true);
+            expect(result.some((item) => item.formattedWeek.includes('Jun 15'))).toBe(true);
         });
 
         it('should return isTransactionCategoryGroupListItemType false for non-category group items', () => {

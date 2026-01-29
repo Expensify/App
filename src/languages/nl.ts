@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nieuwe functie',
         month: 'Maand',
         home: 'Start',
+        week: 'Week',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -4683,7 +4684,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze helppagina](${CONST.NETSUITE
 
 _Voor meer gedetailleerde instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Wat is de script-ID?',
-                            customSegmentScriptIDFooter: `Je kunt aangepaste segmentscript-ID’s in NetSuite vinden onder: 
+                            customSegmentScriptIDFooter: `Je kunt aangepaste segmentscript-ID’s in NetSuite vinden onder:
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Klik op een aangepast segment.
@@ -4944,6 +4945,14 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 transactionsAreReimbursable: 'Transacties zijn terugbetaalbaar',
                 flipAmountSign: 'Teken van bedrag omdraaien',
                 importButton: 'Transacties importeren',
+            },
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Kan kaartfeeds niet laden',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Er is een fout opgetreden bij het laden van de kaartfeeds van de werkruimte. Probeer het opnieuw of neem contact op met uw beheerder.',
+                feedCouldNotBeLoadedTitle: 'Kon deze feed niet laden',
+                feedCouldNotBeLoadedMessage: 'Er is een fout opgetreden bij het laden van deze feed. Probeer het opnieuw of neem contact op met uw beheerder.',
+                tryAgain: 'Opnieuw proberen',
             },
         },
         expensifyCard: {
@@ -5282,7 +5291,11 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Regels',
                 subtitle: 'Vereis bonnetjes, markeer hoge uitgaven en meer.',
             },
-            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurtarief in waarmee medewerkers worden betaald voor hun tijd.'},
+            timeTracking: {
+                title: 'Tijd',
+                subtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
+                defaultHourlyRate: 'Standaard uurtarief',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -6988,6 +7001,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Handelaar',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7168,6 +7182,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                     `De ${feedName}-verbinding is verbroken. Om kaartimporten te herstellen, <a href='${workspaceCompanyCardRoute}'>log in bij uw bank</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met uw zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind uw bankrekening ${maskedAccountNumber} opnieuw</a> om uw Expensify-kaarten te kunnen blijven gebruiken.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `zakelijke bankrekening ${maskedBankAccountNumber} is automatisch vergrendeld vanwege een probleem met de terugbetaling of de afwikkeling van de Expensify Card. Los het probleem op in je <a href="${linkURL}">werkruimte-instellingen</a>.`,
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van uw verbinding.',

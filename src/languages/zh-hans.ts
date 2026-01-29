@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -638,6 +638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: '新功能',
         month: '月',
         home: '首页',
+        week: '周',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -781,7 +782,7 @@ const translations: TranslationDeepObject<typeof en> = {
             请输入在最初请求该代码的设备上显示的代码
         `),
         doNotShare: dedent(`
-            不要与任何人分享你的验证码。  
+            不要与任何人分享你的验证码。
             Expensify 永远不会向你索要它！
         `),
         or: '，或',
@@ -790,7 +791,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: '返回原始设备并请求新验证码',
         successfulNewCodeRequest: '已请求验证码。请检查您的设备。',
         tfaRequiredTitle: dedent(`
-            双重身份验证  
+            双重身份验证
             必填
         `),
         tfaRequiredDescription: dedent(`
@@ -4840,6 +4841,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 flipAmountSign: '翻转金额符号',
                 importButton: '导入交易',
             },
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片信息流',
+                workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时出错。请重试或联系您的管理员。',
+                feedCouldNotBeLoadedTitle: '无法加载此订阅内容',
+                feedCouldNotBeLoadedMessage: '加载此信息流时出错。请重试或联系您的管理员。',
+                tryAgain: '重试',
+            },
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',
@@ -5166,7 +5174,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '规则',
                 subtitle: '要求收据、标记高额支出等。',
             },
-            timeTracking: {title: '时间', subtitle: '为员工设置按小时计费的费率，以便根据他们的工作时间获得报酬。'},
+            timeTracking: {
+                title: '时间',
+                subtitle: '为时间跟踪设置按小时计费费率。',
+                defaultHourlyRate: '默认时薪',
+            },
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6824,6 +6836,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '商户',
                 [CONST.SEARCH.GROUP_BY.TAG]: '标签',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
+                [CONST.SEARCH.GROUP_BY.WEEK]: '周',
             },
             feed: '动态',
             withdrawalType: {
@@ -6998,6 +7011,8 @@ ${reportName}
                     `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您的企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用您的 Expensify 卡。`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `企业银行账户 ${maskedBankAccountNumber} 由于报销或 Expensify Card 结算问题已被自动锁定。请前往<a href="${linkURL}">工作区设置</a>中解决该问题。`,
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',

@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -641,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: '新機能',
         month: '月',
         home: 'ホーム',
+        week: '週',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -4920,6 +4921,13 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 flipAmountSign: '金額の符号を反転',
                 importButton: '取引をインポート',
             },
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
+                workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースのカードフィードを読み込む際にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                feedCouldNotBeLoadedTitle: 'このフィードを読み込めませんでした',
+                feedCouldNotBeLoadedMessage: 'このフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                tryAgain: '再試行',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',
@@ -5257,7 +5265,11 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 title: 'ルール',
                 subtitle: 'レシートの必須化や高額支出のフラグ付けなどを設定できます。',
             },
-            timeTracking: {title: '時間', subtitle: '従業員が作業時間に対して支払いを受けられるよう、時間単位の請求レートを設定します。'},
+            timeTracking: {
+                title: '時間',
+                subtitle: 'タイムトラッキング用の時間単価請求レートを設定します。',
+                defaultHourlyRate: 'デフォルトの時間単価',
+            },
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -6945,6 +6957,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
+                [CONST.SEARCH.GROUP_BY.WEEK]: '週',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -7124,6 +7137,8 @@ ${reportName}
                     `${feedName} との接続が切断されています。カードの取引明細の取り込みを再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `ビジネス銀行口座へのPlaid接続が切断されています。Expensifyカードを引き続きご利用いただくには、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `ビジネス銀行口座 ${maskedBankAccountNumber} は、払い戻しまたは Expensify Card の決済に関する問題により自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',

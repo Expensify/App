@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -643,6 +643,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nouvelle fonctionnalité',
         month: 'Mois',
         home: 'Accueil',
+        week: 'Semaine',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -4970,6 +4971,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 flipAmountSign: 'Inverser le signe du montant',
                 importButton: 'Importer des transactions',
             },
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de carte',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Une erreur s’est produite lors du chargement des flux de cartes de l’espace de travail. Veuillez réessayer ou contacter votre administrateur.',
+                feedCouldNotBeLoadedTitle: 'Impossible de charger ce flux',
+                feedCouldNotBeLoadedMessage: 'Une erreur s’est produite lors du chargement de ce flux. Veuillez réessayer ou contacter votre administrateur.',
+                tryAgain: 'Réessayer',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',
@@ -5315,7 +5324,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Règles',
                 subtitle: 'Exigez des reçus, signalez les dépenses élevées, et plus encore.',
             },
-            timeTracking: {title: 'Heure', subtitle: 'Définissez un taux horaire facturable pour que les employés soient rémunérés pour leur temps.'},
+            timeTracking: {
+                title: 'Heure',
+                subtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
+                defaultHourlyRate: 'Taux horaire par défaut',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -7028,6 +7041,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
             },
             feed: 'Flux',
             withdrawalType: {
@@ -7208,6 +7222,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                     `La connexion à ${feedName} est rompue. Pour rétablir l'importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est interrompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> pour continuer à utiliser vos cartes Expensify.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `le compte bancaire professionnel ${maskedBankAccountNumber} a été automatiquement verrouillé en raison d’un problème lié soit au remboursement, soit au règlement de la carte Expensify. Veuillez corriger le problème dans vos <a href="${linkURL}">paramètres d’espace de travail</a>.`,
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
