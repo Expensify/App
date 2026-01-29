@@ -2255,6 +2255,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} pour ${merchant} - ${date}`,
         },
+        csvCardDescription: 'Importation CSV',
     },
     workflowsPage: {
         workflowTitle: 'Dépenses',
@@ -4955,6 +4956,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             assign: 'Assigner',
             assignCardFailedError: 'L’attribution de la carte a échoué.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription:
+                'Choisissez une nouvelle date de début des transactions. Nous synchroniserons toutes les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
             unassignCardFailedError: 'Échec de la désaffectation de la carte.',
         },
         expensifyCard: {
@@ -6945,6 +6948,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
         topCategories: 'Catégories principales',
+        topMerchants: 'Principaux commerçants',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             approve: 'Approuver',
@@ -7007,6 +7011,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             },
@@ -7030,6 +7035,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             accessPlaceHolder: 'Ouvrir pour plus de détails',
         },
         noCategory: 'Aucune catégorie',
+        noMerchant: 'Aucun commerçant',
         noTag: 'Aucune étiquette',
         expenseType: 'Type de dépense',
         withdrawalType: 'Type de retrait',
@@ -7185,7 +7191,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connecté à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'a quitté la discussion',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `La connexion à ${feedName} est rompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>`,
+                    `La connexion à ${feedName} est rompue. Pour rétablir l'importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `la connexion Plaid à votre compte bancaire professionnel est interrompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> pour continuer à utiliser vos cartes Expensify.`,
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
