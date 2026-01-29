@@ -32,7 +32,7 @@
     from: "from",
     card: "card",
     "withdrawal-id": "withdrawn",
-    category: "category",
+    category: "groupCategory",
     tag: "tag",
     merchant: "groupMerchant",
     month: "groupmonth",
