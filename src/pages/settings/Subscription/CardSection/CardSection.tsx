@@ -72,6 +72,7 @@ function CardSection() {
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const [billingStatusOnyx] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
+    const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, {canBeMissing: true});
     const requestRefund = useCallback(() => {
         requestRefundByUser();
         setIsRequestRefundModalVisible(false);
@@ -101,6 +102,7 @@ function CardSection() {
             billingStatus: billingStatusOnyx,
             creditCardEyesIcon: illustrations.CreditCardEyes,
             fundList,
+            amountOwed,
         }),
     );
 
@@ -125,6 +127,7 @@ function CardSection() {
                 billingStatus: billingStatusOnyx,
                 creditCardEyesIcon: illustrations.CreditCardEyes,
                 fundList,
+                amountOwed,
             }),
         );
     }, [
@@ -139,6 +142,7 @@ function CardSection() {
         billingStatusOnyx,
         illustrations.CreditCardEyes,
         fundList,
+        amountOwed,
     ]);
 
     const handleRetryPayment = () => {
@@ -230,7 +234,7 @@ function CardSection() {
                         large
                     />
                 )}
-                {hasCardAuthenticatedError(privateStripeCustomerID) && (
+                {hasCardAuthenticatedError(privateStripeCustomerID, amountOwed) && (
                     <CardSectionButton
                         text={translate('subscription.cardSection.authenticatePayment')}
                         isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
