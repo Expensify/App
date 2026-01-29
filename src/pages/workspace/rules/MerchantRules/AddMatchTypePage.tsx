@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -53,7 +54,7 @@ function AddMatchTypePage({route}: AddMatchTypePageProps) {
     ];
 
     const onSelectItem = (item: MatchTypeItem) => {
-        updateDraftMerchantRule({matchType: item.value});
+        updateDraftMerchantRule({matchType: item.value as ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>});
         goBack();
     };
 
