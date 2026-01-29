@@ -300,6 +300,7 @@ type SearchResults = {
         PrefixedRecord<
             typeof CONST.SEARCH.GROUP_PREFIX,
             | SearchMemberGroup
+            | SearchMemberGroup
             | SearchCardGroup
             | SearchWithdrawalIDGroup
             | SearchCategoryGroup

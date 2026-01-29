@@ -148,8 +148,8 @@ groupTag                = "group-tag"i &wordBoundary               { return "gro
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
 groupMonth              = "group-month"i &wordBoundary              { return "groupMonth"; }
 groupWeek               = "group-week"i &wordBoundary               { return "groupWeek"; }
-groupYear               = "group-year"i &wordBoundary               { return "groupYear" }
-groupQuarter            = "group-quarter"i &wordBoundary            { return "groupQuarter" }
+groupYear               = "group-year"i &wordBoundary               { return "groupYear"; }
+groupQuarter            = "group-quarter"i &wordBoundary            { return "groupQuarter"; }
 
 
 operator "operator"

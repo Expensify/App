@@ -588,8 +588,8 @@ function peg$parse(input, options) {
   var peg$f81 = function() { return "groupMerchant"; };
   var peg$f82 = function() { return "groupMonth"; };
   var peg$f83 = function() { return "groupWeek"; };
-  var peg$f84 = function() { return "groupYear" };
-  var peg$f85 = function() { return "groupQuarter" };
+  var peg$f84 = function() { return "groupYear"; };
+  var peg$f85 = function() { return "groupQuarter"; };
   var peg$f86 = function() { return "eq"; };
   var peg$f87 = function() { return "neq"; };
   var peg$f88 = function() { return "gte"; };

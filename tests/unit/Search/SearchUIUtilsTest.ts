@@ -18,8 +18,8 @@ import type {
     TransactionQuarterGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
-    TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
+    TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -33,6 +33,7 @@ import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -1074,6 +1075,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: false,
         isOneTransactionReport: true,
+        shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: '123456789',
         managerID: 18439984,
@@ -1175,6 +1177,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: true,
         isOneTransactionReport: true,
+        shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: '11111',
         managerID: 18439984,
@@ -1283,6 +1286,7 @@ const transactionReportGroupListItems = [
         formattedTo: 'Approver',
         hasVisibleViolations: false,
         isOneTransactionReport: false,
+        shouldShowStatusAsPending: false,
         isOwnPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         managerID: 1111111,
@@ -1463,6 +1467,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: false,
         isOneTransactionReport: true,
+        shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: reportID5,
         managerID: 18439984,
@@ -1861,62 +1866,6 @@ const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemT
         total: 120,
         groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT,
         formattedMerchant: merchantName2,
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-];
-
-const searchResultsGroupByWeek: OnyxTypes.SearchResults = {
-    data: {
-        personalDetailsList: {},
-        [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {
-            week: '2026-01-25',
-            count: 5,
-            currency: 'USD',
-            total: 250,
-        },
-        [`${CONST.SEARCH.GROUP_PREFIX}2025-12-28` as const]: {
-            week: '2025-12-28',
-            count: 3,
-            currency: 'USD',
-            total: 75,
-        },
-    },
-    search: {
-        count: 8,
-        currency: 'USD',
-        hasMoreResults: false,
-        hasResults: true,
-        offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-        total: 325,
-        isLoading: false,
-        type: 'expense',
-    },
-};
-
-// Note: formattedWeek uses DateUtils.getFormattedDateRangeForSearch which returns a date range format
-// For week starting 2026-01-25 (Sunday), it would format as "Jan 25 - Jan 31, 2026" (if same year)
-// or "Jan 25, 2026 - Feb 1, 2026" (if different year)
-// We'll use a placeholder that matches the actual format
-const transactionWeekGroupListItems: TransactionWeekGroupListItemType[] = [
-    {
-        week: '2026-01-25',
-        count: 5,
-        currency: 'USD',
-        total: 250,
-        groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-        formattedWeek: 'Jan 25 - Jan 31, 2026',
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-    {
-        week: '2025-12-28',
-        count: 3,
-        currency: 'USD',
-        total: 75,
-        groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-        formattedWeek: 'Dec 28, 2025 - Jan 3, 2026',
         transactions: [],
         transactionsQueryJSON: undefined,
     },
@@ -3702,6 +3651,36 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 })[0],
             ).toStrictEqual(transactionTagGroupListItems);
+        });
+
+        it('should unescape colons in tag names when grouping by tag', () => {
+            // Backend sends tags with escaped colons (e.g., 'Parent\: Child')
+            const escapedTagName = 'Parent\\: Child';
+            const dataWithEscapedTag: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}${escapedTagName}` as const]: {
+                    tag: escapedTagName,
+                    count: 1,
+                    currency: 'USD',
+                    total: 100,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithEscapedTag,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            }) as [TransactionTagGroupListItemType[], number];
+
+            // formattedTag should have unescaped colons for display
+            expect(result.at(0)?.formattedTag).toBe('Parent: Child');
+            // Original tag property should remain unchanged
+            expect(result.at(0)?.tag).toBe(escapedTagName);
         });
 
         it('should handle empty tag values correctly', () => {
@@ -5799,6 +5778,26 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getToFieldValueForTransaction(mockTransaction, iouReport, mockPersonalDetails, undefined);
             expect(result).toBeDefined();
+        });
+    });
+
+    describe('view autocomplete values', () => {
+        test('should include all view values (table, bar, line, pie)', () => {
+            const viewValues = Object.values(CONST.SEARCH.VIEW);
+            expect(viewValues).toContain('table');
+            expect(viewValues).toContain('bar');
+            expect(viewValues).toContain('line');
+            expect(viewValues).toContain('pie');
+            expect(viewValues).toHaveLength(4);
+        });
+
+        test('should correctly map view values to user-friendly values', () => {
+            const viewValues = Object.values(CONST.SEARCH.VIEW);
+            const userFriendlyValues = viewValues.map((value) => getUserFriendlyValue(value));
+
+            // All view values should be mapped (they may be the same or different)
+            expect(userFriendlyValues).toHaveLength(4);
+            expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
         });
     });
 });

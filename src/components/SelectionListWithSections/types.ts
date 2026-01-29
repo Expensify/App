@@ -39,8 +39,8 @@ import type {
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
-    SearchWeekGroup,
     SearchWithdrawalIDGroup,
+    SearchWeekGroup,
     SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -451,6 +451,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The date the report was exported */
         exported?: string;
+
+        /** Whether the status field should be shown in a pending state */
+        shouldShowStatusAsPending?: boolean;
 
         /**
          * Whether we should show the report year.

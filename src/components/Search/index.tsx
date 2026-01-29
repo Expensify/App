@@ -41,8 +41,8 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
-    adjustTimeRangeToDateFilters,
     createAndOpenSearchTransactionThread,
+    adjustTimeRangeToDateFilters,
     getColumnsToShow,
     getListItem,
     getSections,
@@ -62,8 +62,8 @@ import {
     isTransactionMonthGroupListItemType,
     isTransactionQuarterGroupListItemType,
     isTransactionTagGroupListItemType,
-    isTransactionWeekGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
+    isTransactionWeekGroupListItemType,
     isTransactionYearGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
@@ -433,11 +433,13 @@ function Search({
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
+            isOffline,
             allTransactionViolations: violations,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
         searchKey,
+        isOffline,
         exportReportActions,
         validGroupBy,
         isDataLoaded,
@@ -549,7 +551,7 @@ function Search({
 
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
                 // This ensures report-level selection persists when new transactions are added.
-                const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction: TransactionListItemType) => transaction.transactionID in selectedTransactions);
+                const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions);
 
                 for (const transactionItem of transactionGroup.transactions) {
                     const isSelected = transactionItem.transactionID in selectedTransactions;
@@ -995,16 +997,13 @@ function Search({
                 return;
             }
 
-            const transactionItem = item as TransactionListItemType;
-            const reportActionItem = item as ReportActionListItemType;
-
-            let reportID = transactionItem.reportID ?? reportActionItem.reportID;
-            if (isTransactionItem && transactionItem?.reportAction?.childReportID) {
-                const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                const isFromOneTransactionReport = isOneTransactionReport(transactionItem.report);
+            let reportID = item.reportID;
+            if (isTransactionItem && item?.reportAction?.childReportID) {
+                const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                const isFromOneTransactionReport = isOneTransactionReport(item.report);
 
                 if (isFromSelfDM || !isFromOneTransactionReport) {
-                    reportID = transactionItem?.reportAction?.childReportID;
+                    reportID = item?.reportAction?.childReportID;
                 }
             }
 
@@ -1020,9 +1019,8 @@ function Search({
             });
 
             if (isTransactionGroupListItemType(item)) {
-                const groupItem = item as TransactionGroupListItemType;
-                const firstTransaction = groupItem.transactions.at(0);
-                if (groupItem.isOneTransactionReport && firstTransaction && transactionPreviewData) {
+                const firstTransaction = item.transactions.at(0);
+                if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread(firstTransaction, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
                     } else {
@@ -1030,7 +1028,7 @@ function Search({
                     }
                 }
 
-                if (groupItem.transactions.length > 1) {
+                if (item.transactions.length > 1) {
                     markReportIDAsMultiTransactionExpense(reportID);
                 } else {
                     unmarkReportIDAsMultiTransactionExpense(reportID);
@@ -1041,7 +1039,7 @@ function Search({
             }
 
             if (isReportActionListItemType(item)) {
-                const reportActionID = reportActionItem.reportActionID;
+                const reportActionID = item.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
                 return;
             }
@@ -1049,7 +1047,7 @@ function Search({
             markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
+                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData, item?.reportAction?.childReportID);
             }
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
@@ -1266,6 +1264,7 @@ function Search({
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
+                    containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
                     title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
                     subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}

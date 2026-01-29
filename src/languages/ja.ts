@@ -2239,6 +2239,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${merchant} への ${amount}（${date}）`,
         },
+        csvCardDescription: 'CSVインポート',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -4911,6 +4912,13 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: '新しい取引の開始日を選択してください。その日以降のすべての取引を、すでに取り込んだものを除いて同期します。',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
+                workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースのカードフィードを読み込む際にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                feedCouldNotBeLoadedTitle: 'このフィードを読み込めませんでした',
+                feedCouldNotBeLoadedMessage: 'このフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                tryAgain: '再試行',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',
@@ -6322,7 +6330,7 @@ ${reportName}
                 title: '加盟店',
                 subtitle: '取引先ルールを設定して、経費が正しくコード化された状態で届くようにし、後処理を最小限に抑えましょう。',
                 addRule: '店舗ルールを追加',
-                ruleSummaryTitle: (merchantName: string) => `もし取引先に「${merchantName}」が含まれている場合`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `もし加盟店 ${isExactMatch ? '完全一致' : '含む'} 「${merchantName}」`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `支払先名を「${merchantName}」に変更`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `${fieldName} を「${fieldValue}」に更新`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `「${reimbursable ? '払い戻し対象' : '精算対象外'}」としてマーク`,
@@ -6330,7 +6338,6 @@ ${reportName}
                 addRuleTitle: 'ルールを追加',
                 expensesWith: '次の条件の経費について:',
                 applyUpdates: 'これらの更新を適用:',
-                merchantHint: '大文字小文字を区別しない「含む」一致で支払先名を照合する',
                 saveRule: 'ルールを保存',
                 confirmError: '支払先を入力し、少なくとも 1 つの更新を適用してください',
                 confirmErrorMerchant: '商人を入力してください',
@@ -6338,6 +6345,10 @@ ${reportName}
                 editRuleTitle: 'ルールを編集',
                 deleteRule: 'ルールを削除',
                 deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
+                matchType: '一致タイプ',
+                matchTypeContains: '含む',
+                matchTypeExact: '完全一致',
+                expensesExactlyMatching: '以下と完全一致する経費について:',
             },
         },
         planTypePage: {
@@ -8117,6 +8128,16 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             prompt: 'GPS距離の追跡を開始するには、デバイスの設定で位置情報へのアクセスを許可してください。',
         },
         fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
+    },
+    homePage: {
+        forYou: 'あなた向け',
+        announcements: 'お知らせ',
+        discoverSection: {
+            title: '発見',
+            menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
+            menuItemTitleAdmin: 'メンバーの招待方法、承認ワークフローの編集方法、会社カードの照合方法について学びましょう。',
+            menuItemDescription: '2 分で Expensify でできることを確認する',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
