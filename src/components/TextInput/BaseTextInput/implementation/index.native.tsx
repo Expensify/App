@@ -287,6 +287,7 @@ function BaseTextInput({
             <View style={[containerStyles]}>
                 <PressableWithoutFeedback
                     role={CONST.ROLE.PRESENTATION}
+                    accessible={false}
                     onPress={onPress}
                     tabIndex={-1}
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly

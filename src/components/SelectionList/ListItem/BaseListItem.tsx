@@ -47,6 +47,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
     shouldShowRightCaret = false,
+    hasInteractiveRightHandSideComponent = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -114,6 +115,7 @@ function BaseListItem<TItem extends ListItem>({
                 interactive={item.isInteractive}
                 accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
                 role={getButtonRole(true)}
+                accessible={!(rightHandSideComponent && hasInteractiveRightHandSideComponent)}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}

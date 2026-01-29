@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -7,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
-import {getButtonRole} from './Button/utils';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
@@ -45,16 +45,20 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
     }
 
     return (
-        <PressableWithoutFeedback
-            onPress={() => {
-                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
-            }}
+        <View
+            accessible={false}
             style={[styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}
-            isNested
-            accessibilityLabel={translate(`referralProgram.${referralContentType}.header`)}
-            role={getButtonRole(true)}
         >
-            <RenderHTML html={translate(`referralProgram.${referralContentType}.buttonText`)} />
+            <PressableWithoutFeedback
+                onPress={() => {
+                    Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
+                }}
+                style={styles.flex1}
+                accessibilityLabel={translate(`referralProgram.${referralContentType}.header`)}
+                role={CONST.ROLE.BUTTON}
+            >
+                <RenderHTML html={translate(`referralProgram.${referralContentType}.buttonText`)} />
+            </PressableWithoutFeedback>
             <Tooltip text={translate('common.close')}>
                 <PressableWithoutFeedback
                     onPress={handleDismissCallToAction}
@@ -73,7 +77,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                     />
                 </PressableWithoutFeedback>
             </Tooltip>
-        </PressableWithoutFeedback>
+        </View>
     );
 }
 

@@ -48,7 +48,9 @@ function BaseListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
+    hasInteractiveChildren = false,
 }: BaseListItemProps<TItem>) {
+    const calculatedAccessible = !rightHandSideComponent && !hasInteractiveChildren;
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -112,6 +114,7 @@ function BaseListItem<TItem extends ListItem>({
                 interactive={item.isInteractive}
                 accessibilityLabel={accessibilityLabel}
                 role={getButtonRole(true)}
+                accessible={calculatedAccessible}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}

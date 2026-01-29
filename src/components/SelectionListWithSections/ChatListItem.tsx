@@ -71,6 +71,7 @@ function ChatListItem<TItem extends ListItem>({
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             forwardedFSClass={fsClass}
+            hasInteractiveChildren
         >
             <ReportActionItem
                 allReports={allReports}

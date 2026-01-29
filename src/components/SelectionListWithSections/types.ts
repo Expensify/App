@@ -595,6 +595,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         testID?: string;
         /** Whether to show the default right hand side checkmark */
         shouldUseDefaultRightHandSideCheckmark?: boolean;
+        /** Whether children contain interactive elements (buttons, inputs, etc.) that need individual focus for accessibility */
+        hasInteractiveChildren?: boolean;
     };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &

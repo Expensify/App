@@ -235,6 +235,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
+            hasInteractiveChildren
             onFocus={onFocus}
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
