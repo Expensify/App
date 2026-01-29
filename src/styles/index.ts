@@ -1272,17 +1272,11 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'right',
         },
 
-        optionRowAmountMobileInputContainer: {
-            width: variables.splitExpenseAmountMobileWidth,
-        },
-
         optionRowPercentInputContainer: {
-            width: variables.splitExpensePercentageMobileWidth,
+            width: variables.splitExpensePercentageWidth,
         },
 
         optionRowPercentInput: {
-            width: variables.splitExpensePercentageWidth,
-            textAlign: 'right',
             marginRight: 2,
         },
 

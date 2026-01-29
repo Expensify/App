@@ -641,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: '新機能',
         month: '月',
         home: 'ホーム',
+        week: '週',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -2236,6 +2237,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${merchant} への ${amount}（${date}）`,
         },
+        csvCardDescription: 'CSVインポート',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -6932,6 +6934,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
+                [CONST.SEARCH.GROUP_BY.WEEK]: '週',
             },
             feed: 'フィード',
             withdrawalType: {
