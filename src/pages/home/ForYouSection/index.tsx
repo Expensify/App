@@ -6,6 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import WidgetContainer from '@components/WidgetContainer';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodos from '@hooks/useTodos';
@@ -21,6 +22,7 @@ function ForYouSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {reportCounts} = useTodos();
@@ -83,7 +85,7 @@ function ForYouSection() {
     };
 
     const renderTodoItems = () => (
-        <View style={[styles.flexColumn, styles.mb8, styles.mh8, styles.pv3, styles.gap6]}>
+        <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
             {submitCount > 0 && (
                 <BaseWidgetItem
                     icon={Expensicons.Send}

@@ -6062,6 +6062,14 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
+        getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+            flexDirection: 'column',
+            marginBottom: shouldUseNarrowLayout ? 20 : 32,
+            marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
+            paddingVertical: 12,
+            gap: 24,
+        }),
+
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
             const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
             const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
