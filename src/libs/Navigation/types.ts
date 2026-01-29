@@ -1401,6 +1401,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleID: string;
     };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_MATCH_TYPE]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT]: {
         policyID: string;
         ruleID: string;
@@ -1432,6 +1436,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
         policyID: string;
         ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;
@@ -1466,6 +1473,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         rateID: string;
         subRateID: string;
+    };
+    [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
+        policyID: string;
     };
     [SCREENS.DOMAIN.VERIFY]: {
         domainAccountID: number;
@@ -2634,6 +2644,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TIME_TRACKING]: {
         policyID: string;
     };
 };

@@ -126,7 +126,7 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
-            if (hasDynamicExternalWorkflow(snapshotPolicy)) {
+            if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
                 return;
             }
@@ -540,7 +540,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: true}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: true,
+                        pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+                    },
+                ]),
+            ),
         },
     ];
 
@@ -548,7 +556,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: false,
+                        pendingExpenseAction: null,
+                    },
+                ]),
+            ),
         },
     ];
 
@@ -568,7 +584,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: false,
+                        pendingExpenseAction: null,
+                    },
+                ]),
+            ),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,

@@ -99,6 +99,7 @@ import {
     getReportActionMessage,
     getReportActionText,
     getTrackExpenseActionableWhisper,
+    hasPendingDEWApprove,
     isActionableTrackExpense,
     isCreatedAction,
     isDeletedAction,
@@ -643,6 +644,7 @@ type CreateDistanceRequestInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
     shouldHandleNavigation?: boolean;
 };
@@ -3838,6 +3840,11 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: selfDMReport.reportID,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
                 value: {isOptimisticReport: true},
             },
@@ -5366,7 +5373,7 @@ function updateMoneyRequestDistance({
     }
 
     if (!distance) {
-        const recentServerValidatedWaypoints = deprecatedRecentWaypoints.filter((item) => !item.pendingAction);
+        const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
         onyxData?.failureData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
@@ -6706,7 +6713,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
 
-    const recentServerValidatedWaypoints = deprecatedRecentWaypoints.filter((item) => !item.pendingAction);
+    const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
@@ -7511,6 +7518,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        recentWaypoints = [],
         customUnitPolicyID,
         shouldHandleNavigation = true,
     } = distanceRequestInformation;
@@ -7728,7 +7736,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         };
     }
 
-    const recentServerValidatedWaypoints = deprecatedRecentWaypoints.filter((item) => !item.pendingAction);
+    const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
     onyxData?.failureData?.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
@@ -9466,7 +9474,12 @@ function getPayMoneyRequestParams({
     };
 }
 
-function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>, iouTransactions?: OnyxTypes.Transaction[]) {
+function canApproveIOU(
+    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
+    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+    iouTransactions?: OnyxTypes.Transaction[],
+) {
     // Only expense reports can be approved
     if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
         return false;
@@ -9474,6 +9487,11 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>, 
 
     const isOnSubmitAndClosePolicy = isSubmitAndClose(policy);
     if (isOnSubmitAndClosePolicy) {
+        return false;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
         return false;
     }
 
@@ -9609,7 +9627,11 @@ function canSubmitReport(
     );
 }
 
-function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, updatedIouReport: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {
+function getIOUReportActionToApproveOrPay(
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    updatedIouReport: OnyxEntry<OnyxTypes.Report>,
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
+): OnyxEntry<ReportAction> {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     return Object.values(chatReportActions).find((action) => {
@@ -9621,7 +9643,7 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policy = getPolicy(iouReport?.policyID);
         // Only show to the actual payer, exclude admins with bank account access
-        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy, undefined) || canApproveIOU(iouReport, policy);
+        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy, undefined) || canApproveIOU(iouReport, policy, reportMetadata);
         return action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton && !isDeletedAction(action);
     });
 }
@@ -9667,92 +9689,116 @@ function approveMoneyRequest(
     }
     const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID);
 
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const shouldAddOptimisticApproveAction = !isDEWPolicy || isOffline();
+
     const nextApproverAccountID = getNextApproverAccountID(expenseReport);
     const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
     const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticNextStepDeprecated = buildNextStepNew({
-        report: expenseReport,
-        policy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        predictedNextStatus,
-    });
-    const optimisticNextStep = buildOptimisticNextStep({
-        report: expenseReport,
-        policy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        predictedNextStatus,
-    });
+    const optimisticNextStepDeprecated = isDEWPolicy
+        ? null
+        : // eslint-disable-next-line @typescript-eslint/no-deprecated
+          buildNextStepNew({
+              report: expenseReport,
+              policy,
+              currentUserAccountIDParam,
+              currentUserEmailParam,
+              hasViolations,
+              isASAPSubmitBetaEnabled,
+              predictedNextStatus,
+          });
+    const optimisticNextStep = isDEWPolicy
+        ? null
+        : buildOptimisticNextStep({
+              report: expenseReport,
+              policy,
+              currentUserAccountIDParam,
+              currentUserEmailParam,
+              hasViolations,
+              isASAPSubmitBetaEnabled,
+              predictedNextStatus,
+          });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
-    const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-        value: {
-            [optimisticApprovedReportAction.reportActionID]: {
-                ...(optimisticApprovedReportAction as OnyxTypes.ReportAction),
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    const optimisticData: OnyxUpdate[] = [];
+
+    if (shouldAddOptimisticApproveAction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticApprovedReportAction.reportActionID]: {
+                    ...(optimisticApprovedReportAction as OnyxTypes.ReportAction),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
-        },
-    };
+        });
+    }
+
     const updatedExpenseReport = {
         ...expenseReport,
-        lastMessageText: getReportActionText(optimisticApprovedReportAction),
-        lastMessageHtml: getReportActionHtml(optimisticApprovedReportAction),
-        stateNum: predictedNextState,
-        statusNum: predictedNextStatus,
-        managerID,
-        nextStep: optimisticNextStep ?? undefined,
-        pendingFields: {
-            partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-        },
+        ...(shouldAddOptimisticApproveAction
+            ? {
+                  lastMessageText: getReportActionText(optimisticApprovedReportAction),
+                  lastMessageHtml: getReportActionHtml(optimisticApprovedReportAction),
+              }
+            : {}),
+        // For DEW policies, don't optimistically update stateNum, statusNum, managerID, or nextStep
+        // because DEW determines the actual workflow on the backend
+        ...(isDEWPolicy
+            ? {}
+            : {
+                  stateNum: predictedNextState,
+                  statusNum: predictedNextStatus,
+                  managerID,
+                  nextStep: optimisticNextStep ?? undefined,
+                  pendingFields: {
+                      partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                      nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                  },
+              }),
     };
-    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
+    optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: updatedExpenseReport,
-    };
+    });
 
-    let optimisticChatReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> | undefined;
     if (chatReport) {
-        optimisticChatReportData = {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
                 hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport, currentUserEmail, currentUserAccountIDParam, allTransactionViolations, undefined),
             },
-        };
+        });
     }
 
-    const optimisticNextStepData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-        value: optimisticNextStepDeprecated,
-    };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData, ...(optimisticChatReportData ? [optimisticChatReportData] : [])];
-
-    const successData: OnyxUpdate[] = [
-        {
+    if (!isDEWPolicy) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: optimisticNextStepDeprecated,
+        });
+    }
+
+    if (isDEWPolicy) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
             value: {
-                [optimisticApprovedReportAction.reportActionID]: {
-                    pendingAction: null,
-                },
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
             },
-        },
-        {
+        });
+    }
+
+    const successData: OnyxUpdate[] = [];
+
+    if (!isDEWPolicy) {
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
@@ -9761,29 +9807,37 @@ function approveMoneyRequest(
                     nextStep: null,
                 },
             },
-        },
-    ];
+        });
+    }
 
-    const failureData: OnyxUpdate[] = [
-        {
+    if (shouldAddOptimisticApproveAction) {
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
                 [optimisticApprovedReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                    pendingAction: null,
                 },
             },
-        },
+        });
+    }
+
+    if (isDEWPolicy) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
+            value: {
+                pendingExpenseAction: null,
+            },
+        });
+    }
+
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
                 hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
-                nextStep: expenseReport.nextStep ?? null,
-                pendingFields: {
-                    partial: null,
-                    nextStep: null,
-                },
             },
         },
         {
@@ -9792,6 +9846,54 @@ function approveMoneyRequest(
             value: expenseReportCurrentNextStepDeprecated ?? null,
         },
     ];
+
+    if (!isDEWPolicy) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                statusNum: expenseReport.statusNum,
+                stateNum: expenseReport.stateNum,
+                nextStep: expenseReport.nextStep ?? null,
+                pendingFields: {
+                    partial: null,
+                    nextStep: null,
+                },
+            },
+        });
+    }
+
+    if (shouldAddOptimisticApproveAction) {
+        if (isDEWPolicy) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                value: {
+                    [optimisticApprovedReportAction.reportActionID]: null,
+                },
+            });
+        } else {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                value: {
+                    [optimisticApprovedReportAction.reportActionID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                    },
+                },
+            });
+        }
+    }
+
+    if (isDEWPolicy) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`,
+            value: {
+                pendingExpenseAction: null,
+            },
+        });
+    }
 
     // Clear hold reason of all transactions if we approve all requests
     if (full && hasHeldExpenses) {
