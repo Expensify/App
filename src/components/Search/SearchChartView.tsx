@@ -104,7 +104,7 @@ type SearchChartViewProps = {
     queryJSON: SearchQueryJSON;
 
     /** The view type (bar, etc.) */
-    view: ChartView;
+    view: Exclude<ChartView, 'line' | 'pie'>
 
     /** The groupBy parameter */
     groupBy: SearchGroupBy;
@@ -119,7 +119,7 @@ type SearchChartViewProps = {
 /**
  * Map of chart view types to their corresponding chart components.
  */
-const CHART_VIEW_TO_COMPONENT: Record<ChartView, typeof SearchBarChart> = {
+const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'line' | 'pie'>, typeof SearchBarChart> = {
     [CONST.SEARCH.VIEW.BAR]: SearchBarChart,
 };
 

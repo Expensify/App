@@ -1251,7 +1251,8 @@ function Search({
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
-    const shouldShowChartView = view !== CONST.SEARCH.VIEW.TABLE && !!validGroupBy;
+    // Other charts are not implemented yet
+    const shouldShowChartView = view === CONST.SEARCH.VIEW.BAR && !!validGroupBy;
 
     if (shouldShowChartView) {
         return (
