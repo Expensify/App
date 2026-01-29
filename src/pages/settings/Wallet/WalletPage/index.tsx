@@ -21,6 +21,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -86,10 +87,10 @@ function WalletPage() {
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
+    const {showConfirmModal} = useConfirmModal();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
-    const [showConfirmDeleteCardModal, setShowConfirmDeleteCardModal] = useState(false);
     const [selectedCard, setSelectedCard] = useState<OnyxTypes.Card | undefined>(undefined);
     const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
@@ -245,6 +246,29 @@ function WalletPage() {
     const navigateToWalletOrTransferBalancePage = (source?: Source) => {
         Navigation.navigate(source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET ? ROUTES.SETTINGS_WALLET : ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
+
+    /**
+     * Show confirmation modal for deleting a personal card and delete it if confirmed
+     */
+    const confirmDeleteCard = useCallback(async () => {
+        if (!selectedCard?.cardID) {
+            return;
+        }
+
+        const isConfirmed = await showConfirmModal({
+            title: translate('walletPage.deleteCard'),
+            prompt: translate('walletPage.deleteCardConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+
+        if (isConfirmed) {
+            deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports});
+        }
+        setSelectedCard(undefined);
+    }, [selectedCard, showConfirmModal, translate, allTransactions, allReports]);
 
     useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader
@@ -439,12 +463,12 @@ function WalletPage() {
                       {
                           text: translate('common.delete'),
                           icon: icons.Trashcan,
-                          onSelected: () => setShowConfirmDeleteCardModal(true),
+                          onSelected: confirmDeleteCard,
                       },
                   ]
                 : []),
         ];
-    }, [bottomMountItem, icons.MoneySearch, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
+    }, [bottomMountItem, confirmDeleteCard, icons.MoneySearch, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
         return (
@@ -660,23 +684,6 @@ function WalletPage() {
                 shouldShowCancelButton
                 danger
                 onModalHide={resetSelectedPaymentMethodData}
-            />
-            <ConfirmModal
-                isVisible={showConfirmDeleteCardModal}
-                onConfirm={() => {
-                    if (selectedCard?.cardID) {
-                        deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports});
-                    }
-                    setShowConfirmDeleteCardModal(false);
-                }}
-                onCancel={() => setShowConfirmDeleteCardModal(false)}
-                title={translate('walletPage.deleteCard')}
-                prompt={translate('walletPage.deleteCardConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-                onModalHide={() => setSelectedCard(undefined)}
             />
         </ScreenWrapper>
     );
