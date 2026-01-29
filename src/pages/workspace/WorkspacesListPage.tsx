@@ -234,7 +234,6 @@ function WorkspacesListPage() {
     const isPendingDelete = isPendingDeletePolicy(policyToDelete);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicyToDelete);
     const hasWorkspaceDeleteErrorOffline = !!hasCardFeedOrExpensifyCard && !!isOffline;
-    const hasShowWorkspaceDeleteErrorOfflineRef = useRef(false);
 
     const confirmDelete = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
@@ -353,7 +352,6 @@ function WorkspacesListPage() {
     useEffect(() => {
         // Handle showing error modal when offline and error occurs
         if (isOffline && policyToDeleteLatestErrorMessage) {
-            hasShowWorkspaceDeleteErrorOfflineRef.current = true;
             setIsDeleteWorkspaceErrorModalOpen(true);
             return;
         }
@@ -366,9 +364,6 @@ function WorkspacesListPage() {
             return;
         }
 
-        if (hasShowWorkspaceDeleteErrorOfflineRef.current) {
-            return;
-        }
         setIsDeleteWorkspaceErrorModalOpen(true);
     }, [isOffline, policyToDeleteLatestErrorMessage, isPendingDelete, prevIsPendingDelete, isFocused, policyIDToDelete]);
 

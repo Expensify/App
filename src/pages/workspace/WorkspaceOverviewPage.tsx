@@ -240,7 +240,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const hasWorkspaceDeleteErrorOffline = !!hasCardFeedOrExpensifyCard && !!isOffline;
-    const hasShowWorkspaceDeleteErrorOfflineRef = useRef(false);
 
     const confirmDelete = useCallback(() => {
         if (!policyID || !policyName) {
@@ -313,7 +312,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     useEffect(() => {
         // Handle offline error display
         if (isOffline && policyLastErrorMessage) {
-            hasShowWorkspaceDeleteErrorOfflineRef.current = true;
             setIsDeleteWorkspaceErrorModalOpen(true);
             return;
         }
@@ -323,7 +321,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         if (!policyLastErrorMessage) {
-            if (hasShowWorkspaceDeleteErrorOfflineRef.current) {
+            if (prevIsPendingDelete && hasWorkspaceDeleteErrorOffline) {
                 return;
             }
             goBackFromInvalidPolicy();
@@ -331,7 +329,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
         setIsDeleteModalOpen(false);
         setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [isOffline, policyLastErrorMessage, isFocused, isPendingDelete, prevIsPendingDelete]);
+    }, [isOffline, policyLastErrorMessage, isFocused, isPendingDelete, prevIsPendingDelete, hasWorkspaceDeleteErrorOffline]);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
