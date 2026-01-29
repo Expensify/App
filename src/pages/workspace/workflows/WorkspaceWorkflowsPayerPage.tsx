@@ -60,6 +60,19 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policyID);
     const bankAccountID = policy?.achAccount?.bankAccountID;
+    console.log('policyID');
+    console.log(policyID);
+    console.log('policy?.achAccount');
+    console.log(policy?.achAccount);
+    console.log('bankAccountID');
+    console.log(bankAccountID);
+    console.log('bankAccountConnectedToWorkspace');
+    console.log(bankAccountConnectedToWorkspace);
+    const bankAccountInfo = bankAccountID ? bankAccountList?.[bankAccountID] : bankAccountConnectedToWorkspace;
+    console.log('bankAccountList');
+    console.log(bankAccountList);
+    console.log('bankAccountInfo');
+    console.log(bankAccountInfo);
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -190,19 +203,17 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         }
         const isSelectedPayerOwner = policy?.owner === selectedPayer;
         const isSelectedAlreadyAPayer = policy?.achAccount?.reimburser === selectedPayer;
-        const isAccountAlreadyShared = bankAccountConnectedToWorkspace?.accountData?.sharees ? bankAccountConnectedToWorkspace?.accountData.sharees.includes(selectedPayer) : false;
+        const isAccountAlreadyShared = bankAccountInfo?.accountData?.sharees ? bankAccountInfo?.accountData.sharees.includes(selectedPayer) : false;
         if (isAccountAlreadyShared || isSelectedPayerOwner || isSelectedAlreadyAPayer) {
             onButtonPress();
             return;
         }
-        if (bankAccountConnectedToWorkspace?.accountData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
+        if (bankAccountInfo?.accountData?.state === CONST.BANK_ACCOUNT.STATE.PENDING || bankAccountInfo?.accountData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
             setShowValidationModal(true);
             return;
         }
         const isAccountAlreadySharedWithCurrentUser =
-            bankAccountConnectedToWorkspace?.accountData?.sharees && currentUserPersonalDetails?.login
-                ? bankAccountConnectedToWorkspace?.accountData?.sharees.includes(currentUserPersonalDetails?.login)
-                : false;
+            bankAccountInfo?.accountData?.sharees && currentUserPersonalDetails?.login ? bankAccountInfo?.accountData?.sharees.includes(currentUserPersonalDetails?.login) : false;
         const isOwner = policy?.owner === currentUserPersonalDetails?.login;
         if (!isOwner && !isAccountAlreadyShared && !isAccountAlreadySharedWithCurrentUser) {
             setShowErrorModal(true);
