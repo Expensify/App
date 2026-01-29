@@ -164,6 +164,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
 
             const normalizedMerchant = merchantToMatch.toLowerCase();
             const currentMatchType = matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+            const defaultMatchType = CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
             return Object.entries(codingRules).some(([existingRuleID, rule]) => {
                 // Skip the rule being edited
@@ -176,7 +177,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                 }
 
                 const existingMerchant = rule.filters.right.toLowerCase();
-                const existingMatchType = rule.filters.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+                const existingMatchType = rule.filters.operator ?? defaultMatchType;
 
                 return existingMerchant === normalizedMerchant && existingMatchType === currentMatchType;
             });
