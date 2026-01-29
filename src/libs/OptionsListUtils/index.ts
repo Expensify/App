@@ -2346,7 +2346,7 @@ function getValidOptions(
             if (personalDetailLoginsToExclude[personalDetail.login]) {
                 return false;
             }
-            const personalDetailSearchTerms = getPersonalDetailSearchTerms(personalDetail);
+            const personalDetailSearchTerms = getPersonalDetailSearchTerms(personalDetail, currentUserAccountID);
             const searchText = deburr(`${personalDetailSearchTerms.join(' ')} ${personalDetail.text ?? ''}`.toLocaleLowerCase());
 
             return searchTerms.every((term) => searchText.includes(term));
