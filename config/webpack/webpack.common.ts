@@ -117,6 +117,15 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 isStaging: file === '.env.staging',
                 useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && ['.env.production', '.env.staging'].includes(file)),
             }),
+            // Inject <link rel="prefetch" /> into HTML
+            // This is not "webpackPrefetch: true" equivalent!
+            // By convention we use ".prefetch" suffix for such chunks
+            new PreloadWebpackPlugin({
+                rel: 'prefetch',
+                as: 'script',
+                fileWhitelist: [/(.+)\.prefetch(.*)\.js$/],
+                include: 'asyncChunks',
+            }),
             new PreloadWebpackPlugin({
                 rel: 'preload',
                 as: 'font',

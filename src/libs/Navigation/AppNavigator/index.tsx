@@ -1,29 +1,15 @@
-import React, {lazy, memo, Suspense} from 'react';
+import React, {lazy, Suspense} from 'react';
+import type {ComponentProps} from 'react';
 import lazyRetry from '@src/utils/lazyRetry';
 
-const AuthScreens = lazy(() => lazyRetry(() => import(/* webpackChunkName: "authScreens.prefetch" */ './AuthScreens')));
-const PublicScreens = lazy(() => lazyRetry(() => import(/* webpackMode: "eager" */ './PublicScreens')));
+const AppNavigator = lazy(() => lazyRetry(() => import(/* webpackChunkName: "appNavigator.prefetch" */ './AppNavigator')));
 
-type AppNavigatorProps = {
-    /** If we have an authToken this is true */
-    authenticated: boolean;
-};
-
-function AppNavigator({authenticated}: AppNavigatorProps) {
-    if (authenticated) {
-        // These are the protected screens and only accessible when an authToken is present
-        return (
-            <Suspense fallback={null}>
-                <AuthScreens />
-            </Suspense>
-        );
-    }
-
+function AppNavigatorLoader({authenticated}: ComponentProps<typeof AppNavigator>) {
     return (
         <Suspense fallback={null}>
-            <PublicScreens />
+            <AppNavigator authenticated={authenticated} />
         </Suspense>
     );
 }
 
-export default memo(AppNavigator);
+export default AppNavigatorLoader;
