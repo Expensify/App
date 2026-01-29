@@ -5,6 +5,7 @@ import nonPersonalAndWorkspaceCardListConfig from './configs/nonPersonalAndWorks
 import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPolicyID';
 import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
+import visibleReportActionsConfig from './configs/visibleReportActions';
 import type {OnyxDerivedValueConfig} from './types';
 
 /**
@@ -15,6 +16,7 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: reportAttributesConfig,
     [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: reportTransactionsAndViolationsConfig,
     [ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID]: outstandingReportsByPolicyIDConfig,
+    [ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS]: visibleReportActionsConfig,
     [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: nonPersonalAndWorkspaceCardListConfig,
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: cardFeedErrorsConfig,
 } as const satisfies {
