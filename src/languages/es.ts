@@ -6044,6 +6044,7 @@ ${amount} para ${merchant} - ${date}`,
                 matchType: 'Tipo de coincidencia',
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Coincide exactamente',
+                applyToExistingUnsubmittedExpenses: 'Aplicar a gastos existentes no enviados',
             },
             categoryRules: {
                 title: 'Reglas de categoría',

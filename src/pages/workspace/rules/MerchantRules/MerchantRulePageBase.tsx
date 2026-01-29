@@ -8,6 +8,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -87,6 +88,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [shouldShowError, setShouldShowError] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
 
     // Get the existing rule from the policy (for edit mode)
     const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;
@@ -160,7 +162,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             return;
         }
 
-        setPolicyCodingRule(policyID, form, policy, ruleID, false);
+        setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
         Navigation.goBack();
     };
 
@@ -283,14 +285,26 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     enabledWhenOffline
                     shouldRenderFooterAboveSubmit
                     footerContent={
-                        isEditing ? (
-                            <Button
-                                text={translate('workspace.rules.merchantRules.deleteRule')}
-                                onPress={() => setIsDeleteModalVisible(true)}
-                                style={[styles.mb4]}
-                                large
-                            />
-                        ) : null
+                        <>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}>
+                                <Text style={[styles.textNormal]}>
+                                    {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                                </Text>
+                                <Switch
+                                    accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
+                                    isOn={shouldUpdateMatchingTransactions}
+                                    onToggle={setShouldUpdateMatchingTransactions}
+                                />
+                            </View>
+                            {isEditing && (
+                                <Button
+                                    text={translate('workspace.rules.merchantRules.deleteRule')}
+                                    onPress={() => setIsDeleteModalVisible(true)}
+                                    style={[styles.mb4]}
+                                    large
+                                />
+                            )}
+                        </>
                     }
                 />
                 {isEditing && (
