@@ -9,6 +9,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useAncestors from '@hooks/useAncestors';
+import resolveSuggestedFollowup from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -2092,6 +2093,42 @@ describe('actions/Report', () => {
         });
     });
 
+    it('should create the empty report with draft status if submission is instant with approval disabled', async () => {
+        const accountID = 1234;
+        const policyID = '5678';
+        // Given a policy with instant submission and approval disabled
+        const policy: OnyxTypes.Policy = {
+            ...createRandomPolicy(Number(policyID)),
+            isPolicyExpenseChatEnabled: true,
+            type: CONST.POLICY.TYPE.TEAM,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        };
+        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+        if (parentReport?.reportID) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`, parentReport);
+        }
+
+        // When create new report
+        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy);
+
+        await waitForBatchedUpdates();
+        // Then the report's status should be draft.
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportData.reportID}`,
+                callback: (report) => {
+                    Onyx.disconnect(connection);
+                    expect(report?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                    expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+
+                    resolve();
+                },
+            });
+        });
+    });
+
     it('should add the report preview action to the chat snapshot when it is created', async () => {
         jest.spyOn(require('@src/libs/SearchQueryUtils'), 'getCurrentSearchQueryJSON').mockImplementationOnce(
             () =>
@@ -2227,7 +2264,11 @@ describe('actions/Report', () => {
         const currentUserAccountID = 1;
         it('should not call UpdateRoomDescription API if the description is not changed', async () => {
             global.fetch = TestHelper.getGlobalFetchMock();
-            Report.updateDescription('1', '<h1>test</h1>', '# test', currentUserAccountID);
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                description: '<h1>test</h1>',
+            };
+            Report.updateDescription(report, '# test', currentUserAccountID);
 
             await waitForBatchedUpdates();
 
@@ -2244,7 +2285,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             mockFetch?.fail?.();
-            Report.updateDescription('1', '<h1>test</h1>', '# test1', currentUserAccountID);
+            Report.updateDescription(report, '# test1', currentUserAccountID);
 
             await waitForBatchedUpdates();
             let updateReport: OnyxEntry<OnyxTypes.Report>;
@@ -2261,6 +2302,7 @@ describe('actions/Report', () => {
     });
 
     describe('deleteAppReport', () => {
+        const currentUserAccountID = 1;
         it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
             // Given an expense report with CREATE, TRACK, and PAY of IOU actions
             const reportID = '1';
@@ -2304,7 +2346,7 @@ describe('actions/Report', () => {
             });
 
             // When deleting the expense report
-            Report.deleteAppReport(reportID, '', {}, {}, {});
+            Report.deleteAppReport(reportID, '', currentUserAccountID, {}, {}, {});
             await waitForBatchedUpdates();
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
@@ -2323,7 +2365,6 @@ describe('actions/Report', () => {
         });
 
         it('should not reset the chatReport hasOutstandingChildRequest if there is another outstanding report', async () => {
-            const currentUserAccountID = 1;
             const fakePolicy: OnyxTypes.Policy = {
                 ...createRandomPolicy(6),
                 role: 'admin',
@@ -2403,6 +2444,7 @@ describe('actions/Report', () => {
             Report.deleteAppReport(
                 expenseReport1.reportID,
                 '',
+                currentUserAccountID,
                 {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
                 },
@@ -3696,7 +3738,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.resolveSuggestedFollowup(report, undefined, reportAction, 'test question', CONST.DEFAULT_TIME_ZONE);
+            resolveSuggestedFollowup(report, undefined, reportAction, 'test question', CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // The report action should remain unchanged (no followup-list to resolve)
@@ -3724,7 +3766,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.resolveSuggestedFollowup(report, undefined, reportAction, 'How do I set up QuickBooks?', CONST.DEFAULT_TIME_ZONE);
+            resolveSuggestedFollowup(report, undefined, reportAction, 'How do I set up QuickBooks?', CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected

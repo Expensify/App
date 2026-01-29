@@ -154,6 +154,25 @@ type DomainSettings = {
     };
 };
 
+/** Card feeds status */
+type CardFeedsStatus = {
+    /** Whether we are loading the data via the API */
+    isLoading?: boolean;
+
+    /** Collection of errors coming from BE */
+    errors?: OnyxCommon.Errors;
+};
+
+/**
+ * Collection of card feeds status by domain ID
+ */
+type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
+
+/**
+ * Collection of card feeds status by domain ID
+ */
+type WorkspaceCardFeedsStatus = Record<CompanyCardFeed, CardFeedsStatus>;
+
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
@@ -167,6 +186,9 @@ type CardFeeds = {
         /** Account details */
         oAuthAccountDetails?: Partial<Record<CompanyCardFeed, DirectCardFeedData>>;
 
+        /** Collection of card feeds status by domain ID */
+        cardFeedsStatus?: WorkspaceCardFeedsStatus;
+
         /** Email address of the technical contact for the domain */
         technicalContactEmail?: string;
 
@@ -176,10 +198,8 @@ type CardFeeds = {
         /** Whether 2FA is required for all members */
         twoFactorAuthRequired?: boolean;
     };
-
-    /** Whether we are loading the data via the API */
-    isLoading?: boolean;
-} & DomainSettings;
+} & CardFeedsStatus &
+    DomainSettings;
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
@@ -252,6 +272,9 @@ type CombinedCardFeed = CustomCardFeedData &
 
         /** Feed name */
         feed: CompanyCardFeedWithNumber;
+
+        /** Card feed status */
+        status?: CardFeedsStatus;
     };
 
 /** Card feeds combined by domain ID into one object */
@@ -267,6 +290,9 @@ export type {
     DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
+    CardFeedsStatus,
+    CardFeedsStatusByDomainID,
+    WorkspaceCardFeedsStatus,
     CompanyFeeds,
     CompanyCardFeedWithDomainID,
     CustomCardFeedData,

@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -643,6 +643,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nouvelle fonctionnalité',
         month: 'Mois',
         home: 'Accueil',
+        week: 'Semaine',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -2255,6 +2256,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} pour ${merchant} - ${date}`,
         },
+        csvCardDescription: 'Importation CSV',
     },
     workflowsPage: {
         workflowTitle: 'Dépenses',
@@ -4955,7 +4957,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             assign: 'Assigner',
             assignCardFailedError: 'L’attribution de la carte a échoué.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription:
+                'Choisissez une nouvelle date de début des transactions. Nous synchroniserons toutes les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
             unassignCardFailedError: 'Échec de la désaffectation de la carte.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de carte',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Une erreur s’est produite lors du chargement des flux de cartes de l’espace de travail. Veuillez réessayer ou contacter votre administrateur.',
+                feedCouldNotBeLoadedTitle: 'Impossible de charger ce flux',
+                feedCouldNotBeLoadedMessage: 'Une erreur s’est produite lors du chargement de ce flux. Veuillez réessayer ou contacter votre administrateur.',
+                tryAgain: 'Réessayer',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',
@@ -5301,7 +5313,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Règles',
                 subtitle: 'Exigez des reçus, signalez les dépenses élevées, et plus encore.',
             },
-            timeTracking: {title: 'Heure', subtitle: 'Définissez un taux horaire facturable pour que les employés soient rémunérés pour leur temps.'},
+            timeTracking: {
+                title: 'Heure',
+                subtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
+                defaultHourlyRate: 'Taux horaire par défaut',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -6390,7 +6406,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 title: 'Commerçant',
                 subtitle: 'Définissez les règles de marchand afin que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
                 addRule: 'Ajouter une règle de commerçant',
-                ruleSummaryTitle: (merchantName: string) => `Si le commerçant contient « ${merchantName} »`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Si le commerçant ${isExactMatch ? 'correspond exactement' : 'contient'} « ${merchantName} »`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Renommer le marchand en « ${merchantName} »`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Mettre à jour ${fieldName} sur « ${fieldValue} »`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marquer comme « ${reimbursable ? 'remboursable' : 'non remboursable'} »`,
@@ -6398,7 +6414,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 addRuleTitle: 'Ajouter une règle',
                 expensesWith: 'Pour les dépenses avec :',
                 applyUpdates: 'Appliquer ces mises à jour :',
-                merchantHint: 'Faire correspondre un nom de commerçant avec une correspondance « contient » insensible à la casse',
                 saveRule: 'Enregistrer la règle',
                 confirmError: 'Saisissez un marchand et appliquez au moins une mise à jour',
                 confirmErrorMerchant: 'Veuillez saisir le commerçant',
@@ -6406,6 +6421,14 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
+                matchType: 'Type de correspondance',
+                matchTypeContains: 'Contient',
+                matchTypeExact: 'Correspond exactement',
+                expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
+                duplicateRuleTitle: 'Une règle de commerçant similaire existe déjà',
+                duplicateRulePrompt: (merchantName: string) => `Voulez-vous enregistrer une nouvelle règle pour « ${merchantName} » même si vous en avez déjà une existante ?`,
+                saveAnyway: 'Enregistrer quand même',
+                applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
             },
         },
         planTypePage: {
@@ -6945,6 +6968,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
         topCategories: 'Catégories principales',
+        topMerchants: 'Principaux commerçants',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             approve: 'Approuver',
@@ -7007,8 +7031,10 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
             },
             feed: 'Flux',
             withdrawalType: {
@@ -7030,6 +7056,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             accessPlaceHolder: 'Ouvrir pour plus de détails',
         },
         noCategory: 'Aucune catégorie',
+        noMerchant: 'Aucun commerçant',
         noTag: 'Aucune étiquette',
         expenseType: 'Type de dépense',
         withdrawalType: 'Type de retrait',
@@ -7185,7 +7212,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connecté à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'a quitté la discussion',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `La connexion à ${feedName} est rompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>`,
+                    `La connexion à ${feedName} est rompue. Pour rétablir l'importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `la connexion Plaid à votre compte bancaire professionnel est interrompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> pour continuer à utiliser vos cartes Expensify.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `le compte bancaire professionnel ${maskedBankAccountNumber} a été automatiquement verrouillé en raison d’un problème lié soit au remboursement, soit au règlement de la carte Expensify. Veuillez corriger le problème dans vos <a href="${linkURL}">paramètres d’espace de travail</a>.`,
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
@@ -8215,6 +8246,16 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour lancer le suivi de distance GPS.',
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
+    },
+    homePage: {
+        forYou: 'Pour vous',
+        announcements: 'Annonces',
+        discoverSection: {
+            title: 'Découvrir',
+            menuItemTitleNonAdmin: 'Découvrez comment créer des dépenses et soumettre des rapports.',
+            menuItemTitleAdmin: 'Apprenez à inviter des membres, à modifier les circuits d’approbation et à rapprocher les cartes de l’entreprise.',
+            menuItemDescription: 'Découvrez ce qu’Expensify peut faire en 2 minutes',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
