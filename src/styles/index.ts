@@ -928,6 +928,24 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        actionableItemButton: {
+            paddingTop: 8,
+            paddingBottom: 8,
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            borderColor: theme.border,
+            alignItems: 'flex-start',
+            borderRadius: variables.componentBorderRadiusMedium,
+        },
+
+        actionableItemButtonBackgroundHovered: {
+            borderColor: theme.buttonPressedBG,
+        },
+
+        actionableItemButtonHovered: {
+            borderWidth: 1,
+        },
+
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
         },
