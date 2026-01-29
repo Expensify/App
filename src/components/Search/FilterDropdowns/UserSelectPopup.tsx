@@ -1,4 +1,3 @@
-import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -7,6 +6,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -44,7 +44,8 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const initialSelectedOptions = useMemo(() => {
@@ -99,10 +100,10 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             }
 
             // Put the current user at the top of the list
-            if (a.accountID === accountID) {
+            if (a.accountID === currentUserAccountID) {
                 return -1;
             }
-            if (b.accountID === accountID) {
+            if (b.accountID === currentUserAccountID) {
                 return 1;
             }
             return 0;
@@ -113,7 +114,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             keyForList: option.keyForList ?? option.login ?? '',
         }));
         return combinedOptionsWithKeyForList;
-    }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, accountID]);
+    }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, currentUserAccountID]);
 
     const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
