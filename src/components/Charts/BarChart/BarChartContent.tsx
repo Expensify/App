@@ -6,8 +6,9 @@ import Animated, {useSharedValue} from 'react-native-reanimated';
 import type {ChartBounds, PointsArray} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ChartTooltip from '@components/Charts/ChartTooltip';
+import {getChartColor} from '@components/Charts/chartColors';
 import ChartHeader from '@components/Charts/ChartHeader';
+import ChartTooltip from '@components/Charts/ChartTooltip';
 import {
     BAR_INNER_PADDING,
     BAR_ROUNDED_CORNERS,
@@ -25,7 +26,6 @@ import {
 } from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {getChartColor} from '@components/Charts/chartColors';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout} from '@components/Charts/hooks';
 import type {BarChartProps} from '@components/Charts/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';

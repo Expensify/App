@@ -31,6 +31,7 @@ import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -1072,6 +1073,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: false,
         isOneTransactionReport: true,
+        shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: '123456789',
         managerID: 18439984,
@@ -1173,6 +1175,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: true,
         isOneTransactionReport: true,
+        shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: '11111',
         managerID: 18439984,
@@ -1281,6 +1284,7 @@ const transactionReportGroupListItems = [
         formattedTo: 'Approver',
         hasVisibleViolations: false,
         isOneTransactionReport: false,
+        shouldShowStatusAsPending: false,
         isOwnPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
         managerID: 1111111,
@@ -1461,6 +1465,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: false,
         isOneTransactionReport: true,
+        shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: reportID5,
         managerID: 18439984,
@@ -3423,6 +3428,36 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
                 })[0],
             ).toStrictEqual(transactionTagGroupListItems);
+        });
+
+        it('should unescape colons in tag names when grouping by tag', () => {
+            // Backend sends tags with escaped colons (e.g., 'Parent\: Child')
+            const escapedTagName = 'Parent\\: Child';
+            const dataWithEscapedTag: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}${escapedTagName}` as const]: {
+                    tag: escapedTagName,
+                    count: 1,
+                    currency: 'USD',
+                    total: 100,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithEscapedTag,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            }) as [TransactionTagGroupListItemType[], number];
+
+            // formattedTag should have unescaped colons for display
+            expect(result.at(0)?.formattedTag).toBe('Parent: Child');
+            // Original tag property should remain unchanged
+            expect(result.at(0)?.tag).toBe(escapedTagName);
         });
 
         it('should handle empty tag values correctly', () => {
@@ -5520,6 +5555,26 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getToFieldValueForTransaction(mockTransaction, iouReport, mockPersonalDetails, undefined);
             expect(result).toBeDefined();
+        });
+    });
+
+    describe('view autocomplete values', () => {
+        test('should include all view values (table, bar, line, pie)', () => {
+            const viewValues = Object.values(CONST.SEARCH.VIEW);
+            expect(viewValues).toContain('table');
+            expect(viewValues).toContain('bar');
+            expect(viewValues).toContain('line');
+            expect(viewValues).toContain('pie');
+            expect(viewValues).toHaveLength(4);
+        });
+
+        test('should correctly map view values to user-friendly values', () => {
+            const viewValues = Object.values(CONST.SEARCH.VIEW);
+            const userFriendlyValues = viewValues.map((value) => getUserFriendlyValue(value));
+
+            // All view values should be mapped (they may be the same or different)
+            expect(userFriendlyValues).toHaveLength(4);
+            expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
         });
     });
 });
