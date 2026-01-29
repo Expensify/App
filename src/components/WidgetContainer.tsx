@@ -25,11 +25,14 @@ type WidgetContainerProps = {
     /** The height of the icon. */
     iconHeight?: number;
 
+    /** The fill color of the icon */
+    iconFill?: string;
+
     /** The content to display inside the widget container */
     children: ReactNode;
 };
 
-function WidgetContainer({children, icon, title, titleColor, iconWidth = variables.iconSizeNormal, iconHeight = variables.iconSizeNormal}: WidgetContainerProps) {
+function WidgetContainer({children, icon, title, titleColor, iconWidth = variables.iconSizeNormal, iconHeight = variables.iconSizeNormal, iconFill}: WidgetContainerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -38,11 +41,12 @@ function WidgetContainer({children, icon, title, titleColor, iconWidth = variabl
         <View style={styles.widgetContainer}>
             <View style={[styles.flexRow, styles.alignItemsStart, styles.mb5, shouldUseNarrowLayout ? styles.mh5 : styles.mh8, shouldUseNarrowLayout ? styles.mt5 : styles.mt8]}>
                 {!!icon && (
-                    <View style={[styles.flexGrow0, styles.flexShrink0]}>
+                    <View style={[styles.flexGrow0, styles.flexShrink0, {marginRight: 11}]}>
                         <Icon
                             src={icon}
                             width={iconWidth}
                             height={iconHeight}
+                            fill={iconFill}
                         />
                     </View>
                 )}

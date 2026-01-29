@@ -6,22 +6,19 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
+import TimeSensitiveSection from './TimeSensitiveSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayLHB = !shouldUseNarrowLayout;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
 
     // confirmReadyToOpenApp must be called after HomePage mounts
     // to make sure everything loads properly
@@ -56,9 +53,11 @@ function HomePage() {
                 addBottomSafeAreaPadding
             >
                 <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
+                    {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
                     <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
+                        <TimeSensitiveSection />
                         <ForYouSection />
-                        {!isSelfTourViewed && <DiscoverSection />}
+                        <DiscoverSection />
                     </View>
                     <View style={styles.homePageRightColumn(shouldUseNarrowLayout)} />
                 </View>

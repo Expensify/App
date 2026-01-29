@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 
 const MAX_NUMBER_OF_LINES_TITLE = 4;
 
@@ -20,11 +21,16 @@ function DiscoverSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
     const styles = useThemeStyles();
 
     const handlePress = () => {
         Linking.openURL(getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin));
     };
+
+    if (isSelfTourViewed) {
+        return null;
+    }
 
     return (
         <WidgetContainer title={translate('homePage.discoverSection.title')}>
