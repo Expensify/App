@@ -3556,6 +3556,12 @@ function getDynamicExternalWorkflowRoutedMessage(
     return translate('iou.routedDueToDEW', {to: getOriginalMessage(action)?.to ?? ''});
 }
 
+function getSettlementAccountLockedMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED>) ?? {maskedBankAccountNumber: '', policyID: ''};
+    const workspaceSettingsURL = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(originalMessage.policyID)}`;
+    return translate('report.actions.type.settlementAccountLocked', originalMessage, workspaceSettingsURL);
+}
+
 function isCardIssuedAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<
@@ -3995,6 +4001,7 @@ export {
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,
     getReportActionActorAccountID,
+    getSettlementAccountLockedMessage,
     stripFollowupListFromHtml,
 };
 
