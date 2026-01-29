@@ -29,7 +29,7 @@ function buildSubstitutionsMap(
     personalDetails: PersonalDetailsList | undefined,
     reports: OnyxCollection<Report>,
     allTaxRates: Record<string, string[]>,
-    cardList: CardList,
+    cardList: CardList | undefined,
     cardFeeds: OnyxCollection<CardFeeds>,
     policies: OnyxCollection<Policy>,
     currentUserAccountID: number,
