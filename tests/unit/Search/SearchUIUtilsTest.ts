@@ -3304,6 +3304,36 @@ describe('SearchUIUtils', () => {
             ).toStrictEqual(transactionTagGroupListItems);
         });
 
+        it('should unescape colons in tag names when grouping by tag', () => {
+            // Backend sends tags with escaped colons (e.g., 'Parent\: Child')
+            const escapedTagName = 'Parent\\: Child';
+            const dataWithEscapedTag: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}${escapedTagName}` as const]: {
+                    tag: escapedTagName,
+                    count: 1,
+                    currency: 'USD',
+                    total: 100,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithEscapedTag,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            }) as [TransactionTagGroupListItemType[], number];
+
+            // formattedTag should have unescaped colons for display
+            expect(result.at(0)?.formattedTag).toBe('Parent: Child');
+            // Original tag property should remain unchanged
+            expect(result.at(0)?.tag).toBe(escapedTagName);
+        });
+
         it('should handle empty tag values correctly', () => {
             const dataWithEmptyTag: OnyxTypes.SearchResults['data'] = {
                 personalDetailsList: {},

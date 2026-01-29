@@ -87,7 +87,16 @@ import interceptAnonymousUser from './interceptAnonymousUser';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, getSubmitToAccountID, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    canSendInvoice,
+    getCleanedTagName,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
+    getPolicy,
+    getSubmitToAccountID,
+    isPaidGroupPolicy,
+    isPolicyPayer,
+} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -2349,7 +2358,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
             // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
             const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
-            const formattedTag = isEmptyTag ? translate('search.noTag') : rawTag;
+            const formattedTag = isEmptyTag ? translate('search.noTag') : getCleanedTagName(rawTag);
 
             tagSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.TAG,
