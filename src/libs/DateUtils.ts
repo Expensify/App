@@ -917,6 +917,25 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
 };
 
 /**
+ * Convert a date to UTC by taking midnight (00:00:00) in the user's local timezone and expressing it as a UTC timestamp
+ */
+
+const normalizeDateToStartOfDay = (fromDate: string): string => {
+    const localDate = parse(fromDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
+    const midnightLocal = startOfDay(localDate);
+    return getDBTime(midnightLocal.valueOf());
+};
+
+/**
+ * Convert a date to UTC by taking end of day (23:59:59) in the user's local timezone and expressing it as a UTC timestamp
+ */
+const normalizeDateToEndOfDay = (thruDate: string): string => {
+    const localDate = parse(thruDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
+    const endOfDayLocal = endOfDay(localDate);
+    return getDBTime(endOfDayLocal.valueOf());
+};
+
+/**
  * Returns the start and end dates of a month in the format yyyy-MM-dd.
  * @param year - Year (e.g., 2025)
  * @param month - Month (1-12, where 1 is January)
@@ -1002,6 +1021,8 @@ const DateUtils = {
     getFormattedSplitDateRange,
     isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
+    normalizeDateToStartOfDay,
+    normalizeDateToEndOfDay,
     getMonthDateRange,
     isDateStringInMonth,
 };
