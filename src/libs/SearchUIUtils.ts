@@ -43,10 +43,12 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import type {ThemeColors} from '@styles/theme/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -165,6 +167,8 @@ type TransactionMerchantGroupSorting = ColumnSortMapping<TransactionMerchantGrou
 type TransactionTagGroupSorting = ColumnSortMapping<TransactionTagGroupListItemType>;
 type TransactionMonthGroupSorting = ColumnSortMapping<TransactionMonthGroupListItemType>;
 type TransactionWeekGroupSorting = ColumnSortMapping<TransactionWeekGroupListItemType>;
+type TransactionYearGroupSorting = ColumnSortMapping<TransactionYearGroupListItemType>;
+type TransactionQuarterGroupSorting = ColumnSortMapping<TransactionQuarterGroupListItemType>;
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
@@ -280,6 +284,16 @@ const transactionMonthGroupColumnNamesToSortingProperty: TransactionMonthGroupSo
 
 const transactionWeekGroupColumnNamesToSortingProperty: TransactionWeekGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]: 'week' as const,
+    ...transactionGroupBaseSortingProperties,
+};
+
+const transactionYearGroupColumnNamesToSortingProperty: TransactionYearGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR]: 'sortKey' as const,
+    ...transactionGroupBaseSortingProperties,
+};
+
+const transactionQuarterGroupColumnNamesToSortingProperty: TransactionQuarterGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER]: 'sortKey' as const,
     ...transactionGroupBaseSortingProperties,
 };
 
@@ -994,6 +1008,14 @@ function isTransactionMonthGroupListItemType(item: ListItem): item is Transactio
 
 function isTransactionWeekGroupListItemType(item: ListItem): item is TransactionWeekGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK;
+}
+
+function isTransactionYearGroupListItemType(item: ListItem): item is TransactionYearGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR;
+}
+
+function isTransactionQuarterGroupListItemType(item: ListItem): item is TransactionQuarterGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER;
 }
 
 /**
@@ -2478,6 +2500,93 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
 }
 
 /**
+ * Returns sections for year-grouped search results.
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionYearGroupListItemType[], number] {
+    const yearSections: Record<string, TransactionYearGroupListItemType> = {};
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const yearGroup = data[key];
+            // Check if this is a year group by checking for year property
+            if (!('year' in yearGroup) || typeof yearGroup.year !== 'number') {
+                continue;
+            }
+            let transactionsQueryJSON: SearchQueryJSON | undefined;
+            const yearStart = `${yearGroup.year}-01-01`;
+            const yearEnd = `${yearGroup.year}-12-31`;
+            if (queryJSON && yearGroup.year !== undefined) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: yearStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: yearEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                transactionsQueryJSON = buildSearchQueryJSON(newQuery);
+            }
+            const formattedYear = String(yearGroup.year);
+
+            yearSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
+                transactions: [],
+                transactionsQueryJSON,
+                ...yearGroup,
+                formattedYear,
+                sortKey: yearGroup.year,
+            };
+        }
+    }
+
+    const yearSectionsValues = Object.values(yearSections);
+    return [yearSectionsValues, yearSectionsValues.length];
+}
+
+function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionQuarterGroupListItemType[], number] {
+    const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
+    for (const key in data) {
+        if (isGroupEntry(key)) {
+            const quarterGroup = data[key];
+            // Check if this is a quarter group by checking for year and quarter properties
+            if (!('year' in quarterGroup) || typeof quarterGroup.year !== 'number' || !('quarter' in quarterGroup) || typeof quarterGroup.quarter !== 'number') {
+                continue;
+            }
+            let transactionsQueryJSON: SearchQueryJSON | undefined;
+            const {start: quarterStart, end: quarterEnd} = DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter);
+            if (queryJSON && quarterGroup.year !== undefined && quarterGroup.quarter !== undefined) {
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: quarterStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: quarterEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                transactionsQueryJSON = buildSearchQueryJSON(newQuery);
+            }
+            const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter);
+
+            quarterSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                transactions: [],
+                transactionsQueryJSON,
+                ...quarterGroup,
+                formattedQuarter,
+                sortKey: quarterGroup.year * 10 + quarterGroup.quarter, // Sort by year*10 + quarter (e.g., 20241, 20242, etc.)
+            };
+        }
+    }
+
+    const quarterSectionsValues = Object.values(quarterSections);
+    return [quarterSectionsValues, quarterSectionsValues.length];
+}
+
+/**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
 function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
@@ -2560,6 +2669,10 @@ function getSections({
                 return getMonthSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.WEEK:
                 return getWeekSections(data, queryJSON);
+            case CONST.SEARCH.GROUP_BY.YEAR:
+                return getYearSections(data, queryJSON);
+            case CONST.SEARCH.GROUP_BY.QUARTER:
+                return getQuarterSections(data, queryJSON);
         }
     }
 
@@ -2609,6 +2722,10 @@ function getSortedSections(
                 return getSortedMonthData(data as TransactionMonthGroupListItemType[], localeCompare, sortBy, sortOrder);
             case CONST.SEARCH.GROUP_BY.WEEK:
                 return getSortedWeekData(data as TransactionWeekGroupListItemType[], localeCompare, sortBy, sortOrder);
+            case CONST.SEARCH.GROUP_BY.YEAR:
+                return getSortedYearData(data as TransactionYearGroupListItemType[], localeCompare, sortBy, sortOrder);
+            case CONST.SEARCH.GROUP_BY.QUARTER:
+                return getSortedQuarterData(data as TransactionQuarterGroupListItemType[], localeCompare, sortBy, sortOrder);
         }
     }
 
@@ -3019,6 +3136,19 @@ function getSortedWeekData(data: TransactionWeekGroupListItemType[], localeCompa
 }
 
 /**
+ * Sorts year group data based on a specified column and sort order.
+ */
+function getSortedYearData(data: TransactionYearGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    const defaultComparator = (a: TransactionYearGroupListItemType, b: TransactionYearGroupListItemType) => a.year - b.year;
+    return getSortedData(data, localeCompare, transactionYearGroupColumnNamesToSortingProperty, defaultComparator, sortBy, sortOrder);
+}
+
+function getSortedQuarterData(data: TransactionQuarterGroupListItemType[], localeCompare: LocaleContextProps['localeCompare'], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    const defaultComparator = (a: TransactionQuarterGroupListItemType, b: TransactionQuarterGroupListItemType) => a.sortKey - b.sortKey;
+    return getSortedData(data, localeCompare, transactionQuarterGroupColumnNamesToSortingProperty, defaultComparator, sortBy, sortOrder);
+}
+
+/**
  * @private
  * Sorts report actions sections based on a specified column and sort order.
  */
@@ -3076,7 +3206,13 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
         case CONST.SEARCH.GROUP_BY.TAG:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG);
         case CONST.SEARCH.GROUP_BY.MONTH:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH);
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH) as SearchCustomColumnIds[];
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK) as SearchCustomColumnIds[];
+        case CONST.SEARCH.GROUP_BY.YEAR:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR) as SearchCustomColumnIds[];
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER) as SearchCustomColumnIds[];
         default:
             return [];
     }
@@ -3110,6 +3246,12 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.TAG;
         case CONST.SEARCH.GROUP_BY.MONTH:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH;
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WEEK;
+        case CONST.SEARCH.GROUP_BY.YEAR:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.YEAR;
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER;
         default:
             return [];
     }
@@ -3190,6 +3332,10 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
             return 'common.month';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
+            return 'common.week';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:
+            return 'common.year';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
             return 'search.filters.withdrawn';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
@@ -3202,6 +3348,9 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.tag';
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
             return 'search.exportedTo';
+        default:
+            // This should never happen, but TypeScript requires a default case
+            return 'common.expenses' as TranslationPaths;
     }
 }
 
@@ -3681,6 +3830,8 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.TAG]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG,
             [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH,
             [CONST.SEARCH.GROUP_BY.WEEK]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK,
+            [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR,
+            [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER,
         }[groupBy];
 
         const defaultCustomColumns = {
@@ -3692,6 +3843,8 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.TAG]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.TAG,
             [CONST.SEARCH.GROUP_BY.MONTH]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH,
             [CONST.SEARCH.GROUP_BY.WEEK]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WEEK,
+            [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.YEAR,
+            [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER,
         }[groupBy];
 
         const filteredVisibleColumns = customColumns ? visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>)) : [];
@@ -3818,6 +3971,40 @@ function getColumnsToShow(
 
         if (groupBy === CONST.SEARCH.GROUP_BY.WEEK) {
             const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col)) {
+                    result.push(col);
+                }
+            }
+
+            for (const col of columnsToShow ?? []) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.YEAR) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col)) {
+                    result.push(col);
+                }
+            }
+
+            for (const col of columnsToShow ?? []) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.QUARTER) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER]);
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
@@ -4266,6 +4453,8 @@ export {
     isTransactionTagGroupListItemType,
     isTransactionMonthGroupListItemType,
     isTransactionWeekGroupListItemType,
+    isTransactionYearGroupListItemType,
+    isTransactionQuarterGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,

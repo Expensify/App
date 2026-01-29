@@ -139,7 +139,10 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>;
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>;
 
 type SearchContextData = {
     currentSearchHash: number;

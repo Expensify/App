@@ -643,6 +643,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Mese',
         home: 'Home',
         week: 'Settimana',
+        year: 'Anno',
+        quarter: 'Trimestre',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -6989,10 +6991,12 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerciante',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Anno',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
             },
             feed: 'Feed',
             withdrawalType: {
