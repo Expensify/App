@@ -46,7 +46,7 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
         let itemsTotalCount = 0;
 
         for (const section of sections) {
-            if (section.title) {
+            if (section.title && section.data.length > 0) {
                 disabledIndices.push(data.length);
                 data.push({
                     type: CONST.SECTION_LIST_ITEM_TYPE.HEADER,
