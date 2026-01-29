@@ -1,4 +1,5 @@
 import {addDays, format, isValid, parse} from 'date-fns';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {ImportCSVTransactionsParams} from '@libs/API/parameters';
@@ -204,11 +205,7 @@ function buildOptimisticCard(cardDisplayName: string): {card: Card; cardID: stri
             availableSpend: 0,
             scrapeMinDate: '',
             fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
-            cardholderFirstName: '',
-            cardholderLastName: '',
-            isVirtual: false,
-            issuedAt: DateUtils.getDBTime(),
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            lastUpdated: DateUtils.getDBTime(),
             nameValuePairs: {
                 cardTitle: cardDisplayName,
             } as Card['nameValuePairs'],
@@ -282,57 +279,61 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
         reimbursable: isReimbursable,
     };
 
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: optimisticCardList,
+        },
+        ...optimisticTransactions.map((transaction) => ({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: transaction,
+        } as OnyxUpdate)),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IMPORTED_SPREADSHEET,
+            value: {
+                shouldFinalModalBeOpened: true,
+                importFinalModal: {
+                    titleKey: 'spreadsheet.importSuccessfulTitle' as const,
+                    promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
+                    promptKeyParams: {transactions: transactionList.length},
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: null,
+            },
+        },
+        ...optimisticTransactions.map((transaction) => ({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: null,
+        } as OnyxUpdate)),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IMPORTED_SPREADSHEET,
+            value: {
+                shouldFinalModalBeOpened: true,
+                importFinalModal: {
+                    titleKey: 'spreadsheet.importFailedTitle' as const,
+                    promptKey: 'spreadsheet.importFailedDescription' as const,
+                    promptKeyParams: undefined,
+                },
+            },
+        },
+    ];
+
     API.write(WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS, params, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: optimisticCardList,
-            },
-            ...optimisticTransactions.map((transaction) => ({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: transaction,
-            })),
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importSuccessfulTitle' as const,
-                        promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
-                        promptKeyParams: {transactions: transactionList.length},
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.CARD_LIST,
-                value: {
-                    [cardID]: null,
-                },
-            },
-            ...optimisticTransactions.map((transaction) => ({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: null,
-            })),
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importFailedTitle' as const,
-                        promptKey: 'spreadsheet.importFailedDescription' as const,
-                        promptKeyParams: undefined,
-                    },
-                },
-            },
-        ],
+        optimisticData,
+        failureData,
     });
 }
 
