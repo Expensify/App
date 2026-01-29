@@ -55,7 +55,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const componentRenderCount = useRef(0);
     const renderItemCountByReportID = useRef<Record<string, number>>({});
     const previousExtraDataRef = useRef<string>('');
-    
+
     componentRenderCount.current += 1;
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
@@ -103,6 +103,52 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const previousDataLength = usePrevious(data.length);
     const hasLoggedInitialStats = useRef(false);
+
+    const reportsRef = useRef(reports);
+    const reportActionsRef = useRef(reportActions);
+    const reportNameValuePairsRef = useRef(reportNameValuePairs);
+    const reportMetadataRef = useRef(reportMetadataCollection);
+    const personalDetailsRef = useRef(personalDetails);
+    const transactionsRef = useRef(transactions);
+    const draftCommentsRef = useRef(draftComments);
+    const policyRef = useRef(policy);
+    const isOfflineRef = useRef(isOffline);
+
+    useEffect(() => {
+        reportsRef.current = reports;
+    }, [reports]);
+
+    useEffect(() => {
+        reportActionsRef.current = reportActions;
+    }, [reportActions]);
+
+    useEffect(() => {
+        reportNameValuePairsRef.current = reportNameValuePairs;
+    }, [reportNameValuePairs]);
+
+    useEffect(() => {
+        reportMetadataRef.current = reportMetadataCollection;
+    }, [reportMetadataCollection]);
+
+    useEffect(() => {
+        personalDetailsRef.current = personalDetails;
+    }, [personalDetails]);
+
+    useEffect(() => {
+        transactionsRef.current = transactions;
+    }, [transactions]);
+
+    useEffect(() => {
+        draftCommentsRef.current = draftComments;
+    }, [draftComments]);
+
+    useEffect(() => {
+        policyRef.current = policy;
+    }, [policy]);
+
+    useEffect(() => {
+        isOfflineRef.current = isOffline;
+    }, [isOffline]);
 
     useEffect(() => {
         const totalReports = Object.keys(reports ?? {}).length;
@@ -254,12 +300,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             // const renderStartTime = performance.now();
             const reportID = item.reportID;
             // renderItemCountByReportID.current[reportID] = (renderItemCountByReportID.current[reportID] || 0) + 1;
-            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
-            const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-            const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.chatReportID}`];
-            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(item, chatReport, itemReportActions, isOffline)}`];
-            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`];
+            const itemParentReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
+            const itemReportNameValuePairs = reportNameValuePairsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const chatReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${item.chatReportID}`];
+            const itemReportActions = reportActionsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            const itemOneTransactionThreadReport = reportsRef.current?.[
+                `${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(item, chatReport, itemReportActions, isOfflineRef.current)}`
+            ];
+            const itemParentReportActions = reportActionsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`];
             const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
             const itemReportAttributes = reportAttributes?.[reportID];
 
@@ -270,19 +318,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             if (itemParentReport?.invoiceReceiver && 'policyID' in itemParentReport.invoiceReceiver) {
                 invoiceReceiverPolicyID = itemParentReport.invoiceReceiver.policyID;
             }
-            const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
+            const itemInvoiceReceiverPolicy = policyRef.current?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
 
             const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item);
-            const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
+            const itemIouReportReportActions = iouReportIDOfLastAction ? reportActionsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
 
-            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
-            const transactionID = isMoneyRequestAction(itemParentReportAction)
-                ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
-                : CONST.DEFAULT_NUMBER_ID;
-            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const hasDraftComment =
-                !!draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] &&
-                !draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]?.match(CONST.REGEX.EMPTY_COMMENT);
+            const itemPolicy = policyRef.current?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
+            const hasDraftCommentEntry = draftCommentsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
+            const hasDraftComment = !!hasDraftCommentEntry && !hasDraftCommentEntry.match(CONST.REGEX.EMPTY_COMMENT);
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
 
@@ -299,11 +342,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
                 ? (getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
                 : CONST.DEFAULT_NUMBER_ID;
-            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
-
-            let lastActorDetails: Partial<PersonalDetails> | null = item?.lastActorAccountID && personalDetails?.[item.lastActorAccountID] ? personalDetails[item.lastActorAccountID] : null;
+            let lastActorDetails: Partial<PersonalDetails> | null =
+                item?.lastActorAccountID && personalDetailsRef.current?.[item.lastActorAccountID] ? personalDetailsRef.current[item.lastActorAccountID] : null;
             if (!lastActorDetails && lastReportAction) {
-                const lastActorDisplayName = lastReportAction?.person?.[0]?.text;
+                const lastActorDisplayName = lastReportAction.person?.[0]?.text;
                 lastActorDetails = lastActorDisplayName
                     ? {
                           displayName: lastActorDisplayName,
@@ -311,9 +353,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                       }
                     : null;
             }
-            const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
-            const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-            const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
+            const movedFromReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
+            const movedToReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
+            const itemReportMetadata = reportMetadataRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
             // const getLastMessageStartTime = performance.now();
             const lastMessageTextFromReport = getCachedLastMessageText(reportID, () =>
@@ -348,7 +390,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             let lastActionReport: OnyxEntry<Report> | undefined;
             if (isInviteOrRemovedAction(lastAction)) {
                 const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
-                lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
+                lastActionReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
             }
 
             // const renderEndTime = performance.now();
@@ -378,22 +420,16 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportAttributes={itemReportAttributes}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
-                    reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
-                    iouReportReportActions={itemIouReportReportActions}
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
-                    personalDetails={personalDetails ?? {}}
-                    transaction={itemTransaction}
-                    lastReportActionTransaction={lastReportActionTransaction}
-                    receiptTransactions={transactions}
+                    personalDetails={personalDetailsRef.current ?? {}}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     lastMessageTextFromReport={lastMessageTextFromReport}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     hasDraftComment={hasDraftComment}
-                    transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                     activePolicyID={activePolicyID}
@@ -408,28 +444,20 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isReportArchived={isReportArchived}
                     lastAction={lastAction}
                     lastActionReport={lastActionReport}
+                    movedFromReport={movedFromReport}
+                    movedToReport={movedToReport}
                     currentUserAccountID={currentUserAccountID}
                 />
             );
         },
         [
-            reports,
-            reportNameValuePairs,
-            reportActions,
-            reportMetadataCollection,
-            isOffline,
             reportAttributes,
-            policy,
-            transactions,
-            draftComments,
-            personalDetails,
             policyForMovingExpensesID,
             firstReportIDWithGBRorRBR,
             optionMode,
             shouldDisableFocusOptions,
             onSelectRow,
             preferredLocale,
-            transactionViolations,
             onLayoutItem,
             activePolicyID,
             introSelected?.choice,
@@ -445,36 +473,48 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const extraData = useMemo(
         () => {
-            const newExtraData = [
-                reportActions,
-                reports,
-                reportAttributes,
-                reportNameValuePairs,
-                transactionViolations,
-                policy,
-                personalDetails,
+            const extraDataValues = [
+                Object.keys(reportActions ?? {}).length,
+                Object.keys(reports ?? {}).length,
+                Object.keys(reportAttributes ?? {}).length,
+                Object.keys(reportNameValuePairs ?? {}).length,
+                Object.keys(transactionViolations ?? {}).length,
+                Object.keys(policy ?? {}).length,
+                Object.keys(personalDetails ?? {}).length,
                 data.length,
-                draftComments,
+                Object.keys(draftComments ?? {}).length,
                 optionMode,
                 preferredLocale,
-                transactions,
+                Object.keys(transactions ?? {}).length,
                 isOffline,
                 isScreenFocused,
                 isReportsSplitNavigatorLast,
             ];
-            const extraDataKeys = ['reportActions', 'reports', 'reportAttributes', 'reportNameValuePairs', 'transactionViolations', 'policy', 'personalDetails', 'data.length', 'draftComments', 'optionMode', 'preferredLocale', 'transactions', 'isOffline', 'isScreenFocused', 'isReportsSplitNavigatorLast'];
-            const extraDataValues = newExtraData.map((item) => {
-                if (typeof item === 'object' && item !== null) {
-                    return Object.keys(item).length;
-                }
-                return item;
-            });
+
+            const extraDataKeys = [
+                'reportActions.count',
+                'reports.count',
+                'reportAttributes.count',
+                'reportNameValuePairs.count',
+                'transactionViolations.count',
+                'policy.count',
+                'personalDetails.count',
+                'data.length',
+                'draftComments.count',
+                'optionMode',
+                'preferredLocale',
+                'transactions.count',
+                'isOffline',
+                'isScreenFocused',
+                'isReportsSplitNavigatorLast',
+            ];
+
             const extraDataString = JSON.stringify(extraDataValues);
-            
+
             if (previousExtraDataRef.current && previousExtraDataRef.current !== extraDataString) {
                 const previousValues = JSON.parse(previousExtraDataRef.current);
                 const changedKeys = extraDataKeys.filter((_, index) => previousValues[index] !== extraDataValues[index]);
-                const changes = changedKeys.map((key, idx) => {
+                const changes = changedKeys.map((key) => {
                     const keyIndex = extraDataKeys.indexOf(key);
                     return {
                         key,
@@ -482,14 +522,15 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                         to: extraDataValues[keyIndex],
                     };
                 });
-                
+
                 Log.info('[LHN DEBUG] extraData changed', false, {
                     componentRenderCount: componentRenderCount.current,
                     changes,
                 });
             }
+
             previousExtraDataRef.current = extraDataString;
-            return newExtraData;
+            return extraDataValues;
         },
         [
             reportActions,

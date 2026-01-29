@@ -436,6 +436,16 @@ Onyx.connect({
                 delete filteredReportActionsCache[reportID];
                 continue;
             }
+            const previousLastAction = lastVisibleReportActions[reportID];
+            const previousLastActionID = previousLastAction?.reportActionID;
+            const previousLastModified = previousLastAction?.lastModified;
+            const lastActionChanged = previousLastActionID !== reportActionForDisplay.reportActionID;
+            const lastActionEdited =
+                previousLastActionID === reportActionForDisplay.reportActionID &&
+                previousLastModified !== reportActionForDisplay.lastModified;
+            if (lastActionChanged || lastActionEdited) {
+                delete lastMessageTextCache[reportID];
+            }
             lastVisibleReportActions[reportID] = reportActionForDisplay;
 
             const lastActorAccountID = report?.lastActorAccountID;
