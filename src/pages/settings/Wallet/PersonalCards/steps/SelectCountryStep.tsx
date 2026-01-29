@@ -7,6 +7,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useCurrencyList from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,8 +28,8 @@ function SelectCountryStep() {
     const {currencyList} = useCurrencyList();
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [addNewPersonalCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD, {canBeMissing: true});
-    const isUS = true;
-
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currency = currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const getCountry = useCallback(() => {
@@ -36,11 +37,12 @@ function SelectCountryStep() {
             return addNewPersonalCard.data.selectedCountry;
         }
 
-        return getPlaidCountry(CONST.CURRENCY.USD, currencyList, countryByIp);
-    }, [addNewPersonalCard?.data.selectedCountry, countryByIp, currencyList]);
+        return getPlaidCountry(currency, currencyList, countryByIp);
+    }, [addNewPersonalCard?.data.selectedCountry, countryByIp, currencyList, currency]);
 
     const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
     const [hasError, setHasError] = useState(false);
+    const isUS = currentCountry === CONST.COUNTRY.US;
 
     const submit = () => {
         if (!currentCountry) {

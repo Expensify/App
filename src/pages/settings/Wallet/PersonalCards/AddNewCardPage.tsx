@@ -19,6 +19,7 @@ import SuccessStep from './steps/SuccessStep';
 function AddPersonalNewCardPage() {
     const styles = useThemeStyles();
     const [addNewPersonalCardFeed, addNewPersonalCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD, {canBeMissing: false});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const {currentStep} = addNewPersonalCardFeed ?? {};
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -66,7 +67,7 @@ function AddPersonalNewCardPage() {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat();
+                    navigateToConciergeChat(conciergeReportID, true);
                 }}
             />
         </>

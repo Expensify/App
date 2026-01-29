@@ -10,74 +10,45 @@ import useImportPersonalPlaidAccounts from '@hooks/useImportPersonalPlaidAccount
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterPersonalCards, getBankName, getCompanyCardFeed} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
-import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards/PersonalCardsErrorConfirmation';
+import useGetNewPersonalCard from '@pages/settings/Wallet/PersonalCards/useGetNewPersonalCard';
 import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import {setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Card, CardList, CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type BankConnectionProps = {
-    /** Selected feed for assign card flow */
-    feed?: CompanyCardFeedWithDomainID;
-
     /** Route params for add new card flow */
     route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_BANK_CONNECTION>;
 };
 
-function BankConnection({feed, route}: BankConnectionProps) {
+function BankConnection({route}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [newCard, setNewCard] = useState<Card | null>(null);
     const webViewRef = useRef<WebView>(null);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
-    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD, {canBeMissing: true});
     const selectedBank = addNewCard?.data?.selectedBank;
     const {feed: bankNameFromRoute} = route?.params ?? {};
-    const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
-    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
+    const bankName = bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank;
+    const plaidToken = addNewCard?.data?.publicToken;
     const isPlaid = !!plaidToken;
     const url = getPersonalCardBankConnection(bankName);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
-    const headerTitleAddCards = translate('workspace.companyCards.addCards');
-    const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
+    const headerTitle = translate('workspace.companyCards.addCards');
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
+    const newCard = useGetNewPersonalCard();
     const isNewCardError = newCard?.errors;
-    const prevCardListRef = useRef<Record<string, Card>>({});
-
-    useEffect(() => {
-        const prevCardList = prevCardListRef.current;
-        const prevIds = new Set(Object.keys(prevCardList));
-        const currentIds = Object.keys(cardList);
-        const newCardIds = currentIds.filter((id) => !prevIds.has(id));
-        if (newCardIds.length > 0) {
-            for (const id of newCardIds) {
-                setNewCard(cardList[id]);
-            }
-        }
-
-        prevCardListRef.current = cardList;
-    }, [cardList]);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
     const handleBackButtonPress = () => {
-        // Handle assign card flow
-        if (feed) {
-            Navigation.goBack();
-            return;
-        }
         setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_BANK});
     };
 
@@ -86,7 +57,6 @@ function BankConnection({feed, route}: BankConnectionProps) {
             return;
         }
 
-        // Handle add new card flow
         if (newCard) {
             setAddNewPersonalCardStepAndData({
                 step: CONST.PERSONAL_CARDS.STEP.SUCCESS,
@@ -95,7 +65,7 @@ function BankConnection({feed, route}: BankConnectionProps) {
         if (isPlaid) {
             onImportPlaidAccounts();
         }
-    }, [url, feed, assignCard?.cardToAssign?.dateOption, isPlaid, onImportPlaidAccounts, newCard]);
+    }, [url, isPlaid, onImportPlaidAccounts, newCard]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
