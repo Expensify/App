@@ -56,7 +56,6 @@ function useSelectedTransactionsActions({
     policy,
     beginExportWithTemplate,
     isOnSearch,
-    reportLevelActions,
     onDeleteSelected,
 }: {
     report?: Report;
@@ -68,7 +67,6 @@ function useSelectedTransactionsActions({
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     isOnSearch?: boolean;
-    reportLevelActions?: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>>;
     onDeleteSelected?: (handleDeleteTransactions: () => void) => void | Promise<void>;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
