@@ -643,7 +643,6 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nouvelle fonctionnalité',
         month: 'Mois',
         home: 'Accueil',
-        week: 'Semaine',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -7015,7 +7014,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
-                [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
             },
             feed: 'Flux',
             withdrawalType: {
