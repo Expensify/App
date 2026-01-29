@@ -10,15 +10,16 @@ import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
-import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -185,32 +186,60 @@ function MoneyRequestReportActionsList({
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[]) => {
             if (!report) {
                 return;
             }
 
-            setIsExportWithTemplateModalVisible(true);
-            queueExportSearchWithTemplate({
-                templateName,
-                templateType,
-                jsonQuery: '{}',
-                reportIDList: [report.reportID],
-                transactionIDList,
-                policyID: policy?.id,
+            showConfirmModal({
+                title: translate('export.exportInProgress'),
+                prompt: translate('export.conciergeWillSend'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            }).then((result) => {
+                if (result.action === ModalActions.CONFIRM) {
+                    clearSelectedTransactions(undefined, true);
+                    queueExportSearchWithTemplate({
+                        templateName,
+                        templateType,
+                        jsonQuery: '{}',
+                        reportIDList: [report.reportID],
+                        transactionIDList,
+                        policyID: policy?.id,
+                    });
+                }
             });
         },
-        [report, policy?.id],
+        [report, policy?.id, showConfirmModal, translate, clearSelectedTransactions],
     );
 
-    const {
-        options: selectedTransactionsOptions,
-        handleDeleteTransactions,
-        isDeleteModalVisible,
-        hideDeleteModal,
-    } = useSelectedTransactionsActions({
+    const onDeleteSelected = useCallback(
+        (handleDeleteTransactions: () => void) => {
+            showConfirmModal({
+                title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
+                prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
+                confirmText: translate('common.delete'),
+                cancelText: translate('common.cancel'),
+                danger: true,
+                shouldEnableNewFocusManagement: true,
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                const shouldNavigateBack = transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
+                handleDeleteTransactions();
+                if (shouldNavigateBack) {
+                    const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+                    Navigation.goBack(backToRoute);
+                }
+            });
+        },
+        [showConfirmModal, translate, selectedTransactionIDs.length, transactions, route.params?.backTo, chatReport?.reportID],
+    );
+
+    const {options: selectedTransactionsOptions} = useSelectedTransactionsActions({
         report,
         reportActions,
         allTransactionsLength: transactions.length,
@@ -219,6 +248,7 @@ function MoneyRequestReportActionsList({
         onExportOffline: () => setOfflineModalVisible(true),
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
+        onDeleteSelected,
     });
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
@@ -674,67 +704,46 @@ function MoneyRequestReportActionsList({
             ref={wrapperViewRef}
         >
             {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
-                <>
-                    <OfflineWithFeedback pendingAction={reportPendingAction}>
-                        <ButtonWithDropdownMenu
-                            onPress={() => null}
-                            options={selectedTransactionsOptions}
-                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                            isSplitButton={false}
-                            shouldAlwaysShowDropdownMenu
-                            wrapperStyle={[styles.w100, styles.ph5]}
-                        />
-                        <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
-                            <Checkbox
-                                accessibilityLabel={translate('workspace.people.selectAll')}
-                                isChecked={isSelectAllChecked}
-                                isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                                onPress={() => {
-                                    if (selectedTransactionIDs.length !== 0) {
-                                        clearSelectedTransactions(true);
-                                    } else {
-                                        setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                    }
-                                }}
-                            />
-                            <PressableWithFeedback
-                                style={[styles.userSelectNone, styles.alignItemsCenter]}
-                                onPress={() => {
-                                    if (isSelectAllChecked) {
-                                        clearSelectedTransactions(true);
-                                    } else {
-                                        setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                    }
-                                }}
-                                accessibilityLabel={translate('workspace.people.selectAll')}
-                                role="button"
-                                accessibilityState={{checked: isSelectAllChecked}}
-                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            >
-                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                            </PressableWithFeedback>
-                        </View>
-                    </OfflineWithFeedback>
-                    <ConfirmModal
-                        title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
-                        isVisible={isDeleteModalVisible}
-                        onConfirm={() => {
-                            const shouldNavigateBack =
-                                transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
-                            handleDeleteTransactions();
-                            if (shouldNavigateBack) {
-                                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                                Navigation.goBack(backToRoute);
-                            }
-                        }}
-                        onCancel={hideDeleteModal}
-                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                        shouldEnableNewFocusManagement
+                <OfflineWithFeedback pendingAction={reportPendingAction}>
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        options={selectedTransactionsOptions}
+                        customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                        isSplitButton={false}
+                        shouldAlwaysShowDropdownMenu
+                        wrapperStyle={[styles.w100, styles.ph5]}
                     />
-                </>
+                    <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                            onPress={() => {
+                                if (selectedTransactionIDs.length !== 0) {
+                                    clearSelectedTransactions(true);
+                                } else {
+                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                                }
+                            }}
+                        />
+                        <PressableWithFeedback
+                            style={[styles.userSelectNone, styles.alignItemsCenter]}
+                            onPress={() => {
+                                if (isSelectAllChecked) {
+                                    clearSelectedTransactions(true);
+                                } else {
+                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                                }
+                            }}
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            role="button"
+                            accessibilityState={{checked: isSelectAllChecked}}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        >
+                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                        </PressableWithFeedback>
+                    </View>
+                </OfflineWithFeedback>
             )}
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                 <FloatingMessageCounter
@@ -815,18 +824,6 @@ function MoneyRequestReportActionsList({
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
-            />
-            <ConfirmModal
-                onConfirm={() => {
-                    setIsExportWithTemplateModalVisible(false);
-                    clearSelectedTransactions(undefined, true);
-                }}
-                onCancel={() => setIsExportWithTemplateModalVisible(false)}
-                isVisible={isExportWithTemplateModalVisible}
-                title={translate('export.exportInProgress')}
-                prompt={translate('export.conciergeWillSend')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
             />
         </View>
     );

@@ -57,6 +57,7 @@ function useSelectedTransactionsActions({
     beginExportWithTemplate,
     isOnSearch,
     reportLevelActions,
+    onDeleteSelected,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -68,6 +69,7 @@ function useSelectedTransactionsActions({
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     isOnSearch?: boolean;
     reportLevelActions?: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>>;
+    onDeleteSelected?: (handleDeleteTransactions: () => void) => void | Promise<void>;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -385,7 +387,13 @@ function useSelectedTransactionsActions({
                 text: translate('common.delete'),
                 icon: expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
-                onSelected: showDeleteModal,
+                onSelected: () => {
+                    if (onDeleteSelected) {
+                        onDeleteSelected(handleDeleteTransactions);
+                    } else {
+                        showDeleteModal();
+                    }
+                },
             });
         }
         computedOptions = options;
