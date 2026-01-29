@@ -275,6 +275,11 @@ type ReportError = {
     type?: string;
 };
 
+type PregeneratedResponseParams = {
+    optimisticConciergeReportActionID: string;
+    pregeneratedResponse: string;
+};
+
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 let conciergeReportIDOnyxConnect: string | undefined;
 let deprecatedCurrentUserAccountID = -1;
@@ -824,11 +829,6 @@ function addAttachmentWithComment(
     // Play sound once
     handlePlaySound();
 }
-
-type PregeneratedResponseParams = {
-    optimisticConciergeReportActionID: string;
-    pregeneratedResponse: string;
-};
 
 /** Add a single comment to a report */
 function addComment(
@@ -6612,7 +6612,7 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
-export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, PregeneratedResponseParams as ApiOnlyPregeneratedResponseParams};
+export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
     addAttachmentWithComment,
