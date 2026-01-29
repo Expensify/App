@@ -6420,7 +6420,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
-                applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses existantes non soumises',
+                applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
             },
         },
         planTypePage: {

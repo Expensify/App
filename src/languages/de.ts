@@ -6409,7 +6409,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Exakte Übereinstimmung',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
-                applyToExistingUnsubmittedExpenses: 'Auf bestehende nicht eingereichte Ausgaben anwenden',
+                applyToExistingUnsubmittedExpenses: 'Auf bereits vorhandene, noch nicht eingereichte Ausgaben anwenden',
             },
         },
         planTypePage: {

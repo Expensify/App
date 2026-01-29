@@ -6346,7 +6346,7 @@ ${reportName}
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
                 expensesExactlyMatching: '以下と完全一致する経費について:',
-                applyToExistingUnsubmittedExpenses: '既存の未提出経費に適用する',
+                applyToExistingUnsubmittedExpenses: '既存の未提出経費に適用',
             },
         },
         planTypePage: {

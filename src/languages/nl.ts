@@ -6379,7 +6379,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 matchTypeContains: 'Bevat',
                 matchTypeExact: 'Komt exact overeen',
                 expensesExactlyMatching: 'Voor uitgaven die exact overeenkomen met:',
-                applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
+                applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende onkosten',
             },
         },
         planTypePage: {
