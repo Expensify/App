@@ -114,7 +114,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [isExpanded, setIsExpanded] = useState(false);
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const shouldOpenGroupOnPress = !isExpenseReportType && (groupBy === CONST.SEARCH.GROUP_BY.YEAR || groupBy === CONST.SEARCH.GROUP_BY.QUARTER || groupBy === CONST.SEARCH.GROUP_BY.WEEK);
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -214,14 +213,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [isExpanded]);
 
     const onPress = useCallback(() => {
-        if (shouldOpenGroupOnPress || isExpenseReportType || transactions.length === 0) {
+        if (isExpenseReportType || transactions.length === 0) {
             onSelectRow(item, transactionPreviewData);
             return;
         }
         if (!isExpenseReportType) {
             handleToggle();
         }
-    }, [shouldOpenGroupOnPress, isExpenseReportType, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle]);
+    }, [isExpenseReportType, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle]);
 
     const onLongPress = useCallback(() => {
         if (isEmpty) {

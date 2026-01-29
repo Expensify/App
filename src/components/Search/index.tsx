@@ -932,13 +932,7 @@ function Search({
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                setSearchContext(true);
-                Navigation.navigate(
-                    ROUTES.SEARCH_ROOT.getRoute({
-                        query: newQuery,
-                        rawQuery: undefined,
-                    }),
-                );
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
@@ -963,13 +957,7 @@ function Search({
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                setSearchContext(true);
-                Navigation.navigate(
-                    ROUTES.SEARCH_ROOT.getRoute({
-                        query: newQuery,
-                        rawQuery: undefined,
-                    }),
-                );
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
