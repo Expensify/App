@@ -2179,6 +2179,9 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderà l'accesso a questo conto bancario aziendale. Completeremo comunque tutti i pagamenti in corso.`,
         reachOutForHelp: 'È in uso con la carta Expensify. <concierge-link>Contatta il Concierge</concierge-link> se devi revocare la condivisione.',
         unshareErrorModalTitle: 'Impossibile revocare la condivisione del conto bancario',
+        deleteCard: 'Elimina carta',
+        deleteCardConfirmation:
+            'Tutte le transazioni con carta non inviate, comprese quelle nei report aperti, verranno rimosse. Sei sicuro di voler eliminare questa carta? Non puoi annullare questa azione.',
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -6364,7 +6367,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Esercente',
                 subtitle: 'Imposta le regole per gli esercenti in modo che le spese arrivino già codificate correttamente e richiedano meno correzioni.',
                 addRule: 'Aggiungi regola esercente',
-                ruleSummaryTitle: (merchantName: string) => `Se l’esercente contiene "${merchantName}"`,
+                ruleSummaryTitle: (merchantName: string) => `Se l'esercente contiene "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Rinomina esercente in "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aggiorna ${fieldName} a "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Segna come "${reimbursable ? 'rimborsabile' : 'non rimborsabile'}"`,
@@ -6372,7 +6375,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 addRuleTitle: 'Aggiungi regola',
                 expensesWith: 'Per spese con:',
                 applyUpdates: 'Applica questi aggiornamenti:',
-                merchantHint: 'Abbina un nome commerciante con una corrispondenza "contiene" che non distingue tra maiuscole e minuscole',
+                merchantHint: 'Abbina un nome esercente con una corrispondenza "contiene" senza distinzione tra maiuscole e minuscole',
                 saveRule: 'Salva regola',
                 confirmError: 'Inserisci l’esercente e applica almeno un aggiornamento',
                 confirmErrorMerchant: 'Per favore inserisci l’esercente',
@@ -6988,8 +6991,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerciante',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
             },
             feed: 'Feed',

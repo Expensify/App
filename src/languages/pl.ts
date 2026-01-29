@@ -2175,6 +2175,9 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} utraci dostęp do tego firmowego konta bankowego. Nadal będziemy realizować wszystkie płatności w toku.`,
         reachOutForHelp: 'Jest ono używane z kartą Expensify. <concierge-link>Skontaktuj się z Concierge</concierge-link>, jeśli chcesz je anulować.',
         unshareErrorModalTitle: 'Nie można anulować udostępniania konta bankowego',
+        deleteCard: 'Usuń kartę',
+        deleteCardConfirmation:
+            'Wszystkie niewysłane transakcje kartą, w tym znajdujące się w otwartych raportach, zostaną usunięte. Czy na pewno chcesz usunąć tę kartę? Nie można cofnąć tej czynności.',
     },
     cardPage: {
         expensifyCard: 'Karta Expensify',
@@ -5264,7 +5267,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Zasady',
                 subtitle: 'Wymagaj paragonów, oznaczaj wysokie wydatki i nie tylko.',
             },
-            timeTracking: {title: 'Czas', subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy byli wynagradzani za swój czas.'},
+            timeTracking: {title: 'Czas', subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy otrzymywali wynagrodzenie za swój czas.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -6353,7 +6356,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 addRuleTitle: 'Dodaj regułę',
                 expensesWith: 'Dla wydatków z:',
                 applyUpdates: 'Zastosuj te aktualizacje:',
-                merchantHint: 'Dopasuj nazwę sprzedawcy przy użyciu nieczułego na wielkość liter dopasowania typu „zawiera”',
+                merchantHint: 'Dopasuj nazwę sprzedawcy, używając nieczułego na wielkość liter dopasowania „zawiera”',
                 saveRule: 'Zapisz regułę',
                 confirmError: 'Wprowadź sprzedawcę i zastosuj co najmniej jedną aktualizację',
                 confirmErrorMerchant: 'Wprowadź sprzedawcę',
@@ -6958,10 +6961,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Identyfikator wypłaty',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Sprzedawca',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Etykieta',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Znacznik',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
             },
             feed: 'Kanał',

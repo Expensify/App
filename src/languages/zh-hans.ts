@@ -2146,6 +2146,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} 将失去对此企业银行账户的访问权限。我们仍将完成所有正在进行的付款。`,
         reachOutForHelp: '此账户正在与 Expensify 卡一起使用。如果您需要取消共享，请联系礼宾部。',
         unshareErrorModalTitle: '无法取消共享银行账户',
+        deleteCard: '删除卡片',
+        deleteCardConfirmation: '所有未提交的银行卡交易（包括开放报表中的交易）都将被移除。确定要删除此银行卡吗？此操作无法撤销。',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5156,7 +5158,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '规则',
                 subtitle: '要求收据、标记高额支出等。',
             },
-            timeTracking: {title: '时间', subtitle: '为员工设置按小时计费的费率，以便根据他们的工作时间获得报酬。'},
+            timeTracking: {title: '时间', subtitle: '为员工设置按小时计费费率，以便他们的工作时间能够获得报酬。'},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6218,7 +6220,7 @@ ${reportName}
                 addRuleTitle: '添加规则',
                 expensesWith: '对于以下费用：',
                 applyUpdates: '应用这些更新：',
-                merchantHint: '使用不区分大小写的“包含”匹配来匹配商户名称',
+                merchantHint: '使用不区分大小写的“包含”匹配来匹配商家名称',
                 saveRule: '保存规则',
                 confirmError: '输入商家并至少应用一项更新',
                 confirmErrorMerchant: '请输入商家',
@@ -6804,7 +6806,7 @@ ${reportName}
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '来自',
+                [CONST.SEARCH.GROUP_BY.FROM]: '发件人',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',

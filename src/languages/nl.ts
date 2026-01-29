@@ -2178,6 +2178,9 @@ const translations: TranslationDeepObject<typeof en> = {
             `${admin} verliest de toegang tot deze zakelijke bankrekening. We zullen alle betalingen die in behandeling zijn nog steeds voltooien.`,
         reachOutForHelp: 'Deze wordt gebruikt met de Expensify Card. <concierge-link>Neem contact op met Concierge</concierge-link> als u de deling ongedaan wilt maken.',
         unshareErrorModalTitle: 'Deling bankrekening kan niet ongedaan worden gemaakt',
+        deleteCard: 'Kaart verwijderen',
+        deleteCardConfirmation:
+            'Alle niet-ingediende kaarttransacties, inclusief die in openstaande rapporten, worden verwijderd. Weet je zeker dat je deze kaart wilt verwijderen? Je kunt deze actie niet ongedaan maken.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -5271,7 +5274,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Regels',
                 subtitle: 'Vereis bonnetjes, markeer hoge uitgaven en meer.',
             },
-            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurtarief in waarmee medewerkers worden betaald voor hun tijd.'},
+            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurfactureringstarief in zodat werknemers worden betaald voor hun tijd.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -6360,7 +6363,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 addRuleTitle: 'Regel toevoegen',
                 expensesWith: 'Voor uitgaven met:',
                 applyUpdates: 'Deze updates toepassen:',
-                merchantHint: 'Een handelsnaam koppelen met hoofdletterongevoelige "bevat"-overeenkomst',
+                merchantHint: 'Een handelsnaam koppelen met hoofdletterongevoelige “bevat”-overeenkomst',
                 saveRule: 'Regel opslaan',
                 confirmError: 'Voer een leverancier in en pas ten minste één wijziging toe',
                 confirmErrorMerchant: 'Voer handelaar in',
@@ -6971,8 +6974,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Opname-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Verkoper',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Label',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Handelaar',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
             },
             feed: 'Feed',

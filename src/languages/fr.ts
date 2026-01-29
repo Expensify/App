@@ -2188,6 +2188,9 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perdra l’accès à ce compte bancaire professionnel. Les paiements en cours seront honorés.`,
         reachOutForHelp: 'Ce compte est utilisé avec la carte Expensify. <concierge-link>Contactez le service de conciergerie</concierge-link> si vous souhaitez le retirer du partage.',
         unshareErrorModalTitle: 'Impossible de retirer le partage du compte bancaire',
+        deleteCard: 'Supprimer la carte',
+        deleteCardConfirmation:
+            'Toutes les transactions de carte non soumises, y compris celles figurant dans les rapports ouverts, seront supprimées. Êtes-vous sûr de vouloir supprimer cette carte ? Cette action est irréversible.',
     },
     cardPage: {
         expensifyCard: 'Carte Expensify',
@@ -6401,7 +6404,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 addRuleTitle: 'Ajouter une règle',
                 expensesWith: 'Pour les dépenses avec :',
                 applyUpdates: 'Appliquer ces mises à jour :',
-                merchantHint: 'Faire correspondre un nom de commerçant avec une correspondance « contient » insensible à la casse',
+                merchantHint: 'Associer un nom de marchand avec une correspondance « contient » insensible à la casse',
                 saveRule: 'Enregistrer la règle',
                 confirmError: 'Saisissez un marchand et appliquez au moins une mise à jour',
                 confirmErrorMerchant: 'Veuillez saisir le commerçant',
@@ -7012,7 +7015,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             },
             feed: 'Flux',
