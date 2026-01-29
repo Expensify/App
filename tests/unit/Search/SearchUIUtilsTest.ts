@@ -2041,6 +2041,58 @@ const transactionQuarterGroupListItems: TransactionQuarterGroupListItemType[] = 
     },
 ];
 
+const searchResultsGroupByWeek: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {
+            week: '2026-01-25',
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}2025-12-21` as const]: {
+            week: '2025-12-21',
+            count: 3,
+            currency: 'USD',
+            total: 75,
+        },
+    },
+    search: {
+        count: 8,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 325,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const transactionWeekGroupListItems: TransactionWeekGroupListItemType[] = [
+    {
+        week: '2026-01-25',
+        count: 5,
+        currency: 'USD',
+        total: 250,
+        groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+        formattedWeek: 'Jan 25 - Jan 31, 2026',
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+    {
+        week: '2025-12-21',
+        count: 3,
+        currency: 'USD',
+        total: 75,
+        groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+        formattedWeek: 'Dec 21 - Dec 27, 2025',
+        transactions: [],
+        transactionsQueryJSON: undefined,
+    },
+];
+
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
         Onyx.init({
