@@ -33,10 +33,12 @@ import type {
     SearchCategoryGroup,
     SearchDataTypes,
     SearchMemberGroup,
+    SearchMerchantGroup,
     SearchMonthGroup,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchWeekGroup,
     SearchWithdrawalIDGroup,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -448,6 +450,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The date the report was exported */
         exported?: string;
 
+        /** Whether the status field should be shown in a pending state */
+        shouldShowStatusAsPending?: boolean;
+
         /**
          * Whether we should show the report year.
          * This is true if at least one report in the dataset was created in past years
@@ -512,9 +517,19 @@ type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {grou
         formattedCategory?: string;
     };
 
+type TransactionMerchantGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MERCHANT} & SearchMerchantGroup & {
+        /** Final and formatted "merchant" value used for displaying and sorting */
+        formattedMerchant?: string;
+    };
+
 type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
         /** Final and formatted "tag" value used for displaying and sorting */
         formattedTag?: string;
+    };
+
+type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
+        /** Final and formatted "week" value used for displaying */
+        formattedWeek: string;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -1160,7 +1175,9 @@ export type {
     TransactionCardGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionMerchantGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

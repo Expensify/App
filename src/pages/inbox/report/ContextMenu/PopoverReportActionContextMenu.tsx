@@ -71,7 +71,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         vertical: 0,
     });
     const instanceIDRef = useRef('');
-    const {email} = useCurrentUserPersonalDetails();
+    const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
@@ -363,12 +363,13 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isChatReportArchived: isReportArchived,
                     isChatIOUReportArchived,
                     allTransactionViolationsParam: allTransactionViolations,
+                    currentUserAccountID,
                 });
             } else if (originalMessage?.IOUTransactionID) {
                 deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
         } else if (isReportPreviewAction(reportAction)) {
-            deleteAppReport(reportAction.childReportID, email ?? '', reportTransactions, allTransactionViolations, bankAccountList);
+            deleteAppReport(reportAction.childReportID, email ?? '', currentUserAccountID, reportTransactions, allTransactionViolations, bankAccountList);
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
@@ -393,6 +394,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         isOriginalReportArchived,
         allTransactionViolations,
         bankAccountList,
+        currentUserAccountID,
     ]);
 
     const hideDeleteModal = () => {
