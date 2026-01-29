@@ -36,7 +36,7 @@ import type ValidateCodeFormProps from './types';
 type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
     ValidateCodeFormProps & {
         /** Specifies autocomplete hints for the system, so it can provide autofill */
-        autoComplete: 'sms-otp' | 'one-time-code';
+        autoComplete: typeof CONST.AUTO_COMPLETE_VARIANTS.SMS_OTP | typeof CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE;
     };
 
 type BaseValidateCodeFormRef = {

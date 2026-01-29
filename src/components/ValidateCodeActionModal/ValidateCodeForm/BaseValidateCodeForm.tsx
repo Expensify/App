@@ -95,7 +95,7 @@ type ValidateCodeFormProps = {
 };
 
 function BaseValidateCodeForm({
-    autoComplete = 'one-time-code',
+    autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE,
     ref = () => {},
     hasMagicCodeBeenSent,
     validateCodeActionErrorField,

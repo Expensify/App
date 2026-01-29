@@ -11,6 +11,7 @@ import QRCode from '@components/QRCode';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,8 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import TwoFactorAuthForm from './TwoFactorAuthForm';
-import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
+import ToggleTwoFactorAuthForm from './ToggleTwoFactorAuthForm';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 const TROUBLESHOOTING_LINK = 'https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication';
@@ -135,8 +135,8 @@ function VerifyPage({route}: VerifyPageProps) {
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
                 <View style={[styles.mh5, styles.mb4, styles.mt3]}>
-                    <TwoFactorAuthForm
-                        innerRef={formRef}
+                    <ToggleTwoFactorAuthForm
+                        ref={formRef}
                         shouldAutoFocusOnMobile={false}
                         onFocus={handleInputFocus}
                     />

@@ -22,7 +22,7 @@ import colors from '@styles/theme/colors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {domainMemberSamlSettingsSelector} from '@src/selectors/Domain';
+import {domainMemberSettingsSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SamlConfigurationDetailsSectionContent from './Saml/SamlConfigurationDetailsSectionContent';
 import SamlLoginSectionContent from './Saml/SamlLoginSectionContent';
@@ -40,7 +40,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
     const [domainSettings, domainSettingsResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
-        selector: domainMemberSamlSettingsSelector,
+        selector: domainMemberSettingsSelector,
     });
 
     const isSamlEnabled = !!domainSettings?.samlEnabled;

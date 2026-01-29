@@ -8,6 +8,7 @@ import type {
     RemoveDomainAdminParams,
     SetTechnicalContactEmailParams,
     ToggleConsolidatedDomainBillingParams,
+    ToggleTwoFactorAuthRequiredForDomainParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -940,6 +941,90 @@ function clearAddMemberError(domainAccountID: number, accountID: number, email: 
     } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>);
 }
 
+function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainName: string, twoFactorAuthRequired: boolean, twoFactorAuthCode?: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    twoFactorAuthRequired,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                twoFactorAuthRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                twoFactorAuthRequiredErrors: null,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                twoFactorAuthRequired: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                twoFactorAuthRequiredErrors: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    twoFactorAuthRequired: !twoFactorAuthRequired,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                twoFactorAuthRequiredErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.forceTwoFactorAuthError'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                twoFactorAuthRequired: null,
+            },
+        },
+    ];
+
+    const params: ToggleTwoFactorAuthRequiredForDomainParams = {
+        domainAccountID,
+        domainName,
+        enabled: twoFactorAuthRequired,
+        twoFactorAuthCode,
+    };
+
+    API.write(WRITE_COMMANDS.TOGGLE_TWO_FACTOR_AUTH_REQUIRED_FOR_DOMAIN, params, {optimisticData, failureData, successData});
+}
+
+function clearToggleTwoFactorAuthRequiredForDomainError(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        twoFactorAuthRequiredErrors: null,
+    });
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -965,4 +1050,6 @@ export {
     clearDomainErrors,
     addMemberToDomain,
     clearAddMemberError,
+    toggleTwoFactorAuthRequiredForDomain,
+    clearToggleTwoFactorAuthRequiredForDomainError,
 };

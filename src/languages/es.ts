@@ -8245,7 +8245,6 @@ ${amount} para ${merchant} - ${date}`,
             primaryContact: 'Contacto principal',
             addPrimaryContact: 'Añadir contacto principal',
             setPrimaryContactError: 'No se pudo establecer el contacto principal. Por favor, inténtalo de nuevo más tarde.',
-            settings: 'Configuración',
             consolidatedDomainBilling: 'Facturación consolidada del dominio',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Cuando está habilitada, el contacto principal pagará todos los espacios de trabajo de los miembros de <strong>${domainName}</strong> y recibirá todos los recibos de facturación.</muted-text-label></comment>`,
@@ -8272,6 +8271,13 @@ ${amount} para ${merchant} - ${date}`,
             errors: {
                 addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.',
             },
+            forceTwoFactorAuth: 'Forzar la autenticación de dos factores',
+            forceTwoFactorAuthSAMLEnabledDescription: `<muted-text>Por favor, deshabilita <a href="${CONST.SAML_HELP_URL}">SAML</a> para forzar la autenticación de dos factores.</muted-text>`,
+            forceTwoFactorAuthDescription: `<muted-text>Requiere la autenticación de dos factores para todos los miembros de este dominio. Se les pedirá a los miembros del dominio que configuren la autenticación de dos factores en su cuenta cuando inicien sesión.</muted-text>`,
+            forceTwoFactorAuthError: 'No se pudo cambiar la autenticación de dos factores forzada. Por favor, inténtalo de nuevo más tarde.',
+        },
+        common: {
+            settings: 'Configuración',
         },
     },
     gps: {
