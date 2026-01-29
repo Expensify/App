@@ -6236,9 +6236,9 @@ ${reportName}
                 matchTypeContains: '包含',
                 matchTypeExact: '完全匹配',
                 expensesExactlyMatching: '对于完全匹配以下条件的报销：',
-                duplicateRuleTitle: '已存在类似的商家规则',
-                duplicateRulePrompt: (merchantName: string) => `您想为「${merchantName}」保存一个新规则，即使您已有一个现有规则吗？`,
-                saveAnyway: '仍然保存',
+                duplicateRuleTitle: '类似的商家规则已存在',
+                duplicateRulePrompt: (merchantName: string) => `即使您已经有一个现有规则，是否仍要为“${merchantName}”保存新规则？`,
+                saveAnyway: '仍要保存',
             },
         },
         planTypePage: {

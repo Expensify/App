@@ -6372,7 +6372,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 matchTypeExact: 'Dokładne dopasowanie',
                 expensesExactlyMatching: 'Dla wydatków dokładnie pasujących:',
                 duplicateRuleTitle: 'Podobna reguła sprzedawcy już istnieje',
-                duplicateRulePrompt: (merchantName: string) => `Czy chcesz zapisać nową regułę dla „${merchantName}", mimo że masz już istniejącą?`,
+                duplicateRulePrompt: (merchantName: string) => `Czy chcesz zapisać nową regułę dla „${merchantName}”, mimo że masz już istniejącą?`,
                 saveAnyway: 'Zapisz mimo to',
             },
         },
