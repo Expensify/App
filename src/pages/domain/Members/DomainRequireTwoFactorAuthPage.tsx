@@ -46,13 +46,14 @@ function DomainRequireTwoFactorAuthPage({route}: DomainRequireTwoFactorAuthPageP
                     onBackButtonPress={() => {
                         Navigation.goBack(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID));
                     }}
+                    shouldDisplayHelpButton={false}
                 />
 
                 <ScrollView
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={styles.flexGrow1}
                 >
-                    <View style={[styles.mh5]}>
+                    <View style={[styles.mh5, styles.mb4, styles.mt3]}>
                         <TwoFactorAuthForm
                             ref={baseTwoFactorAuthRef}
                             shouldAllowRecoveryCode

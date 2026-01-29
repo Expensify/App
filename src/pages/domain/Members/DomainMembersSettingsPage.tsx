@@ -41,7 +41,7 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
     return (
         <BaseDomainSettingsPage domainAccountID={domainAccountID}>
             <ToggleSettingOptionRow
-                wrapperStyle={[styles.mv3, styles.ph5]}
+                wrapperStyle={[styles.ph5]}
                 switchAccessibilityLabel={translate('domain.members.forceTwoFactorAuth')}
                 isActive={!!domainSettings?.twoFactorAuthRequired}
                 disabled={!!domainSettings?.samlEnabled}
