@@ -1,10 +1,9 @@
-import type {ViewStyle} from 'react-native';
-import type UseReportFooterStylesParams from './types';
+import type {UseReportFooterStyles} from './types';
 
-function useReportFooterStyles({isComposerFullSize}: UseReportFooterStylesParams): ViewStyle {
+const useReportFooterStyles: UseReportFooterStyles = ({isComposerFullSize}) => {
     return {
         height: isComposerFullSize ? '100%' : 'auto',
     };
-}
+};
 
 export default useReportFooterStyles;

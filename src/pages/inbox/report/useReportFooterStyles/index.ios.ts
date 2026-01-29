@@ -1,14 +1,13 @@
 import {useMemo} from 'react';
-import type {ViewStyle} from 'react-native';
 import {useAnimatedStyle} from 'react-native-reanimated';
 import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibleFlatList/useKeyboardDismissibleFlatListValues';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type UseReportFooterStylesParams from './types';
+import type {UseReportFooterStyles} from './types';
 
-function useReportFooterStyles({composerHeight, headerHeight, isComposerFullSize}: UseReportFooterStylesParams): ViewStyle {
+const useReportFooterStyles: UseReportFooterStyles = ({composerHeight, headerHeight, isComposerFullSize}) => {
     const StyleUtils = useStyleUtils();
     const {keyboardHeight} = useKeyboardDismissibleFlatListValues();
     const {unmodifiedPaddings} = useSafeAreaPaddings();
@@ -21,6 +20,6 @@ function useReportFooterStyles({composerHeight, headerHeight, isComposerFullSize
     return useAnimatedStyle(() =>
         StyleUtils.getReportFooterIosKeyboardHandlingStyles({keyboardHeight, paddingBottom, paddingTop, isKeyboardActive, windowHeight, composerHeight, headerHeight, isComposerFullSize}),
     );
-}
+};
 
 export default useReportFooterStyles;
