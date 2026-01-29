@@ -8,7 +8,9 @@ type ExpandOnyxKeys<TKey extends OnyxKey> = TKey extends OnyxCollectionKey ? NoI
 
 /**
  * Represents an OnyxUpdate type without strict type checks on the value.
- * Useful for contexts where the specific Onyx keys are not known ahead of time.
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union and is useful for contexts where the specific Onyx keys are not known ahead of time.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyOnyxUpdate<TKey extends OnyxKey = any> = {
@@ -48,7 +50,12 @@ type OnyxDataBase<TOnyxUpdate> = {
 /** Model of onyx requests sent to the API */
 type OnyxData<TKey extends OnyxKey> = OnyxDataBase<OnyxUpdate<TKey>>;
 
-/** Loosely typed model of onyx requests sent to the API */
+/**
+ * Loosely typed model of onyx requests sent to the API
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
+ */
 type AnyOnyxData = OnyxDataBase<AnyOnyxUpdate>;
 
 /** HTTP request method names */
@@ -97,7 +104,12 @@ type RequestDataBase<TKey extends OnyxKey = OnyxKey> = {
 /** Model of overall requests sent to the API */
 type RequestData<TKey extends OnyxKey> = RequestDataBase<TKey> & OnyxData<TKey>;
 
-/** Loosely typed model of overall requests sent to the API */
+/**
+ * Loosely typed model of overall requests sent to the API
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
+ */
 type AnyRequestData = RequestDataBase & AnyOnyxData;
 
 /**
@@ -211,6 +223,9 @@ type RequestConflictResolver<TKey extends OnyxKey> = RequestConflictResolverBase
 /**
  * Loosely typed object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyRequestConflictResolver = RequestConflictResolverBase<any>;
@@ -218,7 +233,12 @@ type AnyRequestConflictResolver = RequestConflictResolverBase<any>;
 /** Model of requests sent to the API */
 type Request<TKey extends OnyxKey> = RequestData<TKey> & RequestConflictResolver<TKey>;
 
-/** Loosely typed model of requests sent to the API */
+/**
+ * Loosely typed model of requests sent to the API
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union and is useful for contexts where the specific Onyx keys are not known ahead of time.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
+ */
 type AnyRequest = AnyRequestData & AnyRequestConflictResolver;
 
 /**
@@ -248,4 +268,4 @@ type PaginatedRequest<TKey extends OnyxKey> = Request<TKey> &
     };
 
 export default Request;
-export type {AnyOnyxUpdate, OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, AnyRequestConflictResolver, ConflictActionData, ConflictData, AnyRequest};
+export type {AnyOnyxUpdate, OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData, ConflictData, AnyRequest};
