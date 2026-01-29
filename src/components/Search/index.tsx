@@ -80,6 +80,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/t
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
+import SearchChartView from './SearchChartView';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -216,7 +217,7 @@ function Search({
     searchRequestResponseStatusCode,
     onDEWModalOpen,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -1210,6 +1211,22 @@ function Search({
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
+
+    const shouldShowChartView = view !== CONST.SEARCH.VIEW.TABLE && !!validGroupBy;
+
+    if (shouldShowChartView) {
+        return (
+            <SearchScopeProvider>
+                <SearchChartView
+                    queryJSON={queryJSON}
+                    view={view}
+                    groupBy={validGroupBy}
+                    data={sortedData as TransactionGroupListItemType[]}
+                    isLoading={shouldShowLoadingState}
+                />
+            </SearchScopeProvider>
+        );
+    }
 
     return (
         <SearchScopeProvider>
