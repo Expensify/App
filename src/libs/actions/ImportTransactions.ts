@@ -279,44 +279,42 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
         reimbursable: isReimbursable,
     };
 
-    const optimisticTransactionUpdates: OnyxUpdate[] = optimisticTransactions.map(
-        (transaction): OnyxUpdate => ({
+    const optimisticData = [] as OnyxUpdate[];
+    const failureData = [] as OnyxUpdate[];
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.CARD_LIST,
+        value: optimisticCardList,
+    });
+
+    for (const transaction of optimisticTransactions) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: transaction,
-        }),
-    );
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: optimisticCardList,
-        },
-        ...optimisticTransactionUpdates,
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IMPORTED_SPREADSHEET,
-            value: {
-                shouldFinalModalBeOpened: true,
-                importFinalModal: {
-                    titleKey: 'spreadsheet.importSuccessfulTitle' as const,
-                    promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
-                    promptKeyParams: {transactions: transactionList.length},
-                },
-            },
-        },
-    ];
-
-    const failureTransactionUpdates: OnyxUpdate[] = optimisticTransactions.map(
-        (transaction): OnyxUpdate => ({
+        });
+        failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: null,
-        }),
-    );
+        });
+    }
 
-    const failureData: OnyxUpdate[] = [
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.IMPORTED_SPREADSHEET,
+        value: {
+            shouldFinalModalBeOpened: true,
+            importFinalModal: {
+                titleKey: 'spreadsheet.importSuccessfulTitle' as const,
+                promptKey: 'spreadsheet.importTransactionsSuccessfulDescription' as const,
+                promptKeyParams: {transactions: transactionList.length},
+            },
+        },
+    });
+
+    failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
@@ -324,7 +322,6 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
                 [cardID]: null,
             },
         },
-        ...failureTransactionUpdates,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IMPORTED_SPREADSHEET,
@@ -337,7 +334,7 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
                 },
             },
         },
-    ];
+    );
 
     API.write(WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS, params, {
         optimisticData,
