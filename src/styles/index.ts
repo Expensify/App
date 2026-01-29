@@ -1272,17 +1272,11 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'right',
         },
 
-        optionRowAmountMobileInputContainer: {
-            width: variables.splitExpenseAmountMobileWidth,
-        },
-
         optionRowPercentInputContainer: {
-            width: variables.splitExpensePercentageMobileWidth,
+            width: variables.splitExpensePercentageWidth,
         },
 
         optionRowPercentInput: {
-            width: variables.splitExpensePercentageWidth,
-            textAlign: 'right',
             marginRight: 2,
         },
 
@@ -1600,6 +1594,7 @@ const staticStyles = (theme: ThemeColors) =>
         searchSidebar: {
             width: variables.sideBarWithLHBWidth,
             height: '100%',
+            backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
@@ -4189,7 +4184,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         tabSelectorButton: {
             height: variables.tabSelectorButtonHeight,
-            padding: variables.tabSelectorButtonPadding,
+            paddingHorizontal: variables.tabSelectorButtonPadding,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',

@@ -165,8 +165,8 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
 
     const parameters: SetPolicyCodingRuleParams = {
         policyID,
-        ruleID: targetRuleID,
-        value: JSON.stringify(ruleForOptimisticUpdate),
+        codingRuleID: targetRuleID,
+        codingRuleValue: JSON.stringify(ruleForOptimisticUpdate),
         shouldUpdateMatchingTransactions,
     };
 
@@ -241,8 +241,8 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
 
     const parameters: SetPolicyCodingRuleParams = {
         policyID: policy.id,
-        ruleID,
-        value: '',
+        codingRuleID: ruleID,
+        codingRuleValue: '',
         shouldUpdateMatchingTransactions: false,
     };
 
