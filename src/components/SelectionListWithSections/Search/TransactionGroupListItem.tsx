@@ -109,6 +109,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const transactions = useMemo(() => {
@@ -127,6 +128,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             formatPhoneNumber,
             bankAccountList,
             isActionLoadingSet,
+            allReportMetadata,
         }) as [TransactionListItemType[], number];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -143,6 +145,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         currentUserDetails.accountID,
         isActionLoadingSet,
         bankAccountList,
+        allReportMetadata,
     ]);
 
     const selectedItemsLength = useMemo(() => {

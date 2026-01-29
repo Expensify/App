@@ -1257,6 +1257,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `wysłano${memo ? `, mówiąc ${memo}` : ''}`,
         automaticallySubmitted: `wysłane przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnij przesyłanie</a>`,
         queuedToSubmitViaDEW: 'w kolejce do przesłania przez niestandardowy przepływ zatwierdzania',
+        queuedToApproveViaDEW: 'w kolejce do zatwierdzenia przez niestandardowy przepływ zatwierdzania',
         trackedAmount: (formattedAmount: string, comment?: string) => `śledzenie ${formattedAmount}${comment ? `dla ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `podziel ${amount}`,
         didSplitAmount: (formattedAmount: string, comment: string) => `podziel ${formattedAmount}${comment ? `dla ${comment}` : ''}`,
@@ -7909,6 +7910,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             hasChildReportAwaitingAction: 'Ma raport podrzędny oczekujący na działanie',
             hasMissingInvoiceBankAccount: 'Brakujący rachunek bankowy faktury',
             hasUnresolvedCardFraudAlert: 'Ma nierozwiązane powiadomienie o oszustwie związanym z kartą',
+            hasDEWApproveFailed: 'Zatwierdzenie DEW nie powiodło się',
         },
         reasonRBR: {
             hasErrors: 'Zawiera błędy w danych raportu lub danych działań na raporcie',

@@ -1256,6 +1256,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `ingediend${memo ? `, met de melding ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">indiening uitstellen</a>`,
         queuedToSubmitViaDEW: 'in wachtrij geplaatst om in te dienen via aangepaste goedkeuringswerkstroom',
+        queuedToApproveViaDEW: 'in wachtrij geplaatst om goed te keuren via aangepaste goedkeuringswerkstroom',
         trackedAmount: (formattedAmount: string, comment?: string) => `bijhouden ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} splits`,
         didSplitAmount: (formattedAmount: string, comment: string) => `splitsen ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
@@ -7923,6 +7924,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             hasChildReportAwaitingAction: 'Heeft kinderreportage in afwachting van actie',
             hasMissingInvoiceBankAccount: 'Heeft ontbrekende bankrekening voor factuur',
             hasUnresolvedCardFraudAlert: 'Heeft onopgeloste kaartfraudewaarschuwing',
+            hasDEWApproveFailed: 'DEW-goedkeuring mislukt',
         },
         reasonRBR: {
             hasErrors: 'Bevat fouten in rapport- of rapportactiedata',

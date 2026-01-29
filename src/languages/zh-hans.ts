@@ -1237,6 +1237,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `已提交${memo ? `，备注为 ${memo}` : ''}`,
         automaticallySubmitted: `通过 <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a> 提交`,
         queuedToSubmitViaDEW: '已排队等待通过自定义审批工作流提交',
+        queuedToApproveViaDEW: '已排队等待通过自定义审批工作流审批',
         trackedAmount: (formattedAmount: string, comment?: string) => `正在跟踪 ${formattedAmount}${comment ? `为 ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `拆分 ${amount}`,
         didSplitAmount: (formattedAmount: string, comment: string) => `拆分 ${formattedAmount}${comment ? `为 ${comment}` : ''}`,
@@ -7732,6 +7733,7 @@ ${reportName}
             hasChildReportAwaitingAction: '有子报表等待处理',
             hasMissingInvoiceBankAccount: '缺少发票银行账户',
             hasUnresolvedCardFraudAlert: '有未解决的银行卡欺诈警报',
+            hasDEWApproveFailed: 'DEW审批失败',
         },
         reasonRBR: {
             hasErrors: '报表或报表操作数据中存在错误',
