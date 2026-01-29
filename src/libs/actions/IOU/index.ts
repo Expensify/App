@@ -1181,6 +1181,8 @@ function initMoneyRequest({
         if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
             comment.odometerStart = undefined;
             comment.odometerEnd = undefined;
+            comment.odometerStartImage = undefined;
+            comment.odometerEndImage = undefined;
         }
     }
 
@@ -1566,6 +1568,38 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
         comment: {
             odometerStart: startReading,
             odometerEnd: endReading,
+        },
+    });
+}
+
+/**
+ * Set odometer image for a transaction
+ * @param transactionID - The transaction ID
+ * @param imageType - 'start' or 'end'
+ * @param file - The image file (File object on web, URI string on native)
+ * @param isDraft - Whether this is a draft transaction
+ */
+function setMoneyRequestOdometerImage(transactionID: string, imageType: 'start' | 'end', file: File | string, isDraft: boolean) {
+    const imageKey = imageType === 'start' ? 'odometerStartImage' : 'odometerEndImage';
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            [imageKey]: file,
+        },
+    });
+}
+
+/**
+ * Remove odometer image from a transaction
+ * @param transactionID - The transaction ID
+ * @param imageType - 'start' or 'end'
+ * @param file - The image file (File object on web, URI string on native)
+ * @param isDraft - Whether this is a draft transaction
+ */
+function removeMoneyRequestOdometerImage(transactionID: string, imageType: 'start' | 'end', file: File | string, isDraft: boolean) {
+    const imageKey = imageType === 'start' ? 'odometerStartImage' : 'odometerEndImage';
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            [imageKey]: null,
         },
     });
 }
@@ -13166,6 +13200,8 @@ export {
     setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
     setMoneyRequestOdometerReading,
+    setMoneyRequestOdometerImage,
+    removeMoneyRequestOdometerImage,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
