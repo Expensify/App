@@ -109,8 +109,6 @@ function SettlementAccountSelector({
     );
 }
 
-SettlementAccountSelector.displayName = 'SettlementAccountSelector';
-
 export default SettlementAccountSelector;
 export {BankAccountListItemLeftElement};
 export type {BankAccountListItem, SettlementAccountSelectorProps};
