@@ -153,7 +153,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             if (backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE || backTo === ROUTES.SETTINGS_WALLET) {
                 clearReimbursementAccountDraft();
                 clearReimbursementAccount();
-                return;
             }
             getPaymentMethods(true);
         };
