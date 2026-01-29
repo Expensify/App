@@ -48,8 +48,6 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
             source={source}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            // Temporary solution only, since other cache policies are causing memory leaks on iOS
-            cachePolicy="none"
         />
     );
 }

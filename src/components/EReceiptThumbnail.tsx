@@ -87,11 +87,7 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
             ]}
         >
             <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
-                <ImageSVG
-                    src={backgroundImage}
-                    // Temporary solution only, since other cache policies are causing memory leaks on iOS
-                    cachePolicy="none"
-                />
+                <ImageSVG src={backgroundImage} />
             </View>
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -101,8 +97,6 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                         width={receiptIconWidth}
                         fill={secondaryColor}
                         additionalStyles={[styles.fullScreen]}
-                        // Temporary solution only, since other cache policies are causing memory leaks on iOS
-                        cachePolicy="none"
                     />
                     {isReceiptThumbnail && !!fileExtension && (
                         <Text
@@ -123,8 +117,6 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}
-                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
-                            cachePolicy="none"
                         />
                     ) : null}
                     {!isPerDiemRequest && MCCIcon && !isReceiptThumbnail ? (
@@ -133,8 +125,6 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}
-                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
-                            cachePolicy="none"
                         />
                     ) : null}
                     {!isPerDiemRequest && !MCCIcon && tripIcon ? (
@@ -143,8 +133,6 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}
-                            // Temporary solution only, since other cache policies are causing memory leaks on iOS
-                            cachePolicy="none"
                         />
                     ) : null}
                 </View>

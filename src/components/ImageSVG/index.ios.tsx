@@ -2,7 +2,7 @@ import {Image} from 'expo-image';
 import React, {useEffect} from 'react';
 import type ImageSVGProps from './types';
 
-function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style, onLoadEnd, cachePolicy}: ImageSVGProps) {
+function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style, onLoadEnd, cachePolicy = 'memory-disk'}: ImageSVGProps) {
     const tintColorProp = fill ? {tintColor: fill} : {};
     const isReactComponent = typeof src === 'function';
 
@@ -45,7 +45,7 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
             style={[{width, height}, style]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...tintColorProp}
-            cachePolicy={cachePolicy ?? 'memory-disk'}
+            cachePolicy={cachePolicy}
         />
     );
 }
