@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {BankAccountList} from '@src/types/onyx';
 import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 
 type ReimbursementAccountStepToOpen = ValueOf<typeof REIMBURSEMENT_ACCOUNT_ROUTE_NAMES> | '';
@@ -43,18 +44,35 @@ const hasInProgressUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean =>
 };
 
 /** Returns true if user passed first step of flow for non USD VBBA */
-const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount, nonUSDCountryDraftValue?: string): boolean => {
-    return (!!achData?.bankAccountID && !!achData?.created) || nonUSDCountryDraftValue !== '';
+const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean => {
+    return !!achData?.bankAccountID && !!achData?.created;
 };
 
 /** Returns true if VBBA flow is in progress */
-const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, nonUSDCountryDraftValue?: string) => {
-    if (isNonUSDWorkspace) {
-        return hasInProgressNonUSDVBBA(achData, nonUSDCountryDraftValue);
+const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean) => {
+    if (isNonUSDWorkspace ?? (!!achData?.currency && achData.currency !== CONST.CURRENCY.USD)) {
+        return hasInProgressNonUSDVBBA(achData);
     }
 
     return hasInProgressUSDVBBA(achData);
 };
 
-export {getRouteForCurrentStep, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES, hasInProgressUSDVBBA, hasInProgressVBBA, hasInProgressNonUSDVBBA};
+/**
+ * Helper function to get the first SETUP state bank account without policyID
+ * @param bankAccountList - List of bank accounts to search
+ * @returns First matching bank account or null
+ */
+function getSetupStateBankAccount(bankAccountList?: BankAccountList) {
+    if (!bankAccountList) {
+        return null;
+    }
+
+    const setupStateBankAccounts = Object.values(bankAccountList).filter(
+        (bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP && !bankAccount?.accountData?.additionalData?.policyID,
+    );
+
+    return setupStateBankAccounts.at(0) ?? null;
+}
+
+export {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressNonUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES, getSetupStateBankAccount};
 export type {ReimbursementAccountStepToOpen};
