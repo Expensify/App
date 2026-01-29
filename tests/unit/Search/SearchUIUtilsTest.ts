@@ -2867,6 +2867,7 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.YEAR,
+                    allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionYearGroupListItems);
         });
@@ -2897,6 +2898,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.YEAR,
+                allReportMetadata: {},
             }) as [TransactionYearGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -2914,6 +2916,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.YEAR,
+                allReportMetadata: {},
             }) as [TransactionYearGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -2975,6 +2978,7 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                    allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionQuarterGroupListItems);
         });
@@ -3007,6 +3011,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                allReportMetadata: {},
             }) as [TransactionQuarterGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
@@ -3024,6 +3029,7 @@ describe('SearchUIUtils', () => {
                 formatPhoneNumber,
                 bankAccountList: {},
                 groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                allReportMetadata: {},
             }) as [TransactionQuarterGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
