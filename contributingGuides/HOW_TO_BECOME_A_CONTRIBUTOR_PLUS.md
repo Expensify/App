@@ -19,6 +19,7 @@ C+ are contributors who are experienced at working with Expensify and have gaine
 - Follow our Code of Conduct, Contributing.md and README.md docs and processes.
 - Comment and fix bugs in a timely manner.
 - Clear communicator.
+- Familiar with [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md).
 - Bonus points:
   - Help other contributors by commenting on their issues. 
   - Actively involved in the #expensify-open-source slack channel.

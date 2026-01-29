@@ -182,15 +182,16 @@ Additionally, if you want to discuss an idea with the open source community with
 16. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
 17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
 18. Please add a screenshot of the app running on each platform (Web, iOS, Android, Mobile Web).
+19. Please review the [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md) for standards on PR titles, testing responsibilities, and the review workflow.
 
 ### Completing the final checklist
-19. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
-20. The items requiring your completion consist of: 
+20. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.
+21. The items requiring your completion consist of: 
     1. Proposing steps to take for a regression test to ensure the bug doesn't occur again (For information on how to successfully complete this, head [here](https://github.com/Expensify/App/blob/main/contributingGuides/REGRESSION_TEST_BEST_PRACTICES.md)).
     2. Identifying and noting the offending PR that caused the bug (if any).
     3. Commenting on the offending PR to note the bug it caused and why (if applicable).
     4. Starting a conversation on if any additional steps should be taken to prevent further bugs similar to the one fixed from occurring again. 
-21. Once the above items have been successfully completed, then payments will begin to be issued. 
+22. Once the above items have been successfully completed, then payments will begin to be issued. 
 
 ### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
