@@ -641,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Novo recurso',
         month: 'Mês',
         home: 'Início',
+        week: 'Semana',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -2238,6 +2239,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} para ${merchant} - ${date}`,
         },
+        csvCardDescription: 'Importar CSV',
     },
     workflowsPage: {
         workflowTitle: 'Gastos',
@@ -6963,6 +6965,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciante',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
             },
             feed: 'Feed',
             withdrawalType: {
