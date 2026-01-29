@@ -3193,6 +3193,7 @@ const CONST = {
             ARE_DISTANCE_RATES_ENABLED: 'areDistanceRatesEnabled',
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
+            ARE_INVOICE_FIELDS_ENABLED: 'areInvoiceFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_RECEIPT_PARTNERS_ENABLED: 'receiptPartners',
             ARE_COMPANY_CARDS_ENABLED: 'areCompanyCardsEnabled',
@@ -7652,6 +7653,11 @@ const CONST = {
         DATE: 'date',
         LIST: 'dropdown',
         FORMULA: 'formula',
+    },
+    REPORT_FIELD_TARGETS: {
+        EXPENSE: 'expense',
+        INVOICE: 'invoice',
+        PAYCHECK: 'paycheck',
     },
 
     NAVIGATION_ACTIONS: {

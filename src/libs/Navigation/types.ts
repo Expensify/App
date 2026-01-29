@@ -615,11 +615,22 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
         policyID: string;
         reportFieldID?: string;
     };
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES]: {
+        policyID: string;
+        reportFieldID?: string;
+    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
+        policyID: string;
+        reportFieldID?: string;
+    };
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_ADD_VALUE]: {
         policyID: string;
         reportFieldID?: string;
     };
@@ -628,7 +639,16 @@ type SettingsNavigatorParamList = {
         valueIndex: number;
         reportFieldID?: string;
     };
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_VALUE_SETTINGS]: {
+        policyID: string;
+        valueIndex: number;
+        reportFieldID?: string;
+    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
+        policyID: string;
+        valueIndex: number;
+    };
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE]: {
         policyID: string;
         valueIndex: number;
     };
@@ -636,7 +656,15 @@ type SettingsNavigatorParamList = {
         policyID: string;
         reportFieldID: string;
     };
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_SETTINGS]: {
+        policyID: string;
+        reportFieldID: string;
+    };
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
+        policyID: string;
+        reportFieldID: string;
+    };
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE]: {
         policyID: string;
         reportFieldID: string;
     };
