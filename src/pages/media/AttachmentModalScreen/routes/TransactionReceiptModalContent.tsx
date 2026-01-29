@@ -3,8 +3,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
 import useAllTransactions from '@hooks/useAllTransactions';
@@ -38,10 +36,9 @@ import useDownloadAttachment from './hooks/useDownloadAttachment';
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID} = route.params;
 
-    const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
@@ -351,7 +348,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             }
             if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
                 menuItems.push({
-                    icon: icons.Download,
+                    icon: expensifyIcons.Download,
                     text: translate('common.download'),
                     onSelected: () => onDownloadAttachment({source: innerSource, file}),
                     sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DOWNLOAD_RECEIPT,
@@ -367,7 +364,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 !hasMissingSmartscanFields(transaction, transactionReport)
             ) {
                 menuItems.push({
-                    icon: Expensicons.Trashcan,
+                    icon: expensifyIcons.Trashcan,
                     text: translate('receipt.deleteReceipt'),
                     onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
                     shouldCallAfterModalHide: true,
@@ -385,12 +382,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             transaction,
             shouldShowDeleteReceiptButton,
             transactionReport,
-            expensifyIcons.Camera,
             translate,
             action,
             iouType,
             report?.reportID,
-            icons.Download,
+            expensifyIcons,
             onDownloadAttachment,
         ],
     );
@@ -418,7 +414,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     <Button
                         onPress={exitCropMode}
                         text={translate('common.cancel')}
-                        icon={Expensicons.Close}
+                        icon={expensifyIcons.Close}
                         style={styles.transactionReceiptButton}
                     />
                     <Button
@@ -427,7 +423,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         text={translate('common.save')}
                         isLoading={isCropSaving}
                         isDisabled={!cropRect || isCropSaving}
-                        icon={Expensicons.Checkmark}
+                        icon={expensifyIcons.Checkmark}
                         style={styles.transactionReceiptButton}
                     />
                 </View>
@@ -442,7 +438,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
-                        icon={Expensicons.Rotate}
+                        icon={expensifyIcons.Rotate}
                         onPress={rotateReceipt}
                         text={translate('common.rotate')}
                         isLoading={isRotating}
@@ -452,7 +448,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 )}
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
-                        icon={Expensicons.Rotate}
+                        icon={expensifyIcons.Crop}
                         onPress={enterCropMode}
                         text={translate('receipt.crop')}
                         style={styles.transactionReceiptButton}
@@ -493,13 +489,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         rotateReceipt,
         isRotating,
         enterCropMode,
-        expensifyIcons.Camera,
         action,
         iouType,
         draftTransactionID,
         transaction?.transactionID,
         report?.reportID,
         styles,
+        expensifyIcons,
     ]);
 
     const customAttachmentContent = useMemo(() => {
