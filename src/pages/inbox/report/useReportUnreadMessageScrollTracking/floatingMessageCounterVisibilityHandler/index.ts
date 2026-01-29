@@ -1,4 +1,4 @@
-import {runOnJS} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import CONST from '@src/CONST';
 import type FloatingMessageCounterVisibilityHandlerParams from './types';
 
@@ -19,12 +19,12 @@ function floatingMessageCounterVisibilityHandler({
 
     // display floating button if we're scrolled more than the offset
     if (offsetY > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !hasUnreadMarkerReportAction) {
-        runOnJS(setIsFloatingMessageCounterVisible)(true);
+        scheduleOnRN(setIsFloatingMessageCounterVisible, true);
     }
 
     // hide floating button if we're scrolled closer than the offset and mark message as read
     if (offsetY < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible && !hasUnreadMarkerReportAction) {
-        runOnJS(setIsFloatingMessageCounterVisible)(false);
+        scheduleOnRN(setIsFloatingMessageCounterVisible, false);
     }
 }
 
