@@ -216,9 +216,10 @@ function WorkspacesListPage() {
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     const prevPolicyToDelete = usePrevious(policyToDelete);
+
+    const hasExistingCards = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
     const hasCardFeedOrExpensifyCard =
-        !isEmptyObject(cardFeeds) ||
-        !isEmptyObject(cardsList) ||
+        hasExistingCards ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areExpensifyCardsEnabled ||
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areCompanyCardsEnabled) &&
@@ -233,6 +234,8 @@ function WorkspacesListPage() {
     const policyToDeleteLatestErrorMessage = getLatestErrorMessage(policyToDelete);
     const isPendingDelete = isPendingDeletePolicy(policyToDelete);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicyToDelete);
+    const hasWorkspaceDeleteErrorOffline = !!hasExistingCards && !!isOffline;
+    const hasShowWorkspaceDeleteErrorOfflineRef = useRef(false);
 
     const confirmDelete = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
@@ -252,10 +255,13 @@ function WorkspacesListPage() {
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
+            hasWorkspaceDeleteErrorOffline,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
-            setPolicyIDToDelete(undefined);
+            if (!hasWorkspaceDeleteErrorOffline) {
+                setPolicyIDToDelete(undefined);
+            }
             setPolicyNameToDelete(undefined);
         }
     };
@@ -346,6 +352,14 @@ function WorkspacesListPage() {
     );
 
     useEffect(() => {
+        // Handle showing error modal when offline and error occurs
+        if (isOffline && policyToDeleteLatestErrorMessage) {
+            hasShowWorkspaceDeleteErrorOfflineRef.current = true;
+            setIsDeleteWorkspaceErrorModalOpen(true);
+            return;
+        }
+
+        // Handle showing error modal after delete operation completes
         if (!prevIsPendingDelete || isPendingDelete || !policyIDToDelete) {
             return;
         }
@@ -353,8 +367,12 @@ function WorkspacesListPage() {
         if (!isFocused || !policyToDeleteLatestErrorMessage) {
             return;
         }
+
+        if (hasShowWorkspaceDeleteErrorOfflineRef.current) {
+            return;
+        }
         setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [isPendingDelete, prevIsPendingDelete, isFocused, policyToDeleteLatestErrorMessage, policyIDToDelete]);
+    }, [isOffline, policyToDeleteLatestErrorMessage, isPendingDelete, prevIsPendingDelete, isFocused, policyIDToDelete]);
 
     /**
      * Gets the menu item for each workspace
