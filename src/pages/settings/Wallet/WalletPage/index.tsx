@@ -62,6 +62,8 @@ function WalletPage() {
         selector: fundListSelector,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
@@ -663,7 +665,7 @@ function WalletPage() {
                 isVisible={showConfirmDeleteCardModal}
                 onConfirm={() => {
                     if (selectedCard?.cardID) {
-                        deletePersonalCard(selectedCard.cardID, selectedCard);
+                        deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports});
                     }
                     setShowConfirmDeleteCardModal(false);
                 }}

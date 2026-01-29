@@ -25,24 +25,6 @@ import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-let allTransactions: NonNullable<OnyxCollection<Transaction>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allTransactions = value ?? {};
-    },
-});
-
-let allReports: NonNullable<OnyxCollection<Report>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value ?? {};
-    },
-});
-
 type ReplacementReason = 'damaged' | 'stolen';
 
 type IssueNewCardFlowData = {
@@ -713,15 +695,22 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
     API.write(WRITE_COMMANDS.CARD_DEACTIVATE, parameters, {optimisticData, failureData});
 }
 
+type DeletePersonalCardData = {
+    cardID: number;
+    card?: Card;
+    allTransactions: OnyxCollection<Transaction>;
+    allReports: OnyxCollection<Report>;
+};
+
 /**
  * Checks if a report is in an open/unsubmitted state where its transactions can be deleted.
  * Matches the backend logic in Card::remove which deletes transactions on open reports.
  */
-function isReportOpenOrUnsubmitted(reportID: string | undefined): boolean {
+function isReportOpenOrUnsubmitted(reportID: string | undefined, reports: OnyxCollection<Report>): boolean {
     if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return true;
     }
-    const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         return true;
     }
@@ -733,12 +722,12 @@ function isReportOpenOrUnsubmitted(reportID: string | undefined): boolean {
  * Deletes a personal card (CSV-imported card) and its associated transactions.
  * The backend will handle deleting transactions on unsubmitted/open reports.
  */
-function deletePersonalCard(cardID: number, card?: Card) {
+function deletePersonalCard({cardID, card, allTransactions, allReports}: DeletePersonalCardData) {
     // Find all transactions associated with this card that are on open/unsubmitted reports
     // This matches the backend logic which only deletes transactions on open reports
     const transactionsToDelete: Transaction[] = [];
-    for (const transaction of Object.values(allTransactions)) {
-        if (transaction?.cardID === cardID && isReportOpenOrUnsubmitted(transaction.reportID)) {
+    for (const transaction of Object.values(allTransactions ?? {})) {
+        if (transaction?.cardID === cardID && isReportOpenOrUnsubmitted(transaction.reportID, allReports)) {
             transactionsToDelete.push(transaction);
         }
     }
