@@ -161,6 +161,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
+    // Refresh transactions when expanding - always starts fresh from offset 0
+    // This is stable because it only depends on queryJSON and loading state
+    const refreshTransactions = useCallback(() => {
+        if (!groupItem.transactionsQueryJSON) {
+            return;
+        }
+
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: !!transactionsSnapshot?.search?.isLoading,
+        });
+    }, [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
+
+    // Load more transactions for pagination - uses current offset
     const searchTransactions = useCallback(
         (pageSize = 0) => {
             if (!groupItem.transactionsQueryJSON) {
@@ -192,12 +209,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
 
+    // Trigger fresh search when expanding or when a new transaction is created while expanded
     useEffect(() => {
-        if (!newTransactionID || !isExpanded) {
+        if (!isExpanded) {
             return;
         }
-        searchTransactions();
-    }, [newTransactionID, isExpanded, searchTransactions]);
+        refreshTransactions();
+    }, [newTransactionID, isExpanded, refreshTransactions]);
 
     const handleToggle = useCallback(() => {
         setIsExpanded(!isExpanded);
@@ -239,11 +257,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
-        } else if (groupItem.transactionsQueryJSON && !isExpanded) {
-            searchTransactions();
         }
         handleToggle();
-    }, [isEmpty, shouldDisplayEmptyView, groupItem.transactionsQueryJSON, isExpanded, handleToggle, onPress, searchTransactions]);
+    }, [isEmpty, shouldDisplayEmptyView, handleToggle, onPress]);
 
     const getHeader = useCallback(
         (hovered: boolean) => {
