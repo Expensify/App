@@ -5305,7 +5305,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Regeln',
                 subtitle: 'Belege verlangen, hohe Ausgaben kennzeichnen und mehr.',
             },
-            timeTracking: {title: 'Zeit', subtitle: 'Legen Sie einen abrechenbaren Stundensatz fest, damit Mitarbeitende für ihre Zeit bezahlt werden.'},
+            timeTracking: {
+                title: 'Zeit',
+                subtitle: 'Legen Sie einen abrechenbaren Stundensatz für die Zeiterfassung fest.',
+                defaultHourlyRate: 'Standardstundensatz',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -6411,6 +6415,10 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Exakte Übereinstimmung',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
+                duplicateRuleTitle: 'Eine ähnliche Händlerregel existiert bereits',
+                duplicateRulePrompt: (merchantName: string) => `Möchten Sie eine neue Regel für „${merchantName}“ speichern, obwohl Sie bereits eine vorhandene haben?`,
+                saveAnyway: 'Trotzdem speichern',
+                applyToExistingUnsubmittedExpenses: 'Auf bereits vorhandene, noch nicht eingereichte Ausgaben anwenden',
             },
         },
         planTypePage: {

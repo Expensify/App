@@ -3840,6 +3840,11 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: selfDMReport.reportID,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticReportID}`,
                 value: {isOptimisticReport: true},
             },

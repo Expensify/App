@@ -38,11 +38,12 @@ import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getSections} from '@libs/SearchUIUtils';
+import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
@@ -70,7 +71,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     searchType,
     isOffline,
     newTransactionID,
-    violations,
     onDEWModalOpen,
     isDEWBetaEnabled,
 }: TransactionGroupListItemProps<TItem>) {
@@ -414,6 +414,55 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined);
 
+    const groupViolations = useMemo(() => {
+        if (!transactionsSnapshot?.data) {
+            return {};
+        }
+        const result: Record<string, TransactionViolations | undefined> = {};
+        for (const [key, value] of Object.entries(transactionsSnapshot.data)) {
+            if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) {
+                result[key] = value as TransactionViolations;
+            }
+        }
+        return result;
+    }, [transactionsSnapshot?.data]);
+
+    // Filter violations based on user visibility
+    const filteredViolations = useMemo(() => {
+        if (!groupViolations || !transactionsSnapshot?.data) {
+            return groupViolations;
+        }
+
+        const filtered: Record<string, TransactionViolation[]> = {};
+
+        const transactionKeys = Object.keys(transactionsSnapshot.data).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+
+        for (const key of transactionKeys) {
+            const transaction = transactionsSnapshot.data[key as keyof typeof transactionsSnapshot.data] as Transaction;
+            if (!transaction || typeof transaction !== 'object' || !('transactionID' in transaction) || !('reportID' in transaction)) {
+                continue;
+            }
+
+            const report = transactionsSnapshot.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+            const policy = transactionsSnapshot.data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
+            if (report && policy) {
+                const transactionViolations = groupViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+                if (transactionViolations) {
+                    const filteredTransactionViolations = mergeProhibitedViolations(
+                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails?.email ?? '', true, transaction)),
+                    );
+
+                    if (filteredTransactionViolations.length > 0) {
+                        filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
+                    }
+                }
+            }
+        }
+
+        return filtered;
+    }, [groupViolations, transactionsSnapshot, currentUserDetails?.email]);
+
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
@@ -452,7 +501,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 groupBy={groupBy}
                                 accountID={currentUserDetails.accountID}
                                 isOffline={isOffline}
-                                violations={violations}
+                                violations={filteredViolations}
                                 transactions={transactions}
                                 transactionsVisibleLimit={transactionsVisibleLimit}
                                 setTransactionsVisibleLimit={setTransactionsVisibleLimit}

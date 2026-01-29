@@ -5273,7 +5273,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Zasady',
                 subtitle: 'Wymagaj paragonów, oznaczaj wysokie wydatki i nie tylko.',
             },
-            timeTracking: {title: 'Czas', subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy byli wynagradzani za swój czas.'},
+            timeTracking: {
+                title: 'Czas',
+                subtitle: 'Ustaw godzinową stawkę rozliczeniową do śledzenia czasu.',
+                defaultHourlyRate: 'Domyślna stawka godzinowa',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -6373,6 +6377,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 matchTypeContains: 'Zawiera',
                 matchTypeExact: 'Dokładne dopasowanie',
                 expensesExactlyMatching: 'Dla wydatków dokładnie pasujących:',
+                duplicateRuleTitle: 'Podobna reguła sprzedawcy już istnieje',
+                duplicateRulePrompt: (merchantName: string) => `Czy chcesz zapisać nową regułę dla „${merchantName}”, mimo że masz już istniejącą?`,
+                saveAnyway: 'Zapisz mimo to',
+                applyToExistingUnsubmittedExpenses: 'Zastosuj do istniejących niewysłanych wydatków',
             },
         },
         planTypePage: {
