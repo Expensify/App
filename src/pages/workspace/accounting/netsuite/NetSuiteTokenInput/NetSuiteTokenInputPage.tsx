@@ -24,7 +24,7 @@ const pages = [
 ];
 const CREDENTIALS_PAGE_INDEX = 4;
 
-function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
+function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
 
@@ -38,7 +38,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         pages,
         onFinished: submit,
         startFrom: hasAuthError ? CREDENTIALS_PAGE_INDEX : 0,
-        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, pageName),
+        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(route.params.policyID, pageName),
     });
 
     const handleBackButtonPress = () => {
