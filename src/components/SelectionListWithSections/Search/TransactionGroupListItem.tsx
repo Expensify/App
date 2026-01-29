@@ -116,6 +116,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
+
         const [sectionData] = getSections({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             data: transactionsSnapshot?.data,
@@ -126,6 +127,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             bankAccountList,
             isActionLoadingSet,
         }) as [TransactionListItemType[], number];
+
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
