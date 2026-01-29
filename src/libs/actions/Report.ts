@@ -6429,6 +6429,7 @@ function changeReportPolicyAndInviteSubmitter(
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
         formatPhoneNumber,
+        undefined,
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     );
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterEmail].reportID;
