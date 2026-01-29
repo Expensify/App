@@ -29,6 +29,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers']);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [shouldForceCloseAccount, setShouldForceCloseAccount] = useState<boolean>();
     // we need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -60,11 +61,11 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
-    const handleCloseAccount = async (force: boolean) => {
-        if (!securityGroupsData) {
+    const handleCloseAccount = async () => {
+        if (!securityGroupsData || shouldForceCloseAccount === undefined) {
             return;
         }
-        setIsModalVisible(false);
+
         const result = await showConfirmModal({
             title: translate('domain.members.closeAccount'),
             prompt: translate('domain.members.closeAccountPrompt'),
@@ -74,18 +75,23 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             shouldShowCancelButton: true,
         });
         if (result.action !== ModalActions.CONFIRM) {
+            setIsModalVisible(true);
+            setShouldForceCloseAccount(undefined);
             return;
         }
-        closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, securityGroupsData, force);
+        closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, securityGroupsData, shouldForceCloseAccount);
+        setShouldForceCloseAccount(undefined);
         Navigation.dismissModal();
     };
 
     const handleForceCloseAccount = () => {
-        handleCloseAccount(true);
+        setShouldForceCloseAccount(true);
+        setIsModalVisible(false);
     };
 
     const handleSafeCloseAccount = () => {
-        handleCloseAccount(false);
+        setShouldForceCloseAccount(false);
+        setIsModalVisible(false);
     };
 
     const avatarButton = (
@@ -104,23 +110,22 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 accountID={accountID}
                 avatarButton={avatarButton}
             />
-            {/* I added this condition here because on this screen we have two modals, and that causes
-            the Esc button not to work properly when using isVisible props. */}
-            {isModalVisible && (
-                <DecisionModal
-                    title={translate('domain.members.closeAccount')}
-                    prompt={translate('domain.members.closeAccountInfo')}
-                    isSmallScreenWidth={isSmallScreenWidth}
-                    onSecondOptionSubmit={handleSafeCloseAccount}
-                    onFirstOptionSubmit={handleForceCloseAccount}
-                    secondOptionText={translate('domain.members.safeCloseAccount')}
-                    firstOptionText={translate('domain.members.forceCloseAccount')}
-                    isVisible
-                    onClose={() => setIsModalVisible(false)}
-                    isFirstOptionDanger
-                    isSecondOptionSuccess
-                />
-            )}
+            <DecisionModal
+                title={translate('domain.members.closeAccount')}
+                prompt={translate('domain.members.closeAccountInfo')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onFirstOptionSubmit={handleForceCloseAccount}
+                onSecondOptionSubmit={handleSafeCloseAccount}
+                secondOptionText={translate('domain.members.safeCloseAccount')}
+                firstOptionText={translate('domain.members.forceCloseAccount')}
+                isVisible={isModalVisible}
+                onClose={() => setIsModalVisible(false)}
+                onModalHide={() => {
+                    handleCloseAccount();
+                }}
+                isFirstOptionDanger
+                isSecondOptionSuccess
+            />
         </>
     );
 }

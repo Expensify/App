@@ -44,6 +44,9 @@ type DecisionModalProps = {
     /** Callback for closing modal */
     onClose: () => void;
 
+    /** Callback when modal has fully disappeared */
+    onModalHide: () => void;
+
     /** Whether modal is visible */
     isVisible: boolean;
 };
@@ -57,6 +60,7 @@ function DecisionModal({
     onSecondOptionSubmit,
     isSmallScreenWidth,
     onClose,
+    onModalHide,
     isVisible,
     isFirstOptionDanger = false,
     isFirstOptionSuccess = true,
@@ -71,6 +75,7 @@ function DecisionModal({
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
+            onModalHide={onModalHide}
         >
             <ScrollView contentContainerStyle={styles.m5}>
                 <View>
