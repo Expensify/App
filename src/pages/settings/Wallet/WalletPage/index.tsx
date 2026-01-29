@@ -91,7 +91,7 @@ function WalletPage() {
 
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const hasAssignedCard = hasDisplayableAssignedCards(cardList, currentUserPersonalDetails.accountID);
+    const hasAssignedCard = hasDisplayableAssignedCards(cardList);
 
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;

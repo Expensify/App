@@ -27,7 +27,7 @@ import {
     getPlaidInstitutionIconUrl,
     isExpensifyCard,
     isExpensifyCardPendingAction,
-    isUserAssignedPersonalCard,
+    isPersonalCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@libs/CardUtils';
@@ -176,7 +176,6 @@ function PaymentMethodList({
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
@@ -188,14 +187,12 @@ function PaymentMethodList({
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
-            const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-
             const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-                // Include active Expensify cards, company cards (domain), and user-assigned personal cards
+                // Include active Expensify cards, company cards (domain), and personal cards
                 .filter(
                     (card) =>
                         CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
-                        (isExpensifyCard(card) || !!card.domainName || card.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV || isUserAssignedPersonalCard(card, currentUserAccountID)) &&
+                        (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
                         card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
                 );
 
@@ -203,7 +200,7 @@ function PaymentMethodList({
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                const isUserPersonalCard = isUserAssignedPersonalCard(card, currentUserAccountID);
+                const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
 
                 let icon;
@@ -424,7 +421,6 @@ function PaymentMethodList({
         filterCurrency,
         isLoadingCardList,
         cardList,
-        session?.accountID,
         illustrations,
         companyCardFeedIcons,
         shouldShowRbrForFeedNameWithDomainID,

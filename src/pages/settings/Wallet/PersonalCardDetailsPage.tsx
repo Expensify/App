@@ -13,14 +13,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getDefaultCardName, isUserAssignedPersonalCard} from '@libs/CardUtils';
+import {getCardFeedIcon, getDefaultCardName, isPersonalCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -54,15 +53,14 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = getDisplayNameOrDefault(cardholder);
-    const isPersonalCard = !!(card && isUserAssignedPersonalCard(card, currentUserAccountID));
+    const isUserPersonalCard = !!(card && isPersonalCard(card));
     const reimbursableSetting = card?.reimbursable ?? true;
-    const isCSVImportedPersonalCard = !!(isPersonalCard && card && (card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
+    const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
 
     const removeCardFromUser = () => {
         setIsUnassignModalVisible(false);
@@ -95,7 +93,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     }
 
     // If somehow a non-personal card is accessed via this route, show not found
-    if (card && !isPersonalCard) {
+    if (card && !isUserPersonalCard) {
         return <NotFoundPage />;
     }
 

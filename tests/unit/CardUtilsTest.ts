@@ -36,7 +36,6 @@ import {
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
-    isUserAssignedPersonalCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
@@ -1451,63 +1450,6 @@ describe('CardUtils', () => {
                 expect(firstCard?.cardName).toBe('Plaid Checking 0000');
                 expect(firstCard?.cardID).toBe('Plaid Checking 0000');
             });
-        });
-    });
-
-    describe('isUserAssignedPersonalCard', () => {
-        const currentUserAccountID = 12345;
-
-        it('should return true for a personal card assigned to the current user (empty domainName, matching accountID)', () => {
-            const card: Card = {
-                cardID: 1,
-                accountID: currentUserAccountID,
-                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                cardName: 'My Personal Card',
-                domainName: '', // Empty string for personal card
-                fraud: 'none',
-                lastFourPAN: '1234',
-                lastScrape: '',
-                lastUpdated: '',
-                state: 3,
-            };
-            expect(isUserAssignedPersonalCard(card, currentUserAccountID)).toBe(true);
-        });
-
-        it('should return false for a card with a domainName (company card)', () => {
-            const card: Card = {
-                cardID: 2,
-                accountID: currentUserAccountID,
-                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                cardName: 'Company Card',
-                domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
-                fraud: 'none',
-                lastFourPAN: '5678',
-                lastScrape: '',
-                lastUpdated: '',
-                state: 3,
-            };
-            expect(isUserAssignedPersonalCard(card, currentUserAccountID)).toBe(false);
-        });
-
-        it('should return false for a card assigned to a different user', () => {
-            const differentUserAccountID = 99999;
-            const card: Card = {
-                cardID: 3,
-                accountID: differentUserAccountID,
-                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                cardName: 'Other Users Card',
-                domainName: '', // Empty string for personal card
-                fraud: 'none',
-                lastFourPAN: '9999',
-                lastScrape: '',
-                lastUpdated: '',
-                state: 3,
-            };
-            expect(isUserAssignedPersonalCard(card, currentUserAccountID)).toBe(false);
-        });
-
-        it('should return false for undefined card', () => {
-            expect(isUserAssignedPersonalCard(undefined, currentUserAccountID)).toBe(false);
         });
     });
 
