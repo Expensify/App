@@ -14,6 +14,7 @@ import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePre
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import DiscoverSection from './DiscoverSection';
+import ForYouSection from './ForYouSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -55,7 +56,10 @@ function HomePage() {
                 addBottomSafeAreaPadding
             >
                 <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
-                    <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>{!isSelfTourViewed && <DiscoverSection />}</View>
+                    <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
+                        <ForYouSection />
+                        {!isSelfTourViewed && <DiscoverSection />}
+                    </View>
                     <View style={styles.homePageRightColumn(shouldUseNarrowLayout)} />
                 </View>
             </ScrollView>
