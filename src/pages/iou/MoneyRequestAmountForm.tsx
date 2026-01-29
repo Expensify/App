@@ -7,6 +7,7 @@ import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountI
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -164,7 +165,7 @@ function MoneyRequestAmountForm({
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(
-        (iouPaymentType?: PaymentMethodType | undefined) => {
+        ({paymentType}: PaymentActionParams) => {
             const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes('taxAmount');
 
             // Skip the check for tax amount form as 0 is a valid input
@@ -181,7 +182,7 @@ function MoneyRequestAmountForm({
 
             const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
 
-            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
+            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: paymentType});
         },
         [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P, isBetaEnabled],
     );
@@ -236,7 +237,7 @@ function MoneyRequestAmountForm({
                         medium={isExtraSmallScreenHeight}
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        onPress={() => submitAndNavigateToNextPage()}
+                        onPress={() => submitAndNavigateToNextPage({})}
                         text={buttonText}
                         testID="next-button"
                     />
