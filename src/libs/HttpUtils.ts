@@ -80,8 +80,27 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
             return response;
         })
         .then((response) => {
+            if (shouldForceOffline) {
+                return new Promise<typeof response>((resolve) => {
+                    const connection = Onyx.connectWithoutView({
+                        key: ONYXKEYS.NETWORK,
+                        callback: (network) => {
+                            if (!network) {
+                                return;
+                            }
+                            if (!network.shouldForceOffline) {
+                                Onyx.disconnect(connection);
+                                resolve(response);
+                            }
+                        },
+                    });
+                });
+            }
+            return response;
+        })
+        .then((response) => {
             // Test mode where all requests will succeed in the server, but fail to return a response
-            if (shouldFailAllRequests || shouldForceOffline) {
+            if (shouldFailAllRequests) {
                 throw new HttpsError({
                     message: CONST.ERROR.FAILED_TO_FETCH,
                 });
