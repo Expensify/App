@@ -995,7 +995,6 @@ function getFormattedQuarterForSearch(year: number, quarter: number): string {
     const quarterEnd = set(new Date(), {year, month: endMonth, date: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
     return `Q${quarter} ${year} (${format(quarterStart, 'MMM d')} - ${format(quarterEnd, 'MMM d')})`;
 }
-
 const DateUtils = {
     isDate,
     formatToDayOfWeek,

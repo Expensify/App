@@ -1435,6 +1435,7 @@ function getTransactionsSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
+    queryJSON?: SearchQueryJSON,
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
@@ -1453,7 +1454,8 @@ function getTransactionsSections(
 
     const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
 
-    const queryJSON = getCurrentSearchQueryJSON();
+    // Use the provided queryJSON if available, otherwise fall back to getCurrentSearchQueryJSON()
+    const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -1462,9 +1464,9 @@ function getTransactionsSections(
         let shouldShow = true;
 
         const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`);
-        if (queryJSON && !isActionLoading) {
-            if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-                const status = queryJSON.status;
+        if (currentQueryJSON && !isActionLoading) {
+            if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                const status = currentQueryJSON.status;
                 if (Array.isArray(status)) {
                     shouldShow = status.some((expenseStatus) => {
                         return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report) : false;
@@ -2691,7 +2693,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions);
+    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions, queryJSON);
 }
 
 /**
@@ -3223,11 +3225,11 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
         case CONST.SEARCH.GROUP_BY.MONTH:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH) as SearchCustomColumnIds[];
         case CONST.SEARCH.GROUP_BY.WEEK:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK) as SearchCustomColumnIds[];
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK);
         case CONST.SEARCH.GROUP_BY.YEAR:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR) as SearchCustomColumnIds[];
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR);
         case CONST.SEARCH.GROUP_BY.QUARTER:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER) as SearchCustomColumnIds[];
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER);
         default:
             return [];
     }
@@ -3976,20 +3978,20 @@ function getColumnsToShow(
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER,
         }[groupBy];
 
-        const filteredVisibleColumns = visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>));
-        const columnsToShow = filteredVisibleColumns.length ? filteredVisibleColumns : defaultCustomColumns;
+        const filteredVisibleColumns = customColumns ? visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>)) : [];
+        const columnsToShow: SearchColumnType[] = filteredVisibleColumns.length ? filteredVisibleColumns : (defaultCustomColumns ?? []);
 
         if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
             const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]);
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 
@@ -4001,12 +4003,12 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 
@@ -4018,12 +4020,12 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 
@@ -4035,12 +4037,12 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 
@@ -4086,12 +4088,12 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 
@@ -4103,12 +4105,12 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                if (!columnsToShow.includes(col)) {
                     result.push(col);
                 }
             }
 
-            for (const col of columnsToShow) {
+            for (const col of columnsToShow ?? []) {
                 result.push(col);
             }
 

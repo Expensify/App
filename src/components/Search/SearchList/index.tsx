@@ -31,8 +31,8 @@ import type {
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionQuarterGroupListItemType,
-    TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
+    TransactionWeekGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';

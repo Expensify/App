@@ -3051,7 +3051,6 @@ describe('SearchUIUtils', () => {
 
             expect(SearchUIUtils.isTransactionQuarterGroupListItemType(quarterItem)).toBe(true);
         });
-
         it('should return getWeekSections result when type is EXPENSE and groupBy is week', () => {
             expect(
                 SearchUIUtils.getSections({
