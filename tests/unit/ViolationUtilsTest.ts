@@ -398,11 +398,11 @@ describe('getViolationsOnyxData', () => {
 
         it('should add receiptRequired when itemizedReceiptRequired existed but category changed to never require itemized', () => {
             // Given a transaction that previously had an itemizedReceiptRequired violation because the policy requires itemized receipts
-            policy.maxExpenseAmountNoReceipt = 100;
-            policy.maxExpenseAmountNoItemizedReceipt = 100;
+            policy.maxExpenseAmountNoReceipt = 100; // $1.00
+            policy.maxExpenseAmountNoItemizedReceipt = 100; // $1.00
             policyCategories.Food.maxAmountNoReceipt = undefined;
             policyCategories.Food.maxAmountNoItemizedReceipt = CONST.DISABLED_MAX_EXPENSE_VALUE;
-            transaction.amount = -300;
+            transaction.amount = -300; // $3.00
             const existingViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
 
             // When the category is changed to "never require itemized receipt"
@@ -418,8 +418,8 @@ describe('getViolationsOnyxData', () => {
 
         it('should update itemizedReceiptRequired violation data when threshold changes', () => {
             // Given a transaction with an existing itemizedReceiptRequired violation that has stale threshold data
-            policy.maxExpenseAmountNoItemizedReceipt = 7500;
-            transaction.amount = -10000;
+            policy.maxExpenseAmountNoItemizedReceipt = 7500; // $75.00
+            transaction.amount = -10000; // $100.00
             const existingViolations: TransactionViolation[] = [
                 {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$50.00'}},
             ];
@@ -436,10 +436,10 @@ describe('getViolationsOnyxData', () => {
 
         it('should replace receiptRequired with itemizedReceiptRequired when category changes to always require itemized', () => {
             // Given a transaction with a receiptRequired violation from the policy threshold
-            policy.maxExpenseAmountNoReceipt = 2500;
+            policy.maxExpenseAmountNoReceipt = 2500; // $25.00
             policyCategories.Food.maxAmountNoReceipt = undefined;
             policyCategories.Food.maxAmountNoItemizedReceipt = 0;
-            transaction.amount = -5000;
+            transaction.amount = -5000; // $50.00
             const existingViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
 
             // When the category is changed to "always require itemized receipts"
@@ -455,11 +455,11 @@ describe('getViolationsOnyxData', () => {
 
         it('should remove both violations when category is set to never for both receipt and itemized', () => {
             // Given a transaction with an itemizedReceiptRequired violation from the policy
-            policy.maxExpenseAmountNoReceipt = 100;
-            policy.maxExpenseAmountNoItemizedReceipt = 100;
+            policy.maxExpenseAmountNoReceipt = 100; // $1.00
+            policy.maxExpenseAmountNoItemizedReceipt = 100; // $1.00
             policyCategories.Food.maxAmountNoReceipt = CONST.DISABLED_MAX_EXPENSE_VALUE;
             policyCategories.Food.maxAmountNoItemizedReceipt = CONST.DISABLED_MAX_EXPENSE_VALUE;
-            transaction.amount = -10000;
+            transaction.amount = -10000; // $100.00
             const existingViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
 
             // When the category is set to "never" for both receipt types
