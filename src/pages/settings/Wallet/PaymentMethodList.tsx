@@ -246,7 +246,7 @@ function PaymentMethodList({
                     } else {
                         cardDescription = getDescriptionForPolicyDomainCard(card.domainName, allPolicies);
                     }
-                    // Personal cards from OldDot navigate to personal card details page
+                    // Personal cards navigate to personal card details page
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
                     const cardOnPress = isUserPersonalCard
                         ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
