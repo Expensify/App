@@ -47,7 +47,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
             pressedOnLockedBankAccount(accountData?.bankAccountID);
-            navigateToConciergeChat();
+            navigateToConciergeChat(undefined);
             return;
         }
 

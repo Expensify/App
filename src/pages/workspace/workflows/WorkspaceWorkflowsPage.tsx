@@ -358,7 +358,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
                                             if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
                                                 pressedOnLockedBankAccount(bankAccountID);
-                                                navigateToConciergeChat();
+                                                navigateToConciergeChat(undefined);
                                                 return;
                                             }
                                             navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));

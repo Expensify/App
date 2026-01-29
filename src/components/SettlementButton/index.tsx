@@ -593,7 +593,7 @@ function SettlementButton({
             return;
         }
         pressedOnLockedBankAccount(policy?.achAccount?.bankAccountID);
-        navigateToConciergeChat();
+        navigateToConciergeChat(undefined);
     };
 
     const customText = getCustomText();
@@ -656,7 +656,8 @@ function SettlementButton({
                         options={paymentButtonOptions}
                         onOptionSelected={(option) => {
                             if (paymentButtonOptions.length === 1) {
-                                return;}
+                                return;
+                            }
 
                             handlePaymentSelection(undefined, option.value, triggerKYCFlow);
                         }}
