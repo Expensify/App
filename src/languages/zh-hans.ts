@@ -5164,7 +5164,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '规则',
                 subtitle: '要求收据、标记高额支出等。',
             },
-            timeTracking: {title: '时间', subtitle: '为员工设置按小时计费的费率，以便根据他们的工作时间获得报酬。'},
+            timeTracking: {
+                title: '时间',
+                subtitle: '为时间跟踪设置按小时计费费率。',
+                defaultHourlyRate: '默认时薪',
+            },
         },
         reports: {
             reportsCustomTitleExamples: '示例：',

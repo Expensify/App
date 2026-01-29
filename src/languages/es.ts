@@ -4981,7 +4981,8 @@ ${amount} para ${merchant} - ${date}`,
             },
             timeTracking: {
                 title: 'Tiempo',
-                subtitle: 'Establece una tarifa facturable por hora para que los empleados reciban pago por su tiempo.',
+                subtitle: 'Establecer una tarifa por hora facturable para el seguimiento de tiempo.',
+                defaultHourlyRate: 'Tarifa por hora predeterminada',
             },
         },
         reports: {

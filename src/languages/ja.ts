@@ -5254,7 +5254,11 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 title: 'ルール',
                 subtitle: 'レシートの必須化や高額支出のフラグ付けなどを設定できます。',
             },
-            timeTracking: {title: '時間', subtitle: '従業員が作業時間に対して支払いを受けられるよう、時間単位の請求レートを設定します。'},
+            timeTracking: {
+                title: '時間',
+                subtitle: 'タイムトラッキング用の時間単価請求レートを設定します。',
+                defaultHourlyRate: 'デフォルトの時間単価',
+            },
         },
         reports: {
             reportsCustomTitleExamples: '例:',
