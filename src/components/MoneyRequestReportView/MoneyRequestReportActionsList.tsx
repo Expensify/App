@@ -76,9 +76,8 @@ import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
-/**
- * In this view we are not handling the special single transaction case, we're just handling the report
- */
+
+// In this view we are not handling the special single transaction case, we're just handling the report
 const EmptyParentReportActionForTransactionThread = undefined;
 
 // Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
