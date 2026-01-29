@@ -1019,7 +1019,9 @@ function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
     if (currency) {
         return currency;
     }
-    return transaction?.currency ?? CONST.CURRENCY.USD;
+    // Sometimes transaction?.currency can be empty string which will crash the App when used in Intl.NumberFormat
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return transaction?.currency || CONST.CURRENCY.USD;
 }
 
 /**
