@@ -64,7 +64,7 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        credentials = val ?? null;
+        credentials = val;
         checkRequiredData();
     },
 });
