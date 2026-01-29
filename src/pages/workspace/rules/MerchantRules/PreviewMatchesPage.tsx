@@ -25,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type {Transaction} from '@src/types/onyx';
+import type {CodingRuleFilter} from '@src/types/onyx/Policy';
 
 type PreviewMatchesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES>;
 
@@ -48,7 +49,13 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
             return;
         }
 
-        getTransactionsMatchingCodingRule(policyID, merchant);
+        const filters: CodingRuleFilter = {
+            left: 'merchant',
+            operator: 'eq',
+            right: merchant,
+        };
+
+        getTransactionsMatchingCodingRule(policyID, filters);
     }, [merchant, policyID, isOffline]);
 
     const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);

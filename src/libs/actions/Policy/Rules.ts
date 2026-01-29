@@ -216,13 +216,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-function getTransactionsMatchingCodingRule(policyID: string, merchant: string) {
-    const filters: CodingRuleFilter = {
-        left: 'merchant',
-        operator: 'eq',
-        right: merchant,
-    };
-
+function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRuleFilter) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
