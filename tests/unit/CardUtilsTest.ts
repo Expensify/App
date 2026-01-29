@@ -640,6 +640,16 @@ describe('CardUtils', () => {
             const maskedCardNumber = maskCardNumber('Business Card Cash - 3001', undefined);
             expect(maskedCardNumber).toBe('Business Card Cash');
         });
+
+        it('Should return CSV import card display name without 4-character formatting', () => {
+            const maskedCardNumber = maskCardNumber('Checking', CONST.COMPANY_CARDS.BANK_NAME.UPLOAD);
+            expect(maskedCardNumber).toBe('Checking');
+        });
+
+        it('Should return CSV import card display name as-is for longer names', () => {
+            const maskedCardNumber = maskCardNumber('JustChecking', CONST.COMPANY_CARDS.BANK_NAME.UPLOAD);
+            expect(maskedCardNumber).toBe('JustChecking');
+        });
     });
 
     describe('getCardFeedName', () => {

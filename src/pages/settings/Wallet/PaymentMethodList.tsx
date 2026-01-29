@@ -195,7 +195,7 @@ function PaymentMethodList({
                 .filter(
                     (card) =>
                         CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
-                        (isExpensifyCard(card) || !!card.domainName || isUserAssignedPersonalCard(card, currentUserAccountID)) &&
+                        (isExpensifyCard(card) || !!card.domainName || card.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV || isUserAssignedPersonalCard(card, currentUserAccountID)) &&
                         card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
                 );
 
@@ -235,6 +235,7 @@ function PaymentMethodList({
                 if (!isExpensifyCard(card)) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
+                    const isCSVImportCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
                     const cardDisplayName = maskCardNumber(card.cardName, card.bank);
                     const pressHandler = onPress as CardPressHandler;
 
@@ -267,7 +268,7 @@ function PaymentMethodList({
                         key: card.cardID.toString(),
                         plaidUrl: isUserPersonalCard ? undefined : plaidUrl,
                         title: cardDisplayName,
-                        description: cardDescription,
+                        description: isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription,
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
