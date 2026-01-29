@@ -1,9 +1,9 @@
 import CONST from '../../src/CONST';
-import {containsActionableFollowUps, parseFollowupsFromHtml} from '../../src/libs/ReportActionsFollowupUtils';
+import {containsActionableFollowUps, parseFollowupsFromHtml} from '../../src/libs/ReportActionFollowupUtils';
 import {stripFollowupListFromHtml} from '../../src/libs/ReportActionsUtils';
 import type {ReportAction} from '../../src/types/onyx';
 
-describe('FollowupUtils', () => {
+describe('ReportActionsFollowupUtils', () => {
     describe('parseFollowupsFromHtml', () => {
         it('should return null when no followup-list exists', () => {
             const html = '<p>Hello world</p>';
