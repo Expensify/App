@@ -1517,7 +1517,7 @@ function createTransactionThreadReport(
         }
     }
 
-    if (!reportToUse) {
+    if (!reportToUse?.reportID) {
         Log.warn('Cannot build transaction thread report without a valid report');
         return;
     }
