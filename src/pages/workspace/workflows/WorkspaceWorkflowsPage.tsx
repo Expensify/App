@@ -1,13 +1,13 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { InteractionManager, View } from 'react-native';
+import type { TupleToUnion } from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
-import type {BankName} from '@components/Icon/BankIconsUtils';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import type { BankName } from '@components/Icon/BankIconsUtils';
+import { LockedAccountContext } from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -15,54 +15,41 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    clearPolicyErrorField,
-    isCurrencySupportedForDirectReimbursement,
-    isCurrencySupportedForGlobalReimbursement,
-    openPolicyWorkflowsPage,
-    setWorkspaceApprovalMode,
-    setWorkspaceAutoHarvesting,
-    setWorkspaceReimbursement,
-} from '@libs/actions/Policy/Policy';
-import {setApprovalWorkflow} from '@libs/actions/Workflow';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
-import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
-import {getLatestErrorField} from '@libs/ErrorUtils';
+import { clearPolicyErrorField, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement, openPolicyWorkflowsPage, setWorkspaceApprovalMode, setWorkspaceAutoHarvesting, setWorkspaceReimbursement } from '@libs/actions/Policy/Policy';
+import { setApprovalWorkflow } from '@libs/actions/Workflow';
+import { isBankAccountPartiallySetup } from '@libs/BankAccountUtils';
+import { getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil } from '@libs/CardUtils';
+import { getLatestErrorField } from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {
-    getCorrectedAutoReportingFrequency,
-    hasDynamicExternalWorkflow,
-    isControlPolicy,
-    isPaidGroupPolicy as isPaidGroupPolicyUtil,
-    isPolicyAdmin as isPolicyAdminUtil,
-} from '@libs/PolicyUtils';
-import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import { getPaymentMethodDescription } from '@libs/PaymentUtils';
+import { getDisplayNameOrDefault, getPersonalDetailByEmail } from '@libs/PersonalDetailsUtils';
+import { getCorrectedAutoReportingFrequency, hasDynamicExternalWorkflow, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil } from '@libs/PolicyUtils';
+import { hasInProgressVBBA } from '@libs/ReimbursementAccountUtils';
+import { convertPolicyEmployeesToApprovalWorkflows, getEligibleExistingBusinessBankAccounts, INITIAL_APPROVAL_WORKFLOW } from '@libs/WorkflowUtils';
+import type { WorkspaceSplitNavigatorParamList } from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRulesSection';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type { WithPolicyProps } from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import {getPaymentMethods} from '@userActions/PaymentMethods';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import { getPaymentMethods } from '@userActions/PaymentMethods';
+import { navigateToBankAccountRoute } from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
+import type { ToggleSettingOptionRowProps } from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
-import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
+import { getAutoReportingFrequencyDisplayNames } from './WorkspaceAutoReportingFrequencyPage';
+
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -325,7 +312,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                 showLockedAccountModal();
                                                 return;
                                             }
-                                            navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+                                            navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
                                         }}
                                         displayInDefaultIconColor
                                         icon={bankIcon.icon}
@@ -359,7 +346,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                             Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
                                             return;
                                         }
-                                        navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+                                        navigateToBankAccountRoute({policyID: route.params.policyID, backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)});
                                     }}
                                     icon={expensifyIcons.Plus}
                                     iconHeight={20}

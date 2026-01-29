@@ -3,22 +3,23 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import { isBankAccountPartiallySetup } from '@libs/BankAccountUtils';
 import Navigation from '@navigation/Navigation';
-import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
+import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
+import type { ConnectExistingBankAccountNavigatorParamList } from '@navigation/types';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
-import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
-import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
-import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import type { PaymentMethodPressHandlerParams } from '@pages/settings/Wallet/WalletPage/types';
+import { setWorkspaceReimbursement } from '@userActions/Policy/Policy';
+import { navigateToBankAccountRoute } from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
 
 type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<ConnectExistingBankAccountNavigatorParamList, typeof SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT>;
 
@@ -35,7 +36,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        navigateToBankAccountRoute(policyID);
+        navigateToBankAccountRoute({policyID});
     };
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
@@ -54,7 +55,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (isBankAccountPartiallySetup(accountData?.state)) {
-                navigateToBankAccountRoute(route.params.policyID);
+                navigateToBankAccountRoute({policyID: route.params.policyID});
             } else {
                 Navigation.closeRHPFlow();
             }

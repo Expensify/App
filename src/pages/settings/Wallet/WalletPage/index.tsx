@@ -152,12 +152,16 @@ function WalletPage() {
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         const accountPolicyID = accountData?.additionalData?.policyID;
+        const bankAccountID = accountData?.bankAccountID;
 
         if (accountPolicyID && isAccountLocked) {
             showLockedAccountModal();
             return;
         }
-        navigateToBankAccountRoute(accountPolicyID, ROUTES.SETTINGS_WALLET);
+        if (accountPolicyID) {
+            navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.SETTINGS_WALLET});
+        }
+        navigateToBankAccountRoute({bankAccountID, backTo: ROUTES.SETTINGS_WALLET});
     };
 
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {

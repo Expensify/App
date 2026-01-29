@@ -181,7 +181,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID));
             return;
         }
-        navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
+        navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
     };
 
     return (
