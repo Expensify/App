@@ -151,7 +151,7 @@ function searchHelpsite(query) {
     formData.append('command', 'SearchHelpsite');
     formData.append('query', query.trim());
 
-    fetch('https://www.expensify.com.dev/api/SearchHelpsite', {
+    fetch(SEARCH_API_URL, {
         method: 'POST',
         body: formData,
     })
@@ -169,7 +169,7 @@ function searchHelpsite(query) {
                 const item = cloneTemplate('search-result-item-template');
                 const link = item.querySelector('.search-result-item');
                 link.href = result.url;
-                link.querySelector('.search-result-title').textContent = result.url.split('/').pop().replace(/-/g, ' ');
+                link.querySelector('.search-result-title').textContent = getTitleFromURL(result.url);
                 const description = link.querySelector('.search-result-description');
                 if (result.description) {
                     description.textContent = result.description;
