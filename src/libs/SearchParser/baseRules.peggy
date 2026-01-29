@@ -117,6 +117,7 @@ columnsValues
   / groupTag
   / groupMerchant
   / groupMonth
+  / groupWeek
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -144,6 +145,7 @@ groupCategory           = "group-category"i &wordBoundary          { return "gro
 groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
 groupMonth              = "group-month"i &wordBoundary              { return "groupMonth"; }
+groupWeek               = "group-week"i &wordBoundary               { return "groupWeek"; }
 
 
 operator "operator"
