@@ -113,7 +113,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-
     const hasCardFeedOrExpensifyCard =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
