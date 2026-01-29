@@ -845,4 +845,145 @@ describe('getReportPreviewAction', () => {
             expect(result).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
     });
+
+    describe('canSubmit with dynamic approver (stale managerID)', () => {
+        const APPROVER_ACCOUNT_ID = 2;
+        const APPROVER_EMAIL = 'approver@mail.com';
+        const SUBMITTER_ACCOUNT_ID = 3;
+        const SUBMITTER_EMAIL = 'submitter@mail.com';
+
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS,
+                [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL},
+                [SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, login: SUBMITTER_EMAIL},
+            });
+        });
+
+        it('should return SUBMIT for workflow approver even when managerID is stale (0 or wrong user)', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {email: APPROVER_EMAIL, accountID: APPROVER_ACCOUNT_ID});
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
+            policy.approver = APPROVER_EMAIL;
+            policy.employeeList = {
+                [SUBMITTER_EMAIL]: {
+                    email: SUBMITTER_EMAIL,
+                    submitsTo: APPROVER_EMAIL,
+                },
+            };
+            if (policy.harvesting) {
+                policy.harvesting.enabled = false;
+            }
+
+            const reportWithZeroManager: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: SUBMITTER_ACCOUNT_ID,
+                managerID: 0,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, reportWithZeroManager);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(reportWithZeroManager?.parentReportID));
+            await waitForBatchedUpdatesWithAct();
+
+            const resultWithZeroManager = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: APPROVER_ACCOUNT_ID,
+                currentUserLogin: APPROVER_EMAIL,
+                report: reportWithZeroManager,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+            });
+            expect(resultWithZeroManager).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+
+            const reportWithWrongManager: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: SUBMITTER_ACCOUNT_ID,
+                managerID: 999,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, reportWithWrongManager);
+
+            const resultWithWrongManager = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: APPROVER_ACCOUNT_ID,
+                currentUserLogin: APPROVER_EMAIL,
+                report: reportWithWrongManager,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+            });
+            expect(resultWithWrongManager).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+        });
+
+        it('should return VIEW for non-approver user even when they match stale managerID', async () => {
+            const STALE_MANAGER_ID = 888;
+            const STALE_MANAGER_EMAIL = 'stalemanager@mail.com';
+            await Onyx.merge(ONYXKEYS.SESSION, {email: STALE_MANAGER_EMAIL, accountID: STALE_MANAGER_ID});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [STALE_MANAGER_ID]: {accountID: STALE_MANAGER_ID, login: STALE_MANAGER_EMAIL},
+            });
+
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: SUBMITTER_ACCOUNT_ID,
+                managerID: STALE_MANAGER_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
+            policy.approver = APPROVER_EMAIL;
+            policy.employeeList = {
+                [SUBMITTER_EMAIL]: {
+                    email: SUBMITTER_EMAIL,
+                    submitsTo: APPROVER_EMAIL,
+                },
+            };
+            if (policy.harvesting) {
+                policy.harvesting.enabled = false;
+            }
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+            await waitForBatchedUpdatesWithAct();
+
+            const result = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: STALE_MANAGER_ID,
+                currentUserLogin: STALE_MANAGER_EMAIL,
+                report,
+                policy,
+                transactions: [transaction],
+                bankAccountList: {},
+            });
+            expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+    });
 });
