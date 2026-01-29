@@ -104,7 +104,7 @@ type SearchChartViewProps = {
     queryJSON: SearchQueryJSON;
 
     /** The view type (bar, etc.) */
-    view: Exclude<ChartView, 'line' | 'pie'>
+    view: Exclude<ChartView, 'line' | 'pie'>;
 
     /** The groupBy parameter */
     groupBy: SearchGroupBy;

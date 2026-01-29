@@ -287,6 +287,17 @@ jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
 
+jest.mock('@shopify/react-native-skia', () => ({
+    useFont: jest.fn(() => null),
+    matchFont: jest.fn(() => null),
+    listFontFamilies: jest.fn(() => []),
+}));
+
+jest.mock('victory-native', () => ({
+    Bar: jest.fn(() => null),
+    CartesianChart: jest.fn(({children}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null),
+}));
+
 // Provide a default global fetch mock for tests that do not explicitly set it up
 // This avoids ReferenceError: fetch is not defined in CI when coverage is enabled
 const globalWithOptionalFetch: typeof globalThis & {fetch?: unknown} = globalThis as typeof globalThis & {fetch?: unknown};
