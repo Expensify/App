@@ -411,6 +411,8 @@ function WalletPage() {
         ],
     );
 
+    const isSelectedCardCSVImport = cardList[paymentMethod.methodID]?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
+
     const cardThreeDotsMenuItems = useMemo(
         () => [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
@@ -429,8 +431,19 @@ function WalletPage() {
                     );
                 },
             },
+            ...(isSelectedCardCSVImport
+                ? [
+                      {
+                          text: translate('spreadsheet.importSpreadsheet'),
+                          icon: icons.Table,
+                          onSelected: () => {
+                              Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(paymentMethod.methodID));
+                          },
+                      },
+                  ]
+                : []),
         ],
-        [bottomMountItem, icons.MoneySearch, paymentMethod.methodID, shouldUseNarrowLayout, translate],
+        [bottomMountItem, icons.MoneySearch, icons.Table, isSelectedCardCSVImport, paymentMethod.methodID, shouldUseNarrowLayout, translate],
     );
 
     if (isLoadingApp) {
