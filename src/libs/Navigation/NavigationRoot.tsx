@@ -141,7 +141,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
         // If there's a specific deep link, use guarded state to ensure guards are evaluated
         // This prevents incomplete-onboarding users from bypassing guards via deep links
-        if (path && path !== '' && path !== '/') {
+        if (path && path !== '/') {
             return guardedDeepLinkState;
         }
 
