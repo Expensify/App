@@ -15,6 +15,12 @@ import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navig
 import type CommonProperties from '@src/types/utils/CommonProperties';
 import type {PlatformStackNavigationOptions} from './NavigationOptions';
 
+type ScreenOptionsCallbackProps = {
+    route: RouteProp<ParamListBase, string>;
+    navigation: unknown;
+    theme: ReactNavigation.Theme;
+};
+
 // Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
 
@@ -81,9 +87,9 @@ type PlatformStackNavigatorProps<ParamList extends ParamListBase, RouterOptions 
 // The "screenOptions" and "defaultScreenOptions" can either be an object of navigation options or
 // a factory function that returns the navigation options based on route and navigation props.
 // These types are used to represent the screen options and their factory functions.
-function isRouteBasedScreenOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(
-    screenOptions: ScreenOptionsOrCallback<PlatformStackNavigationOptions, ParamList, RouteName> | undefined,
-): screenOptions is (props: PlatformStackScreenProps<ParamList, RouteName>) => PlatformStackNavigationOptions {
+function isRouteBasedScreenOptions(
+    screenOptions: ScreenOptionsOrCallback<PlatformStackNavigationOptions> | undefined,
+): screenOptions is (props: ScreenOptionsCallbackProps) => PlatformStackNavigationOptions {
     return typeof screenOptions === 'function';
 }
 

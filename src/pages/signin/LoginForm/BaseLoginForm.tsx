@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -23,6 +23,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
@@ -52,9 +53,8 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     const [formError, setFormError] = useState<TranslationPaths | undefined>();
     const prevIsVisible = usePrevious(isVisible);
     const firstBlurred = useRef(false);
-    const isFocused = useIsFocused();
     const isLoading = useRef(false);
-    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const accountMessage = account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin' ? translate(account.message) : (account?.message ?? '');
 
     /**
@@ -146,26 +146,37 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
         beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
     }, [login, account?.isLoading, closeAccount?.success, isOffline, validate, countryCode]);
 
-    useEffect(() => {
-        // Call clearAccountMessages on the login page (home route).
-        // When the user is in the transition route and not yet authenticated, this component will also be mounted,
-        // resetting account.isLoading will cause the app to briefly display the session expiration page.
+    useFocusEffect(
+        useCallback(() => {
+            // Call clearAccountMessages on the login page (home route).
+            // When the user is in the transition route and not yet authenticated, this component will also be mounted,
+            // resetting account.isLoading will cause the app to briefly display the session expiration page.
 
-        if (isFocused && isVisible) {
-            clearAccountMessages();
-        }
-        if (!canFocusInputOnScreenFocus() || !input.current || !isVisible || !isFocused) {
-            return;
-        }
-        let focusTimeout: NodeJS.Timeout;
-        if (isInNarrowPaneModal) {
-            focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
-        } else {
-            input.current.focus();
-        }
-        return () => clearTimeout(focusTimeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
-    }, []);
+            if (isVisible) {
+                clearAccountMessages();
+            }
+
+            if (!canFocusInputOnScreenFocus() || !input.current || !isVisible) {
+                return;
+            }
+
+            const attemptFocus = () => {
+                // Wait for navigation to be fully ready before focusing
+                Navigation.isNavigationReady().then(() => {
+                    if (!input.current || !isVisible) {
+                        return;
+                    }
+
+                    input.current.focus();
+                });
+            };
+
+            const focusTimeout = setTimeout(attemptFocus, CONST.ANIMATED_TRANSITION);
+            return () => {
+                clearTimeout(focusTimeout);
+            };
+        }, [isVisible]),
+    );
 
     useEffect(() => {
         if (account?.isLoading !== false) {
