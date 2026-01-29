@@ -4,7 +4,8 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
-import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
+import {initSplitExpense} from '@libs/actions/IOU';
+import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,6 +31,9 @@ jest.mock('@libs/actions/Search', () => ({
 
 jest.mock('@libs/actions/IOU', () => ({
     initSplitExpense: jest.fn(),
+}));
+
+jest.mock('@libs/actions/IOU/Hold', () => ({
     unholdRequest: jest.fn(),
 }));
 
@@ -39,7 +43,6 @@ jest.mock('@libs/actions/MergeTransaction', () => ({
 
 jest.mock('@libs/actions/Report', () => ({
     exportReportToCSV: jest.fn(),
-    getCurrentUserAccountID: jest.fn(() => 1),
     getCurrentUserEmail: jest.fn(() => 'test@example.com'),
 }));
 
@@ -101,6 +104,16 @@ jest.mock('@hooks/useNetworkWithOfflineStatus', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         isOffline: mockIsOffline,
+    })),
+}));
+const CURRENT_USER_ACCOUNT_ID = 1;
+const CURRENT_USER_LOGIN = 'test@example.com';
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => ({
+        login: CURRENT_USER_LOGIN,
+        accountID: CURRENT_USER_ACCOUNT_ID,
     })),
 }));
 
@@ -569,18 +582,34 @@ describe('useSelectedTransactionsActions', () => {
 
     it('should show split option when transaction can be split', async () => {
         const transactionID = '123';
-        const report = createRandomReport(1, undefined);
-        report.type = CONST.REPORT.TYPE.EXPENSE;
-        const policy = createRandomPolicy(1);
+        const report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const policy = {
+            ...createRandomPolicy(1),
+            isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {
+                [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+        };
         const reportActions: ReportAction[] = [];
-        const transaction = createRandomTransaction(1);
-        transaction.transactionID = transactionID;
+        const transaction = {
+            ...createRandomTransaction(1),
+            transactionID,
+            amount: 1000,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+        };
 
         mockSelectedTransactionIDs.push(transactionID);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
 
-        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
         jest.spyOn(require('@libs/TransactionUtils'), 'getOriginalTransactionWithSplitInfo').mockReturnValue({
             isBillSplit: false,
             isExpenseSplit: false,
@@ -652,5 +681,84 @@ describe('useSelectedTransactionsActions', () => {
         mergeOption?.onSelected?.();
 
         expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false);
+    });
+
+    describe('reportLevelActions wrapping', () => {
+        it('should include and wrap report-level actions when all transactions selected, and clear selection after onSelected', async () => {
+            const transactionID = '123';
+            const report = createRandomReport(1, undefined);
+            const reportActions: ReportAction[] = [];
+            const transaction = createRandomTransaction(1);
+            transaction.transactionID = transactionID;
+
+            mockSelectedTransactionIDs.push(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            const mockOnSelected = jest.fn();
+            const reportLevelActions = [
+                {text: 'Submit', value: 'submit', onSelected: mockOnSelected},
+                {text: 'Pay', value: 'pay'}, // No onSelected - should be passed through unchanged
+            ];
+
+            const {result} = renderHook(() =>
+                useSelectedTransactionsActions({
+                    report,
+                    reportActions,
+                    allTransactionsLength: 1, // All transactions selected
+                    beginExportWithTemplate: mockBeginExportWithTemplate,
+                    reportLevelActions,
+                }),
+            );
+
+            await waitFor(() => {
+                expect(result.current.options.length).toBeGreaterThan(0);
+            });
+
+            // Report-level actions should be included at the beginning
+            const submitOption = result.current.options.find((option) => option.value === 'submit');
+            const payOption = result.current.options.find((option) => option.value === 'pay');
+            expect(submitOption).toBeDefined();
+            expect(payOption).toBeDefined();
+
+            // Calling wrapped onSelected should call original and clear selection
+            submitOption?.onSelected?.();
+            expect(mockOnSelected).toHaveBeenCalledTimes(1);
+            expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+
+            // Pay option without onSelected should remain unchanged
+            expect(payOption?.onSelected).toBeUndefined();
+        });
+
+        it('should not include report-level actions when only some transactions are selected', async () => {
+            const transactionID = '123';
+            const report = createRandomReport(1, undefined);
+            const reportActions: ReportAction[] = [];
+            const transaction = createRandomTransaction(1);
+            transaction.transactionID = transactionID;
+
+            mockSelectedTransactionIDs.push(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            const mockOnSelected = jest.fn();
+            const reportLevelActions = [{text: 'Submit', value: 'submit', onSelected: mockOnSelected}];
+
+            const {result} = renderHook(() =>
+                useSelectedTransactionsActions({
+                    report,
+                    reportActions,
+                    allTransactionsLength: 5, // More transactions exist than selected
+                    beginExportWithTemplate: mockBeginExportWithTemplate,
+                    reportLevelActions,
+                }),
+            );
+
+            await waitFor(() => {
+                expect(result.current.options.length).toBeGreaterThan(0);
+            });
+
+            // Report-level actions should NOT be included
+            const submitOption = result.current.options.find((option) => option.value === 'submit');
+            expect(submitOption).toBeUndefined();
+        });
     });
 });
