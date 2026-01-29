@@ -1,9 +1,9 @@
 import {format, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import Text from './Text';
 
 type DateIconProps = {
@@ -17,20 +17,10 @@ function DateIcon({date}: DateIconProps) {
     const parsedDate = parseISO(date);
     const monthAbbr = format(parsedDate, 'MMM');
     const dayNumber = format(parsedDate, 'd');
+    const StyleUtils = useStyleUtils();
 
     return (
-        <View
-            style={[
-                {
-                    width: variables.iconSizeExtraLarge,
-                    height: variables.iconSizeExtraLarge,
-                    backgroundColor: theme.border,
-                },
-                styles.br2,
-                styles.alignItemsCenter,
-                styles.justifyContentCenter,
-            ]}
-        >
+        <View style={[styles.br2, styles.alignItemsCenter, styles.justifyContentCenter, styles.dateIconSize, StyleUtils.getBackgroundColorStyle(theme.border)]}>
             <Text style={[styles.textMicro, styles.textSupporting]}>{monthAbbr}</Text>
             <Text style={[styles.textStrong, styles.fontSizeNormal, styles.textSupporting]}>{dayNumber}</Text>
         </View>
