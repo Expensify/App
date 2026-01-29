@@ -66,7 +66,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
         const amountValues = getAmountValues(values);
         const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-        const amountRegex = RegExp(String.raw`^-?\d{0,8}([${permittedDecimalSeparator}]\d{0,${getCurrencyDecimals(outputCurrency)}})?$`, 'i');
+        const amountRegex = RegExp(String.raw`^-?\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${permittedDecimalSeparator}]\d{0,${getCurrencyDecimals(outputCurrency)}})?$`, 'i');
 
         for (const key of Object.keys(amountValues)) {
             const value = amountValues[key as keyof AmountValues];
