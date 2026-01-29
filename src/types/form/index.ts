@@ -8,6 +8,7 @@ export type {ExitSurveyResponseForm} from './ExitSurveyResponseForm';
 export type {FeedbackSurveyForm} from './FeedbackSurveyForm';
 export type {HomeAddressForm} from './HomeAddressForm';
 export type {IKnowTeacherForm} from './IKnowTeacherForm';
+export type {ImportTransactionsForm} from './ImportTransactionsForm';
 export type {IntroSchoolPrincipalForm} from './IntroSchoolPrincipalForm';
 export type {IssueNewExpensifyCardForm} from './IssueNewExpensifyCardForm';
 export type {AddNewCardFeedForm} from './AddNewCardFeedForm';

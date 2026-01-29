@@ -104,19 +104,32 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                             .then((data) => {
                                 return data.text();
                             })
-                            .then((text) => XLSX.read(text, {type: 'string'}));
+                            .then((text) => XLSX.read(text, {type: 'string', raw: true}));
                     }
                     return fetch(fileURI)
                         .then((data) => {
                             return data.arrayBuffer();
                         })
-                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'}));
+                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true}));
                 };
                 readWorkbook()
                     .then((workbook) => {
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
-                        const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
+                        // Use raw: true to preserve original string values from CSV (especially dates)
+                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false, raw: true}) as string[][] | unknown[][];
+                        const formattedSpreadsheetData = data.map((row) =>
+                            row.map((cell) => {
+                                if (cell == null) {
+                                    return '';
+                                }
+                                // Handle primitives (string, number, boolean) directly
+                                if (typeof cell === 'string' || typeof cell === 'number' || typeof cell === 'boolean') {
+                                    return String(cell);
+                                }
+                                // For objects (Date, arrays, etc.), serialize to JSON
+                                return JSON.stringify(cell);
+                            }),
+                        );
                         setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
                             .then(() => {
                                 Navigation.navigate(goTo);
