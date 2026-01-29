@@ -5290,7 +5290,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Regole',
                 subtitle: 'Richiedi ricevute, segnala spese elevate e altro ancora.',
             },
-            timeTracking: {title: 'Ora', subtitle: 'Imposta una tariffa oraria fatturabile per consentire ai dipendenti di essere pagati per il loro tempo.'},
+            timeTracking: {
+                title: 'Ora',
+                subtitle: 'Imposta una tariffa oraria fatturabile per il monitoraggio del tempo.',
+                defaultHourlyRate: 'Tariffa oraria predefinita',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',
@@ -6392,6 +6396,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Corrisponde esattamente',
                 expensesExactlyMatching: 'Per le spese che corrispondono esattamente:',
+                duplicateRuleTitle: 'Esiste già una regola simile per questo commerciante',
+                duplicateRulePrompt: (merchantName: string) => `Vuoi salvare una nuova regola per "${merchantName}" anche se ne hai già una esistente?`,
+                saveAnyway: 'Salva comunque',
+                applyToExistingUnsubmittedExpenses: 'Applica alle spese esistenti non inviate',
             },
         },
         planTypePage: {
