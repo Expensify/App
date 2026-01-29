@@ -132,6 +132,7 @@ import {
     getWorkspaceTagUpdateMessage,
     getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
@@ -148,6 +149,7 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
+    isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isIOURequestReportAction,
     isMarkAsClosedAction,
@@ -1306,16 +1308,24 @@ function PureReportActionItem({
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
+            const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+            const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
             if (wasAutoApproved) {
                 children = (
                     <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyApproved')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
+            } else if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
+                children = <ReportActionItemBasicMessage message={translate('iou.queuedToApproveViaDEW')} />;
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
         } else if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
+            const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
+            children = <ReportActionItemBasicMessage message={errorMessage} />;
+        } else if (isDynamicExternalWorkflowApproveFailedAction(action)) {
             const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
             children = <ReportActionItemBasicMessage message={errorMessage} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
