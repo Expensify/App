@@ -1050,6 +1050,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Confirme os detalhes abaixo para os ${count} novos membros do workspace que serão adicionados como parte deste upload. Membros existentes não receberão nenhuma atualização de função nem mensagens de convite.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transações foram importadas.` : '1 transação foi importada.',
     },
     receipt: {
         upload: 'Enviar recibo',
@@ -4922,6 +4924,15 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Escolha uma nova data de início das transações. Vamos sincronizar todas as transações a partir dessa data, excluindo aquelas que já importamos.',
             unassignCardFailedError: 'Falha ao desatribuir o cartão.',
+            importTransactions: {
+                title: 'Importar transações do arquivo',
+                description: 'Ajuste as configurações do seu arquivo que serão aplicadas na importação.',
+                cardDisplayName: 'Nome exibido no cartão',
+                currency: 'Moeda',
+                transactionsAreReimbursable: 'As transações são reembolsáveis',
+                flipAmountSign: 'Inverter o sinal do valor',
+                importButton: 'Importar transações',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir e gerenciar seus Cartões Expensify',

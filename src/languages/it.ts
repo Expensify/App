@@ -1051,6 +1051,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Conferma i dettagli qui sotto per i ${count} nuovi membri dello spazio di lavoro che verranno aggiunti come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti del ruolo né messaggi di invito.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transazioni sono state importate.` : '1 transazione è stata importata.',
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -4937,6 +4939,15 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Scegli una nuova data di inizio per le transazioni. Sincronizzeremo tutte le transazioni da quella data in poi, escludendo quelle già importate.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
+            importTransactions: {
+                title: 'Importa transazioni da file',
+                description: 'Regola le impostazioni per il tuo file che verranno applicate all’importazione.',
+                cardDisplayName: 'Nome visualizzato carta',
+                currency: 'Valuta',
+                transactionsAreReimbursable: 'Le transazioni sono rimborsabili',
+                flipAmountSign: 'Inverti segno importo',
+                importButton: 'Importa transazioni',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
