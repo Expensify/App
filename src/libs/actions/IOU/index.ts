@@ -12580,8 +12580,14 @@ function initSplitExpenseItemData(
 
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
+ * @param singleTransactionMode - When true, only the current transaction is shown (used when split was moved between workspaces)
  */
-function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, reports: OnyxCollection<OnyxTypes.Report>, transaction: OnyxEntry<OnyxTypes.Transaction>) {
+function initSplitExpense(
+    transactions: OnyxCollection<OnyxTypes.Transaction>,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    singleTransactionMode = false,
+) {
     if (!transaction) {
         return;
     }
@@ -12592,9 +12598,12 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     if (isExpenseSplit) {
-        const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
-        const transactionDetails = getTransactionDetails(originalTransaction);
-        const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
+        // When in single transaction mode (split moved between workspaces), only show the current transaction
+        const splitExpenses = singleTransactionMode
+            ? [initSplitExpenseItemData(transaction)]
+            : getChildTransactions(transactions, reports, originalTransactionID).map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
+
+        const transactionDetails = singleTransactionMode ? getTransactionDetails(transaction) : getTransactionDetails(originalTransaction);
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,
             transactionParams: {
@@ -12607,6 +12616,7 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
                 attendees: transactionDetails?.attendees as Attendee[],
                 reportID,
                 reimbursable: transactionDetails?.reimbursable,
+                isSingleTransactionMode: singleTransactionMode,
             },
         });
 

@@ -105,6 +105,9 @@ type Comment = {
     /** Total that the user currently owes for splitExpenses */
     splitExpensesTotal?: number;
 
+    /** Whether this is single transaction mode (split expense moved between workspaces) */
+    isSingleTransactionMode?: boolean;
+
     /** Start date for splits */
     splitsStartDate?: string;
 

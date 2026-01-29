@@ -608,8 +608,8 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit && isSplitAvailable) {
-                            initSplitExpense(allTransactions, allReports, transaction);
+                        if (isExpenseSplit) {
+                            initSplitExpense(allTransactions, allReports, transaction, !isSplitAvailable);
                             return;
                         }
 
@@ -661,8 +661,8 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit && isSplitAvailable) {
-                            initSplitExpense(allTransactions, allReports, transaction);
+                        if (isExpenseSplit) {
+                            initSplitExpense(allTransactions, allReports, transaction, !isSplitAvailable);
                             return;
                         }
 
@@ -851,8 +851,8 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (isExpenseSplit && isSplitAvailable) {
-                                initSplitExpense(allTransactions, allReports, transaction);
+                            if (isExpenseSplit) {
+                                initSplitExpense(allTransactions, allReports, transaction, !isSplitAvailable);
                                 return;
                             }
 
