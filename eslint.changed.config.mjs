@@ -48,8 +48,8 @@ const config = defineConfig([
                     message: 'Namespace imports from @userActions are not allowed. Use named imports instead. Example: import { action } from "@userActions/module"',
                 },
                 {
-                    selector: 'JSXElement[openingElement.name.name="PressableWithoutFeedback"]:not(:has(JSXAttribute[name.name="sentryLabel"]))',
-                    message: 'PressableWithoutFeedback must include sentryLabel prop for Sentry tracking. Example: <PressableWithoutFeedback sentryLabel="componentName.action" />',
+                    selector: 'JSXElement[openingElement.name.name=/^Pressable(WithoutFeedback|WithFeedback|WithDelayToggle|WithoutFocus)$/]:not(:has(JSXAttribute[name.name="sentryLabel"]))',
+                    message: 'All Pressable components must include sentryLabel prop for Sentry tracking. Example: <PressableWithoutFeedback sentryLabel="MoreMenu-ExportFile" />',
                 },
             ],
         },
