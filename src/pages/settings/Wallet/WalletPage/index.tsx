@@ -40,6 +40,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
+import {deletePersonalCard} from '@userActions/Card';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -86,6 +87,8 @@ function WalletPage() {
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+    const [showConfirmDeleteCardModal, setShowConfirmDeleteCardModal] = useState(false);
+    const [selectedCard, setSelectedCard] = useState<OnyxTypes.Card | undefined>(undefined);
     const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
@@ -165,6 +168,7 @@ function WalletPage() {
 
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
+        setSelectedCard(cardData);
         setPaymentMethod({
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
@@ -409,6 +413,8 @@ function WalletPage() {
         ],
     );
 
+    const isSelectedCardCSVImport = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
+
     const cardThreeDotsMenuItems = useMemo(
         () => [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
@@ -427,8 +433,17 @@ function WalletPage() {
                     );
                 },
             },
+            ...(isSelectedCardCSVImport
+                ? [
+                      {
+                          text: translate('common.delete'),
+                          icon: icons.Trashcan,
+                          onSelected: () => setShowConfirmDeleteCardModal(true),
+                      },
+                  ]
+                : []),
         ],
-        [bottomMountItem, icons.MoneySearch, paymentMethod.methodID, shouldUseNarrowLayout, translate],
+        [bottomMountItem, icons.MoneySearch, icons.Trashcan, isSelectedCardCSVImport, paymentMethod.methodID, shouldUseNarrowLayout, translate],
     );
 
     if (isLoadingApp) {
@@ -645,6 +660,23 @@ function WalletPage() {
                 shouldShowCancelButton
                 danger
                 onModalHide={resetSelectedPaymentMethodData}
+            />
+            <ConfirmModal
+                isVisible={showConfirmDeleteCardModal}
+                onConfirm={() => {
+                    if (selectedCard?.cardID) {
+                        deletePersonalCard(selectedCard.cardID, selectedCard);
+                    }
+                    setShowConfirmDeleteCardModal(false);
+                }}
+                onCancel={() => setShowConfirmDeleteCardModal(false)}
+                title={translate('walletPage.deleteCard')}
+                prompt={translate('walletPage.deleteCardConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                shouldShowCancelButton
+                danger
+                onModalHide={() => setSelectedCard(undefined)}
             />
         </ScreenWrapper>
     );
