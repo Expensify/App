@@ -110,9 +110,6 @@ type ReportActionsListProps = {
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
-
-    /** Whether the optimistic CREATED report action was added */
-    hasCreatedActionAdded?: boolean;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -147,9 +144,7 @@ function ReportActionsList({
     onLayout,
     isComposerFullSize,
     parentReportActionForTransactionThread,
-    hasCreatedActionAdded,
 }: ReportActionsListProps) {
-    const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
@@ -373,14 +368,6 @@ function ReportActionsList({
     }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
-        const shouldTriggerScroll = shouldFocusToTopOnMount && prevHasCreatedActionAdded && !hasCreatedActionAdded;
-        if (!shouldTriggerScroll) {
-            return;
-        }
-        requestAnimationFrame(() => reportScrollManager.scrollToEnd());
-    }, [hasCreatedActionAdded, prevHasCreatedActionAdded, shouldFocusToTopOnMount, reportScrollManager]);
-
-    useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
         prevReportID = report.reportID;
     }, [report.reportID]);
@@ -472,7 +459,7 @@ function ReportActionsList({
     }, [handleReportChangeMarkAsRead, handleAppVisibilityMarkAsRead]);
 
     useEffect(() => {
-        if (linkedReportActionID) {
+        if (linkedReportActionID || shouldFocusToTopOnMount) {
             return;
         }
 

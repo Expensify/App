@@ -12,8 +12,7 @@ function MVCPFlatList<TItem>({shouldStartRenderingFromTop, inverted, ...restProp
             maintainVisibleContentPosition={{
                 animateAutoScrollToBottom: false,
                 autoscrollToTopThreshold: 0.2,
-                autoscrollToBottomThreshold: 0.2,
-                ...(shouldStartRenderingFromBottom ? {startRenderingFromBottom: true} : {}),
+                ...(shouldStartRenderingFromBottom ? {startRenderingFromBottom: true, autoscrollToBottomThreshold: 0.2} : {}),
             }}
             drawDistance={1000}
         />

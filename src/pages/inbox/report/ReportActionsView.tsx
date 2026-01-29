@@ -277,7 +277,6 @@ function ReportActionsView({
                     mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                     loadOlderChats={loadOlderChats}
                     loadNewerChats={loadNewerChats}
-                    hasCreatedActionAdded={shouldAddCreatedAction}
                 />
             </Freeze>
             <UserTypingEventListener report={report} />
