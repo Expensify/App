@@ -5,6 +5,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -67,6 +68,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const theme = useTheme();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const {isProduction} = useEnvironment();
 
     // Hoist iterator-independent translations to avoid redundant calls in the loop
     const fieldLabels: FieldLabels = useMemo(
@@ -97,6 +99,10 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 return 0;
             });
     }, [codingRules]);
+
+    if (isProduction) {
+        return null;
+    }
 
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
