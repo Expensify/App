@@ -413,39 +413,36 @@ function WalletPage() {
         ],
     );
 
-    const cardThreeDotsMenuItems = useMemo(
-        () => {
-            const isCSVImport = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
-            return [
-                ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
-                {
-                    text: translate('workspace.common.viewTransactions'),
-                    icon: icons.MoneySearch,
-                    onSelected: () => {
-                        Navigation.navigate(
-                            ROUTES.SEARCH_ROOT.getRoute({
-                                query: buildCannedSearchQuery({
-                                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                                    cardID: String(paymentMethod.methodID),
-                                }),
+    const cardThreeDotsMenuItems = useMemo(() => {
+        const isCSVImport = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
+        return [
+            ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
+            {
+                text: translate('workspace.common.viewTransactions'),
+                icon: icons.MoneySearch,
+                onSelected: () => {
+                    Navigation.navigate(
+                        ROUTES.SEARCH_ROOT.getRoute({
+                            query: buildCannedSearchQuery({
+                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                                cardID: String(paymentMethod.methodID),
                             }),
-                        );
-                    },
+                        }),
+                    );
                 },
-                ...(isCSVImport
-                    ? [
-                          {
-                              text: translate('common.delete'),
-                              icon: icons.Trashcan,
-                              onSelected: () => setShowConfirmDeleteCardModal(true),
-                          },
-                      ]
-                    : []),
-            ];
-        },
-        [bottomMountItem, icons.MoneySearch, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate],
-    );
+            },
+            ...(isCSVImport
+                ? [
+                      {
+                          text: translate('common.delete'),
+                          icon: icons.Trashcan,
+                          onSelected: () => setShowConfirmDeleteCardModal(true),
+                      },
+                  ]
+                : []),
+        ];
+    }, [bottomMountItem, icons.MoneySearch, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
         return (
