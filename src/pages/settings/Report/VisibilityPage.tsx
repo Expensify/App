@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -43,20 +43,17 @@ function VisibilityPage({report}: VisibilityProps) {
         [translate, report?.visibility],
     );
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         goBackToDetailsPage(report, route.params.backTo);
-    }, [report, route.params.backTo]);
+    };
 
-    const changeVisibility = useCallback(
-        (newVisibility: RoomVisibility) => {
-            if (!report) {
-                return;
-            }
-            updateRoomVisibility(report.reportID, report.visibility, newVisibility);
-            goBack();
-        },
-        [report, showConfirmModal, goBack],
-    );
+    const changeVisibility = (newVisibility: RoomVisibility) => {
+        if (!report) {
+            return;
+        }
+        updateRoomVisibility(report.reportID, report.visibility, newVisibility);
+        goBack();
+    };
 
     const showPublicVisibilityModal = async () => {
         const result = await showConfirmModal({
