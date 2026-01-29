@@ -820,7 +820,8 @@
         "Splittable",
         "pgrep",
         "Nesw",
-        "nesw"
+        "nesw",
+        "Invoicify"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

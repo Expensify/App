@@ -3,6 +3,7 @@ import Apple from '@assets/images/apple.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import Bank from '@assets/images/bank.svg';
+import Basket from '@assets/images/basket.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
@@ -167,8 +168,9 @@ export {
     Apple,
     AttachmentNotFound,
     Bank,
-    Bill,
+    Basket,
     Bell,
+    Bill,
     Bolt,
     Bug,
     Building,
