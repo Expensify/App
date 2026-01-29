@@ -66,6 +66,9 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         }));
     }, [data]);
 
+    // Anchor Y-axis at zero so the baseline is always visible. When negative values are present, let victory-native auto-calculate the domain to avoid clipping.
+    const yAxisDomain = useMemo(() => (data.some((point) => point.total < 0) ? undefined : [0]), [data]);
+
     // Handle bar press callback
     const handleBarPress = useCallback(
         (index: number) => {
@@ -265,6 +268,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,
                                 labelOffset: Y_AXIS_LABEL_OFFSET,
+                                domain: yAxisDomain,
                             },
                         ]}
                         frame={{lineWidth: FRAME_LINE_WIDTH}}
