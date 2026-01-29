@@ -104,6 +104,8 @@ export default {
     sideBarWidth: 375,
     sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
+    homePageLeftColumnMaxWidth: 920,
+    homePageRightColumnMaxWidth: 460,
     superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
@@ -323,6 +325,9 @@ export default {
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
+
+    companyCardsPageNotFoundIconWidth: 97,
+    companyCardsPageNotFoundIconHeight: 140,
 
     h20: 20,
     h28: 28,

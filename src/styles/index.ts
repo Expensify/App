@@ -928,6 +928,24 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        actionableItemButton: {
+            paddingTop: 8,
+            paddingBottom: 8,
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            borderColor: theme.border,
+            alignItems: 'flex-start',
+            borderRadius: variables.componentBorderRadiusMedium,
+        },
+
+        actionableItemButtonBackgroundHovered: {
+            borderColor: theme.buttonPressedBG,
+        },
+
+        actionableItemButtonHovered: {
+            borderWidth: 1,
+        },
+
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
         },
@@ -2573,10 +2591,16 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        blockingErrorViewContainer: {
+        searchBlockingErrorViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
             maxWidth: 475,
             alignSelf: 'center',
+        },
+
+        companyCardsBlockingErrorViewContainer: {
+            maxWidth: 475,
+            alignSelf: 'center',
+            flex: undefined,
         },
 
         forcedBlockingViewContainer: {
@@ -3655,6 +3679,17 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             marginBottom: 20,
             marginHorizontal: variables.sectionMargin,
+        },
+
+        widgetContainer: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            overflow: 'hidden',
+        },
+
+        homePageContentContainer: {
+            flexGrow: 1,
+            padding: 20,
         },
 
         cardSectionIllustration: {
@@ -5693,6 +5728,11 @@ const staticStyles = (theme: ThemeColors) =>
         paymentMethodErrorRow: {
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
+        discoverSectionImage: {
+            width: '100%',
+            height: undefined,
+            aspectRatio: 2.2,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
@@ -6187,6 +6227,29 @@ const plainStyles = (theme: ThemeColors) =>
         searchTopBarZIndexStyle: {
             zIndex: variables.searchTopBarZIndex,
         },
+
+        getWidgetContainerTitleStyle: (color: string) =>
+            ({
+                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+                fontSize: 17,
+                lineHeight: 20,
+                color,
+            }) satisfies TextStyle,
+
+        homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
+                gap: 20,
+                width: '100%',
+            }) satisfies ViewStyle,
+
+        homePageLeftColumn: (shouldUseNarrowLayout: boolean) =>
+            shouldUseNarrowLayout
+                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
+                : ({flex: 2, flexBasis: '66.666%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
+
+        homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
+            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 1, flexBasis: '33.333%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

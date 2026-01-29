@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -641,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Neue Funktion',
         month: 'Monat',
         home: 'Startseite',
+        week: 'Woche',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1135,6 +1136,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: 'Aufteilung entfernen',
         splitExpenseCannotBeEditedModalTitle: 'Diese Ausgabe kann nicht bearbeitet werden',
         splitExpenseCannotBeEditedModalDescription: 'Genehmigte oder bezahlte Ausgaben können nicht bearbeitet werden',
+        splitExpenseDistanceErrorModalDescription: 'Bitte beheben Sie den Fehler bei der Entfernungsrate und versuchen Sie es erneut.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Bezahle ${name ?? 'jemand'}`,
         expense: 'Ausgabe',
         categorize: 'Kategorisieren',
@@ -1257,6 +1259,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `Eingereicht${memo ? `, mit dem Hinweis ${memo}` : ''}`,
         automaticallySubmitted: `eingereicht über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">verspätete Einreichungen</a>`,
         queuedToSubmitViaDEW: 'in die Warteschlange gestellt zur Einreichung über benutzerdefinierten Genehmigungsworkflow',
+        queuedToApproveViaDEW: 'in die Warteschlange gestellt zur Genehmigung über benutzerdefinierten Genehmigungsworkflow',
         trackedAmount: (formattedAmount: string, comment?: string) => `Verfolgung von ${formattedAmount}${comment ? `für ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `Split ${amount}`,
         didSplitAmount: (formattedAmount: string, comment: string) => `aufteilen ${formattedAmount}${comment ? `für ${comment}` : ''}`,
@@ -4955,6 +4958,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             editStartDateDescription:
                 'Wählen Sie ein neues Startdatum für Transaktionen. Wir synchronisieren alle Transaktionen ab diesem Datum, ausgenommen diejenigen, die wir bereits importiert haben.',
             unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Kartenfeeds konnten nicht geladen werden',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Beim Laden der Workspace-Kartenfeeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder wende dich an deine Administratorin bzw. deinen Administrator.',
+                feedCouldNotBeLoadedTitle: 'Dieser Feed konnte nicht geladen werden',
+                feedCouldNotBeLoadedMessage: 'Beim Laden dieses Feeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder kontaktiere deine Administratorin/deinen Administrator.',
+                tryAgain: 'Erneut versuchen',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',
@@ -5298,7 +5309,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Regeln',
                 subtitle: 'Belege verlangen, hohe Ausgaben kennzeichnen und mehr.',
             },
-            timeTracking: {title: 'Zeit', subtitle: 'Legen Sie einen stündlichen abrechenbaren Satz fest, damit Mitarbeiter für ihre aufgewendete Zeit bezahlt werden.'},
+            timeTracking: {
+                title: 'Zeit',
+                subtitle: 'Legen Sie einen abrechenbaren Stundensatz für die Zeiterfassung fest.',
+                defaultHourlyRate: 'Standardstundensatz',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -6385,7 +6400,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 title: 'Händler',
                 subtitle: 'Legen Sie Händlerregeln fest, damit Ausgaben korrekt codiert ankommen und weniger Nachbearbeitung erfordern.',
                 addRule: 'Händlerregel hinzufügen',
-                ruleSummaryTitle: (merchantName: string) => `Wenn Händler "${merchantName}" enthält`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Wenn Händler ${isExactMatch ? 'stimmt genau überein' : 'enthält'} „${merchantName}“`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Händler in „${merchantName}“ umbenennen`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aktualisiere ${fieldName} zu „${fieldValue}“`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Als "${reimbursable ? 'erstattungsfähig' : 'nicht erstattungsfähig'}" markieren`,
@@ -6393,7 +6408,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 addRuleTitle: 'Regel hinzufügen',
                 expensesWith: 'Für Ausgaben mit:',
                 applyUpdates: 'Diese Updates anwenden:',
-                merchantHint: 'Einen Händlernamen mit groß-/kleinschreibungsunabhängiger „enthält“-Übereinstimmung abgleichen',
                 saveRule: 'Regel speichern',
                 confirmError: 'Geben Sie den Händler ein und nehmen Sie mindestens eine Änderung vor',
                 confirmErrorMerchant: 'Bitte geben Sie den Händler ein',
@@ -6401,6 +6415,17 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
+                previewMatches: 'Übereinstimmungen anzeigen',
+                previewMatchesEmptyStateTitle: 'Nichts anzuzeigen',
+                previewMatchesEmptyStateSubtitle: 'Keine nicht eingereichten Ausgaben entsprechen dieser Regel.',
+                matchType: 'Abgleichstyp',
+                matchTypeContains: 'Enthält',
+                matchTypeExact: 'Exakte Übereinstimmung',
+                expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
+                duplicateRuleTitle: 'Eine ähnliche Händlerregel existiert bereits',
+                duplicateRulePrompt: (merchantName: string) => `Möchten Sie eine neue Regel für „${merchantName}“ speichern, obwohl Sie bereits eine vorhandene haben?`,
+                saveAnyway: 'Trotzdem speichern',
+                applyToExistingUnsubmittedExpenses: 'Auf bereits vorhandene, noch nicht eingereichte Ausgaben anwenden',
             },
         },
         planTypePage: {
@@ -7005,6 +7030,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7185,6 +7211,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                     `Die ${feedName}-Verbindung ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `die Plaid-Verbindung zu Ihrem Geschäftsbankkonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify-Karten weiterhin nutzen können.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `Geschäftsbankkonto ${maskedBankAccountNumber} wurde aufgrund eines Problems mit der Erstattung oder der Expensify Card-Abrechnung automatisch gesperrt. Bitte behebe das Problem in deinen <a href="${linkURL}">Workspace-Einstellungen</a>.`,
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten. Bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
@@ -7929,6 +7957,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             hasChildReportAwaitingAction: 'Untergeordneter Bericht wartet auf Aktion',
             hasMissingInvoiceBankAccount: 'Fehlendes Rechnungs-Bankkonto',
             hasUnresolvedCardFraudAlert: 'Hat ungelöste Kreditkartenbetrugswarnung',
+            hasDEWApproveFailed: 'DEW-Genehmigung fehlgeschlagen',
         },
         reasonRBR: {
             hasErrors: 'Enthält Fehler in den Berichtsdaten oder den Berichtsvorgangsdatens',
@@ -8216,6 +8245,16 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
         },
         fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
+    },
+    homePage: {
+        forYou: 'Für dich',
+        announcements: 'Ankündigungen',
+        discoverSection: {
+            title: 'Entdecken',
+            menuItemTitleNonAdmin: 'Erfahren Sie, wie Sie Ausgaben erstellen und Berichte einreichen.',
+            menuItemTitleAdmin: 'Erfahren Sie, wie Sie Mitglieder einladen, Genehmigungsworkflows bearbeiten und Firmenkarten abstimmen.',
+            menuItemDescription: 'Sehen Sie, was Expensify in 2 Minuten kann',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

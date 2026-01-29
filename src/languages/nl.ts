@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nieuwe functie',
         month: 'Maand',
         home: 'Start',
+        week: 'Week',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1132,6 +1133,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: 'Splitsing verwijderen',
         splitExpenseCannotBeEditedModalTitle: 'Deze uitgave kan niet worden bewerkt',
         splitExpenseCannotBeEditedModalDescription: 'Goedgekeurde of betaalde uitgaven kunnen niet worden bewerkt',
+        splitExpenseDistanceErrorModalDescription: 'Los de fout in het afstandstarief op en probeer het opnieuw.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Betaal ${name ?? 'iemand'}`,
         expense: 'Uitgave',
         categorize: 'Categoriseren',
@@ -1254,6 +1256,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `ingediend${memo ? `, met de melding ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">indiening uitstellen</a>`,
         queuedToSubmitViaDEW: 'in wachtrij geplaatst om in te dienen via aangepaste goedkeuringswerkstroom',
+        queuedToApproveViaDEW: 'in wachtrij geplaatst om goed te keuren via aangepaste goedkeuringswerkstroom',
         trackedAmount: (formattedAmount: string, comment?: string) => `bijhouden ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} splits`,
         didSplitAmount: (formattedAmount: string, comment: string) => `splitsen ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
@@ -4684,7 +4687,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze helppagina](${CONST.NETSUITE
 
 _Voor meer gedetailleerde instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Wat is de script-ID?',
-                            customSegmentScriptIDFooter: `Je kunt aangepaste segmentscript-ID’s in NetSuite vinden onder: 
+                            customSegmentScriptIDFooter: `Je kunt aangepaste segmentscript-ID’s in NetSuite vinden onder:
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Klik op een aangepast segment.
@@ -4937,6 +4940,14 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             editStartDateDescription:
                 'Kies een nieuwe startdatum voor transacties. We synchroniseren alle transacties vanaf die datum, met uitzondering van de transacties die we al hebben geïmporteerd.',
             unassignCardFailedError: 'Kaartontkoppeling mislukt.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Kan kaartfeeds niet laden',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Er is een fout opgetreden bij het laden van de kaartfeeds van de werkruimte. Probeer het opnieuw of neem contact op met uw beheerder.',
+                feedCouldNotBeLoadedTitle: 'Kon deze feed niet laden',
+                feedCouldNotBeLoadedMessage: 'Er is een fout opgetreden bij het laden van deze feed. Probeer het opnieuw of neem contact op met uw beheerder.',
+                tryAgain: 'Opnieuw proberen',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Uw Expensify Cards uitgeven en beheren',
@@ -5274,7 +5285,11 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Regels',
                 subtitle: 'Vereis bonnetjes, markeer hoge uitgaven en meer.',
             },
-            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurfactureringstarief in zodat werknemers worden betaald voor hun tijd.'},
+            timeTracking: {
+                title: 'Tijd',
+                subtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
+                defaultHourlyRate: 'Standaard uurtarief',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -6355,7 +6370,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 title: 'Handelaar',
                 subtitle: 'Stel de merchantregels zo in dat onkosten met de juiste codering binnenkomen en er minder nabewerking nodig is.',
                 addRule: 'Merchantregel toevoegen',
-                ruleSummaryTitle: (merchantName: string) => `Als handelaar "${merchantName}" bevat`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Als handelaar ${isExactMatch ? 'komt exact overeen' : 'bevat'} "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Naam handelaar wijzigen in "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Werk ${fieldName} bij naar "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Markeren als  "${reimbursable ? 'Vergoedbaar' : 'niet-vergoedbaar'}"`,
@@ -6363,7 +6378,6 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 addRuleTitle: 'Regel toevoegen',
                 expensesWith: 'Voor uitgaven met:',
                 applyUpdates: 'Deze updates toepassen:',
-                merchantHint: 'Een handelsnaam koppelen met hoofdletterongevoelige “bevat”-overeenkomst',
                 saveRule: 'Regel opslaan',
                 confirmError: 'Voer een leverancier in en pas ten minste één wijziging toe',
                 confirmErrorMerchant: 'Voer handelaar in',
@@ -6371,6 +6385,17 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 editRuleTitle: 'Regel bewerken',
                 deleteRule: 'Regel verwijderen',
                 deleteRuleConfirmation: 'Weet je zeker dat je deze regel wilt verwijderen?',
+                previewMatches: 'Voorvertoning komt overeen',
+                previewMatchesEmptyStateTitle: 'Niets om weer te geven',
+                previewMatchesEmptyStateSubtitle: 'Geen niet-ingediende uitgaven komen overeen met deze regel.',
+                matchType: 'Type overeenkomen',
+                matchTypeContains: 'Bevat',
+                matchTypeExact: 'Komt exact overeen',
+                expensesExactlyMatching: 'Voor uitgaven die exact overeenkomen met:',
+                duplicateRuleTitle: 'Soortgelijke regel voor dezelfde handelaar bestaat al',
+                duplicateRulePrompt: (merchantName: string) => `Wilt je een nieuwe regel voor "${merchantName}" opslaan, ook al heb je al een bestaande?`,
+                saveAnyway: 'Toch opslaan',
+                applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende onkosten',
             },
         },
         planTypePage: {
@@ -6977,6 +7002,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Handelaar',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7157,6 +7183,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                     `De ${feedName}-verbinding is verbroken. Om kaartimporten te herstellen, <a href='${workspaceCompanyCardRoute}'>log in bij uw bank</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met uw zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind uw bankrekening ${maskedAccountNumber} opnieuw</a> om uw Expensify-kaarten te kunnen blijven gebruiken.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `zakelijke bankrekening ${maskedBankAccountNumber} is automatisch vergrendeld vanwege een probleem met de terugbetaling of de afwikkeling van de Expensify Card. Los het probleem op in je <a href="${linkURL}">werkruimte-instellingen</a>.`,
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van uw verbinding.',
@@ -7899,6 +7927,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             hasChildReportAwaitingAction: 'Heeft kinderreportage in afwachting van actie',
             hasMissingInvoiceBankAccount: 'Heeft ontbrekende bankrekening voor factuur',
             hasUnresolvedCardFraudAlert: 'Heeft onopgeloste kaartfraudewaarschuwing',
+            hasDEWApproveFailed: 'DEW-goedkeuring mislukt',
         },
         reasonRBR: {
             hasErrors: 'Bevat fouten in rapport- of rapportactiedata',
@@ -8178,6 +8207,16 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om het bijhouden van GPS-afstand te starten.',
         },
         fabGpsTripExplained: 'Ga naar GPS-scherm (Zwevende actie)',
+    },
+    homePage: {
+        forYou: 'Voor jou',
+        announcements: 'Aankondigingen',
+        discoverSection: {
+            title: 'Ontdek',
+            menuItemTitleNonAdmin: 'Leer hoe je uitgaven aanmaakt en rapporten indient.',
+            menuItemTitleAdmin: 'Leer hoe u leden uitnodigt, goedkeuringsworkflows bewerkt en bedrijfskaarten afstemt.',
+            menuItemDescription: 'Ontdek wat Expensify in 2 minuten kan doen',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
