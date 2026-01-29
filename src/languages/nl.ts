@@ -494,6 +494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'Kaart',
         whyDoWeAskForThis: 'Waarom vragen we dit?',
         required: 'Vereist',
+        automatic: 'Automatisch',
         showing: 'Wordt weergegeven',
         of: 'van',
         default: 'Standaard',
@@ -1172,6 +1173,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
         routePending: 'Route in behandeling...',
+        automaticallyEnterExpenseDetails: 'Concierge zal automatisch de uitgavendetails voor je invoeren, of je kunt ze handmatig toevoegen.',
         receiptScanning: () => ({
             one: 'Bon scannen...',
             other: 'Bonnetjes scannen...',
@@ -4681,7 +4683,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze helppagina](${CONST.NETSUITE
 
 _Voor meer gedetailleerde instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Wat is de script-ID?',
-                            customSegmentScriptIDFooter: `Je kunt aangepaste segmentscript-ID’s in NetSuite vinden onder: 
+                            customSegmentScriptIDFooter: `Je kunt aangepaste segmentscript-ID’s in NetSuite vinden onder:
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Klik op een aangepast segment.

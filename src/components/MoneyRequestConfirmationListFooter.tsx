@@ -2,8 +2,9 @@ import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useMemo} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {ImageResizeMode, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useCurrencyList from '@hooks/useCurrencyList';
@@ -15,7 +16,10 @@ import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -36,10 +40,13 @@ import {
     isCreatedMissing,
     isFetchingWaypointsFromServer,
     isManagedCardTransaction,
+    isScanRequest,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+    willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,8 +56,10 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
+import Button from './Button';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
+import Icon from './Icon';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -58,6 +67,7 @@ import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
+import Text from './Text';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -227,6 +237,12 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if the description is required */
     isDescriptionRequired: boolean;
+
+    /** Whether to show more fields */
+    showMoreFields: boolean;
+
+    /** Function to set the show more fields */
+    setShowMoreFields: (showMoreFields: boolean) => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -286,13 +302,17 @@ function MoneyRequestConfirmationListFooter({
     onToggleReimbursable,
     isReceiptEditable = false,
     isDescriptionRequired = false,
+    showMoreFields,
+    setShowMoreFields,
 }: MoneyRequestConfirmationListFooterProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
+    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow'] as const);
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const theme = useTheme();
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {windowWidth} = useWindowDimensions();
+    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyList();
     const {isOffline} = useNetwork();
-
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -307,6 +327,7 @@ function MoneyRequestConfirmationListFooter({
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
+    const isScan = isScanRequest(transaction);
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const shouldShowTags = useMemo(
@@ -418,6 +439,7 @@ function MoneyRequestConfirmationListFooter({
     } = receiptPath && receiptFilename ? getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
+    const shouldRequireAuthToken = !!receiptThumbnail && !isLocalFile;
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
 
@@ -450,6 +472,23 @@ function MoneyRequestConfirmationListFooter({
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
 
+    const getRightLabelIcon = useCallback(() => {
+        return willFieldBeAutomaticallyFilled(transaction, 'category') ? icons.Sparkles : undefined;
+    }, [transaction, icons.Sparkles]);
+
+    const getRightLabel = useCallback(
+        (isRequiredField = false) => {
+            if (willFieldBeAutomaticallyFilled(transaction, 'category')) {
+                return translate('common.automatic');
+            }
+            if (isRequiredField) {
+                return translate('common.required');
+            }
+            return '';
+        },
+        [transaction, translate],
+    );
+
     const fields = [
         {
             item: (
@@ -476,6 +515,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -509,6 +549,7 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: true,
+            shouldShowAboveShowMore: true,
         },
         {
             item: (
@@ -541,6 +582,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
+            shouldShowAboveShowMore: true,
         },
         {
             item: (
@@ -578,6 +620,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isDistanceRequest,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -604,6 +647,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowMerchant,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -685,12 +729,14 @@ function MoneyRequestConfirmationListFooter({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                    rightLabel={getRightLabel(isCategoryRequired)}
+                    rightLabelIcon={getRightLabelIcon()}
                     brickRoadIndicator={shouldDisplayCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={shouldDisplayCategoryError ? translate(formError) : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
+            shouldShowAboveShowMore: isCategoryRequired,
         },
         {
             item: (
@@ -716,6 +762,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowDate,
+            shouldShowAboveShowMore: false,
         },
         ...policyTagLists.map(({name}, index) => {
             const tagVisibilityItem = tagVisibility.at(index);
@@ -749,6 +796,7 @@ function MoneyRequestConfirmationListFooter({
                     />
                 ),
                 shouldShow,
+                shouldShowAboveShowMore: isTagRequired,
             };
         }),
         {
@@ -774,6 +822,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -796,6 +845,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowTax,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -822,6 +872,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowAttendees,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -841,6 +892,7 @@ function MoneyRequestConfirmationListFooter({
             ),
             shouldShow: shouldShowReimbursable,
             isSupplementary: true,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -859,6 +911,7 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: shouldShowBillable,
+            shouldShowAboveShowMore: false,
         },
         {
             item: (
@@ -880,6 +933,7 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isPolicyExpenseChat,
+            shouldShowAboveShowMore: false,
         },
     ];
 
@@ -942,9 +996,66 @@ function MoneyRequestConfirmationListFooter({
         return badges;
     }, [firstDay, lastDay, translate, tripDays, icons]);
 
-    const receiptThumbnailContent = useMemo(
-        () => (
-            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall]}>
+    const shouldRestrictHeight = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
+    const [receiptContainerWidth, setReceiptContainerWidth] = useState<number | null>(null);
+    const [receiptAspectRatio, setReceiptAspectRatio] = useState<number | null>(null);
+
+    const handleReceiptLayout = useCallback((event: {nativeEvent: {layout: {width: number}}}) => {
+        const width = event.nativeEvent.layout.width;
+        if (!width) {
+            return;
+        }
+        setReceiptContainerWidth((previousWidth) => (width === previousWidth ? previousWidth : width));
+    }, []);
+
+    const handleReceiptLoad = useCallback((event?: {nativeEvent: {width: number; height: number}}) => {
+        const width = event?.nativeEvent.width ?? 0;
+        const height = event?.nativeEvent.height ?? 0;
+        if (!width || !height) {
+            return;
+        }
+        const ratio = width / height;
+        setReceiptAspectRatio((previousRatio) => (ratio === previousRatio ? previousRatio : ratio));
+    }, []);
+
+    const receiptSizeStyle = styles.expenseViewImageSmall;
+    let receiptHeightStyle: ViewStyle | undefined;
+    let receiptResizeMode: ImageResizeMode | undefined;
+    const horizontalPadding = isSmallScreenWidth && typeof styles.ph5.paddingHorizontal === 'number' ? styles.ph5.paddingHorizontal : 0;
+    if (shouldRestrictHeight) {
+        const flexReceiptStyle = {flexGrow: 1, flexShrink: 1};
+        const horizontalMargin = isSmallScreenWidth && horizontalPadding > 0 ? 0 : typeof styles.moneyRequestImage.marginHorizontal === 'number' ? styles.moneyRequestImage.marginHorizontal : 0;
+        const containerWidth = receiptContainerWidth ?? windowWidth ?? variables.receiptPreviewMaxWidth;
+        const availableWidth = Math.max(containerWidth - horizontalPadding * 2, 0);
+        const fallbackWidth = Math.min(Math.max(availableWidth - horizontalMargin * 2, 0), variables.receiptPreviewMaxWidth);
+        if (!receiptContainerWidth || !receiptAspectRatio) {
+            const widthStyle = isSmallScreenWidth ? {width: '100%', maxWidth: '100%', alignSelf: 'stretch'} : {width: fallbackWidth};
+            receiptHeightStyle = {
+                height: isSmallScreenWidth ? variables.receiptPreviewMaxHeight : Math.min(variables.receiptPreviewMaxHeight, fallbackWidth),
+                ...flexReceiptStyle,
+                ...widthStyle,
+            };
+        } else {
+            const effectiveWidth = Math.min(Math.max(availableWidth - horizontalMargin * 2, 0), variables.receiptPreviewMaxWidth);
+            const minHeight = effectiveWidth / (16 / 9);
+            const calculatedHeight = effectiveWidth / receiptAspectRatio;
+            const isWide = calculatedHeight < minHeight;
+            const targetHeight = Math.max(minHeight, calculatedHeight);
+            const widthStyle = isSmallScreenWidth ? {width: '100%', maxWidth: '100%', alignSelf: 'stretch'} : {width: effectiveWidth};
+            receiptHeightStyle = {
+                height: isSmallScreenWidth ? targetHeight : Math.min(targetHeight, variables.receiptPreviewMaxHeight),
+                flexShrink: 1,
+                flexGrow: 1,
+                ...widthStyle,
+            };
+            receiptResizeMode = isWide ? 'contain' : undefined;
+        }
+    }
+
+    const receiptThumbnailContent = useMemo(() => {
+        const receiptContainerStyle = isSmallScreenWidth ? {marginHorizontal: 0} : undefined;
+        return (
+            <View style={[styles.moneyRequestImage, receiptContainerStyle, receiptSizeStyle, receiptHeightStyle]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -998,40 +1109,47 @@ function MoneyRequestConfirmationListFooter({
                             // AuthToken is required when retrieving the image from the server
                             // but we don't need it to load the blob:// or file:// image when starting an expense/split
                             // So if we have a thumbnail, it means we're retrieving the image from the server
-                            isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
+                            isAuthTokenRequired={shouldRequireAuthToken}
                             fileExtension={fileExtension}
                             shouldUseThumbnailImage
                             shouldUseInitialObjectPosition={isDistanceRequest}
+                            onLoad={handleReceiptLoad}
+                            resizeMode={receiptResizeMode}
                         />
                     </PressableWithoutFocus>
                 )}
             </View>
-        ),
-        [
-            styles.moneyRequestImage,
-            styles.expenseViewImageSmall,
-            styles.cursorDefault,
-            styles.h100,
-            styles.flex1,
-            isLocalFile,
-            receiptFilename,
-            translate,
-            shouldDisplayReceipt,
-            resolvedReceiptImage,
-            onPDFLoadError,
-            onPDFPassword,
-            isThumbnail,
-            resolvedThumbnail,
-            receiptThumbnail,
-            fileExtension,
-            isDistanceRequest,
-            transactionID,
-            action,
-            iouType,
-            reportID,
-            isReceiptEditable,
-        ],
-    );
+        );
+    }, [
+        styles.moneyRequestImage,
+        styles.cursorDefault,
+        styles.h100,
+        styles.flex1,
+        styles.expenseViewImageSmall,
+        receiptSizeStyle,
+        receiptHeightStyle,
+        handleReceiptLayout,
+        handleReceiptLoad,
+        shouldRestrictHeight,
+        isSmallScreenWidth,
+        isLocalFile,
+        receiptFilename,
+        translate,
+        shouldDisplayReceipt,
+        resolvedReceiptImage,
+        onPDFLoadError,
+        onPDFPassword,
+        isThumbnail,
+        resolvedThumbnail,
+        fileExtension,
+        isDistanceRequest,
+        transactionID,
+        isReceiptEditable,
+        reportID,
+        action,
+        iouType,
+        shouldRequireAuthToken,
+    ]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasReceiptImageOrThumbnail = receiptImage || receiptThumbnail;
@@ -1108,7 +1226,16 @@ function MoneyRequestConfirmationListFooter({
                 </>
             )}
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
-                <View style={!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3}>
+                <View
+                    onLayout={handleReceiptLayout}
+                    style={[
+                        !hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3,
+                        shouldRestrictHeight ? {flexGrow: 1, flexShrink: 1} : undefined,
+                        styles.overflowHidden,
+                        shouldRestrictHeight && isSmallScreenWidth ? styles.pt10 : undefined,
+                        isSmallScreenWidth ? styles.ph5 : undefined,
+                    ]}
+                >
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
                         : showReceiptEmptyState && (
@@ -1120,12 +1247,45 @@ function MoneyRequestConfirmationListFooter({
 
                                       Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                                   }}
-                                  style={styles.expenseViewImageSmall}
+                                  style={[styles.expenseViewImageSmall, !shouldRestrictHeight && styles.receiptPreviewAspectRatio]}
                               />
                           )}
                 </View>
             )}
-            <View style={[styles.mb5]}>{fields.filter((field) => field.shouldShow).map((field) => field.item)}</View>
+
+            <View style={[styles.mb5, styles.mt2]}>
+                {shouldRestrictHeight && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.pl5, styles.gap2, styles.mb2, styles.mr8]}>
+                        <Icon
+                            src={icons.Sparkles}
+                            fill={theme.icon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                        <Text style={[styles.rightLabelMenuItem]}>{translate('iou.automaticallyEnterExpenseDetails')}</Text>
+                    </View>
+                )}
+
+                {fields.filter((field) => field.shouldShow && (field.shouldShowAboveShowMore ?? false)).map((field) => field.item)}
+
+                {!shouldRestrictHeight &&
+                    fields.filter((field) => field.shouldShow && !(field.shouldShowAboveShowMore ?? false)).map((field) => <View key={field.item.key}>{field.item}</View>)}
+
+                {shouldRestrictHeight && fields.some((field) => field.shouldShow && !(field.shouldShowAboveShowMore ?? false)) && (
+                    <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
+                        <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
+                        <Button
+                            text={translate('common.showMore')}
+                            onPress={() => setShowMoreFields(true)}
+                            small
+                            shouldShowRightIcon
+                            iconRight={icons.DownArrow}
+                            innerStyles={[styles.hoveredComponentBG, styles.ph4, styles.pv2]}
+                            textStyles={[styles.buttonSmallText]}
+                        />
+                    </View>
+                )}
+            </View>
         </>
     );
 }
@@ -1175,5 +1335,6 @@ export default memo(
         prevProps.unit === nextProps.unit &&
         prevProps.isTimeRequest === nextProps.isTimeRequest &&
         prevProps.iouTimeCount === nextProps.iouTimeCount &&
-        prevProps.iouTimeRate === nextProps.iouTimeRate,
+        prevProps.iouTimeRate === nextProps.iouTimeRate &&
+        prevProps.showMoreFields === nextProps.showMoreFields,
 );

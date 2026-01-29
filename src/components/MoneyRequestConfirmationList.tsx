@@ -428,6 +428,7 @@ function MoneyRequestConfirmationList({
 
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
+    const [showMoreFields, setShowMoreFields] = useState(false);
 
     // Clear the form error if it's set to one among the list passed as an argument
     const clearFormErrors = useCallback(
@@ -1229,6 +1230,8 @@ function MoneyRequestConfirmationList({
         reportID,
     ]);
 
+    const shouldRestrictHeight = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
+
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter
             action={action}
@@ -1287,6 +1290,8 @@ function MoneyRequestConfirmationList({
             onToggleReimbursable={onToggleReimbursable}
             isReceiptEditable={isReceiptEditable}
             isDescriptionRequired={isDescriptionRequired}
+            showMoreFields={showMoreFields}
+            setShowMoreFields={setShowMoreFields}
         />
     );
 
@@ -1305,6 +1310,8 @@ function MoneyRequestConfirmationList({
                 containerStyle={[styles.flexBasisAuto]}
                 removeClippedSubviews={false}
                 disableKeyboardShortcuts
+                contentContainerStyle={shouldRestrictHeight ? [styles.flex1] : undefined}
+                ListFooterComponentStyle={shouldRestrictHeight ? [styles.flex1] : undefined}
             />
         </MouseProvider>
     );
