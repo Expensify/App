@@ -10,8 +10,8 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
     const {isLargeScreenWidth} = useResponsiveLayout();
 
     const statusContainerStyle = useMemo(() => {
-        return [isLargeScreenWidth ? styles.mt1 : styles.mt0Half, report?.isReportStatePending && styles.offlineFeedbackPending];
-    }, [isLargeScreenWidth, styles.mt1, styles.mt0Half, report?.isReportStatePending, styles.offlineFeedbackPending]);
+        return [isLargeScreenWidth ? styles.mt1 : styles.mt0Half, report?.shouldShowStatusAsPending && styles.offlineFeedbackPending];
+    }, [isLargeScreenWidth, styles.mt1, styles.mt0Half, report?.shouldShowStatusAsPending, styles.offlineFeedbackPending]);
 
     const middleContent = useMemo(() => {
         return (
