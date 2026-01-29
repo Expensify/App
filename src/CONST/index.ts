@@ -4094,10 +4094,10 @@ const CONST = {
         INFO: 'info',
     },
     ACTION_BADGE_VERBS: {
-        SUBMIT: 'Submit',
-        APPROVE: 'Approve',
-        PAY: 'Pay',
-        EXPORT: 'Export',
+        SUBMIT: 'submit',
+        APPROVE: 'approve',
+        PAY: 'pay',
+        EXPORT: 'export',
     },
     REPORT_DETAILS_MENU_ITEM: {
         MEMBERS: 'member',

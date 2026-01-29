@@ -60,9 +60,13 @@ function OptionRowLHNData({
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
 
-    // Only fetch bankAccountList for expense reports to avoid unnecessary data fetching
+    // Only fetch bankAccountList for expense reports to avoid unnecessary data fetching and re-renders
     const isExpenseReport = isExpenseReportUtils(fullReport);
-    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        canBeMissing: true,
+        // Return empty object for non-expense reports to prevent unnecessary subscriptions
+        selector: isExpenseReport ? undefined : () => getEmptyObject<BankAccountList>(),
+    });
     // Check the report errors equality to avoid re-rendering when there are no changes
     const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
