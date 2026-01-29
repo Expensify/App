@@ -355,6 +355,24 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     isColumnSortable: true,
                 },
             ];
+        case CONST.SEARCH.GROUP_BY.MERCHANT:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+                    translationKey: 'common.merchant',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                    translationKey: 'common.expenses',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                    translationKey: 'common.total',
+                    isColumnSortable: true,
+                },
+            ];
         case CONST.SEARCH.GROUP_BY.TAG:
             return [
                 {
@@ -378,6 +396,24 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
                     translationKey: 'common.month',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                    translationKey: 'common.expenses',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                    translationKey: 'common.total',
+                    isColumnSortable: true,
+                },
+            ];
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
+                    translationKey: 'common.week',
                     isColumnSortable: true,
                 },
                 {
