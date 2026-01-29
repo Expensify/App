@@ -6,7 +6,7 @@
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
-import type CONST from './CONST';
+import CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {ReplacementReason} from './libs/actions/Card';
 import type {IOURequestType} from './libs/actions/IOU';
@@ -1826,10 +1826,11 @@ const ROUTES = {
         getRoute: (policyID: string, firstApproverEmail: string) => `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
-        route: 'workspaces/:policyID/workflows/approvals/expenses-from',
+        route: `workspaces/:policyID/workflows/approvals/${CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE}`,
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/workflows/approvals/expenses-from` as const, backTo),
+        getRoute: (policyID: string, backTo?: string) =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(`workspaces/${policyID}/workflows/approvals/${CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE}` as const, backTo),
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'workspaces/:policyID/workflows/approvals/approver',

@@ -508,6 +508,18 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     return memberEmailsToExclude;
 }
 
+/**
+ * Get excluded users as a Record for use in search selector
+ */
+function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boolean> {
+    const ineligibleInvitees = getIneligibleInvitees(employeeList);
+    const result: Record<string, boolean> = {};
+    for (const login of ineligibleInvitees) {
+        result[login] = true;
+    }
+    return result;
+}
+
 function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagLists>): Array<keyof PolicyTagLists> {
     if (isEmptyObject(policyTagList)) {
         return [];
@@ -1795,6 +1807,7 @@ export {
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
+    getExcludedUsers,
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
