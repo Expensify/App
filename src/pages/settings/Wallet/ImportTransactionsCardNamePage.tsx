@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {Keyboard, View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -10,6 +9,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setImportTransactionCardName} from '@libs/actions/ImportSpreadsheet';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -21,19 +21,11 @@ function ImportTransactionsCardNamePage() {
     const {translate} = useLocalize();
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM>) => {
-            Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {
-                importTransactionSettings: {
-                    ...importedSpreadsheet?.importTransactionSettings,
-                    cardDisplayName: values.cardDisplayName.trim(),
-                },
-            });
-            Keyboard.dismiss();
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
-        },
-        [importedSpreadsheet?.importTransactionSettings],
-    );
+    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM>) => {
+        setImportTransactionCardName(values.cardDisplayName.trim());
+        Keyboard.dismiss();
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
+    }, []);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM>) => {

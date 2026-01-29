@@ -1,11 +1,11 @@
 import React from 'react';
-import Onyx from 'react-native-onyx';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {setImportTransactionCurrency} from '@libs/actions/ImportSpreadsheet';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -14,12 +14,7 @@ function ImportTransactionsCurrencyPage() {
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
     const onSelectCurrency = (item: CurrencyListItem) => {
-        Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {
-            importTransactionSettings: {
-                ...importedSpreadsheet?.importTransactionSettings,
-                currency: item.currencyCode,
-            },
-        });
+        setImportTransactionCurrency(item.currencyCode);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 

@@ -1,6 +1,5 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,6 +9,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setImportTransactionSettings} from '@libs/actions/ImportSpreadsheet';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,14 +35,7 @@ function ImportTransactionsPage() {
 
     const handleNext = useCallback(() => {
         // Store import settings in Onyx so they're available when importing
-        Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {
-            importTransactionSettings: {
-                cardDisplayName,
-                currency,
-                isReimbursable,
-                flipAmountSign,
-            },
-        });
+        setImportTransactionSettings(cardDisplayName, currency, isReimbursable, flipAmountSign);
         // No cardID = creating a new card
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute());
     }, [cardDisplayName, currency, isReimbursable, flipAmountSign]);

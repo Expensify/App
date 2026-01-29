@@ -840,8 +840,8 @@ function isPersonalCard(card?: Card) {
 /**
  * Filter out personal (including cash) cards from the card list.
  */
-function filterPersonalCards(cards: CardList | undefined): CardList {
-    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
+function filterPersonalCards(_cards: CardList | undefined): CardList {
+    return filterObject(_cards ?? {}, (key, card) => isPersonalCard(card));
 }
 
 type SplitMaskedCardNumberResult = {

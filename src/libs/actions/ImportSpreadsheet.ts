@@ -1,4 +1,5 @@
-import Onyx, {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
@@ -18,7 +19,7 @@ function setSpreadsheetData(data: string[][], fileURI: string, fileType: string,
     }
 
     // Validate that we have at least one row with data
-    const firstRow = data[0];
+    const firstRow = data.at(0);
     if (!Array.isArray(firstRow) || firstRow.length === 0) {
         return Promise.reject(new Error('Invalid data format: first row is empty or not an array'));
     }
@@ -31,7 +32,7 @@ function setSpreadsheetData(data: string[][], fileURI: string, fileType: string,
     const numColumns = firstRow.length;
 
     // Transpose data from row-major to column-major format
-    const transposedData = firstRow.map((_, colIndex) => data.map((row) => (row[colIndex] !== undefined ? row[colIndex] : '')));
+    const transposedData = firstRow.map((_, colIndex) => data.map((row) => (row.at(colIndex) !== undefined ? row.at(colIndex) : '')));
 
     const columnNames: Record<number, string> = {};
     for (let colIndex = 0; colIndex < numColumns; colIndex++) {
@@ -78,4 +79,31 @@ function closeImportPage(): Promise<void> {
     });
 }
 
-export {setSpreadsheetData, setColumnName, closeImportPage, setContainsHeader};
+function setImportTransactionCardName(cardDisplayName: string): Promise<void> {
+    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {
+        importTransactionSettings: {
+            cardDisplayName,
+        },
+    });
+}
+
+function setImportTransactionCurrency(currency: string): Promise<void> {
+    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {
+        importTransactionSettings: {
+            currency,
+        },
+    });
+}
+
+function setImportTransactionSettings(cardDisplayName: string, currency: string, isReimbursable: boolean, flipAmountSign: boolean): Promise<void> {
+    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {
+        importTransactionSettings: {
+            cardDisplayName,
+            currency,
+            isReimbursable,
+            flipAmountSign,
+        },
+    });
+}
+
+export {setSpreadsheetData, setColumnName, closeImportPage, setContainsHeader, setImportTransactionCardName, setImportTransactionCurrency, setImportTransactionSettings};

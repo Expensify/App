@@ -110,7 +110,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
     let categoryColumnIndex = -1;
 
     if (columns) {
-        Object.entries(columns).forEach(([indexStr, role]) => {
+        for (const [indexStr, role] of Object.entries(columns)) {
             const index = Number(indexStr);
             switch (role) {
                 case 'date':
@@ -128,7 +128,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
                 default:
                     break;
             }
-        });
+        }
     }
 
     const transactions: TransactionFromCSV[] = [];
@@ -140,13 +140,13 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
     }
 
     // Get the number of rows (length of first column)
-    const numRows = data[0]?.length ?? 0;
+    const numRows = data.at(0)?.length ?? 0;
 
     for (let rowIndex = startIndex; rowIndex < numRows; rowIndex++) {
-        const dateValue = dateColumnIndex >= 0 ? data[dateColumnIndex]?.[rowIndex] : undefined;
-        const merchantValue = merchantColumnIndex >= 0 ? data[merchantColumnIndex]?.[rowIndex] : undefined;
-        const amountValue = amountColumnIndex >= 0 ? data[amountColumnIndex]?.[rowIndex] : undefined;
-        const categoryValue = categoryColumnIndex >= 0 ? data[categoryColumnIndex]?.[rowIndex] : undefined;
+        const dateValue = dateColumnIndex >= 0 ? data.at(dateColumnIndex)?.at(rowIndex) : undefined;
+        const merchantValue = merchantColumnIndex >= 0 ? data.at(merchantColumnIndex)?.at(rowIndex) : undefined;
+        const amountValue = amountColumnIndex >= 0 ? data.at(amountColumnIndex)?.at(rowIndex) : undefined;
+        const categoryValue = categoryColumnIndex >= 0 ? data.at(categoryColumnIndex)?.at(rowIndex) : undefined;
 
         // Skip rows with missing required fields
         if (!dateValue || !amountValue) {
@@ -162,7 +162,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
         }
 
         // Parse amount - remove non-numeric characters except decimal and minus
-        let parsedAmount = Math.round(Number(String(amountValue).replace(/[^\d.-]/g, '')) * 100);
+        let parsedAmount = Math.round(Number(String(amountValue).replaceAll(/[^\d.-]/g, '')) * 100);
 
         // Flip sign if needed
         if (flipAmountSign) {
@@ -189,7 +189,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
 /**
  * Creates an optimistic card object for the imported transactions
  */
-function buildOptimisticCard(cardDisplayName: string, currency: string): {card: Card; cardID: string} {
+function buildOptimisticCard(cardDisplayName: string, _currency: string): {card: Card; cardID: string} {
     const cardID = generateCardID();
     return {
         cardID,
@@ -336,4 +336,4 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
     });
 }
 
-export {importTransactionsFromCSV};
+export default importTransactionsFromCSV;
