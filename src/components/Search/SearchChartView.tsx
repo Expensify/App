@@ -13,6 +13,7 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDisplayInfoForCharts} from '@libs/CurrencyUtils';
@@ -35,7 +36,6 @@ type GroupedItem =
     | TransactionWeekGroupListItemType;
 
 type ChartGroupByConfig = {
-    title: string;
     titleIcon: IconAsset;
     getLabel: (item: GroupedItem) => string;
     getFilterQuery: (item: GroupedItem) => string;
@@ -47,43 +47,36 @@ type ChartGroupByConfig = {
  */
 const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.FROM]: {
-        title: 'Submitters',
         titleIcon: Expensicons.Users,
         getLabel: (item: GroupedItem) => (item as TransactionMemberGroupListItemType).formattedFrom ?? '',
         getFilterQuery: (item: GroupedItem) => `from:${(item as TransactionMemberGroupListItemType).accountID}`,
     },
     [CONST.SEARCH.GROUP_BY.CARD]: {
-        title: 'Cards',
         titleIcon: Expensicons.CreditCard,
         getLabel: (item: GroupedItem) => (item as TransactionCardGroupListItemType).formattedCardName ?? '',
         getFilterQuery: (item: GroupedItem) => `cardID:${(item as TransactionCardGroupListItemType).cardID}`,
     },
     [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: {
-        title: 'Exports',
         titleIcon: Expensicons.Send,
         getLabel: (item: GroupedItem) => (item as TransactionWithdrawalIDGroupListItemType).formattedWithdrawalID ?? '',
         getFilterQuery: (item: GroupedItem) => `withdrawalID:${(item as TransactionWithdrawalIDGroupListItemType).entryID}`,
     },
     [CONST.SEARCH.GROUP_BY.CATEGORY]: {
-        title: 'Categories',
         titleIcon: Expensicons.Folder,
         getLabel: (item: GroupedItem) => (item as TransactionCategoryGroupListItemType).formattedCategory ?? '',
         getFilterQuery: (item: GroupedItem) => `category:"${(item as TransactionCategoryGroupListItemType).category}"`,
     },
     [CONST.SEARCH.GROUP_BY.MERCHANT]: {
-        title: 'Merchants',
         titleIcon: Expensicons.Building,
         getLabel: (item: GroupedItem) => (item as TransactionMerchantGroupListItemType).formattedMerchant ?? '',
         getFilterQuery: (item: GroupedItem) => `merchant:"${(item as TransactionMerchantGroupListItemType).merchant}"`,
     },
     [CONST.SEARCH.GROUP_BY.TAG]: {
-        title: 'Tags',
         titleIcon: Expensicons.Tag,
         getLabel: (item: GroupedItem) => (item as TransactionTagGroupListItemType).formattedTag ?? '',
         getFilterQuery: (item: GroupedItem) => `tag:"${(item as TransactionTagGroupListItemType).tag}"`,
     },
     [CONST.SEARCH.GROUP_BY.MONTH]: {
-        title: 'Months',
         titleIcon: Expensicons.Calendar,
         getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
         getFilterQuery: (item: GroupedItem) => {
@@ -92,7 +85,6 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         },
     },
     [CONST.SEARCH.GROUP_BY.WEEK]: {
-        title: 'Weeks',
         titleIcon: Expensicons.Calendar,
         getLabel: (item: GroupedItem) => (item as TransactionWeekGroupListItemType).formattedWeek ?? '',
         getFilterQuery: (item: GroupedItem) => {
@@ -137,8 +129,10 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, typeof SearchBarChart> = {
  */
 function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {title, titleIcon, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {titleIcon, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const title = translate(`search.chartTitles.${groupBy}`);
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
     const handleBarPress = useCallback(
