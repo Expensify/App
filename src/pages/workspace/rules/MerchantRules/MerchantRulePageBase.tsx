@@ -53,8 +53,16 @@ const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTransla
 };
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
-    const merchantToMatchField = CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH;
-    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => key !== merchantToMatchField && value !== undefined);
+    const matchingCriteriaFields = new Set<string>([CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH, CONST.MERCHANT_RULES.FIELDS.MATCH_TYPE]);
+    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
+        if (matchingCriteriaFields.has(key)) {
+            return false;
+        }
+        if (typeof value === 'boolean') {
+            return true;
+        }
+        return value !== undefined && value !== '';
+    });
     if (form?.merchantToMatch && hasAtLeastOneUpdate) {
         return '';
     }
@@ -88,8 +96,12 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         if (!isEditing || !existingRule) {
             return;
         }
+        // Convert the operator to matchType for the form
+        // 'eq' = exact match, 'contains' = contains match
+        const matchType = existingRule.filters?.operator;
         setDraftMerchantRule({
             merchantToMatch: existingRule.filters?.right,
+            matchType,
             merchant: existingRule.merchant,
             category: existingRule.category,
             tag: existingRule.tag,

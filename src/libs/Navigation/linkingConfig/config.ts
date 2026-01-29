@@ -1159,6 +1159,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
                             path: ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_MATCH_TYPE]: {
+                            path: ROUTES.RULES_MERCHANT_MATCH_TYPE.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT]: {
                             path: ROUTES.RULES_MERCHANT_MERCHANT.route,
                         },

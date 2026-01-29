@@ -3782,6 +3782,7 @@ const CONST = {
             BILLABLE: 'billable',
             CATEGORY: 'category',
             DESCRIPTION: 'comment',
+            MATCH_TYPE: 'matchType',
             MERCHANT_TO_MATCH: 'merchantToMatch',
             MERCHANT: 'merchant',
             REIMBURSABLE: 'reimbursable',
@@ -7138,6 +7139,7 @@ const CONST = {
             AND: 'and',
             OR: 'or',
             EQUAL_TO: 'eq',
+            CONTAINS: 'contains',
             NOT_EQUAL_TO: 'neq',
             GREATER_THAN: 'gt',
             GREATER_THAN_OR_EQUAL_TO: 'gte',
@@ -7157,6 +7159,8 @@ const CONST = {
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
+            LINE: 'line',
+            PIE: 'pie',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7227,6 +7231,7 @@ const CONST = {
             SORT_ORDER: 'sort-order',
             POLICY_ID: 'workspace',
             GROUP_BY: 'group-by',
+            VIEW: 'view',
             DATE: 'date',
             AMOUNT: 'amount',
             TOTAL: 'total',

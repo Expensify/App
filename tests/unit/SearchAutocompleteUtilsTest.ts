@@ -280,5 +280,79 @@ describe('SearchAutocompleteUtils', () => {
             // Total amounts with more than 8 digits fail validation
             expect(result).toEqual([]);
         });
+
+        describe('view filter highlighting', () => {
+            it('highlights valid view values', () => {
+                const validViews = ['table', 'bar', 'line', 'pie'];
+
+                for (const view of validViews) {
+                    const input = `view:${view}`;
+
+                    const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                    expect(result).toEqual([{start: 5, type: 'mention-user', length: view.length}]);
+                }
+            });
+
+            it('does not highlight invalid view values', () => {
+                const input = 'view:invalid';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+
+            it('highlights view in complex query with other filters', () => {
+                const input = 'type:expense view:line category:Travel';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([
+                    {start: 5, type: 'mention-user', length: 7}, // type:expense
+                    {start: 18, type: 'mention-user', length: 4}, // view:line
+                    {start: 32, type: 'mention-user', length: 6}, // category:Travel
+                ]);
+            });
+
+            it('does not highlight empty view value', () => {
+                const input = 'view:';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([]);
+            });
+
+            it('highlights view:table in query', () => {
+                const input = 'view:table';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([{start: 5, type: 'mention-user', length: 5}]);
+            });
+
+            it('highlights view:bar in query', () => {
+                const input = 'view:bar';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([{start: 5, type: 'mention-user', length: 3}]);
+            });
+
+            it('highlights view:line in query', () => {
+                const input = 'view:line';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([{start: 5, type: 'mention-user', length: 4}]);
+            });
+
+            it('highlights view:pie in query', () => {
+                const input = 'view:pie';
+
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+
+                expect(result).toEqual([{start: 5, type: 'mention-user', length: 3}]);
+            });
+        });
     });
 });

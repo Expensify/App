@@ -168,6 +168,7 @@ const FILTER_KEYS = {
 
     COLUMNS: 'columns',
     LIMIT: 'limit',
+    VIEW: 'view',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -535,6 +536,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
         [FILTER_KEYS.COLUMNS]: SearchCustomColumnIds[];
+        [FILTER_KEYS.VIEW]: ValueOf<typeof CONST.SEARCH.VIEW>;
 
         [FILTER_KEYS.STATUS]: string[] | string;
 

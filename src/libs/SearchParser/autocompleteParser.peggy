@@ -96,6 +96,7 @@ autocompleteKey "key"
       / cardID
       / feed
       / groupBy
+      / view
       / reimbursable
       / billable
       / policyID
