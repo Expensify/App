@@ -275,13 +275,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
             onModalHide: () => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    if (!textInputRef.current) {
-                        return;
-                    }
-                    textInputRef.current.focus();
-                });
+                if (!textInputRef.current) {
+                    return;
+                }
+                textInputRef.current.focus();
             },
         });
         if (result.action !== ModalActions.CONFIRM) {
