@@ -973,6 +973,13 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string): str
     return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
 }
 
+function getYearDateRange(year: number): {start: string; end: string} {
+    return {
+        start: `${year}-01-01`,
+        end: `${year}-12-31`,
+    };
+}
+
 function getQuarterDateRange(year: number, quarter: number): {start: string; end: string} {
     const startMonth = (quarter - 1) * 3 + 1;
     const endMonth = quarter * 3;
@@ -1057,6 +1064,7 @@ const DateUtils = {
     getWeekDateRange,
     isDateStringInMonth,
     getFormattedDateRangeForSearch,
+    getYearDateRange,
     getQuarterDateRange,
     getFormattedQuarterForSearch,
 };

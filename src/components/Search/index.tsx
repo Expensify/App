@@ -84,6 +84,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/t
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
+import SearchChartView from './SearchChartView';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -214,7 +215,7 @@ function Search({
     searchRequestResponseStatusCode,
     onDEWModalOpen,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -946,8 +947,7 @@ function Search({
                     return;
                 }
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const yearStart = `${yearGroupItem.year}-01-01`;
-                const yearEnd = `${yearGroupItem.year}-12-31`;
+                const {start: yearStart, end: yearEnd} = DateUtils.getYearDateRange(yearGroupItem.year);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
@@ -1304,6 +1304,24 @@ function Search({
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
+
+    // Other charts are not implemented yet
+    const shouldShowChartView = view === CONST.SEARCH.VIEW.BAR && !!validGroupBy;
+
+    if (shouldShowChartView) {
+        return (
+            <SearchScopeProvider>
+                <SearchChartView
+                    queryJSON={queryJSON}
+                    view={view}
+                    groupBy={validGroupBy}
+                    data={sortedData as TransactionGroupListItemType[]}
+                    isLoading={shouldShowLoadingState}
+                    onScroll={onSearchListScroll}
+                />
+            </SearchScopeProvider>
+        );
+    }
 
     return (
         <SearchScopeProvider>

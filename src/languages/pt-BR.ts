@@ -7033,6 +7033,18 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
         },
         topSpenders: 'Maiores gastadores',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'De',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Cartões',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exportações',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorias',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciantes',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Meses',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Semanas',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Anos',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
+        },
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',

@@ -7044,6 +7044,18 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
         topSpenders: 'Grootste uitgaven',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Kaarten',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exporten',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorieën',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Handelaars',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Maanden',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Weken',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaren',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
+        },
     },
     genericErrorPage: {
         title: 'O jee, er is iets misgegaan!',

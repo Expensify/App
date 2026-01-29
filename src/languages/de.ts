@@ -7072,6 +7072,18 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
         topSpenders: 'Top-Ausgaben',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Karten',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exporte',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorien',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Monate',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Wochen',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
+        },
     },
     genericErrorPage: {
         title: 'Oh je, etwas ist schiefgelaufen!',

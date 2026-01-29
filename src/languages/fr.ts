@@ -7084,6 +7084,18 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
         topSpenders: 'Plus gros dépensiers',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'De',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Cartes',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exports',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégories',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçants',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquettes',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaines',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
+        },
     },
     genericErrorPage: {
         title: 'Oh oh, quelque chose s’est mal passé !',

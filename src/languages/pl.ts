@@ -7032,6 +7032,18 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             allMatchingItemsSelected: 'Wybrano wszystkie pasujące elementy',
         },
         topSpenders: 'Najwięksi wydający',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Karty',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Eksporty',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Sprzedawcy',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tagi',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiące',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Tygodnie',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Lata',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartały',
+        },
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',

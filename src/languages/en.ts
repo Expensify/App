@@ -6958,6 +6958,18 @@ const translations = {
         },
         has: 'Has',
         groupBy: 'Group by',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'From',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Cards',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exports',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categories',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Merchants',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Months',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Weeks',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
+        },
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
             accessPlaceHolder: 'Open for details',

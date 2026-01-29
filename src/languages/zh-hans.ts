@@ -6880,6 +6880,18 @@ ${reportName}
             allMatchingItemsSelected: '已选择所有匹配的项目',
         },
         topSpenders: '最高支出者',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: '来自',
+            [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '导出',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: '商家',
+            [CONST.SEARCH.GROUP_BY.TAG]: '标签',
+            [CONST.SEARCH.GROUP_BY.MONTH]: '月份',
+            [CONST.SEARCH.GROUP_BY.WEEK]: '周',
+            [CONST.SEARCH.GROUP_BY.YEAR]: '年',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
+        },
     },
     genericErrorPage: {
         title: '哎呀，出错了！',
