@@ -170,7 +170,7 @@ function WorkspacePageWithSections({
         }
 
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
-        return (!isEmptyObject(policy) && !isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !isPendingDelete && !prevIsPendingDelete);
+        return (!isEmptyObject(policy) && !isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
 
