@@ -122,7 +122,7 @@ function useChartInteractionState<Init extends ChartInteractionStateInit>(
                 y: makeMutable(0),
             },
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- keys is a stable string representation of y keys
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- keys is a stable string representation of y keys
     }, [keys]);
 
     const isActive = useIsInteractionActive(state);
