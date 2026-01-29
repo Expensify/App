@@ -33,10 +33,10 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const currentValue = form?.merchantToMatch ?? '';
-    const matchType = form?.matchType ?? CONST.MERCHANT_RULES.MATCH_TYPE.CONTAINS;
+    const matchType = form?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
     const getMatchTypeLabel = () => {
-        if (matchType === CONST.MERCHANT_RULES.MATCH_TYPE.EXACT) {
+        if (matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
             return translate('workspace.rules.merchantRules.matchTypeExact');
         }
         return translate('workspace.rules.merchantRules.matchTypeContains');

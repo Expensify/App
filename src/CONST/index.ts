@@ -3789,10 +3789,6 @@ const CONST = {
             TAG: 'tag',
             TAX: 'tax',
         },
-        MATCH_TYPE: {
-            CONTAINS: 'contains',
-            EXACT: 'exact',
-        },
     },
 
     get SUBSCRIPTION_PRICES() {

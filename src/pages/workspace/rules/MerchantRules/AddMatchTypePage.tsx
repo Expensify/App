@@ -31,7 +31,7 @@ function AddMatchTypePage({route}: AddMatchTypePageProps) {
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
 
-    const selectedValue = form?.matchType ?? CONST.MERCHANT_RULES.MATCH_TYPE.CONTAINS;
+    const selectedValue = form?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
     const goBack = () => {
         Navigation.goBack(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, isEditing ? ruleID : undefined));
@@ -39,16 +39,16 @@ function AddMatchTypePage({route}: AddMatchTypePageProps) {
 
     const items: MatchTypeItem[] = [
         {
-            value: CONST.MERCHANT_RULES.MATCH_TYPE.CONTAINS,
-            keyForList: CONST.MERCHANT_RULES.MATCH_TYPE.CONTAINS,
+            value: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
             text: translate('workspace.rules.merchantRules.matchTypeContains'),
-            isSelected: selectedValue === CONST.MERCHANT_RULES.MATCH_TYPE.CONTAINS,
+            isSelected: selectedValue === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
         },
         {
-            value: CONST.MERCHANT_RULES.MATCH_TYPE.EXACT,
-            keyForList: CONST.MERCHANT_RULES.MATCH_TYPE.EXACT,
+            value: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
             text: translate('workspace.rules.merchantRules.matchTypeExact'),
-            isSelected: selectedValue === CONST.MERCHANT_RULES.MATCH_TYPE.EXACT,
+            isSelected: selectedValue === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
         },
     ];
 
