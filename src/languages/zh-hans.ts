@@ -2209,6 +2209,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount}，商户：${merchant} - ${date}`,
         },
+        csvCardDescription: 'CSV 导入',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -4827,6 +4828,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             assign: '分配',
             assignCardFailedError: '卡片分配失败。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription: '选择一个新的交易起始日期。我们将从该日期起同步所有交易，但不包括已经导入的交易。',
             unassignCardFailedError: '卡片取消分配失败。',
         },
         expensifyCard: {
@@ -6743,6 +6745,7 @@ ${reportName}
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
         topCategories: '热门类别',
+        topMerchants: '热门商家',
         groupedExpenses: '已分组报销费用',
         bulkActions: {
             approve: '批准',
@@ -6805,6 +6808,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: '商家',
                 [CONST.SEARCH.GROUP_BY.TAG]: '标签',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             },
@@ -6828,6 +6832,7 @@ ${reportName}
             accessPlaceHolder: '打开以查看详情',
         },
         noCategory: '无类别',
+        noMerchant: '无商户',
         noTag: '无标签',
         expenseType: '费用类型',
         withdrawalType: '提现类型',
@@ -6978,6 +6983,8 @@ ${reportName}
                 leftTheChat: '已离开聊天',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `您的企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用您的 Expensify 卡。`,
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',

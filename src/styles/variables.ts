@@ -394,9 +394,7 @@ export default {
     reportSearchHeaderMaxWidth: 700,
 
     // Split expense tabs
-    splitExpenseAmountMobileWidth: 82,
-    splitExpensePercentageWidth: 42,
-    splitExpensePercentageMobileWidth: 62,
+    splitExpensePercentageWidth: 66,
 
     // Multifactor Authentication illustrations size
     openPadlockWidth: 140,
