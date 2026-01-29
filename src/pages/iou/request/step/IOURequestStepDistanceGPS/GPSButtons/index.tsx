@@ -6,6 +6,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {initGpsDraft, resetGPSDraftDetails, setEndAddress, setIsTracking} from '@libs/actions/GPSDraftDetails';
@@ -29,6 +30,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const [showStopConfirmation, setShowStopConfirmation] = useState(false);
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
     const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
+    const {isOffline} = useNetwork();
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
@@ -61,15 +63,17 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
             return;
         }
 
-        const endAddress = await addressFromGpsPoint(lastPoint);
+        if (!isOffline) {
+            const endAddress = await addressFromGpsPoint(lastPoint);
 
-        if (endAddress === null) {
-            const formattedCoordinates = coordinatesToString(lastPoint);
-            setEndAddress({value: formattedCoordinates, type: 'coordinates'});
-            return;
+            if (endAddress !== null) {
+                setEndAddress({value: endAddress, type: 'address'});
+                return;
+            }
         }
 
-        setEndAddress({value: endAddress, type: 'address'});
+        const formattedCoordinates = coordinatesToString(lastPoint);
+        setEndAddress({value: formattedCoordinates, type: 'coordinates'});
     };
 
     const startGpsTrip = async () => {

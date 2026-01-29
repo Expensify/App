@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
@@ -20,6 +21,8 @@ function GPSTripStateChecker() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
 
     const {splashScreenState} = useSplashScreenState();
+
+    useUpdateGpsTripOnReconnect();
 
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
