@@ -166,25 +166,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
-    // Refresh transactions when expanding - always starts fresh from offset 0
-    // This is stable because it only depends on queryJSON and loading state
-    const refreshTransactions = useCallback(() => {
-        if (!groupItem.transactionsQueryJSON) {
-            return;
-        }
-
-        search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
-            offset: 0,
-            shouldCalculateTotals: false,
-            isLoading: !!transactionsSnapshot?.search?.isLoading,
-        });
-    }, [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.isLoading]);
-
-    // Load more transactions for pagination - uses current offset
+    // Search transactions - handles both refresh (offset 0) and pagination (current offset + pageSize)
     const searchTransactions = useCallback(
-        (pageSize = 0) => {
+        (pageSize = 0, isRefresh = false) => {
             if (!groupItem.transactionsQueryJSON) {
                 return;
             }
@@ -192,7 +176,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             search({
                 queryJSON: groupItem.transactionsQueryJSON,
                 searchKey: undefined,
-                offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
+                offset: isRefresh ? 0 : (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
                 isLoading: !!transactionsSnapshot?.search?.isLoading,
             });
@@ -214,20 +198,24 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
 
-    // Trigger fresh search when expanding or when a new transaction is created while expanded
+    // Handle new transaction created while already expanded
     useEffect(() => {
-        if (!isExpanded) {
+        if (!isExpanded || !newTransactionID) {
             return;
         }
-        refreshTransactions();
-    }, [newTransactionID, isExpanded, refreshTransactions]);
+        searchTransactions(0, true);
+    }, [newTransactionID, isExpanded, searchTransactions]);
 
     const handleToggle = useCallback(() => {
-        setIsExpanded(!isExpanded);
-        if (isExpanded) {
+        const newExpandedState = !isExpanded;
+        setIsExpanded(newExpandedState);
+        if (newExpandedState) {
+            // Refresh transactions when expanding
+            searchTransactions(0, true);
+        } else {
             setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         }
-    }, [isExpanded]);
+    }, [isExpanded, searchTransactions]);
 
     const onPress = useCallback(() => {
         if (isExpenseReportType || transactions.length === 0) {
