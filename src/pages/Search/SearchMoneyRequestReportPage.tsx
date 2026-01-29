@@ -163,9 +163,18 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
 
+    // Tracks initial mount to ensure openReport is called once for multi-transaction reports
+    const isInitialMountRef = useRef(true);
+    const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
+
     useEffect(() => {
+        // Reset flag when reportID changes (screen stays mounted but navigates to different report)
+        if (prevReportIDFromRoute !== reportIDFromRoute) {
+            isInitialMountRef.current = true;
+        }
+
         // Guard prevents calling openReport for multi-transaction reports
-        if (visibleTransactions.length > 2) {
+        if (visibleTransactions.length > 2 && !isInitialMountRef.current) {
             return;
         }
 
@@ -176,6 +185,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         }
 
         openReport(reportIDFromRoute, introSelected, '', [], undefined, undefined, false, [], undefined);
+        isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:
         // oneTransactionID updates after transactionThreadReportID,

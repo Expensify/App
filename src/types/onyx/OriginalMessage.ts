@@ -1083,6 +1083,20 @@ type OriginalMessageCompanyCardConnectionBroken = {
 };
 
 /**
+ * Original message for Plaid balance failure
+ */
+type OriginalMessagePlaidBalanceFailure = {
+    /** The policy ID for which the Plaid balance failure occurred */
+    policyID: string;
+
+    /** The masked bank account number */
+    maskedAccountNumber: string;
+
+    /** The reasoning for the failure (for AgentZero) */
+    reasoning?: string;
+};
+
+/**
  * Original message for DEW_SUBMIT_FAILED and DEW_APPROVE_FAILED actions
  */
 type OriginalMessageDEWFailed = {
@@ -1251,6 +1265,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
@@ -1283,5 +1298,6 @@ export type {
     OriginalMessageMarkedReimbursed,
     OriginalMessageConciergeAutoMapMccGroups,
     OriginalMessageCompanyCardConnectionBroken,
+    OriginalMessagePlaidBalanceFailure,
     OriginalMessageReimbursementDirectorInformationRequired,
 };
