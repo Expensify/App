@@ -16,7 +16,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Policy, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, ReportAction} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import ExportedIconCell from './ExportedIconCell';
@@ -43,6 +43,7 @@ type ExpenseReportListItemRowProps = {
     isHovered?: boolean;
     isFocused?: boolean;
     columns?: SearchColumnType[];
+    personalDetailsList?: PersonalDetailsList;
 };
 
 function ExpenseReportListItemRow({
@@ -61,6 +62,7 @@ function ExpenseReportListItemRow({
     columns = [],
     isHovered = false,
     isFocused = false,
+    personalDetailsList,
 }: ExpenseReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -247,6 +249,7 @@ function ExpenseReportListItemRow({
                                 style={[{maxWidth: variables.reportSearchHeaderMaxWidth}]}
                                 transactions={item.transactions}
                                 avatarBorderColor={finalAvatarBorderColor}
+                                personalDetailsList={personalDetailsList}
                             />
                         </View>
                     </View>
@@ -283,6 +286,7 @@ function ExpenseReportListItemRow({
                         policy={policy}
                         shouldShowTooltip={showTooltip}
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
+                        personalDetailsList={personalDetailsList}
                     />
                 </View>
 

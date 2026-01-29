@@ -64,6 +64,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`, {canBeMissing: true});
 
     const searchData = currentSearchResults?.data;
+    const personalDetailsList = searchData?.personalDetailsList;
 
     const snapshotReport = useMemo(() => {
         return (searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
@@ -260,6 +261,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         isDisabledCheckbox={isDisabledCheckbox}
                         isHovered={hovered}
                         isFocused={isFocused}
+                        personalDetailsList={personalDetailsList}
                     />
                     {getDescription}
                 </View>

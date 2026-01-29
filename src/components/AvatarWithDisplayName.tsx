@@ -32,7 +32,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import {getButtonRole} from './Button/utils';
 import DisplayNames from './DisplayNames';
 import type DisplayNamesProps from './DisplayNames/types';
@@ -81,6 +81,9 @@ type AvatarWithDisplayNameProps = {
 
     /** The style of the parent navigation status container */
     parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Optional personal details list override */
+    personalDetailsList?: PersonalDetailsList;
 };
 
 function getCustomDisplayName(
@@ -173,10 +176,12 @@ function AvatarWithDisplayName({
     customDisplayNameStyle = {},
     parentNavigationSubtitleTextStyles,
     parentNavigationStatusContainerStyles = {},
+    personalDetailsList,
 }: AvatarWithDisplayNameProps) {
     const {localeCompare, formatPhoneNumber} = useLocalize();
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: !report?.parentReportID});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
+    const [personalDetailsOnyx] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
+    const personalDetails = personalDetailsList ?? personalDetailsOnyx ?? CONST.EMPTY_OBJECT;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -255,6 +260,7 @@ function AvatarWithDisplayName({
             size={size}
             secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)}
             reportID={report?.reportID}
+            personalDetailsList={personalDetails}
         />
     );
 

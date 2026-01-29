@@ -5,7 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ReportSearchHeaderProps from './types';
 
-function ReportSearchHeader({report, style, transactions, avatarBorderColor}: ReportSearchHeaderProps) {
+function ReportSearchHeader({report, style, transactions, avatarBorderColor, personalDetailsList}: ReportSearchHeaderProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
@@ -19,12 +19,25 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 shouldEnableDetailPageNavigation={false}
                 shouldEnableAvatarNavigation={false}
                 avatarBorderColor={avatarBorderColor}
+                personalDetailsList={personalDetailsList}
                 customDisplayNameStyle={styles.fontWeightNormal}
                 parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
                 parentNavigationStatusContainerStyles={isLargeScreenWidth ? styles.mt1 : styles.mt0Half}
             />
         );
-    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1, isLargeScreenWidth, styles.textMicro, styles.mt0Half]);
+    }, [
+        report,
+        transactions,
+        avatarBorderColor,
+        personalDetailsList,
+        styles.fontWeightNormal,
+        styles.textLineHeightNormal,
+        styles.minHeight4,
+        styles.mt1,
+        isLargeScreenWidth,
+        styles.textMicro,
+        styles.mt0Half,
+    ]);
 
     return (
         <View

@@ -23,7 +23,7 @@ import {
 import {getDefaultAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import useReportPreviewSenderID from './useReportPreviewSenderID';
 
@@ -39,6 +39,7 @@ function useReportActionAvatars({
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
     chatReportID: passedChatReportID,
+    personalDetailsList,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -51,17 +52,20 @@ function useReportActionAvatars({
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
     shouldUseCustomFallbackAvatar?: boolean;
     chatReportID?: string;
+    personalDetailsList?: PersonalDetailsList;
 }) {
     const defaultAvatars = useDefaultAvatars();
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
     const {formatPhoneNumber} = useLocalize();
-    const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    const [personalDetailsFromOnyx] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
     });
     // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
-    const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
+    // Snapshot personalDetailsList can be partial, so merge it over the broader cache instead of replacing it.
+    const personalDetailsBase = personalDetailsFromOnyx ?? allPersonalDetails ?? {};
+    const personalDetails = personalDetailsList ? {...personalDetailsBase, ...personalDetailsList} : personalDetailsBase;
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 

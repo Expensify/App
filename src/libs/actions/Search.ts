@@ -46,7 +46,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -423,6 +423,15 @@ function search({
             const reports = Object.keys(response?.data ?? {})
                 .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
                 .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
+
+            const personalDetailsFromSearch = (response?.data as unknown as Record<string, unknown>)?.[ONYXKEYS.PERSONAL_DETAILS_LIST] as
+                | Record<string, PersonalDetails>
+                | undefined;
+
+            if (personalDetailsFromSearch && !isEmpty(personalDetailsFromSearch)) {
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsFromSearch);
+            }
+
             if (response?.search?.offset) {
                 // Indicates that search results are extended from the Report view (with navigation between reports),
                 // using previous results to enable correct counter behavior.
