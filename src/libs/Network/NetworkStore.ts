@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
 
@@ -64,6 +65,7 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
+        Log.info('[NetworkStore] Updating credentials', false, val);
         credentials = val ?? null;
         checkRequiredData();
     },
