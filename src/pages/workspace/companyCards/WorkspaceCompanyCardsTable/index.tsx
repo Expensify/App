@@ -78,9 +78,8 @@ function WorkspaceCompanyCardsTable({
         feedName,
         bankName,
         assignedCards,
-        cardNamesToEncryptedCardNumber,
+        cardNamesToEncryptedCardNumberMapping,
         workspaceCardFeedsStatus,
-        cardFeedType,
         selectedFeed,
         isInitiallyLoadingFeeds,
         isNoFeed,
@@ -115,7 +114,7 @@ function WorkspaceCompanyCardsTable({
     }
 
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading;
-    const isLoadingCards = Object.keys(cardNamesToEncryptedCardNumber ?? {}).length === 0 ? isLoadingOnyxValue(cardListMetadata) : false;
+    const isLoadingCards = Object.keys(cardNamesToEncryptedCardNumberMapping ?? {}).length === 0 ? isLoadingOnyxValue(cardListMetadata) : false;
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
     const isLoading = isLoadingPage || isLoadingFeed;
 
@@ -152,7 +151,7 @@ function WorkspaceCompanyCardsTable({
 
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
-        : (Object.entries(cardNamesToEncryptedCardNumber ?? {}).map(([cardName, encryptedCardNumber]) => {
+        : (Object.entries(cardNamesToEncryptedCardNumberMapping ?? {}).map(([cardName, encryptedCardNumber]) => {
               const failedCompanyCardAssignment = failedCompanyCardAssignments?.[encryptedCardNumber];
 
               if (failedCompanyCardAssignment) {
