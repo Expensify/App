@@ -1584,8 +1584,31 @@ function MoneyReportHeader({
                 return actionType === primaryAction || secondaryActions.includes(actionType);
             })
             .map((actionType) => {
+                // Apply the same disabled/loading state as the primary action buttons
+                if (actionType === CONST.REPORT.SECONDARY_ACTIONS.SUBMIT) {
+                    return {
+                        ...secondaryActionsImplementation[actionType],
+                        disabled: shouldBlockSubmit,
+                    };
+                }
+                if (actionType === CONST.REPORT.SECONDARY_ACTIONS.APPROVE) {
+                    return {
+                        ...secondaryActionsImplementation[actionType],
+                        disabled: isBlockSubmitDueToPreventSelfApproval,
+                    };
+                }
                 // For PAY action, use selectionModePaymentOptions which includes isSelectedTransactionAction flag
                 if (actionType === CONST.REPORT.SECONDARY_ACTIONS.PAY) {
+                    const shouldDisablePayAction = !canAllowSettlement;
+                    if (shouldDisablePayAction) {
+                        return {
+                            ...secondaryActionsImplementation[actionType],
+                            subMenuItems: !isOffline ? undefined : [],
+                            rightIcon: !isOffline ? undefined : secondaryActionsImplementation[actionType].rightIcon,
+                            disabled: isOffline,
+                            shouldShowLoadingSpinnerIcon: !isOffline,
+                        };
+                    }
                     return {
                         ...secondaryActionsImplementation[actionType],
                         subMenuItems: Object.values(selectionModePaymentOptions),
@@ -1593,7 +1616,7 @@ function MoneyReportHeader({
                 }
                 return secondaryActionsImplementation[actionType];
             });
-    }, [primaryAction, secondaryActions, secondaryActionsImplementation, selectionModePaymentOptions]);
+    }, [primaryAction, secondaryActions, secondaryActionsImplementation, selectionModePaymentOptions, isOffline, canAllowSettlement, shouldBlockSubmit, isBlockSubmitDueToPreventSelfApproval]);
 
     const isOnSearch = route.name.toLowerCase().startsWith('search');
     const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
