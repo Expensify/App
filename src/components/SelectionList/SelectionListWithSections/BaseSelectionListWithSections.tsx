@@ -144,8 +144,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             if (sections.length > 1 && !isItemSelected(item)) {
                 scrollToIndex(0);
             }
-            
-            if(shouldShowTextInput) {
+
+            if (shouldShowTextInput) {
                 textInputOptions?.onChangeText?.('');
             }
         }
