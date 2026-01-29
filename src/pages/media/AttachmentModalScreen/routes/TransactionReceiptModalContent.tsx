@@ -38,7 +38,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'CropImage', 'Trashcan', 'Rotate', 'Close', 'Checkmark']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
@@ -448,7 +448,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 )}
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
-                        icon={expensifyIcons.Crop}
+                        icon={expensifyIcons.CropImage}
                         onPress={enterCropMode}
                         text={translate('receipt.crop')}
                         style={styles.transactionReceiptButton}
