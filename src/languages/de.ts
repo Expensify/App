@@ -7045,6 +7045,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
         topSpenders: 'Top-Ausgaben',
+        view: {label: 'Ansehen', table: 'Tabelle', bar: 'Bar'},
     },
     genericErrorPage: {
         title: 'Oh je, etwas ist schiefgelaufen!',

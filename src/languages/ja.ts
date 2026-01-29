@@ -6974,6 +6974,7 @@ ${reportName}
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
         topSpenders: 'トップ支出者',
+        view: {label: '表示', table: 'テーブル', bar: 'バー'},
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',

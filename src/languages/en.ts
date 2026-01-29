@@ -6922,6 +6922,11 @@ const translations = {
         },
         has: 'Has',
         groupBy: 'Group by',
+        view: {
+            label: 'View',
+            table: 'Table',
+            bar: 'Bar',
+        },
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
             accessPlaceHolder: 'Open for details',

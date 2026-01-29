@@ -19,6 +19,7 @@ import type {
     SearchGroupBy,
     SearchQueryJSON,
     SearchStatus,
+    SearchView,
     SearchWithdrawalType,
     SelectedTransactionInfo,
     SingularSearchStatus,
@@ -3505,6 +3506,10 @@ function getGroupByOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
 }
 
+function getViewOptions(translate: LocalizedTranslate) {
+    return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
+}
+
 function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListContextProps['getCurrencySymbol']) {
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
@@ -4086,6 +4091,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getViewOptions,
     getGroupCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
