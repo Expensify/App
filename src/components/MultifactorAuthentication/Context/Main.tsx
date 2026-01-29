@@ -31,7 +31,8 @@ type MultifactorAuthenticationContextProviderProps = {
 };
 
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
-    const {state, setScenario, setPayload, setOutcomePaths, setError, setIsRegistrationComplete, setIsAuthorizationComplete, setIsFlowComplete} = useMultifactorAuthenticationState();
+    const {state, setScenario, setPayload, setOutcomePaths, setError, setIsRegistrationComplete, setIsAuthorizationComplete, setIsFlowComplete, setAuthenticationMethod} =
+        useMultifactorAuthenticationState();
 
     const biometrics = useNativeBiometrics();
     const {translate} = useLocalize();
@@ -168,7 +169,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
                     const scenarioResult = await processScenario(scenario, {
                         signedChallenge: result.signedChallenge,
-                        authenticationMethod: result.authenticationMethod as MarqetaAuthTypeName,
+                        authenticationMethod: result.authenticationMethod,
                         ...payload,
                     });
 
@@ -179,6 +180,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         return;
                     }
 
+                    setAuthenticationMethod(result.authenticationMethod);
                     setIsAuthorizationComplete(true);
                 },
             );
@@ -188,7 +190,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // 6. All steps completed - success
         Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome));
         setIsFlowComplete(true);
-    }, [biometrics, setError, setIsAuthorizationComplete, setIsFlowComplete, setIsRegistrationComplete, state, translate]);
+    }, [biometrics, setAuthenticationMethod, setError, setIsAuthorizationComplete, setIsFlowComplete, setIsRegistrationComplete, state, translate]);
 
     // Run process on every state change, but only after executeScenario has been called
     useEffect(() => {
@@ -220,6 +222,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             setIsAuthorizationComplete(false);
             setIsFlowComplete(false);
             setError(undefined);
+            setAuthenticationMethod(undefined);
 
             const paths = getOutcomePaths(scenario);
             setOutcomePaths({
@@ -227,7 +230,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 failureOutcome: failureOutcome ?? paths.failureOutcome,
             });
         },
-        [setError, setIsAuthorizationComplete, setIsFlowComplete, setIsRegistrationComplete, setOutcomePaths, setPayload, setScenario],
+        [setAuthenticationMethod, setError, setIsAuthorizationComplete, setIsFlowComplete, setIsRegistrationComplete, setOutcomePaths, setPayload, setScenario],
     );
 
     /**

@@ -1,7 +1,7 @@
 import React, {createContext, useContext, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
-import type {MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MarqetaAuthTypeName, MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 
 type ErrorState = {
     reason: MultifactorAuthenticationReason;
@@ -35,6 +35,9 @@ type MultifactorAuthenticationState = {
 
     /** Whether the entire flow has been completed */
     isFlowComplete: boolean;
+
+    /** Authentication method used (e.g., 'BIOMETRIC_FACE', 'BIOMETRIC_FINGERPRINT') */
+    authenticationMethod: MarqetaAuthTypeName | undefined;
 };
 
 type MultifactorAuthenticationStateContextValue = {
@@ -67,6 +70,9 @@ type MultifactorAuthenticationStateContextValue = {
     /** Set flow complete state */
     setIsFlowComplete: (isComplete: boolean) => void;
 
+    /** Set authentication method */
+    setAuthenticationMethod: (method: MarqetaAuthTypeName | undefined) => void;
+
     /** Reset all state to initial values */
     reset: () => void;
 };
@@ -81,6 +87,7 @@ const DEFAULT_STATE: MultifactorAuthenticationState = {
     isRegistrationComplete: false,
     isAuthorizationComplete: false,
     isFlowComplete: false,
+    authenticationMethod: undefined,
 };
 
 const MultifactorAuthenticationStateContext = createContext<MultifactorAuthenticationStateContextValue | undefined>(undefined);
@@ -99,6 +106,7 @@ function MultifactorAuthenticationStateProvider({children}: MultifactorAuthentic
     const [isRegistrationComplete, setIsRegistrationCompleteInternal] = useState<boolean>(DEFAULT_STATE.isRegistrationComplete);
     const [isAuthorizationComplete, setIsAuthorizationCompleteInternal] = useState<boolean>(DEFAULT_STATE.isAuthorizationComplete);
     const [isFlowComplete, setIsFlowCompleteInternal] = useState<boolean>(DEFAULT_STATE.isFlowComplete);
+    const [authenticationMethod, setAuthenticationMethodInternal] = useState<MarqetaAuthTypeName | undefined>(DEFAULT_STATE.authenticationMethod);
 
     const setError = (value: ErrorState | undefined) => {
         setErrorInternal(value);
@@ -127,6 +135,9 @@ function MultifactorAuthenticationStateProvider({children}: MultifactorAuthentic
     const setIsFlowComplete = (value: boolean) => {
         setIsFlowCompleteInternal(value);
     };
+    const setAuthenticationMethod = (value: MarqetaAuthTypeName | undefined) => {
+        setAuthenticationMethodInternal(value);
+    };
 
     const reset = () => {
         setErrorInternal(DEFAULT_STATE.error);
@@ -138,6 +149,7 @@ function MultifactorAuthenticationStateProvider({children}: MultifactorAuthentic
         setIsRegistrationCompleteInternal(DEFAULT_STATE.isRegistrationComplete);
         setIsAuthorizationCompleteInternal(DEFAULT_STATE.isAuthorizationComplete);
         setIsFlowCompleteInternal(DEFAULT_STATE.isFlowComplete);
+        setAuthenticationMethodInternal(DEFAULT_STATE.authenticationMethod);
     };
 
     const state: MultifactorAuthenticationState = useMemo(
@@ -151,8 +163,9 @@ function MultifactorAuthenticationStateProvider({children}: MultifactorAuthentic
             isRegistrationComplete,
             isAuthorizationComplete,
             isFlowComplete,
+            authenticationMethod,
         }),
-        [error, isAuthorizationComplete, isFlowComplete, isRegistrationComplete, outcomePaths, payload, scenario, softPromptApproved, validateCode],
+        [authenticationMethod, error, isAuthorizationComplete, isFlowComplete, isRegistrationComplete, outcomePaths, payload, scenario, softPromptApproved, validateCode],
     );
 
     const contextValue: MultifactorAuthenticationStateContextValue = useMemo(
@@ -167,6 +180,7 @@ function MultifactorAuthenticationStateProvider({children}: MultifactorAuthentic
             setIsRegistrationComplete,
             setIsAuthorizationComplete,
             setIsFlowComplete,
+            setAuthenticationMethod,
             reset,
         }),
         [state],
