@@ -113,11 +113,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-    const hasExistingCards = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
 
     const hasCardFeedOrExpensifyCard =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        hasExistingCards || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
+        !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
 
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
@@ -241,7 +240,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const hasWorkspaceDeleteErrorOffline = !!hasExistingCards && !!isOffline;
+    const hasWorkspaceDeleteErrorOffline = !!hasCardFeedOrExpensifyCard && !!isOffline;
     const hasShowWorkspaceDeleteErrorOfflineRef = useRef(false);
 
     const confirmDelete = useCallback(() => {

@@ -217,9 +217,9 @@ function WorkspacesListPage() {
 
     const prevPolicyToDelete = usePrevious(policyToDelete);
 
-    const hasExistingCards = !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList);
     const hasCardFeedOrExpensifyCard =
-        hasExistingCards ||
+        !isEmptyObject(cardFeeds) ||
+        !isEmptyObject(cardsList) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areExpensifyCardsEnabled ||
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areCompanyCardsEnabled) &&
@@ -234,7 +234,7 @@ function WorkspacesListPage() {
     const policyToDeleteLatestErrorMessage = getLatestErrorMessage(policyToDelete);
     const isPendingDelete = isPendingDeletePolicy(policyToDelete);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicyToDelete);
-    const hasWorkspaceDeleteErrorOffline = !!hasExistingCards && !!isOffline;
+    const hasWorkspaceDeleteErrorOffline = !!hasCardFeedOrExpensifyCard && !!isOffline;
     const hasShowWorkspaceDeleteErrorOfflineRef = useRef(false);
 
     const confirmDelete = () => {
