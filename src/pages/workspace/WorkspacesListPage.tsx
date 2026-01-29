@@ -35,6 +35,7 @@ import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePoliciesWithCardFeedErrors from '@hooks/usePoliciesWithCardFeedErrors';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
@@ -59,12 +60,13 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
+    shouldBlockWorkspaceDeletionForInvoicifyUser,
     shouldShowEmployeeListError,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
+import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -134,6 +136,7 @@ function WorkspacesListPage() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -440,6 +443,18 @@ function WorkspacesListPage() {
                             return;
                         }
 
+                        if (
+                            shouldBlockWorkspaceDeletionForInvoicifyUser(
+                                isSubscriptionTypeOfInvoicing(privateSubscription?.type),
+                                policies,
+                                item?.policyID,
+                                currentUserPersonalDetails?.accountID,
+                            )
+                        ) {
+                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+                            return;
+                        }
+
                         setPolicyIDToDelete(item.policyID);
                         setPolicyNameToDelete(item.title);
 
@@ -542,6 +557,8 @@ function WorkspacesListPage() {
             icons,
             expensifyIcons.Building,
             expensifyIcons.Exit,
+            privateSubscription?.type,
+            currentUserPersonalDetails?.accountID,
             personalDetails,
         ],
     );
