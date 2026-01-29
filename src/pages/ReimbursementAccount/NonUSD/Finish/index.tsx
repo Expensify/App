@@ -67,7 +67,7 @@ function Finish() {
                         {
                             title: translate('finishStep.secure'),
                             onPress: () => {
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
+                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID})));
                             },
                             icon: icons.Shield,
                             shouldShowRightIcon: true,

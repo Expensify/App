@@ -184,10 +184,27 @@ const ROUTES = {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (policyID: string | undefined, stepToOpen: ReimbursementAccountStepToOpen = '', backTo?: string, subStepToOpen?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY) => {
-            if (!policyID) {
+        getRoute: ({
+            policyID,
+            stepToOpen = '',
+            bankAccountID,
+            backTo,
+            subStepToOpen,
+        }: {
+            policyID: string | undefined;
+            stepToOpen?: ReimbursementAccountStepToOpen;
+            bankAccountID?: number;
+            backTo?: string;
+            subStepToOpen?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
+        }) => {
+            if (!policyID && !bankAccountID) {
                 // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
                 return getUrlWithBackToParam(`bank-account/${stepToOpen}`, backTo);
+            }
+
+            if (bankAccountID) {
+                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+                return getUrlWithBackToParam(`bank-account/${stepToOpen}?bankAccountID=${bankAccountID}`, backTo);
             }
             // TODO this backTo comes from drilling it through bank account form screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
