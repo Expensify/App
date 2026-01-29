@@ -92,7 +92,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             return;
         }
 
-        const settings = columnNames.map((_, index) => spreadsheet?.columns?.[index] ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
+        const columnMappings = columnNames.map((_, index) => spreadsheet?.columns?.[index] ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
         
         // Transform columns-based data to rows-based data, including the header
         const columns = spreadsheet?.data ?? [];
@@ -106,7 +106,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
                 rows.push(row);
             }
         }
-        importCSVCompanyCards(policyID, layoutName, layoutType, settings, rows);
+        importCSVCompanyCards(policyID, layoutName, layoutType, columnMappings, rows);
     }, [columnNames, policyID, spreadsheet?.columns, spreadsheet?.data, layoutName, layoutType, validate]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
