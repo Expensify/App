@@ -1902,33 +1902,6 @@ const searchResultsGroupByMonth: OnyxTypes.SearchResults = {
     },
 };
 
-const transactionMonthGroupListItems: TransactionMonthGroupListItemType[] = [
-    {
-        year: 2026,
-        month: 1,
-        count: 5,
-        currency: 'USD',
-        total: 250,
-        groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
-        formattedMonth: 'January 2026',
-        sortKey: 202601,
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-    {
-        year: 2025,
-        month: 12,
-        count: 3,
-        currency: 'USD',
-        total: 75,
-        groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
-        formattedMonth: 'December 2025',
-        sortKey: 202512,
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-];
-
 const searchResultsGroupByYear: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {},
@@ -1957,31 +1930,6 @@ const searchResultsGroupByYear: OnyxTypes.SearchResults = {
         type: 'expense',
     },
 };
-
-const transactionYearGroupListItems: TransactionYearGroupListItemType[] = [
-    {
-        year: 2026,
-        count: 5,
-        currency: 'USD',
-        total: 250,
-        groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
-        formattedYear: '2026',
-        sortKey: 2026,
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-    {
-        year: 2025,
-        count: 3,
-        currency: 'USD',
-        total: 75,
-        groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
-        formattedYear: '2025',
-        sortKey: 2025,
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-];
 
 const searchResultsGroupByQuarter: OnyxTypes.SearchResults = {
     data: {
@@ -2014,33 +1962,6 @@ const searchResultsGroupByQuarter: OnyxTypes.SearchResults = {
     },
 };
 
-const transactionQuarterGroupListItems: TransactionQuarterGroupListItemType[] = [
-    {
-        year: 2026,
-        quarter: 1,
-        count: 5,
-        currency: 'USD',
-        total: 250,
-        groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-        formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
-        sortKey: 20261,
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-    {
-        year: 2025,
-        quarter: 4,
-        count: 3,
-        currency: 'USD',
-        total: 75,
-        groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-        formattedQuarter: 'Q4 2025 (Oct 1 - Dec 31)',
-        sortKey: 20254,
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-];
-
 const searchResultsGroupByWeek: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {},
@@ -2069,29 +1990,6 @@ const searchResultsGroupByWeek: OnyxTypes.SearchResults = {
         type: 'expense',
     },
 };
-
-const transactionWeekGroupListItems: TransactionWeekGroupListItemType[] = [
-    {
-        week: '2026-01-25',
-        count: 5,
-        currency: 'USD',
-        total: 250,
-        groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-        formattedWeek: 'Jan 25 - Jan 31, 2026',
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-    {
-        week: '2025-12-21',
-        count: 3,
-        currency: 'USD',
-        total: 75,
-        groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-        formattedWeek: 'Dec 21 - Dec 27, 2025',
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-];
 
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
@@ -2789,6 +2687,33 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getMonthSections result when type is EXPENSE and groupBy is month', () => {
+            const transactionMonthGroupListItems: TransactionMonthGroupListItemType[] = [
+                {
+                    year: 2026,
+                    month: 1,
+                    count: 5,
+                    currency: 'USD',
+                    total: 250,
+                    groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+                    formattedMonth: 'January 2026',
+                    sortKey: 202601,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    year: 2025,
+                    month: 12,
+                    count: 3,
+                    currency: 'USD',
+                    total: 75,
+                    groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+                    formattedMonth: 'December 2025',
+                    sortKey: 202512,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+            ];
+
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -2888,6 +2813,31 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getYearSections result when type is EXPENSE and groupBy is year', () => {
+            const transactionYearGroupListItems: TransactionYearGroupListItemType[] = [
+                {
+                    year: 2026,
+                    count: 5,
+                    currency: 'USD',
+                    total: 250,
+                    groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
+                    formattedYear: '2026',
+                    sortKey: 2026,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    year: 2025,
+                    count: 3,
+                    currency: 'USD',
+                    total: 75,
+                    groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
+                    formattedYear: '2025',
+                    sortKey: 2025,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+            ];
+
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -2969,6 +2919,33 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getQuarterSections result when type is EXPENSE and groupBy is quarter', () => {
+            const transactionQuarterGroupListItems: TransactionQuarterGroupListItemType[] = [
+                {
+                    year: 2026,
+                    quarter: 1,
+                    count: 5,
+                    currency: 'USD',
+                    total: 250,
+                    groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                    formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                    sortKey: 20261,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    year: 2025,
+                    quarter: 4,
+                    count: 3,
+                    currency: 'USD',
+                    total: 75,
+                    groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                    formattedQuarter: 'Q4 2025 (Oct 1 - Dec 31)',
+                    sortKey: 20254,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+            ];
+
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -3014,8 +2991,8 @@ describe('SearchUIUtils', () => {
             }) as [TransactionQuarterGroupListItemType[], number];
 
             expect(result).toHaveLength(2);
-            expect(result.some((item) => item.formattedQuarter.startsWith('Q1 2026'))).toBe(true);
-            expect(result.some((item) => item.formattedQuarter.startsWith('Q3 2026'))).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1 - Mar 31)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1 - Sep 30)')).toBe(true);
         });
 
         it('should calculate sortKey correctly for quarter groups', () => {
@@ -3052,6 +3029,29 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isTransactionQuarterGroupListItemType(quarterItem)).toBe(true);
         });
         it('should return getWeekSections result when type is EXPENSE and groupBy is week', () => {
+            const transactionWeekGroupListItems: TransactionWeekGroupListItemType[] = [
+                {
+                    week: '2026-01-25',
+                    count: 5,
+                    currency: 'USD',
+                    total: 250,
+                    groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    formattedWeek: 'Jan 25 - Jan 31, 2026',
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    week: '2025-12-21',
+                    count: 3,
+                    currency: 'USD',
+                    total: 75,
+                    groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    formattedWeek: 'Dec 21 - Dec 27, 2025',
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+            ];
+
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
