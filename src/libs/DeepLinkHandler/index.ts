@@ -19,8 +19,11 @@ let areSubscriptionsSetUp = false;
 let isInitialized = false;
 let pendingDeepLinkUrl: string | null = null;
 
-// Track if reports subscription has received its first callback (required for deep link processing)
+
 let hasReportsReceived = false;
+let hasOnboardingPurposeSelectedReceived = false;
+let hasOnboardingCompanySizeReceived = false;
+let hasOnboardingInitialPathReceived = false;
 
 // Track if session has been loaded (similar to isLoadingOnyxValue check in Expensify.tsx)
 let hasSessionLoaded = false;
@@ -56,7 +59,7 @@ function processPendingDeepLinkIfReady() {
 
     // Wait for reports subscription to be ready (required)
     // Reports are the only required data - onboarding data is optional
-    if (!hasReportsReceived) {
+    if (!hasReportsReceived || !hasOnboardingPurposeSelectedReceived || !hasOnboardingCompanySizeReceived || !hasOnboardingInitialPathReceived) {
         return;
     }
 
@@ -92,6 +95,7 @@ function setUpOnyxSubscriptions() {
         key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
         callback: (value) => {
             currentOnboardingPurposeSelected = value;
+            hasOnboardingPurposeSelectedReceived = true;
             // Try to process if reports are already ready
             processPendingDeepLinkIfReady();
         },
@@ -101,6 +105,7 @@ function setUpOnyxSubscriptions() {
         key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
         callback: (value) => {
             currentOnboardingCompanySize = value;
+            hasOnboardingCompanySizeReceived = true;
             // Try to process if reports are already ready
             processPendingDeepLinkIfReady();
         },
@@ -110,6 +115,7 @@ function setUpOnyxSubscriptions() {
         key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
         callback: (value) => {
             onboardingInitialPath = value;
+            hasOnboardingInitialPathReceived = true;
             // Try to process if reports are already ready
             processPendingDeepLinkIfReady();
         },
