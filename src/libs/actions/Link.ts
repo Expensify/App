@@ -9,7 +9,6 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
-import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -28,12 +27,10 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Account, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
-import {isOnboardingFlowCompleted, setOnboardingErrorMessage} from './Welcome';
-import {startOnboardingFlow} from './Welcome/OnboardingFlow';
-import type {OnboardingCompanySize, OnboardingPurpose} from './Welcome/OnboardingFlow';
+import {setOnboardingErrorMessage} from './Welcome';
 
 let isNetworkOffline = false;
 let networkStatus: NetworkStatus;
@@ -52,15 +49,6 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-    },
-});
-
-let account: OnyxEntry<Account>;
-// Use connectWithoutView to subscribe to account data without affecting UI
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        account = value;
     },
 });
 
@@ -241,15 +229,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-function openReportFromDeepLink(
-    url: string,
-    currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
-    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
-    onboardingInitialPath: OnyxEntry<string>,
-    reports: OnyxCollection<Report>,
-    isAuthenticated: boolean,
-    conciergeReportID: string | undefined,
-) {
+function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, isAuthenticated: boolean, conciergeReportID: string | undefined) {
     const reportID = getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -381,25 +361,7 @@ function openReportFromDeepLink(
 
                         if (isAnonymousUser()) {
                             handleDeeplinkNavigation();
-                            return;
                         }
-                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
-                        isOnboardingFlowCompleted({
-                            onNotCompleted: () => {
-                                Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from deep link');
-                                startOnboardingFlow({
-                                    onboardingValuesParam: val,
-                                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
-                                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
-                                    currentOnboardingPurposeSelected,
-                                    currentOnboardingCompanySize,
-                                    onboardingInitialPath,
-                                    onboardingValues: val,
-                                });
-                            },
-                            onCompleted: handleDeeplinkNavigation,
-                            onCanceled: handleDeeplinkNavigation,
-                        });
                     });
                 },
             });
