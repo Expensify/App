@@ -74,6 +74,7 @@ function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
                 />
             </View>
             <CurrentPage
+                isEditing={false}
                 onNext={nextPage}
                 onMove={moveTo}
                 currentPageName={currentPageName}
