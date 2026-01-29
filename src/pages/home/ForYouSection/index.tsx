@@ -24,7 +24,7 @@ function ForYouSection() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {reportCounts} = useTodos();
-    
+
     const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
     const approveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE];
     const payCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY];
@@ -139,11 +139,7 @@ function ForYouSection() {
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
 
-    return (
-        <WidgetContainer title={translate('homePage.forYou')}>
-            {renderContent()}
-        </WidgetContainer>
-    );
+    return <WidgetContainer title={translate('homePage.forYou')}>{renderContent()}</WidgetContainer>;
 }
 
 export default ForYouSection;

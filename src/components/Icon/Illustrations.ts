@@ -6,6 +6,7 @@ import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
+import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -30,7 +31,6 @@ import Encryption from '@assets/images/simple-illustrations/simple-illustration_
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import FastMoney from '@assets/images/simple-illustrations/simple-illustration__fastmoney.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
-import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';

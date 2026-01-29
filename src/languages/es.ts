@@ -754,7 +754,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 allCaughtUp: 'Ya estás al día',
                 upcomingTodos: 'Las tareas pendientes aparecerán aquí.',
             },
-        }
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
