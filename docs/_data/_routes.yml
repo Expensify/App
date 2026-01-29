@@ -213,8 +213,6 @@ platforms:
 
   hubs:
     - href: billing-and-subscriptions
-      title: Billing and Subscriptions
+      title: Billing & Subscriptions
       icon: /assets/images/accounting.svg
       description: "Learn about billing and subscriptions."
-        description: "Learn about billing and subscriptions."
-        articles: []
