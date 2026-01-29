@@ -110,6 +110,7 @@ function CurrencySelectionList({
             showScrollIndicator
             canSelectMultiple={canSelectMultiple}
             showLoadingPlaceholder={!didScreenTransitionEnd}
+            isRowMultilineSupported={false}
         />
     );
 }
