@@ -352,4 +352,3 @@ window.addEventListener('hashchange', () => {
         behavior: 'smooth',
     });
 });
-
