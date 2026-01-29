@@ -638,6 +638,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: '新功能',
         month: '月',
         home: '首页',
+        week: '周',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -5163,7 +5164,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '规则',
                 subtitle: '要求收据、标记高额支出等。',
             },
-            timeTracking: {title: '时间', subtitle: '为员工设置按小时计费的费率，以便根据他们的工作时间获得报酬。'},
+            timeTracking: {
+                title: '时间',
+                subtitle: '为时间跟踪设置按小时计费费率。',
+                defaultHourlyRate: '默认时薪',
+            },
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6236,6 +6241,10 @@ ${reportName}
                 matchTypeContains: '包含',
                 matchTypeExact: '完全匹配',
                 expensesExactlyMatching: '对于完全匹配以下条件的报销：',
+                duplicateRuleTitle: '类似的商家规则已存在',
+                duplicateRulePrompt: (merchantName: string) => `即使您已经有一个现有规则，是否仍要为“${merchantName}”保存新规则？`,
+                saveAnyway: '仍要保存',
+                applyToExistingUnsubmittedExpenses: '应用到现有的未提交报销费用',
             },
         },
         planTypePage: {
@@ -6821,6 +6830,7 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '商户',
                 [CONST.SEARCH.GROUP_BY.TAG]: '标签',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
+                [CONST.SEARCH.GROUP_BY.WEEK]: '周',
             },
             feed: '动态',
             withdrawalType: {
