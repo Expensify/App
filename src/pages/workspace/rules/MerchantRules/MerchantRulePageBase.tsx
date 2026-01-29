@@ -310,7 +310,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     ];
 
     const previewMatches = () => {
-        if (errorMessage) {
+        if (!form?.merchantToMatch?.trim()) {
             setShouldShowError(true);
             return;
         }
