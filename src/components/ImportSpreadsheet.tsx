@@ -122,10 +122,12 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                                 if (cell == null) {
                                     return '';
                                 }
-                                if (typeof cell === 'object') {
-                                    return JSON.stringify(cell);
+                                // Handle primitives (string, number, boolean) directly
+                                if (typeof cell === 'string' || typeof cell === 'number' || typeof cell === 'boolean') {
+                                    return String(cell);
                                 }
-                                return String(cell);
+                                // For objects (Date, arrays, etc.), serialize to JSON
+                                return JSON.stringify(cell);
                             }),
                         );
                         setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
