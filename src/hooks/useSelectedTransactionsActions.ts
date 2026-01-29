@@ -56,6 +56,7 @@ function useSelectedTransactionsActions({
     policy,
     beginExportWithTemplate,
     isOnSearch,
+    reportLevelActions,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -66,6 +67,7 @@ function useSelectedTransactionsActions({
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     isOnSearch?: boolean;
+    reportLevelActions?: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>>;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -82,7 +84,7 @@ function useSelectedTransactionsActions({
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
-    const {login} = useCurrentUserPersonalDetails();
+    const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (transaction) {
@@ -156,6 +158,25 @@ function useSelectedTransactionsActions({
     let computedOptions: Array<DropdownOption<string>> = [];
     if (selectedTransactionIDs.length) {
         const options = [];
+        if (allTransactionsLength === selectedTransactionIDs.length && !!reportLevelActions) {
+            // Wrap report-level actions to clear selection after they run
+            // Note: Payment sub-menu items don't have onSelected - they are handled via confirmPayment with isSelectedTransactionAction flag
+            const wrappedReportLevelActions = reportLevelActions.map((item) => {
+                if (item.onSelected) {
+                    const originalOnSelected = item.onSelected;
+                    return {
+                        ...item,
+                        onSelected: () => {
+                            originalOnSelected();
+                            clearSelectedTransactions(true);
+                        },
+                    };
+                }
+                return item;
+            });
+
+            options.push(...wrappedReportLevelActions);
+        }
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
@@ -334,7 +355,8 @@ function useSelectedTransactionsActions({
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
-        const canSplitTransaction = selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', policy);
+        const canSplitTransaction =
+            selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy);
 
         if (canSplitTransaction) {
             options.push({
