@@ -48,6 +48,7 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
+    isAdminRoom,
     isChatRoom,
     isConciergeChatReport,
     isGroupChat,
@@ -216,6 +217,10 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
+    const isAdminsRoom = useMemo(() => isAdminRoom(report), [report]);
+
+    // Show agent zero status indicator for both concierge chats and admin rooms
+    const shouldShowAgentZeroStatus = isConciergeChat || isAdminsRoom;
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
@@ -259,7 +264,7 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge]);
 
-    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
+    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, shouldShowAgentZeroStatus);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -331,7 +336,7 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
-            if (isConciergeChat) {
+            if (shouldShowAgentZeroStatus) {
                 kickoffWaitingIndicator();
             }
 
@@ -352,7 +357,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [isConciergeChat, kickoffWaitingIndicator, transactionThreadReport, report, reportID, ancestors, personalDetail.timezone, onSubmit, isInSidePanel],
+        [shouldShowAgentZeroStatus, kickoffWaitingIndicator, transactionThreadReport, report, reportID, ancestors, personalDetail.timezone, onSubmit, isInSidePanel],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
