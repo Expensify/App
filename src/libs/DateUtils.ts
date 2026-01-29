@@ -916,6 +916,63 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
     }
 };
 
+/**
+ * Returns the start and end dates of a month in the format yyyy-MM-dd.
+ * @param year - Year (e.g., 2025)
+ * @param month - Month (1-12, where 1 is January)
+ */
+function getMonthDateRange(year: number, month: number): {start: string; end: string} {
+    return {
+        start: format(new Date(year, month - 1, 1), 'yyyy-MM-dd'),
+        end: format(new Date(year, month, 0), 'yyyy-MM-dd'),
+    };
+}
+
+/**
+ * Returns the start and end dates of a week in the format yyyy-MM-dd.
+ * @param weekStartDate - Week start date string in YYYY-MM-DD format
+ */
+function getWeekDateRange(weekStartDate: string): {start: string; end: string} {
+    // Parse the date string as a local date to avoid timezone issues
+    // Using parse with explicit format ensures it's treated as local time, not UTC
+    // This prevents dates like '2026-01-25' from being interpreted as UTC midnight
+    // which would shift to the previous day in timezones behind UTC (e.g., PST)
+    const weekStart = parse(weekStartDate, 'yyyy-MM-dd', new Date());
+    const weekEnd = addDays(weekStart, 6);
+    return {
+        start: format(weekStart, 'yyyy-MM-dd'),
+        end: format(weekEnd, 'yyyy-MM-dd'),
+    };
+}
+
+/**
+ * Checks if a date string (yyyy-MM-dd or yyyy-MM-dd HH:mm:ss) falls within a specific month.
+ * Uses string comparison to avoid timezone issues.
+ *
+ * @param dateString - Date string in format yyyy-MM-dd or yyyy-MM-dd HH:mm:ss
+ * @param year - Year (e.g., 2025)
+ * @param month - Month (1-12, where 1 is January)
+ */
+function isDateStringInMonth(dateString: string, year: number, month: number): boolean {
+    const datePart = dateString.substring(0, 10);
+    const {start: monthStart, end: monthEnd} = getMonthDateRange(year, month);
+
+    // String comparison works because yyyy-MM-dd format is lexicographically sortable
+    return datePart >= monthStart && datePart <= monthEnd;
+}
+
+/**
+ * Returns a formatted date range.
+ */
+function getFormattedDateRangeForSearch(startDate: string, endDate: string): string {
+    const start = parse(startDate, 'yyyy-MM-dd', new Date());
+    const end = parse(endDate, 'yyyy-MM-dd', new Date());
+    if (isSameYear(new Date(start), new Date(end))) {
+        return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+    }
+    return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
+}
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -974,6 +1031,10 @@ const DateUtils = {
     getFormattedSplitDateRange,
     isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
+    getMonthDateRange,
+    getWeekDateRange,
+    isDateStringInMonth,
+    getFormattedDateRangeForSearch,
 };
 
 export default DateUtils;
