@@ -174,6 +174,7 @@ import {
     formatLastMessageText,
     getActionableCardFraudAlertResolutionMessage,
     getActionableJoinRequestPendingReportAction,
+    getAddedCodingRuleMessage,
     getAllReportActions,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -211,6 +212,7 @@ import {
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getRemovedCodingRuleMessage,
     getReimburserUpdateMessage,
     getRenamedAction,
     getReportAction,
@@ -224,6 +226,7 @@ import {
     getSubmitsToUpdateMessage,
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
+    getUpdatedCodingRuleMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -5807,6 +5810,19 @@ function getReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getCompanyAddressUpdateMessage(translateLocal, parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CODING_RULE)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getAddedCodingRuleMessage(translateLocal, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_CODING_RULE)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getRemovedCodingRuleMessage(translateLocal, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CODING_RULE)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getUpdatedCodingRuleMessage(translateLocal, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {

@@ -40,6 +40,7 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getAddedCodingRuleMessage,
     getJoinRequestMessage,
     getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
@@ -52,12 +53,14 @@ import {
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getRemovedCodingRuleMessage,
     getRenamedAction,
     getReportActionMessage as getReportActionMessageFromActionsUtils,
     getReportActionText,
     getSettlementAccountLockedMessage,
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
+    getUpdatedCodingRuleMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
@@ -470,6 +473,15 @@ function computeReportNameBasedOnReportAction(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
         return getAutoReimbursementMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CODING_RULE)) {
+        return getAddedCodingRuleMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_CODING_RULE)) {
+        return getRemovedCodingRuleMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CODING_RULE)) {
+        return getUpdatedCodingRuleMessage(translate, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(parentReportAction)?.resolution) {

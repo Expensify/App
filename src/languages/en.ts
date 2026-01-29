@@ -6451,6 +6451,9 @@ const translations = {
                 oldApproverEmail,
             )})`;
         },
+        addCodingRule: ({merchant}: {merchant: string}) => `added a coding rule for "${merchant}"`,
+        deleteCodingRule: ({merchant}: {merchant: string}) => `removed a coding rule for "${merchant}"`,
+        updateCodingRule: ({merchant}: {merchant: string}) => `updated a coding rule for "${merchant}"`,
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `added the category "${categoryName}"`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,

@@ -57,6 +57,9 @@ import {
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getAddedCodingRuleMessage,
+    getRemovedCodingRuleMessage,
+    getUpdatedCodingRuleMessage,
     getReimburserUpdateMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
@@ -985,6 +988,12 @@ function getOptionData({
             result.alternateText = getDeletedApprovalRuleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE) {
             result.alternateText = getUpdatedApprovalRuleMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CODING_RULE) {
+            result.alternateText = getAddedCodingRuleMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_CODING_RULE) {
+            result.alternateText = getRemovedCodingRuleMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CODING_RULE) {
+            result.alternateText = getUpdatedCodingRuleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
             result.alternateText = getUpdatedManualApprovalThresholdMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {

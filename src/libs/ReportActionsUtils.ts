@@ -3474,6 +3474,33 @@ function getUpdatedApprovalRuleMessage(translate: LocalizedTranslate, reportActi
     return getReportActionText(reportAction);
 }
 
+function getAddedCodingRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CODING_RULE)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const merchant = originalMessage?.merchant;
+    return merchant ? translate('workspaceActions.addCodingRule', {merchant}) : getReportActionText(reportAction);
+}
+
+function getRemovedCodingRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_CODING_RULE)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const merchant = originalMessage?.merchant;
+    return merchant ? translate('workspaceActions.deleteCodingRule', {merchant}) : getReportActionText(reportAction);
+}
+
+function getUpdatedCodingRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CODING_RULE)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const merchant = originalMessage?.merchant;
+    return merchant ? translate('workspaceActions.updateCodingRule', {merchant}) : getReportActionText(reportAction);
+}
+
 function getRemovedFromApprovalChainMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
     const originalMessage = getOriginalMessage(reportAction);
     const submittersNames = getPersonalDetailsByIDs({
@@ -3842,6 +3869,9 @@ export {
     getAddedApprovalRuleMessage,
     getDeletedApprovalRuleMessage,
     getUpdatedApprovalRuleMessage,
+    getAddedCodingRuleMessage,
+    getRemovedCodingRuleMessage,
+    getUpdatedCodingRuleMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
     getDynamicExternalWorkflowRoutedMessage,

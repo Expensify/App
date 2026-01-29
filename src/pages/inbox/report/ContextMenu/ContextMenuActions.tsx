@@ -63,6 +63,9 @@ import {
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getAddedCodingRuleMessage,
+    getRemovedCodingRuleMessage,
+    getUpdatedCodingRuleMessage,
     getReimburserUpdateMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
@@ -947,6 +950,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getDeletedApprovalRuleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE)) {
                     setClipboardMessage(getUpdatedApprovalRuleMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CODING_RULE)) {
+                    setClipboardMessage(getAddedCodingRuleMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_CODING_RULE)) {
+                    setClipboardMessage(getRemovedCodingRuleMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CODING_RULE)) {
+                    setClipboardMessage(getUpdatedCodingRuleMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
                     setClipboardMessage(getUpdatedManualApprovalThresholdMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
