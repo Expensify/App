@@ -4,6 +4,3 @@ export type {MultifactorAuthenticationContextValue, ExecuteScenarioParams} from 
 
 export {useMultifactorAuthenticationState} from './State';
 export type {MultifactorAuthenticationState, MultifactorAuthenticationStateContextValue, ErrorState} from './State';
-
-export {useMultifactorAuthenticationGuards} from './Guards';
-export type {MultifactorAuthenticationGuards, MultifactorAuthenticationGuardsContextValue} from './Guards';

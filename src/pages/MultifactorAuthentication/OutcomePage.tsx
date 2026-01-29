@@ -1,12 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {MULTIFACTOR_AUTHENTICATION_OUTCOME_MAP} from '@components/MultifactorAuthentication/config';
-import {useMultifactorAuthenticationGuards, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -28,7 +27,6 @@ type MultifactorAuthenticationOutcomePageProps = PlatformStackScreenProps<Multif
 function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthenticationOutcomePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {guards} = useMultifactorAuthenticationGuards();
     const {state} = useMultifactorAuthenticationState();
     const onGoBackPress = () => {
         Navigation.dismissModal();
@@ -50,36 +48,34 @@ function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthentication
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationOutcomePage.displayName}>
-            <FullPageNotFoundView shouldShow={!guards.canAccessOutcome || !data}>
-                <HeaderWithBackButton
-                    title={headerTitle}
-                    onBackButtonPress={onGoBackPress}
-                    shouldShowBackButton
+            <HeaderWithBackButton
+                title={headerTitle}
+                onBackButtonPress={onGoBackPress}
+                shouldShowBackButton
+            />
+            <View style={styles.flex1}>
+                <BlockingView
+                    icon={icon}
+                    contentFitImage="fill"
+                    iconWidth={data?.iconWidth}
+                    iconHeight={data?.iconHeight}
+                    title={title}
+                    titleStyles={styles.mb2}
+                    subtitle={description}
+                    CustomSubtitle={CustomSubtitle}
+                    subtitleStyle={styles.textSupporting}
+                    containerStyle={styles.ph5}
+                    testID={MultifactorAuthenticationOutcomePage.displayName}
                 />
-                <View style={styles.flex1}>
-                    <BlockingView
-                        icon={icon}
-                        contentFitImage="fill"
-                        iconWidth={data?.iconWidth}
-                        iconHeight={data?.iconHeight}
-                        title={title}
-                        titleStyles={styles.mb2}
-                        subtitle={description}
-                        CustomSubtitle={CustomSubtitle}
-                        subtitleStyle={styles.textSupporting}
-                        containerStyle={styles.ph5}
-                        testID={MultifactorAuthenticationOutcomePage.displayName}
-                    />
-                </View>
-                <View style={[styles.flexRow, styles.m5, styles.mt0]}>
-                    <Button
-                        success
-                        style={styles.flex1}
-                        onPress={onGoBackPress}
-                        text={translate('common.buttonConfirm')}
-                    />
-                </View>
-            </FullPageNotFoundView>
+            </View>
+            <View style={[styles.flexRow, styles.m5, styles.mt0]}>
+                <Button
+                    success
+                    style={styles.flex1}
+                    onPress={onGoBackPress}
+                    text={translate('common.buttonConfirm')}
+                />
+            </View>
         </ScreenWrapper>
     );
 }

@@ -1,11 +1,10 @@
 import React, {useState} from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
-import {useMultifactorAuthentication, useMultifactorAuthenticationGuards, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthentication, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -22,7 +21,6 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const styles = useThemeStyles();
     const {cancel} = useMultifactorAuthentication();
     const {state, setSoftPromptApproved} = useMultifactorAuthenticationState();
-    const {guards} = useMultifactorAuthenticationGuards();
 
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
 
@@ -63,33 +61,31 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                 },
             }}
         >
-            <FullPageNotFoundView shouldShow={!guards.canAccessPrompt || !contentData}>
-                <HeaderWithBackButton
-                    title={translate('multifactorAuthentication.letsVerifyItsYou')}
-                    onBackButtonPress={showConfirmModal}
-                    shouldShowBackButton
+            <HeaderWithBackButton
+                title={translate('multifactorAuthentication.letsVerifyItsYou')}
+                onBackButtonPress={showConfirmModal}
+                shouldShowBackButton
+            />
+            <FullPageOfflineBlockingView>
+                <MultifactorAuthenticationPromptContent
+                    animation={contentData?.animation}
+                    title={contentData?.title}
+                    subtitle={contentData?.subtitle}
                 />
-                <FullPageOfflineBlockingView>
-                    <MultifactorAuthenticationPromptContent
-                        animation={contentData?.animation}
-                        title={contentData?.title}
-                        subtitle={contentData?.subtitle}
+                <FixedFooter style={[styles.flexColumn, styles.gap3]}>
+                    <Button
+                        success
+                        onPress={onConfirm}
+                        text={translate('common.buttonConfirm')}
                     />
-                    <FixedFooter style={[styles.flexColumn, styles.gap3]}>
-                        <Button
-                            success
-                            onPress={onConfirm}
-                            text={translate('common.buttonConfirm')}
-                        />
-                    </FixedFooter>
-                    <MultifactorAuthenticationTriggerCancelConfirmModal
-                        scenario={state.scenario}
-                        isVisible={isConfirmModalVisible}
-                        onConfirm={cancelFlow}
-                        onCancel={hideConfirmModal}
-                    />
-                </FullPageOfflineBlockingView>
-            </FullPageNotFoundView>
+                </FixedFooter>
+                <MultifactorAuthenticationTriggerCancelConfirmModal
+                    scenario={state.scenario}
+                    isVisible={isConfirmModalVisible}
+                    onConfirm={cancelFlow}
+                    onCancel={hideConfirmModal}
+                />
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
