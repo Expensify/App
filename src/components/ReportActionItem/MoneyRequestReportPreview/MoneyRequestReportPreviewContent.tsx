@@ -11,7 +11,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import type {PaymentMethod} from '@components/KYCWall/types';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -20,6 +19,7 @@ import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -176,7 +176,7 @@ function MoneyRequestReportPreviewContent({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, shouldShowOnlyPayElsewhere),
         [iouReport, chatReport, policy, bankAccountList, transactions],
@@ -241,11 +241,11 @@ function MoneyRequestReportPreviewContent({
     }, [chatReport, policy, hasReportBeenRetracted, iouReport]);
 
     const confirmPayment = useCallback(
-        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
-            if (!type) {
+        ({paymentType: selectedPaymentType, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
+            if (!selectedPaymentType) {
                 return;
             }
-            setPaymentType(type);
+            setPaymentType(selectedPaymentType);
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
@@ -255,7 +255,7 @@ function MoneyRequestReportPreviewContent({
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
                     payInvoice({
-                        paymentMethodType: type,
+                        paymentMethodType: selectedPaymentType,
                         chatReport,
                         invoiceReport: iouReport,
                         invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
@@ -267,10 +267,18 @@ function MoneyRequestReportPreviewContent({
                         methodID,
                         paymentMethod,
                         activePolicy,
-                        allBetas,
                     });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, iouReportNextStep, allBetas, undefined, true, activePolicy, policy);
+                    payMoneyRequest({
+                        paymentType: selectedPaymentType,
+                        chatReport,
+                        iouReport,
+                        introSelected,
+                        iouReportCurrentNextStepDeprecated: iouReportNextStep,
+                        currentUserAccountID,
+                        activePolicy,
+                        policy,
+                    });
                 }
             }
         },
@@ -287,7 +295,6 @@ function MoneyRequestReportPreviewContent({
             existingB2BInvoiceReport,
             activePolicy,
             policy,
-            allBetas,
         ],
     );
 
@@ -303,7 +310,7 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, allBetas, true);
+            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
         }
     };
 

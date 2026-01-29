@@ -144,7 +144,7 @@ function IOURequestStepDistanceMap({
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -310,7 +310,6 @@ function IOURequestStepDistanceMap({
             introSelected,
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
-            allBetas,
         });
     }, [
         transaction,
@@ -340,7 +339,7 @@ function IOURequestStepDistanceMap({
         activePolicyID,
         personalPolicy?.autoReporting,
         reportID,
-        allBetas,
+        currentUserPersonalDetails.accountID,
     ]);
 
     const getError = () => {
@@ -417,6 +416,7 @@ function IOURequestStepDistanceMap({
                     transactionThreadReport: report,
                     parentReport,
                     waypoints,
+                    recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
                     policyTagList: policyTags,
@@ -456,6 +456,7 @@ function IOURequestStepDistanceMap({
         transaction?.transactionID,
         transactionBackup,
         waypoints,
+        recentWaypoints,
     ]);
 
     const renderItem = useCallback(
