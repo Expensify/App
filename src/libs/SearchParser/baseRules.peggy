@@ -80,10 +80,11 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
-columns = "columns"i { 
+columns = "columns"i {
   isColumnsContext = true;
   return "columns";
 }
+view = "view"i {return "view"}
 
 // Value transformation rules
 values
@@ -113,6 +114,9 @@ columnsValues
   / groupWithdrawn
   / groupWithdrawalId
   / groupCategory
+  / groupTag
+  / groupMerchant
+  / groupMonth
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -137,6 +141,9 @@ groupBankAccount        = "group-bank-account"i &wordBoundary       { return "gr
 groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "groupWithdrawn"; }
 groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
+groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
+groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
+groupMonth              = "group-month"i &wordBoundary              { return "groupMonth"; }
 
 
 operator "operator"

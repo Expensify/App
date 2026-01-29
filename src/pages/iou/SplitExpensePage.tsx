@@ -338,17 +338,21 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         </View>
     );
 
-    const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
-    const warningMessage = shouldShowWarningMessage
-        ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
-        : '';
+    const difference = sumOfSplitExpenses - transactionDetailsAmount;
+    let warningMessage = '';
+    if (difference < 0) {
+        warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
+    } else if (difference > 0) {
+        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
+    }
+
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
             {(!!errorMessage || !!warningMessage) && (
                 <FormHelpMessage
                     style={[styles.ph1, styles.mb2]}
                     isError={!!errorMessage}
-                    isInfo={!errorMessage && shouldShowWarningMessage}
+                    isInfo={!errorMessage && !!warningMessage}
                     message={errorMessage || warningMessage}
                 />
             )}
