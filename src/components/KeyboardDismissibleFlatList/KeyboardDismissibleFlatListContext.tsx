@@ -114,6 +114,7 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
             'worklet';
 
             // This is to fix an issue with react-native-keyboard-controller, where an `onMove` event is triggered with an invalid height value when the keyboard is opened
+            // RNKC issue: https://github.com/kirillzyusko/react-native-keyboard-controller/issues/1298
             if (isKeyboardOpening.get() && e.height < height.get()) {
                 return;
             }
