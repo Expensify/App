@@ -442,6 +442,9 @@ function IOURequestStepParticipants({
             }
             return initialTransaction?.comment?.customUnit?.quantity === 0;
         }
+        if (isTimeRequest(initialTransaction)) {
+            return true;
+        }
         return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
     }, [initialTransaction]);
 

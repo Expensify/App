@@ -183,7 +183,7 @@ function MoneyRequestParticipantsSelector({
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-            includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isCorporateCardTransaction,
+            includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
             action,
             shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -227,7 +227,7 @@ function MoneyRequestParticipantsSelector({
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -321,14 +321,14 @@ function MoneyRequestParticipantsSelector({
         if (!isWorkspacesOnly) {
             newSections.push({
                 title: translate('common.recents'),
-                data: isPerDiemRequest || isTimeRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
-                shouldShow: (isPerDiemRequest || isTimeRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0,
+                data: isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
+                shouldShow: (isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0,
             });
 
             newSections.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
-                shouldShow: availableOptions.personalDetails.length > 0 && !isPerDiemRequest && !isTimeRequest,
+                shouldShow: availableOptions.personalDetails.length > 0 && !isPerDiemRequest,
             });
         }
 
@@ -384,7 +384,6 @@ function MoneyRequestParticipantsSelector({
         inputHelperText,
         currentUserAccountID,
         currentUserEmail,
-        isTimeRequest,
     ]);
 
     /**
