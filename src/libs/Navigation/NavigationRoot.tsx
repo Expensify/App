@@ -103,10 +103,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const previousAuthenticated = usePrevious(authenticated);
 
     const guardedLastVisitedState = useGuardedNavigationState(lastVisitedPath, linkingConfig.config);
+    const path = initialUrl ? getPathFromURL(initialUrl) : null;
+    const guardedDeepLinkState = useGuardedNavigationState(path, linkingConfig.config);
 
     const initialState = useMemo(() => {
-        const path = initialUrl ? getPathFromURL(initialUrl) : null;
-
         if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
@@ -137,6 +137,12 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
                 return guardedLastVisitedState;
             }
+        }
+
+        // If there's a specific deep link, use guarded state to ensure guards are evaluated
+        // This prevents incomplete-onboarding users from bypassing guards via deep links
+        if (path && path !== '' && path !== '/') {
+            return guardedDeepLinkState;
         }
 
         // Default behavior - let React Navigation handle the initial state
