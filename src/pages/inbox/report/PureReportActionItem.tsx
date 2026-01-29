@@ -1723,10 +1723,10 @@ function PureReportActionItem({
                                             shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
                                             primaryTextNumberOfLines={actionableButtonsNoLines}
                                             styles={{
-                                                text: isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined,
+                                                text: [isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined, actionContainsFollowUps && styles.fontWeightNormal],
                                                 button: actionContainsFollowUps ? [styles.actionableItemButton, hovered && styles.actionableItemButtonBackgroundHovered] : undefined,
                                                 buttonHover: actionContainsFollowUps ? styles.actionableItemButtonHovered : undefined,
-                                                container: actionContainsFollowUps && shouldUseNarrowLayout ? styles.alignItemsStretch : undefined,
+                                                container: actionContainsFollowUps && shouldUseNarrowLayout ? [styles.alignItemsStretch] : undefined,
                                             }}
                                         />
                                     )}

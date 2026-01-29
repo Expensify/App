@@ -934,6 +934,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'transparent',
             borderWidth: 1,
             borderColor: theme.border,
+            alignItems: 'flex-start',
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
