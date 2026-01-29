@@ -894,6 +894,23 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
     });
 }
 
+/**
+ * Check if there are any assigned cards that should be displayed in the wallet page.
+ * This includes active Expensify cards, company cards (domain), and user-assigned personal cards.
+ */
+function hasDisplayableAssignedCards(cardList: CardList | undefined, currentUserAccountID: number): boolean {
+    if (!cardList) {
+        return false;
+    }
+
+    return Object.values(cardList).some(
+        (card) =>
+            CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
+            (isExpensifyCard(card) || !!card.domainName || card.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV || isUserAssignedPersonalCard(card, currentUserAccountID)) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+    );
+}
+
 export {
     getAssignedCardSortKey,
     isExpensifyCard,
@@ -962,6 +979,7 @@ export {
     COMPANY_CARD_BANK_ICON_NAMES,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
+    hasDisplayableAssignedCards,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};

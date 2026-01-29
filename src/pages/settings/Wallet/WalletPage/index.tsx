@@ -30,7 +30,7 @@ import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {maskCardNumber} from '@libs/CardUtils';
+import {hasDisplayableAssignedCards, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
@@ -91,7 +91,7 @@ function WalletPage() {
 
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const hasAssignedCard = !isEmpty(cardList);
+    const hasAssignedCard = hasDisplayableAssignedCards(cardList, currentUserPersonalDetails.accountID);
 
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
