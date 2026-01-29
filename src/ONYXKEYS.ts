@@ -697,7 +697,7 @@ const ONYXKEYS = {
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         MERGE_TRANSACTION: 'mergeTransaction_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
-        CODING_RULE_MATCHING_TRANSACTION: 'codingRuleMatchingTransaction_',
+        CODING_RULE_MATCHING_TRANSACTION: 'codingRuleMatchingTransactions_',
         NEXT_STEP: 'reportNextStep_',
         // Manual expense tab selector
         SELECTED_TAB: 'selectedTab_',
