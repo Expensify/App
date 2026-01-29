@@ -22,7 +22,7 @@ function HomePage() {
     const {translate} = useLocalize();
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
 
-    // confirmReadyToOpenApp must be called after HomePage mounts     
+    // confirmReadyToOpenApp must be called after HomePage mounts
     // to make sure everything loads properly
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -55,9 +55,7 @@ function HomePage() {
                 addBottomSafeAreaPadding
             >
                 <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
-                    <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
-                        {!isSelfTourViewed && <DiscoverSection />}
-                    </View>
+                    <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>{!isSelfTourViewed && <DiscoverSection />}</View>
                     <View style={styles.homePageRightColumn(shouldUseNarrowLayout)} />
                 </View>
             </ScrollView>
