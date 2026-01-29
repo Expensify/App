@@ -13,7 +13,6 @@ import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
-import useCloseReactNativeApp from '@hooks/useCloseReactNativeApp';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -67,12 +66,14 @@ import {
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import {clearLastSearchParams} from '@userActions/ReportNavigation';
 import Tab from '@userActions/Tab';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -189,13 +190,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
-
-    const {closeReactNativeAppWithGPSCheck} = useCloseReactNativeApp();
 
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
     const reportID = useMemo(() => generateReportID(), []);
@@ -331,11 +331,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             return;
         }
         if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeAppWithGPSCheck({shouldSetNVP: true});
+            closeReactNativeApp({shouldSetNVP: true, isTrackingGPS});
             return;
         }
         openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-    }, [showConfirmModal, translate, closeReactNativeAppWithGPSCheck]);
+    }, [showConfirmModal, translate, isTrackingGPS]);
 
     const startScan = useCallback(() => {
         interceptAnonymousUser(() => {

@@ -23,7 +23,6 @@ import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
-import useCloseReactNativeApp from '@hooks/useCloseReactNativeApp';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -37,6 +36,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -144,8 +144,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
-
-    const {closeReactNativeAppWithGPSCheck} = useCloseReactNativeApp();
 
     const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
@@ -288,8 +286,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             icon: icons.ExpensifyLogoNew,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
-                      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                      action: () => closeReactNativeAppWithGPSCheck({shouldSetNVP: true}),
+                      action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
                   }
                 : {
                       action() {

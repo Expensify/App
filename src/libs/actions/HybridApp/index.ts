@@ -1,6 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
+import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridApp} from '@src/types/onyx';
@@ -23,7 +24,12 @@ function getHybridAppSettings(): Promise<HybridAppSettings | null> {
     });
 }
 
-function closeReactNativeApp({shouldSetNVP}: {shouldSetNVP: boolean}) {
+function closeReactNativeApp({shouldSetNVP, isTrackingGPS}: {shouldSetNVP: boolean; isTrackingGPS: boolean}) {
+    if (isTrackingGPS) {
+        setIsGPSInProgressModalOpen(true);
+        return;
+    }
+
     Navigation.clearPreloadedRoutes();
     if (CONFIG.IS_HYBRID_APP) {
         Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});

@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, HybridApp, Session, TryNewDot} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-// eslint-disable-next-line no-restricted-imports
 import {closeReactNativeApp, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
 import Log from './Log';
 import {getCurrentUserEmail} from './Network/NetworkStore';
@@ -108,7 +107,7 @@ function signInToOldDotAndChooseExperience(hybridApp: OnyxEntry<HybridApp>, tryN
     if (tryNewDot !== undefined) {
         setUseNewDotSignInPage(false).then(() => {
             if (shouldUseOldApp(tryNewDot)) {
-                closeReactNativeApp({shouldSetNVP: false});
+                closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
             } else {
                 setReadyToShowAuthScreens(true);
             }

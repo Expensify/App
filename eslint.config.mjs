@@ -138,30 +138,6 @@ const restrictedImportPaths = [
         name: '@components/SelectionListWithSections',
         message: 'Use `SelectionList` for flat data. Only use `SelectionListWithSection` when data is actually sectioned. See contributingGuides/SELECTION_LIST.md for details',
     },
-    {
-        name: './actions/HybridApp',
-        importNames: ['closeReactNativeApp'],
-        message:
-            "Please use '@hooks/useCloseReactNativeApp' instead. Only use `closeReactNativeApp` from '@libs/actions/HybridApp' directly if there is no chance that the user would have an ongoing GPS trip when this function is called.",
-    },
-    {
-        name: '@userActions/HybridApp',
-        importNames: ['closeReactNativeApp'],
-        message:
-            "Please use '@hooks/useCloseReactNativeApp' instead. Only use `closeReactNativeApp` from '@libs/actions/HybridApp' directly if there is no chance that the user would have an ongoing GPS trip when this function is called.",
-    },
-    {
-        name: './HybridApp',
-        importNames: ['closeReactNativeApp'],
-        message:
-            "Please use '@hooks/useCloseReactNativeApp' instead. Only use `closeReactNativeApp` from '@libs/actions/HybridApp' directly if there is no chance that the user would have an ongoing GPS trip when this function is called.",
-    },
-    {
-        name: '@libs/actions/HybridApp',
-        importNames: ['closeReactNativeApp'],
-        message:
-            "Please use '@hooks/useCloseReactNativeApp' instead. Only use `closeReactNativeApp` from '@libs/actions/HybridApp' directly if there is no chance that the user would have an ongoing GPS trip when this function is called.",
-    },
 ];
 
 const restrictedImportPatterns = [
