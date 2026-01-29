@@ -442,6 +442,11 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
             result.policyID = [result.policyID];
         }
 
+        // Default groupBy to category when a chart view is specified without an explicit groupBy
+        if (result.view !== CONST.SEARCH.VIEW.TABLE && !result.groupBy) {
+            result.groupBy = CONST.SEARCH.GROUP_BY.CATEGORY;
+        }
+
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
         if (result.limit !== undefined) {
             const num = Number(result.limit);
