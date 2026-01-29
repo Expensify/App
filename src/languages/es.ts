@@ -738,7 +738,7 @@ const translations: TranslationDeepObject<typeof en> = {
     homePage: {
         forYou: 'Para ti',
         timeSensitiveSection: {
-            title: 'Tiempo limitado',
+            title: 'Requiere atención inmediata',
             cta: 'Reclamar',
             offer50off: {
                 title: '¡Obtén 50% de descuento en tu primer año!',
