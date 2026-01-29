@@ -1,5 +1,7 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
@@ -138,6 +140,38 @@ describe('DistanceRequestUtils', () => {
             });
 
             expect(result).toBe('B593F3FBBB0BD');
+        });
+    });
+
+    describe('getDistanceUnit', () => {
+        it('returns the transaction unit when it matches the mileage rate unit', () => {
+            const transaction = {
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                },
+            } as Transaction;
+            const mileageRate = {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            } as MileageRate;
+
+            expect(DistanceRequestUtils.getDistanceUnit(transaction, mileageRate)).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+        });
+
+        it('returns the mileage rate unit when it differs from the transaction unit', () => {
+            const transaction = {
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                },
+            } as Transaction;
+            const mileageRate = {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            } as MileageRate;
+
+            expect(DistanceRequestUtils.getDistanceUnit(transaction, mileageRate)).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
         });
     });
 });
