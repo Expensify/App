@@ -55,7 +55,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
             onPress={onPress}
             accessibilityLabel={translate('workflowsPage.accessibilityLabel', {
                 members,
-                approvers: approvalWorkflow.approvers.map((approver) => Str.removeSMSDomain(approver.displayName)).join(', '),
+                approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
             })}
         >
             <View style={[styles.flex1]}>
