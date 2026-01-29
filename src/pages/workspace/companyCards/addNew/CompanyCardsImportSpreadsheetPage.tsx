@@ -7,10 +7,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type CompanyCardsImportSpreadsheetPageProps = PlatformStackScreenProps<
-    WorkspaceSplitNavigatorParamList,
-    typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_SPREADSHEET
->;
+type CompanyCardsImportSpreadsheetPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_SPREADSHEET>;
 
 function CompanyCardsImportSpreadsheetPage({route}: CompanyCardsImportSpreadsheetPageProps) {
     const {policyID} = route.params;
@@ -33,4 +30,3 @@ function CompanyCardsImportSpreadsheetPage({route}: CompanyCardsImportSpreadshee
 CompanyCardsImportSpreadsheetPage.displayName = 'CompanyCardsImportSpreadsheetPage';
 
 export default CompanyCardsImportSpreadsheetPage;
-

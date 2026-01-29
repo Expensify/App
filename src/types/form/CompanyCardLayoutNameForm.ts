@@ -16,4 +16,3 @@ type CompanyCardLayoutNameForm = Form<
 
 export type {CompanyCardLayoutNameForm};
 export default INPUT_IDS;
-

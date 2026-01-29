@@ -12,10 +12,10 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -95,4 +95,3 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
 CompanyCardLayoutNamePage.displayName = 'CompanyCardLayoutNamePage';
 
 export default CompanyCardLayoutNamePage;
-

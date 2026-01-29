@@ -66,7 +66,10 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
-        const missingRequiredColumns = requiredColumns.filter((requiredColumn) => !columns.includes(requiredColumn.value)).map((requiredColumn) => requiredColumn.text).join(', ');
+        const missingRequiredColumns = requiredColumns
+            .filter((requiredColumn) => !columns.includes(requiredColumn.value))
+            .map((requiredColumn) => requiredColumn.text)
+            .join(', ');
         if (missingRequiredColumns) {
             errors.required = translate('workspace.companyCards.addNewCard.csvErrors.requiredColumns', missingRequiredColumns);
         } else {
@@ -93,7 +96,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         }
 
         const columnMappings = columnNames.map((_, index) => spreadsheet?.columns?.[index] ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
-        
+
         // Transform columns-based data to rows-based data, including the header
         const columns = spreadsheet?.data ?? [];
         const rows: string[][] = [];
@@ -148,4 +151,3 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 CompanyCardsImportedPage.displayName = 'CompanyCardsImportedPage';
 
 export default CompanyCardsImportedPage;
-
