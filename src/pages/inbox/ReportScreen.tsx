@@ -1043,7 +1043,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             style={styles.flex1}
             offset={composerHeight}
             interpolator="ios"
-            textInputNativeID="composer"
+            textInputNativeID={CONST.COMPOSER.NATIVE_ID}
             enableSwipeToDismiss={!isComposerFullSize}
         >
             {/* Wide RHP overlays should be rendered only for the report screen displayed in RHP */}
