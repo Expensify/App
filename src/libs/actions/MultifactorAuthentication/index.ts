@@ -27,9 +27,42 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Please consult before using this pattern.
  */
 
-async function registerAuthenticationKey({keyInfo, validateCode}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
+type RegisterAuthenticationKeyParams = {
+    keyInfo: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']['keyInfo'];
+    validateCode: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']['validateCode'];
+    authenticationMethod: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']['authenticationMethod'];
+    publicKey: string;
+    currentPublicKeyIDs: string[];
+};
+
+async function registerAuthenticationKey({keyInfo, validateCode, authenticationMethod, publicKey, currentPublicKeyIDs}: RegisterAuthenticationKeyParams) {
+    const optimisticPublicKeyIDs = [...currentPublicKeyIDs, publicKey];
+
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo, validateCode}, {});
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY,
+            {keyInfo: JSON.stringify(keyInfo), validateCode, authenticationMethod},
+            {
+                optimisticData: [
+                    {
+                        onyxMethod: 'merge',
+                        key: ONYXKEYS.ACCOUNT,
+                        value: {
+                            multifactorAuthenticationPublicKeyIDs: optimisticPublicKeyIDs,
+                        },
+                    },
+                ],
+                failureData: [
+                    {
+                        onyxMethod: 'merge',
+                        key: ONYXKEYS.ACCOUNT,
+                        value: {
+                            multifactorAuthenticationPublicKeyIDs: currentPublicKeyIDs,
+                        },
+                    },
+                ],
+            },
+        );
 
         const {jsonCode, message} = response ?? {};
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, message);
@@ -59,9 +92,9 @@ async function requestAuthenticationChallenge(challengeType: ChallengeType = 'au
     }
 }
 
-async function troubleshootMultifactorAuthentication({signedChallenge}: MultifactorAuthenticationScenarioParameters['BIOMETRICS-TEST']) {
+async function troubleshootMultifactorAuthentication({signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['BIOMETRICS-TEST']) {
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, {signedChallenge}, {});
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, {signedChallenge, authenticationMethod}, {});
 
         const {jsonCode, message} = response ?? {};
 
