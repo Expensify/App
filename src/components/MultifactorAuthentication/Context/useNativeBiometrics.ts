@@ -97,7 +97,9 @@ async function resetKeys(accountID: number) {
 
 /**
  * Determines if biometric authentication is configured locally for the current account.
- * Checks local key storage and compares with the provided auth public keys.
+ * Checks local public key storage and compares with the provided auth public keys.
+ * Note: We only check public key here because checking private key requires biometric authentication.
+ * If private key is missing, it will be detected during authorize() and trigger re-registration.
  * @param accountID - The account ID to check biometric configuration for.
  * @param authPublicKeys - The list of public keys registered in auth backend (from Onyx).
  * @returns Object indicating if biometry is locally configured and if local key is in auth.
@@ -200,15 +202,14 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         // Generate key pair
         const {privateKey, publicKey} = generateKeyPair();
 
+        // Delete existing keys before storing new ones to avoid "key already exists" errors
+        await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
+
         // Store private key
         const privateKeyResult = await PrivateKeyStore.set(accountID, privateKey, {nativePromptTitle});
         const marqetaAuthType = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === privateKeyResult.type)?.MQ_VALUE;
 
         if (!privateKeyResult.value || marqetaAuthType === undefined) {
-            const privateKeyExists = privateKeyResult.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.KEY_EXISTS;
-            if (privateKeyExists) {
-                await PrivateKeyStore.delete(accountID);
-            }
             onResult({
                 success: false,
                 reason: privateKeyResult.reason,

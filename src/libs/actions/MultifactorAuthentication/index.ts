@@ -94,7 +94,11 @@ async function requestAuthenticationChallenge(challengeType: ChallengeType = 'au
 
 async function troubleshootMultifactorAuthentication({signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['BIOMETRICS-TEST']) {
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION, {signedChallenge, authenticationMethod}, {});
+        const response = await makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION,
+            {signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
+            {},
+        );
 
         const {jsonCode, message} = response ?? {};
 
