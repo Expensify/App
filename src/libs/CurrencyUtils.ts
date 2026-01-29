@@ -200,10 +200,6 @@ function isValidCurrencyCode(currencyCode: string): boolean {
     return !!currency;
 }
 
-function sanitizeCurrencyCode(currencyCode: string): string {
-    return isValidCurrencyCode(currencyCode) ? currencyCode : CONST.CURRENCY.USD;
-}
-
 function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
     if (!currencies || !countryCode) {
         return CONST.CURRENCY.USD;
@@ -230,5 +226,4 @@ export {
     convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
-    sanitizeCurrencyCode,
 };

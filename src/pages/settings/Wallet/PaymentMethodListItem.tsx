@@ -17,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type PaymentMethodItem = PaymentMethod & {
@@ -61,6 +62,7 @@ function dismissError(item: PaymentMethodItem) {
         return;
     }
 
+    const hasErrors = !isEmptyObject(item.errors);
     const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
     const paymentID = isBankAccount ? item.accountData?.bankAccountID : item.accountData?.fundID;
@@ -70,7 +72,7 @@ function dismissError(item: PaymentMethodItem) {
         return;
     }
 
-    if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+    if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || hasErrors) {
         clearDeletePaymentMethodError(paymentList, paymentID);
         if (!isBankAccount) {
             clearDeletePaymentMethodError(ONYXKEYS.FUND_LIST, paymentID);
@@ -116,8 +118,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             onClose={item.canDismissError ? () => dismissError(item) : undefined}
             pendingAction={item.pendingAction}
             errors={item.errors}
-            errorRowStyles={styles.ph6}
-            shouldShowErrorMessages={false}
+            errorRowStyles={styles.paymentMethodErrorRow}
+            shouldShowErrorMessages={!!item.errors}
         >
             <MenuItem
                 onPress={handleRowPress}
