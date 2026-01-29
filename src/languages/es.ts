@@ -4716,16 +4716,16 @@ ${amount} para ${merchant} - ${date}`,
                     ctaText: 'Solicitud enviada',
                 },
                 bookOrManageYourTrip: {
-                    title: 'Reserva o gestiona tu viaje',
-                    subtitle: 'Usa Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos tus gastos de empresa en un solo lugar.',
-                    ctaText: 'Reservar o gestionar',
+                    title: 'Reserva de viajes',
+                    subtitle: '¡Felicidades! Ya puedes reservar y gestionar viajes en este espacio de trabajo.',
+                    ctaText: 'Gestionar viajes',
                 },
                 settings: {
                     autoAddTripName: {
-                        title: 'Añadir detalles del viaje a los gastos',
-                        subtitle: 'Añadir automáticamente información del viaje si los gastos ocurren durante un viaje',
+                        title: 'Añadir nombres de viaje a los gastos',
+                        subtitle: 'Añade automáticamente los nombres de viaje a las descripciones de los gastos reservados en Expensify.',
                     },
-                },
+                },                
                 travelInvoicing: {
                     travelBookingSection: {
                         title: 'Reserva de viajes',
