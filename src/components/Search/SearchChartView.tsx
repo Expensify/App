@@ -7,6 +7,10 @@ import type {
     TransactionCategoryGroupListItemType,
     TransactionGroupListItemType,
     TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,9 +22,17 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SearchBarChart from './SearchBarChart';
-import type {SearchGroupBy, SearchQueryJSON, SearchView} from './types';
+import type {ChartView, SearchGroupBy, SearchQueryJSON} from './types';
 
-type GroupedItem = TransactionMemberGroupListItemType | TransactionCardGroupListItemType | TransactionWithdrawalIDGroupListItemType | TransactionCategoryGroupListItemType;
+type GroupedItem =
+    | TransactionMemberGroupListItemType
+    | TransactionCardGroupListItemType
+    | TransactionWithdrawalIDGroupListItemType
+    | TransactionCategoryGroupListItemType
+    | TransactionMerchantGroupListItemType
+    | TransactionTagGroupListItemType
+    | TransactionMonthGroupListItemType
+    | TransactionWeekGroupListItemType;
 
 type ChartGroupByConfig = {
     title: string;
@@ -31,7 +43,7 @@ type ChartGroupByConfig = {
 
 /**
  * Chart-specific configuration for each groupBy type - defines how to extract label and build filter query
- * for displaying grouped transaction data in charts
+ * for displaying grouped transaction data in charts.
  */
 const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.FROM]: {
@@ -58,6 +70,41 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item as TransactionCategoryGroupListItemType).formattedCategory ?? '',
         getFilterQuery: (item: GroupedItem) => `category:"${(item as TransactionCategoryGroupListItemType).category}"`,
     },
+    [CONST.SEARCH.GROUP_BY.MERCHANT]: {
+        title: 'Merchants',
+        titleIcon: Expensicons.Building,
+        getLabel: (item: GroupedItem) => (item as TransactionMerchantGroupListItemType).formattedMerchant ?? '',
+        getFilterQuery: (item: GroupedItem) => `merchant:"${(item as TransactionMerchantGroupListItemType).merchant}"`,
+    },
+    [CONST.SEARCH.GROUP_BY.TAG]: {
+        title: 'Tags',
+        titleIcon: Expensicons.Tag,
+        getLabel: (item: GroupedItem) => (item as TransactionTagGroupListItemType).formattedTag ?? '',
+        getFilterQuery: (item: GroupedItem) => `tag:"${(item as TransactionTagGroupListItemType).tag}"`,
+    },
+    [CONST.SEARCH.GROUP_BY.MONTH]: {
+        title: 'Months',
+        titleIcon: Expensicons.Calendar,
+        getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
+        getFilterQuery: (item: GroupedItem) => {
+            const monthItem = item as TransactionMonthGroupListItemType;
+            return `date>=${monthItem.year}-${String(monthItem.month).padStart(2, '0')}-01 date<${monthItem.month === 12 ? monthItem.year + 1 : monthItem.year}-${String(monthItem.month === 12 ? 1 : monthItem.month + 1).padStart(2, '0')}-01`;
+        },
+    },
+    [CONST.SEARCH.GROUP_BY.WEEK]: {
+        title: 'Weeks',
+        titleIcon: Expensicons.Calendar,
+        getLabel: (item: GroupedItem) => (item as TransactionWeekGroupListItemType).formattedWeek ?? '',
+        getFilterQuery: (item: GroupedItem) => {
+            const weekItem = item as TransactionWeekGroupListItemType;
+            // week is in YYYY-MM-DD format (start of week)
+            const startDate = new Date(weekItem.week);
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 7);
+            const endDateStr = endDate.toISOString().split('T').at(0);
+            return `date>=${weekItem.week} date<${endDateStr}`;
+        },
+    },
 };
 
 type SearchChartViewProps = {
@@ -65,7 +112,7 @@ type SearchChartViewProps = {
     queryJSON: SearchQueryJSON;
 
     /** The view type (bar, etc.) */
-    view: SearchView;
+    view: ChartView;
 
     /** The groupBy parameter */
     groupBy: SearchGroupBy;
@@ -78,9 +125,9 @@ type SearchChartViewProps = {
 };
 
 /**
- * Map of chart view types to their corresponding chart components
+ * Map of chart view types to their corresponding chart components.
  */
-const CHART_VIEW_TO_COMPONENT = {
+const CHART_VIEW_TO_COMPONENT: Record<ChartView, typeof SearchBarChart> = {
     [CONST.SEARCH.VIEW.BAR]: SearchBarChart,
 };
 
@@ -91,6 +138,8 @@ const CHART_VIEW_TO_COMPONENT = {
 function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {title, titleIcon, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
     const handleBarPress = useCallback(
         (filterQuery: string) => {
@@ -113,9 +162,6 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
         [queryJSON],
     );
 
-    const config = CHART_GROUP_BY_CONFIG[groupBy];
-    const ChartComponent = CHART_VIEW_TO_COMPONENT[view as keyof typeof CHART_VIEW_TO_COMPONENT];
-
     // Get currency symbol and position from first data item
     const {yAxisUnit, yAxisUnitPosition} = useMemo((): {yAxisUnit: string; yAxisUnitPosition: 'left' | 'right'} => {
         const firstItem = data.at(0) as GroupedItem | undefined;
@@ -128,10 +174,6 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
         };
     }, [data]);
 
-    if (!config || !ChartComponent) {
-        return null;
-    }
-
     return (
         <ScrollView
             style={styles.flex1}
@@ -140,10 +182,10 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
                 <ChartComponent
                     data={data}
-                    title={config.title}
-                    titleIcon={config.titleIcon}
-                    getLabel={config.getLabel}
-                    getFilterQuery={config.getFilterQuery}
+                    title={title}
+                    titleIcon={titleIcon}
+                    getLabel={getLabel}
+                    getFilterQuery={getFilterQuery}
                     onBarPress={handleBarPress}
                     isLoading={isLoading}
                     yAxisUnit={yAxisUnit}
