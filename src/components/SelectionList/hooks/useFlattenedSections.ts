@@ -67,7 +67,7 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
                 } as SectionListItem<TItem>;
                 data.push(itemData);
 
-                if (item.keyForList === initiallyFocusedItemKey) {
+                if (item.keyForList === initiallyFocusedItemKey && focusedIndex === -1) {
                     focusedIndex = currentIndex;
                 }
 
