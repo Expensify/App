@@ -3,6 +3,8 @@ import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -19,10 +21,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
 
-function VacationDelegatePage() { 
+function VacationDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
