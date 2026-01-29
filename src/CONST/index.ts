@@ -6893,7 +6893,6 @@ const CONST = {
             MERCHANT: 'merchant',
             TAG: 'tag',
             MONTH: 'month',
-            WEEK: 'week',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -6990,11 +6989,6 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
-                WEEK: {
-                    WEEK: this.TABLE_COLUMNS.GROUP_WEEK,
-                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
-                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
-                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -7040,7 +7034,6 @@ const CONST = {
                 MERCHANT: [this.TABLE_COLUMNS.GROUP_MERCHANT, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 TAG: [this.TABLE_COLUMNS.GROUP_TAG, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
-                WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -7140,7 +7133,6 @@ const CONST = {
             GROUP_MERCHANT: 'groupMerchant',
             GROUP_TAG: 'groupTag',
             GROUP_MONTH: 'groupmonth',
-            GROUP_WEEK: 'groupweek',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7332,8 +7324,6 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
                 [this.TABLE_COLUMNS.GROUP_MERCHANT]: 'group-merchant',
                 [this.TABLE_COLUMNS.GROUP_TAG]: 'group-tag',
-                [this.TABLE_COLUMNS.GROUP_MONTH]: 'group-month',
-                [this.TABLE_COLUMNS.GROUP_WEEK]: 'group-week',
             };
         },
         NOT_MODIFIER: 'Not',
