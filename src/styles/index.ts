@@ -5231,8 +5231,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         travelCCVIllustration: {
-            width: 193,
-            height: 75,
+            width: 240,
+            height: 100,
         },
 
         travelInvoicingIcon: {

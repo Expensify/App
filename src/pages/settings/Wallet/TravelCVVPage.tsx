@@ -138,7 +138,7 @@ function TravelCVVPage() {
             />
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
-                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.pv10]}>
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.pt3, styles.pb5]}>
                         <ImageSVG
                             src={illustrations.TravelCVV}
                             contentFit={RESIZE_MODES.contain}
@@ -146,7 +146,7 @@ function TravelCVVPage() {
                         />
                     </View>
 
-                    <View style={[styles.mb12, styles.gap4]}>
+                    <View style={[styles.mt5, styles.mb12, styles.gap4]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('walletPage.travelCVV.description')}</Text>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('walletPage.travelCVV.instructions')}</Text>
                     </View>

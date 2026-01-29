@@ -11,7 +11,7 @@ import Permissions from './Permissions';
  * When enabled, it allows using any card for CVV reveal testing if no specific Travel Card is found.
  */
 function isTravelCVVTestingEnabled(): boolean {
-    return isDevelopment() || isInternalTestBuild() || isStaging();
+    return isDevelopment() || isStaging() || isInternalTestBuild();
 }
 
 /**
