@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -799,7 +799,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Wróć do oryginalnego urządzenia i poproś o nowy kod',
         successfulNewCodeRequest: 'Kod został wysłany. Sprawdź swoje urządzenie.',
         tfaRequiredTitle: dedent(`
-            Dwuskładnikowe uwierzytelnianie  
+            Dwuskładnikowe uwierzytelnianie
             wymagane
         `),
         tfaRequiredDescription: dedent(`
@@ -1134,6 +1134,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: 'Usuń podział',
         splitExpenseCannotBeEditedModalTitle: 'Ten wydatek nie może zostać edytowany',
         splitExpenseCannotBeEditedModalDescription: 'Zatwierdzonych lub opłaconych wydatków nie można edytować',
+        splitExpenseDistanceErrorModalDescription: 'Popraw błąd stawki odległości i spróbuj ponownie.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Zapłać ${name ?? 'ktoś'}`,
         expense: 'Wydatek',
         categorize: 'Kategoryzuj',
@@ -1256,6 +1257,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `wysłano${memo ? `, mówiąc ${memo}` : ''}`,
         automaticallySubmitted: `wysłane przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnij przesyłanie</a>`,
         queuedToSubmitViaDEW: 'w kolejce do przesłania przez niestandardowy przepływ zatwierdzania',
+        queuedToApproveViaDEW: 'w kolejce do zatwierdzenia przez niestandardowy przepływ zatwierdzania',
         trackedAmount: (formattedAmount: string, comment?: string) => `śledzenie ${formattedAmount}${comment ? `dla ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `podziel ${amount}`,
         didSplitAmount: (formattedAmount: string, comment: string) => `podziel ${formattedAmount}${comment ? `dla ${comment}` : ''}`,
@@ -4930,6 +4932,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Wybierz nową datę początkową transakcji. Zsynchronizujemy wszystkie transakcje od tej daty, z wyłączeniem tych, które już zostały zaimportowane.',
             unassignCardFailedError: 'Nie udało się odłączyć karty.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Nie można było wczytać kanałów kart',
+                workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się z administratorem.',
+                feedCouldNotBeLoadedTitle: 'Nie można było wczytać tego kanału',
+                feedCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania tego kanału. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',
+                tryAgain: 'Spróbuj ponownie',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj swoimi kartami Expensify',
@@ -5272,7 +5281,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Zasady',
                 subtitle: 'Wymagaj paragonów, oznaczaj wysokie wydatki i nie tylko.',
             },
-            timeTracking: {title: 'Czas', subtitle: 'Ustaw godzinową stawkę rozliczeniową, aby pracownicy byli wynagradzani za swój czas.'},
+            timeTracking: {
+                title: 'Czas',
+                subtitle: 'Ustaw godzinową stawkę rozliczeniową do śledzenia czasu.',
+                defaultHourlyRate: 'Domyślna stawka godzinowa',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -6353,7 +6366,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Sprzedawca',
                 subtitle: 'Skonfiguruj reguły dla sprzedawców, aby wydatki trafiały z poprawnym kodowaniem i wymagały mniej poprawek.',
                 addRule: 'Dodaj regułę sprzedawcy',
-                ruleSummaryTitle: (merchantName: string) => `Jeśli sprzedawca zawiera „${merchantName}”`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Jeśli sprzedawca ${isExactMatch ? 'dokładnie pasuje' : 'Zawiera'} „${merchantName}”`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Zmień sprzedawcę na „${merchantName}”`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Zaktualizuj ${fieldName} na „${fieldValue}”`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Oznacz jako "${reimbursable ? 'kwalifikujący się do zwrotu kosztów' : 'niepodlegający zwrotowi'}"`,
@@ -6361,7 +6374,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 addRuleTitle: 'Dodaj regułę',
                 expensesWith: 'Dla wydatków z:',
                 applyUpdates: 'Zastosuj te aktualizacje:',
-                merchantHint: 'Dopasuj nazwę sprzedawcy przy użyciu nieczułego na wielkość liter dopasowania typu „zawiera”',
                 saveRule: 'Zapisz regułę',
                 confirmError: 'Wprowadź sprzedawcę i zastosuj co najmniej jedną aktualizację',
                 confirmErrorMerchant: 'Wprowadź sprzedawcę',
@@ -6369,6 +6381,17 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 editRuleTitle: 'Edytuj regułę',
                 deleteRule: 'Usuń regułę',
                 deleteRuleConfirmation: 'Czy na pewno chcesz usunąć tę regułę?',
+                previewMatches: 'Podgląd dopasowań',
+                previewMatchesEmptyStateTitle: 'Nie ma nic do wyświetlenia',
+                previewMatchesEmptyStateSubtitle: 'Żadne niewysłane wydatki nie pasują do tej reguły.',
+                matchType: 'Typ dopasowania',
+                matchTypeContains: 'Zawiera',
+                matchTypeExact: 'Dokładne dopasowanie',
+                expensesExactlyMatching: 'Dla wydatków dokładnie pasujących:',
+                duplicateRuleTitle: 'Podobna reguła sprzedawcy już istnieje',
+                duplicateRulePrompt: (merchantName: string) => `Czy chcesz zapisać nową regułę dla „${merchantName}”, mimo że masz już istniejącą?`,
+                saveAnyway: 'Zapisz mimo to',
+                applyToExistingUnsubmittedExpenses: 'Zastosuj do istniejących niewysłanych wydatków',
             },
         },
         planTypePage: {
@@ -6969,7 +6992,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Sprzedawca',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Etykieta',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiąc',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Tydzień',
             },
@@ -7152,6 +7175,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     `Połączenie ${feedName} jest przerwane. Aby przywrócić importy kart, <a href='${workspaceCompanyCardRoute}'>zaloguj się do swojego banku</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `połączenie Plaid z Twoim firmowym kontem bankowym jest przerwane. <a href='${walletRoute}'>Połącz ponownie swoje konto bankowe ${maskedAccountNumber}</a>, aby nadal korzystać z kart Expensify.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `firmowy rachunek bankowy ${maskedBankAccountNumber} został automatycznie zablokowany z powodu problemu z rozliczeniem Zwrotu kosztów lub karty Expensify. Prosimy rozwiązać ten problem w <a href="${linkURL}">ustawieniach przestrzeni roboczej</a>.`,
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',
@@ -7892,6 +7917,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             hasChildReportAwaitingAction: 'Ma raport podrzędny oczekujący na działanie',
             hasMissingInvoiceBankAccount: 'Brakujący rachunek bankowy faktury',
             hasUnresolvedCardFraudAlert: 'Ma nierozwiązane powiadomienie o oszustwie związanym z kartą',
+            hasDEWApproveFailed: 'Zatwierdzenie DEW nie powiodło się',
         },
         reasonRBR: {
             hasErrors: 'Zawiera błędy w danych raportu lub danych działań na raporcie',
@@ -8170,6 +8196,29 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             prompt: 'Zezwól na dostęp do lokalizacji w ustawieniach urządzenia, aby rozpocząć śledzenie dystansu za pomocą GPS.',
         },
         fabGpsTripExplained: 'Przejdź do ekranu GPS (przycisk akcji)',
+    },
+    homePage: {
+        forYou: 'Dla Ciebie',
+        announcements: 'Ogłoszenia',
+        discoverSection: {
+            title: 'Odkryj',
+            menuItemTitleNonAdmin: 'Dowiedz się, jak tworzyć wydatki i przesyłać raporty.',
+            menuItemTitleAdmin: 'Dowiedz się, jak zapraszać członków, edytować ścieżki zatwierdzania i uzgadniać karty firmowe.',
+            menuItemDescription: 'Zobacz, co Expensify potrafi zrobić w 2 min',
+        },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `Prześlij ${count} ${count === 1 ? 'raport' : 'raporty'}`,
+            approve: ({count}: {count: number}) => `Zatwierdź ${count} ${count === 1 ? 'raport' : 'raporty'}`,
+            pay: ({count}: {count: number}) => `Zapłać ${count} ${count === 1 ? 'raport' : 'raporty'}`,
+            export: ({count}: {count: number}) => `Eksportuj ${count} ${count === 1 ? 'raport' : 'raporty'}`,
+            begin: 'Rozpocznij',
+            emptyStateMessages: {
+                nicelyDone: 'Dobra robota',
+                keepAnEyeOut: 'Wypatruj, co nadchodzi wkrótce!',
+                allCaughtUp: 'Wszystko nadrobione',
+                upcomingTodos: 'Nadchodzące zadania do wykonania pojawią się tutaj.',
+            },
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

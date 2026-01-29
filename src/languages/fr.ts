@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -1138,6 +1138,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: 'Supprimer la répartition',
         splitExpenseCannotBeEditedModalTitle: 'Cette dépense ne peut pas être modifiée',
         splitExpenseCannotBeEditedModalDescription: 'Les dépenses approuvées ou payées ne peuvent pas être modifiées',
+        splitExpenseDistanceErrorModalDescription: 'Veuillez corriger l’erreur du taux de distance et réessayer.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Payer ${name ?? 'quelqu’un'}`,
         expense: 'Dépense',
         categorize: 'Catégoriser',
@@ -1260,6 +1261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `envoyé${memo ? `, indiquant ${memo}` : ''}`,
         automaticallySubmitted: `soumis via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retarder les soumissions</a>`,
         queuedToSubmitViaDEW: "en file d'attente pour être soumis via le workflow d'approbation personnalisé",
+        queuedToApproveViaDEW: "en file d'attente pour approbation via le workflow d'approbation personnalisé",
         trackedAmount: (formattedAmount: string, comment?: string) => `suivi de ${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `diviser ${amount}`,
         didSplitAmount: (formattedAmount: string, comment: string) => `Diviser ${formattedAmount}${comment ? `pour ${comment}` : ''}`,
@@ -4966,6 +4968,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             editStartDateDescription:
                 'Choisissez une nouvelle date de début des transactions. Nous synchroniserons toutes les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
             unassignCardFailedError: 'Échec de la désaffectation de la carte.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de carte',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Une erreur s’est produite lors du chargement des flux de cartes de l’espace de travail. Veuillez réessayer ou contacter votre administrateur.',
+                feedCouldNotBeLoadedTitle: 'Impossible de charger ce flux',
+                feedCouldNotBeLoadedMessage: 'Une erreur s’est produite lors du chargement de ce flux. Veuillez réessayer ou contacter votre administrateur.',
+                tryAgain: 'Réessayer',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',
@@ -5313,7 +5323,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Règles',
                 subtitle: 'Exigez des reçus, signalez les dépenses élevées, et plus encore.',
             },
-            timeTracking: {title: 'Heure', subtitle: 'Définissez un taux horaire facturable pour que les employés soient rémunérés pour leur temps.'},
+            timeTracking: {
+                title: 'Heure',
+                subtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
+                defaultHourlyRate: 'Taux horaire par défaut',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -6402,7 +6416,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 title: 'Commerçant',
                 subtitle: 'Définissez les règles de marchand afin que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
                 addRule: 'Ajouter une règle de commerçant',
-                ruleSummaryTitle: (merchantName: string) => `Si le commerçant contient « ${merchantName} »`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Si le commerçant ${isExactMatch ? 'correspond exactement' : 'contient'} « ${merchantName} »`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Renommer le marchand en « ${merchantName} »`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Mettre à jour ${fieldName} sur « ${fieldValue} »`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marquer comme « ${reimbursable ? 'remboursable' : 'non remboursable'} »`,
@@ -6410,7 +6424,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 addRuleTitle: 'Ajouter une règle',
                 expensesWith: 'Pour les dépenses avec :',
                 applyUpdates: 'Appliquer ces mises à jour :',
-                merchantHint: 'Faire correspondre un nom de commerçant avec une correspondance « contient » insensible à la casse',
                 saveRule: 'Enregistrer la règle',
                 confirmError: 'Saisissez un marchand et appliquez au moins une mise à jour',
                 confirmErrorMerchant: 'Veuillez saisir le commerçant',
@@ -6418,6 +6431,17 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 editRuleTitle: 'Modifier la règle',
                 deleteRule: 'Supprimer la règle',
                 deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
+                previewMatches: 'Aperçu des correspondances',
+                previewMatchesEmptyStateTitle: 'Rien à afficher',
+                previewMatchesEmptyStateSubtitle: 'Aucune dépense non soumise ne correspond à cette règle.',
+                matchType: 'Type de correspondance',
+                matchTypeContains: 'Contient',
+                matchTypeExact: 'Correspond exactement',
+                expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
+                duplicateRuleTitle: 'Une règle de commerçant similaire existe déjà',
+                duplicateRulePrompt: (merchantName: string) => `Voulez-vous enregistrer une nouvelle règle pour « ${merchantName} » même si vous en avez déjà une existante ?`,
+                saveAnyway: 'Enregistrer quand même',
+                applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
             },
         },
         planTypePage: {
@@ -7204,6 +7228,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                     `La connexion à ${feedName} est rompue. Pour rétablir l'importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est interrompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> pour continuer à utiliser vos cartes Expensify.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `le compte bancaire professionnel ${maskedBankAccountNumber} a été automatiquement verrouillé en raison d’un problème lié soit au remboursement, soit au règlement de la carte Expensify. Veuillez corriger le problème dans vos <a href="${linkURL}">paramètres d’espace de travail</a>.`,
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
@@ -7946,6 +7972,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             hasChildReportAwaitingAction: 'A un rapport enfant en attente d’action',
             hasMissingInvoiceBankAccount: 'N’a pas de compte bancaire de facture',
             hasUnresolvedCardFraudAlert: 'A une alerte de fraude de carte non résolue',
+            hasDEWApproveFailed: 'L’approbation DEW a échoué',
         },
         reasonRBR: {
             hasErrors: 'Contient des erreurs dans les données du rapport ou des actions de rapport',
@@ -8229,6 +8256,29 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour lancer le suivi de distance GPS.',
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
+    },
+    homePage: {
+        forYou: 'Pour vous',
+        announcements: 'Annonces',
+        discoverSection: {
+            title: 'Découvrir',
+            menuItemTitleNonAdmin: 'Découvrez comment créer des dépenses et soumettre des rapports.',
+            menuItemTitleAdmin: 'Apprenez à inviter des membres, modifier les workflows d’approbation et rapprocher les cartes de société.',
+            menuItemDescription: 'Découvrez ce qu’Expensify peut faire en 2 minutes',
+        },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `Soumettre ${count} ${count === 1 ? 'rapport' : 'rapports'}`,
+            approve: ({count}: {count: number}) => `Approuver ${count} ${count === 1 ? 'rapport' : 'rapports'}`,
+            pay: ({count}: {count: number}) => `Payer ${count} ${count === 1 ? 'rapport' : 'rapports'}`,
+            export: ({count}: {count: number}) => `Exporter ${count} ${count === 1 ? 'rapport' : 'rapports'}`,
+            begin: 'Commencer',
+            emptyStateMessages: {
+                nicelyDone: 'Bien joué',
+                keepAnEyeOut: 'Restez à l’affût de ce qui arrive bientôt !',
+                allCaughtUp: 'Vous êtes à jour',
+                upcomingTodos: 'Les tâches à venir apparaîtront ici.',
+            },
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

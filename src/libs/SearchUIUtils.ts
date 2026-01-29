@@ -89,7 +89,16 @@ import interceptAnonymousUser from './interceptAnonymousUser';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, getSubmitToAccountID, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    canSendInvoice,
+    getCleanedTagName,
+    getGroupPaidPoliciesWithExpenseChatEnabled,
+    getPolicy,
+    getSubmitToAccountID,
+    isPaidGroupPolicy,
+    isPolicyPayer,
+} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -175,9 +184,11 @@ type GetReportSectionsParams = {
     translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isActionLoadingSet: ReadonlySet<string> | undefined;
+    isOffline: boolean | undefined;
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
+    allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -425,8 +436,10 @@ type GetSectionsParams = {
     archivedReportsIDList?: ArchivedReportsIDSet;
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
+    isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
 /**
@@ -1401,6 +1414,7 @@ function getTransactionsSections(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isActionLoadingSet: ReadonlySet<string> | undefined,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
+    allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     queryJSON?: SearchQueryJSON,
 ): [TransactionListItemType[], number] {
@@ -1468,7 +1482,8 @@ function getTransactionsSections(
                 report,
             );
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, actions);
+            const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
@@ -1579,6 +1594,7 @@ function getActions(
     currentUserLogin: string,
     currentUserAccountID: number,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
+    reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
     reportActions: OnyxTypes.ReportAction[] = [],
 ): SearchTransactionAction[] {
     const isTransaction = isTransactionEntry(key);
@@ -1665,7 +1681,7 @@ function getActions(
 
     // We're not supporting approve partial amount on search page now
     if (
-        canApproveIOU(report, policy, allReportTransactions) &&
+        canApproveIOU(report, policy, reportMetadata, allReportTransactions) &&
         isAllowedToApproveExpenseReport &&
         !hasOnlyPendingCardOrScanningTransactions &&
         !hasHeldExpenses(report.reportID, allReportTransactions)
@@ -1877,11 +1893,13 @@ function getReportSections({
     currentAccountID,
     currentUserEmail,
     translate,
+    isOffline,
     formatPhoneNumber,
     isActionLoadingSet,
     allTransactionViolations,
     bankAccountList,
     reportActions = {},
+    allReportMetadata,
 }: GetReportSectionsParams): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -1951,7 +1969,8 @@ function getReportSections({
             if (shouldShow) {
                 const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
-                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, actions);
+                const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
+                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
 
                 const fromDetails =
                     data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
@@ -1967,6 +1986,8 @@ function getReportSections({
                 const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
                 const policyFromKey = getPolicyFromKey(data, reportItem);
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID ?? String(CONST.DEFAULT_NUMBER_ID)}`] ?? policyFromKey;
+
+                const shouldShowStatusAsPending = !!isOffline && reportItem?.pendingFields?.nextStep === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
                 const hasAnyViolationsForReport = hasAnyViolations(
                     reportItem.reportID,
@@ -2001,6 +2022,7 @@ function getReportSections({
                     formattedTo,
                     formattedStatus,
                     transactions,
+                    shouldShowStatusAsPending,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                     shouldShowYear: shouldShowYearCreatedReport,
                     shouldShowYearSubmitted: shouldShowYearSubmittedReport,
@@ -2035,7 +2057,8 @@ function getReportSections({
                 report,
             );
 
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, actions);
+            const transactionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
             const transaction = {
                 ...transactionItem,
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -2363,7 +2386,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
             // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
             const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
-            const formattedTag = isEmptyTag ? translate('search.noTag') : rawTag;
+            const formattedTag = isEmptyTag ? translate('search.noTag') : getCleanedTagName(rawTag);
 
             tagSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.TAG,
@@ -2514,8 +2537,10 @@ function getSections({
     archivedReportsIDList,
     queryJSON,
     isActionLoadingSet,
+    isOffline,
     cardFeeds,
     allTransactionViolations,
+    allReportMetadata,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -2532,11 +2557,13 @@ function getSections({
             currentAccountID,
             currentUserEmail,
             translate,
+            isOffline,
             formatPhoneNumber,
             isActionLoadingSet,
             allTransactionViolations,
             bankAccountList,
             reportActions,
+            allReportMetadata,
         });
     }
 
@@ -2563,7 +2590,18 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, bankAccountList, reportActions, queryJSON);
+    return getTransactionsSections(
+        data,
+        currentSearch,
+        currentAccountID,
+        currentUserEmail,
+        formatPhoneNumber,
+        isActionLoadingSet,
+        bankAccountList,
+        allReportMetadata,
+        reportActions,
+        queryJSON,
+    );
 }
 
 /**
@@ -3077,6 +3115,8 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG);
         case CONST.SEARCH.GROUP_BY.MONTH:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH);
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK);
         default:
             return [];
     }
@@ -3110,6 +3150,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.TAG;
         case CONST.SEARCH.GROUP_BY.MONTH:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.MONTH;
+        case CONST.SEARCH.GROUP_BY.WEEK:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WEEK;
         default:
             return [];
     }
@@ -3190,6 +3232,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
             return 'common.month';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
+            return 'common.week';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
             return 'search.filters.withdrawn';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
@@ -4107,21 +4151,18 @@ function shouldShowDeleteOption(selectedTransactions: Record<string, SelectedTra
     return (
         !isOffline &&
         selectedTransactionsKeys.every((id) => {
-            const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id];
+            const transaction = currentSearchResults?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] ?? selectedTransactions[id]?.transaction;
             if (!transaction) {
                 return false;
             }
             const parentReportID = transaction.reportID;
             const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-            if (!parentReport) {
-                return false;
-            }
             const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
             const parentReportAction =
                 Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
                 selectedTransactions[id].reportAction;
 
-            return canDeleteMoneyRequestReport(parentReport, [transaction as OnyxTypes.Transaction], parentReportAction ? [parentReportAction] : []);
+            return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
         })
     );
 }
