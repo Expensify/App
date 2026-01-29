@@ -5,7 +5,6 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import * as TransactionEditModule from '@libs/actions/TransactionEdit';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import IOURequestStepScan from '@pages/iou/request/step/IOURequestStepScan';
@@ -20,6 +19,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const REPORT_ID = '1';
 const POLICY_ID = 'policy-1';
+const TRANSACTION_ID_1 = '101';
+const TRANSACTION_ID_2 = '102';
 
 let triggerFileSelection: ((files: FileObject[]) => void) | null = null;
 
@@ -39,13 +40,16 @@ jest.mock('react-native-permissions', () => ({
 }));
 
 jest.mock('@hooks/useFilesValidation', () => {
-    const React = require('react');
+    const ReactLib = require('react') as {
+        createElement: (type: unknown, props?: unknown, ...children: unknown[]) => unknown;
+        Fragment: unknown;
+    };
     return (callback: (files: FileObject[]) => void) => {
         triggerFileSelection = callback;
         return {
             validateFiles: (files: FileObject[]) => callback(files),
-            PDFValidationComponent: React.createElement(React.Fragment),
-            ErrorModal: React.createElement(React.Fragment),
+            PDFValidationComponent: ReactLib.createElement(ReactLib.Fragment),
+            ErrorModal: ReactLib.createElement(ReactLib.Fragment),
         };
     };
 });
@@ -95,7 +99,7 @@ describe('IOURequestStepScan', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         triggerFileSelection = null;
-        removeDraftTransactionsSpy = jest.spyOn(TransactionEditModule, 'removeDraftTransactions');
+        removeDraftTransactionsSpy = jest.spyOn(require('@libs/actions/TransactionEdit'), 'removeDraftTransactions');
     });
 
     afterEach(async () => {
@@ -106,18 +110,18 @@ describe('IOURequestStepScan', () => {
     it('replacing receipt in multi-scan does not clear other drafts', async () => {
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
-        transaction1.transactionID = '101';
+        transaction1.transactionID = TRANSACTION_ID_1;
         transaction1.receipt = {source: 'file://receipt1.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
         const transaction2 = createRandomTransaction(2);
         transaction2.reportID = REPORT_ID;
-        transaction2.transactionID = '102';
+        transaction2.transactionID = TRANSACTION_ID_2;
         transaction2.receipt = {source: 'file://receipt2.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport(REPORT_ID));
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}101`, transaction1);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}102`, transaction2);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_1}`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_2}`, transaction2);
         });
         await waitForBatchedUpdates();
 
@@ -134,7 +138,7 @@ describe('IOURequestStepScan', () => {
                                         action: CONST.IOU.ACTION.CREATE,
                                         iouType: CONST.IOU.TYPE.SUBMIT,
                                         reportID: REPORT_ID,
-                                        transactionID: '101',
+                                        transactionID: TRANSACTION_ID_1,
                                         backTo: 'Money_Request_Step_Confirmation' as const,
                                         pageIndex: 0,
                                     },
@@ -156,27 +160,30 @@ describe('IOURequestStepScan', () => {
 
         const replacementFile = {name: 'replacement-receipt.png', type: 'image/png', size: 100} as FileObject;
         await act(async () => {
-            triggerFileSelection!([replacementFile]);
+            if (!triggerFileSelection) {
+                return;
+            }
+            triggerFileSelection([replacementFile]);
         });
         await waitForBatchedUpdates();
 
         expect(removeDraftTransactionsSpy).not.toHaveBeenCalled();
 
-        const tx2After = await getOnyxDraft('102');
+        const tx2After = await getOnyxDraft(TRANSACTION_ID_2);
         expect(tx2After).toBeDefined();
-        expect(tx2After?.transactionID).toBe('102');
+        expect(tx2After?.transactionID).toBe(TRANSACTION_ID_2);
         expect(tx2After?.receipt?.source).toBe('file://receipt2.png');
     });
 
     it('multi-scan mode preserves first receipt when adding second receipt', async () => {
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
-        transaction1.transactionID = '101';
+        transaction1.transactionID = TRANSACTION_ID_1;
         transaction1.receipt = {source: 'file://first-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport(REPORT_ID));
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}101`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_1}`, transaction1);
         });
         await waitForBatchedUpdates();
 
@@ -193,7 +200,7 @@ describe('IOURequestStepScan', () => {
                                         action: CONST.IOU.ACTION.CREATE,
                                         iouType: CONST.IOU.TYPE.SUBMIT,
                                         reportID: REPORT_ID,
-                                        transactionID: '101',
+                                        transactionID: TRANSACTION_ID_1,
                                         backTo: 'Money_Request_Step_Confirmation' as const,
                                         pageIndex: 0,
                                     },
@@ -215,11 +222,14 @@ describe('IOURequestStepScan', () => {
 
         const secondFile = {name: 'second-receipt.png', type: 'image/png', size: 200} as FileObject;
         await act(async () => {
-            triggerFileSelection!([secondFile]);
+            if (!triggerFileSelection) {
+                return;
+            }
+            triggerFileSelection([secondFile]);
         });
         await waitForBatchedUpdates();
 
-        const tx1After = await getOnyxDraft('101');
+        const tx1After = await getOnyxDraft(TRANSACTION_ID_1);
         expect(tx1After).toBeDefined();
         expect(tx1After?.receipt?.source).toBeDefined();
     });
