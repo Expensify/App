@@ -251,7 +251,16 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         visibleTransactions,
     ]);
 
-    const wereAllTransactionsDeleted = !!(report?.reportID && !reportMetadata?.isLoadingInitialReportActions && visibleTransactions?.length === 0 && !snapshotTransaction);
+    const wereAllTransactionsDeleted = useMemo(
+        () =>
+            !!(
+                report?.reportID &&
+                reportMetadata?.isLoadingInitialReportActions === false &&
+                visibleTransactions?.length === 0 &&
+                !snapshotTransaction
+            ),
+        [report?.reportID, reportMetadata?.isLoadingInitialReportActions, visibleTransactions?.length, snapshotTransaction],
+    );
 
     const shouldShowAccessErrorPage = useMemo((): boolean => {
         if (isLoadingApp !== false) {

@@ -42,8 +42,8 @@ function TransactionDuplicateReview() {
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.threadReportID}`, {canBeMissing: true});
     const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
-    const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`, {canBeMissing: true});
+    const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = getLinkedTransactionID(reportAction);
     const transactionViolations = useTransactionViolations(transactionID);
     const duplicateTransactionIDs = useMemo(
@@ -120,15 +120,12 @@ function TransactionDuplicateReview() {
         getDuplicateTransactionDetails(transactionID);
     }, [transactionID]);
 
-    const isLoadingPage = (!report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false) || !reportAction?.reportActionID;
+    const threadReportFinishedLoading = reportMetadata?.isLoadingInitialReportActions === false || !reportMetadata;
+    const parentReportFinishedLoading = parentReportMetadata?.isLoadingInitialReportActions === false || !parentReportMetadata;
 
-    const wasTransactionDeleted = !!(
-        route.params.threadReportID &&
-        report?.reportID &&
-        reportMetadata?.isLoadingInitialReportActions === false &&
-        parentReportMetadata?.isLoadingInitialReportActions === false &&
-        !reportAction?.reportActionID
-    );
+    const wasTransactionDeleted = !!(route.params.threadReportID && threadReportFinishedLoading && parentReportFinishedLoading && !reportAction?.reportActionID);
+
+    const isLoadingPage = (!report?.reportID && !threadReportFinishedLoading) || (!reportAction?.reportActionID && !wasTransactionDeleted);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = wasTransactionDeleted || (!isLoadingPage && !transactionID);
