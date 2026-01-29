@@ -54,7 +54,15 @@ const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTransla
 
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
     const matchingCriteriaFields = new Set<string>([CONST.MERCHANT_RULES.FIELDS.MERCHANT_TO_MATCH, CONST.MERCHANT_RULES.FIELDS.MATCH_TYPE]);
-    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => !matchingCriteriaFields.has(key) && value !== undefined);
+    const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
+        if (matchingCriteriaFields.has(key)) {
+            return false;
+        }
+        if (typeof value === 'boolean') {
+            return true;
+        }
+        return value !== undefined && value !== '';
+    });
     if (form?.merchantToMatch && hasAtLeastOneUpdate) {
         return '';
     }
