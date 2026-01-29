@@ -1957,7 +1957,7 @@ function getReportSections({
                 const policyFromKey = getPolicyFromKey(data, reportItem);
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID ?? String(CONST.DEFAULT_NUMBER_ID)}`] ?? policyFromKey;
 
-                const shouldShowStatusAsPending = isOffline && reportItem?.pendingFields?.nextStep === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+                const shouldShowStatusAsPending = !!isOffline && reportItem?.pendingFields?.nextStep === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
                 const hasAnyViolationsForReport = hasAnyViolations(
                     reportItem.reportID,
