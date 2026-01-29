@@ -22,7 +22,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -157,7 +157,7 @@ async function fastSignInWithTestUser() {
             email: USER_A_EMAIL,
             encryptedAuthToken: TEST_AUTH_TOKEN,
         },
-        [ONYXKEYS.BETAS]: [CONST.BETAS.ALL],
+        [ONYXKEYS.BETAS]: ['all'],
         [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
         [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
             [USER_A_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_A_EMAIL, USER_A_ACCOUNT_ID, 'A'),
@@ -698,6 +698,12 @@ describe('Unread Indicators', () => {
             comment: 'description',
         };
 
+        let recentWaypoints: RecentWaypoint[] = [];
+        Onyx.connect({
+            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+            callback: (val) => (recentWaypoints = val ?? []),
+        });
+
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
@@ -720,7 +726,7 @@ describe('Unread Indicators', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
-            allBetas: [CONST.BETAS.ALL],
+            recentWaypoints,
         });
         await waitForBatchedUpdates();
 

@@ -176,7 +176,7 @@ function MoneyRequestReportPreviewContent({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, shouldShowOnlyPayElsewhere),
         [iouReport, chatReport, policy, bankAccountList, transactions],
@@ -267,10 +267,18 @@ function MoneyRequestReportPreviewContent({
                         methodID,
                         paymentMethod,
                         activePolicy,
-                        allBetas,
                     });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, iouReportNextStep, allBetas, undefined, true, activePolicy, policy);
+                    payMoneyRequest({
+                        paymentType: type,
+                        chatReport,
+                        iouReport,
+                        introSelected,
+                        iouReportCurrentNextStepDeprecated: iouReportNextStep,
+                        currentUserAccountID,
+                        activePolicy,
+                        policy,
+                    });
                 }
             }
         },
@@ -287,7 +295,6 @@ function MoneyRequestReportPreviewContent({
             existingB2BInvoiceReport,
             activePolicy,
             policy,
-            allBetas,
         ],
     );
 
@@ -303,7 +310,7 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, allBetas, true);
+            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
         }
     };
 
