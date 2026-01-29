@@ -510,7 +510,7 @@ function resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID:
     });
 }
 
-function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed, lastScrapeResult?: number) {
+function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed, lastScrapeResult?: number, breakConnection?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -552,7 +552,6 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
             value: {
                 [cardID]: {
-                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,
@@ -565,7 +564,6 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: {
-                    lastScrapeResult: CONST.JSON_CODE.SUCCESS,
                     isLoadingLastUpdated: false,
                     pendingFields: {
                         lastScrape: null,
@@ -610,9 +608,14 @@ function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: 
         },
     ];
 
-    const parameters = {
+    const parameters: {cardID: number; breakConnection?: number} = {
         cardID: Number(cardID),
     };
+
+    if (breakConnection) {
+        // Simulate "Account not found" error code for testing
+        parameters.breakConnection = 434;
+    }
 
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD, parameters, {optimisticData, finallyData, failureData});
 }
