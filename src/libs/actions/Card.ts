@@ -19,6 +19,7 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/types/onyx';
@@ -701,22 +702,6 @@ type DeletePersonalCardData = {
     allTransactions: OnyxCollection<Transaction>;
     allReports: OnyxCollection<Report>;
 };
-
-/**
- * Checks if a report is in an open/unsubmitted state where its transactions can be deleted.
- * Matches the backend logic in Card::remove which deletes transactions on open reports.
- */
-function isReportOpenOrUnsubmitted(reportID: string | undefined, reports: OnyxCollection<Report>): boolean {
-    if (!reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        return true;
-    }
-    const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (!report) {
-        return true;
-    }
-    // Backend deletes transactions on reports with state = STATE_OPEN (0)
-    return report.stateNum === CONST.REPORT.STATE_NUM.OPEN;
-}
 
 /**
  * Deletes a personal card (CSV-imported card) and its associated transactions.
