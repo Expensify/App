@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -22,12 +23,14 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDraftRule, setDraftRule, setNameValuePair} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,7 +42,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 const getKeyForList = (rule: ExpenseRule, index: number) => `${getKeyForRule(rule)}-${index}`;
 
 function ExpenseRulesPage() {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -62,6 +65,38 @@ function ExpenseRulesPage() {
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const isInSelectionMode = shouldUseNarrowLayout ? canSelectMultiple : selectedRules.length > 0;
 
+    const filterRules = (ruleOption: ListItem, searchInput: string) => {
+        const results = tokenizedSearch([ruleOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
+        return results.length > 0;
+    };
+    const sortRules = (data: ListItem[]) => {
+        return [...data].sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
+    };
+
+    const rulesList: ListItem[] = expenseRules.map((rule, index) => {
+        const changes = formatExpenseRuleChanges(rule, translate);
+        return {
+            text: rule.merchantToMatch,
+            alternateText: changes,
+            shouldHideAlternateText: !shouldUseNarrowLayout,
+            keyForList: getKeyForList(rule, index),
+            rightElement: !shouldUseNarrowLayout && (
+                <View style={[styles.flex1]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.alignSelfStart]}
+                    >
+                        {changes}
+                    </Text>
+                </View>
+            ),
+        };
+    });
+
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(rulesList);
+
+    const [inputValue, setInputValue, filteredRuleList] = useSearchResults(rulesList, filterRules, sortRules);
+
     const toggleRule = (rule: ListItem) => {
         setSelectedRules((prev) => {
             if (prev.includes(rule.keyForList)) {
@@ -72,8 +107,8 @@ function ExpenseRulesPage() {
     };
 
     const toggleAllRules = () => {
-        const someSelected = selectedRules.length > 0;
-        setSelectedRules(someSelected ? [] : expenseRules.map(getKeyForList));
+        const someSelected = filteredRuleList.some((rule) => selectedRules.includes(rule.keyForList));
+        setSelectedRules(someSelected ? [] : filteredRuleList.map(({keyForList}) => keyForList));
     };
 
     const navigateToNewRulePage = () => {
@@ -131,27 +166,6 @@ function ExpenseRulesPage() {
         });
     }
 
-    const rulesList: ListItem[] = expenseRules.map((rule, index) => {
-        const changes = formatExpenseRuleChanges(rule, translate);
-        return {
-            text: rule.merchantToMatch,
-            alternateText: shouldUseNarrowLayout ? changes : undefined,
-            keyForList: getKeyForList(rule, index),
-            rightElement: !shouldUseNarrowLayout && (
-                <View style={[styles.flex1]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.alignSelfStart]}
-                    >
-                        {changes}
-                    </Text>
-                </View>
-            ),
-        };
-    });
-
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(rulesList);
-
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
@@ -177,13 +191,24 @@ function ExpenseRulesPage() {
     );
 
     const headerContent = (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
-        </View>
+        <>
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
+            </View>
+            {rulesList.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('expenseRulesPage.findRule')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={hasRules && !isLoading && filteredRuleList.length === 0}
+                />
+            )}
+        </>
     );
 
     const getCustomListHeader = () =>
-        !shouldUseNarrowLayout && (
+        !shouldUseNarrowLayout &&
+        filteredRuleList.length > 0 && (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.merchant')}
@@ -246,10 +271,10 @@ function ExpenseRulesPage() {
                     canSelectMultiple={canSelectMultiple}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
-                    data={rulesList}
+                    data={filteredRuleList}
                     ListItem={TableListItem}
                     onCheckboxPress={toggleRule}
-                    onSelectAll={expenseRules.length > 0 ? toggleAllRules : undefined}
+                    onSelectAll={filteredRuleList.length > 0 ? toggleAllRules : undefined}
                     onSelectRow={onSelectRow}
                     onTurnOnSelectionMode={(item) => item && toggleRule(item)}
                     selectedItems={selectedRules}
