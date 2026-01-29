@@ -47,6 +47,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
     shouldShowRightCaret = false,
+    shouldAddErrorRowBottomMargin = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -90,7 +91,7 @@ function BaseListItem<TItem extends ListItem>({
             onClose={() => onDismissError(item)}
             pendingAction={pendingAction}
             errors={errors}
-            errorRowStyles={styles.ph5}
+            errorRowStyles={shouldAddErrorRowBottomMargin ? [styles.ph5, styles.mb2] : styles.ph5}
             contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback

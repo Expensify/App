@@ -314,6 +314,9 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
+
+    /** Whether to add bottom margin to error row styles */
+    shouldAddErrorRowBottomMargin?: boolean;
 };
 
 type SplitListItemType = ListItem &

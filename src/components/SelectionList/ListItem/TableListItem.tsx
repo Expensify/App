@@ -79,6 +79,7 @@ function TableListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
             shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
             shouldShowRightCaret={shouldShowRightCaret}
+            shouldAddErrorRowBottomMargin
         >
             {(hovered) => (
                 <>
