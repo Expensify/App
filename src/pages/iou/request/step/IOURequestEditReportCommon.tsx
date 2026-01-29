@@ -18,7 +18,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getPolicyName, getReportName, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -124,11 +124,15 @@ function IOURequestEditReportCommon({
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
+                    return false;
+                }
+
                 if (canAddTransaction(report, undefined, true)) {
                     return true;
                 }
 
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const isReportPolicyAdmin = isPolicyAdmin(policy);
                 const isReportManager = report.managerID === currentUserPersonalDetails.accountID;
                 return isReportPolicyAdmin || isReportManager;
@@ -149,7 +153,7 @@ function IOURequestEditReportCommon({
                     policyID: matchingOption?.policyID ?? report.policyID,
                 };
             });
-    }, [debouncedSearchValue, outstandingReports, selectedReportID, options.reports, localeCompare, allPolicies, currentUserPersonalDetails.accountID]);
+    }, [debouncedSearchValue, outstandingReports, selectedReportID, options.reports, localeCompare, allPolicies, currentUserPersonalDetails.accountID, isTimeRequest]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
