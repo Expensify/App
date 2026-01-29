@@ -37,7 +37,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     return (
         <Picker
             label={size === 'normal' ? translate('languagePage.language') : null}
-            accessibilityLabel={translate('languagePage.language')}
+            accessibilityLabel={`${translate('common.select')} ${translate('languagePage.language')}`}
             onInputChange={(locale) => setLocale(locale, preferredLocale)}
             isDisabled={shouldDisablePicker}
             items={locales}

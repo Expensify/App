@@ -483,7 +483,7 @@ function NumberWithSymbolForm({
                                 style={styles.minWidth18}
                                 isContentCentered
                                 text={currency}
-                                accessibilityLabel={translate('common.selectCurrency')}
+                                accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
                             />
                         )}
                         {!!errorText && (
@@ -509,7 +509,7 @@ function NumberWithSymbolForm({
                         style={styles.minWidth18}
                         isContentCentered
                         text={currency}
-                        accessibilityLabel={translate('common.selectCurrency')}
+                        accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
                     />
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
