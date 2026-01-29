@@ -8,6 +8,7 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type GroupedItem = TransactionMemberGroupListItemType | TransactionCardGroupListItemType | TransactionWithdrawalIDGroupListItemType | TransactionCategoryGroupListItemType;
@@ -46,13 +47,12 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBar
     const chartData: BarChartDataPoint[] = useMemo(() => {
         return data.map((item) => {
             const groupedItem = item as GroupedItem;
-            // Use the pre-calculated total from the API (already in cents, convert to dollars)
-            const totalInDollars = (groupedItem.total ?? 0) / 100;
             const currency = groupedItem.currency ?? 'USD';
+            const totalInDisplayUnits = convertToFrontendAmountAsInteger(groupedItem.total ?? 0, currency);
 
             return {
                 label: getLabel(groupedItem),
-                total: totalInDollars,
+                total: totalInDisplayUnits,
                 currency,
             };
         });
