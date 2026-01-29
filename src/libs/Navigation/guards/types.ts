@@ -29,13 +29,6 @@ type NavigationGuard = {
     name: string;
 
     /**
-     * Determines if this guard should evaluate for the given navigation action
-     * Use this to skip evaluation when the guard is not relevant
-     * @default true - guard applies to all navigation
-     */
-    shouldApply?(state?: NavigationState, action?: NavigationAction, context?: GuardContext): boolean;
-
-    /**
      * Evaluates the navigation action and returns a decision
      * - ALLOW: Let navigation proceed normally
      * - BLOCK: Prevent navigation and keep current state

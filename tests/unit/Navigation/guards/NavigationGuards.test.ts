@@ -13,7 +13,6 @@ describe('Navigation Guard System', () => {
         it('should register a guard', () => {
             const mockGuard: NavigationGuard = {
                 name: 'TestGuard',
-                shouldApply: () => true,
                 evaluate: () => ({type: 'ALLOW'}),
             };
 
@@ -26,12 +25,10 @@ describe('Navigation Guard System', () => {
         it('should register multiple guards in order', () => {
             const guard1: NavigationGuard = {
                 name: 'Guard1',
-                shouldApply: () => true,
                 evaluate: () => ({type: 'ALLOW'}),
             };
             const guard2: NavigationGuard = {
                 name: 'Guard2',
-                shouldApply: () => true,
                 evaluate: () => ({type: 'ALLOW'}),
             };
 
@@ -49,7 +46,6 @@ describe('Navigation Guard System', () => {
         it('should remove all registered guards', () => {
             const mockGuard: NavigationGuard = {
                 name: 'TestGuard',
-                shouldApply: () => true,
                 evaluate: () => ({type: 'ALLOW'}),
             };
 
@@ -95,26 +91,10 @@ describe('Navigation Guard System', () => {
             expect(result).toEqual({type: 'ALLOW'});
         });
 
-        it('should skip guards where shouldApply returns false', () => {
+        it('should evaluate guards', () => {
             const evaluateFn = jest.fn(() => ({type: 'ALLOW' as const}));
             const mockGuard: NavigationGuard = {
                 name: 'TestGuard',
-                shouldApply: () => false,
-                evaluate: evaluateFn,
-            };
-
-            registerGuard(mockGuard);
-            const result = evaluateGuards(mockState, mockAction, mockContext);
-
-            expect(result).toEqual({type: 'ALLOW'});
-            expect(evaluateFn).not.toHaveBeenCalled();
-        });
-
-        it('should evaluate guards where shouldApply returns true', () => {
-            const evaluateFn = jest.fn(() => ({type: 'ALLOW' as const}));
-            const mockGuard: NavigationGuard = {
-                name: 'TestGuard',
-                shouldApply: () => true,
                 evaluate: evaluateFn,
             };
 
@@ -130,12 +110,10 @@ describe('Navigation Guard System', () => {
 
             const guard1: NavigationGuard = {
                 name: 'BlockingGuard',
-                shouldApply: () => true,
                 evaluate: guard1Evaluate,
             };
             const guard2: NavigationGuard = {
                 name: 'AllowGuard',
-                shouldApply: () => true,
                 evaluate: guard2Evaluate,
             };
 
@@ -155,12 +133,10 @@ describe('Navigation Guard System', () => {
 
             const guard1: NavigationGuard = {
                 name: 'RedirectGuard',
-                shouldApply: () => true,
                 evaluate: guard1Evaluate,
             };
             const guard2: NavigationGuard = {
                 name: 'AllowGuard',
-                shouldApply: () => true,
                 evaluate: guard2Evaluate,
             };
 
@@ -180,12 +156,10 @@ describe('Navigation Guard System', () => {
 
             const guard1: NavigationGuard = {
                 name: 'AllowGuard1',
-                shouldApply: () => true,
                 evaluate: guard1Evaluate,
             };
             const guard2: NavigationGuard = {
                 name: 'AllowGuard2',
-                shouldApply: () => true,
                 evaluate: guard2Evaluate,
             };
 
@@ -204,7 +178,6 @@ describe('Navigation Guard System', () => {
 
             const guard1: NavigationGuard = {
                 name: 'Guard1',
-                shouldApply: () => true,
                 evaluate: () => {
                     executionOrder.push('Guard1');
                     return {type: 'ALLOW'};
@@ -212,7 +185,6 @@ describe('Navigation Guard System', () => {
             };
             const guard2: NavigationGuard = {
                 name: 'Guard2',
-                shouldApply: () => true,
                 evaluate: () => {
                     executionOrder.push('Guard2');
                     return {type: 'ALLOW'};
@@ -220,7 +192,6 @@ describe('Navigation Guard System', () => {
             };
             const guard3: NavigationGuard = {
                 name: 'Guard3',
-                shouldApply: () => true,
                 evaluate: () => {
                     executionOrder.push('Guard3');
                     return {type: 'ALLOW'};

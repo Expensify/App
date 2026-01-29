@@ -124,12 +124,13 @@ const getTargetRoute = (action: NavigationAction) => {
 const OnboardingGuard: NavigationGuard = {
     name: 'OnboardingGuard',
 
-    shouldApply: (): boolean => {
-        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
-        return !isOnboardingCompleted;
-    },
-
     evaluate: (state: NavigationState | undefined, action: NavigationAction, context: GuardContext): GuardResult => {
+        // Early exit: If onboarding is already completed, this guard doesn't apply
+        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
+        if (isOnboardingCompleted) {
+            return {type: 'ALLOW'};
+        }
+
         if (!state?.routes?.length || context.isLoading) {
             return {type: 'ALLOW'};
         }
@@ -172,14 +173,13 @@ const OnboardingGuard: NavigationGuard = {
         }
 
         // Calculate all skip conditions
-        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
 
-        const shouldSkipOnboarding = isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
+        const shouldSkipOnboarding = isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};

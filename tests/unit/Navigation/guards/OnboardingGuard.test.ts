@@ -33,30 +33,24 @@ describe('OnboardingGuard', () => {
         await waitForBatchedUpdates();
     });
 
-    describe('shouldApply', () => {
-        it('should return false when user has completed onboarding', async () => {
+    describe('early return when onboarding completed', () => {
+        it('should return ALLOW when user has completed onboarding', async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: true,
             });
             await waitForBatchedUpdates();
 
-            expect(OnboardingGuard.shouldApply?.()).toBe(false);
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+            expect(result.type).toBe('ALLOW');
         });
 
-        it('should return true when user has not completed onboarding', async () => {
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-            });
-            await waitForBatchedUpdates();
-
-            expect(OnboardingGuard.shouldApply?.()).toBe(true);
-        });
-
-        it('should return false when onboarding data is undefined (old/migrated accounts)', async () => {
+        it('should return ALLOW when onboarding data is undefined (old/migrated accounts)', async () => {
             // Empty/null onboarding means old account - considered completed
             await Onyx.set(ONYXKEYS.NVP_ONBOARDING, null);
             await waitForBatchedUpdates();
-            expect(OnboardingGuard.shouldApply?.()).toBe(false);
+
+            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
+            expect(result.type).toBe('ALLOW');
         });
     });
 

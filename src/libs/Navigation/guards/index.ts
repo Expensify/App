@@ -71,12 +71,6 @@ function createGuardContext(overrides?: Partial<GuardContext>): GuardContext {
  */
 function evaluateGuards(state: NavigationState, action: NavigationAction, context: GuardContext): GuardResult {
     for (const guard of guards) {
-        const shouldApply = guard.shouldApply?.(state, action, context) ?? true;
-
-        if (!shouldApply) {
-            continue;
-        }
-
         const result = guard.evaluate(state, action, context);
 
         if (result.type === 'BLOCK' || result.type === 'REDIRECT') {
