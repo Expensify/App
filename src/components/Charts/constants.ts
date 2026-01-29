@@ -48,12 +48,6 @@ const DEFAULT_SINGLE_BAR_COLOR_INDEX = 4;
 /** Safety buffer multiplier for domain padding calculation */
 const DOMAIN_PADDING_SAFETY_BUFFER = 1.1;
 
-/** Expensify Neue font path for web builds */
-const EXPENSIFY_NEUE_FONT_URL = '/fonts/ExpensifyNeue-Regular.woff';
-
-/** Y-axis domain starting from zero */
-const Y_AXIS_DOMAIN: [number] = [0];
-
 /** Line width for X-axis (hidden) */
 const X_AXIS_LINE_WIDTH = 0;
 
@@ -104,8 +98,6 @@ export {
     CHART_CONTENT_MIN_HEIGHT,
     DEFAULT_SINGLE_BAR_COLOR_INDEX,
     DOMAIN_PADDING_SAFETY_BUFFER,
-    EXPENSIFY_NEUE_FONT_URL,
-    Y_AXIS_DOMAIN,
     X_AXIS_LINE_WIDTH,
     Y_AXIS_LINE_WIDTH,
     FRAME_LINE_WIDTH,
