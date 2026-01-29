@@ -14,17 +14,41 @@ let currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
 let currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
 let onboardingInitialPath: OnyxEntry<string>;
 let allReports: OnyxCollection<Report> = {};
+let currentConciergeReportID: string | undefined;
 let areSubscriptionsSetUp = false;
 let isInitialized = false;
 let pendingDeepLinkUrl: string | null = null;
-let isUrlChangeEvent = false;
 
 // Track if reports subscription has received its first callback (required for deep link processing)
 let hasReportsReceived = false;
 
-/**
- * Check if all subscriptions are ready and process pending deep link if needed
- */
+// Track if session has been loaded (similar to isLoadingOnyxValue check in Expensify.tsx)
+let hasSessionLoaded = false;
+
+function startModule() {
+    Onyx.connectWithoutView({
+        key: ONYXKEYS.SESSION,
+        callback: () => {
+            // Session callback fired = session is loaded (equivalent to !isLoadingOnyxValue)
+            // Only initialize once (prevent duplicate initialization if callback fires multiple times)
+            if (hasSessionLoaded) {
+                return; // Already initialized, skip
+            }
+
+            hasSessionLoaded = true;
+            
+            initializeDeepLinkHandler();
+        },
+    });
+
+    Onyx.connectWithoutView({
+        key: ONYXKEYS.CONCIERGE_REPORT_ID,
+        callback: (value) => {
+            currentConciergeReportID = value ?? undefined;
+        },
+    });
+}
+
 function processPendingDeepLinkIfReady() {
     if (!pendingDeepLinkUrl) {
         return;
@@ -39,21 +63,24 @@ function processPendingDeepLinkIfReady() {
     // Onboarding data is optional - proceed immediately once reports are ready
     // Use whatever onboarding values we have (may be undefined if user is not in onboarding)
     const urlToProcess = pendingDeepLinkUrl;
-    const wasUrlChangeEvent = isUrlChangeEvent;
     pendingDeepLinkUrl = null;
-    isUrlChangeEvent = false;
 
     const isCurrentlyAuthenticated = hasAuthToken();
-    openReportFromDeepLink(urlToProcess, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, wasUrlChangeEvent);
+    openReportFromDeepLink(
+        urlToProcess,
+        currentOnboardingPurposeSelected,
+        currentOnboardingCompanySize,
+        onboardingInitialPath,
+        allReports,
+        isCurrentlyAuthenticated,
+        currentConciergeReportID,
+    );
 
     // Reset flag after processing so future deep links wait for fresh values
     hasReportsReceived = false;
 }
 
-/**
- * Set up Onyx subscriptions for deep link handling
- * Only called when there's actually a URL to process
- */
+
 function setUpOnyxSubscriptions() {
     if (areSubscriptionsSetUp) {
         return;
@@ -101,12 +128,7 @@ function setUpOnyxSubscriptions() {
     areSubscriptionsSetUp = true;
 }
 
-/**
- * Handle deep link URL processing
- * @param url - The deep link URL
- * @param fromUrlChangeEvent - True if this is from a URL change event (app already running), false for initial URL
- */
-function handleDeepLink(url: string | null, fromUrlChangeEvent = false) {
+function handleDeepLink(url: string | null, fromUrlChangeEvent: boolean) {
     if (!url) {
         return;
     }
@@ -115,7 +137,15 @@ function handleDeepLink(url: string | null, fromUrlChangeEvent = false) {
     // React Navigation's linking config will handle the navigation automatically
     if (fromUrlChangeEvent) {
         const isCurrentlyAuthenticated = hasAuthToken();
-        openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, true);
+        openReportFromDeepLink(
+            url,
+            currentOnboardingPurposeSelected,
+            currentOnboardingCompanySize,
+            onboardingInitialPath,
+            allReports,
+            isCurrentlyAuthenticated,
+            currentConciergeReportID,
+        );
         return;
     }
 
@@ -124,16 +154,11 @@ function handleDeepLink(url: string | null, fromUrlChangeEvent = false) {
 
     // Store the URL to process once subscriptions are ready
     pendingDeepLinkUrl = url;
-    isUrlChangeEvent = false;
 
     // Try to process immediately if subscriptions are already set up and ready
     processPendingDeepLinkIfReady();
 }
 
-/**
- * Initialize deep link handling by setting up Linking listener
- * Note: Initial URL should be passed via processInitialURL() from Expensify.tsx
- */
 function initializeDeepLinkHandler() {
     if (isInitialized) {
         return;
@@ -152,10 +177,6 @@ function initializeDeepLinkHandler() {
     isInitialized = true;
 }
 
-/**
- * Process an initial URL passed from Expensify.tsx
- * This is called when Expensify.tsx gets the initial URL from Linking.getInitialURL()
- */
 function processInitialURL(url: string | null) {
     if (!url) {
         return;
@@ -164,8 +185,6 @@ function processInitialURL(url: string | null) {
     handleDeepLink(url, false);
 }
 
-// Initialize the deep link handler when the module is loaded
-// Initial URL will be passed via processInitialURL() from Expensify.tsx
-initializeDeepLinkHandler();
+startModule();
 
-export default processInitialURL;
+export {processInitialURL, startModule};
