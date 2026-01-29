@@ -14,8 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasBiometricsRegisteredSelector} from '@src/selectors/Account';
 import type {Account} from '@src/types/onyx';
-import { hasBiometricsRegisteredSelector } from '@src/selectors/Account';
 
 function getIsLoading(data: OnyxEntry<Account>) {
     return !!data?.isLoading;
