@@ -13,10 +13,10 @@ function useUpdateGpsTripOnReconnect() {
             return;
         }
 
-        const startAddress = await addressFromGpsPoint(gpsPoint);
+        const address = await addressFromGpsPoint(gpsPoint);
 
-        if (startAddress !== null) {
-            setAddress({value: startAddress, type: 'address'});
+        if (address !== null) {
+            setAddress({value: address, type: 'address'});
         }
     };
 
