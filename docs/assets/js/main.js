@@ -101,15 +101,13 @@ function closeSidebarOnClickOutside(event) {
 
 function openSidebar() {
     document.getElementById('sidebar-layer').style.display = 'block';
-    document.getElementById('gsc-i-id1').focus();
+    document.getElementById('search-input').focus();
 
     // Make body unscrollable
     const yAxis = document.documentElement.style.getPropertyValue('y-axis');
     const body = document.body;
     body.style.position = 'fixed';
     body.style.top = `-${yAxis}`;
-
-    document.getElementById('gsc-i-id1').focus();
 
     // Close the sidebar when clicking sidebar layer (outside the sidebar search)
     const sidebarLayer = document.getElementById('sidebar-layer');
@@ -118,52 +116,72 @@ function openSidebar() {
     }
 }
 
-// Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
-function changeSVGViewBoxGoogle() {
-    // Get all inline Google SVG elements on the page
-    const svgsGoogle = document.querySelectorAll('svg[data-source]:not(.logo), .gsc-search-button.gsc-search-button-v2 svg');
+/**
+ * Search the help site using the SearchHelpsite API.
+ *
+ * @param {string} query
+ */
+function searchHelpsite(query) {
+    const resultsContainer = document.getElementById('search-results');
+    if (!query.trim()) {
+        resultsContainer.innerHTML = '';
+        return;
+    }
 
-    Array.from(svgsGoogle).forEach((svg) => {
-        // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
-        svg.setAttribute('viewBox', '0 0 20 20');
-        svg.setAttribute('height', '16');
-        svg.setAttribute('width', '16');
-    });
+    resultsContainer.innerHTML = '<div class="search-loading">Searching...</div>';
+
+    const formData = new FormData();
+    formData.append('command', 'SearchHelpsite');
+    formData.append('query', query.trim());
+
+    fetch('https://www.expensify.com/api/SearchHelpsite', {
+        method: 'POST',
+        body: formData,
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            const results = data.searchResults || [];
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<div class="search-no-results">No results found</div>';
+                return;
+            }
+
+            resultsContainer.innerHTML = results
+                .map(
+                    (result) =>
+                        `<a href="${result.url}" class="search-result-item">
+                        <div class="search-result-content">
+                            <div class="search-result-title">${result.url.split('/').pop().replace(/-/g, ' ')}</div>
+                            ${result.description ? `<div class="search-result-description">${result.description}</div>` : ''}
+                        </div>
+                        <img src="/assets/images/arrow-right.svg" class="base-icon" />
+                    </a>`,
+                )
+                .join('');
+        })
+        .catch(() => {
+            resultsContainer.innerHTML = '<div class="search-error">Something went wrong. Please try again.</div>';
+        });
 }
 
-// Function to insert element after another
-// In this case, we insert the label element after the Google Search Input so we can have the same label animation effect
-function insertElementAfter(referenceNode, newNode) {
-    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+function initSearch() {
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+
+    if (searchInput) {
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                searchHelpsite(searchInput.value);
+            }
+        });
+    }
+
+    if (searchButton) {
+        searchButton.addEventListener('click', () => {
+            searchHelpsite(searchInput.value);
+        });
+    }
 }
-
-// Update the ICON for search input.
-/* Change the path of the Google Search Button icon into Expensify icon */
-function updateGoogleSearchIcon() {
-    const node = document.querySelector('.gsc-search-button.gsc-search-button-v2 svg path');
-    node.setAttribute(
-        'd',
-        'M8 1c3.9 0 7 3.1 7 7 0 1.4-.4 2.7-1.1 3.8l5.2 5.2c.6.6.6 1.5 0 2.1-.6.6-1.5.6-2.1 0l-5.2-5.2C10.7 14.6 9.4 15 8 15c-3.9 0-7-3.1-7-7s3.1-7 7-7zm0 3c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z',
-    );
-}
-
-// Need to wait up until page is load, so the svg viewBox can be changed
-// And the search label can be inserted
-window.addEventListener('load', () => {
-    changeSVGViewBoxGoogle();
-
-    updateGoogleSearchIcon();
-
-    // Add required into the search input
-    const searchInput = document.getElementById('gsc-i-id1');
-    searchInput.setAttribute('required', '');
-
-    // Insert search label after the search input
-    const searchLabel = document.createElement('label');
-    searchLabel.classList.add('search-label');
-    searchLabel.innerHTML = 'Search for something...';
-    insertElementAfter(searchInput, searchLabel);
-});
 
 const FIXED_HEADER_HEIGHT = 80;
 
@@ -256,6 +274,8 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    initSearch();
+
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
     // Back button doesn't exist on all the pages
@@ -318,48 +338,3 @@ window.addEventListener('hashchange', () => {
     });
 });
 
-// We need to pass the results from readyCallback to renderedCallback so we make two part callback here to customize the results from GCSE API
-const makeTwoPartCallback = () => {
-    let customResults = [];
-    const readyCallback = (name, q, promos, results, resultsDiv) => {
-        customResults = [];
-        results.forEach((result) => {
-            const {ogUrl, ogSiteName} = result.richSnippet.metatags;
-
-            let newOgSiteName;
-            if (ogUrl.includes('expensify-classic')) {
-                newOgSiteName = 'Expensify Classic';
-            } else if (ogUrl.includes('travel')) {
-                newOgSiteName = 'Expensify Travel';
-            } else {
-                newOgSiteName = 'New Expensify';
-            }
-
-            result.title = result.title.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
-            result.titleNoFormatting = result.titleNoFormatting.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
-            if (!result.title.endsWith(` • ${newOgSiteName}`)) {
-                result.title = result.title + ` • ${newOgSiteName}`;
-            }
-            customResults.push(result);
-        });
-    };
-    const renderedCallback = (name, q, promos, results) => {
-        for (let i = 0; i < results.length; ++i) {
-            const div = results[i];
-            const result = customResults[i];
-            const titleElement = div.querySelector('a.gs-title');
-            titleElement.innerHTML = result.title;
-        }
-    };
-    return {readyCallback, renderedCallback};
-};
-
-const {readyCallback: webResultsReadyCallback, renderedCallback: webResultsRenderedCallback} = makeTwoPartCallback();
-
-window.__gcse || (window.__gcse = {});
-window.__gcse.searchCallbacks = {
-    web: {
-        ready: webResultsReadyCallback,
-        rendered: webResultsRenderedCallback,
-    },
-};
