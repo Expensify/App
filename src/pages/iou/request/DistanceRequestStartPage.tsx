@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -101,6 +102,8 @@ function DistanceRequestStartPage({
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
@@ -110,9 +113,10 @@ function DistanceRequestStartPage({
             }
             initMoneyRequest({
                 reportID,
-                policy,
+                policy: isTrackDistanceExpense ? policyForMovingExpenses : policy,
                 personalPolicy,
                 isFromGlobalCreate,
+                isTrackDistanceExpense,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
@@ -135,6 +139,8 @@ function DistanceRequestStartPage({
             currentDate,
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
+            isTrackDistanceExpense,
+            policyForMovingExpenses,
             hasOnlyPersonalPolicies,
             draftTransactions,
         ],
