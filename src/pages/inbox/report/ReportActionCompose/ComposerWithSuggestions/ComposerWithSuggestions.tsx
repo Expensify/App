@@ -291,7 +291,7 @@ function ComposerWithSuggestions({
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
 
-    // The ref to check whether we're transitioning to a preexisting report
+    // Tracks transition state to prevent SilentCommentUpdater from overwriting the just-saved draft during report ID changes
     const isTransitioningToPreExistingReport = useRef(false);
 
     // Callback to clear the transitioning flag - passed to SilentCommentUpdater to avoid prop mutation

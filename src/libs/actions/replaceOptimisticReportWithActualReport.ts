@@ -71,7 +71,8 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         return;
     }
 
-    // Handle cleanup of stale optimistic IOU report action
+    // If an optimistic IOU action was created before we knew a preexisting IOU action for the thread existed,
+    // remove it to avoid duplicate IOU report actions
     if (isMoneyRequest(report) && parentReportID && parentReportActionID) {
         const parentReportAction = allReportActions?.[parentReportID]?.[parentReportActionID];
         if (parentReportAction?.isOptimisticAction) {
@@ -95,7 +96,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
 
             if (!parentReportActionID) {
-                // Clear the optimistic DM/group-DM
+                // DMs and group-DMs don't have parent actions, so we only need to merge report data and preserve existing participants
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
                     ...report,
                     reportID: preexistingReportID,
@@ -104,13 +105,14 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     participants: existingReport?.participants ?? report.participants,
                 });
             } else {
-                // Clear the optimistic thread report
+                // Thread reports have parent actions that need their childReportID updated to point to the preexisting thread
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
                     ...report,
                     reportID: preexistingReportID,
                     preexistingReportID: null,
                 });
-                // Update the parent report action to point to the preexisting thread report
+                // Non-optimistic parent actions already exist, so we update their childReportID;
+                // optimistic actions were already cleaned up above
                 const parentReportAction = parentReportID ? allReportActions?.[parentReportID]?.[parentReportActionID] : null;
                 if (parentReportAction && !parentReportAction.isOptimisticAction) {
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
@@ -122,7 +124,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
 
         const isParentOneTransactionReport = isOneTransactionReport(parentReport);
 
-        // If the parent report is a one transaction report, we want to copy the draft comment to the one transaction report instead of the preexisting thread report
+        // One-transaction reports display the expense via the parent IOU report screen, not the thread, so the draft belongs there
         const reportToCopyDraftTo = !!parentReportID && isParentOneTransactionReport ? parentReportID : preexistingReportID;
 
         if (!navigationRef.isReady()) {
@@ -188,7 +190,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
             (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
         ) {
             if (draftReportComment) {
-                // Transfer draft to parent report before clearing optimistic report
+                // Draft must be saved first because the callback will clear the optimistic report and its associated draft
                 saveReportDraftComment(parentReportID, draftReportComment, () => {
                     callback();
 
