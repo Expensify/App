@@ -11526,6 +11526,8 @@ function prepareOnboardingOnyxData({
 
     // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
+    // When posting to admins room in non-production environments, we skip tasks in favor of backend-generated followups.
+    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && environment !== CONST.ENVIRONMENT.PRODUCTION;
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
@@ -11602,8 +11604,8 @@ function prepareOnboardingOnyxData({
     let addExpenseApprovalsTaskReportID;
     let setupTagsTaskReportID;
     let setupCategoriesAndTagsTaskReportID;
-    // If shouldPostTasksInAdminsRoom we do not want to generate tasks in favour of followups.
-    const tasks = shouldPostTasksInAdminsRoom ? [] : onboardingMessage.tasks;
+    // If shouldUseFollowupsInsteadOfTasks we do not want to generate tasks in favour of followups.
+    const tasks = shouldUseFollowupsInsteadOfTasks ? [] : onboardingMessage.tasks;
     const tasksData = tasks
         .filter((task) => {
             if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
@@ -11881,7 +11883,7 @@ function prepareOnboardingOnyxData({
     }, []);
 
     const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [...tasksForOptimisticData];
-    const lastVisibleActionCreated = shouldPostTasksInAdminsRoom ? textCommentAction.created : welcomeSignOffCommentAction.created;
+    const lastVisibleActionCreated = shouldUseFollowupsInsteadOfTasks ? textCommentAction.created : welcomeSignOffCommentAction.created;
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -11904,7 +11906,7 @@ function prepareOnboardingOnyxData({
             },
         },
     );
-    if (!shouldPostTasksInAdminsRoom) {
+    if (!shouldUseFollowupsInsteadOfTasks) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
