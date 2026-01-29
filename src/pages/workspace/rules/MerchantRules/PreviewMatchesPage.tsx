@@ -2,7 +2,6 @@ import type {ListRenderItem} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -20,16 +19,14 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {MerchantRuleForm} from '@src/types/form';
 import type {Transaction} from '@src/types/onyx';
 import type {CodingRuleFilter} from '@src/types/onyx/Policy';
 
 type PreviewMatchesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES>;
-
-const merchantRuleFormSelector = (form: OnyxEntry<MerchantRuleForm>) => form?.merchantToMatch ?? '';
 
 function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const policyID = route.params.policyID;
@@ -40,9 +37,12 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
+    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [isLoading] = useOnyx(ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW, {canBeMissing: true});
     const [matchingTransactions] = useOnyx(ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION, {canBeMissing: true});
-    const [merchant = ''] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true, selector: merchantRuleFormSelector});
+
+    const merchant = form?.merchantToMatch ?? '';
+    const operator = form?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
 
     useEffect(() => {
         if (isOffline) {
@@ -51,12 +51,12 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
 
         const filters: CodingRuleFilter = {
             left: 'merchant',
-            operator: 'eq',
+            operator,
             right: merchant,
         };
 
         getTransactionsMatchingCodingRule(policyID, filters);
-    }, [merchant, policyID, isOffline]);
+    }, [merchant, operator, policyID, isOffline]);
 
     const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const hasMatchingTransactions = !!(merchant && matchingTransactionsArray.length);
