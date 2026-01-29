@@ -1221,8 +1221,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Weet je zeker dat je deze uitgave wilt verwijderen?',
             other: 'Weet je zeker dat je deze uitgaven wilt verwijderen?',
         }),
-        deleteReport: 'Rapport verwijderen',
-        deleteReportConfirmation: 'Weet je zeker dat je dit rapport wilt verwijderen?',
         settledExpensify: 'Betaald',
         done: 'Gereed',
         settledElsewhere: 'Elders betaald',
@@ -1526,6 +1524,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} via <a href="${policyRulesRoute}">werkruimteregels</a>`;
         },
+        deleteReport: {one: 'Rapport verwijderen', other: 'Rapporten verwijderen'},
+        deleteReportConfirmation: {one: 'Weet je zeker dat je dit rapport wilt verwijderen?', other: 'Weet je zeker dat je deze rapporten wilt verwijderen?'},
     },
     transactionMerge: {
         listPage: {

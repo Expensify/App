@@ -1224,8 +1224,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Sind Sie sicher, dass Sie diese Ausgabe löschen möchten?',
             other: 'Sind Sie sicher, dass Sie diese Ausgaben löschen möchten?',
         }),
-        deleteReport: 'Bericht löschen',
-        deleteReportConfirmation: 'Möchten Sie diesen Bericht wirklich löschen?',
         settledExpensify: 'Bezahlt',
         done: 'Fertig',
         settledElsewhere: 'Anderswo bezahlt',
@@ -1530,6 +1528,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} über <a href="${policyRulesRoute}">Workspace-Regeln</a>`;
         },
+        deleteReport: {one: 'Bericht löschen', other: 'Berichte löschen'},
+        deleteReportConfirmation: {one: 'Sind Sie sicher, dass Sie diesen Bericht löschen möchten?', other: 'Sind Sie sicher, dass Sie diese Berichte löschen möchten?'},
     },
     transactionMerge: {
         listPage: {

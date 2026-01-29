@@ -432,8 +432,8 @@ function SearchPage({route}: SearchPageProps) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(async () => {
             const result = await showConfirmModal({
-                title: translate('iou.deleteExpense', {count: selectedTransactionsKeys.length}),
-                prompt: translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length}),
+                title: translate(isExpenseReportType ? 'iou.deleteReport' : 'iou.deleteExpense', {count: selectedReportIDs.length}),
+                prompt: translate(isExpenseReportType ? 'iou.deleteReportConfirmation' : 'iou.deleteConfirmation', {count: selectedReportIDs.length}),
                 confirmText: translate('common.delete'),
                 cancelText: translate('common.cancel'),
                 danger: true,
@@ -469,7 +469,6 @@ function SearchPage({route}: SearchPageProps) {
         selectedTransactionsKeys,
         hash,
         clearSelectedTransactions,
-        queryJSON?.type,
         selectedReportIDs,
         currentUserPersonalDetails?.login,
         allTransactions,
@@ -998,7 +997,6 @@ function SearchPage({route}: SearchPageProps) {
         lastPaymentMethods,
         selectedReportIDs,
         allTransactions,
-        queryJSON?.type,
         selectedPolicyIDs,
         policies,
         integrationsExportTemplates,

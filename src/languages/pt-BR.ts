@@ -1220,8 +1220,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Você tem certeza de que deseja excluir esta despesa?',
             other: 'Tem certeza de que deseja excluir estas despesas?',
         }),
-        deleteReport: 'Excluir relatório',
-        deleteReportConfirmation: 'Tem certeza de que deseja excluir este relatório?',
         settledExpensify: 'Pago',
         done: 'Concluído',
         settledElsewhere: 'Pago em outro lugar',
@@ -1523,6 +1521,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} via <a href="${policyRulesRoute}">regras do workspace</a>`;
         },
+        deleteReport: {one: 'Excluir relatório', other: 'Excluir relatórios'},
+        deleteReportConfirmation: {one: 'Tem certeza de que deseja excluir este relatório?', other: 'Tem certeza de que deseja excluir estes relatórios?'},
     },
     transactionMerge: {
         listPage: {

@@ -1222,8 +1222,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Czy na pewno chcesz usunąć ten wydatek?',
             other: 'Czy na pewno chcesz usunąć te wydatki?',
         }),
-        deleteReport: 'Usuń raport',
-        deleteReportConfirmation: 'Czy na pewno chcesz usunąć ten raport?',
         settledExpensify: 'Opłacone',
         done: 'Gotowe',
         settledElsewhere: 'Opłacone gdzie indziej',
@@ -1526,6 +1524,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} przez <a href="${policyRulesRoute}">zasady przestrzeni roboczej</a>`;
         },
+        deleteReport: {one: 'Usuń raport', other: 'Usuń raporty'},
+        deleteReportConfirmation: {one: 'Czy na pewno chcesz usunąć ten raport?', other: 'Czy na pewno chcesz usunąć te raporty?'},
     },
     transactionMerge: {
         listPage: {
