@@ -2,13 +2,17 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {Fragment} from 'react';
+import React, {Fragment, useCallback, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
+import {getDraggableItemState} from './types';
 
 const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
 
@@ -21,6 +25,8 @@ function DraggableList<T>({
     renderItem,
     keyExtractor,
     onDragEnd: onDragEndCallback,
+    onSelectRow,
+    isKeyboardActive = true,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
     disableScroll,
@@ -30,6 +36,26 @@ function DraggableList<T>({
 
     const items = data.map((item, index) => {
         return keyExtractor(item, index);
+    });
+
+    const disabledArrowKeyIndexes = data.flatMap((item, index) => (getDraggableItemState(item).isDisabled ? [index] : []));
+
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        maxIndex: data.length - 1,
+        disabledIndexes: disabledArrowKeyIndexes,
+        isActive: isKeyboardActive,
+    });
+
+    const selectFocusedOption = useCallback(() => {
+        const focusedItem = data.at(focusedIndex);
+        if (focusedItem && onSelectRow) {
+            onSelectRow(focusedItem);
+        }
+    }, [data, focusedIndex, onSelectRow]);
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
+        isActive: isKeyboardActive && focusedIndex >= 0 && !!onSelectRow,
     });
 
     /**
@@ -46,28 +72,40 @@ function DraggableList<T>({
 
             const reorderedItems = arrayMove(data, oldIndex, newIndex);
             onDragEndCallback?.({data: reorderedItems});
+            setFocusedIndex(-1);
         }
     };
 
-    const sortableItems = data.map((item, index) => {
-        const key = keyExtractor(item, index);
-        // Check if item has a disabled property for dragging
-        const isDisabled = typeof item === 'object' && item !== null && 'isDragDisabled' in item ? !!(item as {isDragDisabled?: boolean}).isDragDisabled : false;
-        return (
-            <SortableItem
-                id={key}
-                key={key}
-                disabled={isDisabled}
-            >
-                {renderItem({
+    const sortableItems = useMemo(
+        () =>
+            data.map((item, index) => {
+                const key = keyExtractor(item, index);
+                const {isDragDisabled, isDisabled: isItemDisabled} = getDraggableItemState(item);
+                const isFocused = index === focusedIndex && !isItemDisabled;
+
+                const renderedItem = renderItem({
                     item,
                     getIndex: () => index,
                     isActive: false,
                     drag: () => {},
-                })}
-            </SortableItem>
-        );
-    });
+                });
+
+                const itemWithFocus = React.isValidElement(renderedItem) ? React.cloneElement(renderedItem, {isFocused} as React.Attributes) : renderedItem;
+
+                return (
+                    <SortableItem
+                        id={key}
+                        key={key}
+                        disabled={isDragDisabled}
+                        isFocused={isFocused}
+                        isItemDisabled={isItemDisabled}
+                    >
+                        {itemWithFocus}
+                    </SortableItem>
+                );
+            }),
+        [data, focusedIndex, keyExtractor, renderItem],
+    );
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
