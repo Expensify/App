@@ -3726,7 +3726,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         homePageContentContainer: {
             flexGrow: 1,
-            padding: 20,
+            paddingTop: 0,
+            paddingHorizontal: 20,
+            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
