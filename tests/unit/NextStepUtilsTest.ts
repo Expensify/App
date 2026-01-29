@@ -1,10 +1,12 @@
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {buildNextStepNew, buildOptimisticNextStepForDynamicExternalWorkflowError, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
+import {buildNextStepMessage, buildNextStepNew, buildOptimisticNextStepForDynamicExternalWorkflowError, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -1065,6 +1067,164 @@ describe('libs/NextStepUtils', () => {
                     },
                 ],
             });
+        });
+    });
+
+    describe('buildNextStepMessage', () => {
+        const currentUserAccountID = 37;
+        const otherUserAccountID = 50;
+        // Simple mock that returns a fixed string - we verify params via toHaveBeenCalledWith
+        const mockTranslate = jest.fn(() => 'Translated message') as unknown as LocaleContextProps['translate'];
+
+        beforeAll(() => {
+            Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: 'current-user@expensify.com',
+                        displayName: 'Current User',
+                        avatar: '',
+                    },
+                    [otherUserAccountID]: {
+                        accountID: otherUserAccountID,
+                        login: 'other-user@expensify.com',
+                        displayName: 'Other User',
+                        avatar: '',
+                    },
+                },
+            }).then(waitForBatchedUpdates);
+        });
+
+        test('returns HTML-wrapped message for current user actor', () => {
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const result = buildNextStepMessage(nextStep, mockTranslate, currentUserAccountID);
+
+            expect(result).toContain('<next-step>');
+            expect(result).toContain('</next-step>');
+            expect(mockTranslate).toHaveBeenCalledWith(
+                'nextStep.message.waitingToSubmit',
+                expect.objectContaining({
+                    actorType: CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER,
+                }),
+            );
+        });
+
+        test('returns HTML-wrapped message for other user actor', () => {
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: otherUserAccountID,
+            };
+
+            const result = buildNextStepMessage(nextStep, mockTranslate, currentUserAccountID);
+
+            expect(result).toContain('<next-step>');
+            expect(mockTranslate).toHaveBeenCalledWith(
+                'nextStep.message.waitingToApprove',
+                expect.objectContaining({
+                    actorType: CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER,
+                }),
+            );
+        });
+
+        test('returns HTML-wrapped message for unspecified admin actor', () => {
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: -1,
+            };
+
+            const result = buildNextStepMessage(nextStep, mockTranslate, currentUserAccountID);
+
+            expect(result).toContain('<next-step>');
+            expect(mockTranslate).toHaveBeenCalledWith(
+                'nextStep.message.waitingToSubmit',
+                expect.objectContaining({
+                    actorType: CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN,
+                }),
+            );
+        });
+
+        test('handles ETA with etaKey', () => {
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.TODAY,
+                },
+            };
+
+            const result = buildNextStepMessage(nextStep, mockTranslate, currentUserAccountID);
+
+            expect(result).toContain('<next-step>');
+            expect(mockTranslate).toHaveBeenCalledWith(
+                'nextStep.message.waitingForAutomaticSubmit',
+                expect.objectContaining({
+                    etaType: CONST.NEXT_STEP.ETA_TYPE.KEY,
+                }),
+            );
+        });
+
+        test('handles ETA with dateTime', () => {
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+                eta: {
+                    dateTime: '2025-02-15',
+                },
+            };
+
+            const result = buildNextStepMessage(nextStep, mockTranslate, currentUserAccountID);
+
+            expect(result).toContain('<next-step>');
+            expect(mockTranslate).toHaveBeenCalledWith(
+                'nextStep.message.waitingForAutomaticSubmit',
+                expect.objectContaining({
+                    etaType: CONST.NEXT_STEP.ETA_TYPE.DATE_TIME,
+                }),
+            );
+        });
+
+        test('escapes HTML special characters in actor display name', () => {
+            // Set up a user with HTML in their display name
+            const maliciousAccountID = 999;
+            let capturedActor = '';
+            const capturingTranslate = jest.fn((_key: string, params?: {actor?: string}) => {
+                if (params?.actor) {
+                    capturedActor = params.actor;
+                }
+                return 'Translated message';
+            }) as unknown as LocaleContextProps['translate'];
+
+            return Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [maliciousAccountID]: {
+                    accountID: maliciousAccountID,
+                    login: 'malicious@expensify.com',
+                    displayName: '<script>alert("XSS")</script>',
+                    avatar: '',
+                },
+            })
+                .then(waitForBatchedUpdates)
+                .then(() => {
+                    const nextStep: ReportNextStep = {
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: maliciousAccountID,
+                    };
+
+                    buildNextStepMessage(nextStep, capturingTranslate, currentUserAccountID);
+
+                    // The actor should be HTML-escaped, not contain raw script tags
+                    expect(capturedActor).not.toContain('<script>');
+                    expect(capturedActor).toContain('&lt;script&gt;');
+                });
         });
     });
 });
