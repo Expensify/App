@@ -43,5 +43,10 @@ const privateIsArchivedMapSelector = (all: OnyxCollection<ReportNameValuePairs>)
     return map;
 };
 
-export {createReportNameValuePairsSelector, archivedReportsIdSetSelector, privateIsArchivedMapSelector};
+/**
+ * Selector that extracts only the private_isArchived value from a single ReportNameValuePairs entry
+ */
+const privateIsArchivedSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): string | undefined => reportNameValuePairs?.private_isArchived;
+
+export {createReportNameValuePairsSelector, archivedReportsIdSetSelector, privateIsArchivedMapSelector, privateIsArchivedSelector};
 export type {PrivateIsArchivedMap};
