@@ -967,13 +967,7 @@ function Search({
                     return;
                 }
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                // Calculate quarter date range: Q1 (Jan-Mar), Q2 (Apr-Jun), Q3 (Jul-Sep), Q4 (Oct-Dec)
-                const quarterStartMonth = (quarterGroupItem.quarter - 1) * 3 + 1; // 1, 4, 7, 10
-                const quarterEndMonth = quarterGroupItem.quarter * 3; // 3, 6, 9, 12
-                const quarterStart = `${quarterGroupItem.year}-${String(quarterStartMonth).padStart(2, '0')}-01`;
-                // Get last day of quarter end month (Date constructor uses 0-indexed months, so quarterEndMonth gives last day of previous month)
-                const quarterEndDate = new Date(quarterGroupItem.year, quarterEndMonth, 0);
-                const quarterEnd = `${quarterGroupItem.year}-${String(quarterEndMonth).padStart(2, '0')}-${String(quarterEndDate.getDate()).padStart(2, '0')}`;
+                const {start: quarterStart, end: quarterEnd} = DateUtils.getQuarterDateRange(quarterGroupItem.year, quarterGroupItem.quarter);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
