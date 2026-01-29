@@ -8,6 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import createDummySharedValue from '@src/utils/createDummySharedValue';
 import type {KeyboardDismissibleFlatListActionsContextValue, KeyboardDismissibleFlatListStateContextValue, ListBehavior} from './types';
 
+const ON_INTERACTIVE_HEIGHT_THRESHOLD_PERCENTAGE = 0.9;
+
 const defaultStateValue: KeyboardDismissibleFlatListStateContextValue = {
     keyboardHeight: createDummySharedValue(0),
     keyboardOffset: createDummySharedValue(0),
@@ -38,6 +40,8 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
     const contentSizeHeight = useSharedValue(0);
     const layoutMeasurementHeight = useSharedValue(0);
 
+    const isKeyboardOpening = useSharedValue(false);
+
     useKeyboardHandler({
         onStart: (e) => {
             'worklet';
@@ -45,9 +49,8 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
             const scrollYValueAtStart = scrollY.get();
             const prevHeight = height.get();
 
-            height.set(e.height);
-
             const willKeyboardOpen = e.progress === 1;
+            isKeyboardOpening.set(willKeyboardOpen);
 
             if (willKeyboardOpen) {
                 if (e.height > 0) {
@@ -90,6 +93,11 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
         onInteractive: (e) => {
             'worklet';
 
+            // This is to fix an issue with react-native-keyboard-controller, where an `onInteractive` event is triggered with an invalid height value when the keyboard is closed
+            if (e.height < height.get() * ON_INTERACTIVE_HEIGHT_THRESHOLD_PERCENTAGE) {
+                return;
+            }
+
             height.set(e.height);
 
             if (listBehavior === CONST.LIST_BEHAVIOR.REGULAR) {
@@ -100,6 +108,11 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
         },
         onMove: (e) => {
             'worklet';
+
+            // This is to fix an issue with react-native-keyboard-controller, where an `onMove` event is triggered with an invalid height value when the keyboard is opened
+            if (isKeyboardOpening.get() && e.height < height.get()) {
+                return;
+            }
 
             height.set(e.height);
         },
