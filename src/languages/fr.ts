@@ -4959,6 +4959,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             editStartDateDescription:
                 'Choisissez une nouvelle date de début des transactions. Nous synchroniserons toutes les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
             unassignCardFailedError: 'Échec de la désaffectation de la carte.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de carte',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Une erreur s’est produite lors du chargement des flux de cartes de l’espace de travail. Veuillez réessayer ou contacter votre administrateur.',
+                feedCouldNotBeLoadedTitle: 'Impossible de charger ce flux',
+                feedCouldNotBeLoadedMessage: 'Une erreur s’est produite lors du chargement de ce flux. Veuillez réessayer ou contacter votre administrateur.',
+                tryAgain: 'Réessayer',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',

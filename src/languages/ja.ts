@@ -4909,6 +4909,13 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: '新しい取引の開始日を選択してください。その日以降のすべての取引を、すでに取り込んだものを除いて同期します。',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
+                workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースのカードフィードを読み込む際にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                feedCouldNotBeLoadedTitle: 'このフィードを読み込めませんでした',
+                feedCouldNotBeLoadedMessage: 'このフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
+                tryAgain: '再試行',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',
