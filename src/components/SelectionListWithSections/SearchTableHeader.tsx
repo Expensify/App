@@ -391,24 +391,6 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 },
                 ...commonGroupHeaders,
             ];
-        case CONST.SEARCH.GROUP_BY.WEEK:
-            return [
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
-                    translationKey: 'common.week',
-                    isColumnSortable: true,
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                    translationKey: 'common.expenses',
-                    isColumnSortable: true,
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    translationKey: 'common.total',
-                    isColumnSortable: true,
-                },
-            ];
         default:
             return [];
     }
