@@ -94,6 +94,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const onNext = () => {
         if (gpsDraftDetails?.distanceInMeters === 0) {
             setShowZeroDistanceModal(true);
+            return;
         }
 
         navigateToNextStep();
