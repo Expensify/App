@@ -933,7 +933,7 @@ function Search({
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                navigation.setParams({q: newQuery, rawQuery: undefined});
                 return;
             }
 
@@ -958,7 +958,7 @@ function Search({
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                navigation.setParams({q: newQuery, rawQuery: undefined});
                 return;
             }
 
@@ -988,7 +988,7 @@ function Search({
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                navigation.setParams({q: newQuery, rawQuery: undefined});
                 return;
             }
 
