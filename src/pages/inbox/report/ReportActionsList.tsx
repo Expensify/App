@@ -79,7 +79,7 @@ import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
-import useScrollingVerticalOffsetRef from './useScrollingVerticalOffsetRef/index.ios';
+import useScrollingVerticalOffsetRef from './useScrollingVerticalOffsetRef';
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
