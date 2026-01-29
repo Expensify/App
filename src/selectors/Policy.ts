@@ -37,4 +37,26 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
     return Object.fromEntries(nonFormulaReportFields);
 };
 
-export {activePolicySelector, createPoliciesSelector, createAllPolicyReportFieldsSelector, ownerPoliciesSelector, activeAdminPoliciesSelector};
+const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
+    const policyIDs = new Set(
+        domainNames
+            .map((domainName) => domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1])
+            .filter((policyID): policyID is string => !!policyID)
+            .map((policyID) => policyID.toUpperCase()),
+    );
+
+    return (policies: OnyxCollection<Policy>) => {
+        if (policyIDs.size === 0) {
+            return {};
+        }
+
+        return Object.entries(policies ?? {}).reduce<NonNullable<OnyxCollection<Policy>>>((acc, [key, policy]) => {
+            if (policy?.id && policyIDs.has(policy.id.toUpperCase())) {
+                acc[key] = policy;
+            }
+            return acc;
+        }, {});
+    };
+};
+
+export {activePolicySelector, createPoliciesSelector, createAllPolicyReportFieldsSelector, ownerPoliciesSelector, activeAdminPoliciesSelector, createPoliciesForDomainCardsSelector};

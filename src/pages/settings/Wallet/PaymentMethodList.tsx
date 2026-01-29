@@ -1,4 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
+import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement} from 'react';
@@ -179,7 +180,15 @@ function PaymentMethodList({
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const nonExpensifyCardDomains = shouldShowAssignedCards
+        ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
+              .filter((card) => !isExpensifyCard(card) && !!card.domainName)
+              .map((card) => card.domainName)
+        : [];
+    const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: createPoliciesForDomainCardsSelector(nonExpensifyCardDomains),
+    });
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
@@ -240,9 +249,9 @@ function PaymentMethodList({
                     if (isUserPersonalCard) {
                         cardDescription = lastFourPAN;
                     } else if (lastFourPAN) {
-                        cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, allPolicies)}`;
+                        cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`;
                     } else {
-                        cardDescription = getDescriptionForPolicyDomainCard(card.domainName, allPolicies);
+                        cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
                     }
                     // Personal cards navigate to personal card details page
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
@@ -309,8 +318,8 @@ function PaymentMethodList({
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
                 const cardDescription =
                     card?.nameValuePairs?.issuedBy && card?.lastFourPAN
-                        ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, allPolicies)}`
-                        : getDescriptionForPolicyDomainCard(card.domainName, allPolicies);
+                        ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`
+                        : getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -432,7 +441,7 @@ function PaymentMethodList({
         activePaymentMethodID,
         actionPaymentMethodType,
         onThreeDotsMenuPress,
-        allPolicies,
+        policiesForAssignedCards,
     ]);
 
     const onPressItem = useCallback(() => {
