@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
@@ -72,7 +72,7 @@ function DecisionModal({
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >
-            <View style={styles.m5}>
+            <ScrollView contentContainerStyle={styles.m5}>
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
                         <Header
@@ -101,7 +101,7 @@ function DecisionModal({
                     danger={isSecondOptionDanger}
                     large
                 />
-            </View>
+            </ScrollView>
         </Modal>
     );
 }
