@@ -6233,6 +6233,7 @@ const translations = {
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 expensesWith: 'For expenses with:',
+                expensesExactlyMatching: 'For expenses exactly matching:',
                 applyUpdates: 'Apply these updates:',
                 saveRule: 'Save rule',
                 confirmError: 'Enter merchant and apply at least one update',
