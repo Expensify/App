@@ -6,6 +6,7 @@ import type DeepValueOf from './types/utils/DeepValueOf';
 
 const PROTECTED_SCREENS = {
     HOME: 'Home',
+    INBOX: 'Inbox',
     CONCIERGE: 'Concierge',
     REPORT_ATTACHMENTS: 'ReportAttachments',
     REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',
@@ -77,6 +78,7 @@ const SCREENS = {
         ADVANCED_FILTERS_WITHDRAWAL_ID_RHP: 'Search_Advanced_Filters_Withdrawal_ID_RHP',
         ADVANCED_FILTERS_TAG_RHP: 'Search_Advanced_Filters_Tag_RHP',
         ADVANCED_FILTERS_HAS_RHP: 'Search_Advanced_Filters_Has_RHP',
+        ADVANCED_FILTERS_LIMIT_RHP: 'Search_Advanced_Filters_Limit_RHP',
         ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
         ADVANCED_FILTERS_TITLE_RHP: 'Search_Advanced_Filters_Title_RHP',
@@ -757,6 +759,17 @@ const SCREENS = {
         RULES_REIMBURSABLE_DEFAULT: 'Rules_Reimbursable_Default',
         RULES_CUSTOM: 'Rules_Custom',
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
+        RULES_MERCHANT_NEW: 'Rules_Merchant_New',
+        RULES_MERCHANT_MERCHANT_TO_MATCH: 'Rules_Merchant_Merchant_To_Match',
+        RULES_MERCHANT_MATCH_TYPE: 'Rules_Merchant_Match_Type',
+        RULES_MERCHANT_MERCHANT: 'Rules_Merchant_Merchant',
+        RULES_MERCHANT_CATEGORY: 'Rules_Merchant_Category',
+        RULES_MERCHANT_TAG: 'Rules_Merchant_Tag',
+        RULES_MERCHANT_TAX: 'Rules_Merchant_Tax',
+        RULES_MERCHANT_DESCRIPTION: 'Rules_Merchant_Description',
+        RULES_MERCHANT_REIMBURSABLE: 'Rules_Merchant_Reimbursable',
+        RULES_MERCHANT_BILLABLE: 'Rules_Merchant_Billable',
+        RULES_MERCHANT_EDIT: 'Rules_Merchant_Edit',
         PER_DIEM: 'Per_Diem',
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',
@@ -915,6 +928,7 @@ const SCREENS = {
         OUTCOME: 'Multifactor_Authentication_Outcome',
         PROMPT: 'Multifactor_Authentication_Prompt',
         NOT_FOUND: 'Multifactor_Authentication_Not_Found',
+        REVOKE: 'Multifactor_Authentication_Revoke',
     },
 } as const;
 

@@ -423,6 +423,7 @@ function IOURequestStepDistanceMap({
                     transactionThreadReport: report,
                     parentReport,
                     waypoints,
+                    recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
                     policyTagList: policyTags,
@@ -464,6 +465,7 @@ function IOURequestStepDistanceMap({
         waypoints,
         receiverPolicy,
         chatReceiverPolicy,
+        recentWaypoints,
     ]);
 
     const renderItem = useCallback(
