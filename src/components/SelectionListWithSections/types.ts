@@ -33,6 +33,7 @@ import type {
     SearchCategoryGroup,
     SearchDataTypes,
     SearchMemberGroup,
+    SearchMerchantGroup,
     SearchMonthGroup,
     SearchTagGroup,
     SearchTask,
@@ -448,6 +449,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The date the report was exported */
         exported?: string;
 
+        /** Whether the status field should be shown in a pending state */
+        shouldShowStatusAsPending?: boolean;
+
         /**
          * Whether we should show the report year.
          * This is true if at least one report in the dataset was created in past years
@@ -510,6 +514,11 @@ type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {
 type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
         /** Final and formatted "category" value used for displaying and sorting */
         formattedCategory?: string;
+    };
+
+type TransactionMerchantGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MERCHANT} & SearchMerchantGroup & {
+        /** Final and formatted "merchant" value used for displaying and sorting */
+        formattedMerchant?: string;
     };
 
 type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
@@ -1160,6 +1169,7 @@ export type {
     TransactionCardGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionMerchantGroupListItemType,
     TransactionTagGroupListItemType,
     Section,
     SectionListDataType,
