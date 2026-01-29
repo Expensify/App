@@ -189,7 +189,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
 /**
  * Creates an optimistic card object for the imported transactions
  */
-function buildOptimisticCard(cardDisplayName: string, _currency: string): {card: Card; cardID: string} {
+function buildOptimisticCard(cardDisplayName: string): {card: Card; cardID: string} {
     const cardID = generateCardID();
     return {
         cardID,
@@ -264,7 +264,7 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
     }
 
     // Create optimistic card
-    const {card: optimisticCard, cardID} = buildOptimisticCard(cardDisplayName, currency);
+    const {card: optimisticCard, cardID} = buildOptimisticCard(cardDisplayName);
 
     // Create optimistic transactions
     const optimisticTransactions = buildOptimisticTransactions(transactionList, cardID, currency, isReimbursable);

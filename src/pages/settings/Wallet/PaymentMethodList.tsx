@@ -221,7 +221,7 @@ function PaymentMethodList({
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
-                    const _cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
+                    const cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
                     let domainCardDescription = translate('cardPage.csvCardDescription');
                     if (!isCSVImportCard) {
                         domainCardDescription = lastFourPAN
@@ -231,7 +231,7 @@ function PaymentMethodList({
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl,
-                        title: maskCardNumber(card.cardName, card.bank),
+                        title: cardTitle,
                         description: isCSVImportCard ? translate('cardPage.csvCardDescription') : domainCardDescription,
                         interactive: !isDisabled,
                         disabled: isDisabled,

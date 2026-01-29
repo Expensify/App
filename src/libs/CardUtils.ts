@@ -837,13 +837,6 @@ function isPersonalCard(card?: Card) {
     return (!!card?.fundID && card.fundID !== '0') || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
 }
 
-/**
- * Filter out personal (including cash) cards from the card list.
- */
-function filterPersonalCards(_cards: CardList | undefined): CardList {
-    return filterObject(_cards ?? {}, (key, card) => isPersonalCard(card));
-}
-
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;

@@ -117,7 +117,17 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                         // Use raw: true to preserve original string values from CSV (especially dates)
                         const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false, raw: true}) as string[][] | unknown[][];
-                        const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell ?? '')));
+                        const formattedSpreadsheetData = data.map((row) =>
+                            row.map((cell) => {
+                                if (cell == null) {
+                                    return '';
+                                }
+                                if (typeof cell === 'object') {
+                                    return JSON.stringify(cell);
+                                }
+                                return String(cell);
+                            }),
+                        );
                         setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
                             .then(() => {
                                 Navigation.navigate(goTo);
