@@ -4120,7 +4120,7 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col)) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
                     result.push(col);
                 }
             }
@@ -4137,7 +4137,7 @@ function getColumnsToShow(
             const result: SearchColumnType[] = [];
 
             for (const col of requiredColumns) {
-                if (!columnsToShow.includes(col)) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
                     result.push(col);
                 }
             }
