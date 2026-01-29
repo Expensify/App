@@ -29,6 +29,7 @@ import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import {clearOnyxAndResetApp} from '@userActions/App';
@@ -96,6 +97,13 @@ function TroubleshootPage() {
     }, [tryNewDot?.classicRedirect]);
 
     const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
+        const platform = getPlatform();
+        const isMobileApp = [CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].includes(platform as 'ios' | 'android');
+
+        if (tryNewDot?.isLockedToNewApp && isMobileApp) {
+            return null;
+        }
+
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
             return null;
         }
