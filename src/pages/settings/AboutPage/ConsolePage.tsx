@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,6 +13,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -47,13 +47,24 @@ function ConsolePage() {
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [input, setInput] = useState('');
     const [isGeneratingLogsFile, setIsGeneratingLogsFile] = useState(false);
-    const [isLimitModalVisible, setIsLimitModalVisible] = useState(false);
     const [activeFilterIndex, setActiveFilterIndex] = useState<FilterBy>(filterBy.all);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
     const isAuthenticated = useIsAuthenticated();
+
+    const {showConfirmModal} = useConfirmModal();
+    const showLogSizeTooLargeModal = useCallback(() => {
+        return showConfirmModal({
+            title: translate('initialSettingsPage.debugConsole.shareLog'),
+            prompt: translate('initialSettingsPage.debugConsole.logSizeTooLarge', {
+                size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
+            }),
+            confirmText: translate('common.ok'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
 
     const menuItems: PopoverMenuItem[] = useMemo(
         () => [
@@ -131,7 +142,7 @@ function ConsolePage() {
 
             // if the file size is too large to send it as an attachment, show a modal and return
             if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setIsLimitModalVisible(true);
+                showLogSizeTooLargeModal();
 
                 return;
             }
@@ -212,17 +223,6 @@ function ConsolePage() {
                     large
                 />
             </View>
-            <ConfirmModal
-                title={translate('initialSettingsPage.debugConsole.shareLog')}
-                isVisible={isLimitModalVisible}
-                onConfirm={() => setIsLimitModalVisible(false)}
-                onCancel={() => setIsLimitModalVisible(false)}
-                prompt={translate('initialSettingsPage.debugConsole.logSizeTooLarge', {
-                    size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
-                })}
-                shouldShowCancelButton={false}
-                confirmText={translate('common.ok')}
-            />
         </ScreenWrapper>
     );
 }

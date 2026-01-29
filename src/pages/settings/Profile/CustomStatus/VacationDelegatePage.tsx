@@ -1,11 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +27,6 @@ import type {Participant} from '@src/types/onyx/IOU';
 function VacationDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [newVacationDelegate, setNewVacationDelegate] = useState('');
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -44,6 +44,17 @@ function VacationDelegatePage() {
         }),
         [currentVacationDelegate],
     );
+
+    const {showConfirmModal} = useConfirmModal();
+    const showVacationDelegateWarningModal = () => {
+        return showConfirmModal({
+            title: translate('common.headsUp'),
+            prompt: translate('statusPage.vacationDelegateWarning', {nameOrEmail: getPersonalDetailByEmail(newVacationDelegate)?.displayName ?? newVacationDelegate}),
+            confirmText: translate('common.confirm'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        });
+    };
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -142,14 +153,19 @@ function VacationDelegatePage() {
                 return;
             }
 
-            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '', false, vacationDelegate?.delegate).then((response) => {
+            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '', false, vacationDelegate?.delegate).then(async (response) => {
                 if (!response?.jsonCode) {
                     Navigation.goBack(ROUTES.SETTINGS_STATUS);
                     return;
                 }
 
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    setIsWarningModalVisible(true);
+                    const result = await showVacationDelegateWarningModal();
+                    if (result.action === ModalActions.CONFIRM) {
+                        setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true, vacationDelegate?.delegate).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
+                    } else {
+                        clearVacationDelegateError(vacationDelegate?.previousDelegate);
+                    }
                     setNewVacationDelegate(option?.login ?? '');
                     return;
                 }
@@ -165,47 +181,30 @@ function VacationDelegatePage() {
     }, [debouncedSearchTerm]);
 
     return (
-        <>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID="VacationDelegatePage"
-            >
-                <HeaderWithBackButton
-                    title={translate('statusPage.vacationDelegate')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
-                />
-                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
-                        sections={areOptionsInitialized ? sections : []}
-                        ListItem={UserListItem}
-                        onSelectRow={onSelectRow}
-                        shouldSingleExecuteRowSelect
-                        onChangeText={setSearchTerm}
-                        textInputValue={searchTerm}
-                        headerMessage={headerMessage}
-                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
-                        onEndReached={onListEndReached}
-                    />
-                </View>
-            </ScreenWrapper>
-            <ConfirmModal
-                isVisible={isWarningModalVisible}
-                title={translate('common.headsUp')}
-                prompt={translate('statusPage.vacationDelegateWarning', {nameOrEmail: getPersonalDetailByEmail(newVacationDelegate)?.displayName ?? newVacationDelegate})}
-                onConfirm={() => {
-                    setIsWarningModalVisible(false);
-                    setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true, vacationDelegate?.delegate).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
-                }}
-                onCancel={() => {
-                    setIsWarningModalVisible(false);
-                    clearVacationDelegateError(vacationDelegate?.previousDelegate);
-                }}
-                confirmText={translate('common.confirm')}
-                cancelText={translate('common.cancel')}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="VacationDelegatePage"
+        >
+            <HeaderWithBackButton
+                title={translate('statusPage.vacationDelegate')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
             />
-        </>
+            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                <SelectionList
+                    sections={areOptionsInitialized ? sections : []}
+                    ListItem={UserListItem}
+                    onSelectRow={onSelectRow}
+                    shouldSingleExecuteRowSelect
+                    onChangeText={setSearchTerm}
+                    textInputValue={searchTerm}
+                    headerMessage={headerMessage}
+                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                    showLoadingPlaceholder={!areOptionsInitialized}
+                    isLoadingNewOptions={!!isSearchingForReports}
+                    onEndReached={onListEndReached}
+                />
+            </View>
+        </ScreenWrapper>
     );
 }
 
