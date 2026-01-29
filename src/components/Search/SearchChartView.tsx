@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import type {
     TransactionCardGroupListItemType,
@@ -13,6 +12,7 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,7 +21,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type IconAsset from '@src/types/utils/IconAsset';
 import SearchBarChart from './SearchBarChart';
 import type {ChartView, SearchGroupBy, SearchQueryJSON} from './types';
 
@@ -36,7 +35,7 @@ type GroupedItem =
     | TransactionWeekGroupListItemType;
 
 type ChartGroupByConfig = {
-    titleIcon: IconAsset;
+    titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Building' | 'Tag' | 'Calendar';
     getLabel: (item: GroupedItem) => string;
     getFilterQuery: (item: GroupedItem) => string;
 };
@@ -47,37 +46,37 @@ type ChartGroupByConfig = {
  */
 const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.FROM]: {
-        titleIcon: Expensicons.Users,
+        titleIconName: 'Users',
         getLabel: (item: GroupedItem) => (item as TransactionMemberGroupListItemType).formattedFrom ?? '',
         getFilterQuery: (item: GroupedItem) => `from:${(item as TransactionMemberGroupListItemType).accountID}`,
     },
     [CONST.SEARCH.GROUP_BY.CARD]: {
-        titleIcon: Expensicons.CreditCard,
+        titleIconName: 'CreditCard',
         getLabel: (item: GroupedItem) => (item as TransactionCardGroupListItemType).formattedCardName ?? '',
         getFilterQuery: (item: GroupedItem) => `cardID:${(item as TransactionCardGroupListItemType).cardID}`,
     },
     [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: {
-        titleIcon: Expensicons.Send,
+        titleIconName: 'Send',
         getLabel: (item: GroupedItem) => (item as TransactionWithdrawalIDGroupListItemType).formattedWithdrawalID ?? '',
         getFilterQuery: (item: GroupedItem) => `withdrawalID:${(item as TransactionWithdrawalIDGroupListItemType).entryID}`,
     },
     [CONST.SEARCH.GROUP_BY.CATEGORY]: {
-        titleIcon: Expensicons.Folder,
+        titleIconName: 'Folder',
         getLabel: (item: GroupedItem) => (item as TransactionCategoryGroupListItemType).formattedCategory ?? '',
         getFilterQuery: (item: GroupedItem) => `category:"${(item as TransactionCategoryGroupListItemType).category}"`,
     },
     [CONST.SEARCH.GROUP_BY.MERCHANT]: {
-        titleIcon: Expensicons.Building,
+        titleIconName: 'Building',
         getLabel: (item: GroupedItem) => (item as TransactionMerchantGroupListItemType).formattedMerchant ?? '',
         getFilterQuery: (item: GroupedItem) => `merchant:"${(item as TransactionMerchantGroupListItemType).merchant}"`,
     },
     [CONST.SEARCH.GROUP_BY.TAG]: {
-        titleIcon: Expensicons.Tag,
+        titleIconName: 'Tag',
         getLabel: (item: GroupedItem) => (item as TransactionTagGroupListItemType).formattedTag ?? '',
         getFilterQuery: (item: GroupedItem) => `tag:"${(item as TransactionTagGroupListItemType).tag}"`,
     },
     [CONST.SEARCH.GROUP_BY.MONTH]: {
-        titleIcon: Expensicons.Calendar,
+        titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
         getFilterQuery: (item: GroupedItem) => {
             const monthItem = item as TransactionMonthGroupListItemType;
@@ -85,7 +84,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         },
     },
     [CONST.SEARCH.GROUP_BY.WEEK]: {
-        titleIcon: Expensicons.Calendar,
+        titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionWeekGroupListItemType).formattedWeek ?? '',
         getFilterQuery: (item: GroupedItem) => {
             const weekItem = item as TransactionWeekGroupListItemType;
@@ -131,7 +130,9 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {titleIcon, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Building', 'Tag', 'Calendar'] as const);
+    const {titleIconName, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const titleIcon = icons[titleIconName];
     const title = translate(`search.chartTitles.${groupBy}`);
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
