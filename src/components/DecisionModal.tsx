@@ -45,7 +45,7 @@ type DecisionModalProps = {
     onClose: () => void;
 
     /** Callback when modal has fully disappeared */
-    onModalHide: () => void;
+    onModalHide?: () => void;
 
     /** Whether modal is visible */
     isVisible: boolean;
