@@ -4,7 +4,6 @@ import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import {Memoize} from '@libs/memoize';
 import Performance from '@libs/Performance';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {disableLoggingAndFlushLogs, setShouldStoreLogs} from './Console';
 import toggleProfileTool from './ProfilingTool';
 import {shouldShowProfileTool} from './TestTool';
 
@@ -77,20 +76,16 @@ function disableRecording() {
     Memoize.stopMonitoring();
     toggleProfileTool(false);
 
-    // Disable logging and flush logs
-    disableLoggingAndFlushLogs();
-
     // Update Onyx state
     clearRecordingOnyxState();
 }
 
 /**
- * Clean up Onyx state and flush logs.
+ * Clean up Onyx state.
  * Used after manual disable when profiling was already stopped via stopProfilingAndGetData.
  */
 function cleanupAfterDisable() {
     clearAutoOffTimeout();
-    disableLoggingAndFlushLogs();
     clearRecordingOnyxState();
 }
 
@@ -106,13 +101,10 @@ function scheduleAutoOff(remainingTime: number) {
 }
 
 /**
- * Enable troubleshoot recording, start profiling, and enable log storage.
+ * Enable troubleshoot recording and start profiling.
  */
 function enableRecording() {
     clearAutoOffTimeout();
-
-    // Enable log storage
-    setShouldStoreLogs(true);
 
     // Start profiling and performance monitoring if available
     if (shouldShowProfileTool()) {

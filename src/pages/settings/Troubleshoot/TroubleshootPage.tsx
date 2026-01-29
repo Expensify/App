@@ -57,7 +57,6 @@ function TroubleshootPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoading, setIsLoading] = useState(false);
-    const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
     const {resetOptions} = useOptionsList({shouldInitialize: false});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
@@ -127,12 +126,6 @@ function TroubleshootPage() {
     }, [tryNewDot?.classicRedirect?.isLockedToNewDot, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
 
     const menuItems = useMemo(() => {
-        const debugConsoleItem: BaseMenuItem = {
-            translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
-            icon: icons.Bug,
-            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(ROUTES.SETTINGS_TROUBLESHOOT))),
-        };
-
         const baseMenuItems: BaseMenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
@@ -146,10 +139,6 @@ function TroubleshootPage() {
             },
         ];
 
-        if (shouldStoreLogs) {
-            baseMenuItems.push(debugConsoleItem);
-        }
-
         const finalMenuItems = classicRedirectMenuItem ? [classicRedirectMenuItem, ...baseMenuItems] : baseMenuItems;
 
         return finalMenuItems
@@ -161,7 +150,7 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [icons.Bug, icons.RotateLeft, icons.Download, waitForNavigate, exportOnyxState, shouldStoreLogs, classicRedirectMenuItem, translate, styles.sectionMenuItemTopDescription]);
+    }, [icons.RotateLeft, icons.Download, exportOnyxState, classicRedirectMenuItem, translate, styles.sectionMenuItemTopDescription]);
 
     return (
         <ScreenWrapper

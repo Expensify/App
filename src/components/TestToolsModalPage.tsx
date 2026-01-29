@@ -11,35 +11,19 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import Navigation from '@navigation/Navigation';
 import type {TestToolsModalModalNavigatorParamList} from '@navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import Button from './Button';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import RecordTroubleshootDataToolMenu from './RecordTroubleshootDataToolMenu';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollView from './ScrollView';
 import TestToolMenu from './TestToolMenu';
-import TestToolRow from './TestToolRow';
 import Text from './Text';
-
-function getRouteBasedOnAuthStatus(isAuthenticated: boolean, activeRoute?: string) {
-    return isAuthenticated ? ROUTES.SETTINGS_CONSOLE.getRoute(activeRoute) : ROUTES.PUBLIC_CONSOLE_DEBUG.getRoute(activeRoute);
-}
 
 function TestToolsModalPage() {
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<TestToolsModalModalNavigatorParamList, typeof SCREENS.TEST_TOOLS_MODAL.ROOT>>();
-    const backTo = route.params?.backTo;
-    const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
-    const isAuthenticated = useIsAuthenticated();
-
-    // If no backTo param is provided (direct access to /test-tools),
-    // use home route as a default backTo param for console navigation
-    const effectiveBackTo = backTo ?? ROUTES.INBOX;
-    const consoleRoute = getRouteBasedOnAuthStatus(isAuthenticated, effectiveBackTo);
 
     const maxHeight = windowHeight;
 
@@ -62,21 +46,6 @@ function TestToolsModalPage() {
                                 {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                             </Text>
                             <RecordTroubleshootDataToolMenu />
-                            {!!shouldStoreLogs && (
-                                <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
-                                    <Button
-                                        small
-                                        text={translate('initialSettingsPage.debugConsole.viewConsole')}
-                                        onPress={() => {
-                                            // Close the test tools modal first, then navigate to console page
-                                            toggleTestToolsModal();
-                                            navigateAfterInteraction(() => {
-                                                Navigation.navigate(consoleRoute);
-                                            });
-                                        }}
-                                    />
-                                </TestToolRow>
-                            )}
                             <TestToolMenu />
                         </PressableWithoutFeedback>
                     </ScrollView>
