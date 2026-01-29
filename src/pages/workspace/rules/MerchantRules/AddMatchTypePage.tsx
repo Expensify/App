@@ -21,7 +21,7 @@ import type SCREENS from '@src/SCREENS';
 type AddMatchTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_MATCH_TYPE>;
 
 type MatchTypeItem = ListItem & {
-    value: string;
+    value: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 };
 
 function AddMatchTypePage({route}: AddMatchTypePageProps) {
@@ -54,7 +54,7 @@ function AddMatchTypePage({route}: AddMatchTypePageProps) {
     ];
 
     const onSelectItem = (item: MatchTypeItem) => {
-        updateDraftMerchantRule({matchType: item.value as ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>});
+        updateDraftMerchantRule({matchType: item.value});
         goBack();
     };
 
