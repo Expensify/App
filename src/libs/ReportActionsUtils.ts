@@ -1420,7 +1420,10 @@ function getSortedReportActionsForDisplay(
         filteredReportActions = Object.values(reportActions).filter(Boolean);
     } else {
         filteredReportActions = Object.entries(reportActions)
-            .filter(([, reportAction]) => {
+            .filter(([collectionKey, reportAction]) => {
+                if (isReportActionDeprecated(reportAction, collectionKey)) {
+                    return false;
+                }
                 const actionReportID = reportAction?.reportID ?? reportID;
                 if (!actionReportID) {
                     return false;
