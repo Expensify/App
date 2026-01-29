@@ -1263,6 +1263,7 @@ function Search({
                     groupBy={validGroupBy}
                     data={sortedData as TransactionGroupListItemType[]}
                     isLoading={shouldShowLoadingState}
+                    onScroll={onSearchListScroll}
                 />
             </SearchScopeProvider>
         );

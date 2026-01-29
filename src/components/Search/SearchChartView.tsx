@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
-import ScrollView from '@components/ScrollView';
+import Animated from 'react-native-reanimated';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -114,6 +115,9 @@ type SearchChartViewProps = {
 
     /** Whether data is loading */
     isLoading?: boolean;
+
+    /** Scroll handler for hiding the top bar on mobile */
+    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
 
 /**
@@ -127,7 +131,7 @@ const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'line' | 'pie'>, typeof
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: SearchChartViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -171,9 +175,11 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     }, [data]);
 
     return (
-        <ScrollView
+        <Animated.ScrollView
             style={styles.flex1}
             contentContainerStyle={styles.flexGrow1}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
         >
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.mh4, styles.mb4, styles.flex1]}>
                 <ChartComponent
@@ -188,7 +194,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
                     yAxisUnitPosition={yAxisUnitPosition}
                 />
             </View>
-        </ScrollView>
+        </Animated.ScrollView>
     );
 }
 
