@@ -285,11 +285,14 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
             key: ONYXKEYS.CARD_LIST,
             value: optimisticCardList,
         },
-        ...optimisticTransactions.map((transaction) => ({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
-        } as OnyxUpdate)),
+        ...optimisticTransactions.map(
+            (transaction) =>
+                ({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: transaction,
+                }) as OnyxUpdate,
+        ),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IMPORTED_SPREADSHEET,
@@ -312,11 +315,14 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
                 [cardID]: null,
             },
         },
-        ...optimisticTransactions.map((transaction) => ({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: null,
-        } as OnyxUpdate)),
+        ...optimisticTransactions.map(
+            (transaction) =>
+                ({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: null,
+                }) as OnyxUpdate,
+        ),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IMPORTED_SPREADSHEET,
