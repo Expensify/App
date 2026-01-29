@@ -302,6 +302,61 @@ describe('SidebarLinksData', () => {
             expect(screen.getByTestId('RBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
+        it('should display the report with RBR when an admin has a subtask waiting on its assignee', async () => {
+            // Given the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            const parentTask: Report = {
+                ...createReport(false, [TEST_USER_ACCOUNT_ID, 2], 0),
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Parent task',
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+                managerID: TEST_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const linkingAction = createRandomReportAction(1);
+
+            const pendingSubtask: Report = {
+                ...createReport(false, [TEST_USER_ACCOUNT_ID, 2], 0),
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Follow-up subtask',
+                parentReportID: parentTask.reportID,
+                parentReportActionID: linkingAction.reportActionID,
+                ownerAccountID: 2,
+                managerID: TEST_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                errorFields: {
+                    waitingOnAssignee: {
+                        [DateUtils.getMicroseconds()]: 'Assignee still needs to complete this subtask',
+                    },
+                },
+            };
+
+            linkingAction.childReportID = pendingSubtask.reportID;
+            linkingAction.childType = CONST.REPORT.TYPE.TASK;
+            linkingAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
+            linkingAction.childStatusNum = CONST.REPORT.STATUS_NUM.OPEN;
+
+            await initializeState(
+                {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${parentTask.reportID}`]: parentTask,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${pendingSubtask.reportID}`]: pendingSubtask,
+                },
+                {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentTask.reportID}`]: {
+                        [linkingAction.reportActionID]: linkingAction,
+                    },
+                },
+            );
+
+            // Then the pending subtask should surface with a red brick road indicator
+            expect(getOptionRows()).toHaveLength(1);
+            expect(screen.getByTestId('RBR Icon')).toBeOnTheScreen();
+        });
+
         it('should display the report awaiting user action', async () => {
             // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
