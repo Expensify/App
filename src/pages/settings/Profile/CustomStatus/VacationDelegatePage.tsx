@@ -181,12 +181,13 @@ function VacationDelegatePage() {
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={onSelectRow}
-                        shouldSingleExecuteRowSelect
                         textInputOptions={textInputOptions}
-                        shouldShowTextInput
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
                         onEndReached={onListEndReached}
+                        disableMaintainingScrollPosition
+                        shouldSingleExecuteRowSelect
+                        shouldShowTextInput
                     />
                 </View>
             </ScreenWrapper>
