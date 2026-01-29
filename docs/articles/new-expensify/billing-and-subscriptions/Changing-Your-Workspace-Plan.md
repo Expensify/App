@@ -1,42 +1,45 @@
 ---
 title: Change Workspace Plan
-description: Learn how to update your Expensify workspace subscription, downgrade to a free account, or delete your workspace with step-by-step instructions.
-keywords: [New Expensify, workspace plan, subscription, downgrade, cancel subscription, delete workspace]
+description: Learn how to update or cancel your Expensify workspace subscription, downgrade to a free account, or delete a workspace entirely.
+keywords: [New Expensify, change subscription, cancel subscription, downgrade annual subscription, delete workspace, free account, billing owner, transfer billing]
+internalScope: Audience is billing owners. Covers how to change workspace plans and downgrade from annual billing. Does not cover personal account changes or domain-level billing controls.
 ---
 
-Take a look at this resource to learn how to update your Expensify workspace subscription, downgrade to a free account, or delete your workspace entirely.
+If you're the billing owner of a workspace, this guide walks you through how to change your subscription plan or downgrade from annual billing. 
 
 ---
 
-# Change Your Subscription
+# How to change your workspace plan
 
-To update your subscription plan:
+To switch to a different plan: 
 
 1. Use the **navigation tabs** (on the left on web, and at the bottom on mobile) to go to **Account > Subscription**.
-2. Click **Explore all plans** and choose the one that best fits your needs.
+2. Click **Explore all plans**.
+3. Choose the plan that best fits your needs.
 
 ---
 
-# Downgrade from an Annual Subscription to a Free Account
+# How to downgrade an Annual Subscription to a free account 
 
-If you're on an Annual Subscription (a 12-month commitment), you may be eligible to request early cancellation and switch to a free account:
-
-1. Use the **navigation tabs** (on the left on web, and at the bottom on mobile) to go to **Account > Subscription**.
-2. Click **Request early cancellation**.
-
-**Note:** Early cancellations are subject to eligibility review.
-
----
-
-# Delete a Workspace
-
-If you're on a Pay-per-use plan and want to switch to a free account:
+If you're on an Annual Subscription (a 12-month commitment), you may be eligible for early cancellation and a switch to a free account:
 
 1. Go to **Account > Subscription**.
-2. Click the three dots **(⋮)** next to your workspace name.
-3. Select **Delete workspace**.
+2. Click **Request early cancellation**.
+3. Follow the prompts. Your request may be processed automatically or reviewed by our team.
 
-**Note:** Deleting your workspace will not remove your personal account or expenses.
+**Note:** Early cancellations are subject to eligibility review. 
+
+---
+
+# How to delete a Pay-per-use workspace
+
+If you're on a Pay-per-use plan and want to stop billing entirely:
+
+1. Go to **Account > Subscription**.
+2. Click the **⋮ menu** next to your workspace name.
+3. Select **Delete workspace**.  
+
+**Note:** Deleting a workspace does not remove your personal account or expenses.
 
 ---
 
