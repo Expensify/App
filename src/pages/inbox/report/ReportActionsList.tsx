@@ -284,7 +284,9 @@ function ReportActionsList({
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
             if (shouldDisplayNewMarker) {
-                return [reportAction.reportActionID, index];
+                // TODO: update the code to use reversedReportActions
+                // sortedVisibleReportActions.length - index <==> reversedReportActions index
+                return [reportAction.reportActionID, sortedVisibleReportActions.length - index];
             }
         }
 
@@ -349,7 +351,7 @@ function ReportActionsList({
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         readActionSkippedRef: readActionSkipped,
         unreadMarkerReportActionIndex,
-        isInverted: true,
+        isInverted: false,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
             onScroll?.(event);
