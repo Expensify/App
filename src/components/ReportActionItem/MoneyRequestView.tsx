@@ -45,7 +45,6 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
-    canSubmitTimeExpenseFromWorkspace,
     getLengthOfTag,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
@@ -370,8 +369,7 @@ function MoneyRequestView({
             moneyRequestReport,
             policy,
         ) &&
-        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy)) &&
-        (!isTimeRequest || canSubmitTimeExpenseFromWorkspace(policy));
+        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
