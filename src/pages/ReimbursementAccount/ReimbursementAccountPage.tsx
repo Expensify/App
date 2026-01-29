@@ -87,6 +87,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID;
+    const bankAccountIDParam = route.params?.bankAccountID;
     const subStepParam = route.params?.subStep;
     const backTo = route.params.backTo;
     const isComingFromExpensifyCard = (backTo as string)?.includes(CONST.EXPENSIFY_CARD.ROUTE as string);
@@ -108,7 +109,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const hasUnsupportedCurrency =
         isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
             ? !isCurrencySupportedForECards(policyCurrency)
-            : !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType);
+            : policyCurrency && !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType);
+
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     let workspaceRoute = '';
     const isFocused = useIsFocused();
@@ -205,6 +207,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      * Retrieve verified business bank account currently being set up.
      */
     function fetchData(preserveCurrentStep = false) {
+        if (!policyIDParam && !bankAccountIDParam) {
+            return;
+        }
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = preserveCurrentStep ? currentStep : getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
@@ -217,6 +222,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             localCurrentStep = achData?.currentStep ?? '';
         }
 
+        if (bankAccountIDParam) {
+            openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, undefined, Number(bankAccountIDParam));
+            return;
+        }
         openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
     }
 

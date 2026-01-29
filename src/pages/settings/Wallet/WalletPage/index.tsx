@@ -160,6 +160,7 @@ function WalletPage() {
         }
         if (accountPolicyID) {
             navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.SETTINGS_WALLET});
+            return;
         }
         navigateToBankAccountRoute({bankAccountID, backTo: ROUTES.SETTINGS_WALLET});
     };
