@@ -3,7 +3,7 @@ import type {Route} from '@src/ROUTES';
 
 type SubPageProps = {
     /** value indicating whether user is editing one of the sub pages */
-    isEditing: boolean;
+    isEditing?: boolean;
 
     /** continues to next sub page */
     onNext: (data?: unknown) => void;

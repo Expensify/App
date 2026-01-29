@@ -13,12 +13,12 @@ import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommand
 import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
-import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
 
-function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
+function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
