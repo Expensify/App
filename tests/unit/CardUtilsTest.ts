@@ -1453,14 +1453,14 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('filterPersonalCards', () => {
+    describe('filterOutPersonalCards', () => {
         it('should return only cards with a valid fundID', () => {
             const cardList: CardList = {
                 '1': {
                     cardID: 1,
                     accountID: 12345,
                     bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'Personal Card 1',
+                    cardName: 'Company Card 1',
                     domainName: '',
                     fraud: 'none',
                     lastFourPAN: '1111',
@@ -1473,20 +1473,20 @@ describe('CardUtils', () => {
                     cardID: 2,
                     accountID: 12345,
                     bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'Company Card',
-                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    cardName: 'Personal Card',
+                    domainName: '',
                     fraud: 'none',
                     lastFourPAN: '2222',
                     lastScrape: '',
                     lastUpdated: '',
                     state: 3,
-                    // No fundID - company card
+                    // No fundID - personal card
                 },
                 '3': {
                     cardID: 3,
                     accountID: 12345,
                     bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
-                    cardName: 'Personal Card 2',
+                    cardName: 'Company Card 2',
                     domainName: '',
                     fraud: 'none',
                     lastFourPAN: '3333',
@@ -1555,8 +1555,8 @@ describe('CardUtils', () => {
                     cardID: 1,
                     accountID: 12345,
                     bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-                    cardName: 'Company Card 1',
-                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    cardName: 'Personal Card 1',
+                    domainName: '',
                     fraud: 'none',
                     lastFourPAN: '1111',
                     lastScrape: '',
@@ -1567,8 +1567,8 @@ describe('CardUtils', () => {
                     cardID: 2,
                     accountID: 12345,
                     bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
-                    cardName: 'Company Card 2',
-                    domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
+                    cardName: 'Personal Card 2',
+                    domainName: '',
                     fraud: 'none',
                     lastFourPAN: '2222',
                     lastScrape: '',
