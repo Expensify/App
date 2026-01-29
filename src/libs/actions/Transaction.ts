@@ -639,10 +639,14 @@ function dismissDuplicateTransactionViolation({
     });
 }
 
-function setReviewDuplicatesKey(values: Partial<ReviewDuplicates>) {
-    Onyx.merge(`${ONYXKEYS.REVIEW_DUPLICATES}`, {
-        ...values,
-    });
+function setReviewDuplicatesKey(values: Partial<ReviewDuplicates>, shouldUseSetMethod = false) {
+    if (shouldUseSetMethod) {
+        Onyx.set(`${ONYXKEYS.REVIEW_DUPLICATES}`, values);
+    } else {
+        Onyx.merge(`${ONYXKEYS.REVIEW_DUPLICATES}`, {
+            ...values,
+        });
+    }
 }
 
 function abandonReviewDuplicateTransactions() {
