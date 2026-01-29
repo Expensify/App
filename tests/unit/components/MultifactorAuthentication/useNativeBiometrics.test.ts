@@ -3,7 +3,6 @@ import useNativeBiometrics from '@components/MultifactorAuthentication/Context/u
 import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
-import {requestAuthenticationChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -75,13 +74,10 @@ describe('useNativeBiometrics hook', () => {
             writable: true,
             configurable: true,
         });
-        // Setup default mocks for PublicKeyStore and requestAuthenticationChallenge
+        // Setup default mock for PublicKeyStore
         (PublicKeyStore.get as jest.Mock).mockResolvedValue({
             value: null,
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
-        });
-        (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-            publicKeys: [],
         });
     });
 
@@ -213,67 +209,10 @@ describe('useNativeBiometrics hook', () => {
             });
         });
 
-        it('should request registration challenge from backend', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {user: {id: '123'}, rp: {name: 'Expensify'}},
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-                publicKeys: ['1234-5678'],
-            });
-
-            const {result} = renderHook(() => useNativeBiometrics());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.register({nativePromptTitle: 'Authenticate'}, onResult);
-            });
-
-            expect(requestAuthenticationChallenge).toHaveBeenCalledWith('registration');
-        });
-
-        it('should handle missing challenge', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: null,
-                reason: VALUES.REASON.BACKEND.UNKNOWN_RESPONSE,
-            });
-
-            const {result} = renderHook(() => useNativeBiometrics());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.register({nativePromptTitle: 'Authenticate'}, onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith({
-                success: false,
-                reason: VALUES.REASON.CHALLENGE.COULD_NOT_RETRIEVE_A_CHALLENGE,
-            });
-        });
-
-        it('should validate registration challenge has user and rp properties', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {challenge: 'abc123'},
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-
-            const {result} = renderHook(() => useNativeBiometrics());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.register({nativePromptTitle: 'Authenticate'}, onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith({
-                success: false,
-                reason: VALUES.REASON.BACKEND.INVALID_CHALLENGE_TYPE,
-            });
-        });
+        // Note: Challenge fetching is now done in Main.tsx, not in useNativeBiometrics
+        // These tests verify the register function with challenge passed as a parameter
 
         it('should generate key pair', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {user: {id: '123'}, rp: {name: 'Expensify'}, challenge: 'abc123'},
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
@@ -285,11 +224,6 @@ describe('useNativeBiometrics hook', () => {
         });
 
         it('should store private key with prompt title', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {user: {id: '123'}, rp: {name: 'Expensify'}, challenge: 'abc123'},
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
@@ -302,11 +236,6 @@ describe('useNativeBiometrics hook', () => {
         });
 
         it('should store public key', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {user: {id: '123'}, rp: {name: 'Expensify'}, challenge: 'abc123'},
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
@@ -322,11 +251,6 @@ describe('useNativeBiometrics hook', () => {
         });
 
         it('should handle successful registration flow', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {user: {id: '123'}, rp: {name: 'Expensify'}, challenge: 'abc123'},
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
@@ -363,77 +287,23 @@ describe('useNativeBiometrics hook', () => {
             });
         });
 
-        it('should request authentication challenge from backend', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {
-                    allowCredentials: [{id: 'public-key-123', type: 'public-key'}],
-                    rpId: 'expensify.com',
-                },
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
+        // Note: Challenge fetching is now done in Main.tsx, not in useNativeBiometrics
+        // These tests verify the authorize function with challenge passed as a parameter
 
-            const {result} = renderHook(() => useNativeBiometrics());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST}, onResult);
-            });
-
-            expect(requestAuthenticationChallenge).toHaveBeenCalledWith();
-        });
-
-        it('should handle missing challenge', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: null,
-                reason: VALUES.REASON.BACKEND.UNKNOWN_RESPONSE,
-            });
-
-            const {result} = renderHook(() => useNativeBiometrics());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST}, onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith({
-                success: false,
-                reason: VALUES.REASON.CHALLENGE.COULD_NOT_RETRIEVE_A_CHALLENGE,
-            });
-        });
-
-        it('should validate authentication challenge has allowCredentials and rpId', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {challenge: 'abc123'},
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-
-            const {result} = renderHook(() => useNativeBiometrics());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST}, onResult);
-            });
-
-            expect(onResult).toHaveBeenCalledWith({
-                success: false,
-                reason: VALUES.REASON.BACKEND.INVALID_CHALLENGE_TYPE,
-            });
-        });
+        const mockChallenge = {
+            allowCredentials: [{id: 'public-key-123', type: 'public-key'}],
+            rpId: 'expensify.com',
+            challenge: 'test-challenge',
+            userVerification: 'required',
+            timeout: 60000,
+        };
 
         it('should get private key from secure store', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {
-                    allowCredentials: [{id: 'public-key-123', type: 'public-key'}],
-                    rpId: 'expensify.com',
-                },
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST}, onResult);
+                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: mockChallenge}, onResult);
             });
 
             // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -441,13 +311,6 @@ describe('useNativeBiometrics hook', () => {
         });
 
         it('should handle missing private key', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {
-                    allowCredentials: [{id: 'public-key-123', type: 'public-key'}],
-                    rpId: 'expensify.com',
-                },
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
             (PrivateKeyStore.get as jest.Mock).mockResolvedValue({
                 value: null,
                 reason: VALUES.REASON.KEYSTORE.KEY_MISSING,
@@ -457,7 +320,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST}, onResult);
+                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: mockChallenge}, onResult);
             });
 
             expect(onResult).toHaveBeenCalledWith({
@@ -467,19 +330,19 @@ describe('useNativeBiometrics hook', () => {
         });
 
         it('should verify public key is in allowCredentials', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {
-                    allowCredentials: [{id: 'other-public-key', type: 'public-key'}],
-                    rpId: 'expensify.com',
-                },
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
+            const challengeWithOtherKey = {
+                allowCredentials: [{id: 'other-public-key', type: 'public-key'}],
+                rpId: 'expensify.com',
+                challenge: 'test-challenge',
+                userVerification: 'required',
+                timeout: 60000,
+            };
 
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST}, onResult);
+                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: challengeWithOtherKey}, onResult);
             });
 
             expect(publicKeyStoreDelete).toHaveBeenCalledWith(12345);
@@ -491,38 +354,22 @@ describe('useNativeBiometrics hook', () => {
         });
 
         it('should sign challenge with private key', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {
-                    allowCredentials: [{id: 'public-key-123', type: 'public-key'}],
-                    rpId: 'expensify.com',
-                },
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST}, onResult);
+                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: mockChallenge}, onResult);
             });
 
             expect(signTokenED25519).toHaveBeenCalledWith(expect.any(Object), expect.any(String), 'public-key-123');
         });
 
         it('should return success with signed challenge', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {
-                    allowCredentials: [{id: 'public-key-123', type: 'public-key'}],
-                    rpId: 'expensify.com',
-                },
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST}, onResult);
+                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: mockChallenge}, onResult);
             });
 
             expect(onResult).toHaveBeenCalledWith(
@@ -539,14 +386,6 @@ describe('useNativeBiometrics hook', () => {
         });
 
         it('should use chained private key status if provided', async () => {
-            (requestAuthenticationChallenge as jest.Mock).mockResolvedValue({
-                challenge: {
-                    allowCredentials: [{id: 'public-key-123', type: 'public-key'}],
-                    rpId: 'expensify.com',
-                },
-                reason: VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED,
-            });
-
             const chainedKeyStatus = {
                 value: 'chained-private-key',
                 reason: VALUES.REASON.KEYSTORE.KEY_PAIR_GENERATED,
@@ -557,7 +396,10 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.authorize({scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, chainedPrivateKeyStatus: chainedKeyStatus}, onResult);
+                await result.current.authorize(
+                    {scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: mockChallenge, chainedPrivateKeyStatus: chainedKeyStatus},
+                    onResult,
+                );
             });
 
             // When chained key is provided, it should be used instead of fetching

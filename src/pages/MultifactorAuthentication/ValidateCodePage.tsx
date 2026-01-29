@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {clearAccountMessages} from '@userActions/Session';
@@ -48,7 +49,12 @@ function MultifactorAuthenticationValidateCodePage() {
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const {cancel} = useMultifactorAuthentication();
-    const {setValidateCode} = useMultifactorAuthenticationState();
+
+    const {state, setValidateCode, setError, clearContinuableError} = useMultifactorAuthenticationState();
+    const {continuableError} = state;
+
+    // Reasons that this page can handle
+    const HANDLED_REASONS: string[] = [VALUES.REASON.BACKEND.INVALID_VALIDATE_CODE];
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
@@ -56,9 +62,23 @@ function MultifactorAuthenticationValidateCodePage() {
     const hasClearedInitialErrorsRef = useRef(false);
 
     // Derived state
-    const hasError = !!account && !isEmptyObject(account?.errors);
+    const hasAccountError = !!account && !isEmptyObject(account?.errors);
+    const hasContinuableError = !!continuableError;
+    const hasError = hasAccountError || hasContinuableError;
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const shouldDisableResendCode = isOffline ?? account?.isLoading;
+
+    // Check if this page can handle the continuable error, if not convert to regular error
+    useEffect(() => {
+        if (!continuableError) {
+            return;
+        }
+
+        if (!HANDLED_REASONS.includes(continuableError.reason)) {
+            // Cannot handle this error - convert to regular error which will stop the flow
+            setError({reason: continuableError.reason, message: continuableError.message});
+        }
+    }, [continuableError, setError, HANDLED_REASONS]);
 
     // Auto-blur on error
     useEffect(() => {
@@ -104,6 +124,11 @@ function MultifactorAuthenticationValidateCodePage() {
         // Clear backend errors
         if (account?.errors) {
             clearAccountMessages();
+        }
+
+        // Clear continuable error when user starts typing
+        if (continuableError) {
+            clearContinuableError();
         }
     };
 
@@ -184,7 +209,8 @@ function MultifactorAuthenticationValidateCodePage() {
                             ref={inputRef}
                             maxLength={CONST.MAGIC_CODE_LENGTH}
                         />
-                        {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
+                        {hasContinuableError && <FormHelpMessage message={translate('validateCodeForm.error.incorrectMagicCode')} />}
+                        {hasAccountError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                         <MultifactorAuthenticationValidateCodeResendButton
                             ref={resendButtonRef}
                             shouldDisableResendCode={shouldDisableResendCode}

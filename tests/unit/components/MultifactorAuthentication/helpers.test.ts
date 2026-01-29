@@ -72,23 +72,12 @@ describe('MultifactorAuthentication helpers', () => {
             });
         });
 
-        it('should return failure when validateCode is missing', async () => {
-            const result = await processRegistration({
-                publicKey: 'public-key-123',
-                validateCode: '',
-                authenticationMethod: 'BIOMETRIC_FACE',
-                challenge: 'challenge-123',
-            });
-
-            expect(result.success).toBe(false);
-        });
-
         it('should return failure when challenge is missing', async () => {
             const result = await processRegistration({
                 publicKey: 'public-key-123',
-                validateCode: '123456',
                 authenticationMethod: 'BIOMETRIC_FACE',
                 challenge: '',
+                currentPublicKeyIDs: [],
             });
 
             expect(result.success).toBe(false);
@@ -97,9 +86,9 @@ describe('MultifactorAuthentication helpers', () => {
         it('should call registerAuthenticationKey with correct parameters', async () => {
             await processRegistration({
                 publicKey: 'public-key-123',
-                validateCode: '123456',
                 authenticationMethod: 'BIOMETRIC_FACE',
                 challenge: 'challenge-123',
+                currentPublicKeyIDs: [],
             });
 
             expect(registerAuthenticationKey).toHaveBeenCalledWith({
@@ -107,8 +96,9 @@ describe('MultifactorAuthentication helpers', () => {
                     rawId: 'public-key-123',
                     type: 'biometric',
                 }),
-                validateCode: 123456,
                 authenticationMethod: 'BIOMETRIC_FACE',
+                publicKey: 'public-key-123',
+                currentPublicKeyIDs: [],
             });
         });
 
@@ -120,9 +110,9 @@ describe('MultifactorAuthentication helpers', () => {
 
             const result = await processRegistration({
                 publicKey: 'public-key-123',
-                validateCode: '123456',
                 authenticationMethod: 'BIOMETRIC_FACE',
                 challenge: 'challenge-123',
+                currentPublicKeyIDs: [],
             });
 
             expect(result.success).toBe(true);
@@ -136,9 +126,9 @@ describe('MultifactorAuthentication helpers', () => {
 
             const result = await processRegistration({
                 publicKey: 'public-key-123',
-                validateCode: '123456',
                 authenticationMethod: 'BIOMETRIC_FACE',
                 challenge: 'challenge-123',
+                currentPublicKeyIDs: [],
             });
 
             expect(result.success).toBe(false);

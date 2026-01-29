@@ -16,7 +16,6 @@ type ProcessResult = {
 
 type RegistrationParams = {
     publicKey: string;
-    validateCode: string;
     authenticationMethod: MarqetaAuthTypeName;
     challenge: string;
     currentPublicKeyIDs: string[];
@@ -43,13 +42,6 @@ function createKeyInfoObject({publicKey, challenge}: {publicKey: string; challen
 }
 
 async function processRegistration(params: RegistrationParams): Promise<ProcessResult> {
-    if (!params.validateCode) {
-        return {
-            success: false,
-            reason: VALUES.REASON.GENERIC.VALIDATE_CODE_MISSING,
-        };
-    }
-
     if (!params.challenge) {
         return {
             success: false,
@@ -64,7 +56,6 @@ async function processRegistration(params: RegistrationParams): Promise<ProcessR
 
     const {httpCode, reason} = await registerAuthenticationKey({
         keyInfo,
-        validateCode: params.validateCode,
         authenticationMethod: params.authenticationMethod,
         publicKey: params.publicKey,
         currentPublicKeyIDs: params.currentPublicKeyIDs,

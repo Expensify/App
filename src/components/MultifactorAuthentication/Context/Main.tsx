@@ -6,7 +6,9 @@ import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenari
 import useLocalize from '@hooks/useLocalize';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import type {MarqetaAuthTypeName, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
+import {isContinuableReason} from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import Navigation from '@navigation/Navigation';
+import {requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -31,8 +33,20 @@ type MultifactorAuthenticationContextProviderProps = {
 };
 
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
-    const {state, setScenario, setPayload, setOutcomePaths, setError, setIsRegistrationComplete, setIsAuthorizationComplete, setIsFlowComplete, setAuthenticationMethod} =
-        useMultifactorAuthenticationState();
+    const {
+        state,
+        setScenario,
+        setPayload,
+        setOutcomePaths,
+        setError,
+        setValidateCode,
+        setRegistrationChallenge,
+        setAuthorizationChallenge,
+        setIsRegistrationComplete,
+        setIsAuthorizationComplete,
+        setIsFlowComplete,
+        setAuthenticationMethod,
+    } = useMultifactorAuthenticationState();
 
     const biometrics = useNativeBiometrics();
     const {translate} = useLocalize();
@@ -42,7 +56,19 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * Uses if statements to determine and execute the next step in the flow.
      */
     const process = useCallback(async () => {
-        const {error, scenario, softPromptApproved, validateCode, payload, outcomePaths, isRegistrationComplete, isAuthorizationComplete, isFlowComplete} = state;
+        const {
+            error,
+            scenario,
+            softPromptApproved,
+            validateCode,
+            registrationChallenge,
+            authorizationChallenge,
+            payload,
+            outcomePaths,
+            isRegistrationComplete,
+            isAuthorizationComplete,
+            isFlowComplete,
+        } = state;
 
         // 0. Check if flow is already complete - do nothing
         if (isFlowComplete) {
@@ -91,6 +117,30 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
+            // Request registration challenge after validateCode is set
+            if (!registrationChallenge) {
+                const {challenge, reason: challengeReason} = await requestRegistrationChallenge(validateCode);
+
+                if (!challenge) {
+                    // Clear validateCode for continuable errors so user can retry
+                    if (isContinuableReason(challengeReason)) {
+                        setValidateCode(undefined);
+                    }
+                    setError({reason: challengeReason});
+                    return;
+                }
+
+                // Validate that we received a registration challenge (has 'user' and 'rp' properties)
+                const isRegistrationChallengeValid = 'user' in challenge && 'rp' in challenge;
+                if (!isRegistrationChallengeValid) {
+                    setError({reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE});
+                    return;
+                }
+
+                setRegistrationChallenge(challenge);
+                return;
+            }
+
             // Check if soft prompt is needed (soft prompt not answered + device supports)
             const needsSoftPrompt = softPromptApproved === undefined && biometrics.info.deviceSupportsBiometrics;
 
@@ -111,7 +161,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 }
 
                 // Call backend to register the public key
-                if (!result.publicKey || !result.authenticationMethod || !result.challenge) {
+                if (!result.publicKey || !result.authenticationMethod) {
                     setError({
                         reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
                     });
@@ -120,9 +170,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
                 const registrationResult = await processRegistration({
                     publicKey: result.publicKey,
-                    validateCode,
                     authenticationMethod: result.authenticationMethod as MarqetaAuthTypeName,
-                    challenge: result.challenge,
+                    challenge: registrationChallenge.challenge,
                     currentPublicKeyIDs: biometrics.registeredPublicKeyIDs,
                 });
 
@@ -142,9 +191,30 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const needsAuthorization = !isAuthorizationComplete;
 
         if (needsAuthorization) {
+            // Request authorization challenge if not already fetched
+            if (!authorizationChallenge) {
+                const {challenge, reason: challengeReason} = await requestAuthorizationChallenge();
+
+                if (!challenge) {
+                    setError({reason: challengeReason});
+                    return;
+                }
+
+                // Validate that we received an authentication challenge (has 'allowCredentials' and 'rpId' properties)
+                const isAuthenticationChallengeValid = 'allowCredentials' in challenge && 'rpId' in challenge;
+                if (!isAuthenticationChallengeValid) {
+                    setError({reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE});
+                    return;
+                }
+
+                setAuthorizationChallenge(challenge);
+                return;
+            }
+
             await biometrics.authorize(
                 {
                     scenario,
+                    challenge: authorizationChallenge,
                 },
                 async (result: AuthorizeResult) => {
                     if (!result.success) {
@@ -152,6 +222,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED) {
                             await biometrics.resetKeysForAccount();
                             setIsRegistrationComplete(false);
+                            setAuthorizationChallenge(undefined);
                         }
                         setError({
                             reason: result.reason,
@@ -190,25 +261,41 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // 6. All steps completed - success
         Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome));
         setIsFlowComplete(true);
-    }, [biometrics, setAuthenticationMethod, setError, setIsAuthorizationComplete, setIsFlowComplete, setIsRegistrationComplete, state, translate]);
+    }, [
+        biometrics,
+        setAuthenticationMethod,
+        setAuthorizationChallenge,
+        setError,
+        setIsAuthorizationComplete,
+        setIsFlowComplete,
+        setIsRegistrationComplete,
+        setRegistrationChallenge,
+        setValidateCode,
+        state,
+        translate,
+    ]);
 
-    // Run process on every state change, but only after executeScenario has been called
+    // Run process on every relevant state change, but only after executeScenario has been called
     useEffect(() => {
         if (!state.scenario) {
             return;
         }
+
         process();
+        // We intentionally omit `process` and `state` from dependencies.
+        // Including them would cause infinite re-renders since `process` is recreated on every state change.
+        // Instead, we list only the specific state fields that should trigger a re-run of the MFA flow.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         state.error,
         state.scenario,
         state.softPromptApproved,
         state.validateCode,
-        state.payload,
-        state.outcomePaths,
+        state.registrationChallenge,
+        state.authorizationChallenge,
         state.isRegistrationComplete,
         state.isAuthorizationComplete,
         state.isFlowComplete,
-        process,
     ]);
 
     const executeScenario = useCallback(

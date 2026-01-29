@@ -7,11 +7,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
 import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
+import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {MarqetaAuthTypeName, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
-import {requestAuthenticationChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
@@ -35,11 +35,11 @@ type RegisterResult = {
     privateKey?: string;
     publicKey?: string;
     authenticationMethod?: MarqetaAuthTypeName;
-    challenge?: string;
 };
 
 type AuthorizeParams<T extends MultifactorAuthenticationScenario> = {
     scenario: T;
+    challenge: AuthenticationChallenge;
     chainedPrivateKeyStatus?: MultifactorAuthenticationPartialStatus<string | null, true>;
 };
 
@@ -168,28 +168,6 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     const register = async (params: RegisterParams, onResult: (result: RegisterResult) => Promise<void> | void) => {
         const {nativePromptTitle} = params;
 
-        // Request registration challenge from backend first
-        const {challenge, reason: challengeReason} = await requestAuthenticationChallenge('registration');
-
-        if (!challenge) {
-            const reason = challengeReason === VALUES.REASON.BACKEND.UNKNOWN_RESPONSE ? VALUES.REASON.CHALLENGE.COULD_NOT_RETRIEVE_A_CHALLENGE : challengeReason;
-            onResult({
-                success: false,
-                reason,
-            });
-            return;
-        }
-
-        // Validate that we received a registration challenge (has 'user' and 'rp' properties)
-        const isRegistrationChallenge = 'user' in challenge && 'rp' in challenge;
-        if (!isRegistrationChallenge) {
-            onResult({
-                success: false,
-                reason: VALUES.REASON.BACKEND.INVALID_CHALLENGE_TYPE,
-            });
-            return;
-        }
-
         // Check device support
         if (!doesDeviceSupportBiometrics()) {
             onResult({
@@ -228,44 +206,21 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
             return;
         }
 
-        // Return success with keys and challenge - let callback handle backend registration
+        // Return success with keys - challenge is passed from Main.tsx
         await onResult({
             success: true,
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_PAIR_GENERATED,
             privateKey,
             publicKey,
             authenticationMethod: marqetaAuthType,
-            challenge: challenge.challenge,
         });
     };
 
     const authorize = async <T extends MultifactorAuthenticationScenario>(params: AuthorizeParams<T>, onResult: (result: AuthorizeResult) => Promise<void> | void) => {
-        const {scenario, chainedPrivateKeyStatus} = params;
+        const {scenario, challenge, chainedPrivateKeyStatus} = params;
 
         const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
         const nativePromptTitle = translate(nativePromptTitleTPath);
-
-        // Request challenge from backend
-        const {challenge, reason: apiReason} = await requestAuthenticationChallenge();
-
-        if (!challenge) {
-            const reason = apiReason === VALUES.REASON.BACKEND.UNKNOWN_RESPONSE ? VALUES.REASON.CHALLENGE.COULD_NOT_RETRIEVE_A_CHALLENGE : apiReason;
-            onResult({
-                success: false,
-                reason,
-            });
-            return;
-        }
-
-        // Validate that we received an authentication challenge (has 'allowCredentials' and 'rpId' properties)
-        const isAuthenticationChallenge = 'allowCredentials' in challenge && 'rpId' in challenge;
-        if (!isAuthenticationChallenge) {
-            onResult({
-                success: false,
-                reason: VALUES.REASON.BACKEND.INVALID_CHALLENGE_TYPE,
-            });
-            return;
-        }
 
         // Extract public keys from challenge.allowCredentials
         const authPublicKeys = challenge.allowCredentials?.map((cred: {id: string; type: string}) => cred.id) ?? [];
