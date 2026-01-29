@@ -1053,7 +1053,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                         <ScreenWrapper
                             navigation={navigation}
                             style={screenWrapperStyle}
-                            shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
+                            shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingViewResult}
                             testID={`report-screen-${reportID}`}
                             includeSafeAreaPaddingBottom={includeSafeAreaBottomInReportScreen}
                         >
