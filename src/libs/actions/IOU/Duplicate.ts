@@ -34,6 +34,7 @@ import {
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
     getPolicyTags,
+    getRecentWaypoints,
     getUserAccountID,
     requestMoney,
     trackExpense,
@@ -501,6 +502,7 @@ function duplicateExpenseTransaction({
 
     const userAccountID = getUserAccountID();
     const currentUserEmail = getCurrentUserEmail();
+    const recentWaypoints = getRecentWaypoints();
 
     const participants = getMoneyRequestParticipantsFromReport(targetReport, userAccountID);
     const transactionDetails = getTransactionDetails(transaction);
@@ -565,6 +567,7 @@ function duplicateExpenseTransaction({
             introSelected,
             activePolicyID,
             quickAction,
+            recentWaypoints,
         };
         return trackExpense(trackExpenseParams);
     }
@@ -601,6 +604,7 @@ function duplicateExpenseTransaction({
                 quickAction,
                 customUnitPolicyID,
                 personalDetails,
+                recentWaypoints,
             };
             return createDistanceRequest(distanceParams);
         }

@@ -301,6 +301,8 @@ function IOURequestStepDistanceOdometer({
         Navigation.goBack();
     };
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = () => {
         const start = parseFloat(startReading);
@@ -341,6 +343,7 @@ function IOURequestStepDistanceOdometer({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep,
+                    recentWaypoints,
                 });
             }
             Navigation.goBack();
@@ -408,6 +411,7 @@ function IOURequestStepDistanceOdometer({
                         introSelected,
                         activePolicyID,
                         quickAction,
+                        recentWaypoints,
                     });
                     return;
                 }
@@ -439,6 +443,7 @@ function IOURequestStepDistanceOdometer({
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     personalDetails,
+                    recentWaypoints,
                 });
                 return;
             }
