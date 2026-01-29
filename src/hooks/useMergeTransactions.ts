@@ -3,7 +3,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction, Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 type UseMergeTransactionsProps = {
@@ -15,6 +15,8 @@ type UseMergeTransactionsReturn = {
     sourceTransaction?: Transaction;
     targetTransactionReport?: Report;
     sourceTransactionReport?: Report;
+    targetTransactionPolicy?: Policy;
+    sourceTransactionPolicy?: Policy;
 };
 
 function getTransaction(
@@ -54,11 +56,20 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
     let [sourceTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceTransaction?.reportID)}`, {
         canBeMissing: true,
     });
+    let [targetTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(targetTransactionReport?.policyID)}`, {
+        canBeMissing: true,
+    });
+    let [sourceTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(sourceTransactionReport?.policyID)}`, {
+        canBeMissing: true,
+    });
 
-    // If we're on search and main collection reports are not available, get them from the search snapshot
     if (currentSearchHash && currentSearchResults?.data) {
+        // If we're on search and main collection reports are not available, get them from the search snapshot
         targetTransactionReport = targetTransactionReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`];
         sourceTransactionReport = sourceTransactionReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`];
+        // If we're on search, search snapshot policies are more up to date
+        targetTransactionPolicy = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`];
+        sourceTransactionPolicy = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.POLICY}${sourceTransactionReport?.policyID}`];
     }
 
     return {
@@ -66,6 +77,8 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
         sourceTransaction,
         targetTransactionReport,
         sourceTransactionReport,
+        targetTransactionPolicy,
+        sourceTransactionPolicy,
     };
 }
 

@@ -846,6 +846,10 @@ function getUpdatedTransaction({
         updatedTransaction.tag = transactionChanges.tag;
     }
 
+    if (Object.hasOwn(transactionChanges, 'reportID') && typeof transactionChanges.reportID === 'string') {
+        updatedTransaction.reportID = transactionChanges.reportID;
+    }
+
     if (Object.hasOwn(transactionChanges, 'attendees')) {
         updatedTransaction.comment = {
             ...updatedTransaction.comment,
