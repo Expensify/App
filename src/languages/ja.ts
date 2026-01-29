@@ -6924,10 +6924,10 @@ ${reportName}
             reimbursable: '精算対象',
             purchaseCurrency: '購入通貨',
             groupBy: {
-                [CONST.SEARCH.GROUP_BY.FROM]: '送信者',
+                [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
-                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
@@ -8112,6 +8112,16 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             prompt: 'GPS距離の追跡を開始するには、デバイスの設定で位置情報へのアクセスを許可してください。',
         },
         fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
+    },
+    homePage: {
+        forYou: 'あなた向け',
+        announcements: 'お知らせ',
+        discoverSection: {
+            title: '発見',
+            menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
+            menuItemTitleAdmin: 'メンバーの招待方法、承認ワークフローの編集方法、会社カードの照合方法について学びましょう。',
+            menuItemDescription: '2 分で Expensify でできることを確認する',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

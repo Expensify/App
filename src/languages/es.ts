@@ -733,6 +733,16 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
         },
     },
+    homePage: {
+        forYou: 'Para ti',
+        announcements: 'Anuncios',
+        discoverSection: {
+            title: 'Descubrir',
+            menuItemTitleNonAdmin: 'Aprende a crear gastos y enviar informes.',
+            menuItemTitleAdmin: 'Aprende a invitar a miembros, editar flujos de aprobación y conciliar tarjetas corporativas.',
+            menuItemDescription: 'Descubre lo que Expensify puede hacer en 2 minutos',
+        },
+    },
     allSettingsScreen: {
         subscription: 'Suscripcion',
         domains: 'Dominios',
