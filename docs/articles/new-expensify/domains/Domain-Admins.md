@@ -49,3 +49,7 @@ Yes. Domain Admins do not need to use your company’s email domain. You can add
 
 Go to **Workspaces > Domains**, open your domain, and select **Domain Admins**. From there, click **Remove** next to the person you want to revoke access for.
 
+## Who can be a Domain Admin
+
+You can add any Expensify user as a Domain Admin, regardless of whether they use your private domain or a public domain like gmail.com. 
+
