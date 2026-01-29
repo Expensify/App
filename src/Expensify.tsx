@@ -349,6 +349,9 @@ function Expensify() {
                 if (conciergeReportID === undefined) {
                     Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
                 }
+                if (introSelected === undefined) {
+                    Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
+                }
                 openReportFromDeepLink(
                     url,
                     currentOnboardingPurposeSelected,
@@ -370,6 +373,9 @@ function Expensify() {
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
             if (conciergeReportID === undefined) {
                 Log.info('[Deep link] conciergeReportID is undefined when processing URL change', false, {url: state.url});
+            }
+            if (introSelected === undefined) {
+                Log.info('[Deep link] introSelected is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
             openReportFromDeepLink(
