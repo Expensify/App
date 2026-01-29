@@ -32,7 +32,7 @@ function DiscoverSection() {
                 onPress={handlePress}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('homePage.discoverSection.title')}
-                style={[styles.mh8, styles.mb4]}
+                style={[shouldUseNarrowLayout ? styles.mh5 : styles.mh8, styles.mb5]}
             >
                 <View style={[styles.br2, styles.overflowHidden]}>
                     <Image
@@ -46,8 +46,8 @@ function DiscoverSection() {
                 title={isCurrentUserPolicyAdmin ? translate('homePage.discoverSection.menuItemTitleAdmin') : translate('homePage.discoverSection.menuItemTitleNonAdmin')}
                 description={translate('homePage.discoverSection.menuItemDescription')}
                 onPress={handlePress}
-                style={styles.mb8}
-                wrapperStyle={styles.pl8}
+                style={shouldUseNarrowLayout ? styles.mb2 : styles.mb5}
+                wrapperStyle={shouldUseNarrowLayout ? styles.pl5 : styles.pl8}
                 numberOfLinesTitle={MAX_NUMBER_OF_LINES_TITLE}
             />
         </WidgetContainer>

@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -31,10 +32,11 @@ type WidgetContainerProps = {
 function WidgetContainer({children, icon, title, titleColor, iconWidth = variables.iconSizeNormal, iconHeight = variables.iconSizeNormal}: WidgetContainerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <View style={styles.widgetContainer}>
-            <View style={[styles.flexRow, styles.alignItemsStart, styles.mh8, styles.mt8, styles.mb5]}>
+            <View style={[styles.flexRow, styles.alignItemsStart, styles.mb5, shouldUseNarrowLayout ? styles.mh5 : styles.mh8, shouldUseNarrowLayout ? styles.mt5 : styles.mt8]}>
                 {!!icon && (
                     <View style={[styles.flexGrow0, styles.flexShrink0]}>
                         <Icon
