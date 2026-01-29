@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -637,6 +639,9 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'インサイト',
         duplicateExpense: '重複した経費',
         newFeature: '新機能',
+        month: '月',
+        home: 'ホーム',
+        week: '週',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -758,6 +763,16 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         enableQuickVerification: {
             biometrics: '顔または指紋を使用して、パスワードやコード不要の迅速かつ安全な認証を有効にしてください。',
+        },
+        revoke: {
+            revoke: '取り消す',
+            title: '顔／指紋 & パスキー',
+            explanation: '1 台以上のデバイスで顔 / 指紋またはパスキー認証が有効になっています。アクセスを取り消すと、今後どのデバイスでも次回の認証時にマジックコードが必要になります',
+            confirmationPrompt: '本当に実行しますか？次回、どのデバイスで確認する場合でも、マジックコードが必要になります',
+            cta: 'アクセスを取り消す',
+            noDevices: '顔認証 / 指紋認証 またはパスキー認証用に登録されているデバイスがありません。  \nいずれかを登録すると、ここでそのアクセスを取り消せるようになります。',
+            dismiss: '了解',
+            error: 'リクエストに失敗しました。後でもう一度お試しください。',
         },
     },
     validateCodeModal: {
@@ -881,6 +896,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `この${type}を削除してもよろしいですか？`;
         },
         onlyVisible: 'にのみ表示',
+        explain: '説明する',
+        explainMessage: 'これを説明してください。',
         replyInThread: 'スレッドに返信',
         joinThread: 'スレッドに参加',
         leaveThread: 'スレッドから退出',
@@ -910,6 +927,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'これはあなたの個人スペースです。メモ、タスク、下書き、リマインダーとして使用してください。',
         beginningOfChatHistorySystemDM: 'ようこそ！さっそく設定を始めましょう。',
         chatWithAccountManager: 'ここでアカウントマネージャーとチャットする',
+        askMeAnything: '何でも聞いてください！',
         sayHello: 'こんにちはと言ってください！',
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName} へようこそ！`,
@@ -1479,6 +1497,33 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
         correctDistanceRateError: '距離レートのエラーを修正して、もう一度お試しください。',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明する</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? '経費を「立替精算対象」にマークしました' : '経費を「非精算」としてマークしました';
+                }
+                if (key === 'billable') {
+                    return value ? '経費を「請求可能」とマークしました' : '経費を「請求対象外」としてマークしました';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `税率を「${taxRateName}」に設定`;
+                    }
+                    return `税率を「${taxRateName}」に`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `${translations.common[key].toLowerCase()} を「${updatedValue}」に設定`;
+                }
+                return `${translations.common[key].toLowerCase()} を「${updatedValue}」に`;
+            });
+            return `${formatList(fragments)}（<a href="${policyRulesRoute}">ワークスペースルール</a>経由）`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2192,6 +2237,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${merchant} への ${amount}（${date}）`,
         },
+        csvCardDescription: 'CSVインポート',
     },
     workflowsPage: {
         workflowTitle: '支出',
@@ -4862,6 +4908,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             assign: '割り当て',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription: '新しい取引の開始日を選択してください。その日以降のすべての取引を、すでに取り込んだものを除いて同期します。',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
@@ -6281,11 +6328,25 @@ ${reportName}
                 title: '加盟店',
                 subtitle: '取引先ルールを設定して、経費が正しくコード化された状態で届くようにし、後処理を最小限に抑えましょう。',
                 addRule: '店舗ルールを追加',
-                ruleSummaryTitle: (merchantName: string) => `もし取引先に「${merchantName}」が含まれている場合`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `もし加盟店 ${isExactMatch ? '完全一致' : '含む'} 「${merchantName}」`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `支払先名を「${merchantName}」に変更`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `${fieldName} を「${fieldValue}」に更新`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `「${reimbursable ? '払い戻し対象' : '精算対象外'}」としてマーク`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `「${billable ? '請求可能' : '請求対象外'}」としてマーク`,
+                addRuleTitle: 'ルールを追加',
+                expensesWith: '次の条件の経費について:',
+                applyUpdates: 'これらの更新を適用:',
+                saveRule: 'ルールを保存',
+                confirmError: '支払先を入力し、少なくとも 1 つの更新を適用してください',
+                confirmErrorMerchant: '商人を入力してください',
+                confirmErrorUpdate: '少なくとも 1 件の更新を適用してください',
+                editRuleTitle: 'ルールを編集',
+                deleteRule: 'ルールを削除',
+                deleteRuleConfirmation: 'このルールを削除してもよろしいですか？',
+                matchType: '一致タイプ',
+                matchTypeContains: '含む',
+                matchTypeExact: '完全一致',
+                expensesExactlyMatching: '以下と完全一致する経費について:',
             },
         },
         planTypePage: {
@@ -6675,6 +6736,11 @@ ${reportName}
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を「${newValue}」日に設定`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費期限を「${newValue}」日に変更しました（以前は「${oldValue}」日）`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を削除（以前は「${oldValue}」日）`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 件の自動支払い承認済みレポート`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `自動支払い承認レポートの閾値を「${newLimit}」に設定`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `自動支払い承認済みレポートのしきい値を「${newLimit}」（以前は「${oldLimit}」）に変更しました`,
+        removedAutoPayApprovedReportsLimit: '自動支払い承認済みレポートのしきい値を削除しました',
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -6810,6 +6876,7 @@ ${reportName}
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
         topCategories: 'トップカテゴリ',
+        topMerchants: 'トップマーチャント',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
             approve: '承認',
@@ -6830,7 +6897,8 @@ ${reportName}
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'しない',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '今月',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新の明細',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '年初来',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: '最新の明細書',
                 },
             },
             status: 'ステータス',
@@ -6870,7 +6938,11 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '出金ID',
-                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+                [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリ',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
+                [CONST.SEARCH.GROUP_BY.MONTH]: '月',
+                [CONST.SEARCH.GROUP_BY.WEEK]: '週',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -6892,6 +6964,7 @@ ${reportName}
             accessPlaceHolder: '詳細を開く',
         },
         noCategory: 'カテゴリなし',
+        noMerchant: '加盟店なし',
         noTag: 'タグなし',
         expenseType: '経費の種類',
         withdrawalType: '出金タイプ',
@@ -7047,6 +7120,10 @@ ${reportName}
                 leftTheChat: 'チャットを退出しました',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} との接続が切断されています。カードの取引明細の取り込みを再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `ビジネス銀行口座へのPlaid接続が切断されています。Expensifyカードを引き続きご利用いただくには、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `ビジネス銀行口座 ${maskedBankAccountNumber} は、払い戻しまたは Expensify Card の決済に関する問題により自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
@@ -8037,12 +8114,28 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
         signOutWarningTripInProgress: {title: 'GPS追跡を実行中', prompt: 'この出張を破棄してサインアウトしてもよろしいですか？', confirm: '破棄してサインアウト'},
         notification: {title: 'GPS追跡を実行中', body: '完了するにはアプリに移動'},
+        continueGpsTripModal: {
+            title: 'GPS の走行記録を続けますか？',
+            prompt: '前回のGPS移動中にアプリが終了したようです。その移動の記録を続けますか？',
+            confirm: '出張を続ける',
+            cancel: '出張を表示',
+        },
         locationServicesRequiredModal: {
             title: '位置情報へのアクセスが必要です',
             confirm: '設定を開く',
             prompt: 'GPS距離の追跡を開始するには、デバイスの設定で位置情報へのアクセスを許可してください。',
         },
         fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
+    },
+    homePage: {
+        forYou: 'あなた向け',
+        announcements: 'お知らせ',
+        discoverSection: {
+            title: '発見',
+            menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
+            menuItemTitleAdmin: 'メンバーの招待方法、承認ワークフローの編集方法、会社カードの照合方法について学びましょう。',
+            menuItemDescription: '2 分で Expensify でできることを確認する',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

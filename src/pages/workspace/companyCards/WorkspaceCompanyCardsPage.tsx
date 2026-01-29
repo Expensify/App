@@ -43,19 +43,24 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     } = companyCards;
 
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
-    const {isOffline} = useNetwork({
-        onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate),
-    });
-
-    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
 
     const loadPolicyCompanyCardsPage = useCallback(() => {
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate);
     }, [domainOrWorkspaceAccountID, policyID, translate]);
 
+    const {isOffline} = useNetwork({
+        onReconnect: loadPolicyCompanyCardsPage,
+    });
+
+    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
+
     useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
         loadPolicyCompanyCardsPage();
-    }, [policyID, domainOrWorkspaceAccountID, loadPolicyCompanyCardsPage]);
+    }, [policyID, domainOrWorkspaceAccountID, loadPolicyCompanyCardsPage, isOffline]);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending) {
