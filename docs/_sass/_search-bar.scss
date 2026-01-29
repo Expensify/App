@@ -90,7 +90,7 @@
     box-sizing: border-box;
     cursor: text;
 
-    .search-form:focus-within & {
+    &:focus-within {
         border-color: var(--color-button-success-background);
     }
 }
