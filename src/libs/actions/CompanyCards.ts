@@ -1003,9 +1003,11 @@ function setFeedStatementPeriodEndDay(
 function importCSVCompanyCards(policyID: string, layoutName: string, layoutType: string, columnMappings: string[], csvData: string[][]) {
     const parameters: ImportCSVCompanyCardsParams = {
         policyID,
-        layoutName,
-        layoutType,
-        settings: JSON.stringify({columnMappings}),
+        settings: JSON.stringify({
+            columnMappings,
+            layoutName,
+            layoutType,
+        }),
         csvData: JSON.stringify(csvData),
     };
 
