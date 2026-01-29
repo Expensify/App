@@ -123,8 +123,9 @@ function TestToolMenu() {
                             />
                             {hasBiometricsRegistered && (
                                 <Button
+                                    danger
                                     small
-                                    text={translate('multifactorAuthentication.revoke.revoke')}
+                                    text={translate('multifactorAuthentication.revoke.remove')}
                                     onPress={() => {
                                         revokeMultifactorAuthenticationCredentials();
                                     }}
