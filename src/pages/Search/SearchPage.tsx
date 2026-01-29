@@ -37,7 +37,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {deleteAppReport, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -61,6 +61,7 @@ import {
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {setNameValuePair} from '@libs/actions/User';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -146,6 +147,7 @@ function SearchPage({route}: SearchPageProps) {
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
+    const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -441,13 +443,40 @@ function SearchPage({route}: SearchPageProps) {
             }
             // Translations copy for delete modal depends on amount of selected items,
             // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+            const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                if (isExpenseReportType) {
+                    // For expense reports, call deleteAppReport which properly un-reports the expenses
+                    for (const reportID of selectedReportIDs) {
+                        try {
+                            deleteAppReport(reportID, currentUserPersonalDetails?.login ?? '', validTransactions, allTransactionViolations, bankAccountList);
+                        } catch (error) {
+                            Log.warn('[SearchPage] Failed to delete expense report', {error});
+                        }
+                    }
+                } else {
+                    // For individual expenses, delete the transactions
+                    deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                }
                 clearSelectedTransactions();
             });
         });
-    }, [isOffline, showConfirmModal, translate, selectedTransactionsKeys, hash, clearSelectedTransactions]);
+    }, [
+        isOffline,
+        showConfirmModal,
+        translate,
+        selectedTransactionsKeys,
+        hash,
+        clearSelectedTransactions,
+        queryJSON?.type,
+        selectedReportIDs,
+        currentUserPersonalDetails?.login,
+        allTransactions,
+        allTransactionViolations,
+        bankAccountList,
+        isExpenseReportType,
+    ]);
 
     const onBulkPaySelected = useCallback(
         (paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
@@ -796,7 +825,7 @@ function SearchPage({route}: SearchPageProps) {
 
         options.push(exportButtonOption);
 
-        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
+        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold) && !isExpenseReportType;
 
         if (shouldShowHoldOption) {
             options.push({
@@ -828,7 +857,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
+        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold) && !isExpenseReportType;
 
         if (shouldShowUnholdOption) {
             options.push({
@@ -1008,6 +1037,7 @@ function SearchPage({route}: SearchPageProps) {
         showDelegateNoAccessModal,
         currentUserPersonalDetails.accountID,
         personalPolicyID,
+        isExpenseReportType,
     ]);
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
