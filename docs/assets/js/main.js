@@ -116,6 +116,12 @@ function openSidebar() {
     }
 }
 
+const SEARCH_API_URL = 'https://www.expensify.com/api/SearchHelpsite';
+
+function getTitleFromURL(url) {
+    return url.split('/').pop().replace(/-/g, ' ');
+}
+
 /**
  * Clone a template element by its ID.
  *
@@ -145,7 +151,7 @@ function searchHelpsite(query) {
     formData.append('command', 'SearchHelpsite');
     formData.append('query', query.trim());
 
-    fetch('https://www.expensify.com/api/SearchHelpsite', {
+    fetch('https://www.expensify.com.dev/api/SearchHelpsite', {
         method: 'POST',
         body: formData,
     })
