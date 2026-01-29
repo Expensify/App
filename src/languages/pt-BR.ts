@@ -8110,6 +8110,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             errors: {addMember: 'Não foi possível adicionar este membro. Tente novamente.'},
         },
         domainAdmins: 'Administradores de domínio',
+        domainMembers: 'Membros do domínio',
     },
     gps: {
         disclaimer: 'Use o GPS para criar uma despesa a partir da sua viagem. Toque em Iniciar abaixo para começar o rastreamento.',

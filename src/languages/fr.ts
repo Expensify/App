@@ -8158,6 +8158,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             errors: {addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.'},
         },
         domainAdmins: 'Administrateurs de domaine',
+        domainMembers: 'Membres du domaine',
     },
     gps: {
         disclaimer: 'Utilisez le GPS pour créer une dépense à partir de votre trajet. Touchez Démarrer ci-dessous pour commencer le suivi.',

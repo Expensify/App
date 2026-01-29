@@ -8152,6 +8152,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             errors: {addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.'},
         },
         domainAdmins: 'Domain-Admins',
+        domainMembers: 'Domänenmitglieder',
     },
     gps: {
         disclaimer: 'Benutze GPS, um eine Ausgabe von deiner Reise zu erstellen. Tippe unten auf „Start“, um mit der Aufzeichnung zu beginnen.',

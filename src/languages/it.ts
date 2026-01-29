@@ -8139,6 +8139,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             errors: {addMember: 'Impossibile aggiungere questo membro. Riprova.'},
         },
         domainAdmins: 'Amministratori di dominio',
+        domainMembers: 'Membri del dominio',
     },
     gps: {
         disclaimer: 'Usa il GPS per creare una spesa dal tuo viaggio. Tocca Avvia qui sotto per iniziare il tracciamento.',

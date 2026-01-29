@@ -8121,6 +8121,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             errors: {addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.'},
         },
         domainAdmins: 'Domeinbeheerders',
+        domainMembers: 'Domeinleden',
     },
     gps: {
         disclaimer: 'Gebruik GPS om een uitgave van je reis te maken. Tik hieronder op Start om het volgen te beginnen.',

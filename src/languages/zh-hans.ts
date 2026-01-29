@@ -7907,6 +7907,7 @@ ${reportName}
         },
         members: {title: '成员', findMember: '查找成员', addMember: '添加成员', email: '电子邮箱地址', errors: {addMember: '无法添加此成员。请重试。'}},
         domainAdmins: '域管理员',
+        domainMembers: '域成员',
     },
     gps: {
         disclaimer: '使用 GPS 根据您的行程创建报销。点击下方的“开始”以开始跟踪。',

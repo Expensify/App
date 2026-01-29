@@ -8106,6 +8106,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             errors: {addMember: 'Nie można dodać tego członka. Spróbuj ponownie.'},
         },
         domainAdmins: 'Administratorzy domeny',
+        domainMembers: 'Członkowie domeny',
     },
     gps: {
         disclaimer: 'Użyj GPS, aby utworzyć wydatek z Twojej podróży. Stuknij „Start” poniżej, aby rozpocząć śledzenie.',
