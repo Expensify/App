@@ -117,6 +117,16 @@ function openSidebar() {
 }
 
 /**
+ * Clone a template element by its ID.
+ *
+ * @param {string} templateId
+ * @returns {DocumentFragment}
+ */
+function cloneTemplate(templateId) {
+    return document.getElementById(templateId).content.cloneNode(true);
+}
+
+/**
  * Search the help site using the SearchHelpsite API.
  *
  * @param {string} query
@@ -128,7 +138,8 @@ function searchHelpsite(query) {
         return;
     }
 
-    resultsContainer.innerHTML = '<div class="search-loading">Searching...</div>';
+    resultsContainer.innerHTML = '';
+    resultsContainer.appendChild(cloneTemplate('search-loading-template'));
 
     const formData = new FormData();
     formData.append('command', 'SearchHelpsite');
@@ -141,26 +152,30 @@ function searchHelpsite(query) {
         .then((response) => response.json())
         .then((data) => {
             const results = data.searchResults || [];
+            resultsContainer.innerHTML = '';
+
             if (results.length === 0) {
-                resultsContainer.innerHTML = '<div class="search-no-results">No results found</div>';
+                resultsContainer.appendChild(cloneTemplate('search-no-results-template'));
                 return;
             }
 
-            resultsContainer.innerHTML = results
-                .map(
-                    (result) =>
-                        `<a href="${result.url}" class="search-result-item">
-                        <div class="search-result-content">
-                            <div class="search-result-title">${result.url.split('/').pop().replace(/-/g, ' ')}</div>
-                            ${result.description ? `<div class="search-result-description">${result.description}</div>` : ''}
-                        </div>
-                        <img src="/assets/images/arrow-right.svg" class="base-icon" />
-                    </a>`,
-                )
-                .join('');
+            results.forEach((result) => {
+                const item = cloneTemplate('search-result-item-template');
+                const link = item.querySelector('.search-result-item');
+                link.href = result.url;
+                link.querySelector('.search-result-title').textContent = result.url.split('/').pop().replace(/-/g, ' ');
+                const description = link.querySelector('.search-result-description');
+                if (result.description) {
+                    description.textContent = result.description;
+                } else {
+                    description.remove();
+                }
+                resultsContainer.appendChild(item);
+            });
         })
         .catch(() => {
-            resultsContainer.innerHTML = '<div class="search-error">Something went wrong. Please try again.</div>';
+            resultsContainer.innerHTML = '';
+            resultsContainer.appendChild(cloneTemplate('search-error-template'));
         });
 }
 
