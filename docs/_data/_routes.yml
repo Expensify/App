@@ -203,17 +203,18 @@ platforms:
         icon: /assets/images/envelope-receipt.svg
         description: "Learn how to create and manage Travel Events for group bookings."
 
-  - href: consolidated
-    title: Consolidated
-    hub-title: Consolidated
-    hub-description: Questions? Find the answers by clicking a Category or using the search bar.
-    url: travel.expensify.com
-    description: "This is a test for consolidated help site content."
-    image: /assets/images/help-travel.png
-  
-    hubs:
-      - href: billing-and-subscriptions
-        title: billing and subscriptions
-        icon: /assets/images/accounting.svg
+- href: consolidated
+  title: Consolidated
+  hub-title: Consolidated
+  hub-description: Questions? Find the answers by clicking a Category or using the search bar.
+  url: travel.expensify.com
+  description: "This is a test for consolidated help site content."
+  image: /assets/images/help-travel.png
+
+  hubs:
+    - href: billing-and-subscriptions
+      title: Billing and Subscriptions
+      icon: /assets/images/accounting.svg
+      description: "Learn about billing and subscriptions."
         description: "Learn about billing and subscriptions."
         articles: []
