@@ -499,12 +499,15 @@ function WalletPage() {
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 />
                             )}
-                            <MenuItem
-                                title={translate('workspace.companyCards.importTransactions.importButton')}
-                                icon={icons.Table}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
-                                wrapperStyle={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                            />
+                            <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                <MenuItem
+                                    title={translate('workspace.companyCards.importTransactions.importButton')}
+                                    icon={icons.Table}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                    wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                />
+                            </View>
                         </Section>
 
                         {hasWallet && (
