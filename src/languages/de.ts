@@ -641,7 +641,6 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Neue Funktion',
         month: 'Monat',
         home: 'Startseite',
-        week: 'Woche',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -2251,6 +2250,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} für ${merchant} – ${date}`,
         },
+        csvCardDescription: 'CSV-Import',
     },
     workflowsPage: {
         workflowTitle: 'Ausgabe',
@@ -7002,7 +7002,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Stichwort',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
-                [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -8214,6 +8213,16 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
         },
         fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
+    },
+    homePage: {
+        forYou: 'Für dich',
+        announcements: 'Ankündigungen',
+        discoverSection: {
+            title: 'Entdecken',
+            menuItemTitleNonAdmin: 'Erfahren Sie, wie Sie Ausgaben erstellen und Berichte einreichen.',
+            menuItemTitleAdmin: 'Erfahren Sie, wie Sie Mitglieder einladen, Genehmigungsworkflows bearbeiten und Firmenkarten abstimmen.',
+            menuItemDescription: 'Sehen Sie, was Expensify in 2 Minuten kann',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

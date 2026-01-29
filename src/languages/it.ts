@@ -642,7 +642,6 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nuova funzionalità',
         month: 'Mese',
         home: 'Home',
-        week: 'Settimana',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -2247,6 +2246,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} per ${merchant} - ${date}`,
         },
+        csvCardDescription: 'Importazione CSV',
     },
     workflowsPage: {
         workflowTitle: 'Spese',
@@ -6988,10 +6988,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
-                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerciante',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
-                [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -8200,6 +8199,16 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per avviare il tracciamento della distanza tramite GPS.',
         },
         fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
+    },
+    homePage: {
+        forYou: 'Per te',
+        announcements: 'Annunci',
+        discoverSection: {
+            title: 'Scopri',
+            menuItemTitleNonAdmin: 'Scopri come creare spese e inviare report.',
+            menuItemTitleAdmin: 'Scopri come invitare membri, modificare i flussi di approvazione e riconciliare le carte aziendali.',
+            menuItemDescription: 'Scopri cosa può fare Expensify in 2 minuti',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

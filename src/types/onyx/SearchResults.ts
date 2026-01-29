@@ -235,21 +235,6 @@ type SearchMonthGroup = {
     currency: string;
 };
 
-/** Model of week grouped search result */
-type SearchWeekGroup = {
-    /** Week start date in YYYY-MM-DD format */
-    week: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
-};
-
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
@@ -266,7 +251,7 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
         PrefixedRecord<
             typeof CONST.SEARCH.GROUP_PREFIX,
-            SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchMerchantGroup | SearchTagGroup | SearchMonthGroup | SearchWeekGroup
+            SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchMerchantGroup | SearchTagGroup | SearchMonthGroup
         >;
 
     /** Whether search data is being fetched from server */
@@ -292,5 +277,4 @@ export type {
     SearchMerchantGroup,
     SearchTagGroup,
     SearchMonthGroup,
-    SearchWeekGroup,
 };

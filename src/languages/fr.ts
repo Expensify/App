@@ -643,7 +643,6 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nouvelle fonctionnalité',
         month: 'Mois',
         home: 'Accueil',
-        week: 'Semaine',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -2256,6 +2255,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} pour ${merchant} - ${date}`,
         },
+        csvCardDescription: 'Importation CSV',
     },
     workflowsPage: {
         workflowTitle: 'Dépenses',
@@ -7014,7 +7014,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
-                [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
             },
             feed: 'Flux',
             withdrawalType: {
@@ -8220,6 +8219,16 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour lancer le suivi de distance GPS.',
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
+    },
+    homePage: {
+        forYou: 'Pour vous',
+        announcements: 'Annonces',
+        discoverSection: {
+            title: 'Découvrir',
+            menuItemTitleNonAdmin: 'Découvrez comment créer des dépenses et soumettre des rapports.',
+            menuItemTitleAdmin: 'Apprenez à inviter des membres, à modifier les circuits d’approbation et à rapprocher les cartes de l’entreprise.',
+            menuItemDescription: 'Découvrez ce qu’Expensify peut faire en 2 minutes',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
