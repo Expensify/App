@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -27,15 +27,18 @@ function TransactionsImportedPage() {
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const columnRoles: ColumnRole[] = [
-        {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
-        {text: translate('common.date'), value: 'date', isRequired: true},
-        {text: translate('common.merchant'), value: 'merchant'},
-        {text: translate('common.category'), value: 'category'},
-        {text: translate('iou.amount'), value: 'amount', isRequired: true},
-    ];
+    const columnRoles: ColumnRole[] = useMemo(
+        () => [
+            {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
+            {text: translate('common.date'), value: 'date', isRequired: true},
+            {text: translate('common.merchant'), value: 'merchant', isRequired: true},
+            {text: translate('common.category'), value: 'category'},
+            {text: translate('iou.amount'), value: 'amount', isRequired: true},
+        ],
+        [translate],
+    );
 
-    const requiredColumns = columnRoles.filter((role) => role.isRequired);
+    const requiredColumns = useMemo(() => columnRoles.filter((role) => role.isRequired), [columnRoles]);
 
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
@@ -85,7 +88,7 @@ function TransactionsImportedPage() {
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS);
+        Navigation.dismissModal();
     };
 
     return (
