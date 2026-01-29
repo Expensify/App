@@ -38,7 +38,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     isCurrentUserSubmitter,
-    isExpenseReport,
+    isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isOpenExpenseReport,
     isProcessingReport,
@@ -2590,7 +2590,7 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
     const isAddedToReport = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
-    if (isAddedToReport && !isExpenseReport(transaction.reportID)) {
+    if (isAddedToReport && !isExpenseReportUtil(transaction.reportID)) {
         return false;
     }
     if (!originalTransaction) {
