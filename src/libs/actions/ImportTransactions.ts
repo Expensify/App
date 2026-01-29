@@ -279,14 +279,13 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
         reimbursable: isReimbursable,
     };
 
-    const optimisticTransactionUpdates: OnyxUpdate[] = optimisticTransactions.map(
-        (transaction) =>
-            ({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: transaction,
-            }) as OnyxUpdate,
-    );
+    const optimisticTransactionUpdates: OnyxUpdate[] = optimisticTransactions.map((transaction): OnyxUpdate => {
+        return {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: transaction,
+        } as OnyxUpdate;
+    });
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -309,14 +308,13 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
         },
     ];
 
-    const failureTransactionUpdates: OnyxUpdate[] = optimisticTransactions.map(
-        (transaction) =>
-            ({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: null,
-            }) as OnyxUpdate,
-    );
+    const failureTransactionUpdates: OnyxUpdate[] = optimisticTransactions.map((transaction): OnyxUpdate => {
+        return {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: null,
+        } as OnyxUpdate;
+    });
 
     const failureData: OnyxUpdate[] = [
         {
