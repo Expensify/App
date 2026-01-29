@@ -80,8 +80,8 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME}
-                    label={translate('workspace.moreFeatures.companyCards.cardName')}
-                    aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
+                    label={translate('workspace.moreFeatures.companyCards.cardNumber')}
+                    aria-label={translate('workspace.moreFeatures.companyCards.cardNumber')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValue}
                     ref={inputCallbackRef}
