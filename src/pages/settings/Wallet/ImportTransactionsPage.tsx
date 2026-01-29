@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setImportTransactionSettings} from '@libs/actions/ImportSpreadsheet';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -24,6 +25,7 @@ function ImportTransactionsPage() {
     const currency = importedSpreadsheet?.importTransactionSettings?.currency ?? 'USD';
     const [isReimbursable, setIsReimbursable] = useState(importedSpreadsheet?.importTransactionSettings?.isReimbursable ?? true);
     const [flipAmountSign, setFlipAmountSign] = useState(importedSpreadsheet?.importTransactionSettings?.flipAmountSign ?? false);
+    const [shouldShowError, setShouldShowError] = useState(false);
 
     const navigateToCardNameSelection = useCallback(() => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_CARD_NAME);
@@ -34,6 +36,10 @@ function ImportTransactionsPage() {
     }, []);
 
     const handleNext = useCallback(() => {
+        if (!cardDisplayName) {
+            setShouldShowError(true);
+            return;
+        }
         // Store import settings in Onyx so they're available when importing
         setImportTransactionSettings(cardDisplayName, currency, isReimbursable, flipAmountSign);
         // No cardID = creating a new card
@@ -59,6 +65,9 @@ function ImportTransactionsPage() {
                         style={styles.moneyRequestMenuItem}
                         titleStyle={styles.flex1}
                         onPress={navigateToCardNameSelection}
+                        rightLabel={translate('common.required')}
+                        brickRoadIndicator={shouldShowError && !cardDisplayName ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={shouldShowError && !cardDisplayName ? translate('common.error.fieldRequired') : ''}
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
