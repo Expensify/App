@@ -54,7 +54,7 @@ function SelectionListWithModal<TItem extends ListItem>({
     const [, debouncedData, setDataState] = useDebouncedState<TItem[]>(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     // Determine if this is changed by filtering (to limit multiple rerenders)
-    const isFiltering = filteredData.length < debouncedData.length;
+    const isFiltering = data.length < debouncedData.length;
 
     useEffect(() => {
         setDataState(filteredData);
