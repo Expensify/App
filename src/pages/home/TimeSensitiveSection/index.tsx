@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import {Stopwatch} from '@components/Icon/Expensicons';
 import WidgetContainer from '@components/WidgetContainer';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,6 +20,7 @@ function TimeSensitiveSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
@@ -41,7 +42,7 @@ function TimeSensitiveSection() {
 
     return (
         <WidgetContainer
-            icon={Stopwatch}
+            icon={icons.Stopwatch}
             iconWidth={variables.iconSizeNormal}
             iconHeight={variables.iconSizeNormal}
             iconFill={theme.danger}

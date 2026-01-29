@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import TreasureChest from '@assets/images/treasure-chest.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getEarlyDiscountInfo} from '@libs/SubscriptionUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type Offer50offProps = {
@@ -15,13 +16,14 @@ type Offer50offProps = {
 function Offer50off({firstDayFreeTrial}: Offer50offProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['TreasureChest'] as const);
 
     const [discountInfo, setDiscountInfo] = useState(() => getEarlyDiscountInfo(firstDayFreeTrial));
 
     useEffect(() => {
         const intervalID = setInterval(() => {
             setDiscountInfo(getEarlyDiscountInfo(firstDayFreeTrial));
-        }, 1000);
+        }, CONST.MILLISECONDS_PER_SECOND);
 
         return () => clearInterval(intervalID);
     }, [firstDayFreeTrial]);
@@ -36,7 +38,7 @@ function Offer50off({firstDayFreeTrial}: Offer50offProps) {
 
     return (
         <BaseWidgetItem
-            icon={TreasureChest}
+            icon={icons.TreasureChest}
             iconBackgroundColor={theme.widgetIconBG}
             iconFill={theme.widgetIconFill}
             title={translate('homePage.timeSensitiveSection.offer50off.title')}

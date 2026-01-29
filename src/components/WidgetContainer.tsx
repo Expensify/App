@@ -39,9 +39,9 @@ function WidgetContainer({children, icon, title, titleColor, iconWidth = variabl
 
     return (
         <View style={styles.widgetContainer}>
-            <View style={[styles.flexRow, styles.alignItemsStart, styles.mb5, shouldUseNarrowLayout ? styles.mh5 : styles.mh8, shouldUseNarrowLayout ? styles.mt5 : styles.mt8]}>
+            <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
                 {!!icon && (
-                    <View style={[styles.flexGrow0, styles.flexShrink0, {marginRight: 11}]}>
+                    <View style={styles.widgetContainerIconWrapper}>
                         <Icon
                             src={icon}
                             width={iconWidth}

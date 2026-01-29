@@ -6289,6 +6289,21 @@ const plainStyles = (theme: ThemeColors) =>
                 color,
             }) satisfies TextStyle,
 
+        getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                marginBottom: 20,
+                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
+                marginTop: shouldUseNarrowLayout ? 20 : 32,
+            }) satisfies ViewStyle,
+
+        widgetContainerIconWrapper: {
+            flexGrow: 0,
+            flexShrink: 0,
+            marginRight: 11,
+        },
+
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({
                 alignItems: 'center',

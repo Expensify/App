@@ -1,6 +1,6 @@
 import React from 'react';
-import TreasureChest from '@assets/images/treasure-chest.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,12 +13,13 @@ type Offer25offProps = {
 function Offer25off({days}: Offer25offProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['TreasureChest'] as const);
 
     const subtitle = translate('homePage.timeSensitiveSection.offer25off.subtitle', {days});
 
     return (
         <BaseWidgetItem
-            icon={TreasureChest}
+            icon={icons.TreasureChest}
             iconBackgroundColor={theme.widgetIconBG}
             iconFill={theme.widgetIconFill}
             title={translate('homePage.timeSensitiveSection.offer25off.title')}
