@@ -45,6 +45,7 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
+    canSubmitTimeExpenseFromWorkspace,
     getLengthOfTag,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
@@ -52,6 +53,7 @@ import {
     hasDependentTags as hasDependentTagsPolicyUtils,
     isPolicyAccessible,
     isTaxTrackingEnabled,
+    isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
@@ -151,6 +153,7 @@ const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => 
         }),
     );
 };
+const timePoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => isTimeTrackingEnabled(policy)));
 
 function MoneyRequestView({
     allReports,
@@ -201,15 +204,21 @@ function MoneyRequestView({
         transaction = updatedTransaction;
     }
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
-    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+
+    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const isTimeRequest = isTimeRequestTransactionUtils(transaction);
+    const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest);
 
     const [policiesWithPerDiem] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: perDiemPoliciesSelector,
         canBeMissing: true,
     });
-    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
+
+    const [policiesWithTime] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: timePoliciesSelector,
+        canBeMissing: true,
+    });
 
     let policy;
     let policyID;
@@ -369,7 +378,8 @@ function MoneyRequestView({
             moneyRequestReport,
             policy,
         ) &&
-        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
+        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy)) &&
+        (!isTimeRequest || canSubmitTimeExpenseFromWorkspace(policy) || (isExpenseUnreported && !!policiesWithTime?.length));
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat

@@ -54,7 +54,7 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
         }
     }
 
-    if (activePolicy && (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy))) {
+    if (activePolicy && (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy)) && (!isTimeRequest || canSubmitTimeExpenseFromWorkspace(activePolicy))) {
         return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false};
     }
 
