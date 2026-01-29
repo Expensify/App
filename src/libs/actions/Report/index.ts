@@ -4152,12 +4152,9 @@ function inviteToGroupChat(report: Report, inviteeEmailsToAccountIDs: InvitedEma
 /** Removes people from a room
  *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+function removeFromRoom(report: Report, targetAccountIDs: number[]) {
+    const reportID = report.reportID;
     const reportMetadata = getReportMetadata(reportID);
-    if (!report) {
-        return;
-    }
 
     const removeParticipantsData: Record<number, null> = {};
     for (const accountID of targetAccountIDs) {
@@ -4222,8 +4219,8 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     API.write(WRITE_COMMANDS.REMOVE_FROM_ROOM, parameters, {optimisticData, failureData, successData});
 }
 
-function removeFromGroupChat(reportID: string, accountIDList: number[]) {
-    removeFromRoom(reportID, accountIDList);
+function removeFromGroupChat(report: Report, accountIDList: number[]) {
+    removeFromRoom(report, accountIDList);
 }
 
 function optimisticReportLastData(
