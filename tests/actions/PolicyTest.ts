@@ -176,13 +176,12 @@ describe('actions/Policy', () => {
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             }
 
-            // Following tasks are filtered in prepareOnboardingOnyxData: 'viewTour', 'addAccountingIntegration' and 'setupCategoriesAndTags' (-3)
-            const {onboardingMessages} = getOnboardingMessages();
-            const expectedManageTeamDefaultTasksCount = onboardingMessages[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 3;
+            // We do not pass tasks to `#admins` channel in favour of backed generated followup-list
+            const expectedManageTeamDefaultTasksCount = 0;
 
             // After filtering, two actions are added to the list =- signoff message (+1) and default create action (+1)
             const expectedReportActionsOfTypeCreatedCount = 1;
-            const expectedSignOffMessagesCount = 1;
+            const expectedSignOffMessagesCount = 0;
             expect(adminReportActions.length).toBe(expectedManageTeamDefaultTasksCount + expectedReportActionsOfTypeCreatedCount + expectedSignOffMessagesCount);
 
             let reportActionsOfTypeCreatedCount = 0;
