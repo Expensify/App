@@ -1175,6 +1175,20 @@ type OriginalMessageCompanyCardConnectionBroken = {
 };
 
 /**
+ * Original message for Plaid balance failure
+ */
+type OriginalMessagePlaidBalanceFailure = {
+    /** The policy ID for which the Plaid balance failure occurred */
+    policyID: string;
+
+    /** The masked bank account number */
+    maskedAccountNumber: string;
+
+    /** The reasoning for the failure (for AgentZero) */
+    reasoning?: string;
+};
+
+/**
  * Original message for DEW_SUBMIT_FAILED and DEW_APPROVE_FAILED actions
  */
 type OriginalMessageDEWFailed = {
@@ -1218,6 +1232,17 @@ type OriginalMessageTakeControl = {
     lastModified: string;
     /** Tagged account IDs of new approvers */
     mentionedAccountIDs: number[];
+};
+
+/**
+ * Model of settlement account locked report action
+ */
+type OriginalMessageSettlementAccountLocked = {
+    /** The masked bank account number that was locked */
+    maskedBankAccountNumber: string;
+
+    /** The policy the bank account is connected to and is being notified */
+    policyID: string;
 };
 
 /**
@@ -1343,11 +1368,13 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
+    [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
 } & OldDotOriginalMessageMap &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
@@ -1378,5 +1405,7 @@ export type {
     OriginalMessageMarkedReimbursed,
     OriginalMessageConciergeAutoMapMccGroups,
     OriginalMessageCompanyCardConnectionBroken,
+    OriginalMessagePlaidBalanceFailure,
     OriginalMessageReimbursementDirectorInformationRequired,
+    OriginalMessageSettlementAccountLocked,
 };
