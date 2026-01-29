@@ -1,6 +1,5 @@
 import * as Sentry from '@sentry/react-native';
 import AppStateMonitor from '@libs/AppStateMonitor';
-import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import getMemoryInfo from './getMemoryInfo';
 
@@ -53,11 +52,7 @@ function sendMemoryContext() {
                 lastUpdated: new Date().toISOString(),
             });
         })
-        .catch((error) => {
-            Log.hmmm('[SentrySync] Failed to get memory info', {
-                error,
-            });
-        });
+        
 }
 
 function initializeMemoryTracking() {
