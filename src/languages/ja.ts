@@ -6987,6 +6987,16 @@ ${reportName}
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
         topSpenders: 'トップ支出者',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'エクスポート',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
+            [CONST.SEARCH.GROUP_BY.MONTH]: '月',
+            [CONST.SEARCH.GROUP_BY.WEEK]: '週',
+        },
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',

@@ -7048,6 +7048,16 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         topSpenders: 'Maggiori spenditori',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Esportazioni',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commercianti',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Mesi',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimane',
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, qualcosa è andato storto!',
