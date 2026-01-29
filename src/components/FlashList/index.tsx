@@ -2,7 +2,7 @@ import {FlashList} from '@shopify/flash-list';
 import React from 'react';
 import type CustomFlashListProps from './types';
 
-function MVCPFlatList<TItem>({ref, shouldStartRenderingFromTop, inverted, ...restProps}: CustomFlashListProps<TItem>) {
+function MVCPFlatList<TItem>({shouldStartRenderingFromTop, inverted, ...restProps}: CustomFlashListProps<TItem>) {
     const shouldStartRenderingFromBottom = !shouldStartRenderingFromTop && !!inverted;
 
     return (

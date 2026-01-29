@@ -2,6 +2,8 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
+import type {FlashListRef} from '@shopify/flash-list';
+import type {ForwardedRef} from 'react';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
@@ -362,7 +364,7 @@ function ReportActionsList({
             hasNewestReportAction
         ) {
             setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+            reportScrollManager.scrollToEnd();
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
@@ -475,7 +477,7 @@ function ReportActionsList({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
+            reportScrollManager.scrollToEnd();
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -490,7 +492,7 @@ function ReportActionsList({
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
+                reportScrollManager.scrollToEnd();
             });
         }
     }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
@@ -525,14 +527,14 @@ function ReportActionsList({
                         }, 100);
                     } else {
                         setIsFloatingMessageCounterVisible(false);
-                        reportScrollManager.scrollToBottom();
+                        reportScrollManager.scrollToEnd();
                     }
                     if (action?.reportActionID) {
                         setActionIdToHighlight(action.reportActionID);
                     }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
-                    reportScrollManager.scrollToBottom();
+                    reportScrollManager.scrollToEnd();
                 }
 
                 setIsScrollToBottomEnabled(true);
@@ -594,7 +596,7 @@ function ReportActionsList({
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
+            reportScrollManager.scrollToEnd();
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastAction]);
@@ -607,10 +609,10 @@ function ReportActionsList({
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
             }
             openReport(report.reportID);
-            reportScrollManager.scrollToBottom();
+            reportScrollManager.scrollToEnd();
             return;
         }
-        reportScrollManager.scrollToBottom();
+        reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo]);
@@ -739,7 +741,7 @@ function ReportActionsList({
         (event: LayoutChangeEvent) => {
             onLayout(event);
             if (isScrollToBottomEnabled) {
-                reportScrollManager.scrollToBottom();
+                reportScrollManager.scrollToEnd();
                 setIsScrollToBottomEnabled(false);
             }
         },
@@ -802,7 +804,7 @@ function ReportActionsList({
             >
                 <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    // ref={reportScrollManager.ref as ForwardedRef<FlashListRef<OnyxTypes.ReportAction>>} // causing extra scroll I guess after OpenReport is finished
+                    ref={reportScrollManager.ref as ForwardedRef<FlashListRef<OnyxTypes.ReportAction>>}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
                     data={reversedReportActions}
@@ -822,7 +824,7 @@ function ReportActionsList({
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={onLayoutInner} // it relates to scrolling to bottom on the new message
+                    onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
