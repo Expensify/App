@@ -1406,6 +1406,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         ruleID: string;
     };
+    [SCREENS.WORKSPACE.RULES_MERCHANT_MATCH_TYPE]: {
+        policyID: string;
+        ruleID: string;
+    };
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT]: {
         policyID: string;
         ruleID: string;

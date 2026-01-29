@@ -51,6 +51,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import resolveSuggestedFollowup from '@libs/actions/Report/SuggestedFollowup';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -63,7 +64,7 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
-import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionsFollowupUtils';
+import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
@@ -204,7 +205,6 @@ import {
     resolveActionableMentionConfirmWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
-    resolveSuggestedFollowup,
 } from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -1722,7 +1722,12 @@ function PureReportActionItem({
                                             }
                                             shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
                                             primaryTextNumberOfLines={actionableButtonsNoLines}
-                                            textStyles={isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined}
+                                            styles={{
+                                                text: [isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined, actionContainsFollowUps && styles.fontWeightNormal],
+                                                button: actionContainsFollowUps ? [styles.actionableItemButton, hovered && styles.actionableItemButtonBackgroundHovered] : undefined,
+                                                buttonHover: actionContainsFollowUps ? styles.actionableItemButtonHovered : undefined,
+                                                container: actionContainsFollowUps && shouldUseNarrowLayout ? [styles.alignItemsStretch] : undefined,
+                                            }}
                                         />
                                     )}
                                 </View>
