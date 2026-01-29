@@ -2228,7 +2228,11 @@ describe('actions/Report', () => {
         const currentUserAccountID = 1;
         it('should not call UpdateRoomDescription API if the description is not changed', async () => {
             global.fetch = TestHelper.getGlobalFetchMock();
-            Report.updateDescription('1', '<h1>test</h1>', '# test', currentUserAccountID);
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                description: '<h1>test</h1>',
+            };
+            Report.updateDescription(report, '# test', currentUserAccountID);
 
             await waitForBatchedUpdates();
 
@@ -2245,7 +2249,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             mockFetch?.fail?.();
-            Report.updateDescription('1', '<h1>test</h1>', '# test1', currentUserAccountID);
+            Report.updateDescription(report, '# test1', currentUserAccountID);
 
             await waitForBatchedUpdates();
             let updateReport: OnyxEntry<OnyxTypes.Report>;
