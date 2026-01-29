@@ -73,7 +73,7 @@
     flex-direction: row;
     align-items: center;
     gap: 12px;
-    margin: 0 20px;
+    margin: 12px 20px 16px 20px;
 }
 
 .search-input-wrapper {
@@ -88,6 +88,11 @@
     height: 52px;
     min-height: 52px;
     box-sizing: border-box;
+    cursor: text;
+
+    &:focus-within {
+        border-color: var(--color-button-success-background);
+    }
 }
 
 .search-label {
