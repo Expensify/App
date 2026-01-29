@@ -2578,6 +2578,7 @@ function getMemberInviteOptions(
     loginList: OnyxEntry<Login>,
     currentUserAccountID: number,
     currentUserEmail: string,
+    personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
@@ -2599,6 +2600,7 @@ function getMemberInviteOptions(
             includeRecentReports: false,
             searchString: '',
             maxElements: undefined,
+            personalDetails: personalDetailsCollection,
         },
         countryCode,
     );

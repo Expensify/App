@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 // eslint-disable-next-line no-restricted-imports
@@ -74,6 +75,7 @@ function RoomInvitePage({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     const {options, areOptionsInitialized} = useOptionsList();
+    const personalDetailsCollection = usePersonalDetails();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(() => {
@@ -96,7 +98,18 @@ function RoomInvitePage({
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, betas ?? [], excludedUsers);
+        const inviteOptions = getMemberInviteOptions(
+            options.personalDetails,
+            nvpDismissedProductTraining,
+            loginList,
+            currentUserAccountID,
+            currentUserEmail,
+            personalDetailsCollection,
+            betas ?? [],
+            excludedUsers,
+            false,
+            countryCode,
+        );
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, MemberForList> = {};
         for (const detail of inviteOptions.personalDetails) {
@@ -117,7 +130,19 @@ function RoomInvitePage({
             recentReports: [],
             currentUserOption: null,
         };
-    }, [areOptionsInitialized, betas, excludedUsers, loginList, nvpDismissedProductTraining, options.personalDetails, selectedOptions, currentUserAccountID, currentUserEmail]);
+    }, [
+        areOptionsInitialized,
+        betas,
+        excludedUsers,
+        loginList,
+        nvpDismissedProductTraining,
+        options.personalDetails,
+        selectedOptions,
+        currentUserAccountID,
+        currentUserEmail,
+        countryCode,
+        personalDetailsCollection,
+    ]);
 
     const inviteOptions = useMemo(() => {
         if (debouncedSearchTerm.trim() === '') {
