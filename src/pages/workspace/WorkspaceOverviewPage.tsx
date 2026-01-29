@@ -318,7 +318,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        // Handle post-delete navigation and error display
         if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
             return;
         }

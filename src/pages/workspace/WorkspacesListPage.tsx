@@ -358,7 +358,6 @@ function WorkspacesListPage() {
             return;
         }
 
-        // Handle showing error modal after delete operation completes
         if (!prevIsPendingDelete || isPendingDelete || !policyIDToDelete) {
             return;
         }
