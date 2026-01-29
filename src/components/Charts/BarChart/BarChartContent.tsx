@@ -66,7 +66,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         }));
     }, [data]);
 
-    // Anchor Y-axis at zero so the baseline is always visible. 
+    // Anchor Y-axis at zero so the baseline is always visible.
     // When negative values are present, let victory-native auto-calculate the domain to avoid clipping.
     const yAxisDomain = useMemo((): [number] | undefined => (data.some((point) => point.total < 0) ? undefined : [0]), [data]);
 
