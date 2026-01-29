@@ -6376,6 +6376,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 matchTypeContains: 'Zawiera',
                 matchTypeExact: 'Dokładne dopasowanie',
                 expensesExactlyMatching: 'Dla wydatków dokładnie pasujących:',
+                applyToExistingUnsubmittedExpenses: 'Zastosuj do istniejących niewysłanych wydatków',
             },
         },
         planTypePage: {

@@ -6241,6 +6241,7 @@ ${reportName}
                 matchTypeContains: '包含',
                 matchTypeExact: '完全匹配',
                 expensesExactlyMatching: '对于完全匹配以下条件的报销：',
+                applyToExistingUnsubmittedExpenses: '应用到现有的未提交报销费用',
             },
         },
         planTypePage: {

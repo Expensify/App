@@ -6376,6 +6376,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 matchTypeContains: 'Contém',
                 matchTypeExact: 'Corresponde exatamente',
                 expensesExactlyMatching: 'Para despesas que correspondem exatamente:',
+                applyToExistingUnsubmittedExpenses: 'Aplicar às despesas não enviadas existentes',
             },
         },
         planTypePage: {
