@@ -641,6 +641,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Novo recurso',
         month: 'Mês',
         home: 'Início',
+        week: 'Semana',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -5270,7 +5271,11 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 title: 'Regras',
                 subtitle: 'Exigir recibos, sinalizar gastos elevados e muito mais.',
             },
-            timeTracking: {title: 'Hora', subtitle: 'Defina uma taxa horária faturável para que os funcionários sejam pagos pelo tempo trabalhado.'},
+            timeTracking: {
+                title: 'Hora',
+                subtitle: 'Defina uma taxa horária faturável para o controle de tempo.',
+                defaultHourlyRate: 'Taxa horária padrão',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',
@@ -6371,6 +6376,10 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 matchTypeContains: 'Contém',
                 matchTypeExact: 'Corresponde exatamente',
                 expensesExactlyMatching: 'Para despesas que correspondem exatamente:',
+                duplicateRuleTitle: 'Já existe uma regra semelhante para este comerciante',
+                duplicateRulePrompt: (merchantName: string) => `Você quer salvar uma nova regra para "${merchantName}", mesmo já tendo uma existente?`,
+                saveAnyway: 'Salvar mesmo assim',
+                applyToExistingUnsubmittedExpenses: 'Aplicar às despesas não enviadas existentes',
             },
         },
         planTypePage: {
@@ -6974,6 +6983,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Estabelecimento',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
             },
             feed: 'Feed',
             withdrawalType: {

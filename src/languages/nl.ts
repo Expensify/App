@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Nieuwe functie',
         month: 'Maand',
         home: 'Start',
+        week: 'Week',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -5279,7 +5280,11 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Regels',
                 subtitle: 'Vereis bonnetjes, markeer hoge uitgaven en meer.',
             },
-            timeTracking: {title: 'Tijd', subtitle: 'Stel een uurtarief in waarmee medewerkers worden betaald voor hun tijd.'},
+            timeTracking: {
+                title: 'Tijd',
+                subtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
+                defaultHourlyRate: 'Standaard uurtarief',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -6379,6 +6384,10 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 matchTypeContains: 'Bevat',
                 matchTypeExact: 'Komt exact overeen',
                 expensesExactlyMatching: 'Voor uitgaven die exact overeenkomen met:',
+                duplicateRuleTitle: 'Soortgelijke regel voor dezelfde handelaar bestaat al',
+                duplicateRulePrompt: (merchantName: string) => `Wilt je een nieuwe regel voor "${merchantName}" opslaan, ook al heb je al een bestaande?`,
+                saveAnyway: 'Toch opslaan',
+                applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende onkosten',
             },
         },
         planTypePage: {
@@ -6985,6 +6994,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Handelaar',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
             },
             feed: 'Feed',
             withdrawalType: {
