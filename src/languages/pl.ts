@@ -643,6 +643,7 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Miesiąc',
         home: 'Strona główna',
         week: 'Tydzień',
+        secondAbbreviation: 's',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -8211,6 +8212,12 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
                 allCaughtUp: 'Wszystko nadrobione',
                 upcomingTodos: 'Nadchodzące zadania do wykonania pojawią się tutaj.',
             },
+        },
+        timeSensitiveSection: {
+            title: 'Pilne',
+            cta: 'Roszczenie',
+            offer50off: {title: 'Uzyskaj 50% zniżki na pierwszy rok!', subtitle: ({formattedTime}: {formattedTime: string}) => `Pozostało: ${formattedTime}`},
+            offer25off: {title: 'Uzyskaj 25% zniżki na pierwszy rok!', subtitle: ({days}: {days: number}) => `Pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}`},
         },
     },
 };

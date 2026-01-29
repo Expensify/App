@@ -643,6 +643,7 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Maand',
         home: 'Start',
         week: 'Week',
+        secondAbbreviation: 's',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -8226,6 +8227,12 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
                 allCaughtUp: 'Je bent helemaal bij',
                 upcomingTodos: 'Aankomende taken verschijnen hier.',
             },
+        },
+        timeSensitiveSection: {
+            title: 'Tijdgevoelig',
+            cta: 'Declaratie',
+            offer50off: {title: 'Krijg 50% korting op je eerste jaar!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} resterend`},
+            offer25off: {title: 'Krijg 25% korting op je eerste jaar!', subtitle: ({days}: {days: number}) => `Nog ${days} ${days === 1 ? 'dag' : 'dagen'} resterend`},
         },
     },
 };

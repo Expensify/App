@@ -644,6 +644,7 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Mois',
         home: 'Accueil',
         week: 'Semaine',
+        secondAbbreviation: 's',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -8270,6 +8271,12 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
                 allCaughtUp: 'Vous êtes à jour',
                 upcomingTodos: 'Les tâches à venir apparaîtront ici.',
             },
+        },
+        timeSensitiveSection: {
+            title: 'Urgent',
+            cta: 'Demande',
+            offer50off: {title: 'Obtenez 50 % de réduction sur votre première année !', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} restant`},
+            offer25off: {title: 'Obtenez 25 % de réduction sur votre première année !', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'jour' : 'jours'} restants`},
         },
     },
 };

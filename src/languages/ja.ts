@@ -642,6 +642,7 @@ const translations: TranslationDeepObject<typeof en> = {
         month: '月',
         home: 'ホーム',
         week: '週',
+        secondAbbreviation: '秒',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -8162,6 +8163,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
                 allCaughtUp: 'すべて確認済みです',
                 upcomingTodos: '今後のTo-doがここに表示されます。',
             },
+        },
+        timeSensitiveSection: {
+            title: '至急',
+            cta: '申請',
+            offer50off: {title: '初年度が50％オフ！', subtitle: ({formattedTime}: {formattedTime: string}) => `残り${formattedTime}`},
+            offer25off: {title: '初年度が25％オフ！', subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日'}`},
         },
     },
 };
