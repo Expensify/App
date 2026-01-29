@@ -1,4 +1,3 @@
-import {filterPersonalCards} from '@selectors/Card';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import AddUnreportedExpenseFooter from '@components/AddUnreportedExpenseFooter';
@@ -54,7 +53,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
