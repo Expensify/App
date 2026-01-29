@@ -1,3 +1,4 @@
+import React from 'react';
 import {Image, Linking, View} from 'react-native';
 import HomeTestDriveImage from '@assets/images/home-testdrive-image.png';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
