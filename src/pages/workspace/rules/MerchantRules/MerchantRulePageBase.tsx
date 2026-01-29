@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -25,6 +25,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
+import type {CodingRule} from '@src/types/onyx/Policy';
 
 type MerchantRulePageBaseProps = {
     policyID: string;
@@ -87,6 +88,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [shouldShowError, setShouldShowError] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [isDuplicateWarningVisible, setIsDuplicateWarningVisible] = useState(false);
 
     // Get the existing rule from the policy (for edit mode)
     const existingRule = ruleID ? policy?.rules?.codingRules?.[ruleID] : undefined;
@@ -149,7 +151,51 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         return tax ? `${tax.name} (${tax.value})` : undefined;
     };
 
+    /**
+     * Checks if there's a duplicate rule with the same merchant name and match type.
+     * A duplicate is a rule that has the same merchant to match AND the same match type (contains/exact).
+     * When editing, we exclude the current rule from the comparison.
+     */
+    const checkForDuplicateRule = useCallback(
+        (codingRules: Record<string, CodingRule> | undefined, merchantToMatch: string | undefined, matchType: string | undefined): boolean => {
+            if (!codingRules || !merchantToMatch) {
+                return false;
+            }
+
+            const normalizedMerchant = merchantToMatch.toLowerCase();
+            const currentMatchType = matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+
+            return Object.entries(codingRules).some(([existingRuleID, rule]) => {
+                // Skip the rule being edited
+                if (isEditing && existingRuleID === ruleID) {
+                    return false;
+                }
+
+                if (!rule?.filters?.right) {
+                    return false;
+                }
+
+                const existingMerchant = rule.filters.right.toLowerCase();
+                const existingMatchType = rule.filters.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+
+                return existingMerchant === normalizedMerchant && existingMatchType === currentMatchType;
+            });
+        },
+        [isEditing, ruleID],
+    );
+
     const errorMessage = getErrorMessage(translate, form);
+
+    /**
+     * Saves the rule to the backend and navigates back.
+     */
+    const saveRule = useCallback(() => {
+        if (!form) {
+            return;
+        }
+        setPolicyCodingRule(policyID, form, policy, ruleID, false);
+        Navigation.goBack();
+    }, [form, policyID, policy, ruleID]);
 
     const handleSubmit = () => {
         if (errorMessage) {
@@ -160,8 +206,19 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             return;
         }
 
-        setPolicyCodingRule(policyID, form, policy, ruleID, false);
-        Navigation.goBack();
+        // Check for duplicate rules
+        const hasDuplicate = checkForDuplicateRule(policy?.rules?.codingRules, form.merchantToMatch, form.matchType);
+        if (hasDuplicate) {
+            setIsDuplicateWarningVisible(true);
+            return;
+        }
+
+        saveRule();
+    };
+
+    const handleDuplicateConfirm = () => {
+        setIsDuplicateWarningVisible(false);
+        saveRule();
     };
 
     const handleDelete = () => {
@@ -305,6 +362,15 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                         danger
                     />
                 )}
+                <ConfirmModal
+                    title={translate('workspace.rules.merchantRules.duplicateRuleTitle')}
+                    isVisible={isDuplicateWarningVisible}
+                    onConfirm={handleDuplicateConfirm}
+                    onCancel={() => setIsDuplicateWarningVisible(false)}
+                    prompt={translate('workspace.rules.merchantRules.duplicateRulePrompt', form?.merchantToMatch ?? '')}
+                    confirmText={translate('workspace.rules.merchantRules.saveAnyway')}
+                    cancelText={translate('common.cancel')}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
