@@ -215,7 +215,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const onPress = useCallback(() => {
         if (isExpenseReportType || transactions.length === 0) {
             onSelectRow(item, transactionPreviewData);
-            return;
         }
         if (!isExpenseReportType) {
             handleToggle();
