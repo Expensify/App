@@ -59,3 +59,29 @@ To unlock advanced security settings and enable SAML, the domain must be verifie
 4. Save your changes.
 
 Once verified, you’ll see a confirmation message and your domain will be marked as **Verified**.
+
+---
+
+# FAQ
+
+## Do I need to verify my domain to use SAML?
+
+Yes. Verifying the domain is required to enable and enforce SAML login. Without verification, the SAML configuration option will remain locked.
+
+## Can I verify multiple domains?
+
+Yes, you can claim and verify multiple domains if your organization operates under more than one. Each must be verified through its own DNS record.
+
+## Can I skip domain verification and still use Expensify?
+
+Yes, you can use Expensify without claiming a domain. However, domain control is required to enable SAML login and enforce centralized security policies.
+
+## I added the TXT record but verification is still failing — what now?
+
+Make sure:
+- The record is live and publicly visible (use a DNS checker tool to confirm)
+- You’ve added only one TXT record, and it matches the value from Expensify exactly
+- You saved the changes and waited for DNS to propagate
+
+If you're still stuck, reach out to your IT team or DNS host for help.
+
