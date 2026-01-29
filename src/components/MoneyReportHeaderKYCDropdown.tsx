@@ -15,11 +15,14 @@ import KYCWall from './KYCWall';
 import type {KYCWallProps} from './KYCWall/types';
 
 type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enablePaymentsRoute'> & {
-    primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
-
-    applicableSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>>;
-
-    onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
+    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
+    applicableSecondaryActions?: Array<DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>>;
+    options?: Array<DropdownOption<string>>;
+    onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow, isSelectedTransactionAction?: boolean) => void;
+    customText?: string; // Custom text to display on the button
+    isSelectedTransactionAction?: boolean;
+    /** Whether the button should use success style or not */
+    shouldShowSuccessStyle?: boolean;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -30,6 +33,10 @@ function MoneyReportHeaderKYCDropdown({
     iouReport,
     onPaymentSelect,
     ref,
+    options,
+    customText,
+    isSelectedTransactionAction,
+    shouldShowSuccessStyle,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
@@ -38,7 +45,7 @@ function MoneyReportHeaderKYCDropdown({
     const {isOffline} = useNetwork();
 
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
-
+    const optionsShown = applicableSecondaryActions ?? options ?? [];
     return (
         <KYCWall
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -57,21 +64,21 @@ function MoneyReportHeaderKYCDropdown({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
-                    success={false}
+                    success={shouldShowSuccessStyle ?? !!isSelectedTransactionAction}
                     onPress={() => {}}
-                    onSubItemSelected={(item, index, event) => {
+                    onSubItemSelected={(item, _index, event) => {
                         if (!isSecondaryActionAPaymentOption(item)) {
                             return;
                         }
-                        onPaymentSelect(event, item.value, triggerKYCFlow);
+                        onPaymentSelect(event, item.value, triggerKYCFlow, isSelectedTransactionAction);
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
-                    shouldPopoverUseScrollView={applicableSecondaryActions.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
-                    customText={translate('common.more')}
-                    options={applicableSecondaryActions}
+                    shouldPopoverUseScrollView={optionsShown.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
+                    customText={customText ?? translate('common.more')}
+                    options={optionsShown}
                     isSplitButton={false}
-                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
+                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && applicableSecondaryActions && styles.flex1, options && styles.w100]}
                     shouldUseModalPaddingStyle
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
                 />

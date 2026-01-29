@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -36,6 +36,10 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
+    const [adminPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminPendingActionSelector,
+    });
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
@@ -66,6 +70,12 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
         // Don't show admins with errors
         const adminErrors = domainErrors?.adminErrors?.[accountID] ?? {};
         if (Object.keys(adminErrors).length !== 0) {
+            continue;
+        }
+
+        // Don't show admins being deleted
+        const adminPendingAction = adminPendingActions?.[accountID]?.pendingAction;
+        if (adminPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
 
