@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -156,47 +156,44 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
      * A duplicate is a rule that has the same merchant to match AND the same match type (contains/exact).
      * When editing, we exclude the current rule from the comparison.
      */
-    const checkForDuplicateRule = useCallback(
-        (codingRules: Record<string, CodingRule> | undefined, merchantToMatch: string | undefined, matchType: string | undefined): boolean => {
-            if (!codingRules || !merchantToMatch) {
+    const checkForDuplicateRule = (codingRules: Record<string, CodingRule> | undefined, merchantToMatch: string | undefined, matchType: string | undefined): boolean => {
+        if (!codingRules || !merchantToMatch) {
+            return false;
+        }
+
+        const normalizedMerchant = merchantToMatch.toLowerCase();
+        const currentMatchType = matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+        const defaultMatchType = CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+
+        return Object.entries(codingRules).some(([existingRuleID, rule]) => {
+            // Skip the rule being edited
+            if (isEditing && existingRuleID === ruleID) {
                 return false;
             }
 
-            const normalizedMerchant = merchantToMatch.toLowerCase();
-            const currentMatchType = matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
-            const defaultMatchType = CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+            if (!rule?.filters?.right) {
+                return false;
+            }
 
-            return Object.entries(codingRules).some(([existingRuleID, rule]) => {
-                // Skip the rule being edited
-                if (isEditing && existingRuleID === ruleID) {
-                    return false;
-                }
+            const existingMerchant = rule.filters.right.toLowerCase();
+            const existingMatchType = rule.filters.operator ?? defaultMatchType;
 
-                if (!rule?.filters?.right) {
-                    return false;
-                }
-
-                const existingMerchant = rule.filters.right.toLowerCase();
-                const existingMatchType = rule.filters.operator ?? defaultMatchType;
-
-                return existingMerchant === normalizedMerchant && existingMatchType === currentMatchType;
-            });
-        },
-        [isEditing, ruleID],
-    );
+            return existingMerchant === normalizedMerchant && existingMatchType === currentMatchType;
+        });
+    };
 
     const errorMessage = getErrorMessage(translate, form);
 
     /**
      * Saves the rule to the backend and navigates back.
      */
-    const saveRule = useCallback(() => {
+    const saveRule = () => {
         if (!form) {
             return;
         }
         setPolicyCodingRule(policyID, form, policy, ruleID, false);
         Navigation.goBack();
-    }, [form, policyID, policy, ruleID]);
+    };
 
     const handleSubmit = () => {
         if (errorMessage) {
