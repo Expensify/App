@@ -115,6 +115,10 @@ function getNvpDismissedProductTraining(): OnyxEntry<DismissedProductTraining> {
             timestamp: '',
             dismissedMethod: 'click',
         },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
     };
 }
 
