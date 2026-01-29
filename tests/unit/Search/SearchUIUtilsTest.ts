@@ -4746,7 +4746,7 @@ describe('SearchUIUtils', () => {
             expect(response.topCategories).toBe(false);
         });
 
-        test('Should show Top Categories when areCategoriesEnabled is undefined', () => {
+        test('Should not show Top Categories when areCategoriesEnabled is undefined', () => {
             const policyKey = `policy_${policyID}`;
 
             const policies: OnyxCollection<OnyxTypes.Policy> = {
@@ -4759,7 +4759,7 @@ describe('SearchUIUtils', () => {
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
-            expect(response.topCategories).toBe(true);
+            expect(response.topCategories).toBe(false);
         });
 
         test('Should not show Top Categories for free policies even if categories are enabled', () => {
