@@ -74,7 +74,6 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             shouldShowCancelButton: true,
         });
         if (result.action !== ModalActions.CONFIRM) {
-            setIsModalVisible(true);
             return;
         }
         closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, securityGroupsData, force);
@@ -105,19 +104,23 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 accountID={accountID}
                 avatarButton={avatarButton}
             />
-            <DecisionModal
-                title={translate('domain.members.closeAccount')}
-                prompt={translate('domain.members.closeAccountInfo')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={handleSafeCloseAccount}
-                onFirstOptionSubmit={handleForceCloseAccount}
-                secondOptionText={translate('domain.members.safeCloseAccount')}
-                firstOptionText={translate('domain.members.forceCloseAccount')}
-                isVisible={isModalVisible}
-                onClose={() => setIsModalVisible(false)}
-                isFirstOptionDanger
-                isSecondOptionSuccess
-            />
+            {/* I added this condition here because on this screen we have two modals, and that causes
+            the Esc button not to work properly when using isVisible props. */}
+            {isModalVisible && (
+                <DecisionModal
+                    title={translate('domain.members.closeAccount')}
+                    prompt={translate('domain.members.closeAccountInfo')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={handleSafeCloseAccount}
+                    onFirstOptionSubmit={handleForceCloseAccount}
+                    secondOptionText={translate('domain.members.safeCloseAccount')}
+                    firstOptionText={translate('domain.members.forceCloseAccount')}
+                    isVisible
+                    onClose={() => setIsModalVisible(false)}
+                    isFirstOptionDanger
+                    isSecondOptionSuccess
+                />
+            )}
         </>
     );
 }
