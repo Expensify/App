@@ -6,7 +6,7 @@ import type {Ancestor} from '@libs/ReportUtils';
 import {buildOptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import {addComment, buildOptimisticResolvedFollowups} from '.';
 
@@ -21,7 +21,7 @@ const CONCIERGE_RESPONSE_DELAY_MS = 500;
  * @param report - The report where the action exists
  * @param notifyReportID - The report ID to notify for new actions
  * @param reportAction - The report action containing the followup-list
- * @param followup - The followup object containing the question text and optional pre-generated response
+ * @param selectedFollowup - The followup object containing the question text and optional pre-generated response
  * @param timezoneParam - The user's timezone
  * @param ancestors - Array of ancestor reports for proper threading
  */
@@ -29,7 +29,7 @@ function resolveSuggestedFollowup(
     report: OnyxEntry<Report>,
     notifyReportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
-    followup: Followup,
+    selectedFollowup: Followup,
     timezoneParam: Timezone,
     ancestors: Ancestor[] = [],
 ) {
@@ -51,8 +51,8 @@ function resolveSuggestedFollowup(
         [reportActionID]: resolvedAction,
     });
 
-    if (!followup.response) {
-        addComment(report, notifyReportID ?? reportID, ancestors, followup.text, timezoneParam);
+    if (!selectedFollowup.response) {
+        addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup.text, timezoneParam);
         return;
     }
 
@@ -61,9 +61,9 @@ function resolveSuggestedFollowup(
     const optimisticConciergeReportActionID = rand64();
 
     // Post user's comment immediately (API call includes pregenerated params for backend reconciliation)
-    addComment(report, notifyReportID ?? reportID, ancestors, followup.text, timezoneParam, false, false, {
+    addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup.text, timezoneParam, false, false, {
         optimisticConciergeReportActionID,
-        pregeneratedResponse: followup.response,
+        pregeneratedResponse: selectedFollowup.response,
     });
 
     // Show "Concierge is typing..." indicator
@@ -79,13 +79,19 @@ function resolveSuggestedFollowup(
         });
 
         // Create and add the optimistic Concierge response action
-        const optimisticConciergeAction = buildOptimisticAddCommentReportAction(followup.response, undefined, CONST.ACCOUNT_ID.CONCIERGE, 0, reportID, optimisticConciergeReportActionID);
+        const optimisticConciergeAction = buildOptimisticAddCommentReportAction(
+            selectedFollowup.response,
+            undefined,
+            CONST.ACCOUNT_ID.CONCIERGE,
+            0,
+            reportID,
+            optimisticConciergeReportActionID,
+        );
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
             [optimisticConciergeReportActionID]: optimisticConciergeAction.reportAction,
-        } as ReportActions);
+        });
     }, CONCIERGE_RESPONSE_DELAY_MS);
-
 }
 
 export default resolveSuggestedFollowup;
