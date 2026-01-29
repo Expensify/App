@@ -3,7 +3,7 @@ import type {FullScreenName, OnboardingFlowName, SplitNavigatorName, SplitNaviga
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-const FULL_SCREENS_SET = new Set([...Object.values(SIDEBAR_TO_SPLIT), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.WORKSPACES_LIST]);
+const FULL_SCREENS_SET = new Set([...Object.values(SIDEBAR_TO_SPLIT), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.WORKSPACES_LIST, SCREENS.HOME]);
 const SIDEBARS_SET = new Set(Object.values(SPLIT_TO_SIDEBAR));
 const ONBOARDING_SCREENS_SET = new Set(Object.values(SCREENS.ONBOARDING));
 const SPLIT_NAVIGATORS_SET = new Set(Object.values(SIDEBAR_TO_SPLIT));
