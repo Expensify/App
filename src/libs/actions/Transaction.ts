@@ -33,7 +33,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {isDistanceRequest, isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1334,6 +1334,35 @@ function changeTransactionsReport({
                 ...transactionIDToReportActionAndThreadData[transaction.transactionID],
                 unholdReportActionID: unHoldAction.reportActionID,
             };
+        }
+
+        // When a distance transaction is unreported, reset the distance rate to the P2P rate
+        if (isUnreported && isDistanceRequest(transaction)) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    comment: {
+                        customUnit: {
+                            customUnitID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                        },
+                    },
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    comment: {
+                        customUnit: {
+                            customUnitID: transaction.comment?.customUnit?.customUnitID,
+                            customUnitRateID: transaction.comment?.customUnit?.customUnitRateID,
+                        },
+                    },
+                },
+            });
         }
     }
 
