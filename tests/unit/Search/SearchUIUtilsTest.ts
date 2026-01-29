@@ -4659,14 +4659,14 @@ describe('SearchUIUtils', () => {
 
         test('Should show Top Categories if at least one policy has categories enabled', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                policy_1: {
-                    id: 'policy_1',
+                policyOne: {
+                    id: 'policyOne',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: false,
                 } as OnyxTypes.Policy,
-                policy_2: {
-                    id: 'policy_2',
+                policyTwo: {
+                    id: 'policyTwo',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: true,
@@ -4679,14 +4679,14 @@ describe('SearchUIUtils', () => {
 
         test('Should hide Top Categories if all policies have categories disabled', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                policy_1: {
-                    id: 'policy_1',
+                policyOne: {
+                    id: 'policyOne',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: false,
                 } as OnyxTypes.Policy,
-                policy_2: {
-                    id: 'policy_2',
+                policyTwo: {
+                    id: 'policyTwo',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCategoriesEnabled: false,
