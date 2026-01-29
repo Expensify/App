@@ -9,7 +9,8 @@ function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], p
     const enabledFields: string[] = [];
 
     // Attendees field should show first when both are selected and attendee tracking is enabled
-    if (isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
+    // Respect feature flag - don't show attendees in title when feature is disabled
+    if (CONST.IS_ATTENDEES_REQUIRED_ENABLED && isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
         enabledFields.push(translate('iou.attendees'));
     }
 
@@ -35,6 +36,11 @@ function getIsMissingAttendeesViolation(
     userPersonalDetails: CurrentUserPersonalDetails,
     isAttendeeTrackingEnabled = false,
 ) {
+    // Feature flag to quickly disable the attendees required feature
+    if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED) {
+        return false;
+    }
+
     const areAttendeesRequired = !!policyCategories?.[category ?? '']?.areAttendeesRequired;
     // If attendee tracking is disabled at the policy level, don't enforce attendee requirement
     if (!isAttendeeTrackingEnabled || !areAttendeesRequired) {
@@ -70,7 +76,15 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     userPersonalDetails: CurrentUserPersonalDetails,
     isAttendeeTrackingEnabled: boolean,
     isControlPolicy: boolean,
+    isInvoice = false,
 ): T[] {
+    // Feature flag to quickly disable the attendees required feature
+    // When disabled, remove any existing missingAttendees violations and don't add new ones
+    // Never add missingAttendees violation for invoices
+    if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED || isInvoice) {
+        return violations.filter((v) => v.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
+    }
+
     const hasMissingAttendeesViolation = violations.some((v) => v.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
     const shouldShowMissingAttendees =
         isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled);

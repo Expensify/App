@@ -76,7 +76,7 @@ function CategoryRequiredFieldsPage({
                             </View>
                         </View>
                     </OfflineWithFeedback>
-                    {isAttendeeTrackingEnabled && (
+                    {isAttendeeTrackingEnabled && CONST.IS_ATTENDEES_REQUIRED_ENABLED && (
                         <OfflineWithFeedback pendingAction={policyCategory?.pendingFields?.areAttendeesRequired}>
                             <View style={[styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mv5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

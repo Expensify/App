@@ -2,7 +2,7 @@ import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -278,6 +278,69 @@ describe('getViolationsOnyxData', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([]);
         });
+
+        it('should add itemizedReceiptRequired violation if the transaction exceeds itemized receipt threshold and has no receipt', () => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -10000;
+            policy.maxExpenseAmountNoItemizedReceipt = 7500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeDefined();
+            expect(itemizedReceiptViolation?.type).toBe(CONST.VIOLATION_TYPES.VIOLATION);
+        });
+
+        it('should not add receiptRequired violation if the transaction has a receipt attached', () => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -10000;
+            transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
+            policy.maxExpenseAmountNoReceipt = 2500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const foundReceiptRequiredViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            expect(foundReceiptRequiredViolation).toBeUndefined();
+        });
+
+        it('should not show regular receiptRequired violation when itemizedReceiptRequired applies', () => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -10000;
+            policy.maxExpenseAmountNoReceipt = 2500; // Regular receipt required over $25
+            policy.maxExpenseAmountNoItemizedReceipt = 7500; // Itemized receipt required over $75
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            // Should have itemized receipt violation but NOT regular receipt violation
+            expect(itemizedReceiptViolation).toBeDefined();
+            expect(receiptViolation).toBeUndefined();
+        });
+
+        it('should not add itemizedReceiptRequired violation if the amount is below the threshold', () => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -5000;
+            transaction.receipt = {state: CONST.IOU.RECEIPT_STATE.SCAN_READY, source: 'https://example.com/receipt.jpg'};
+            policy.maxExpenseAmountNoItemizedReceipt = 7500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeUndefined();
+        });
+
+        it('should not add itemizedReceiptRequired violation if the transaction has different currency than the workspace currency', () => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            transaction.amount = -10000;
+            transaction.modifiedCurrency = CONST.CURRENCY.CAD;
+            policy.maxExpenseAmountNoItemizedReceipt = 7500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeUndefined();
+        });
     });
 
     describe('policyCategoryRules', () => {
@@ -301,6 +364,36 @@ describe('getViolationsOnyxData', () => {
         it('should add category specific violations', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([categoryOverLimitViolation, categoryReceiptRequiredViolation, categoryMissingCommentViolation, ...transactionViolations]));
+        });
+
+        it('should add category-level itemizedReceiptRequired violation when category is set to always', () => {
+            policyCategories.Food.maxAmountNoItemizedReceipt = 0; // Category set to "Always"
+            transaction.amount = -10000;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeDefined();
+            expect(itemizedReceiptViolation?.data).toBeUndefined(); // Category-level violations don't have data
+        });
+
+        it('should not add itemizedReceiptRequired violation when category is set to never', () => {
+            policy.maxExpenseAmountNoItemizedReceipt = 7500; // Policy requires itemized receipt over $75
+            policyCategories.Food.maxAmountNoItemizedReceipt = CONST.DISABLED_MAX_EXPENSE_VALUE; // Category set to "Never"
+            transaction.amount = -10000; // $100 expense - would trigger policy-level but category overrides
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeUndefined(); // Category "Never" should override policy
+        });
+
+        it('should use policy-level threshold when category is set to default', () => {
+            policy.maxExpenseAmountNoItemizedReceipt = 7500; // Policy requires itemized receipt over $75
+            // policyCategories.Food.maxAmountNoItemizedReceipt is undefined (Default - follow policy)
+            transaction.amount = -10000; // $100 expense - exceeds policy threshold
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedReceiptViolation).toBeDefined(); // Should follow policy threshold
         });
     });
 
@@ -464,7 +557,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}}]));
         });
 
         it('should add a tagOutOfPolicy violation when policy requires tags and tag is not in the policy', () => {
@@ -502,7 +595,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
     });
 
@@ -635,13 +728,13 @@ describe('getViolationsOnyxData', () => {
             } as Report;
         });
 
-        it('should add missingAttendees violation when no attendees are present', () => {
+        (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should add missingAttendees violation when no attendees are present', () => {
             transaction.comment = {attendees: []};
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
             expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
-        it('should add missingAttendees violation when only owner is an attendee', () => {
+        (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should add missingAttendees violation when only owner is an attendee', () => {
             transaction.comment = {
                 attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
             };
@@ -689,7 +782,7 @@ describe('getViolationsOnyxData', () => {
         describe('optimistic / offline scenarios (iouReport is undefined)', () => {
             // In offline scenarios, iouReport is undefined so we can't get ownerAccountID.
             // The code falls back to using getCurrentUserEmail() to identify the owner by login/email.
-            it('should correctly calculate violation when iouReport is undefined but attendees have matching email', () => {
+            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should correctly calculate violation when iouReport is undefined but attendees have matching email', () => {
                 // When iouReport is undefined, we use getCurrentUserEmail() as fallback
                 // If only the current user (matching MOCK_CURRENT_USER_EMAIL) is an attendee, violation should show
                 transactionViolations = [];
@@ -729,7 +822,7 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
 
-            it('should preserve violation when only owner attendee remains (offline)', () => {
+            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should preserve violation when only owner attendee remains (offline)', () => {
                 // If violation existed and only owner attendee remains, violation stays
                 transactionViolations = [missingAttendeesViolation];
                 transaction.comment = {
@@ -757,7 +850,7 @@ describe('getViolationsOnyxData', () => {
                 jest.restoreAllMocks();
             });
 
-            it("should add missingAttendees violation when no attendees are present (can't identify owner)", () => {
+            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)("should add missingAttendees violation when no attendees are present (can't identify owner)", () => {
                 transactionViolations = [];
                 transaction.comment = {attendees: []};
                 const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
@@ -765,7 +858,7 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
 
-            it('should add missingAttendees violation when only 1 attendee exists (assumed to be owner)', () => {
+            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should add missingAttendees violation when only 1 attendee exists (assumed to be owner)', () => {
                 transactionViolations = [];
                 transaction.comment = {
                     attendees: [{email: 'anyone@example.com', displayName: 'Someone', avatarUrl: ''}],
@@ -1247,5 +1340,279 @@ describe('hasVisibleViolationsForUser', () => {
 
         const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction, secondTransaction]);
         expect(result).toBe(true);
+    });
+});
+
+describe('getIsViolationFixed', () => {
+    const mockCurrentUserPersonalDetails = {
+        accountID: 1,
+        login: 'user@example.com',
+        email: 'user@example.com',
+    };
+
+    const defaultParams = {
+        category: '',
+        tag: '',
+        taxCode: undefined,
+        policyCategories: undefined,
+        policyTagLists: undefined,
+        policyTaxRates: undefined,
+        iouAttendees: undefined,
+        currentUserPersonalDetails: mockCurrentUserPersonalDetails,
+        isAttendeeTrackingEnabled: false,
+    };
+
+    const createPolicyTagList = (tagName: string, enabled: boolean) => ({
+        Meals: {
+            name: 'Meals',
+            required: true,
+            orderWeight: 1,
+            tags: {[tagName]: {name: tagName, enabled}},
+        },
+    });
+
+    const createAttendee = (email: string) => ({
+        email,
+        displayName: email.split('@')?.at(0) ?? '',
+        avatarUrl: '',
+    });
+
+    describe('violations.categoryOutOfPolicy', () => {
+        it('should return false when category is empty', () => {
+            const result = getIsViolationFixed('violations.categoryOutOfPolicy', {
+                ...defaultParams,
+                category: '',
+                policyCategories: {Food: {name: 'Food', enabled: true}},
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return false when category is not in policy', () => {
+            const result = getIsViolationFixed('violations.categoryOutOfPolicy', {
+                ...defaultParams,
+                category: 'Travel',
+                policyCategories: {Food: {name: 'Food', enabled: true}},
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return false when category exists but is disabled', () => {
+            const result = getIsViolationFixed('violations.categoryOutOfPolicy', {
+                ...defaultParams,
+                category: 'Food',
+                policyCategories: {Food: {name: 'Food', enabled: false}},
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return true when category exists and is enabled', () => {
+            const result = getIsViolationFixed('violations.categoryOutOfPolicy', {
+                ...defaultParams,
+                category: 'Food',
+                policyCategories: {Food: {name: 'Food', enabled: true}},
+            });
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('violations.tagOutOfPolicy', () => {
+        it('should return true when tag is empty', () => {
+            const result = getIsViolationFixed('violations.tagOutOfPolicy', {
+                ...defaultParams,
+                tag: '',
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return false when policyTagLists is undefined', () => {
+            const result = getIsViolationFixed('violations.tagOutOfPolicy', {
+                ...defaultParams,
+                tag: 'Lunch',
+                policyTagLists: undefined,
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return false when tag is not in policy', () => {
+            const result = getIsViolationFixed('violations.tagOutOfPolicy', {
+                ...defaultParams,
+                tag: 'Breakfast',
+                policyTagLists: createPolicyTagList('Lunch', true),
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return false when tag exists but is disabled', () => {
+            const result = getIsViolationFixed('violations.tagOutOfPolicy', {
+                ...defaultParams,
+                tag: 'Lunch',
+                policyTagLists: createPolicyTagList('Lunch', false),
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return true when tag exists and is enabled', () => {
+            const result = getIsViolationFixed('violations.tagOutOfPolicy', {
+                ...defaultParams,
+                tag: 'Lunch',
+                policyTagLists: createPolicyTagList('Lunch', true),
+            });
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('violations.taxOutOfPolicy', () => {
+        it('should return true when taxCode is empty', () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: undefined,
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return false when taxCode is not in policy tax rates', () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: 'TAX_20',
+                policyTaxRates: {TAX_10: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return true when taxCode exists in policy tax rates', () => {
+            const result = getIsViolationFixed('violations.taxOutOfPolicy', {
+                ...defaultParams,
+                taxCode: 'TAX_10',
+                policyTaxRates: {TAX_10: {name: '10%', value: '10'}},
+            });
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('violations.missingAttendees', () => {
+        it('should return true when attendee tracking is disabled', () => {
+            const result = getIsViolationFixed('violations.missingAttendees', {
+                ...defaultParams,
+                isAttendeeTrackingEnabled: false,
+                category: 'Meals',
+                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return true when category does not require attendees', () => {
+            const result = getIsViolationFixed('violations.missingAttendees', {
+                ...defaultParams,
+                isAttendeeTrackingEnabled: true,
+                category: 'Meals',
+                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: false}},
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return false when no attendees are present and category requires them', () => {
+            const result = getIsViolationFixed('violations.missingAttendees', {
+                ...defaultParams,
+                isAttendeeTrackingEnabled: true,
+                category: 'Meals',
+                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
+                iouAttendees: [],
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return false when only the creator is an attendee', () => {
+            const result = getIsViolationFixed('violations.missingAttendees', {
+                ...defaultParams,
+                isAttendeeTrackingEnabled: true,
+                category: 'Meals',
+                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
+                iouAttendees: [createAttendee('user@example.com')],
+            });
+            expect(result).toBe(false);
+        });
+
+        it('should return true when there is a non-creator attendee', () => {
+            const result = getIsViolationFixed('violations.missingAttendees', {
+                ...defaultParams,
+                isAttendeeTrackingEnabled: true,
+                category: 'Meals',
+                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
+                iouAttendees: [createAttendee('user@example.com'), createAttendee('other@example.com')],
+            });
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('unknown violations', () => {
+        it('should return false for unknown violation types', () => {
+            const result = getIsViolationFixed('violations.unknownViolation', defaultParams);
+            expect(result).toBe(false);
+        });
+    });
+});
+
+describe('filterReceiptViolations', () => {
+    const itemizedReceiptRequiredViolation: TransactionViolation = {
+        name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
+        type: CONST.VIOLATION_TYPES.VIOLATION,
+        showInReview: true,
+        data: {
+            formattedLimit: '$75.00',
+        },
+    };
+
+    const receiptRequiredViolationWithData: TransactionViolation = {
+        name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+        type: CONST.VIOLATION_TYPES.VIOLATION,
+        showInReview: true,
+        data: {
+            formattedLimit: '$25.00',
+        },
+    };
+
+    it('should return violations unchanged when only receiptRequired is present', () => {
+        const violations: TransactionViolation[] = [receiptRequiredViolationWithData, missingCategoryViolation];
+        const result = filterReceiptViolations(violations);
+        expect(result).toEqual(violations);
+        expect(result).toHaveLength(2);
+    });
+
+    it('should return violations unchanged when only itemizedReceiptRequired is present', () => {
+        const violations: TransactionViolation[] = [itemizedReceiptRequiredViolation, missingCategoryViolation];
+        const result = filterReceiptViolations(violations);
+        expect(result).toEqual(violations);
+        expect(result).toHaveLength(2);
+    });
+
+    it('should filter out receiptRequired when both receiptRequired and itemizedReceiptRequired are present', () => {
+        const violations: TransactionViolation[] = [receiptRequiredViolationWithData, itemizedReceiptRequiredViolation, missingCategoryViolation];
+        const result = filterReceiptViolations(violations);
+
+        expect(result).toHaveLength(2);
+        expect(result).toContainEqual(itemizedReceiptRequiredViolation);
+        expect(result).toContainEqual(missingCategoryViolation);
+        expect(result).not.toContainEqual(receiptRequiredViolationWithData);
+    });
+
+    it('should return empty array when given empty array', () => {
+        const result = filterReceiptViolations([]);
+        expect(result).toEqual([]);
+    });
+
+    it('should return violations unchanged when neither receiptRequired nor itemizedReceiptRequired is present', () => {
+        const violations: TransactionViolation[] = [missingCategoryViolation, missingTagViolation];
+        const result = filterReceiptViolations(violations);
+        expect(result).toEqual(violations);
+        expect(result).toHaveLength(2);
+    });
+
+    it('should handle violations with category receipt required (no data)', () => {
+        const violations: TransactionViolation[] = [categoryReceiptRequiredViolation, itemizedReceiptRequiredViolation];
+        const result = filterReceiptViolations(violations);
+
+        expect(result).toHaveLength(1);
+        expect(result).toContainEqual(itemizedReceiptRequiredViolation);
+        expect(result).not.toContainEqual(categoryReceiptRequiredViolation);
     });
 });

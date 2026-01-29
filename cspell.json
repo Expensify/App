@@ -7,6 +7,7 @@
     },
     "words": [
         "--longpress",
+        "abytes",
         "Accelo",
         "achreimburse",
         "actool",
@@ -174,6 +175,7 @@
         "dimen",
         "directfeeds",
         "Dishoom",
+        "displaystatus",
         "DocuSign",
         "domhandler",
         "domparser",
@@ -599,6 +601,7 @@
         "Roni",
         "Rosiclair",
         "rpartition",
+        "RPID",
         "RRGGBB",
         "rstrip",
         "RTER",
@@ -723,6 +726,7 @@
         "unhold",
         "Unlaminated",
         "Unmigrated",
+        "unmuting",
         "unredacted",
         "unscrollable",
         "unsubmitted",
@@ -754,6 +758,7 @@
         "Warchoł",
         "WDYR",
         "webapps",
+        "webauthn",
         "webcredentials",
         "webrtc",
         "welldone",
@@ -813,7 +818,8 @@
         "RNCORE",
         "Wooo",
         "Splittable",
-        "pgrep"
+        "pgrep",
+        "Invoicify"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
