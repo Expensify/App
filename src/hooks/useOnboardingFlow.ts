@@ -75,7 +75,7 @@ function useOnboardingFlowRouter() {
             }
 
             // Temporary solution to navigate to onboarding when trying to access the app
-            // Should be removed once Test Drive moodal route has its own navigation guard
+            // Should be removed once Test Drive modal route has its own navigation guard
             // Details: https://github.com/Expensify/App/pull/79898
             if (hasCompletedGuidedSetupFlowSelector(onboardingValues) && onboardingValues?.testDriveModalDismissed === false) {
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
