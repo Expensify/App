@@ -8207,6 +8207,29 @@ const CONST = {
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
     },
 
+    HOME: {
+        ANNOUNCEMENTS: [
+            {
+                title: 'Start the year with smarter spending, admin controls, and more.',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-january-2026-product-update',
+                publishedDate: '2026-01-28',
+            },
+            {
+                title: 'Our favorite features + final upgrades of the year',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-2025-year-end-product-update',
+                publishedDate: '2025-12-22',
+            },
+            {
+                title: 'Uber for business + Expensify automates ride and meal receipts',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/uber-for-business-and-expensify-integration-update',
+                publishedDate: '2025-12-01',
+            },
+        ],
+    },
+
     SECTION_LIST_ITEM_TYPE: {
         HEADER: 'header',
         ROW: 'row',
