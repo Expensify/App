@@ -142,9 +142,6 @@ function mapTransactionItemToSelectedEntry(
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
-            transactionID: item.transactionID,
-            managedCard: item.managedCard,
-            comment: item.comment,
             reportAction: item.reportAction,
             report: item.report,
         },
@@ -200,9 +197,6 @@ function prepareTransactionsList(
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
-            transactionID: item.transactionID,
-            managedCard: item.managedCard,
-            comment: item.comment,
             reportAction: item.reportAction,
             report: item.report,
         },
@@ -606,9 +600,6 @@ function Search({
                         reportAction: transactionItem.reportAction,
                         isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                         report: transactionItem.report,
-                        transactionID: transactionItem.transactionID,
-                        managedCard: transactionItem.managedCard,
-                        comment: transactionItem.comment,
                     };
                 }
             }
@@ -665,9 +656,6 @@ function Search({
                     reportAction: transactionItem.reportAction,
                     isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                     report: transactionItem.report,
-                    transactionID: transactionItem.transactionID,
-                    managedCard: transactionItem.managedCard,
-                    comment: transactionItem.comment,
                 };
             }
         }

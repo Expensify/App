@@ -1134,6 +1134,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: '分割を削除',
         splitExpenseCannotBeEditedModalTitle: 'この経費は編集できません',
         splitExpenseCannotBeEditedModalDescription: '承認済みまたは支払済みの経費は編集できません',
+        splitExpenseDistanceErrorModalDescription: '距離レートのエラーを修正して、もう一度お試しください。',
         paySomeone: ({name}: PaySomeoneParams = {}) => `${name ?? '誰か'} を支払う`,
         expense: '経費',
         categorize: 'カテゴリ分け',
@@ -5256,7 +5257,11 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 title: 'ルール',
                 subtitle: 'レシートの必須化や高額支出のフラグ付けなどを設定できます。',
             },
-            timeTracking: {title: '時間', subtitle: '従業員が作業時間に対して支払いを受けられるよう、時間単位の請求レートを設定します。'},
+            timeTracking: {
+                title: '時間',
+                subtitle: 'タイムトラッキング用の時間単価請求レートを設定します。',
+                defaultHourlyRate: 'デフォルトの時間単価',
+            },
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -6349,6 +6354,10 @@ ${reportName}
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
                 expensesExactlyMatching: '以下と完全一致する経費について:',
+                duplicateRuleTitle: '同じような支払先ルールがすでに存在します',
+                duplicateRulePrompt: (merchantName: string) => `既に既存のルールがありますが、「${merchantName}」用に新しいルールを保存しますか？`,
+                saveAnyway: 'それでも保存',
+                applyToExistingUnsubmittedExpenses: '既存の未提出経費に適用',
             },
         },
         planTypePage: {
