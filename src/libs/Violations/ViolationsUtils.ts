@@ -501,13 +501,13 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
         }
 
-        // Remove itemized receipt required violation if conditions are no longer met
-        if (canCalculateAmountViolations && hasItemizedReceiptRequiredViolation && !shouldShowItemizedReceiptRequiredViolation && !shouldShowCategoryItemizedReceiptRequiredViolation) {
+        // Remove itemized receipt required violation if it exists (will be re-added with updated data if still needed)
+        if (canCalculateAmountViolations && hasItemizedReceiptRequiredViolation) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED});
         }
 
         // Add itemized receipt required violation if conditions are met (policy or category level)
-        if (canCalculateAmountViolations && !hasItemizedReceiptRequiredViolation && (shouldShowItemizedReceiptRequiredViolation || shouldShowCategoryItemizedReceiptRequiredViolation)) {
+        if (canCalculateAmountViolations && (shouldShowItemizedReceiptRequiredViolation || shouldShowCategoryItemizedReceiptRequiredViolation)) {
             newTransactionViolations.push({
                 name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
                 data:
@@ -520,23 +520,16 @@ const ViolationsUtils = {
                 showInReview: true,
             });
         }
+        // If itemized receipt is required, don't also show regular receipt required
+        const hasItemizedReceiptViolation = shouldShowItemizedReceiptRequiredViolation || shouldShowCategoryItemizedReceiptRequiredViolation;
 
-        // If itemized receipt is required (from server or client-side calculation), don't also show regular receipt required
-        const hasItemizedReceiptViolation = hasItemizedReceiptRequiredViolation || shouldShowItemizedReceiptRequiredViolation || shouldShowCategoryItemizedReceiptRequiredViolation;
-
-        if (
-            canCalculateAmountViolations &&
-            ((hasReceiptRequiredViolation && (!shouldShowReceiptRequiredViolation || hasItemizedReceiptViolation)) ||
-                (hasCategoryReceiptRequiredViolation && (!shouldShowCategoryReceiptRequiredViolation || hasItemizedReceiptViolation)))
-        ) {
+        // Remove receipt required violation if it exists (will be re-added with updated data if still needed)
+        if (canCalculateAmountViolations && (hasReceiptRequiredViolation || hasCategoryReceiptRequiredViolation)) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
         }
 
-        if (
-            canCalculateAmountViolations &&
-            !hasItemizedReceiptViolation &&
-            ((!hasReceiptRequiredViolation && !!shouldShowReceiptRequiredViolation) || (!hasCategoryReceiptRequiredViolation && shouldShowCategoryReceiptRequiredViolation))
-        ) {
+        // Add receipt required violation if conditions are met and itemized receipt is not required
+        if (canCalculateAmountViolations && !hasItemizedReceiptViolation && (shouldShowReceiptRequiredViolation || shouldShowCategoryReceiptRequiredViolation)) {
             newTransactionViolations.push({
                 name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
                 data:
