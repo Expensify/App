@@ -36,18 +36,36 @@ function buildTaxObject(taxKey: string | undefined, policy: Policy | undefined):
 }
 
 /**
- * Maps form fields to rule properties
+ * Maps form fields to rule properties.
+ * Only includes fields that have values - empty fields are omitted entirely.
  */
-function mapFormFieldsToRule(form: MerchantRuleForm, policy: Policy | undefined) {
-    return {
-        merchant: form.merchant || undefined,
-        category: form.category || undefined,
-        tag: form.tag || undefined,
-        tax: buildTaxObject(form.tax, policy),
-        comment: form.comment || undefined,
-        reimbursable: form.reimbursable,
-        billable: form.billable,
-    };
+function mapFormFieldsToRule(form: MerchantRuleForm, policy: Policy | undefined): Partial<CodingRule> {
+    const rule: Partial<CodingRule> = {};
+
+    if (form.merchant) {
+        rule.merchant = form.merchant;
+    }
+    if (form.category) {
+        rule.category = form.category;
+    }
+    if (form.tag) {
+        rule.tag = form.tag;
+    }
+    const tax = buildTaxObject(form.tax, policy);
+    if (tax) {
+        rule.tax = tax;
+    }
+    if (form.comment) {
+        rule.comment = form.comment;
+    }
+    if (form.reimbursable !== undefined) {
+        rule.reimbursable = form.reimbursable;
+    }
+    if (form.billable !== undefined) {
+        rule.billable = form.billable;
+    }
+
+    return rule;
 }
 
 /**
@@ -82,30 +100,19 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     const existingRule = isEditing ? policy?.rules?.codingRules?.[ruleID] : undefined;
     const ruleFields = mapFormFieldsToRule(form, policy);
 
-    // When editing, use the existing rule and merge updated fields; when adding, create a new rule
+    // Build the complete rule from form data (don't merge with existing rule to ensure cleared fields are properly removed)
     const targetRuleID = ruleID ?? NumberUtils.rand64();
     const operator = form.matchType === CONST.MERCHANT_RULES.MATCH_TYPE.EXACT ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
-    const ruleForOptimisticUpdate: CodingRule =
-        isEditing && existingRule
-            ? {
-                  ...existingRule,
-                  ...ruleFields,
-                  filters: {
-                      ...existingRule.filters,
-                      operator,
-                      right: form.merchantToMatch,
-                  },
-              }
-            : {
-                  ruleID: targetRuleID,
-                  filters: {
-                      left: 'merchant',
-                      operator,
-                      right: form.merchantToMatch,
-                  },
-                  ...ruleFields,
-                  created: new Date().toISOString(),
-              };
+    const ruleForOptimisticUpdate: CodingRule = {
+        ruleID: targetRuleID,
+        filters: {
+            left: 'merchant',
+            operator,
+            right: form.merchantToMatch,
+        },
+        ...ruleFields,
+        created: existingRule?.created ?? new Date().toISOString(),
+    };
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
