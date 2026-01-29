@@ -211,7 +211,7 @@ function buildOptimisticCard(cardDisplayName: string): {card: Card; cardID: stri
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             nameValuePairs: {
                 cardTitle: cardDisplayName,
-            },
+            } as Card['nameValuePairs'],
         },
     };
 }
@@ -257,7 +257,7 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
             importFinalModal: {
                 titleKey: 'spreadsheet.importFailedTitle' as const,
                 promptKey: 'spreadsheet.invalidFileMessage' as const,
-                promptKeyParams: {},
+                promptKeyParams: undefined,
             },
         });
         return;
@@ -276,7 +276,7 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
 
     const params: ImportCSVTransactionsParams = {
         transactionList: JSON.stringify(transactionList),
-        cardID,
+        cardID: Number(cardID),
         cardName: cardDisplayName,
         currency,
         reimbursable: isReimbursable,
@@ -328,7 +328,7 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
                     importFinalModal: {
                         titleKey: 'spreadsheet.importFailedTitle' as const,
                         promptKey: 'spreadsheet.importFailedDescription' as const,
-                        promptKeyParams: {},
+                        promptKeyParams: undefined,
                     },
                 },
             },
