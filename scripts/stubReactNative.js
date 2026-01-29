@@ -9,7 +9,6 @@ const MODULES_TO_STUB = new Set([
     'react-native-config',
     'react-native-key-command',
     '@expensify/react-native-hybrid-app',
-    'react-native-sound',
     'react-native-blob-util',
     'react-native-fs',
     'react-native-reanimated',
@@ -19,7 +18,7 @@ const MODULES_TO_STUB = new Set([
     'react-native-picker-select',
     'react-native-onyx',
     '@react-navigation/native',
-    'expo-av',
+    'expo-audio',
 ]);
 
 // Stub implementations
