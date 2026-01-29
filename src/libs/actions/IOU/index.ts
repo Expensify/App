@@ -226,9 +226,9 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
-import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from '@userActions/Policy/Tag';
+import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
@@ -289,6 +289,7 @@ type InitMoneyRequestParams = {
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     hasOnlyPersonalPolicies: boolean;
+    draftTransactions: OnyxCollection<OnyxTypes.Transaction>;
 };
 
 type MoneyRequestInformation = {
@@ -645,6 +646,7 @@ type CreateDistanceRequestInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
     shouldHandleNavigation?: boolean;
 };
@@ -718,6 +720,7 @@ type CreateTrackExpenseParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -824,6 +827,7 @@ type DeleteTrackExpenseParams = {
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
+    currentUserAccountID: number;
 };
 
 type DeleteMoneyRequestFunctionParams = {
@@ -839,6 +843,20 @@ type DeleteMoneyRequestFunctionParams = {
     selectedTransactionIDs?: string[];
     hash?: number;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
+    currentUserAccountID: number;
+};
+
+type PayMoneyRequestFunctionParams = {
+    paymentType: PaymentMethodType;
+    chatReport: OnyxTypes.Report;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    currentUserAccountID: number;
+    paymentPolicyID?: string;
+    full?: boolean;
+    activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -875,6 +893,19 @@ Onyx.connect({
         }
 
         allTransactionViolations = value;
+    },
+});
+
+let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+        allPolicyTags = value;
     },
 });
 
@@ -939,13 +970,10 @@ Onyx.connectWithoutView({
     callback: (value) => (recentAttendees = value),
 });
 
-// TODO: remove `recentWaypoints` from this file (https://github.com/Expensify/App/issues/73024)
-// `recentWaypoints` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
-// All uses of this variable should be replaced with `useOnyx`.
-let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
+let deprecatedRecentWaypoints: OnyxTypes.RecentWaypoint[] = [];
 Onyx.connect({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (val) => (recentWaypoints = val ?? []),
+    callback: (val) => (deprecatedRecentWaypoints = val ?? []),
 });
 
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
@@ -974,6 +1002,28 @@ function getCurrentUserEmail(): string {
 
 function getUserAccountID(): number {
     return userAccountID;
+}
+
+function getRecentWaypoints(): OnyxTypes.RecentWaypoint[] {
+    return deprecatedRecentWaypoints;
+}
+
+/**
+ * This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72721)
+ * All usages of this function should be replaced with params passed to the functions or useOnyx hook in React components.
+ */
+function getPolicyTags(): OnyxCollection<OnyxTypes.PolicyTagLists> {
+    return allPolicyTags;
+}
+
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72721)
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
+function getPolicyTagsData(policyID: string | undefined) {
+    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
 /**
@@ -1120,6 +1170,7 @@ function initMoneyRequest({
     lastSelectedDistanceRates,
     currentUserPersonalDetails,
     hasOnlyPersonalPolicies,
+    draftTransactions,
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
@@ -1130,7 +1181,7 @@ function initMoneyRequest({
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
 
     // We remove draft transactions created during multi scanning if there are some
-    removeDraftTransactions(true);
+    removeDraftTransactions(true, draftTransactions);
 
     // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
     // we should keep most of the existing data by using the ONYX MERGE operation
@@ -3277,6 +3328,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         policyTags: getPolicyTagsData(iouReport.policyID),
         policyRecentlyUsedTags,
         transactionTags: tag,
@@ -3630,6 +3683,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     optimisticTransaction.hasEReceipt = true;
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         policyTags: getPolicyTagsData(iouReport.policyID),
         policyRecentlyUsedTags,
         transactionTags: tag,
@@ -4467,6 +4522,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedTag = 'tag' in transactionChanges;
     if (hasModifiedTag) {
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
+            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             policyTags: getPolicyTagsData(iouReport?.policyID),
             policyRecentlyUsedTags,
             transactionTags: transactionChanges.tag,
@@ -5306,6 +5363,7 @@ type UpdateMoneyRequestDistanceParams = {
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     waypoints?: WaypointCollection;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     distance?: number;
     routes?: Routes;
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -5326,6 +5384,7 @@ function updateMoneyRequestDistance({
     transactionThreadReport,
     parentReport,
     waypoints,
+    recentWaypoints = [],
     distance,
     routes = undefined,
     policy,
@@ -6585,6 +6644,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         introSelected,
         activePolicyID,
         quickAction,
+        recentWaypoints = [],
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6851,6 +6911,14 @@ function trackExpense(params: CreateTrackExpenseParams) {
             break;
         }
         default: {
+            if (isGPSDistanceRequest) {
+                onyxData?.optimisticData?.push({
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.GPS_DRAFT_DETAILS,
+                    value: null,
+                });
+            }
+
             const parameters: TrackExpenseParams = {
                 amount,
                 attendees: attendees ? JSON.stringify(attendees) : undefined,
@@ -7384,6 +7452,8 @@ function createSplitsAndOnyxData({
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat
             ? buildOptimisticPolicyRecentlyUsedTags({
+                  // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+                  // eslint-disable-next-line @typescript-eslint/no-deprecated
                   policyTags: getPolicyTagsData(participant.policyID),
                   policyRecentlyUsedTags,
                   transactionTags: tag,
@@ -7522,6 +7592,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        recentWaypoints = [],
         customUnitPolicyID,
         shouldHandleNavigation = true,
     } = distanceRequestInformation;
@@ -7684,9 +7755,11 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
         onyxData = moneyRequestOnyxData;
 
+        const isGPSDistanceRequest = transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
+
         if (
             transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
+            isGPSDistanceRequest ||
             isManualDistanceRequest ||
             transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
         ) {
@@ -7695,6 +7768,14 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
                 value: transaction.iouRequestType,
+            });
+        }
+
+        if (isGPSDistanceRequest) {
+            onyxData?.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.GPS_DRAFT_DETAILS,
+                value: null,
             });
         }
 
@@ -8294,6 +8375,7 @@ function deleteMoneyRequest({
     selectedTransactionIDs,
     allTransactionViolationsParam,
     hash,
+    currentUserAccountID,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -8410,7 +8492,7 @@ function deleteMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, allTransactionViolationsParam, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
             },
         });
     }
@@ -8429,7 +8511,7 @@ function deleteMoneyRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, allTransactionViolationsParam, undefined),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
                     iouReportID: null,
                     ...optimisticLastReportData,
                 },
@@ -8631,6 +8713,7 @@ function deleteTrackExpense({
     isChatReportArchived,
     isChatIOUReportArchived,
     allTransactionViolationsParam,
+    currentUserAccountID,
 }: DeleteTrackExpenseParams) {
     if (!chatReportID || !transactionID) {
         return;
@@ -8659,6 +8742,7 @@ function deleteTrackExpense({
             isChatIOUReportArchived,
             isSingleTransactionView,
             allTransactionViolationsParam,
+            currentUserAccountID,
         });
         return urlToNavigateBack;
     }
@@ -9144,7 +9228,7 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
-    currentUserAccountIDParam?: number;
+    currentUserAccountIDParam: number;
     currentUserEmailParam?: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
@@ -9238,7 +9322,7 @@ function getPayMoneyRequestParams({
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, allTransactionViolations, undefined),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, currentUserAccountIDParam, allTransactionViolations, undefined),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
@@ -9585,9 +9669,8 @@ function canSubmitReport(
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
     isReportArchived: boolean,
     currentUserEmailParam: string,
+    currentUserAccountID: number,
 ) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Temporarily disabling the rule for deprecated functions; it will be removed soon in https://github.com/Expensify/App/issues/73648.
-    const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, policy);
@@ -9729,7 +9812,7 @@ function approveMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport, currentUserEmail, allTransactionViolations, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport, currentUserEmail, currentUserAccountIDParam, allTransactionViolations, undefined),
             },
         };
     }
@@ -10911,17 +10994,8 @@ function completePaymentOnboarding(
     });
 }
 
-function payMoneyRequest(
-    paymentType: PaymentMethodType,
-    chatReport: OnyxTypes.Report,
-    iouReport: OnyxEntry<OnyxTypes.Report>,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
-    paymentPolicyID?: string,
-    full = true,
-    activePolicy?: OnyxEntry<OnyxTypes.Policy>,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-) {
+function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
+    const {paymentType, chatReport, iouReport, introSelected, iouReportCurrentNextStepDeprecated, currentUserAccountID, paymentPolicyID, full = true, activePolicy, policy} = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -10931,7 +11005,12 @@ function payMoneyRequest(
     completePaymentOnboarding(paymentSelected, introSelected);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams({
+    const {
+        params: payMoneyRequestParams,
+        optimisticData,
+        successData,
+        failureData,
+    } = getPayMoneyRequestParams({
         initialChatReport: chatReport,
         iouReport,
         recipient,
@@ -10941,6 +11020,7 @@ function payMoneyRequest(
         activePolicy,
         reportPolicy: policy,
         iouReportCurrentNextStepDeprecated,
+        currentUserAccountIDParam: currentUserAccountID,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -10948,9 +11028,9 @@ function payMoneyRequest(
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
     playSound(SOUNDS.SUCCESS);
-    API.write(apiCommand, params, {optimisticData, successData, failureData});
+    API.write(apiCommand, payMoneyRequestParams, {optimisticData, successData, failureData});
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, userAccountID);
-    return params.optimisticHoldReportID;
+    return payMoneyRequestParams.optimisticHoldReportID;
 }
 
 function payInvoice({
@@ -11091,6 +11171,8 @@ function detachReceipt(transactionID: string | undefined, transactionPolicy: Ony
     ];
 
     if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policyTagList = getPolicyTagsData(transactionPolicy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -11216,6 +11298,8 @@ function replaceReceipt({transactionID, file, source, transactionPolicy, transac
     ];
 
     if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
+        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const policyTagList = getPolicyTagsData(transactionPolicy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -11279,10 +11363,11 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
     const shouldAddAsReport = !isEmptyObject(chatReport) && isSelfDM(chatReport);
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     let participants: Participant[] = [];
 
-    if (isPolicyExpenseChatReportUtil(chatReport) || shouldAddAsReport) {
-        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport), selected: true}];
+    if (isPolicyExpenseChat || shouldAddAsReport) {
+        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat, selected: true, policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined}];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},
@@ -11706,6 +11791,7 @@ function prepareRejectMoneyRequestData(
     reportID: string,
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserAccountIDParam: number,
     options?: {sharedRejectedToReportID?: string},
     shouldUseBulkAction?: boolean,
 ): RejectMoneyRequestData | undefined {
@@ -12309,7 +12395,14 @@ function prepareRejectMoneyRequestData(
     // Update hasOutstandingChildRequest on the chat report after all optimistic updates
     if (policyExpenseChat) {
         const excludedReportID = rejectedToReportID ?? reportID;
-        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(policyExpenseChat, excludedReportID, currentUserEmail, allTransactionViolations, undefined);
+        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(
+            policyExpenseChat,
+            excludedReportID,
+            currentUserEmail,
+            currentUserAccountIDParam,
+            allTransactionViolations,
+            undefined,
+        );
 
         if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {
             optimisticData.push({
@@ -12456,8 +12549,15 @@ function prepareRejectMoneyRequestData(
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
 
-function rejectMoneyRequest(transactionID: string, reportID: string, comment: string, policy: OnyxEntry<OnyxTypes.Policy>, options?: {sharedRejectedToReportID?: string}): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, options);
+function rejectMoneyRequest(
+    transactionID: string,
+    reportID: string,
+    comment: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    currentUserAccountIDParam: number,
+    options?: {sharedRejectedToReportID?: string},
+): Route | undefined {
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, options);
     if (!data) {
         return;
     }
@@ -13220,8 +13320,10 @@ export {
     getAllReportActionsFromIOU,
     getCurrentUserEmail,
     getUserAccountID,
+    getRecentWaypoints,
     getReceiptError,
     getSearchOnyxUpdate,
+    getPolicyTags,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
     handleNavigateAfterExpenseCreate,

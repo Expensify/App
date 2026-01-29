@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -7,6 +8,7 @@ import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
 import {isUsingStagingApi} from '@libs/ApiUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
@@ -15,6 +17,7 @@ import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/Use
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Account} from '@src/types/onyx';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -22,8 +25,9 @@ import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-// Temporary hardcoded value until MultifactorAuthenticationContext is implemented
-const TEMP_BIOMETRICS_REGISTERED_STATUS = false;
+function getHasBiometricsRegistered(data: OnyxEntry<Account>) {
+    return data?.multifactorAuthenticationPublicKeyIDs && data.multifactorAuthenticationPublicKeyIDs.length > 0;
+}
 
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
@@ -33,6 +37,7 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReports();
+    const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: getHasBiometricsRegistered});
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
@@ -51,7 +56,7 @@ function TestToolMenu() {
     const isAuthenticated = useIsAuthenticated();
 
     // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
-    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: TEMP_BIOMETRICS_REGISTERED_STATUS});
+    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: hasBiometricsRegistered});
 
     return (
         <>
@@ -116,6 +121,15 @@ function TestToolMenu() {
                                 text={translate('multifactorAuthentication.biometricsTest.test')}
                                 onPress={() => navigateToBiometricsTestPage()}
                             />
+                            {hasBiometricsRegistered && (
+                                <Button
+                                    small
+                                    text={translate('multifactorAuthentication.revoke.revoke')}
+                                    onPress={() => {
+                                        revokeMultifactorAuthenticationCredentials();
+                                    }}
+                                />
+                            )}
                         </View>
                     </TestToolRow>
                 </>

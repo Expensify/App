@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -639,6 +641,8 @@ const translations: TranslationDeepObject<typeof en> = {
         insights: 'Analyses',
         duplicateExpense: 'Note de frais en double',
         newFeature: 'Nouvelle fonctionnalité',
+        month: 'Mois',
+        home: 'Accueil',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -762,6 +766,18 @@ const translations: TranslationDeepObject<typeof en> = {
         enableQuickVerification: {
             biometrics: 'Activez une vérification rapide et sécurisée avec votre visage ou votre empreinte digitale. Aucun mot de passe ou code requis.',
         },
+        revoke: {
+            revoke: 'Révoquer',
+            title: 'Reconnaissance faciale/empreinte digitale et passkeys',
+            explanation:
+                'La vérification par reconnaissance faciale/empreinte digitale ou par passkey est activée sur un ou plusieurs appareils. Révoquer l’accès exigera un code magique pour la prochaine vérification sur n’importe quel appareil',
+            confirmationPrompt: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil',
+            cta: 'Révoquer l’accès',
+            noDevices:
+                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale/empreinte digitale ou par passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
+            dismiss: 'Compris',
+            error: 'La requête a échoué. Veuillez réessayer plus tard.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -784,7 +800,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Retournez sur l’appareil d’origine et demandez un nouveau code',
         successfulNewCodeRequest: 'Code demandé. Veuillez vérifier votre appareil.',
         tfaRequiredTitle: dedent(`
-            Authentification à deux facteurs  
+            Authentification à deux facteurs
             requise
         `),
         tfaRequiredDescription: dedent(`
@@ -885,6 +901,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Voulez-vous vraiment supprimer ce(tte) ${type} ?`;
         },
         onlyVisible: 'Visible uniquement pour',
+        explain: 'Expliquer',
+        explainMessage: "Veuillez m'expliquer cela.",
         replyInThread: 'Répondre dans le fil',
         joinThread: 'Rejoindre la discussion',
         leaveThread: 'Quitter la discussion',
@@ -915,6 +933,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Ceci est votre espace personnel. Utilisez-le pour vos notes, tâches, brouillons et rappels.',
         beginningOfChatHistorySystemDM: 'Bienvenue ! Commençons votre configuration.',
         chatWithAccountManager: 'Discutez avec votre gestionnaire de compte ici',
+        askMeAnything: 'Posez-moi toutes vos questions !',
         sayHello: 'Dites bonjour !',
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
@@ -1487,6 +1506,33 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Le montant total est trop élevé. Réduisez le nombre d’heures ou diminuez le tarif.',
         },
         correctDistanceRateError: 'Corrigez l’erreur de taux de distance et réessayez.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'a marqué la dépense comme « remboursable »' : 'a marqué la dépense comme « non remboursable »';
+                }
+                if (key === 'billable') {
+                    return value ? 'a marqué la dépense comme « facturable »' : 'a marqué la dépense comme « non refacturable »';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `définir le taux de taxe sur « ${taxRateName} »`;
+                    }
+                    return `taux de taxe vers « ${taxRateName} »`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `définir ${translations.common[key].toLowerCase()} sur « ${updatedValue} »`;
+                }
+                return `${translations.common[key].toLowerCase()} à « ${updatedValue} »`;
+            });
+            return `${formatList(fragments)} via les <a href="${policyRulesRoute}">règles de l’espace de travail</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2209,6 +2255,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} pour ${merchant} - ${date}`,
         },
+        csvCardDescription: 'Importation CSV',
     },
     workflowsPage: {
         workflowTitle: 'Dépenses',
@@ -2393,16 +2440,24 @@ ${amount} pour ${merchant} - ${date}`,
     expenseRulesPage: {
         title: 'Règles de dépenses',
         subtitle: 'Ces règles s’appliqueront à vos notes de frais. Si vous soumettez à un espace de travail, alors les règles de l’espace de travail peuvent les remplacer.',
+        findRule: 'Trouver règle',
         emptyRules: {title: 'Vous n’avez créé aucune règle', subtitle: 'Ajouter une règle pour automatiser la préparation des notes de frais.'},
         changes: {
-            billable: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
-            category: (value: string) => `Mettre à jour la catégorie en « ${value} »`,
-            comment: (value: string) => `Modifier la description en « ${value} »`,
-            merchant: (value: string) => `Mettre à jour le marchand en « ${value} »`,
-            reimbursable: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
-            report: (value: string) => `Ajouter à un rapport nommé « ${value} »`,
-            tag: (value: string) => `Mettre à jour le tag sur « ${value} »`,
-            tax: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
+            billableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
+            categoryUpdate: (value: string) => `Mettre à jour la catégorie en « ${value} »`,
+            commentUpdate: (value: string) => `Modifier la description en « ${value} »`,
+            merchantUpdate: (value: string) => `Mettre à jour le marchand en « ${value} »`,
+            reimbursableUpdate: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
+            tagUpdate: (value: string) => `Mettre à jour le tag sur « ${value} »`,
+            taxUpdate: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
+            billable: (value: boolean) => `à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
+            category: (value: string) => `à jour la catégorie en « ${value} »`,
+            comment: (value: string) => `la description en « ${value} »`,
+            merchant: (value: string) => `à jour le marchand en « ${value} »`,
+            reimbursable: (value: boolean) => `à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
+            tag: (value: string) => `à jour le tag sur « ${value} »`,
+            tax: (value: string) => `à jour le taux de taxe à ${value}`,
+            report: (value: string) => `ajouter à un rapport nommé « ${value} »`,
         },
         newRule: 'Nouvelle règle',
         addRule: {
@@ -2624,15 +2679,15 @@ ${amount} pour ${merchant} - ${date}`,
 
                         Voici comment faire :
 
-                        1. Allez dans *Espaces de travail*.
+                        1. Accédez à *Workspaces*.
                         2. Sélectionnez votre espace de travail.
-                        3. Cliquez sur *Plus de fonctionnalités*.
+                        3. Cliquez sur *More features*.
                         4. Activez *Workflows*.
-                        5. Accédez à *Workflows* dans l’éditeur de l’espace de travail.
-                        6. Activez *Ajouter des validations*.
+                        5. Allez à *Workflows* dans l’éditeur d’espace de travail.
+                        6. Activez *Approvals*.
                         7. Vous serez défini comme valideur des dépenses. Vous pourrez changer cela pour n’importe quel administrateur une fois que vous aurez invité votre équipe.
 
-                        [Accéder aux fonctionnalités supplémentaires](${workspaceMoreFeaturesLink}).`),
+                        [Faites-moi découvrir plus de fonctionnalités](${workspaceMoreFeaturesLink}).`),
             },
             createTestDriveAdminWorkspaceTask: {
                 title: ({workspaceConfirmationLink}) => `[Créer](${workspaceConfirmationLink}) un espace de travail`,
@@ -4648,7 +4703,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentScriptIDTitle: 'Quel est l’ID du script ?',
-                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous : 
+                            customSegmentScriptIDFooter: `Vous pouvez trouver les ID de script de segment personnalisé dans NetSuite sous :
 
 1. *Customization > Lists, Records, & Fields > Custom Segments*.
 2. Cliquez sur un segment personnalisé.
@@ -4901,6 +4956,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             assign: 'Assigner',
             assignCardFailedError: 'L’attribution de la carte a échoué.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription:
+                'Choisissez une nouvelle date de début des transactions. Nous synchroniserons toutes les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
             unassignCardFailedError: 'Échec de la désaffectation de la carte.',
         },
         expensifyCard: {
@@ -6336,11 +6393,25 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 title: 'Commerçant',
                 subtitle: 'Définissez les règles de marchand afin que les dépenses arrivent correctement codées et nécessitent moins de nettoyage.',
                 addRule: 'Ajouter une règle de commerçant',
-                ruleSummaryTitle: (merchantName: string) => `Si le commerçant contient « ${merchantName} »`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Si le commerçant ${isExactMatch ? 'correspond exactement' : 'contient'} « ${merchantName} »`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Renommer le marchand en « ${merchantName} »`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Mettre à jour ${fieldName} sur « ${fieldValue} »`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Marquer comme « ${reimbursable ? 'remboursable' : 'non remboursable'} »`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Marquer comme « ${billable ? 'facturable' : 'non facturable'} »`,
+                addRuleTitle: 'Ajouter une règle',
+                expensesWith: 'Pour les dépenses avec :',
+                applyUpdates: 'Appliquer ces mises à jour :',
+                saveRule: 'Enregistrer la règle',
+                confirmError: 'Saisissez un marchand et appliquez au moins une mise à jour',
+                confirmErrorMerchant: 'Veuillez saisir le commerçant',
+                confirmErrorUpdate: 'Veuillez appliquer au moins une mise à jour',
+                editRuleTitle: 'Modifier la règle',
+                deleteRule: 'Supprimer la règle',
+                deleteRuleConfirmation: 'Voulez-vous vraiment supprimer cette règle ?',
+                matchType: 'Type de correspondance',
+                matchTypeContains: 'Contient',
+                matchTypeExact: 'Correspond exactement',
+                expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
             },
         },
         planTypePage: {
@@ -6740,6 +6811,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `définir l’ancienneté maximale des dépenses à « ${newValue} » jours`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximal de dépense modifié à « ${newValue} » jours (auparavant « ${oldValue} »)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximal de dépense supprimé (auparavant « ${oldValue} » jours)`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'Activé' : 'Désactivé'} rapports avec paiement automatique approuvé`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `définir le seuil de paiement automatique des rapports approuvés sur « ${newLimit} »`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `a modifié le seuil des rapports approuvés en paiement automatique à « ${newLimit} » (auparavant « ${oldLimit} »)`,
+        removedAutoPayApprovedReportsLimit: 'supprimé le seuil des rapports approuvés pour le paiement automatique',
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -6875,6 +6951,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
         topCategories: 'Catégories principales',
+        topMerchants: 'Principaux commerçants',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             approve: 'Approuver',
@@ -6893,8 +6970,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 on: (date?: string) => `Le ${date ?? ''}`,
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
-                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Le mois dernier',
-                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci', //_/\__/_/  \_,_/\__/\__/\_,_/
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Année à ce jour',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
             },
@@ -6936,6 +7014,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
+                [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             },
             feed: 'Flux',
             withdrawalType: {
@@ -6957,6 +7038,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             accessPlaceHolder: 'Ouvrir pour plus de détails',
         },
         noCategory: 'Aucune catégorie',
+        noMerchant: 'Aucun commerçant',
         noTag: 'Aucune étiquette',
         expenseType: 'Type de dépense',
         withdrawalType: 'Type de retrait',
@@ -7112,7 +7194,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connecté à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'a quitté la discussion',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `La connexion à ${feedName} est rompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>`,
+                    `La connexion à ${feedName} est rompue. Pour rétablir l'importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `la connexion Plaid à votre compte bancaire professionnel est interrompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> pour continuer à utiliser vos cartes Expensify.`,
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
@@ -8124,6 +8208,12 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             subtitle: 'Enregistrez automatiquement les miles ou kilomètres avec le GPS et transformez instantanément vos trajets en dépenses.',
             button: 'Télécharger l’application',
         },
+        continueGpsTripModal: {
+            title: 'Continuer l’enregistrement du trajet GPS ?',
+            prompt: 'Il semble que l’application se soit fermée pendant votre dernier trajet GPS. Souhaitez-vous continuer l’enregistrement à partir de ce trajet ?',
+            confirm: 'Continuer le voyage',
+            cancel: 'Afficher le voyage',
+        },
         signOutWarningTripInProgress: {title: 'Suivi GPS en cours', prompt: 'Voulez-vous vraiment abandonner le déplacement et vous déconnecter ?', confirm: 'Ignorer et se déconnecter'},
         notification: {title: 'Suivi GPS en cours', body: 'Aller dans l’application pour terminer'},
         locationServicesRequiredModal: {
@@ -8132,6 +8222,16 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour lancer le suivi de distance GPS.',
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
+    },
+    homePage: {
+        forYou: 'Pour vous',
+        announcements: 'Annonces',
+        discoverSection: {
+            title: 'Découvrir',
+            menuItemTitleNonAdmin: 'Découvrez comment créer des dépenses et soumettre des rapports.',
+            menuItemTitleAdmin: 'Apprenez à inviter des membres, à modifier les circuits d’approbation et à rapprocher les cartes de l’entreprise.',
+            menuItemDescription: 'Découvrez ce qu’Expensify peut faire en 2 minutes',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
