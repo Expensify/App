@@ -43,6 +43,7 @@ function TransactionDuplicateReview() {
     const [expenseReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
     const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`, {canBeMissing: true});
     const transactionID = getLinkedTransactionID(reportAction);
     const transactionViolations = useTransactionViolations(transactionID);
     const duplicateTransactionIDs = useMemo(
@@ -121,10 +122,18 @@ function TransactionDuplicateReview() {
 
     const isLoadingPage = (!report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false) || !reportAction?.reportActionID;
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isLoadingPage && !transactionID;
+    const wasTransactionDeleted = !!(
+        route.params.threadReportID &&
+        report?.reportID &&
+        reportMetadata?.isLoadingInitialReportActions === false &&
+        parentReportMetadata?.isLoadingInitialReportActions === false &&
+        !reportAction?.reportActionID
+    );
 
-    if (isLoadingPage) {
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFound = wasTransactionDeleted || (!isLoadingPage && !transactionID);
+
+    if (isLoadingPage && !wasTransactionDeleted) {
         return (
             <ScreenWrapper testID="TransactionDuplicateReview">
                 <View style={[styles.flex1]}>
