@@ -198,9 +198,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
 
-    // Handle new transaction created while already expanded
     useEffect(() => {
-        if (!isExpanded || !newTransactionID) {
+        if (!newTransactionID || !isExpanded) {
             return;
         }
         searchTransactions(0, true);
