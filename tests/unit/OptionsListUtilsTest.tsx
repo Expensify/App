@@ -660,6 +660,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
 
             // Then all personal details (including those that have reports) should be returned
@@ -687,6 +688,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
 
             // Then the current user should be included in personalDetails
@@ -716,6 +718,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
 
             // Then the current user should not be included in personalDetails
@@ -1791,6 +1794,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -1811,6 +1815,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
@@ -1840,6 +1845,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -1862,6 +1868,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -1886,6 +1893,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
@@ -1910,6 +1918,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -1931,6 +1940,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -1954,6 +1964,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -1975,6 +1986,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -1997,6 +2009,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -2039,6 +2052,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
@@ -2059,6 +2073,7 @@ describe('OptionsListUtils', () => {
                 nvpDismissedProductTraining,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
@@ -2089,6 +2104,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -2515,6 +2531,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -2534,6 +2551,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -2558,6 +2576,7 @@ describe('OptionsListUtils', () => {
                         loginList,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserEmail: CURRENT_USER_EMAIL,
+                        personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
                     });
                     // When we pass the returned options to filterAndOrderOptions with a search value
                     const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
@@ -2586,6 +2605,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
@@ -2610,6 +2630,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);

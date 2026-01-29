@@ -224,8 +224,21 @@ function SearchAutocompleteList({
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            personalDetails,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    }, [
+        areOptionsInitialized,
+        options,
+        draftComments,
+        nvpDismissedProductTraining,
+        betas,
+        autocompleteQueryValue,
+        countryCode,
+        loginList,
+        currentUserAccountID,
+        currentUserEmail,
+        personalDetails,
+    ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -438,6 +451,7 @@ function SearchAutocompleteList({
                     shouldShowGBR: true,
                     currentUserAccountID,
                     currentUserEmail,
+                    personalDetails,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
@@ -471,6 +485,7 @@ function SearchAutocompleteList({
                     shouldShowGBR: true,
                     currentUserAccountID,
                     currentUserEmail,
+                    personalDetails,
                 }).recentReports.filter((chat) => {
                     if (!chat.text) {
                         return false;
@@ -657,6 +672,7 @@ function SearchAutocompleteList({
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
+        personalDetails,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

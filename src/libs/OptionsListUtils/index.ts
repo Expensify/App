@@ -2418,7 +2418,7 @@ type SearchOptionsConfig = {
     loginList: OnyxEntry<Login>;
     currentUserAccountID: number;
     currentUserEmail: string;
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 /**
@@ -2442,6 +2442,7 @@ function getSearchOptions({
     loginList,
     currentUserAccountID,
     currentUserEmail,
+    personalDetails,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2475,6 +2476,7 @@ function getSearchOptions({
             includeUserToInvite,
             shouldShowGBR,
             shouldUnreadBeBold,
+            personalDetails,
         },
         countryCode,
     );
