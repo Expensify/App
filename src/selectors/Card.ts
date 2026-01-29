@@ -24,7 +24,7 @@ const filterCardsHiddenFromSearch = (cardList: OnyxEntry<CardList>): CardList =>
  * Personal cards have fundID === '0' or no fundID.
  * This selector keeps non-personal cards (fundID !== '0').
  */
-const filterPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
+const filterOutPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
     return filterObject(cards ?? {}, (key, card) => !isPersonalCard(card));
 };
 
@@ -41,4 +41,4 @@ const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspac
  */
 const cardByIdSelector = (cardID: string) => (cardList: OnyxEntry<CardList>) => cardList?.[cardID];
 
-export {filterCardsHiddenFromSearch, filterPersonalCards, defaultExpensifyCardSelector, cardByIdSelector};
+export {filterCardsHiddenFromSearch, filterOutPersonalCards, defaultExpensifyCardSelector, cardByIdSelector};
