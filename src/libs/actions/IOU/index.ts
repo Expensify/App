@@ -6528,18 +6528,18 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
     // If we don't have a self DM report, create an optimistic one
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
-        const selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        const optimisticSelfDMReport = buildOptimisticSelfDMReport(currentTime);
         const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmailParam, currentTime);
-        optimisticSelfDMReportID = selfDMReport.reportID;
+        optimisticSelfDMReportID = optimisticSelfDMReport.reportID;
         optimisticSelfDMCreatedReportActionID = selfDMCreatedReportAction.reportActionID;
-        chatReport = selfDMReport;
+        chatReport = optimisticSelfDMReport;
 
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticSelfDMReportID}`,
                 value: {
-                    ...selfDMReport,
+                    ...optimisticSelfDMReport,
                     pendingFields: {
                         createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
