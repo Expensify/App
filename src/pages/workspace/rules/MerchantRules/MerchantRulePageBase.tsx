@@ -287,9 +287,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     footerContent={
                         <>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}>
-                                <Text style={[styles.textNormal]}>
-                                    {translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
-                                </Text>
+                                <Text style={[styles.textNormal]}>{translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}</Text>
                                 <Switch
                                     accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
                                     isOn={shouldUpdateMatchingTransactions}
