@@ -143,7 +143,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
-    const currentPhysicalCard = physicalCards?.find((card) => String(card?.cardID) === cardID);
+    const currentPhysicalCard = physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0);
 
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
