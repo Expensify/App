@@ -145,12 +145,6 @@ function IOURequestStepConfirmation({
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
     );
-    const transactionsCategories = useMemo(() => {
-        return transactions.map(({transactionID, category}) => ({
-            transactionID,
-            category,
-        }));
-    }, [transactions]);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
     const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -397,7 +391,7 @@ function IOURequestStepConfirmation({
         }
         // We don't want to clear out category every time the transactions change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy?.id, policyCategories, transactionsCategories]);
+    }, [policy?.id, policyCategories, transactions.length]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const defaultCategory = policyDistance?.defaultCategory ?? '';

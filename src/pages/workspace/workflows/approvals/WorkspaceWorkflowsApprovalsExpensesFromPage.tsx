@@ -32,7 +32,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
@@ -44,8 +43,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
 
-    const personalDetailLogins = useMemo(() => Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])), [personalDetails]);
-
     useEffect(() => {
         if (!approvalWorkflow?.members) {
             return;
@@ -55,7 +52,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             approvalWorkflow.members.map((member) => {
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-                const login = personalDetailLogins?.[accountID];
 
                 return {
                     text: Str.removeSMSDomain(member.displayName),
@@ -68,13 +64,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
                             owner={policy?.owner}
-                            login={login}
+                            login={member.email}
                         />
                     ),
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, icons.FallbackAvatar]);
+    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, translate, icons.FallbackAvatar]);
 
     const approversEmail = approvalWorkflow?.approvers.map((member) => member?.email);
     const allApprovers: SelectionListApprover[] = [...selectedMembers];
@@ -84,7 +80,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             .map((member) => {
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-                const login = personalDetailLogins?.[accountID];
 
                 return {
                     text: Str.removeSMSDomain(member.displayName),
@@ -97,7 +92,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
                             owner={policy?.owner}
-                            login={login}
+                            login={member.email}
                         />
                     ),
                 };
