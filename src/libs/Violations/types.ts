@@ -12,6 +12,7 @@ type ViolationFixParams = {
     iouAttendees: Attendee[] | undefined;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     isAttendeeTrackingEnabled: boolean | undefined;
+    isControlPolicy?: boolean;
 };
 
 export default ViolationFixParams;
