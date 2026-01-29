@@ -50,7 +50,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
     useEffect(() => {
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
-    }, [policyID, domainOrWorkspaceAccountID]);
+        // eslint-disable-next-line -- The API call is only needed when the policyID changes
+    }, [policyID]);
 
     useEffect(() => {
         if (isLoading || !bankName || isFeedPending) {
