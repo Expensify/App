@@ -1,7 +1,8 @@
+import {DomUtils, parseDocument} from 'htmlparser2';
+import type {Followup} from '@libs/ReportActionsUtils';
+import {getReportActionMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {Followup} from './ReportActionsUtils';
-import {getReportActionMessage, isActionOfType} from './ReportActionsUtils';
 
 /**
  * Checks if a report action contains actionable (unresolved) followup suggestions.
@@ -22,36 +23,28 @@ function containsActionableFollowUps(reportAction: OnyxInputOrEntry<ReportAction
     return !!followups && followups.length > 0;
 }
 
-// Matches a <followup-list> HTML element and its entire contents. (<followup-list><followup><followup-text>Question?</followup-text></followup></followup-list>)
-const followUpListRegex = /<followup-list(\s[^>]*)?>[\s\S]*?<\/followup-list>/i;
 /**
  * Parses followup data from a <followup-list> HTML element.
  * @param html - The HTML string to parse for <followup-list> elements
  * @returns null if no <followup-list> exists, empty array [] if the followup-list has the 'selected' attribute (resolved state), or an array of followup objects if unresolved
  */
 function parseFollowupsFromHtml(html: string): Followup[] | null {
-    const followupListMatch = html.match(followUpListRegex);
-    if (!followupListMatch) {
+    const doc = parseDocument(html);
+    const followupListElements = DomUtils.getElementsByTagName('followup-list', doc, true);
+    if (followupListElements.length === 0) {
         return null;
     }
 
     // There will be only one follow up list
-    const followupListHtml = followupListMatch[0];
-    // Matches a <followup-list> element that has the "selected" attribute (<followup-list selected>...</followup-list>).
-    const followUpSelectedListRegex = /<followup-list[^>]*\sselected[\s>]/i;
-    const hasSelectedAttribute = followUpSelectedListRegex.test(followupListHtml);
-    if (hasSelectedAttribute) {
+    const followupList = followupListElements.at(0);
+    if (!followupList) {
+        return null;
+    }
+    if (DomUtils.hasAttrib(followupList, 'selected')) {
         return [];
     }
 
-    const followups: Followup[] = [];
-    // Matches individual <followup><followup-text>...</followup-text></followup> elements
-    const followUpTextRegex = /<followup><followup-text>([^<]*)<\/followup-text><\/followup>/gi;
-    let match = followUpTextRegex.exec(followupListHtml);
-    while (match !== null) {
-        followups.push({text: match[1]});
-        match = followUpTextRegex.exec(followupListHtml);
-    }
-    return followups;
+    const followupTextElements = DomUtils.getElementsByTagName('followup-text', followupList, true);
+    return followupTextElements.map((el) => ({text: DomUtils.textContent(el)}));
 }
 export {containsActionableFollowUps, parseFollowupsFromHtml};
