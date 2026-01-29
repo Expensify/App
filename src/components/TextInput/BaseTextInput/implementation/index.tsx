@@ -297,11 +297,7 @@ function BaseTextInput({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
-                <PressableWithoutFeedback
-                    role={CONST.ROLE.PRESENTATION}
-                    onPress={onPress}
-                    tabIndex={-1}
-                    accessibilityLabel={accessibilityLabel}
+                <View
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
@@ -317,9 +313,20 @@ function BaseTextInput({
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
-                    sentryLabel={sentryLabel}
                 >
+                    <PressableWithoutFeedback
+                        role={CONST.ROLE.PRESENTATION}
+                        onPress={onPress}
+                        tabIndex={-1}
+                        accessible={false}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no"
+                        aria-hidden
+                        style={[StyleSheet.absoluteFillObject]}
+                        sentryLabel={sentryLabel}
+                    />
                     <View
+                        pointerEvents="box-none"
                         style={[
                             newTextInputContainerStyles,
 
@@ -448,7 +455,7 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
-                                accessibilityLabel={inputProps.accessibilityLabel}
+                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -518,7 +525,7 @@ function BaseTextInput({
                             )}
                         </View>
                     </View>
-                </PressableWithoutFeedback>
+                </View>
                 {!!inputHelpText && (
                     <FormHelpMessage
                         isError={!!errorText}

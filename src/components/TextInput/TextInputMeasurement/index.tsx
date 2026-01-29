@@ -35,6 +35,10 @@ function TextInputMeasurement({
                         onSetTextInputWidth(e.nativeEvent.layout.width);
                         onSetTextInputHeight(e.nativeEvent.layout.height);
                     }}
+                    accessible={false}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no"
+                    aria-hidden
                 >
                     <Text
                         style={[
@@ -42,6 +46,10 @@ function TextInputMeasurement({
                             autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
                             {width: contentWidth},
                         ]}
+                        accessible={false}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no"
+                        aria-hidden
                     >
                         {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
                         {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
@@ -66,6 +74,10 @@ function TextInputMeasurement({
                         styles.hiddenElementOutsideOfWindow,
                         styles.visibilityHidden,
                     ]}
+                    accessible={false}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no"
+                    aria-hidden
                     onLayout={(e) => {
                         if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
                             return;

@@ -162,7 +162,7 @@ function Footer({navigateFocus}: FooterProps) {
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, isMediumScreenWidth ? styles.w50 : styles.w25];
     const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
     const getTextLinkStyle: (hovered: boolean) => StyleProp<TextStyle> = (hovered) => [styles.footerRow, hovered ? styles.textBlue : {}];
-    const shouldUseAccessiblePressable = Platform.OS !== 'web';
+    const shouldUseAccessiblePressable = Platform.OS !== CONST.PLATFORM.WEB;
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
@@ -186,17 +186,15 @@ function Footer({navigateFocus}: FooterProps) {
                                     {column.rows.map(({href, onPress, translationPath}) => (
                                         <Hoverable key={translationPath}>
                                             {(hovered) => {
-                                                let linkContent: React.JSX.Element;
-
                                                 if (shouldUseAccessiblePressable) {
-                                                    linkContent = (
+                                                    return (
                                                         <PressableWithoutFeedback
                                                             accessible
                                                             accessibilityRole={CONST.ROLE.LINK}
                                                             accessibilityLabel={translate(translationPath)}
-                                                            onPress={(event) => {
+                                                            onPress={() => {
                                                                 if (onPress) {
-                                                                    onPress(event as GestureResponderEvent);
+                                                                    onPress({} as GestureResponderEvent);
                                                                     return;
                                                                 }
                                                                 if (href) {
@@ -213,8 +211,10 @@ function Footer({navigateFocus}: FooterProps) {
                                                             </Text>
                                                         </PressableWithoutFeedback>
                                                     );
-                                                } else if (onPress) {
-                                                    linkContent = (
+                                                }
+
+                                                if (onPress) {
+                                                    return (
                                                         <TextLink
                                                             style={getTextLinkStyle(hovered)}
                                                             onPress={onPress}
@@ -222,18 +222,16 @@ function Footer({navigateFocus}: FooterProps) {
                                                             {translate(translationPath)}
                                                         </TextLink>
                                                     );
-                                                } else {
-                                                    linkContent = (
-                                                        <TextLink
-                                                            style={getTextLinkStyle(hovered)}
-                                                            href={href}
-                                                        >
-                                                            {translate(translationPath)}
-                                                        </TextLink>
-                                                    );
                                                 }
 
-                                                return <View>{linkContent}</View>;
+                                                return (
+                                                    <TextLink
+                                                        style={getTextLinkStyle(hovered)}
+                                                        href={href}
+                                                    >
+                                                        {translate(translationPath)}
+                                                    </TextLink>
+                                                );
                                             }}
                                         </Hoverable>
                                     ))}
