@@ -6,6 +6,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
@@ -273,6 +275,7 @@ const translations = {
         digits: 'digits',
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
+        home: 'Home',
         inbox: 'Inbox',
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Success',
@@ -630,6 +633,7 @@ const translations = {
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
         month: 'Month',
+        week: 'Week',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -911,6 +915,7 @@ const translations = {
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         beginningOfChatHistorySystemDM: "Welcome! Let's get you set up.",
         chatWithAccountManager: 'Chat with your account manager here',
+        askMeAnything: 'Ask me anything!',
         sayHello: 'Say hello!',
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
@@ -982,6 +987,16 @@ const translations = {
         redirectToExpensifyClassicModal: {
             title: 'Coming soon',
             description: "We're fine-tuning a few more bits and pieces of New Expensify to accommodate your specific setup. In the meantime, head over to Expensify Classic.",
+        },
+    },
+    homePage: {
+        forYou: 'For you',
+        announcements: 'Announcements',
+        discoverSection: {
+            title: 'Discover',
+            menuItemTitleNonAdmin: 'Learn how to create expenses and submit reports.',
+            menuItemTitleAdmin: 'Learn how to invite members, edit approval workflows, and reconcile company cards.',
+            menuItemDescription: 'See what Expensify can do in 2 min',
         },
     },
     allSettingsScreen: {
@@ -1482,6 +1497,39 @@ const translations = {
         },
         correctDistanceRateError: 'Fix the distance rate error and try again.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explain</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+
+                if (key === 'reimbursable') {
+                    return value ? 'marked the expense as "reimbursable"' : 'marked the expense as "non-reimbursable"';
+                }
+
+                if (key === 'billable') {
+                    return value ? 'marked the expense as "billable"' : 'marked the expense as "non-billable"';
+                }
+
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `set the tax rate to "${taxRateName}"`;
+                    }
+                    return `tax rate to "${taxRateName}"`;
+                }
+
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `set the ${translations.common[key].toLowerCase()} to "${updatedValue}"`;
+                }
+
+                return `${translations.common[key].toLowerCase()} to "${updatedValue}"`;
+            });
+
+            return `${formatList(fragments)} via <a href="${policyRulesRoute}">workspace rules</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2171,6 +2219,7 @@ const translations = {
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',
         cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
+        csvCardDescription: 'CSV Import',
         cardDetails: {
             cardNumber: 'Virtual card number',
             expiration: 'Expiration',
@@ -4728,6 +4777,13 @@ const translations = {
         companyCards: {
             addCards: 'Add cards',
             selectCards: 'Select cards',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: "Couldn't load card feeds",
+                workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
+                feedCouldNotBeLoadedTitle: "Couldn't load this feed",
+                feedCouldNotBeLoadedMessage: 'An error occurred while loading this feed. Please try again or contact your administrator.',
+                tryAgain: 'Try again',
+            },
             addNewCard: {
                 other: 'Other',
                 cardProviders: {
@@ -4813,6 +4869,7 @@ const translations = {
                 '<muted-text><centered-text>Or something might be broken. Either way, if you have any questions, just <concierge-link>contact Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Choose a transaction start date',
             startDateDescription: "Choose your import start date. We'll sync all transactions from this date onwards.",
+            editStartDateDescription: "Choose a new transaction start date. We'll sync all transactions from that date onwards, excluding those we already imported.",
             fromTheBeginning: 'From the beginning',
             customStartDate: 'Custom start date',
             customCloseDate: 'Custom close date',
@@ -6190,11 +6247,25 @@ const translations = {
                 title: 'Merchant',
                 subtitle: 'Set the merchant rules so expenses arrive correctly coded and require less cleanup.',
                 addRule: 'Add merchant rule',
-                ruleSummaryTitle: (merchantName: string) => `If merchant contains "${merchantName}"`,
+                addRuleTitle: 'Add rule',
+                editRuleTitle: 'Edit rule',
+                expensesWith: 'For expenses with:',
+                expensesExactlyMatching: 'For expenses exactly matching:',
+                applyUpdates: 'Apply these updates:',
+                saveRule: 'Save rule',
+                confirmError: 'Enter merchant and apply at least one update',
+                confirmErrorMerchant: 'Please enter merchant',
+                confirmErrorUpdate: 'Please apply at least one update',
+                deleteRule: 'Delete rule',
+                deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `If merchant ${isExactMatch ? 'exactly matches' : 'contains'} "${merchantName}"`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Rename merchant to "${merchantName}"`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Update ${fieldName} to "${fieldValue}"`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Mark as  "${reimbursable ? 'reimbursable' : 'non-reimbursable'}"`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Mark as "${billable ? 'billable' : 'non-billable'}"`,
+                matchType: 'Match type',
+                matchTypeContains: 'Contains',
+                matchTypeExact: 'Exactly matches',
             },
             categoryRules: {
                 title: 'Category rules',
@@ -6777,6 +6848,7 @@ const translations = {
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
         topCategories: 'Top categories',
+        topMerchants: 'Top merchants',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
             approve: 'Approve',
@@ -6839,7 +6911,10 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Merchant',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Month',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6861,6 +6936,7 @@ const translations = {
             accessPlaceHolder: 'Open for details',
         },
         noCategory: 'No category',
+        noMerchant: 'No merchant',
         noTag: 'No tag',
         expenseType: 'Expense type',
         withdrawalType: 'Withdrawal type',
@@ -6992,6 +7068,8 @@ const translations = {
                     `there was a problem syncing with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Please fix the issue in <a href="${workspaceAccountingLink}">workspace settings</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
@@ -7013,6 +7091,8 @@ const translations = {
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'left the chat',
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `business bank account ${maskedBankAccountNumber} has been automatically locked due to an issue with either Reimbursement or Expensify Card settlement. Please fix the issue in your <a href="${linkURL}">workspace settings</a>.`,
             },
             error: {
                 invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',

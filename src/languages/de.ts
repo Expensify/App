@@ -17,6 +17,8 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
@@ -638,6 +640,8 @@ const translations: TranslationDeepObject<typeof en> = {
         duplicateExpense: 'Doppelte Ausgabe',
         newFeature: 'Neue Funktion',
         month: 'Monat',
+        home: 'Startseite',
+        week: 'Woche',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -762,15 +766,14 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             revoke: 'Widerrufen',
-            title: 'Gesichts-/Fingerabdruck & Passkeys',
+            title: 'Gesicht/Fingerabdruck & Passkeys',
             explanation:
-                'Die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert beim nächsten Verifizierungsvorgang auf jedem Gerät einen Magic Code',
+                'Die Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Durch das Widerrufen des Zugriffs wird für die nächste Verifizierung auf jedem Gerät ein magischer Code erforderlich',
             confirmationPrompt: 'Bist du sicher? Du benötigst einen magischen Code für die nächste Verifizierung auf jedem Gerät',
             cta: 'Zugriff widerrufen',
-            noDevices:
-                'Sie haben keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier wieder entziehen.',
+            noDevices: 'Du hast keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn du welche registrierst, kannst du den Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
-            error: 'Anfrage fehlgeschlagen. Versuchen Sie es später erneut.',
+            error: 'Anfrage fehlgeschlagen. Versuchen Sie es später noch einmal.',
         },
     },
     validateCodeModal: {
@@ -794,7 +797,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expiredCodeDescription: 'Gehe zurück zum ursprünglichen Gerät und fordere einen neuen Code an',
         successfulNewCodeRequest: 'Code angefordert. Bitte überprüfe dein Gerät.',
         tfaRequiredTitle: dedent(`
-            Zwei-Faktor-Authentifizierung  
+            Zwei-Faktor-Authentifizierung
             erforderlich
         `),
         tfaRequiredDescription: dedent(`
@@ -927,6 +930,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistorySelfDM: 'Dies ist dein persönlicher Bereich. Verwende ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
         beginningOfChatHistorySystemDM: 'Willkommen! Lass uns alles für dich einrichten.',
         chatWithAccountManager: 'Chatten Sie hier mit Ihrem Account Manager',
+        askMeAnything: 'Frag mich alles!',
         sayHello: 'Sag Hallo!',
         yourSpace: 'Ihr Bereich',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Willkommen bei ${roomName}!`,
@@ -1500,6 +1504,32 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctDistanceRateError: 'Beheben Sie den Fehler beim Entfernungssatz und versuchen Sie es erneut.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Erklären</strong></a> &#x2728;`,
+        policyRulesModifiedFields: (policyRulesModifiedFields: PolicyRulesModifiedFields, policyRulesRoute: string, formatList: (list: string[]) => string) => {
+            const entries = ObjectUtils.typedEntries(policyRulesModifiedFields);
+            const fragments = entries.map(([key, value], i) => {
+                const isFirst = i === 0;
+                if (key === 'reimbursable') {
+                    return value ? 'hat die Ausgabe als „erstattungsfähig“ markiert' : 'hat die Ausgabe als „nicht erstattungsfähig“ markiert';
+                }
+                if (key === 'billable') {
+                    return value ? 'hat die Ausgabe als „verrechenbar“ markiert' : 'hat die Ausgabe als „nicht abrechenbar“ markiert';
+                }
+                if (key === 'tax') {
+                    const taxEntry = value as PolicyRulesModifiedFields['tax'];
+                    const taxRateName = taxEntry?.field_id_TAX.name ?? '';
+                    if (isFirst) {
+                        return `Steuersatz auf „${taxRateName}“ festlegen`;
+                    }
+                    return `Steuersatz zu „${taxRateName}“`;
+                }
+                const updatedValue = value as string | boolean;
+                if (isFirst) {
+                    return `Setzen Sie ${translations.common[key].toLowerCase()} auf „${updatedValue}“`;
+                }
+                return `${translations.common[key].toLowerCase()} zu "${updatedValue}"`;
+            });
+            return `${formatList(fragments)} über <a href="${policyRulesRoute}">Workspace-Regeln</a>`;
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2221,6 +2251,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} für ${merchant} – ${date}`,
         },
+        csvCardDescription: 'CSV-Import',
     },
     workflowsPage: {
         workflowTitle: 'Ausgabe',
@@ -4919,7 +4950,17 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             assign: 'Zuweisen',
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            editStartDateDescription:
+                'Wählen Sie ein neues Startdatum für Transaktionen. Wir synchronisieren alle Transaktionen ab diesem Datum, ausgenommen diejenigen, die wir bereits importiert haben.',
             unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
+            error: {
+                workspaceFeedsCouldNotBeLoadedTitle: 'Kartenfeeds konnten nicht geladen werden',
+                workspaceFeedsCouldNotBeLoadedMessage:
+                    'Beim Laden der Workspace-Kartenfeeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder wende dich an deine Administratorin bzw. deinen Administrator.',
+                feedCouldNotBeLoadedTitle: 'Dieser Feed konnte nicht geladen werden',
+                feedCouldNotBeLoadedMessage: 'Beim Laden dieses Feeds ist ein Fehler aufgetreten. Bitte versuche es erneut oder kontaktiere deine Administratorin/deinen Administrator.',
+                tryAgain: 'Erneut versuchen',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',
@@ -6350,11 +6391,25 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 title: 'Händler',
                 subtitle: 'Legen Sie Händlerregeln fest, damit Ausgaben korrekt codiert ankommen und weniger Nachbearbeitung erfordern.',
                 addRule: 'Händlerregel hinzufügen',
-                ruleSummaryTitle: (merchantName: string) => `Wenn Händler „${merchantName}“ enthält`,
+                ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `Wenn Händler ${isExactMatch ? 'stimmt genau überein' : 'enthält'} „${merchantName}“`,
                 ruleSummarySubtitleMerchant: (merchantName: string) => `Händler in „${merchantName}“ umbenennen`,
                 ruleSummarySubtitleUpdateField: (fieldName: string, fieldValue: string) => `Aktualisiere ${fieldName} zu „${fieldValue}“`,
                 ruleSummarySubtitleReimbursable: (reimbursable: boolean) => `Als "${reimbursable ? 'erstattungsfähig' : 'nicht erstattungsfähig'}" markieren`,
                 ruleSummarySubtitleBillable: (billable: boolean) => `Als „${billable ? 'Abrechenbar' : 'nicht abrechenbar'}“ markieren`,
+                addRuleTitle: 'Regel hinzufügen',
+                expensesWith: 'Für Ausgaben mit:',
+                applyUpdates: 'Diese Updates anwenden:',
+                saveRule: 'Regel speichern',
+                confirmError: 'Geben Sie den Händler ein und nehmen Sie mindestens eine Änderung vor',
+                confirmErrorMerchant: 'Bitte geben Sie den Händler ein',
+                confirmErrorUpdate: 'Bitte wenden Sie mindestens eine Aktualisierung an',
+                editRuleTitle: 'Regel bearbeiten',
+                deleteRule: 'Regel löschen',
+                deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
+                matchType: 'Abgleichstyp',
+                matchTypeContains: 'Enthält',
+                matchTypeExact: 'Exakte Übereinstimmung',
+                expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
             },
         },
         planTypePage: {
@@ -6893,6 +6948,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         searchName: 'Name suchen',
         savedSearchesMenuItemTitle: 'Gespeichert',
         topCategories: 'Top-Kategorien',
+        topMerchants: 'Top-Händler',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
             approve: 'Genehmigen',
@@ -6955,7 +7011,10 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Auszahlungs-ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
+                [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6977,6 +7036,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             accessPlaceHolder: 'Für Details öffnen',
         },
         noCategory: 'Keine Kategorie',
+        noMerchant: 'Kein Händler',
         noTag: 'Kein Tag',
         expenseType: 'Ausgabenart',
         withdrawalType: 'Auszahlungsart',
@@ -7133,6 +7193,10 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 leftTheChat: 'hat den Chat verlassen',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Die ${feedName}-Verbindung ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>`,
+                plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
+                    `die Plaid-Verbindung zu Ihrem Geschäftsbankkonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify-Karten weiterhin nutzen können.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `Geschäftsbankkonto ${maskedBankAccountNumber} wurde aufgrund eines Problems mit der Erstattung oder der Expensify Card-Abrechnung automatisch gesperrt. Bitte behebe das Problem in deinen <a href="${linkURL}">Workspace-Einstellungen</a>.`,
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten. Bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
@@ -8164,6 +8228,16 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
         },
         fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
+    },
+    homePage: {
+        forYou: 'Für dich',
+        announcements: 'Ankündigungen',
+        discoverSection: {
+            title: 'Entdecken',
+            menuItemTitleNonAdmin: 'Erfahren Sie, wie Sie Ausgaben erstellen und Berichte einreichen.',
+            menuItemTitleAdmin: 'Erfahren Sie, wie Sie Mitglieder einladen, Genehmigungsworkflows bearbeiten und Firmenkarten abstimmen.',
+            menuItemDescription: 'Sehen Sie, was Expensify in 2 Minuten kann',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
