@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import Button from './Button';
 import Header from './Header';
 import Modal from './Modal';
-import Text from './Text';
+import RenderHTML from './RenderHTML';
 
 type DecisionModalProps = {
     /** Title describing purpose of modal */
@@ -19,6 +19,18 @@ type DecisionModalProps = {
 
     /** Text content used in second button */
     secondOptionText: string;
+
+    /** Whether the first option uses a success-themed button */
+    isFirstOptionSuccess?: boolean;
+
+    /** Whether the second option uses a success-themed button */
+    isSecondOptionSuccess?: boolean;
+
+    /** Whether the first option uses a danger-themed button */
+    isFirstOptionDanger?: boolean;
+
+    /** Whether the second option uses a danger-themed button */
+    isSecondOptionDanger?: boolean;
 
     /** onSubmit callback fired after clicking on first button */
     onFirstOptionSubmit?: () => void;
@@ -36,7 +48,21 @@ type DecisionModalProps = {
     isVisible: boolean;
 };
 
-function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, isSmallScreenWidth, onClose, isVisible}: DecisionModalProps) {
+function DecisionModal({
+    title,
+    prompt = '',
+    firstOptionText,
+    secondOptionText,
+    onFirstOptionSubmit,
+    onSecondOptionSubmit,
+    isSmallScreenWidth,
+    onClose,
+    isVisible,
+    isFirstOptionDanger = false,
+    isFirstOptionSuccess = true,
+    isSecondOptionSuccess = false,
+    isSecondOptionDanger = false,
+}: DecisionModalProps) {
     const styles = useThemeStyles();
 
     return (
@@ -46,20 +72,21 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >
-            <View style={[styles.m5]}>
+            <View style={styles.m5}>
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
                         <Header
                             title={title}
-                            containerStyles={[styles.alignItemsCenter]}
+                            containerStyles={styles.alignItemsCenter}
                         />
                     </View>
-                    <Text>{prompt}</Text>
+                    <RenderHTML html={prompt} />
                 </View>
                 {!!firstOptionText && (
                     <Button
-                        success
-                        style={[styles.mt5]}
+                        success={isFirstOptionSuccess}
+                        danger={isFirstOptionDanger}
+                        style={styles.mt5}
                         onPress={onFirstOptionSubmit}
                         pressOnEnter
                         text={firstOptionText}
@@ -70,6 +97,8 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                     style={[firstOptionText ? styles.mt3 : styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
                     text={secondOptionText}
+                    success={isSecondOptionSuccess}
+                    danger={isSecondOptionDanger}
                     large
                 />
             </View>

@@ -49,7 +49,7 @@ import type {
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
-import type {DomainSecurityGroup, SamlMetadata} from './Domain';
+import type {DomainSecurityGroup, SamlMetadata, SecurityGroupsData} from './Domain';
 import type DomainErrors from './DomainErrors';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
@@ -342,4 +342,5 @@ export type {
     DomainErrors,
     DomainPendingActions,
     DomainSecurityGroup,
+    SecurityGroupsData,
 };

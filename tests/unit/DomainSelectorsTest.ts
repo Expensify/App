@@ -4,12 +4,14 @@ import {
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSettingsPrimaryContactSelector,
+    isSecurityGroupEntry,
     memberAccountIDsSelector,
+    selectSecurityGroupsForAccount,
     technicalContactSettingsSelector,
 } from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {CardFeeds, Domain, DomainPendingActions, DomainSettings} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
 
 describe('domainSelectors', () => {
     const userID1 = 123;
@@ -295,6 +297,102 @@ describe('domainSelectors', () => {
             const domain = {} as OnyxEntry<Domain>;
 
             expect(defaultSecurityGroupIDSelector(domain)).toBeUndefined();
+        });
+    });
+
+    describe('selectSecurityGroupsForAccount', () => {
+        it('Should return empty arrays when domain has no security groups', () => {
+            const domain = {
+                validated: true,
+                accountID: 1,
+                email: 'test@example.com',
+            } as Domain;
+
+            const result = selectSecurityGroupsForAccount(123)(domain);
+
+            expect(result.keys).toEqual([]);
+            expect(result.securityGroups).toEqual({});
+        });
+
+        it('Should return empty arrays when account is not in any security group', () => {
+            const securityGroup = {
+                enableRestrictedPrimaryLogin: false,
+                enableRestrictedPolicyCreation: false,
+                shared: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '456': 'read',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '789': 'read',
+                },
+            } as DomainSecurityGroup;
+
+            const domain: Domain = {
+                validated: true,
+                accountID: 1,
+                email: 'test@example.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '1',
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: securityGroup,
+            } as unknown as Domain;
+
+            const result = selectSecurityGroupsForAccount(123)(domain);
+
+            expect(result.keys).toHaveLength(0);
+            expect(result.securityGroups).toEqual({});
+        });
+
+        it('Should return multiple security groups when account belongs to several', () => {
+            /* eslint-disable @typescript-eslint/naming-convention */
+            const group1 = {shared: {'123': 'read', '456': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
+            const group2 = {shared: {'123': 'read', '789': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
+            const group3 = {shared: {'999': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
+
+            const domain: Domain = {
+                validated: true,
+                accountID: 1,
+                email: 'test@example.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '1',
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: group1,
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: group2,
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}3`]: group3,
+            } as unknown as Domain;
+
+            const result = selectSecurityGroupsForAccount(123)(domain);
+
+            expect(result.keys).toHaveLength(2);
+            expect(result.keys).toContain(`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`);
+            expect(result.keys).toContain(`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`);
+            expect(result.securityGroups[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]).toEqual(group1);
+            expect(result.securityGroups[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]).toEqual(group2);
+            expect(result.securityGroups[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}3`]).toBeUndefined();
+        });
+    });
+
+    describe('isSecurityGroupEntry', () => {
+        it('should return true for a valid security group entry', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {shared: {}}];
+            expect(isSecurityGroupEntry(entry)).toBe(true);
+        });
+
+        it('should return false if the key does not start with the security group prefix', () => {
+            const entry: [string, unknown] = ['invalid_prefix_123', {shared: {}}];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+
+        it('should return false if the value is not an object', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, 'not an object'];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+
+        it('should return false if the value is null', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, null];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
+        });
+
+        it('should return false if the value does not have a "shared" property', () => {
+            const entry: [string, unknown] = [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`, {other: {}}];
+            expect(isSecurityGroupEntry(entry)).toBe(false);
         });
     });
 });

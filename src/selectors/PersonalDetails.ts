@@ -11,4 +11,6 @@ const createPersonalDetailsSelector = <T>(personalDetails: OnyxEntry<PersonalDet
 const personalDetailsByEmailSelector = (personalDetails: OnyxEntry<PersonalDetailsList>) =>
     personalDetails ? lodashMapKeys(personalDetails, (value, key) => value?.login ?? key) : undefined;
 
-export {createPersonalDetailsSelector, personalDetailsByEmailSelector};
+const personalDetailsSelector = (accountID: number) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID];
+
+export {createPersonalDetailsSelector, personalDetailsByEmailSelector, personalDetailsSelector};

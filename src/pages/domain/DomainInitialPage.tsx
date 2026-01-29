@@ -120,7 +120,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                 />
 
                 <ScrollView contentContainerStyle={[styles.flexColumn]}>
-                    <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                    <View style={[styles.pb4, styles.mh3, styles.mt3, styles.gap2]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                             In this case where user can click on menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
