@@ -4452,7 +4452,7 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
  */
 
 function getTransactionDetails(
-    transaction: OnyxInputOrEntry<Transaction & {report?: Report}> | TransactionWithOptionalSearchFields,
+    transaction: OnyxInputOrEntry<Transaction> | TransactionWithOptionalSearchFields,
     createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
     policy: OnyxEntry<Policy> = undefined,
     allowNegativeAmount = false,

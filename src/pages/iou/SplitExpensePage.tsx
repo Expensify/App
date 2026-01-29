@@ -55,7 +55,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SplitList from './SplitList';
@@ -107,8 +106,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transaction &&
         isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy);
 
-    const transactionWithReport = {...transaction, report: expenseReport} as OnyxInputOrEntry<Transaction & {report: Report}>;
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transactionWithReport, undefined, currentPolicy) ?? {};
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction ? {...transaction, report: currentReport} : transaction, undefined, currentPolicy) ?? {};
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
