@@ -177,9 +177,12 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
             const separator = yAxisUnit.length > 1 ? ' ' : '';
             formattedAmount = yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
         }
+        const totalSum = data.reduce((sum, point) => sum + point.total, 0);
+        const percent = totalSum > 0 ? Math.round((dataPoint.total / totalSum) * 100) : 0;
         return {
             label: dataPoint.label,
             amount: formattedAmount,
+            percentage: percent < 1 ? '<1%' : `${percent}%`,
         };
     }, [activeDataIndex, data, yAxisUnit, yAxisUnitPosition]);
 
@@ -275,6 +278,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                         <ChartTooltip
                             label={tooltipData.label}
                             amount={tooltipData.amount}
+                            percentage={tooltipData.percentage}
                         />
                     </Animated.View>
                 )}
