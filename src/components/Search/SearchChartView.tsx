@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDisplayInfoForCharts} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -37,7 +38,7 @@ type GroupedItem =
     | TransactionWeekGroupListItemType;
 
 type ChartGroupByConfig = {
-    titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Building' | 'Tag' | 'Calendar';
+    titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
     getLabel: (item: GroupedItem) => string;
     getFilterQuery: (item: GroupedItem) => string;
 };
@@ -69,7 +70,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getFilterQuery: (item: GroupedItem) => `category:"${(item as TransactionCategoryGroupListItemType).category}"`,
     },
     [CONST.SEARCH.GROUP_BY.MERCHANT]: {
-        titleIconName: 'Building',
+        titleIconName: 'Basket',
         getLabel: (item: GroupedItem) => (item as TransactionMerchantGroupListItemType).formattedMerchant ?? '',
         getFilterQuery: (item: GroupedItem) => `merchant:"${(item as TransactionMerchantGroupListItemType).merchant}"`,
     },
@@ -133,7 +134,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Building', 'Tag', 'Calendar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar'] as const);
     const {titleIconName, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const titleIcon = icons[titleIconName];
     const title = translate(`search.chartTitles.${groupBy}`);
@@ -146,6 +147,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
             const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
 
             if (!newQueryJSON) {
+                Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
                 return;
             }
 
