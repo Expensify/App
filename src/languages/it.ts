@@ -7070,6 +7070,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Mesi',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimane',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Anni',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestri',
         },
     },
     genericErrorPage: {

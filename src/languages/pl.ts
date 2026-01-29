@@ -7041,6 +7041,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tagi',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Miesiące',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Tygodnie',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Lata',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartały',
         },
     },
     genericErrorPage: {

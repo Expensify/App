@@ -6967,6 +6967,8 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Months',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Weeks',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
         },
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',

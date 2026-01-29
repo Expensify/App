@@ -9,9 +9,11 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -35,7 +37,9 @@ type GroupedItem =
     | TransactionMerchantGroupListItemType
     | TransactionTagGroupListItemType
     | TransactionMonthGroupListItemType
-    | TransactionWeekGroupListItemType;
+    | TransactionWeekGroupListItemType
+    | TransactionYearGroupListItemType
+    | TransactionQuarterGroupListItemType;
 
 type ChartGroupByConfig = {
     titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
@@ -94,6 +98,24 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getFilterQuery: (item: GroupedItem) => {
             const weekItem = item as TransactionWeekGroupListItemType;
             const {start, end} = DateUtils.getWeekDateRange(weekItem.week);
+            return `date>=${start} date<=${end}`;
+        },
+    },
+    [CONST.SEARCH.GROUP_BY.YEAR]: {
+        titleIconName: 'Calendar',
+        getLabel: (item: GroupedItem) => (item as TransactionYearGroupListItemType).formattedYear ?? '',
+        getFilterQuery: (item: GroupedItem) => {
+            const yearItem = item as TransactionYearGroupListItemType;
+            const {start, end} = DateUtils.getYearDateRange(yearItem.year);
+            return `date>=${start} date<=${end}`;
+        },
+    },
+    [CONST.SEARCH.GROUP_BY.QUARTER]: {
+        titleIconName: 'Calendar',
+        getLabel: (item: GroupedItem) => (item as TransactionQuarterGroupListItemType).formattedQuarter ?? '',
+        getFilterQuery: (item: GroupedItem) => {
+            const quarterItem = item as TransactionQuarterGroupListItemType;
+            const {start, end} = DateUtils.getQuarterDateRange(quarterItem.year, quarterItem.quarter);
             return `date>=${start} date<=${end}`;
         },
     },

@@ -7081,6 +7081,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Monate',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Wochen',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
         },
     },
     genericErrorPage: {

@@ -7042,6 +7042,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Meses',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semanas',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Anos',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
     },
     genericErrorPage: {

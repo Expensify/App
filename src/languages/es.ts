@@ -6720,6 +6720,8 @@ ${amount} para ${merchant} - ${date}`,
             [CONST.SEARCH.GROUP_BY.TAG]: 'Etiquetas',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Meses',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semanas',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Años',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos.',

@@ -6889,6 +6889,8 @@ ${reportName}
             [CONST.SEARCH.GROUP_BY.TAG]: '标签',
             [CONST.SEARCH.GROUP_BY.MONTH]: '月份',
             [CONST.SEARCH.GROUP_BY.WEEK]: '周',
+            [CONST.SEARCH.GROUP_BY.YEAR]: '年',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
         },
     },
     genericErrorPage: {

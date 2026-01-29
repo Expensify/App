@@ -7093,6 +7093,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquettes',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaines',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
     },
     genericErrorPage: {

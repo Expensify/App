@@ -7009,6 +7009,8 @@ ${reportName}
             [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
             [CONST.SEARCH.GROUP_BY.MONTH]: '月',
             [CONST.SEARCH.GROUP_BY.WEEK]: '週',
+            [CONST.SEARCH.GROUP_BY.YEAR]: '年',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
         },
     },
     genericErrorPage: {

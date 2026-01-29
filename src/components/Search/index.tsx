@@ -947,8 +947,7 @@ function Search({
                     return;
                 }
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const yearStart = `${yearGroupItem.year}-01-01`;
-                const yearEnd = `${yearGroupItem.year}-12-31`;
+                const {start: yearStart, end: yearEnd} = DateUtils.getYearDateRange(yearGroupItem.year);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
