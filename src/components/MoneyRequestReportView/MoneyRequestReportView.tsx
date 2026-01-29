@@ -1,9 +1,11 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager, ScrollView, View} from 'react-native';
+import {KeyboardGestureArea} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
@@ -99,6 +101,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+    // Starts with this value to avoid a big jump while the container height is being calculated in case the screen is first rendered w/ a full size composer. It's based on the perceived concierge header height on the iPhone 16 Pro.
+    const [headerHeight, setHeaderHeight] = useState<number>(73);
+
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
@@ -147,6 +153,11 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
+
+    const onComposerLayout = useCallback((height: number) => setComposerHeight(height), []);
+    const onHeaderLayout = useCallback((e: LayoutChangeEvent) => {
+        setHeaderHeight(e.nativeEvent.layout.height);
+    }, []);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const shouldShowWideRHPReceipt = visibleTransactions.length === 1 && !isSmallScreenWidth && !!transactionThreadReport;
@@ -218,6 +229,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         pendingAction={reportPendingAction}
                         isComposerFullSize={!!isComposerFullSize}
                         lastReportAction={lastReportAction}
+                        onLayout={onComposerLayout}
+                        headerHeight={headerHeight}
                         // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                         transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                     />
@@ -227,14 +240,20 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     }
 
     return (
-        <View style={styles.flex1}>
+        <KeyboardGestureArea
+            style={styles.flex1}
+            offset={composerHeight}
+            interpolator="ios"
+            textInputNativeID="composer"
+            enableSwipeToDismiss={!isComposerFullSize}
+        >
             <OfflineWithFeedback
                 pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
                 errors={reportErrors}
                 needsOffscreenAlphaCompositing
                 shouldShowErrorMessages={false}
             >
-                {reportHeaderView}
+                <View onLayout={onHeaderLayout}>{reportHeaderView}</View>
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}
@@ -272,6 +291,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 hasNewerActions={hasNewerActions}
                                 showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                                 reportPendingAction={reportPendingAction}
+                                composerHeight={composerHeight}
                             />
                         ) : (
                             <ReportActionsView
@@ -282,6 +302,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 hasOlderActions={hasOlderActions}
                                 parentReportAction={parentReportAction}
                                 transactionThreadReportID={transactionThreadReportID}
+                                composerHeight={composerHeight}
                             />
                         )}
                         {shouldDisplayReportFooter ? (
@@ -296,6 +317,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                     reportTransactions={transactions}
                                     // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                     transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
+                                    onLayout={onComposerLayout}
+                                    headerHeight={headerHeight}
                                 />
                                 <PortalHost name="suggestions" />
                             </>
@@ -303,7 +326,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     </View>
                 </View>
             </OfflineWithFeedback>
-        </View>
+        </KeyboardGestureArea>
     );
 }
 
