@@ -90,7 +90,9 @@ function IOURequestEditReportCommon({
         return currentUserPersonalDetails.accountID;
     }, [targetOwnerAccountID, selectedReport?.ownerAccountID, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
+    // Pass the expense's policyID so that the "Create report" button shows the correct workspace
+    // instead of defaulting to the user's active workspace
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, selectedReport?.policyID);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
 
@@ -100,6 +102,7 @@ function IOURequestEditReportCommon({
         () => resolvedReportOwnerAccountID === currentUserPersonalDetails.accountID || isSelectedReportUnreported,
         [resolvedReportOwnerAccountID, currentUserPersonalDetails.accountID, isSelectedReportUnreported],
     );
+    const isAdmin = useMemo(() => isPolicyAdmin(reportPolicy), [reportPolicy]);
     const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
 
     const reportTransactions = useReportTransactions(selectedReportID);
@@ -232,7 +235,7 @@ function IOURequestEditReportCommon({
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
     const createReportOption = useMemo(() => {
-        if (!createReport || (isEditing && !isOwner)) {
+        if (!createReport || (isEditing && !isOwner && !isAdmin)) {
             return undefined;
         }
 
@@ -244,7 +247,7 @@ function IOURequestEditReportCommon({
                 icon={icons.Document}
             />
         );
-    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, handleCreateReport]);
+    }, [icons.Document, createReport, translate, policyForMovingExpenses?.name, handleCreateReport, isEditing, isOwner, isAdmin]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
@@ -260,12 +263,11 @@ function IOURequestEditReportCommon({
             return false;
         }
 
-        const isAdmin = isPolicyAdmin(reportPolicy);
         const isOpen = isOpenReport(selectedReport);
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReportOption, outstandingReports.length, shouldShowNotFoundPageFromProps, selectedReport, reportPolicy]);
+    }, [createReportOption, outstandingReports.length, shouldShowNotFoundPageFromProps, selectedReport, isAdmin]);
 
     const hidePerDiemWarningModal = () => setPerDiemWarningModalVisible(false);
 
