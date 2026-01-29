@@ -309,6 +309,12 @@ function Expensify() {
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
         setIsAuthenticatedAtStartup(isAuthenticated);
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK,
+            parentSpan: bootsplashSpan.current,
+        });
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
@@ -323,12 +329,8 @@ function Expensify() {
                 // No URL, unblock the UI
                 Report.doneCheckingPublicRoom();
             }
-        });
 
-        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK, {
-            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK,
-            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK,
-            parentSpan: bootsplashSpan.current,
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK);
         });
 
         return () => {
