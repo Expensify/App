@@ -8,8 +8,8 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,9 +37,8 @@ import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUti
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -121,14 +120,7 @@ function IOURequestStepDistanceOdometer({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
 
-    const shouldUseDefaultExpensePolicy = useMemo(
-        () =>
-            iouType === CONST.IOU.TYPE.CREATE &&
-            isPaidGroupPolicy(defaultExpensePolicy) &&
-            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
-        [iouType, defaultExpensePolicy],
-    );
+    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
@@ -309,6 +301,8 @@ function IOURequestStepDistanceOdometer({
         Navigation.goBack();
     };
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = () => {
         const start = parseFloat(startReading);
@@ -349,6 +343,7 @@ function IOURequestStepDistanceOdometer({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled: false,
                     parentReportNextStep,
+                    recentWaypoints,
                 });
             }
             Navigation.goBack();
@@ -369,7 +364,7 @@ function IOURequestStepDistanceOdometer({
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, reportNameValuePairs?.private_isArchived, policy, derivedReports);
+                    : getReportOption(participant, reportNameValuePairs?.private_isArchived, policy, currentUserPersonalDetails.accountID, personalDetails, derivedReports);
             });
 
             if (shouldSkipConfirmation) {
@@ -416,6 +411,7 @@ function IOURequestStepDistanceOdometer({
                         introSelected,
                         activePolicyID,
                         quickAction,
+                        recentWaypoints,
                     });
                     return;
                 }
@@ -446,6 +442,7 @@ function IOURequestStepDistanceOdometer({
                     transactionViolations,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    recentWaypoints,
                 });
                 return;
             }
