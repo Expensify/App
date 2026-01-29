@@ -7963,9 +7963,17 @@ ${reportName}
         announcements: '公告',
         discoverSection: {
             title: '发现',
-            menuItemTitleNonAdmin: '了解如何创建费用并提交报表。',
-            menuItemTitleAdmin: '了解如何邀请成员、编辑审批流程以及对公司卡进行对账。',
+            menuItemTitleNonAdmin: '了解如何创建报销和提交报告。',
+            menuItemTitleAdmin: '了解如何邀请成员、编辑审批流程以及对公司信用卡进行对账。',
             menuItemDescription: '看看 Expensify 在 2 分钟内能为你做什么',
+        },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `提交 ${count} ${count === 1 ? '报销单' : '报销单'}`,
+            approve: ({count}: {count: number}) => `批准 ${count} ${count === 1 ? '报销单' : '报销单'}`,
+            pay: ({count}: {count: number}) => `支付 ${count} ${count === 1 ? '报销单' : '报销单'}`,
+            export: ({count}: {count: number}) => `导出 ${count} ${count === 1 ? '报销单' : '报销单'}`,
+            begin: '开始',
+            emptyStateMessages: {nicelyDone: '做得很好', keepAnEyeOut: '敬请关注接下来的更新！', allCaughtUp: '你已经全部看完了', upcomingTodos: '即将进行的待办事项会显示在此处。'},
         },
     },
 };
