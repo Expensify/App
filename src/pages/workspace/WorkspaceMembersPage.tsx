@@ -682,7 +682,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldShowCancelButton: false,
             shouldHandleNavigationBack: true,
         });
-    }, []);
+    }, [showConfirmModal, translate]);
 
     const secondaryActions = useMemo(() => {
         if (!isPolicyAdmin) {

@@ -139,9 +139,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             fetchData();
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const confirmDisableApprovals = useCallback(() => {
@@ -183,12 +185,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
 
-    const updateWorkspaceCurrencyPrompt = (
-        <View style={[styles.renderHTML, styles.flexRow]}>
-            <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
-        </View>
-    );
-
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const isBankAccountFullySetup = policy?.achAccount && policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
         const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policy?.id);
@@ -206,6 +202,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const hasReimburserError = !!policy?.errorFields?.reimburser;
         const hasApprovalError = !!policy?.errorFields?.approvalMode;
         const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
+
+        const updateWorkspaceCurrencyPrompt = (
+            <View style={[styles.renderHTML, styles.flexRow]}>
+                <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
+            </View>
+        );
 
         return [
             {
@@ -467,7 +469,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         hasValidExistingAccounts,
         shouldShowContinueModal,
         confirmCurrencyChangeAndHideModal,
-        updateWorkspaceCurrencyPrompt,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
