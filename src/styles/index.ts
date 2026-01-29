@@ -937,8 +937,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        actionableItemButtonHovered: {
+        actionableItemButtonBackgroundHovered: {
             borderColor: theme.buttonPressedBG,
+        },
+
+        actionableItemButtonHovered: {
+            borderWidth: 1,
         },
 
         hoveredComponentBG: {

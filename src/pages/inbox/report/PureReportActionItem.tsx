@@ -1722,9 +1722,12 @@ function PureReportActionItem({
                                             }
                                             shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
                                             primaryTextNumberOfLines={actionableButtonsNoLines}
-                                            textStyles={isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined}
-                                            buttonStyles={actionContainsFollowUps && [styles.actionableItemButton, hovered && styles.actionableItemButtonHovered]}
-                                            containerStyles={actionContainsFollowUps && shouldUseNarrowLayout && styles.alignItemsStretch}
+                                            styles={{
+                                                text: isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined,
+                                                button: actionContainsFollowUps ? [styles.actionableItemButton, hovered && styles.actionableItemButtonBackgroundHovered] : undefined,
+                                                buttonHover: actionContainsFollowUps ? styles.actionableItemButtonHovered : undefined,
+                                                container: actionContainsFollowUps && shouldUseNarrowLayout ? styles.alignItemsStretch : undefined,
+                                            }}
                                         />
                                     )}
                                 </View>

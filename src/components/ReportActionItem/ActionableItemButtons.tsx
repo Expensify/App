@@ -19,9 +19,12 @@ type ActionableItemButtonsProps = {
     layout?: 'horizontal' | 'vertical';
     shouldUseLocalization?: boolean;
     primaryTextNumberOfLines?: number;
-    textStyles?: StyleProp<TextStyle>;
-    buttonStyles?: StyleProp<ViewStyle>;
-    containerStyles?: StyleProp<ViewStyle>;
+    styles?: {
+        text?: StyleProp<TextStyle>;
+        button?: StyleProp<ViewStyle>;
+        buttonHover?: StyleProp<ViewStyle>;
+        container?: StyleProp<ViewStyle>;
+    };
 };
 
 function ActionableItemButtons(props: ActionableItemButtonsProps) {
@@ -29,7 +32,7 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart, props.containerStyles]]}>
+        <View style={[styles.gap2, styles.mt2, props.layout === 'horizontal' ? styles.flexRow : [styles.flexColumn, styles.alignItemsStart, props.styles?.container]]}>
             {props.items?.map((item) => (
                 <Button
                     key={item.key}
@@ -37,9 +40,10 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
                     medium
                     success={item.isPrimary}
-                    innerStyles={props.buttonStyles}
+                    innerStyles={props.styles?.button}
+                    hoverStyles={props.styles?.buttonHover}
                     primaryTextNumberOfLines={props.primaryTextNumberOfLines}
-                    textStyles={props.textStyles}
+                    textStyles={props.styles?.text}
                 />
             ))}
         </View>
