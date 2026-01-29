@@ -216,7 +216,6 @@ function WorkspacesListPage() {
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     const prevPolicyToDelete = usePrevious(policyToDelete);
-
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
