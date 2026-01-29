@@ -133,7 +133,8 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!isFocused}}
+                    accessibilityState={{selected: !!item.isSelected}}
+                    aria-selected={!!item.isSelected}
                     style={[
                         wrapperStyle,
                         isFocused &&
