@@ -3174,10 +3174,14 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     }
                 }
 
-                // Recalculate reportName to reflect updated totals
-                const updatedReportName = recalculateOptimisticReportName(iouReport, policy);
-                if (updatedReportName) {
-                    iouReport.reportName = updatedReportName;
+                const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+                const titleField = reportNameValuePairs?.expensify_text_title;
+                const isFormulaTitle = titleField?.type === 'formula';
+                if (isFormulaTitle) {
+                    const updatedReportName = recalculateOptimisticReportName(iouReport, policy);
+                    if (updatedReportName) {
+                        iouReport.reportName = updatedReportName;
+                    }
                 }
             }
             if (typeof iouReport.unheldTotal === 'number') {
@@ -4305,10 +4309,17 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             }
         }
 
-        // Recalculate reportName after all totals are updated
-        const updatedReportName = recalculateOptimisticReportName(updatedMoneyRequestReport, policy);
-        if (updatedReportName) {
-            updatedMoneyRequestReport.reportName = updatedReportName;
+        // Only recalculate reportName when reimbursable status changes and the report uses a formula title
+        if ('reimbursable' in transactionChanges) {
+            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
+            const titleField = reportNameValuePairs?.expensify_text_title;
+            const isFormulaTitle = titleField?.type === 'formula';
+            if (isFormulaTitle) {
+                const updatedReportName = recalculateOptimisticReportName(updatedMoneyRequestReport, policy);
+                if (updatedReportName) {
+                    updatedMoneyRequestReport.reportName = updatedReportName;
+                }
+            }
         }
     } else {
         updatedMoneyRequestReport = updateIOUOwnerAndTotal(
