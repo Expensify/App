@@ -11,7 +11,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {CustomSubPageTokenInputProps} from '../types';
+import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 
