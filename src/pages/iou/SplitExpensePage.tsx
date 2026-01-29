@@ -133,14 +133,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     // Check if the transaction has customUnitOutOfPolicy violation (distance rate error)
     const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-    const originalTransactionViolations = transaction?.comment?.originalTransactionID
-        ? (transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.comment.originalTransactionID}`] ?? [])
-        : [];
-
-    const customUnitOutOfPolicyViolation = CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY;
-    const hasDistanceRateError =
-        currentTransactionViolations.some((violation) => violation.name === customUnitOutOfPolicyViolation) ||
-        originalTransactionViolations.some((violation) => violation.name === customUnitOutOfPolicyViolation);
+    const hasDistanceRateError = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
 
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
