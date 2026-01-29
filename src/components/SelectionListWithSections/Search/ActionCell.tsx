@@ -4,9 +4,9 @@ import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
-import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -87,8 +87,8 @@ function ActionCell({
     const {currency} = iouReport ?? {};
 
     const confirmPayment = useCallback(
-        ({paymentType, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
-            if (!paymentType || !reportID || !hash || !amount) {
+        (type: ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined) => {
+            if (!type || !reportID || !hash || !amount) {
                 return;
             }
 
@@ -98,7 +98,7 @@ function ActionCell({
             }
 
             const invoiceParams = getPayMoneyOnSearchInvoiceParams(policyID, payAsBusiness, methodID, paymentMethod);
-            payMoneyRequestOnSearch(hash, [{amount, paymentType: paymentType as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
+            payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
         },
         [reportID, hash, amount, policyID, iouReport, isDelegateAccessRestricted, showDelegateNoAccessModal],
     );
@@ -165,7 +165,7 @@ function ActionCell({
                     iouReport={iouReport}
                     chatReportID={iouReport?.chatReportID}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                    onPress={confirmPayment}
+                    onPress={(type, payAsBusiness, methodID, paymentMethod) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, payAsBusiness, methodID, paymentMethod)}
                     style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
                     wrapperStyle={[styles.w100]}
                     shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
