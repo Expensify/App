@@ -24,7 +24,8 @@ import {
 } from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartColors, useChartInteractions, useChartLabelFormats, useChartLabelLayout} from '@components/Charts/hooks';
+import {getChartColor} from '@components/Charts/chartColors';
+import {useChartInteractions, useChartLabelFormats, useChartLabelLayout} from '@components/Charts/hooks';
 import type {BarChartProps} from '@components/Charts/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -181,8 +182,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         };
     }, [activeDataIndex, data, yAxisUnit, yAxisUnitPosition]);
 
-    const {getChartColor} = useChartColors();
-
     const renderBar = useCallback(
         (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
             const dataIndex = point.xValue as number;
@@ -201,7 +200,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 />
             );
         },
-        [data, useSingleColor, defaultBarColor, getChartColor],
+        [data, useSingleColor, defaultBarColor],
     );
 
     const dynamicChartStyle = useMemo(
