@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BaseWidgetItem from '@components/BaseWidgetItem';
-import {Send,ThumbsUp, Cash, Export} from '@components/Icon/Expensicons';
+import {Cash, Export, Send, ThumbsUp} from '@components/Icon/Expensicons';
 import WidgetContainer from '@components/WidgetContainer';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
