@@ -66,8 +66,9 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         }));
     }, [data]);
 
-    // Anchor Y-axis at zero so the baseline is always visible. When negative values are present, let victory-native auto-calculate the domain to avoid clipping.
-    const yAxisDomain = useMemo(() => (data.some((point) => point.total < 0) ? undefined : [0]), [data]);
+    // Anchor Y-axis at zero so the baseline is always visible. 
+    // When negative values are present, let victory-native auto-calculate the domain to avoid clipping.
+    const yAxisDomain = useMemo((): [number] | undefined => (data.some((point) => point.total < 0) ? undefined : [0]), [data]);
 
     // Handle bar press callback
     const handleBarPress = useCallback(
@@ -180,8 +181,8 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
             const separator = yAxisUnit.length > 1 ? ' ' : '';
             formattedAmount = yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
         }
-        const totalSum = data.reduce((sum, point) => sum + point.total, 0);
-        const percent = totalSum > 0 ? Math.round((dataPoint.total / totalSum) * 100) : 0;
+        const totalSum = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
+        const percent = totalSum > 0 ? Math.round((Math.abs(dataPoint.total) / totalSum) * 100) : 0;
         return {
             label: dataPoint.label,
             amount: formattedAmount,
