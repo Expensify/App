@@ -8255,8 +8255,21 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
         discoverSection: {
             title: 'Découvrir',
             menuItemTitleNonAdmin: 'Découvrez comment créer des dépenses et soumettre des rapports.',
-            menuItemTitleAdmin: 'Apprenez à inviter des membres, à modifier les circuits d’approbation et à rapprocher les cartes de l’entreprise.',
-            menuItemDescription: 'Découvrez ce qu’Expensify peut faire en 2 minutes',
+            menuItemTitleAdmin: 'Apprenez à inviter des membres, modifier les workflows d’approbation et rapprocher les cartes de société.',
+            menuItemDescription: 'Découvrez ce qu’Expensify peut faire en 2 minutes',
+        },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `Soumettre ${count} ${count === 1 ? 'rapport' : 'rapports'}`,
+            approve: ({count}: {count: number}) => `Approuver ${count} ${count === 1 ? 'rapport' : 'rapports'}`,
+            pay: ({count}: {count: number}) => `Payer ${count} ${count === 1 ? 'rapport' : 'rapports'}`,
+            export: ({count}: {count: number}) => `Exporter ${count} ${count === 1 ? 'rapport' : 'rapports'}`,
+            begin: 'Commencer',
+            emptyStateMessages: {
+                nicelyDone: 'Bien joué',
+                keepAnEyeOut: 'Restez à l’affût de ce qui arrive bientôt !',
+                allCaughtUp: 'Vous êtes à jour',
+                upcomingTodos: 'Les tâches à venir apparaîtront ici.',
+            },
         },
     },
 };

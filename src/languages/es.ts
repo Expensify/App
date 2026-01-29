@@ -743,6 +743,19 @@ const translations: TranslationDeepObject<typeof en> = {
             menuItemTitleAdmin: 'Aprende a invitar a miembros, editar flujos de aprobación y conciliar tarjetas corporativas.',
             menuItemDescription: 'Descubre lo que Expensify puede hacer en 2 minutos',
         },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `Enviar ${count} ${count === 1 ? 'informe' : 'informes'}`,
+            approve: ({count}: {count: number}) => `Aprobar ${count} ${count === 1 ? 'informe' : 'informes'}`,
+            pay: ({count}: {count: number}) => `Pagar ${count} ${count === 1 ? 'informe' : 'informes'}`,
+            export: ({count}: {count: number}) => `Exportar ${count} ${count === 1 ? 'informe' : 'informes'}`,
+            begin: 'Comenzar',
+            emptyStateMessages: {
+                nicelyDone: '¡Muy bien hecho!',
+                keepAnEyeOut: '¡Mantente atento a lo que viene a continuación!',
+                allCaughtUp: 'Ya estás al día',
+                upcomingTodos: 'Las tareas pendientes aparecerán aquí.',
+            },
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
