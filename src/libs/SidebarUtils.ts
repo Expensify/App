@@ -1003,7 +1003,7 @@ function getOptionData({
             result.alternateText =
                 lastMessageTextFromReport.length > 0
                     ? formatReportLastMessageText(Parser.htmlToText(lastMessageText))
-                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
+                    : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction, policy)?.lastMessageText;
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(

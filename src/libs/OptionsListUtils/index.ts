@@ -621,7 +621,7 @@ function getLastMessageTextForReport({
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
-    const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
+    const lastVisibleMessage = getLastVisibleMessage(report?.reportID, undefined, undefined, undefined, policy);
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
