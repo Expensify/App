@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -13,7 +13,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -810,7 +810,7 @@ function MoneyRequestView({
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const {wideRHPRouteKeys} = useWideRHPState();
 
     // If the view is readonly, we don't need the transactionThread dependency
     if ((!readonly && !transactionThreadReport?.reportID) || !transaction?.transactionID) {

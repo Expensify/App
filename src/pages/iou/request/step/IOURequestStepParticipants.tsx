@@ -442,11 +442,16 @@ function IOURequestStepParticipants({
             }
             return initialTransaction?.comment?.customUnit?.quantity === 0;
         }
+
+        if (iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+            return false;
+        }
+
         if (isTimeRequest(initialTransaction)) {
             return true;
         }
         return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
-    }, [initialTransaction]);
+    }, [initialTransaction, iouRequestType]);
 
     return (
         <StepScreenWrapper
