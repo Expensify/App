@@ -5,11 +5,13 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions} from '@libs/actions/TransactionEdit';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import IOURequestStepScan from '@pages/iou/request/step/IOURequestStepScan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -17,10 +19,10 @@ import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const REPORT_ID = '1';
-const POLICY_ID = 'policy-1';
-const TRANSACTION_ID_1 = '101';
-const TRANSACTION_ID_2 = '102';
+jest.mock('@libs/actions/TransactionEdit', () => ({
+    removeDraftTransactions: jest.fn(),
+    buildOptimisticTransactionAndCreateDraft: jest.fn(),
+}));
 
 let triggerFileSelection: ((files: FileObject[]) => void) | null = null;
 
@@ -58,26 +60,24 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
 }));
 
-const mockCreateObjectURL = jest.fn(() => 'file://mock-receipt.png');
-global.URL.createObjectURL = mockCreateObjectURL;
+const mockCreateObjectURL = () => 'file://mock-receipt.png';
+let originalCreateObjectURLDescriptor: PropertyDescriptor | undefined;
 
-function createMinimalReport(reportID: string): Report {
+function createMinimalReport(reportID: string, policyID: string): Report {
     return {
         reportID,
-        policyID: POLICY_ID,
+        policyID,
         ownerAccountID: 1,
-        type: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        state: CONST.REPORT.STATE_NUM.OPEN,
-        status: CONST.REPORT.STATUS_NUM.OPEN,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         isPinned: false,
         lastVisibleActionCreated: '',
         lastReadTime: '',
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-    } as Report;
+    };
 }
 
-function getOnyxDraft(transactionID: string): Promise<OnyxEntry<Transaction>> {
+function getTransactionsDraftOnyx(transactionID: string): Promise<OnyxEntry<Transaction>> {
     return new Promise((resolve) => {
         const connection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
@@ -90,24 +90,47 @@ function getOnyxDraft(transactionID: string): Promise<OnyxEntry<Transaction>> {
 }
 
 describe('IOURequestStepScan', () => {
-    let removeDraftTransactionsSpy: jest.SpyInstance;
-
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+
+        if (global.URL && Object.getOwnPropertyDescriptor(global.URL, 'createObjectURL')) {
+            originalCreateObjectURLDescriptor = Object.getOwnPropertyDescriptor(global.URL, 'createObjectURL');
+        }
+
+        if (!global.URL) {
+            global.URL = {} as typeof global.URL;
+        }
+
+        Object.defineProperty(global.URL, 'createObjectURL', {
+            value: mockCreateObjectURL,
+            writable: true,
+            configurable: true,
+        });
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
         triggerFileSelection = null;
-        removeDraftTransactionsSpy = jest.spyOn(require('@libs/actions/TransactionEdit'), 'removeDraftTransactions');
     });
 
     afterEach(async () => {
-        removeDraftTransactionsSpy.mockRestore();
+        jest.clearAllMocks();
         await Onyx.clear();
     });
 
-    it('replacing receipt in multi-scan does not clear other drafts', async () => {
+    afterAll(() => {
+        jest.restoreAllMocks();
+        if (!originalCreateObjectURLDescriptor) {
+            return;
+        }
+        Object.defineProperty(global.URL, 'createObjectURL', originalCreateObjectURLDescriptor);
+    });
+
+    it('replacing receipt when editing does not clear other drafts', async () => {
+        const REPORT_ID = '1';
+        const POLICY_ID = 'policy-1';
+        const TRANSACTION_ID_1 = '101';
+        const TRANSACTION_ID_2 = '102';
+
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
         transaction1.transactionID = TRANSACTION_ID_1;
@@ -119,7 +142,7 @@ describe('IOURequestStepScan', () => {
         transaction2.receipt = {source: 'file://receipt2.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport(REPORT_ID));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport(REPORT_ID, POLICY_ID));
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_1}`, transaction1);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_2}`, transaction2);
         });
@@ -139,15 +162,12 @@ describe('IOURequestStepScan', () => {
                                         iouType: CONST.IOU.TYPE.SUBMIT,
                                         reportID: REPORT_ID,
                                         transactionID: TRANSACTION_ID_1,
-                                        backTo: 'Money_Request_Step_Confirmation' as const,
+                                        backTo: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
                                         pageIndex: 0,
                                     },
                                 } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>['route']
                             }
                             navigation={{} as never}
-                            isMultiScanEnabled
-                            isStartingScan={false}
-                            setIsMultiScanEnabled={jest.fn()}
                         />
                     </NavigationContainer>
                 </LocaleContextProvider>
@@ -167,23 +187,36 @@ describe('IOURequestStepScan', () => {
         });
         await waitForBatchedUpdates();
 
-        expect(removeDraftTransactionsSpy).not.toHaveBeenCalled();
+        expect(jest.mocked(removeDraftTransactions)).not.toHaveBeenCalled();
 
-        const tx2After = await getOnyxDraft(TRANSACTION_ID_2);
+        const tx2After = await getTransactionsDraftOnyx(TRANSACTION_ID_2);
         expect(tx2After).toBeDefined();
         expect(tx2After?.transactionID).toBe(TRANSACTION_ID_2);
         expect(tx2After?.receipt?.source).toBe('file://receipt2.png');
     });
 
     it('multi-scan mode preserves first receipt when adding second receipt', async () => {
+        const REPORT_ID = '1';
+        const POLICY_ID = 'policy-1';
+        const TRANSACTION_ID_1 = '101';
+        const TRANSACTION_ID_2 = '102';
+
+        jest.mocked(buildOptimisticTransactionAndCreateDraft).mockReturnValue(createRandomTransaction(3));
+
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
         transaction1.transactionID = TRANSACTION_ID_1;
         transaction1.receipt = {source: 'file://first-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
+        const transaction2 = createRandomTransaction(2);
+        transaction2.reportID = REPORT_ID;
+        transaction2.transactionID = TRANSACTION_ID_2;
+        transaction2.receipt = {source: 'file://second-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
+
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport(REPORT_ID));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport(REPORT_ID, POLICY_ID));
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_1}`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_2}`, transaction2);
         });
         await waitForBatchedUpdates();
 
@@ -201,7 +234,6 @@ describe('IOURequestStepScan', () => {
                                         iouType: CONST.IOU.TYPE.SUBMIT,
                                         reportID: REPORT_ID,
                                         transactionID: TRANSACTION_ID_1,
-                                        backTo: 'Money_Request_Step_Confirmation' as const,
                                         pageIndex: 0,
                                     },
                                 } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>['route']
@@ -229,8 +261,14 @@ describe('IOURequestStepScan', () => {
         });
         await waitForBatchedUpdates();
 
-        const tx1After = await getOnyxDraft(TRANSACTION_ID_1);
+        expect(jest.mocked(removeDraftTransactions)).not.toHaveBeenCalled();
+
+        const tx1After = await getTransactionsDraftOnyx(TRANSACTION_ID_1);
         expect(tx1After).toBeDefined();
-        expect(tx1After?.receipt?.source).toBeDefined();
+        expect(tx1After?.receipt?.source).toBe('file://first-receipt.png');
+
+        const tx2After = await getTransactionsDraftOnyx(TRANSACTION_ID_2);
+        expect(tx2After).toBeDefined();
+        expect(tx2After?.receipt?.source).toBe('file://second-receipt.png');
     });
 });
