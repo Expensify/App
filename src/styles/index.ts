@@ -928,6 +928,24 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        actionableItemButton: {
+            paddingTop: 8,
+            paddingBottom: 8,
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            borderColor: theme.border,
+            alignItems: 'flex-start',
+            borderRadius: variables.componentBorderRadiusMedium,
+        },
+
+        actionableItemButtonBackgroundHovered: {
+            borderColor: theme.buttonPressedBG,
+        },
+
+        actionableItemButtonHovered: {
+            borderWidth: 1,
+        },
+
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
         },
@@ -1041,6 +1059,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
             paddingHorizontal: 12,
             minHeight: 28,
+        },
+
+        badgeNewFeature: {
+            minHeight: 20,
+            height: 20,
+            paddingHorizontal: 8,
         },
 
         badgeText: {
@@ -1266,17 +1290,11 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'right',
         },
 
-        optionRowAmountMobileInputContainer: {
-            width: variables.splitExpenseAmountMobileWidth,
-        },
-
         optionRowPercentInputContainer: {
-            width: variables.splitExpensePercentageMobileWidth,
+            width: variables.splitExpensePercentageWidth,
         },
 
         optionRowPercentInput: {
-            width: variables.splitExpensePercentageWidth,
-            textAlign: 'right',
             marginRight: 2,
         },
 
@@ -1594,6 +1612,7 @@ const staticStyles = (theme: ThemeColors) =>
         searchSidebar: {
             width: variables.sideBarWithLHBWidth,
             height: '100%',
+            backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
@@ -1638,6 +1657,15 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        floatingSecondaryActionButton: {
+            backgroundColor: theme.buttonDefaultBG,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
+            borderRadius: 999,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
@@ -1646,6 +1674,40 @@ const staticStyles = (theme: ThemeColors) =>
         floatingCameraButton: {
             position: 'absolute',
             top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingCameraButtonAboveFab: {
+            position: 'absolute',
+            // floatingActionButton top property value (componentSizeLarge + 16) +
+            // + floatingCameraButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
+            top: 2 * -variables.componentSizeLarge - 28,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingActionButtonPosition: {
+            position: 'absolute',
+            top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingGpsButton: {
+            position: 'absolute',
+            // floatingCameraButton top property value (componentSizeLarge + 16) +
+            // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
+            top: 2 * -variables.componentSizeLarge - 28,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingGpsButtonAboveFab: {
+            position: 'absolute',
+            // floatingActionButton top property value (componentSizeLarge + 16) +
+            // + floatingCameraButton height (componentSizeLarge) + gap (12) + floatingGpsButton height (componentSizeLarge) + gap (12) = 3 * variables.componentSizeLarge + 40
+            top: 3 * -variables.componentSizeLarge - 40,
             right: 16,
             zIndex: 10,
         },
@@ -3613,6 +3675,17 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: variables.sectionMargin,
         },
 
+        widgetContainer: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            overflow: 'hidden',
+        },
+
+        homePageContentContainer: {
+            flexGrow: 1,
+            padding: 20,
+        },
+
         cardSectionIllustration: {
             width: 'auto',
             height: variables.sectionIllustrationHeight,
@@ -4140,7 +4213,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         tabSelectorButton: {
             height: variables.tabSelectorButtonHeight,
-            padding: variables.tabSelectorButtonPadding,
+            paddingHorizontal: variables.tabSelectorButtonPadding,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
@@ -5049,6 +5122,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        twoFARequiredOverlay: {
+            zIndex: 20, // must be greater than floatingCameraButton.zIndex
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -5357,6 +5434,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
 
+        todoBadge: {
+            width: variables.w36,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: 0,
+            paddingRight: 0,
+        },
+
         stickToBottom: {
             position: 'absolute',
             bottom: 0,
@@ -5636,6 +5721,11 @@ const staticStyles = (theme: ThemeColors) =>
         },
         paymentMethodErrorRow: {
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
+        },
+        discoverSectionImage: {
+            width: '100%',
+            height: undefined,
+            aspectRatio: 2.2,
         },
     }) satisfies StaticStyles;
 
@@ -6131,6 +6221,29 @@ const plainStyles = (theme: ThemeColors) =>
         searchTopBarZIndexStyle: {
             zIndex: variables.searchTopBarZIndex,
         },
+
+        getWidgetContainerTitleStyle: (color: string) =>
+            ({
+                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+                fontSize: 17,
+                lineHeight: 20,
+                color,
+            }) satisfies TextStyle,
+
+        homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
+                gap: 20,
+                width: '100%',
+            }) satisfies ViewStyle,
+
+        homePageLeftColumn: (shouldUseNarrowLayout: boolean) =>
+            shouldUseNarrowLayout
+                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
+                : ({flex: 2, flexBasis: '66.666%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
+
+        homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
+            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 1, flexBasis: '33.333%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
