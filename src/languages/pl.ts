@@ -8236,6 +8236,8 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             cta: 'Roszczenie',
             offer50off: {title: 'Uzyskaj 50% zniżki na pierwszy rok!', subtitle: ({formattedTime}: {formattedTime: string}) => `Pozostało: ${formattedTime}`},
             offer25off: {title: 'Uzyskaj 25% zniżki na pierwszy rok!', subtitle: ({days}: {days: number}) => `Pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}`},
+            addShippingAddress: {title: 'Potrzebujemy Twojego adresu do wysyłki', subtitle: 'Podaj adres, na który mamy wysłać Twoją kartę Expensify.', cta: 'Dodaj adres'},
+            activateCard: {title: 'Aktywuj swoją kartę Expensify', subtitle: 'Zweryfikuj swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
         },
     },
 };

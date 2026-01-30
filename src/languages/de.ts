@@ -8289,6 +8289,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             cta: 'Antrag',
             offer50off: {title: 'Erhalte 50 % Rabatt auf dein erstes Jahr!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} verbleibend`},
             offer25off: {title: 'Erhalten Sie 25 % Rabatt auf Ihr erstes Jahr!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'Tag' : 'Tage'} verbleiben`},
+            addShippingAddress: {title: 'Wir benötigen Ihre Versandadresse', subtitle: 'Gib eine Adresse an, um deine Expensify Card zu erhalten.', cta: 'Adresse hinzufügen'},
+            activateCard: {title: 'Aktiviere deine Expensify Card', subtitle: 'Bestätige deine Karte und beginne mit dem Ausgeben.', cta: 'Aktivieren'},
         },
     },
 };
