@@ -116,7 +116,7 @@ function openSidebar() {
     }
 }
 
-const SEARCH_API_URL = 'https://expensify.com/api/SearchHelpsite';
+const SEARCH_API_URL = 'https://www.expensify.com/api/SearchHelpsite';
 
 function getTitleFromURL(url) {
     return url.split('/').pop().replace(/-/g, ' ');
