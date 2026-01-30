@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
+import TextLink from '@components/TextLink';
 
 type AnchorRendererProps = CustomRendererProps<TText | TPhrasing> & {
     /** Key of the element */
@@ -102,14 +103,12 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         }
 
         return (
-            <Text
+            <TextLink
                 style={linkStyle}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
-                suppressHighlighting
-                role={CONST.ROLE.LINK}
             >
                 <TNodeChildrenRenderer tnode={tnode} />
-            </Text>
+            </TextLink>
         );
     }
 
