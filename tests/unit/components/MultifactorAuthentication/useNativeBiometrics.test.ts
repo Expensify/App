@@ -384,27 +384,6 @@ describe('useNativeBiometrics hook', () => {
                 }),
             );
         });
-
-        it('should use chained private key status if provided', async () => {
-            const chainedKeyStatus = {
-                value: 'chained-private-key',
-                reason: VALUES.REASON.KEYSTORE.KEY_PAIR_GENERATED,
-                type: 0,
-            } as const;
-
-            const {result} = renderHook(() => useNativeBiometrics());
-            const onResult = jest.fn();
-
-            await act(async () => {
-                await result.current.authorize(
-                    {scenario: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST, challenge: mockChallenge, chainedPrivateKeyStatus: chainedKeyStatus},
-                    onResult,
-                );
-            });
-
-            // When chained key is provided, it should be used instead of fetching
-            expect(signTokenED25519).toHaveBeenCalledWith(expect.any(Object), 'chained-private-key', 'public-key-123');
-        });
     });
 
     describe('resetKeysForAccount', () => {

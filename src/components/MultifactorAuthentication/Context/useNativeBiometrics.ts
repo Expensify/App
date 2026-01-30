@@ -10,7 +10,7 @@ import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/E
 import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import type {MarqetaAuthTypeName, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MarqetaAuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,7 +40,6 @@ type RegisterResult = {
 type AuthorizeParams<T extends MultifactorAuthenticationScenario> = {
     scenario: T;
     challenge: AuthenticationChallenge;
-    chainedPrivateKeyStatus?: MultifactorAuthenticationPartialStatus<string | null, true>;
 };
 
 type AuthorizeResult = {
@@ -217,7 +216,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     };
 
     const authorize = async <T extends MultifactorAuthenticationScenario>(params: AuthorizeParams<T>, onResult: (result: AuthorizeResult) => Promise<void> | void) => {
-        const {scenario, challenge, chainedPrivateKeyStatus} = params;
+        const {scenario, challenge} = params;
 
         const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
         const nativePromptTitle = translate(nativePromptTitleTPath);
@@ -226,8 +225,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         const authPublicKeys = challenge.allowCredentials?.map((cred: {id: string; type: string}) => cred.id) ?? [];
 
         // Get private key from SecureStore
-        // or use chained private key status to avoid authentication prompt displaying twice in a row
-        const privateKeyData = chainedPrivateKeyStatus ?? (await PrivateKeyStore.get(accountID, {nativePromptTitle}));
+        const privateKeyData = await PrivateKeyStore.get(accountID, {nativePromptTitle});
 
         if (!privateKeyData.value) {
             onResult({
