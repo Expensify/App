@@ -350,10 +350,11 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
+
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
-    const reportName = isGroupChat
-        ? getReportNameFromReportNameUtils(reportForHeader, reportAttributes)
-        : Parser.htmlToText(getReportNameFromReportNameUtils(reportForHeader, reportAttributes));
+    const shouldParseFullTitle = parentReportAction?.actionName !==
+         CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
+    const reportName = shouldParseFullTitle ? Parser.htmlToText(getReportNameFromReportNameUtils(report, reportAttributes)) : getReportNameFromReportNameUtils(report, reportAttributes);
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
