@@ -97,6 +97,7 @@ import Link from '@assets/images/link.svg';
 import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
+import Meter from '@assets/images/meter.svg';
 import Minus from '@assets/images/minus.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
@@ -234,6 +235,7 @@ export {
     LinkCopy,
     Mail,
     MakeAdmin,
+    Meter,
     MoneyBag,
     MoneyCircle,
     MoneySearch,
