@@ -147,6 +147,7 @@ import {
 } from './PersonalDetailsUtils';
 import {
     canSendInvoiceFromWorkspace,
+    canSubmitTimeExpenseFromWorkspace,
     getActivePolicies,
     getCleanedTagName,
     getConnectedIntegration,
@@ -4799,6 +4800,10 @@ function canEditFieldOfMoneyRequest(
 
         if (isUnreportedExpense) {
             return true;
+        }
+
+        if (isTimeRequest(transaction) && !canSubmitTimeExpenseFromWorkspace(reportPolicy)) {
+            return false;
         }
 
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {

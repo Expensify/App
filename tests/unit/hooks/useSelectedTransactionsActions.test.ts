@@ -580,6 +580,58 @@ describe('useSelectedTransactionsActions', () => {
         expect(moveOption?.text).toBe('iou.moveExpenses');
     });
 
+    it('should not show move option for time transactions from workspaces with time tracking disabled', async () => {
+        const transactionID = '123';
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        const reportActions: ReportAction[] = [
+            {
+                ...createRandomReportAction(1),
+                reportActionID: 'action1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: 'iou123',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    transactionID,
+                },
+            },
+        ];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.reportID = report.reportID;
+
+        transaction.comment = {
+            type: 'time',
+            units: {
+                count: 2,
+                rate: 3,
+                unit: 'h',
+            },
+        };
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(false);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.options.length).toBeGreaterThan(0);
+        });
+
+        const moveOption = result.current.options.find((option) => option.value === 'MOVE');
+        expect(moveOption).not.toBeDefined();
+    });
+
     it('should show split option when transaction can be split', async () => {
         const transactionID = '123';
         const report = {
