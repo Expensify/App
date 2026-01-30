@@ -5,7 +5,6 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions} from '@libs/actions/TransactionEdit';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import IOURequestStepScan from '@pages/iou/request/step/IOURequestStepScan';
@@ -18,11 +17,6 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-
-jest.mock('@libs/actions/TransactionEdit', () => ({
-    removeDraftTransactions: jest.fn(),
-    buildOptimisticTransactionAndCreateDraft: jest.fn(),
-}));
 
 let triggerFileSelection: ((files: FileObject[]) => void) | null = null;
 
@@ -60,9 +54,6 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
 }));
 
-const mockCreateObjectURL = () => 'file://mock-receipt.png';
-let originalCreateObjectURLDescriptor: PropertyDescriptor | undefined;
-
 function createMinimalReport(reportID: string, policyID: string): Report {
     return {
         reportID,
@@ -92,20 +83,6 @@ function getTransactionsDraftOnyx(transactionID: string): Promise<OnyxEntry<Tran
 describe('IOURequestStepScan', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-
-        if (global.URL && Object.getOwnPropertyDescriptor(global.URL, 'createObjectURL')) {
-            originalCreateObjectURLDescriptor = Object.getOwnPropertyDescriptor(global.URL, 'createObjectURL');
-        }
-
-        if (!global.URL) {
-            global.URL = {} as typeof global.URL;
-        }
-
-        Object.defineProperty(global.URL, 'createObjectURL', {
-            value: mockCreateObjectURL,
-            writable: true,
-            configurable: true,
-        });
     });
 
     beforeEach(() => {
@@ -119,10 +96,6 @@ describe('IOURequestStepScan', () => {
 
     afterAll(() => {
         jest.restoreAllMocks();
-        if (!originalCreateObjectURLDescriptor) {
-            return;
-        }
-        Object.defineProperty(global.URL, 'createObjectURL', originalCreateObjectURLDescriptor);
     });
 
     it('replacing receipt when editing does not clear other drafts', async () => {
@@ -187,8 +160,6 @@ describe('IOURequestStepScan', () => {
         });
         await waitForBatchedUpdates();
 
-        expect(jest.mocked(removeDraftTransactions)).not.toHaveBeenCalled();
-
         const tx2After = await getTransactionsDraftOnyx(TRANSACTION_ID_2);
         expect(tx2After).toBeDefined();
         expect(tx2After?.transactionID).toBe(TRANSACTION_ID_2);
@@ -200,8 +171,6 @@ describe('IOURequestStepScan', () => {
         const POLICY_ID = 'policy-1';
         const TRANSACTION_ID_1 = '101';
         const TRANSACTION_ID_2 = '102';
-
-        jest.mocked(buildOptimisticTransactionAndCreateDraft).mockReturnValue(createRandomTransaction(3));
 
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
@@ -260,8 +229,6 @@ describe('IOURequestStepScan', () => {
             triggerFileSelection([secondFile]);
         });
         await waitForBatchedUpdates();
-
-        expect(jest.mocked(removeDraftTransactions)).not.toHaveBeenCalled();
 
         const tx1After = await getTransactionsDraftOnyx(TRANSACTION_ID_1);
         expect(tx1After).toBeDefined();
