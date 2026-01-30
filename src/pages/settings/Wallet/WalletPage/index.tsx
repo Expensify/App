@@ -466,7 +466,11 @@ function WalletPage() {
                       {
                           text: translate('common.delete'),
                           icon: icons.Trashcan,
-                          onSelected: () => closeModal(confirmDeleteCard),
+                          onSelected: () => {
+                              closeModal(() => {
+                                  void confirmDeleteCard();
+                              });
+                          },
                       },
                   ]
                 : []),
