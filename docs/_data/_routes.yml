@@ -206,14 +206,17 @@ platforms:
   - href: consolidated
     title: Consolidated
     hub-title: Consolidated
-    hub-description: Questions? Find the answers by clicking a category or using the search bar.
-    url: help.expensify.com
-    description: Consolidated help content.
+    hub-description: Questions? Find the answers by clicking a Category or using the search bar.
+    url: travel.expensify.com
+    description: "This is a test for consolidated help site content."
     image: /assets/images/help-travel.png
 
     hubs:
       - href: billing-and-subscriptions
         title: Billing & Subscriptions
-        icon: /assets/images/subscription-annual.svg
+        icon: /assets/images/accounting.svg
         description: Learn about billing and subscriptions.
+        sections:
+          - href: overview
+            title: Overview
 
