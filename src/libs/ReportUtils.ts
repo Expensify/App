@@ -11542,6 +11542,8 @@ function prepareOnboardingOnyxData({
 
     // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
+    // When posting to admins room in non-production environments, we skip tasks in favor of backend-generated followups.
+    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && environment !== CONST.ENVIRONMENT.PRODUCTION;
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
@@ -11618,7 +11620,9 @@ function prepareOnboardingOnyxData({
     let addExpenseApprovalsTaskReportID;
     let setupTagsTaskReportID;
     let setupCategoriesAndTagsTaskReportID;
-    const tasksData = onboardingMessage.tasks
+    // If shouldUseFollowupsInsteadOfTasks we do not want to generate tasks in favour of followups.
+    const tasks = shouldUseFollowupsInsteadOfTasks ? [] : onboardingMessage.tasks;
+    const tasksData = tasks
         .filter((task) => {
             if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                 if (!!selectedInterestedFeatures && TASK_TO_FEATURE[task.type] && !selectedInterestedFeatures.includes(TASK_TO_FEATURE[task.type])) {
@@ -11895,7 +11899,7 @@ function prepareOnboardingOnyxData({
     }, []);
 
     const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [...tasksForOptimisticData];
-    const lastVisibleActionCreated = welcomeSignOffCommentAction.created;
+    const lastVisibleActionCreated = shouldUseFollowupsInsteadOfTasks ? textCommentAction.created : welcomeSignOffCommentAction.created;
     optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -11918,14 +11922,15 @@ function prepareOnboardingOnyxData({
             },
         },
     );
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-        value: {
-            [textCommentAction.reportActionID]: textCommentAction as ReportAction,
-        },
-    });
+    if (!shouldUseFollowupsInsteadOfTasks) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
+            },
+        });
+    }
 
     if (!wasInvited) {
         optimisticData.push({
@@ -12051,8 +12056,9 @@ function prepareOnboardingOnyxData({
 
     // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = [];
-
-    guidedSetupData.push({type: 'message', ...textMessage});
+    if (!shouldUseFollowupsInsteadOfTasks) {
+        guidedSetupData.push({type: 'message', ...textMessage});
+    }
 
     let selfDMParameters: SelfDMParameters = {};
     if (
@@ -12123,10 +12129,9 @@ function prepareOnboardingOnyxData({
             );
         }
     }
-
     guidedSetupData.push(...tasksForParameters);
 
-    if (!introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+    if (!shouldUseFollowupsInsteadOfTasks && (!introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,

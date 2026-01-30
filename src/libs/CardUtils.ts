@@ -145,7 +145,7 @@ function isCardClosed(card: Card) {
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldFilterOutPersonalCards = false) {
     const feedCards: CardList = {};
     for (const card of Object.values(cardList ?? {})) {
-        if (!isCard(card) || (shouldFilterOutPersonalCards && !isPersonalCard(card))) {
+        if (!isCard(card) || (shouldFilterOutPersonalCards && isPersonalCard(card))) {
             continue;
         }
 
@@ -829,12 +829,20 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
 
 /**
  * Check if the given card is a personal card.
+ * Personal cards have no fundID, fundID === '0', or are CSV imported cards.
  *
  * @param card the card which needs to be checked
  * @returns true if the card is a personal card, false otherwise
  */
 function isPersonalCard(card?: Card) {
-    return (!!card?.fundID && card.fundID !== '0') || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
+    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
+}
+
+/**
+ * Filter out personal (including cash) cards from the card list.
+ */
+function filterOutPersonalCards(cards: CardList | undefined): CardList {
+    return filterObject(cards ?? {}, (_key, card) => !isPersonalCard(card));
 }
 
 type SplitMaskedCardNumberResult = {
@@ -877,6 +885,23 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
             (card) => card?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (card?.encryptedCardNumber === cardNumberToCheck || card?.cardName === cardNumberToCheck),
         );
     });
+}
+
+/**
+ * Check if there are any assigned cards that should be displayed in the wallet page.
+ * This includes active Expensify cards, company cards (domain), and personal cards.
+ */
+function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
+    if (!cardList) {
+        return false;
+    }
+
+    return Object.values(cardList).some(
+        (card) =>
+            CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
+            (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+    );
 }
 
 export {
@@ -940,11 +965,13 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    filterOutPersonalCards,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
+    hasDisplayableAssignedCards,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};
