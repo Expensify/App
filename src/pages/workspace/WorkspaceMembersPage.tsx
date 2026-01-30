@@ -271,7 +271,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
-            removeMembers(policyID, selectedEmployees, policyMemberEmailsToAccountIDs);
+            removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
         });
     };
 
