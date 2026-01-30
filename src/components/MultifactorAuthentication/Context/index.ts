@@ -4,3 +4,5 @@ export type {MultifactorAuthenticationContextValue, ExecuteScenarioParams} from 
 
 export {useMultifactorAuthenticationState} from './State';
 export type {MultifactorAuthenticationState, MultifactorAuthenticationStateContextValue, ErrorState} from './State';
+
+export {default as usePromptContent, getHasBiometricsRegistered} from './usePromptContent';
