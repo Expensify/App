@@ -202,3 +202,18 @@ platforms:
         title: Event Management
         icon: /assets/images/envelope-receipt.svg
         description: "Learn how to create and manage Travel Events for group bookings."
+
+  - href: consolidated
+    title: Consolidated
+    hub-title: Consolidated
+    hub-description: Questions? Find the answers by clicking a category or using the search bar.
+    url: help.expensify.com
+    description: Consolidated help content.
+    image: /assets/images/help-travel.png
+
+    hubs:
+      - href: billing-and-subscriptions
+        title: Billing & Subscriptions
+        icon: /assets/images/subscription-annual.svg
+        description: Learn about billing and subscriptions.
+
