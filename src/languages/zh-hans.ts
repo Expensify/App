@@ -6886,6 +6886,7 @@ ${reportName}
             allMatchingItemsSelected: '已选择所有匹配的项目',
         },
         topSpenders: '最高支出者',
+        view: {label: '查看', table: '表格', bar: '栏'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',
             [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
