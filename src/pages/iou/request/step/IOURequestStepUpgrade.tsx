@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -59,6 +60,7 @@ function IOURequestStepUpgrade({
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
 
     const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
@@ -147,6 +149,7 @@ function IOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
+            isSelfTourViewed,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
@@ -172,6 +175,7 @@ function IOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
+            isSelfTourViewed,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);

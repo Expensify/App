@@ -1,4 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import isEmpty from 'lodash/isEmpty';
 import truncate from 'lodash/truncate';
 import React, {useCallback, useContext, useMemo} from 'react';
@@ -151,6 +152,7 @@ function SettlementButton({
     const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN) && !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -364,6 +366,7 @@ function SettlementButton({
                         activePolicyID,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                         currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                        isSelfTourViewed,
                     }).policyID;
                 };
                 const addBankAccountItem = {

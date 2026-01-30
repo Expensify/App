@@ -482,6 +482,7 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0
 }
 
 type CreateWorkspaceWithPolicyDraftParams = {
+    isSelfTourViewed: boolean;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     policyOwnerEmail?: string;
     policyName?: string;
@@ -519,6 +520,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         currentUserAccountIDParam,
         currentUserEmailParam,
         shouldCreateControlPolicy,
+        isSelfTourViewed,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -543,12 +545,14 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             currentUserEmailParam,
             allReportsParam: allReports,
             shouldCreateControlPolicy,
+            isSelfTourViewed,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
     });
 }
 
 type SavePolicyDraftByNewWorkspaceParams = {
+    isSelfTourViewed: boolean;
     policyID?: string;
     policyName?: string;
     policyOwnerEmail?: string;
@@ -581,6 +585,7 @@ function savePolicyDraftByNewWorkspace({
     currentUserEmailParam,
     allReportsParam,
     shouldCreateControlPolicy,
+    isSelfTourViewed,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -597,6 +602,7 @@ function savePolicyDraftByNewWorkspace({
         currentUserEmailParam,
         allReportsParam,
         shouldCreateControlPolicy,
+        isSelfTourViewed,
     });
 }
 
@@ -615,7 +621,7 @@ function savePolicyDraftByNewWorkspace({
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
  */
-function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>, activePolicyID: string | undefined) {
+function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>, activePolicyID: string | undefined, isSelfTourViewed: boolean) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
         return;
@@ -645,6 +651,7 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSe
             activePolicyID,
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
+            isSelfTourViewed,
         });
         return;
     }

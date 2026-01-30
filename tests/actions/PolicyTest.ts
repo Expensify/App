@@ -79,6 +79,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -472,6 +473,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -501,6 +503,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -534,6 +537,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -563,6 +567,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -589,6 +594,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -616,6 +622,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -641,6 +648,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -666,6 +674,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -691,6 +700,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.EMPLOYER},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -716,6 +726,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -753,6 +764,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -761,6 +773,72 @@ describe('actions/Policy', () => {
                 WRITE_COMMANDS.CREATE_WORKSPACE,
                 expect.objectContaining({
                     areDistanceRatesEnabled: true,
+                }),
+                expect.anything(),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should pass isSelfTourViewed as true when creating workspace with selfTourViewed flag', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with isSelfTourViewed set to true
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with CREATE_WORKSPACE command
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_WORKSPACE,
+                expect.objectContaining({
+                    policyID,
+                }),
+                expect.anything(),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('should pass isSelfTourViewed as false when creating workspace without selfTourViewed flag', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const policyID = Policy.generatePolicyID();
+
+            // When creating a workspace with isSelfTourViewed set to false
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with CREATE_WORKSPACE command
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_WORKSPACE,
+                expect.objectContaining({
+                    policyID,
                 }),
                 expect.anything(),
             );

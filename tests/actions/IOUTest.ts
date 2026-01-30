@@ -5505,6 +5505,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -5655,6 +5656,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6009,6 +6011,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -7437,6 +7440,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
 
                     // Change the approval mode for the policy since default is Submit and Close
@@ -7566,6 +7570,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
 
                     setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -7639,6 +7644,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -7836,6 +7842,7 @@ describe('actions/IOU', () => {
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
+                        isSelfTourViewed: false,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -7985,6 +7992,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
+                isSelfTourViewed: false,
             });
             return waitForBatchedUpdates()
                 .then(() => {
@@ -9644,6 +9652,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -9740,6 +9749,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 activePolicyID: '123',
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -10663,6 +10673,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    isSelfTourViewed: false,
                 });
 
                 // Change the approval mode for the policy since default is Submit and Close
@@ -10822,6 +10833,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
+                    isSelfTourViewed: false,
                 });
 
                 // Change the approval mode for the policy since default is Submit and Close
@@ -10985,6 +10997,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    isSelfTourViewed: false,
                 });
 
                 setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -11157,6 +11170,7 @@ describe('actions/IOU', () => {
                     introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
+                    isSelfTourViewed: false,
                 });
 
                 // Change the approval mode for the policy since default is Submit and Close

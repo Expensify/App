@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
@@ -22,6 +23,7 @@ function WorkspaceConfirmationPage() {
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
@@ -43,6 +45,7 @@ function WorkspaceConfirmationPage() {
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type),
+            isSelfTourViewed,
         });
     };
     const currentUrl = getCurrentUrl();
