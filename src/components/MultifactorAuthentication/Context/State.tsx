@@ -2,7 +2,7 @@ import React, {createContext, useContext, useMemo, useReducer} from 'react';
 import type {ReactNode} from 'react';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
-import {isContinuableReason} from '@libs/MultifactorAuthentication/Biometrics/helpers';
+import CONST from '@src/CONST';
 import type {MarqetaAuthTypeName, MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 
 type ErrorState = {
@@ -101,7 +101,9 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             if (action.payload === undefined) {
                 return {...state, error: undefined, continuableError: undefined};
             }
-            if (isContinuableReason(action.payload.reason)) {
+            // Invalid validate code is a continuable error - it doesn't fail the entire MFA flow,
+            // instead it's displayed on the current screen and the user can retry
+            if (action.payload.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_VALIDATE_CODE) {
                 return {...state, continuableError: action.payload, error: undefined};
             }
             return {...state, error: action.payload, continuableError: undefined};

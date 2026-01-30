@@ -1,7 +1,7 @@
 /**
  * Helper utilities for multifactor authentication biometrics operations.
  */
-import type {Entries, TupleToUnion, ValueOf} from 'type-fest';
+import type {Entries, ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationReason, MultifactorAuthenticationResponseMap} from './types';
 import VALUES from './VALUES';
 
@@ -18,11 +18,6 @@ const findMessageInSource = (source: ParseHTTPSource[keyof ParseHTTPSource], mes
     const [, value] = sourceEntries.find(([, predefinedMessage]) => predefinedMessage === message) ?? [];
     return value ?? VALUES.REASON.BACKEND.UNKNOWN_RESPONSE;
 };
-
-/** Check if a reason is continuable (can be handled by screen without stopping flow) */
-function isContinuableReason(reason: string): boolean {
-    return VALUES.CONTINUABLE_REASONS.includes(reason as TupleToUnion<typeof VALUES.CONTINUABLE_REASONS>);
-}
 
 /**
  * Parses an HTTP response code along with a message and returns the corresponding HTTP code and reason.
@@ -84,4 +79,4 @@ const decodeMultifactorAuthenticationExpoMessage = (message: unknown, fallback?:
     return decodedMessage === VALUES.REASON.EXPO.GENERIC && fallback ? fallback : decodedMessage;
 };
 
-export {decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage, parseHttpRequest, isContinuableReason};
+export {decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage, parseHttpRequest};
