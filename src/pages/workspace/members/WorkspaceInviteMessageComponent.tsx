@@ -158,7 +158,7 @@ function WorkspaceInviteMessageComponent({
         addMembersToWorkspace(
             invitedEmailsToAccountIDsDraft ?? {},
             `${welcomeNoteSubject}\n\n${welcomeNote}`,
-            policyID,
+            policy,
             policyMemberAccountIDs,
             workspaceInviteRoleDraft,
             formatPhoneNumber,
