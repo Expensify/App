@@ -1,17 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import {BarChart} from '@components/Charts';
 import type {ChartDataPoint} from '@components/Charts';
-import type {
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionMemberGroupListItemType,
-    TransactionWithdrawalIDGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {TransactionGroupListItemType} from '@components/SelectionListWithSections/types';
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-type GroupedItem = TransactionMemberGroupListItemType | TransactionCardGroupListItemType | TransactionWithdrawalIDGroupListItemType | TransactionCategoryGroupListItemType;
+import type {GroupedItem} from './types';
 
 type SearchBarChartProps = {
     /** Grouped transaction data from search results */

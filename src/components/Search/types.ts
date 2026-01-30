@@ -1,6 +1,21 @@
 import type {ValueOf} from 'type-fest';
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
+} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
@@ -307,6 +322,19 @@ type BankAccountMenuItem = {
     value: PaymentMethod;
 };
 
+/** Union type representing all possible grouped transaction item types used in chart views */
+type GroupedItem =
+    | TransactionMemberGroupListItemType
+    | TransactionCardGroupListItemType
+    | TransactionWithdrawalIDGroupListItemType
+    | TransactionCategoryGroupListItemType
+    | TransactionMerchantGroupListItemType
+    | TransactionTagGroupListItemType
+    | TransactionMonthGroupListItemType
+    | TransactionWeekGroupListItemType
+    | TransactionYearGroupListItemType
+    | TransactionQuarterGroupListItemType;
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -353,4 +381,5 @@ export type {
     SearchTextFilterKeys,
     BankAccountMenuItem,
     SearchCustomColumnIds,
+    GroupedItem,
 };
