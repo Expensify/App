@@ -8205,6 +8205,9 @@ const CONST = {
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
         },
+        HOME_PAGE: {
+            WIDGET_ITEM: 'HomePage-WidgetItem',
+        },
     },
 
     DOMAIN: {

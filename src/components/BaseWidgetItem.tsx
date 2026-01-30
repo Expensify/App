@@ -46,6 +46,7 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
             accessibilityLabel={title}
             onPress={onCtaPress}
             role={CONST.ROLE.BUTTON}
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
         >
             {({hovered}) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, hovered && styles.hoveredComponentBG]}>
