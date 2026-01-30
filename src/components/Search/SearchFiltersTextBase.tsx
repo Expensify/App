@@ -50,6 +50,7 @@ function SearchFiltersTextBase({filterKey, titleKey, testID, characterLimit = CO
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
+                shouldDisplayHelpButton={false}
             />
             <TextFilterBase
                 filterKey={filterKey}

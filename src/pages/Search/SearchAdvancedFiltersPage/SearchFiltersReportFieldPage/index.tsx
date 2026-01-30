@@ -125,6 +125,7 @@ function SearchFiltersReportFieldPage() {
                     resetValues();
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
+                shouldDisplayHelpButton={false}
             />
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                 {listItems.map((item) => (
