@@ -96,9 +96,8 @@ function getMultifactorAuthenticationPublicKeyIDs(data: OnyxEntry<Account>) {
 }
 
 /**
- * Deletes both private and public keys for a given account from secure storage.
- * Performs both deletions in parallel to reset the authentication state.
- * @param accountID - The account ID whose keys should be deleted.
+ * Clears local credentials to allow re-registration.
+ * Should only be used in response to server indicating credentials were removed.
  */
 async function resetKeys(accountID: number) {
     await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
