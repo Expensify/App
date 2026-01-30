@@ -466,11 +466,8 @@ function WalletPage() {
                       {
                           text: translate('common.delete'),
                           icon: icons.Trashcan,
-                          onSelected: () => {
-                              closeModal(() => {
-                                  void confirmDeleteCard();
-                              });
-                          },
+                          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                          onSelected: () => closeModal(confirmDeleteCard),
                       },
                   ]
                 : []),
