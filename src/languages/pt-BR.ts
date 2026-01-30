@@ -7051,7 +7051,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
         },
         topSpenders: 'Maiores gastadores',
-        view: {label: 'Ver', table: 'Tabela', bar: 'Bar'},
+        view: {label: 'Ver', table: 'Tabela', bar: 'Bar', pie: 'Torta'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cartões',
