@@ -95,8 +95,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // 4. Check if registration is required (not registered yet)
-        const isRegistrationRequired = !(await biometrics.isRegisteredInAuth()) && !isRegistrationComplete;
+        // 4. Check if registration is required (local credentials not known to server yet)
+        const isRegistrationRequired = !(await biometrics.areLocalCredentialsKnownToServer()) && !isRegistrationComplete;
 
         if (isRegistrationRequired) {
             // Need validate code before registration
@@ -153,7 +153,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     publicKey: result.publicKey,
                     authenticationMethod: result.authenticationMethod,
                     challenge: registrationChallenge.challenge,
-                    currentPublicKeyIDs: biometrics.registeredPublicKeyIDs,
+                    currentPublicKeyIDs: biometrics.serverKnownCredentialIDs,
                 });
 
                 if (!registrationResult.success) {

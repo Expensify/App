@@ -86,10 +86,10 @@ describe('useNativeBiometrics hook', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             expect(result.current).toHaveProperty('info');
-            expect(result.current).toHaveProperty('isAnyDeviceRegistered');
+            expect(result.current).toHaveProperty('serverHasAnyCredentials');
             expect(result.current).toHaveProperty('doesDeviceSupportBiometrics');
-            expect(result.current).toHaveProperty('isRegisteredLocally');
-            expect(result.current).toHaveProperty('isRegisteredInAuth');
+            expect(result.current).toHaveProperty('hasLocalCredentials');
+            expect(result.current).toHaveProperty('areLocalCredentialsKnownToServer');
             expect(result.current).toHaveProperty('register');
             expect(result.current).toHaveProperty('authorize');
             expect(result.current).toHaveProperty('resetKeysForAccount');
@@ -102,22 +102,22 @@ describe('useNativeBiometrics hook', () => {
                 deviceSupportsBiometrics: true,
             });
 
-            expect(result.current.isRegisteredLocally()).resolves.toBe(false);
-            expect(result.current.isRegisteredInAuth()).resolves.toBe(false);
+            expect(result.current.hasLocalCredentials()).resolves.toBe(false);
+            expect(result.current.areLocalCredentialsKnownToServer()).resolves.toBe(false);
         });
 
-        it('should derive isAnyDeviceRegistered from Onyx state', () => {
+        it('should derive serverHasAnyCredentials from Onyx state', () => {
             mockMultifactorAuthenticationPublicKeyIDs = ['public-key-123'];
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.isAnyDeviceRegistered).toBe(true);
+            expect(result.current.serverHasAnyCredentials).toBe(true);
         });
 
-        it('should return false for isAnyDeviceRegistered when Onyx state is empty', () => {
+        it('should return false for serverHasAnyCredentials when Onyx state is empty', () => {
             mockMultifactorAuthenticationPublicKeyIDs = [];
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.isAnyDeviceRegistered).toBe(false);
+            expect(result.current.serverHasAnyCredentials).toBe(false);
         });
     });
 
@@ -140,15 +140,15 @@ describe('useNativeBiometrics hook', () => {
         });
     });
 
-    describe('isRegisteredLocally', () => {
-        it('should return false when no local key exists', async () => {
+    describe('hasLocalCredentials', () => {
+        it('should return false when no local credential exists', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const isRegistered = await result.current.isRegisteredLocally();
-            expect(isRegistered).toBe(false);
+            const hasCredentials = await result.current.hasLocalCredentials();
+            expect(hasCredentials).toBe(false);
         });
 
-        it('should return true when local key exists', async () => {
+        it('should return true when local credential exists', async () => {
             (PublicKeyStore.get as jest.Mock).mockResolvedValue({
                 value: 'public-key-123',
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
@@ -156,20 +156,20 @@ describe('useNativeBiometrics hook', () => {
 
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const isRegistered = await result.current.isRegisteredLocally();
-            expect(isRegistered).toBe(true);
+            const hasCredentials = await result.current.hasLocalCredentials();
+            expect(hasCredentials).toBe(true);
         });
     });
 
-    describe('isRegisteredInAuth', () => {
-        it('should return false when no local key exists', async () => {
+    describe('areLocalCredentialsKnownToServer', () => {
+        it('should return false when no local credential exists', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const isRegistered = await result.current.isRegisteredInAuth();
-            expect(isRegistered).toBe(false);
+            const isKnown = await result.current.areLocalCredentialsKnownToServer();
+            expect(isKnown).toBe(false);
         });
 
-        it('should return true when local key exists in auth backend', async () => {
+        it('should return true when local credential is known to server', async () => {
             mockMultifactorAuthenticationPublicKeyIDs = ['public-key-123'];
             (PublicKeyStore.get as jest.Mock).mockResolvedValue({
                 value: 'public-key-123',
@@ -178,26 +178,26 @@ describe('useNativeBiometrics hook', () => {
 
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const isRegistered = await result.current.isRegisteredInAuth();
-            expect(isRegistered).toBe(true);
+            const isKnown = await result.current.areLocalCredentialsKnownToServer();
+            expect(isKnown).toBe(true);
         });
     });
 
-    describe('isAnyDeviceRegistered', () => {
-        it('should return true when Onyx has registered public keys', () => {
+    describe('serverHasAnyCredentials', () => {
+        it('should return true when server has registered credentials', () => {
             mockMultifactorAuthenticationPublicKeyIDs = ['public-key-123'];
 
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.isAnyDeviceRegistered).toBe(true);
+            expect(result.current.serverHasAnyCredentials).toBe(true);
         });
 
-        it('should return false when Onyx has no registered public keys', () => {
+        it('should return false when server has no registered credentials', () => {
             mockMultifactorAuthenticationPublicKeyIDs = [];
 
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.isAnyDeviceRegistered).toBe(false);
+            expect(result.current.serverHasAnyCredentials).toBe(false);
         });
     });
 

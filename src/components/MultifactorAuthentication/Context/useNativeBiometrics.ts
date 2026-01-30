@@ -63,20 +63,20 @@ type UseNativeBiometricsReturn = {
     /** Biometrics info about device and registration status */
     info: BiometricsInfo;
 
-    /** Whether any device is registered for this account (from Onyx) */
-    isAnyDeviceRegistered: boolean;
+    /** Whether server has any registered credentials for this account */
+    serverHasAnyCredentials: boolean;
 
-    /** List of registered public key IDs from backend */
-    registeredPublicKeyIDs: string[];
+    /** List of credential IDs known to server (from Onyx) */
+    serverKnownCredentialIDs: string[];
 
     /** Check if device supports biometrics */
     doesDeviceSupportBiometrics: () => boolean;
 
-    /** Check if biometrics is registered locally */
-    isRegisteredLocally: () => Promise<boolean>;
+    /** Check if device has biometric credentials stored locally */
+    hasLocalCredentials: () => Promise<boolean>;
 
-    /** Check if local public key is in auth backend */
-    isRegisteredInAuth: () => Promise<boolean>;
+    /** Check if local credentials are known to server (local credential exists in server's list) */
+    areLocalCredentialsKnownToServer: () => Promise<boolean>;
 
     /** Register biometrics on device */
     register: (params: RegisterParams, onResult: (result: RegisterResult) => Promise<void> | void) => Promise<void>;
@@ -130,7 +130,8 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     const {translate} = useLocalize();
 
     const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs, canBeMissing: true});
-    const isAnyDeviceRegistered = !!multifactorAuthenticationPublicKeyIDs?.length;
+    const serverKnownCredentialIDs = multifactorAuthenticationPublicKeyIDs ?? [];
+    const serverHasAnyCredentials = serverKnownCredentialIDs.length > 0;
 
     /**
      * Checks if the device supports biometric authentication methods.
@@ -149,15 +150,15 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         [doesDeviceSupportBiometrics],
     );
 
-    const isRegisteredLocally = useCallback(async () => {
+    const hasLocalCredentials = useCallback(async () => {
         const config = await isBiometryConfigured(accountID);
         return config.isBiometryRegisteredLocally;
     }, [accountID]);
 
-    const isRegisteredInAuth = useCallback(async () => {
-        const config = await isBiometryConfigured(accountID, multifactorAuthenticationPublicKeyIDs ?? []);
+    const areLocalCredentialsKnownToServer = useCallback(async () => {
+        const config = await isBiometryConfigured(accountID, serverKnownCredentialIDs);
         return config.isLocalPublicKeyInAuth;
-    }, [accountID, multifactorAuthenticationPublicKeyIDs]);
+    }, [accountID, serverKnownCredentialIDs]);
 
     const resetKeysForAccount = useCallback(async () => {
         await resetKeys(accountID);
@@ -270,11 +271,11 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
 
     return {
         info,
-        isAnyDeviceRegistered,
-        registeredPublicKeyIDs: multifactorAuthenticationPublicKeyIDs ?? [],
+        serverHasAnyCredentials,
+        serverKnownCredentialIDs,
         doesDeviceSupportBiometrics,
-        isRegisteredLocally,
-        isRegisteredInAuth,
+        hasLocalCredentials,
+        areLocalCredentialsKnownToServer,
         register,
         authorize,
         resetKeysForAccount,
