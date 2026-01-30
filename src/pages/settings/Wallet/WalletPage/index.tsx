@@ -37,13 +37,14 @@ import {hasDisplayableAssignedCards, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
+import {enableCompanyCards} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,15 +77,17 @@ function WalletPage() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
+    const {translate, localeCompare} = useLocalize();
+    const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const hasSinglePolicy = activeAdminPolicies.length === 1;
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus']);
-    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet']);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Plus']);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet', 'VerticalCreditCards']);
     const walletIllustration = useWalletSectionIllustration();
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
@@ -441,6 +444,23 @@ function WalletPage() {
         ],
     );
 
+    const openCompanyCardFlow = () => {
+        if (hasSinglePolicy) {
+            const policy = activeAdminPolicies.at(0);
+            const policyID = policy?.id;
+            const isCompanyCardEnabled = policy?.areCompanyCardsEnabled;
+            if (!policyID) {
+                return;
+            }
+            if (!isCompanyCardEnabled) {
+                enableCompanyCards(policyID, true, false);
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
+    };
+
     const cardThreeDotsMenuItems = useMemo(() => {
         const isCSVImport = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
         const shouldShowDeleteCardButton = isCSVImport && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
@@ -528,24 +548,56 @@ function WalletPage() {
                             />
                         </Section>
 
-                        {hasAssignedCard ? (
-                            <Section
-                                subtitle={translate('walletPage.assignedCardsDescription')}
-                                title={translate('walletPage.assignedCards')}
-                                isCentralPane
-                                subtitleMuted
-                                titleStyles={styles.accountSettingsSectionTitle}
-                            >
-                                <PaymentMethodList
-                                    shouldShowAddBankAccount={false}
-                                    shouldShowAssignedCards
-                                    onPress={assignedCardPressed}
-                                    threeDotsMenuItems={cardThreeDotsMenuItems}
-                                    style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                    listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        <Section
+                            subtitle={translate('walletPage.assignedCardsDescription')}
+                            title={translate('walletPage.assignedCards')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            <>
+                                {!hasAssignedCard ? (
+                                    <PaymentMethodList
+                                        shouldShowAddBankAccount={false}
+                                        shouldShowAssignedCards
+                                        onPress={assignedCardPressed}
+                                        threeDotsMenuItems={cardThreeDotsMenuItems}
+                                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    />
+                                ) : null}
+                                <MenuItem
+                                    title={translate('personalCard.addPersonalCard')}
+                                    icon={icons.Plus}
+                                    onPress={() => {
+                                        if (isAccountLocked) {
+                                            showLockedAccountModal();
+                                            return;
+                                        }
+
+                                        if (!isUserValidated) {
+                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT);
+                                            return;
+                                        }
+                                        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
+                                    }}
+                                    wrapperStyle={[styles.transferBalance, styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                                 />
-                            </Section>
-                        ) : null}
+                                {hasAssignedCard ? (
+                                    <MenuItem
+                                        iconHeight={48}
+                                        iconWidth={48}
+                                        shouldShowRightIcon
+                                        icon={illustrations.VerticalCreditCards}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        title={translate('personalCard.lookingForCompanyCards')}
+                                        description={translate('personalCard.lookingForCompanyCardsDescription')}
+                                        titleStyle={styles.textStrong}
+                                        onPress={openCompanyCardFlow}
+                                    />
+                                ) : null}
+                            </>
+                        </Section>
 
                         {hasWallet && (
                             <Section

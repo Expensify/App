@@ -2147,6 +2147,13 @@ const translations = {
             password: 'Please enter your Expensify password',
         },
     },
+    personalCard: {
+        addPersonalCard: 'Add personal card',
+        lookingForCompanyCards: 'Looking for company cards?',
+        lookingForCompanyCardsDescription: 'Assign cards from all major credit card providers to the entire team from workspace settings.',
+        personalCardAdded: 'Personal card added!',
+        personalCardAddedDescription: 'Congrats, we’ll begin importing transactions from your card.',
+    },
     addPaymentCardPage: {
         addAPaymentCard: 'Add payment card',
         nameOnCard: 'Name on card',

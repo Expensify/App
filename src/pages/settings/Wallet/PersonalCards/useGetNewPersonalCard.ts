@@ -1,4 +1,3 @@
-import {filterPersonalCards} from '@selectors/Card';
 import {useEffect, useRef, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -6,7 +5,7 @@ import type {Card, CardList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 export default function useGetNewPersonalCard() {
-    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [newCard, setNewCard] = useState<Card | null>(null);
     const prevCardListRef = useRef<Record<string, Card>>({});
 
