@@ -368,7 +368,7 @@ function MoneyRequestView({
 
     const shouldRestrictEditingReportDueToFeatureDisabled =
         (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy) && !(isExpenseUnreported && !!perDiemOriginalPolicy)) ||
-        (isTimeRequest && !canSubmitTimeExpenseFromWorkspace(policy) && !doesAnyPolicyWithTimeTrackingEnabledExist);
+        (isTimeRequest && !canSubmitTimeExpenseFromWorkspace(policy) && !(isExpenseUnreported && doesAnyPolicyWithTimeTrackingEnabledExist));
 
     const canEditReport =
         isEditable &&
