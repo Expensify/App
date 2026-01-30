@@ -13,14 +13,10 @@ function useTimeSensitiveCards() {
         const cards = Object.values(cardList ?? {});
 
         // Find all cards that need a shipping address (state: NOT_ISSUED)
-        const pendingIssueCards = cards.filter(
-            (card) => isCardPendingIssue(card) && card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual,
-        );
+        const pendingIssueCards = cards.filter((card) => isCardPendingIssue(card) && card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual);
 
         // Find all cards that need activation (state: NOT_ACTIVATED)
-        const pendingActivateCards = cards.filter(
-            (card) => isCardPendingActivate(card) && card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual,
-        );
+        const pendingActivateCards = cards.filter((card) => isCardPendingActivate(card) && card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual);
 
         return {
             cardsNeedingShippingAddress: pendingIssueCards,

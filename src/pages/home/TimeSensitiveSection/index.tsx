@@ -7,12 +7,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
+import useTimeSensitiveOffers from './hooks/useTimeSensitiveOffers';
 import ActivateCard from './items/ActivateCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import Offer25off from './items/Offer25off';
 import Offer50off from './items/Offer50off';
-import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
-import useTimeSensitiveOffers from './hooks/useTimeSensitiveOffers';
 
 function TimeSensitiveSection() {
     const styles = useThemeStyles();
@@ -42,8 +42,20 @@ function TimeSensitiveSection() {
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
                 {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
                 {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
-                {shouldShowAddShippingAddress && cardsNeedingShippingAddress.map((card) => <AddShippingAddress key={card.cardID} card={card} />)}
-                {shouldShowActivateCard && cardsNeedingActivation.map((card) => <ActivateCard key={card.cardID} card={card} />)}
+                {shouldShowAddShippingAddress &&
+                    cardsNeedingShippingAddress.map((card) => (
+                        <AddShippingAddress
+                            key={card.cardID}
+                            card={card}
+                        />
+                    ))}
+                {shouldShowActivateCard &&
+                    cardsNeedingActivation.map((card) => (
+                        <ActivateCard
+                            key={card.cardID}
+                            card={card}
+                        />
+                    ))}
             </View>
         </WidgetContainer>
     );
