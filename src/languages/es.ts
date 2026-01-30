@@ -1919,6 +1919,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     personalCard: {
         brokenConnection: 'La conexión de tu tarjeta está rota',
+        fixCard: 'Reparar tarjeta',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             `La conexión de tu tarjeta ${cardName} está interrumpida. <a href="${connectionLink}">Inicia sesión en tu banco</a> para reparar la tarjeta.`,
     },
