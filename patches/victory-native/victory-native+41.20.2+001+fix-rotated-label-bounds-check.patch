@@ -1,16 +1,11 @@
 diff --git a/node_modules/victory-native/src/cartesian/components/XAxis.tsx b/node_modules/victory-native/src/cartesian/components/XAxis.tsx
-index 1234567..abcdefg 100644
+index 6d83472..a6e2ed0 100644
 --- a/node_modules/victory-native/src/cartesian/components/XAxis.tsx
 +++ b/node_modules/victory-native/src/cartesian/components/XAxis.tsx
-@@ -59,13 +59,21 @@ export const XAxis = <
-     const val = isNumericalData ? tick : ix[tick];
-
-     const contentX = formatXLabel(val as never);
-     const labelWidth =
+@@ -63,13 +63,22 @@ export const XAxis = <
        font
          ?.getGlyphWidths?.(font.getGlyphIDs(contentX))
          .reduce((sum, value) => sum + value, 0) ?? 0;
--    const labelX = xScale(tick) - (labelWidth ?? 0) / 2;
 +
 +    // Calculate actual horizontal extent accounting for rotation for bounds checking
 +    // For a rotated rectangle: width * |cos(angle)| + height * |sin(angle)|
@@ -19,7 +14,7 @@ index 1234567..abcdefg 100644
 +    const sinAngle = Math.abs(Math.sin(rotateRad));
 +    const rotatedLabelWidth = labelWidth * cosAngle + fontSize * sinAngle;
 +
-+    const labelX = xScale(tick) - (labelWidth ?? 0) / 2;
+     const labelX = xScale(tick) - (labelWidth ?? 0) / 2;
 +    const rotatedLabelX = xScale(tick) - rotatedLabelWidth / 2;
      const canFitLabelContent =
        xScale(tick) >= chartBounds.left &&
@@ -29,5 +24,6 @@ index 1234567..abcdefg 100644
 -        : chartBounds.left < labelX);
 +        ? rotatedLabelX + rotatedLabelWidth < chartBounds.right
 +        : chartBounds.left < rotatedLabelX);
-
+ 
      const labelY = (() => {
+       // bottom, outset
