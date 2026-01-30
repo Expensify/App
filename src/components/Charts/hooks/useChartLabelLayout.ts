@@ -29,7 +29,7 @@ type LabelLayoutConfig = {
     data: ChartDataPoint[];
     font: SkFont | null;
     chartWidth: number;
-    plotAreaWidth: number;
+    barAreaWidth: number;
     containerHeight: number;
 };
 
@@ -43,7 +43,7 @@ function measureTextWidth(text: string, font: SkFont): number {
     return glyphWidths.reduce((sum, w) => sum + w, 0);
 }
 
-function useChartLabelLayout({data, font, chartWidth, plotAreaWidth, containerHeight}: LabelLayoutConfig) {
+function useChartLabelLayout({data, font, chartWidth, barAreaWidth, containerHeight}: LabelLayoutConfig) {
     return useMemo(() => {
         if (!font || chartWidth === 0 || containerHeight === 0 || data.length === 0) {
             return {labelRotation: 0, labelSkipInterval: 1, truncatedLabels: data.map((p) => p.label)};
@@ -133,9 +133,9 @@ function useChartLabelLayout({data, font, chartWidth, plotAreaWidth, containerHe
         // Calculate skip interval using spec formula:
         // maxVisibleLabels = floor(barAreaWidth / (effectiveWidth + MIN_LABEL_GAP))
         // skipInterval = ceil(barCount / maxVisibleLabels)
-        // Use plotAreaWidth (actual plotting area from chartBounds) rather than chartWidth
+        // Use barAreaWidth (actual plotting area from chartBounds) rather than chartWidth
         // (full container) so Y-axis labels and padding don't inflate the count.
-        const labelAreaWidth = plotAreaWidth || chartWidth;
+        const labelAreaWidth = barAreaWidth || chartWidth;
         const maxVisibleLabels = Math.floor(labelAreaWidth / (effectiveWidth + LABEL_PADDING));
         // When maxVisibleLabels is 0 (area too narrow for even one label) or less than
         // data.length, compute the interval. data.length is the safe upper bound — show
@@ -151,7 +151,7 @@ function useChartLabelLayout({data, font, chartWidth, plotAreaWidth, containerHe
         }
 
         return {labelRotation: rotationValue, labelSkipInterval: skipInterval, truncatedLabels: finalLabels, maxLabelLength};
-    }, [font, chartWidth, plotAreaWidth, containerHeight, data]);
+    }, [font, chartWidth, barAreaWidth, containerHeight, data]);
 }
 
 export {useChartLabelLayout};

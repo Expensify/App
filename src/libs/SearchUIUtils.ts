@@ -11,7 +11,6 @@ import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {
-    GroupedItem,
     QueryFilters,
     SearchAction,
     SearchColumnType,
@@ -26,6 +25,7 @@ import type {
     SelectedTransactionInfo,
     SingularSearchStatus,
     SortOrder,
+    GroupedItem,
 } from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';

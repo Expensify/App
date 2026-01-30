@@ -1,4 +1,3 @@
-export {useChartBoundsTracking} from './useChartBoundsTracking';
 export {useChartInteractionState} from './useChartInteractionState';
 export {useChartLabelLayout} from './useChartLabelLayout';
 export {useChartInteractions} from './useChartInteractions';
