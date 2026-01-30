@@ -1073,6 +1073,8 @@ const translations = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.'),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transactions have been imported.` : '1 transaction has been imported.',
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
         importDescription: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
@@ -4921,6 +4923,15 @@ const translations = {
             assignCardFailedError: 'Card assignment failed.',
             unassignCardFailedError: 'Card unassignment failed.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            importTransactions: {
+                title: 'Import transactions from file',
+                description: 'Please adjust the settings for your file that will be applied on import.',
+                cardDisplayName: 'Card display name',
+                currency: 'Currency',
+                transactionsAreReimbursable: 'Transactions are reimbursable',
+                flipAmountSign: 'Flip amount sign',
+                importButton: 'Import transactions',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',

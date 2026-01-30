@@ -1039,6 +1039,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: `请确认以下将通过本次上传添加的新工作区成员的详细信息。现有成员不会收到任何角色更新或邀请消息。`,
             other: (count: number) => `请确认以下有关将在此次上传中添加的 ${count} 位新的工作区成员的详细信息。现有成员不会收到任何角色更新或邀请消息。`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已导入 ${transactions} 笔交易。` : '已导入 1 笔交易。'),
     },
     receipt: {
         upload: '上传收据',
@@ -4840,6 +4841,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: '选择一个新的交易起始日期。我们将从该日期起同步所有交易，但不包括已经导入的交易。',
             unassignCardFailedError: '卡片取消分配失败。',
+            importTransactions: {
+                title: '从文件导入交易',
+                description: '请调整文件的设置，这些设置将在导入时应用。',
+                cardDisplayName: '卡片显示名称',
+                currency: '货币',
+                transactionsAreReimbursable: '交易可报销',
+                flipAmountSign: '翻转金额符号',
+                importButton: '导入交易',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片信息流',
                 workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时出错。请重试或联系您的管理员。',

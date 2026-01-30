@@ -1057,6 +1057,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bitte bestätige die folgenden Details für die ${count} neuen Workspace-Mitglieder, die im Rahmen dieses Uploads hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladung Nachrichten.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} Transaktionen wurden importiert.` : '1 Transaktion wurde importiert.',
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -4963,6 +4965,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             editStartDateDescription:
                 'Wählen Sie ein neues Startdatum für Transaktionen. Wir synchronisieren alle Transaktionen ab diesem Datum, ausgenommen diejenigen, die wir bereits importiert haben.',
             unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
+            importTransactions: {
+                title: 'Transaktionen aus Datei importieren',
+                description: 'Bitte passen Sie die Einstellungen für Ihre Datei an, die beim Import angewendet werden.',
+                cardDisplayName: 'Name der Karte',
+                currency: 'Währung',
+                transactionsAreReimbursable: 'Transaktionen sind erstattungsfähig',
+                flipAmountSign: 'Vorzeichen des Betrags umkehren',
+                importButton: 'Transaktionen importieren',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kartenfeeds konnten nicht geladen werden',
                 workspaceFeedsCouldNotBeLoadedMessage:

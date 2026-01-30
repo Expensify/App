@@ -1059,6 +1059,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Veuillez confirmer les détails ci-dessous pour les ${count} nouveaux membres d’espace de travail qui seront ajoutés dans le cadre de cet import. Les membres existants ne recevront aucune mise à jour de rôle ni message d’invitation.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transactions ont été importées.` : '1 transaction a été importée.',
     },
     receipt: {
         upload: 'Téléverser un reçu',
@@ -4970,6 +4972,15 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             editStartDateDescription:
                 'Choisissez une nouvelle date de début des transactions. Nous synchroniserons toutes les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
             unassignCardFailedError: 'Échec de la désaffectation de la carte.',
+            importTransactions: {
+                title: 'Importer des transactions depuis un fichier',
+                description: 'Veuillez ajuster les paramètres de votre fichier qui seront appliqués lors de l’importation.',
+                cardDisplayName: 'Nom d’affichage de la carte',
+                currency: 'Devise',
+                transactionsAreReimbursable: 'Les transactions sont remboursables',
+                flipAmountSign: 'Inverser le signe du montant',
+                importButton: 'Importer des transactions',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de carte',
                 workspaceFeedsCouldNotBeLoadedMessage:
