@@ -33,6 +33,12 @@
     card: "card",
     "withdrawal-id": "withdrawn",
     category: "category",
+    tag: "tag",
+    merchant: "groupMerchant",
+    month: "groupmonth",
+    week: "groupweek",
+    year: "groupyear",
+    quarter: "groupquarter",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -40,6 +46,12 @@
     card: "asc",
     "withdrawal-id": "desc",
     category: "asc",
+    tag: "asc",
+    merchant: "asc",
+    month: "desc",
+    week: "desc",
+    year: "desc",
+    quarter: "desc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
