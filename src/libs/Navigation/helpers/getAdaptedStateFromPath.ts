@@ -1,33 +1,20 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import pick from 'lodash/pick';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {config} from '@libs/Navigation/linkingConfig/config';
 import {RHP_TO_DOMAIN, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import getRedirectedPath from './getRedirectedPath';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
 
 type GetAdaptedStateReturnType = ReturnType<typeof getStateFromPath>;
 
@@ -38,10 +25,6 @@ const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<Navi
 
 function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
     return route.params !== undefined && 'backTo' in route.params && typeof route.params.backTo === 'string';
-}
-
-function isRouteWithReportID(route: NavigationPartialRoute): route is Route<string, {reportID: string}> {
-    return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
 /**
@@ -162,37 +145,6 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     return undefined;
 }
 
-// If there is no particular matching route defined, we want to get the default route.
-// It is the reports split navigator with report. If the reportID is defined in the focused route, we want to use it for the default report.
-// This is separated from getMatchingFullScreenRoute because we want to use it only for the initial state.
-// We don't want to make this route mandatory e.g. after deep linking or opening a specific flow.
-function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
-    // We will use it if the reportID is not defined. Router of this navigator has logic to fill it with a report.
-    const fallbackRoute = {
-        name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-    };
-
-    if (route && isRouteWithReportID(route)) {
-        const reportID = route.params.reportID;
-
-        if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
-            return fallbackRoute;
-        }
-
-        return getInitialSplitNavigatorState(
-            {
-                name: SCREENS.INBOX,
-            },
-            {
-                name: SCREENS.REPORT,
-                params: {reportID},
-            },
-        );
-    }
-
-    return fallbackRoute;
-}
-
 function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {
     const onboardingRoute = state.routes.at(0);
     if (!onboardingRoute || onboardingRoute.name === SCREENS.ONBOARDING.PURPOSE || onboardingRoute.name === SCREENS.ONBOARDING.WORK_EMAIL) {
@@ -237,7 +189,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             }
         }
 
-        const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);
+        const defaultFullScreenRoute = {name: SCREENS.HOME};
 
         // The onboarding flow consists of several screens. If we open any of the screens, the previous screens from that flow should be in the state.
         if (onboardingNavigator?.state) {
