@@ -750,6 +750,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: '¡Obtén 25% de descuento en tu primer año!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'día' : 'días'} restantes`,
             },
+            addShippingAddress: {
+                title: 'Necesitamos tu dirección de envío',
+                subtitle: 'Proporciona una dirección para recibir tu Tarjeta Expensify.',
+                cta: 'Añade dirección',
+            },
+            activateCard: {
+                title: 'Activa tu Tarjeta Expensify',
+                subtitle: 'Valida tu tarjeta y empieza a gastar.',
+                cta: 'Activa',
+            },
         },
         announcements: 'Anuncios',
         discoverSection: {
