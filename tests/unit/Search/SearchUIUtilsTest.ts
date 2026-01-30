@@ -6260,4 +6260,20 @@ describe('SearchUIUtils', () => {
             expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
         });
     });
+
+    describe('filterValidHasValues', () => {
+        test('should return undefined when hasValues or type is undefined', () => {
+            expect(SearchUIUtils.filterValidHasValues(undefined, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.filterValidHasValues(['receipt'], undefined, translateLocal)).toBeUndefined();
+        });
+
+        test('should filter and return only valid has values', () => {
+            // Valid values for EXPENSE: receipt, attachment, tag, category
+            // Invalid value: link (only valid for CHAT)
+            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK];
+            const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
+
+            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG]);
+        });
+    });
 });
