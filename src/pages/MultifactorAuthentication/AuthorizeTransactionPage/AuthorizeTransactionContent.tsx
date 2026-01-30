@@ -69,6 +69,7 @@ function MultifactorAuthenticationAuthorizeTransactionContent({transactionID}: M
 
     const isIllegibleForShowingPayerAndReceiver = !action || (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU);
 
+    // || operator is needed to handle both empty string and undefined cases
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowPayerAndReceiver = isIllegibleForShowingPayerAndReceiver ? false : transactions.some((transactionX) => Number(transactionX?.modifiedAmount || transactionX?.amount) < 0);
 

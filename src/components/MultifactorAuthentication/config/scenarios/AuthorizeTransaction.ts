@@ -1,4 +1,5 @@
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
+// Spacing utilities are needed for icon padding configuration in outcomes defaults
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
