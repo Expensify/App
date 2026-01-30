@@ -48,3 +48,6 @@
 -dontwarn org.jmrtd.protocol.PACEResult
 -dontwarn org.spongycastle.jce.provider.BouncyCastleProvider
 -dontwarn org.slf4j.impl.StaticLoggerBinder
+
+# https://shopify.github.io/react-native-skia/docs/getting-started/installation/#proguard
+-keep class com.shopify.reactnative.skia.** { *; }

@@ -42,7 +42,6 @@ let youTranslation = '';
 
 Onyx.connect({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
     callback: (value) => {
         if (value ?? true) {
             return;

@@ -10,7 +10,6 @@ import {getActivePolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session, TryNewDot} from '@src/types/onyx';
-import './sendMemoryContext';
 
 /**
  * Connect to Onyx to retrieve information about the user's active policies.

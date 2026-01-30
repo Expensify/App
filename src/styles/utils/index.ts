@@ -1766,6 +1766,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER:
             case CONST.SEARCH.TABLE_COLUMNS.TAG:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;

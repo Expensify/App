@@ -22,7 +22,6 @@ type ActionableItemButtonsProps = {
     styles?: {
         text?: StyleProp<TextStyle>;
         button?: StyleProp<ViewStyle>;
-        buttonHover?: StyleProp<ViewStyle>;
         container?: StyleProp<ViewStyle>;
     };
 };
@@ -41,7 +40,6 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     medium
                     success={item.isPrimary}
                     innerStyles={props.styles?.button}
-                    hoverStyles={props.styles?.buttonHover}
                     primaryTextNumberOfLines={props.primaryTextNumberOfLines}
                     textStyles={props.styles?.text}
                 />

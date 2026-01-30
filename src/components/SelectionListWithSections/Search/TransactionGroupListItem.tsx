@@ -20,10 +20,12 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -49,11 +51,13 @@ import CategoryListItemHeader from './CategoryListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
+import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
+import YearListItemHeader from './YearListItemHeader';
 
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
@@ -108,7 +112,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const transactions = useMemo(() => {
@@ -127,6 +132,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             formatPhoneNumber,
             bankAccountList,
             isActionLoadingSet,
+            allReportMetadata,
         }) as [TransactionListItemType[], number];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -143,6 +149,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         currentUserDetails.accountID,
         isActionLoadingSet,
         bankAccountList,
+        allReportMetadata,
     ]);
 
     const selectedItemsLength = useMemo(() => {
@@ -163,8 +170,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
+    // Search transactions - handles both refresh (offset 0) and pagination (current offset + pageSize)
     const searchTransactions = useCallback(
-        (pageSize = 0) => {
+        (pageSize = 0, isRefresh = false) => {
             if (!groupItem.transactionsQueryJSON) {
                 return;
             }
@@ -172,7 +180,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             search({
                 queryJSON: groupItem.transactionsQueryJSON,
                 searchKey: undefined,
-                offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
+                offset: isRefresh ? 0 : (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
                 isLoading: !!transactionsSnapshot?.search?.isLoading,
             });
@@ -198,15 +206,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!newTransactionID || !isExpanded) {
             return;
         }
-        searchTransactions();
+        searchTransactions(0, true);
     }, [newTransactionID, isExpanded, searchTransactions]);
 
     const handleToggle = useCallback(() => {
-        setIsExpanded(!isExpanded);
-        if (isExpanded) {
-            setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
-        }
-    }, [isExpanded]);
+        setIsExpanded((prev) => {
+            const newExpandedState = !prev;
+
+            if (newExpandedState) {
+                // Refresh transactions when expanding
+                searchTransactions(0, true);
+            } else {
+                setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
+            }
+
+            return newExpandedState;
+        });
+    }, [searchTransactions]);
 
     const onPress = useCallback(() => {
         if (isExpenseReportType || transactions.length === 0) {
@@ -241,11 +257,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
-        } else if (groupItem.transactionsQueryJSON && !isExpanded) {
-            searchTransactions();
         }
         handleToggle();
-    }, [isEmpty, shouldDisplayEmptyView, groupItem.transactionsQueryJSON, isExpanded, handleToggle, onPress, searchTransactions]);
+    }, [isEmpty, shouldDisplayEmptyView, handleToggle, onPress]);
 
     const getHeader = useCallback(
         (hovered: boolean) => {
@@ -345,6 +359,32 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 [CONST.SEARCH.GROUP_BY.WEEK]: (
                     <WeekListItemHeader
                         week={groupItem as TransactionWeekGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                ),
+                [CONST.SEARCH.GROUP_BY.YEAR]: (
+                    <YearListItemHeader
+                        year={groupItem as TransactionYearGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                ),
+                [CONST.SEARCH.GROUP_BY.QUARTER]: (
+                    <QuarterListItemHeader
+                        quarter={groupItem as TransactionQuarterGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
                         columns={columns}

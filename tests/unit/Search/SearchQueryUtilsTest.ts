@@ -100,7 +100,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:bar from:12345`);
+            expect(result).toEqual(`${defaultQuery} view:bar groupBy:category from:12345`);
         });
 
         test('returns query with view:line', () => {
@@ -108,7 +108,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:line category:travel`);
+            expect(result).toEqual(`${defaultQuery} view:line groupBy:category category:travel`);
         });
 
         test('returns query with view:pie', () => {
@@ -116,7 +116,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:pie merchant:Amazon`);
+            expect(result).toEqual(`${defaultQuery} view:pie groupBy:category merchant:Amazon`);
         });
 
         test('deduplicates conflicting type filters keeping the last occurrence', () => {
@@ -323,6 +323,17 @@ describe('SearchQueryUtils', () => {
                 };
 
                 const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('limit:');
+            });
+
+            test('omits limit when form value is empty string (user cleared the field)', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    limit: '',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
 
                 expect(result).not.toContain('limit:');
             });

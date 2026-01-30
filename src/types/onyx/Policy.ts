@@ -1691,7 +1691,7 @@ type CodingRuleFilter = {
     left: string;
 
     /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
-    operator: string;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
     /** The right side of the filter condition (e.g., 'Snoop') */
     right: string;

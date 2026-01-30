@@ -1,5 +1,6 @@
 import {archivedReportsIdSetSelector} from '@selectors/ReportNameValuePairs';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useDeepCompareRef from './useDeepCompareRef';
 import useOnyx from './useOnyx';
@@ -8,7 +9,7 @@ import useOnyx from './useOnyx';
  * Hook that returns a Set of archived report IDs
  */
 function useArchivedReportsIdSet(): ArchivedReportsIDSet {
-    const [archivedReportsIdSet = new Set<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+    const [archivedReportsIdSet = CONST.EMPTY_SET] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: true,
         selector: archivedReportsIdSetSelector,
     });
