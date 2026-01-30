@@ -299,6 +299,33 @@ describe('EmojiTest', () => {
         });
     });
 
+    describe('getEmojiCodeForInsertion', () => {
+        it('should return shortcode when inside code block', () => {
+            const emoji = {code: '😄', name: 'smile', types: ['😄', '😄🏻', '😄🏼', '😄🏽', '😄🏾', '😄🏿']};
+            expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 0, true)).toBe(':smile:');
+        });
+
+        it('should return emoji code when not inside code block', () => {
+            const emoji = {code: '😄', name: 'smile'};
+            expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 0, false)).toBe('😄');
+        });
+
+        it('should return skin-toned emoji when preferred skin tone is set and not in code block', () => {
+            const emoji = {code: '👍', name: '+1', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
+            expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 3, false)).toBe('👍🏽');
+        });
+
+        it('should return shortcode even with skin tone preference when inside code block', () => {
+            const emoji = {code: '👍', name: '+1', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
+            expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 3, true)).toBe(':+1:');
+        });
+
+        it('should return base emoji code when skin tone is -1', () => {
+            const emoji = {code: '👍', name: '+1', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
+            expect(EmojiUtils.getEmojiCodeForInsertion(emoji, -1, false)).toBe('👍');
+        });
+    });
+
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
         expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin'}]);

@@ -48,6 +48,19 @@ function isPositionInsideCodeBlock(text: string, position: number): boolean {
 }
 
 /**
+ * Get the value to insert for an emoji - returns shortcode if inside code block, otherwise emoji code.
+ */
+function getEmojiCodeForInsertion(emoji: Emoji, preferredSkinTone: number, isInsideCodeBlock: boolean): string {
+    if (isInsideCodeBlock) {
+        return `:${emoji.name}:`;
+    }
+    if (emoji.types?.at(preferredSkinTone) && preferredSkinTone !== -1) {
+        return emoji.types.at(preferredSkinTone) ?? emoji.code;
+    }
+    return emoji.code;
+}
+
+/**
  * Revert emojis to shortcodes inside code blocks (Slack behavior).
  */
 function revertEmojisInCodeBlocks(text: string): string {
@@ -797,4 +810,5 @@ export {
     insertZWNJBetweenDigitAndEmoji,
     getZWNJCursorOffset,
     isPositionInsideCodeBlock,
+    getEmojiCodeForInsertion,
 };
