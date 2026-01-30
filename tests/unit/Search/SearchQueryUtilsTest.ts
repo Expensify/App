@@ -660,7 +660,7 @@ describe('SearchQueryUtils', () => {
                 expect(result.view).toEqual(CONST.SEARCH.VIEW.BAR);
             });
 
-            test('does not set view in form when groupBy is not set', () => {
+            test('defaults groupBy to category when chart view is specified without groupBy', () => {
                 const queryString = 'type:expense view:bar';
                 const queryJSON = buildSearchQueryJSON(queryString);
 
@@ -679,8 +679,9 @@ describe('SearchQueryUtils', () => {
                     emptyParams.taxRates,
                 );
 
-                expect(result.groupBy).toBeUndefined();
-                expect(result.view).toBeUndefined();
+                // When a chart view is specified without groupBy, groupBy defaults to category
+                expect(result.groupBy).toEqual(CONST.SEARCH.GROUP_BY.CATEGORY);
+                expect(result.view).toEqual(CONST.SEARCH.VIEW.BAR);
             });
         });
     });
