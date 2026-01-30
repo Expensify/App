@@ -10,17 +10,26 @@ function useTimeSensitiveCards() {
 
     const {cardsNeedingShippingAddress, cardsNeedingActivation} = useMemo<{cardsNeedingShippingAddress: Card[]; cardsNeedingActivation: Card[]}>(() => {
         const cards = Object.values(cardList ?? {});
+        const isPhysicalExpensifyCard = (card: Card) => card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual;
 
-        // Find all cards that need a shipping address (state: NOT_ISSUED)
-        const pendingIssueCards = cards.filter((card) => isCardPendingIssue(card) && card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual);
+        return cards.reduce<{cardsNeedingShippingAddress: Card[]; cardsNeedingActivation: Card[]}>(
+            (acc, card) => {
+                if (!isPhysicalExpensifyCard(card)) {
+                    return acc;
+                }
 
-        // Find all cards that need activation (state: NOT_ACTIVATED)
-        const pendingActivateCards = cards.filter((card) => isCardPendingActivate(card) && card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual);
+                if (isCardPendingIssue(card)) {
+                    acc.cardsNeedingShippingAddress.push(card);
+                }
 
-        return {
-            cardsNeedingShippingAddress: pendingIssueCards,
-            cardsNeedingActivation: pendingActivateCards,
-        };
+                if (isCardPendingActivate(card)) {
+                    acc.cardsNeedingActivation.push(card);
+                }
+
+                return acc;
+            },
+            {cardsNeedingShippingAddress: [], cardsNeedingActivation: []},
+        );
     }, [cardList]);
 
     const shouldShowAddShippingAddress = cardsNeedingShippingAddress.length > 0;

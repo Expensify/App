@@ -28,6 +28,4 @@ function AddShippingAddress({card}: AddShippingAddressProps) {
     );
 }
 
-AddShippingAddress.displayName = 'AddShippingAddress';
-
 export default AddShippingAddress;

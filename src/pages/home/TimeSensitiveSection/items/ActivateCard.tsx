@@ -28,6 +28,4 @@ function ActivateCard({card}: ActivateCardProps) {
     );
 }
 
-ActivateCard.displayName = 'ActivateCard';
-
 export default ActivateCard;
