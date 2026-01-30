@@ -21,7 +21,7 @@ This report is a pre-built suggested search that uses filters to group your expe
 
 The Top Categories report is available to Workspace Admins, Approvers, and Auditors on both web and mobile.
 
-- **Note:** Exporting data is only available on web.
+**Note:** Exporting data is only available on web.
 
 ---
 
@@ -61,13 +61,9 @@ Click any row to view all expenses tied to that category.
 
 ## Can you customize the Top Categories report?
 
-Yes! You can adjust filters like:
+Yes - you can adjust filters like status, expense type or employee to explore spending trends. However, the Top Categories report is a built-in suggested search, so you can’t save changes to it directly.
 
-- Status 
-- Expense type 
-- Workspace
-
-However, the **Top Categories** report is a suggested search, so changes cannot be saved directly to that report.
+However, the Top Categories report is a suggested search, so changes cannot be saved directly to that report.
 
 To create and save a custom report:
 
@@ -93,8 +89,7 @@ Workspace Admins and finance teams use the Top Categories report to:
 
 ## Can you export the Top Categories report?
 
-Not directly — the grouped summary data can’t be exported.  
-To export individual expenses:
+Not directly — the Top Categories report can’t be exported with its grouped totals or summary data. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data.
 
 1. Go to the **Reports** or **Expenses** tab.
 2. Use filters to group by category and apply the same timeframe.
