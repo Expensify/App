@@ -96,4 +96,4 @@ function addOptimisticConciergeActionWithDelay(reportID: string, optimisticConci
     }, CONCIERGE_RESPONSE_DELAY_MS);
 }
 
-export default resolveSuggestedFollowup;
+export {resolveSuggestedFollowup, CONCIERGE_RESPONSE_DELAY_MS};

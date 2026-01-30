@@ -51,7 +51,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import resolveSuggestedFollowup from '@libs/actions/Report/SuggestedFollowup';
+import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';

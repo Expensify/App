@@ -9,7 +9,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useAncestors from '@hooks/useAncestors';
-import resolveSuggestedFollowup from '@libs/actions/Report/SuggestedFollowup';
+import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -3812,7 +3812,7 @@ describe('actions/Report', () => {
 
             // Wait for the delayed Concierge response (1500ms delay in SuggestedFollowup.ts)
             await new Promise((resolve) => {
-                setTimeout(resolve, 1600);
+                setTimeout(resolve, CONCIERGE_RESPONSE_DELAY_MS + 100);
             });
             await waitForBatchedUpdates();
 

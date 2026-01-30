@@ -737,7 +737,7 @@ function addActions(
         };
     }
 
-    const failureReportActions: Record<string, OptimisticAddCommentReportAction | ReportAction | undefined> = {};
+    const failureReportActions: Record<string, OptimisticAddCommentReportAction | ReportAction | null> = {};
 
     for (const [actionKey, action] of Object.entries(optimisticReportActions)) {
         failureReportActions[actionKey] = {
@@ -753,7 +753,7 @@ function addActions(
 
     // In case of error, remove the optimistic Concierge response
     if (pregeneratedResponseParams) {
-        failureReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = undefined;
+        failureReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = null;
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
