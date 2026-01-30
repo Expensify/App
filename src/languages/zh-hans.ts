@@ -757,8 +757,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: '看起来你的时间用完了！请在商户处再试一次。',
         youRanOutOfTime: '时间已经用完',
         letsVerifyItsYou: '让我们验证是不是你',
-        nowLetsAuthenticateYou: '现在，让我们认证您...',
-        letsAuthenticateYou: '让我们认证您...',
+        nowLetsAuthenticateYou: '现在，让我们验证您的身份…',
+        letsAuthenticateYou: '正在验证您的身份...',
         verifyYourself: {
             biometrics: '用你的脸部或指纹进行身份验证',
         },

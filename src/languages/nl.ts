@@ -762,8 +762,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: 'Het lijkt erop dat je tijd op is! Probeer het opnieuw bij de handelaar.',
         youRanOutOfTime: 'De tijd is op',
         letsVerifyItsYou: 'Laten we verifiëren dat jij het bent',
-        nowLetsAuthenticateYou: 'Laten we nu authenticeren...',
-        letsAuthenticateYou: 'Laten we authenticeren...',
+        nowLetsAuthenticateYou: 'Laten we je nu verifiëren...',
+        letsAuthenticateYou: 'Laten we je verifiëren...',
         verifyYourself: {
             biometrics: 'Verifieer jezelf met je gezicht of vingerafdruk',
         },
