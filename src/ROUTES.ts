@@ -393,6 +393,27 @@ const ROUTES = {
     },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS: 'settings/wallet/import-transactions',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_CARD_NAME: 'settings/wallet/import-transactions/card-name',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_CURRENCY: 'settings/wallet/import-transactions/currency',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET: {
+        route: 'settings/wallet/import-transactions-spreadsheet/:cardID?',
+        getRoute: (cardID?: number) => {
+            if (cardID) {
+                return `settings/wallet/import-transactions-spreadsheet/${cardID}` as const;
+            }
+            return 'settings/wallet/import-transactions-spreadsheet' as const;
+        },
+    },
+    SETTINGS_WALLET_TRANSACTIONS_IMPORTED: {
+        route: 'settings/wallet/transactions-imported/:cardID?',
+        getRoute: (cardID?: number) => {
+            if (cardID) {
+                return `settings/wallet/transactions-imported/${cardID}` as const;
+            }
+            return 'settings/wallet/transactions-imported' as const;
+        },
+    },
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged` as const,

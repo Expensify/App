@@ -820,6 +820,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importTagsSuccessfulDescription: ({tags}) => (tags > 1 ? `Se han agregado ${tags} etiquetas.` : 'Se ha agregado 1 etiqueta.'),
         importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}) => (rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.'),
+        importTransactionsSuccessfulDescription: ({transactions}) => (transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.'),
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transactions have been added.` : '1 transaction has been added.',
         importSuccessfulTitle: 'Importar categorías',
@@ -4697,6 +4698,15 @@ ${amount} para ${merchant} - ${date}`,
             assignCardFailedError: 'Error al asignar la tarjeta.',
             unassignCardFailedError: 'Error al desasignar la tarjeta.',
             cardAlreadyAssignedError: 'Esta tarjeta ya está asignada a un usuario en otro espacio de trabajo.',
+            importTransactions: {
+                title: 'Importar transacciones desde archivo',
+                description: 'Por favor, ajusta la configuración de archivo que se aplicará al importar.',
+                cardDisplayName: 'Nombre de la tarjeta',
+                currency: 'Moneda',
+                transactionsAreReimbursable: 'Las transacciones son reembolsables',
+                flipAmountSign: 'Invertir el signo del monto',
+                importButton: 'Importar transacciones',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',

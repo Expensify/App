@@ -1058,6 +1058,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Potwierdź poniższe szczegóły dla ${count} nowych członków przestrzeni roboczej, którzy zostaną dodani w ramach tego przesyłania. Istniejący członkowie nie otrzymają żadnych aktualizacji ról ani wiadomości z zaproszeniem.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `Zaimportowano ${transactions} transakcji.` : 'Zaimportowano 1 transakcję.'),
     },
     receipt: {
         upload: 'Prześlij paragon',
@@ -4959,6 +4960,15 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Wybierz nową datę początkową transakcji. Zsynchronizujemy wszystkie transakcje od tej daty, z wyłączeniem tych, które już zostały zaimportowane.',
             unassignCardFailedError: 'Nie udało się odłączyć karty.',
+            importTransactions: {
+                title: 'Importuj transakcje z pliku',
+                description: 'Dostosuj ustawienia dla swojego pliku, które zostaną zastosowane podczas importu.',
+                cardDisplayName: 'Wyświetlana nazwa karty',
+                currency: 'Waluta',
+                transactionsAreReimbursable: 'Transakcje podlegają zwrotowi',
+                flipAmountSign: 'Odwróć znak kwoty',
+                importButton: 'Importuj transakcje',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Nie można było wczytać kanałów kart',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się z administratorem.',

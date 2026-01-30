@@ -1057,6 +1057,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bevestig hieronder de details voor de ${count} nieuwe werkruimteleden die als onderdeel van deze upload zullen worden toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transacties zijn geïmporteerd.` : '1 transactie is geïmporteerd.',
     },
     receipt: {
         upload: 'Bon uploaden',
@@ -4970,6 +4972,15 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             editStartDateDescription:
                 'Kies een nieuwe startdatum voor transacties. We synchroniseren alle transacties vanaf die datum, met uitzondering van de transacties die we al hebben geïmporteerd.',
             unassignCardFailedError: 'Kaartontkoppeling mislukt.',
+            importTransactions: {
+                title: 'Transacties importeren uit bestand',
+                description: 'Pas de instellingen voor je bestand aan die bij het importeren worden toegepast.',
+                cardDisplayName: 'Kaartweergavenaam',
+                currency: 'Valuta',
+                transactionsAreReimbursable: 'Transacties zijn terugbetaalbaar',
+                flipAmountSign: 'Teken van bedrag omdraaien',
+                importButton: 'Transacties importeren',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kan kaartfeeds niet laden',
                 workspaceFeedsCouldNotBeLoadedMessage:
