@@ -801,6 +801,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.route,
                         },
+                        [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: {
+                            path: ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.route,
                         },

@@ -735,6 +735,7 @@ const SCREENS = {
         OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
         DISTANCE_RATES: 'Distance_Rates',
         TRAVEL: 'Travel',
+        TRAVEL_SETTINGS_ACCOUNT: 'Workspace_Travel_Settings_Account',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',

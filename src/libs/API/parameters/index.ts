@@ -378,6 +378,7 @@ export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadshe
 export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';
 export type {default as UpdateCardSettlementFrequencyParams} from './UpdateCardSettlementFrequencyParams';
 export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSettlementAccountParams';
+export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTravelInvoicingSettlementAccountParams';
 export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
 export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
 export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';
