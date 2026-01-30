@@ -63,6 +63,7 @@ function enablePolicyTravel(policyID: string, enabled: boolean) {
 }
 
 function setPolicyTravelSettings(policyID: string, settings: Partial<OnyxTypes.WorkspaceTravelSettings>) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Tracked in https://github.com/Expensify/Expensify/issues/507850
     const policy = PolicyUtils.getPolicy(policyID);
     const previousTravelSettings = policy?.travelSettings;
 

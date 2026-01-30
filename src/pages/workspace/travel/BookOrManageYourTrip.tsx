@@ -1,7 +1,7 @@
 import React from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +17,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow'] as const);
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
 
@@ -38,10 +39,10 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
         >
             <MenuItem
                 title={translate('workspace.moreFeatures.travel.bookOrManageYourTrip.ctaText')}
-                icon={Expensicons.LuggageWithLines}
+                icon={icons.LuggageWithLines}
                 onPress={handleManageTravel}
                 shouldShowRightIcon
-                iconRight={Expensicons.NewWindow}
+                iconRight={icons.NewWindow}
                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
             />
             <ToggleSettingOptionRow
