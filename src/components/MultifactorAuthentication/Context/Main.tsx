@@ -5,7 +5,6 @@ import {getOutcomePath, getOutcomePaths} from '@components/MultifactorAuthentica
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useLocalize from '@hooks/useLocalize';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import {isContinuableReason} from '@libs/MultifactorAuthentication/Biometrics/helpers';
 import type {OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
 import {requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
@@ -104,8 +103,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 const {challenge, reason: challengeReason} = await requestRegistrationChallenge(validateCode);
 
                 if (!challenge) {
-                    // Clear validateCode for continuable errors so user can retry
-                    if (isContinuableReason(challengeReason)) {
+                    // For invalid validate code errors, clear the code so user can retry without failing the entire flow
+                    if (challengeReason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_VALIDATE_CODE) {
                         dispatch({type: 'SET_VALIDATE_CODE', payload: undefined});
                     }
                     dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
