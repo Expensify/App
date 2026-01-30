@@ -1,5 +1,5 @@
-import type {Color} from '@shopify/react-native-skia';
-import type {RoundedCorners} from 'victory-native';
+import type { Color } from '@shopify/react-native-skia';
+import type { RoundedCorners } from 'victory-native';
 import colors from '@styles/theme/colors';
 
 /**
@@ -88,7 +88,7 @@ const X_AXIS_LABEL_MAX_HEIGHT_RATIO = 0.35;
 const LABEL_ELLIPSIS = '...';
 
 /** Minimum percentage for a slice to be shown individually (slices below this are aggregated to "Other") */
-const PIE_CHART_MIN_SLICE_PERCENTAGE = 1;
+const PIE_CHART_MIN_SLICE_PERCENTAGE = 2;
 
 /** Maximum number of slices before aggregating smallest to "Other" */
 const PIE_CHART_MAX_SLICES = 20;
