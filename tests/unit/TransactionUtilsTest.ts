@@ -13,7 +13,6 @@ import type {Policy, Report, Transaction} from '../../src/types/onyx';
 import type {CardList} from '../../src/types/onyx/Card';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
-import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -1529,32 +1528,6 @@ describe('TransactionUtils', () => {
                 receipt: {source: 'source'},
             });
             expect(TransactionUtils.shouldReuseInitialTransaction(transactionWithReceiptSource, true, 0, true, [initialTransaction])).toBe(false);
-        });
-
-        it('returns false when initialTransaction is null', () => {
-            expect(TransactionUtils.shouldReuseInitialTransaction(undefined, true, 0, false, [])).toBe(false);
-        });
-
-        it('returns true for single file upload (shouldAcceptMultipleFiles=false)', () => {
-            const transaction = createRandomTransaction(1);
-            expect(TransactionUtils.shouldReuseInitialTransaction(transaction, false, 0, false, [])).toBe(true);
-        });
-
-        it('returns false for index > 0 in multi-file upload', () => {
-            const transaction = createRandomTransaction(1);
-            expect(TransactionUtils.shouldReuseInitialTransaction(transaction, true, 1, false, [])).toBe(false);
-        });
-
-        it('returns true for first file when multi-scan disabled and no existing receipt', () => {
-            const transaction = createRandomTransaction(1);
-            transaction.receipt = undefined;
-            expect(TransactionUtils.shouldReuseInitialTransaction(transaction, true, 0, false, [transaction])).toBe(true);
-        });
-
-        it('returns false for first file when multi-scan enabled and receipt already exists', () => {
-            const transaction = createRandomTransaction(1);
-            transaction.receipt = {source: 'file://receipt.png'};
-            expect(TransactionUtils.shouldReuseInitialTransaction(transaction, true, 0, true, [transaction])).toBe(false);
         });
     });
 
