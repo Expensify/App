@@ -8263,6 +8263,12 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             offer25off: {title: 'Ganhe 25% de desconto no seu primeiro ano!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'dia' : 'dias'} restantes`},
             addShippingAddress: {title: 'Precisamos do seu endereço de entrega', subtitle: 'Forneça um endereço para receber seu Expensify Card.', cta: 'Adicionar endereço'},
             activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
+            reviewCardFraud: {
+                title: 'Analisar possível fraude no seu Cartão Expensify',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Revisar ${amount} em potencial fraude em ${merchant}`,
+                subtitle: 'Cartão Expensify',
+                cta: 'Revisar',
+            },
         },
     },
 };

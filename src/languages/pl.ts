@@ -8253,6 +8253,12 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             offer25off: {title: 'Uzyskaj 25% zniżki na pierwszy rok!', subtitle: ({days}: {days: number}) => `Pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}`},
             addShippingAddress: {title: 'Potrzebujemy Twojego adresu do wysyłki', subtitle: 'Podaj adres, na który mamy wysłać Twoją kartę Expensify.', cta: 'Dodaj adres'},
             activateCard: {title: 'Aktywuj swoją kartę Expensify', subtitle: 'Zweryfikuj swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
+            reviewCardFraud: {
+                title: 'Przejrzyj potencjalne oszustwo na swojej karcie Expensify',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Sprawdź ${amount} pod kątem potencjalnego oszustwa w ${merchant}`,
+                subtitle: 'Karta Expensify',
+                cta: 'Przejrzyj',
+            },
         },
     },
 };

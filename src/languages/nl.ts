@@ -8269,6 +8269,12 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             offer25off: {title: 'Krijg 25% korting op je eerste jaar!', subtitle: ({days}: {days: number}) => `Nog ${days} ${days === 1 ? 'dag' : 'dagen'} resterend`},
             addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Voer een adres in om je Expensify Card te ontvangen.', cta: 'Adres toevoegen'},
             activateCard: {title: 'Activeer je Expensify Card', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
+            reviewCardFraud: {
+                title: 'Controleer mogelijke fraude op je Expensify Card',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Controleer ${amount} aan mogelijke fraude bij ${merchant}`,
+                subtitle: 'Expensify Card',
+                cta: 'Beoordeling',
+            },
         },
     },
 };

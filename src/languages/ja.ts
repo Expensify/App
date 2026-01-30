@@ -8205,6 +8205,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             offer25off: {title: '初年度が25％オフ！', subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日'}`},
             addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify Card を受け取る住所を入力してください。', cta: '住所を追加'},
             activateCard: {title: 'Expensify Card を有効化', subtitle: 'カードを認証して、すぐに支出を始めましょう。', cta: '有効化'},
+            reviewCardFraud: {
+                title: 'Expensify Card の不正利用の可能性を確認する',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `${merchant} での不正の可能性がある ${amount} を確認`,
+                subtitle: 'Expensify Card',
+                cta: 'レビュー',
+            },
         },
     },
 };

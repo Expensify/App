@@ -8021,6 +8021,12 @@ ${reportName}
             offer25off: {title: '首次年度订阅立享 25% 折扣！', subtitle: ({days}: {days: number}) => `剩余 ${days} ${days === 1 ? '天' : '天'}`},
             addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify Card。', cta: '添加地址'},
             activateCard: {title: '激活您的 Expensify Card', subtitle: '验证您的卡片并开始消费。', cta: '激活'},
+            reviewCardFraud: {
+                title: '审查您的 Expensify Card 潜在欺诈行为',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `在 ${merchant} 发现疑似欺诈金额 ${amount}，请审核`,
+                subtitle: 'Expensify Card',
+                cta: '审核',
+            },
         },
     },
 };
