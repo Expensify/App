@@ -15,10 +15,10 @@ import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
+import getRedirectedPath from './getRedirectedPath';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
-import getRedirectedPath from './getRedirectedPath';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
