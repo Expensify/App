@@ -465,9 +465,97 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
     return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
 }
 
-const getImageDimensionsAfterResize = (file: FileObject) =>
-    ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
+/**
+ * Reads image dimensions directly from the file header (JPEG SOF marker or PNG IHDR chunk).
+ * This bypasses browser Image API which may downsample large images on mobile browsers.
+ */
+const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; height: number} | null> => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const arr = new Uint8Array(reader.result as ArrayBuffer);
+
+            // Check for JPEG (starts with 0xFF 0xD8)
+            if (arr[0] === 0xff && arr[1] === 0xd8) {
+                let offset = 2;
+                while (offset < arr.length) {
+                    if (arr[offset] !== 0xff) break;
+                    const marker = arr[offset + 1];
+                    // SOF0 (0xC0), SOF1 (0xC1), SOF2 (0xC2) contain dimensions
+                    if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+                        const height = (arr[offset + 5] << 8) | arr[offset + 6];
+                        const width = (arr[offset + 7] << 8) | arr[offset + 8];
+                        resolve({width, height});
+                        return;
+                    }
+                    // Skip to next marker
+                    const segmentLength = (arr[offset + 2] << 8) | arr[offset + 3];
+                    offset += 2 + segmentLength;
+                }
+            }
+
+            // Check for PNG (starts with 0x89 0x50 0x4E 0x47)
+            if (arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4e && arr[3] === 0x47) {
+                // PNG IHDR chunk is at offset 16, dimensions are at offset 16+4=20
+                const width = (arr[16] << 24) | (arr[17] << 16) | (arr[18] << 8) | arr[19];
+                const height = (arr[20] << 24) | (arr[21] << 16) | (arr[22] << 8) | arr[23];
+                resolve({width, height});
+                return;
+            }
+
+            // Could not parse dimensions from header
+            resolve(null);
+        };
+        reader.onerror = () => resolve(null);
+        // Read first 64KB which should be enough for headers
+        reader.readAsArrayBuffer(blob.slice(0, 65536));
+    });
+};
+
+const getImageDimensionsAfterResize = (file: FileObject): Promise<{width: number; height: number}> => {
+    // For blob URLs (web), read dimensions directly from file header to avoid
+    // Android Chrome's Image API downsampling which returns incorrect dimensions
+    if (file.uri?.startsWith('blob:')) {
+        return fetch(file.uri)
+            .then((response) => response.blob())
+            .then((blob) => getImageDimensionsFromFileHeader(blob))
+            .then((headerDimensions) => {
+                if (headerDimensions) {
+                    const {width, height} = headerDimensions;
+                    const totalPixels = width * height;
+
+                    if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
+                        throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+                    }
+
+                    const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
+                    const newWidth = Math.max(1, width * scaleFactor);
+                    const newHeight = Math.max(1, height * scaleFactor);
+
+                    return {width: newWidth, height: newHeight};
+                }
+
+                // Fall back to ImageSize.getSize if header parsing failed
+                return ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
+                    const totalPixels = width * height;
+
+                    if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
+                        throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+                    }
+
+                    const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
+                    const newWidth = Math.max(1, width * scaleFactor);
+                    const newHeight = Math.max(1, height * scaleFactor);
+
+                    return {width: newWidth, height: newHeight};
+                });
+            });
+    }
+
+    // For non-blob URLs (native), use ImageSize.getSize
+    return ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
         const totalPixels = width * height;
+
         if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
             throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
         }
@@ -478,6 +566,7 @@ const getImageDimensionsAfterResize = (file: FileObject) =>
 
         return {width: newWidth, height: newHeight};
     });
+};
 
 const createFile = (file: File): FileObject => {
     if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
@@ -593,6 +682,7 @@ const validateAttachment = (file: FileObject, validationOptions?: ValidateAttach
         return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
     }
 
+    // Images are exempt from file size check since they will be resized
     if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
         return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }

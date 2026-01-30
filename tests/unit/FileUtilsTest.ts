@@ -257,32 +257,261 @@ describe('FileUtils', () => {
             jest.clearAllMocks();
         });
 
-        it('should return scaled dimensions for normal-sized images', async () => {
-            (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 4000, height: 3000});
+        describe('with file:// URLs (native)', () => {
+            it('should return scaled dimensions for normal-sized images', async () => {
+                (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 4000, height: 3000});
 
-            const file = {uri: 'file://test.jpg', name: 'test.jpg', type: 'image/jpeg'};
-            const result = await getImageDimensionsAfterResize(file);
+                const file = {uri: 'file://test.jpg', name: 'test.jpg', type: 'image/jpeg'};
+                const result = await getImageDimensionsAfterResize(file);
 
-            expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
-            expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+                expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+                expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+            });
+
+            it('should throw IMAGE_DIMENSIONS_TOO_LARGE error when image exceeds maximum pixel count', async () => {
+                // 10000 x 6000 = 60 million pixels, which exceeds MAX_IMAGE_PIXEL_COUNT (50 million)
+                (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 10000, height: 6000});
+
+                const file = {uri: 'file://large-image.jpg', name: 'large-image.jpg', type: 'image/jpeg'};
+
+                await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+            });
+
+            it('should not throw for images at exactly the maximum pixel count', async () => {
+                // Exactly 50 million pixels (e.g., 10000 x 5000)
+                (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 10000, height: 5000});
+
+                const file = {uri: 'file://max-size.jpg', name: 'max-size.jpg', type: 'image/jpeg'};
+
+                await expect(getImageDimensionsAfterResize(file)).resolves.toBeDefined();
+            });
         });
 
-        it('should throw IMAGE_DIMENSIONS_TOO_LARGE error when image exceeds maximum pixel count', async () => {
-            // 10000 x 6000 = 60 million pixels, which exceeds MAX_IMAGE_PIXEL_COUNT (50 million)
-            (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 10000, height: 6000});
+        describe('with blob: URLs (web) - file header parsing', () => {
+            /**
+             * Creates a mock JPEG blob with valid SOF0 marker containing specified dimensions.
+             * JPEG structure: FF D8 (SOI) + FF E0 ... (APP0) + FF C0 (SOF0) with dimensions
+             */
+            const createMockJpegBlob = (width: number, height: number): Blob => {
+                const bytes = new Uint8Array([
+                    // SOI (Start of Image)
+                    0xff,
+                    0xd8,
+                    // APP0 marker (minimal)
+                    0xff,
+                    0xe0,
+                    0x00,
+                    0x10,
+                    0x4a,
+                    0x46,
+                    0x49,
+                    0x46,
+                    0x00,
+                    0x01,
+                    0x01,
+                    0x00,
+                    0x00,
+                    0x01,
+                    0x00,
+                    0x01,
+                    0x00,
+                    0x00,
+                    // SOF0 marker (baseline DCT)
+                    0xff,
+                    0xc0,
+                    0x00,
+                    0x0b, // segment length (11 bytes)
+                    0x08, // precision (8 bits)
+                    (height >> 8) & 0xff,
+                    height & 0xff, // height (big-endian)
+                    (width >> 8) & 0xff,
+                    width & 0xff, // width (big-endian)
+                    0x01, // number of components
+                    0x01,
+                    0x11,
+                    0x00, // component data
+                ]);
+                return new Blob([bytes], {type: 'image/jpeg'});
+            };
 
-            const file = {uri: 'file://large-image.jpg', name: 'large-image.jpg', type: 'image/jpeg'};
+            /**
+             * Creates a mock PNG blob with valid IHDR chunk containing specified dimensions.
+             * PNG structure: 8-byte signature + IHDR chunk with dimensions
+             */
+            const createMockPngBlob = (width: number, height: number): Blob => {
+                const bytes = new Uint8Array([
+                    // PNG signature
+                    0x89,
+                    0x50,
+                    0x4e,
+                    0x47,
+                    0x0d,
+                    0x0a,
+                    0x1a,
+                    0x0a,
+                    // IHDR chunk length (13 bytes)
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x0d,
+                    // IHDR chunk type
+                    0x49,
+                    0x48,
+                    0x44,
+                    0x52,
+                    // Width (4 bytes, big-endian)
+                    (width >> 24) & 0xff,
+                    (width >> 16) & 0xff,
+                    (width >> 8) & 0xff,
+                    width & 0xff,
+                    // Height (4 bytes, big-endian)
+                    (height >> 24) & 0xff,
+                    (height >> 16) & 0xff,
+                    (height >> 8) & 0xff,
+                    height & 0xff,
+                    // Bit depth, color type, compression, filter, interlace
+                    0x08,
+                    0x06,
+                    0x00,
+                    0x00,
+                    0x00,
+                    // CRC (dummy)
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                ]);
+                return new Blob([bytes], {type: 'image/png'});
+            };
 
-            await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
-        });
+            const mockFetchWithBlob = (blob: Blob) => {
+                global.fetch = jest.fn().mockResolvedValue({
+                    blob: () => Promise.resolve(blob),
+                });
+            };
 
-        it('should not throw for images at exactly the maximum pixel count', async () => {
-            // Exactly 50 million pixels (e.g., 10000 x 5000)
-            (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 10000, height: 5000});
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
 
-            const file = {uri: 'file://max-size.jpg', name: 'max-size.jpg', type: 'image/jpeg'};
+            it('should read dimensions from JPEG file header (SOF0 marker)', async () => {
+                const jpegBlob = createMockJpegBlob(1920, 1080);
+                mockFetchWithBlob(jpegBlob);
 
-            await expect(getImageDimensionsAfterResize(file)).resolves.toBeDefined();
+                const file = {uri: 'blob:http://localhost/test-jpeg', name: 'test.jpg', type: 'image/jpeg'};
+                const result = await getImageDimensionsAfterResize(file);
+
+                // Should scale down from 1920x1080 to fit MAX_IMAGE_DIMENSION
+                expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+                expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+                // Verify fetch was called with the blob URL
+                expect(global.fetch).toHaveBeenCalledWith('blob:http://localhost/test-jpeg');
+            });
+
+            it('should read dimensions from PNG file header (IHDR chunk)', async () => {
+                const pngBlob = createMockPngBlob(2560, 1440);
+                mockFetchWithBlob(pngBlob);
+
+                const file = {uri: 'blob:http://localhost/test-png', name: 'test.png', type: 'image/png'};
+                const result = await getImageDimensionsAfterResize(file);
+
+                // Should scale down from 2560x1440 to fit MAX_IMAGE_DIMENSION
+                expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+                expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+                expect(global.fetch).toHaveBeenCalledWith('blob:http://localhost/test-png');
+            });
+
+            it('should throw IMAGE_DIMENSIONS_TOO_LARGE for large JPEG via blob URL', async () => {
+                // 17869 x 12802 = 228,758,938 pixels (exceeds 50MP limit)
+                const largeJpegBlob = createMockJpegBlob(17869, 12802);
+                mockFetchWithBlob(largeJpegBlob);
+
+                const file = {uri: 'blob:http://localhost/large-image', name: 'large.jpg', type: 'image/jpeg'};
+
+                await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+            });
+
+            it('should throw IMAGE_DIMENSIONS_TOO_LARGE for large PNG via blob URL', async () => {
+                // 10000 x 6000 = 60 million pixels (exceeds 50MP limit)
+                const largePngBlob = createMockPngBlob(10000, 6000);
+                mockFetchWithBlob(largePngBlob);
+
+                const file = {uri: 'blob:http://localhost/large-png', name: 'large.png', type: 'image/png'};
+
+                await expect(getImageDimensionsAfterResize(file)).rejects.toThrow(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+            });
+
+            it('should fallback to ImageSize.getSize when header parsing fails', async () => {
+                // Create an invalid/unrecognized blob (not JPEG or PNG)
+                const invalidBlob = new Blob([new Uint8Array([0x00, 0x00, 0x00, 0x00])], {type: 'image/webp'});
+                mockFetchWithBlob(invalidBlob);
+                (ImageSize.getSize as jest.Mock).mockResolvedValue({width: 800, height: 600});
+
+                const file = {uri: 'blob:http://localhost/unknown-format', name: 'test.webp', type: 'image/webp'};
+                const result = await getImageDimensionsAfterResize(file);
+
+                // Should fallback to ImageSize.getSize
+                expect(ImageSize.getSize).toHaveBeenCalled();
+                expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+                expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+            });
+
+            it('should handle JPEG with SOF2 marker (progressive)', async () => {
+                // Create JPEG with SOF2 (0xC2) marker instead of SOF0
+                const bytes = new Uint8Array([
+                    0xff,
+                    0xd8, // SOI
+                    0xff,
+                    0xe0,
+                    0x00,
+                    0x10,
+                    0x4a,
+                    0x46,
+                    0x49,
+                    0x46,
+                    0x00,
+                    0x01,
+                    0x01,
+                    0x00,
+                    0x00,
+                    0x01,
+                    0x00,
+                    0x01,
+                    0x00,
+                    0x00, // APP0
+                    0xff,
+                    0xc2, // SOF2 (progressive DCT)
+                    0x00,
+                    0x0b,
+                    0x08,
+                    0x04,
+                    0x38, // height = 1080 (0x0438)
+                    0x07,
+                    0x80, // width = 1920 (0x0780)
+                    0x01,
+                    0x01,
+                    0x11,
+                    0x00,
+                ]);
+                const progressiveJpegBlob = new Blob([bytes], {type: 'image/jpeg'});
+                mockFetchWithBlob(progressiveJpegBlob);
+
+                const file = {uri: 'blob:http://localhost/progressive-jpeg', name: 'progressive.jpg', type: 'image/jpeg'};
+                const result = await getImageDimensionsAfterResize(file);
+
+                expect(result.width).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+                expect(result.height).toBeLessThanOrEqual(CONST.MAX_IMAGE_DIMENSION);
+            });
+
+            it('should not throw for images at exactly the maximum pixel count via blob URL', async () => {
+                // Exactly 50 million pixels (e.g., 10000 x 5000)
+                const maxSizeJpegBlob = createMockJpegBlob(10000, 5000);
+                mockFetchWithBlob(maxSizeJpegBlob);
+
+                const file = {uri: 'blob:http://localhost/max-size', name: 'max-size.jpg', type: 'image/jpeg'};
+
+                await expect(getImageDimensionsAfterResize(file)).resolves.toBeDefined();
+            });
         });
     });
 

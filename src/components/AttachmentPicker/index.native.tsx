@@ -320,6 +320,7 @@ function AttachmentPicker({
     const handleImageProcessingError = useCallback(
         (error: unknown) => {
             const errorMessage = error instanceof Error ? error.message : undefined;
+
             if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
                 showGeneralAlert(translate('attachmentPicker.imageDimensionsTooLarge'));
             } else if (errorMessage) {
