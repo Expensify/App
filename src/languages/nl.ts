@@ -6970,6 +6970,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
             limit: 'Limiet',
+            limitDescription: 'Stel een limiet in voor de resultaten van je zoekopdracht.',
             currency: 'Valuta',
             completed: 'Voltooid',
             amount: {

@@ -6987,6 +6987,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
             limit: 'Limite',
+            limitDescription: 'Imposta un limite per i risultati della tua ricerca.',
             currency: 'Valuta',
             completed: 'Completato',
             amount: {

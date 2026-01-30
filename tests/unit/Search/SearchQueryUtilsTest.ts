@@ -326,6 +326,17 @@ describe('SearchQueryUtils', () => {
 
                 expect(result).not.toContain('limit:');
             });
+
+            test('omits limit when form value is empty string (user cleared the field)', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    limit: '',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+
+                expect(result).not.toContain('limit:');
+            });
         });
     });
 

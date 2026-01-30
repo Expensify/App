@@ -6925,6 +6925,7 @@ ${reportName}
             keyword: 'キーワード',
             keywords: 'キーワード',
             limit: '制限',
+            limitDescription: '検索結果の制限を設定します。',
             currency: '通貨',
             completed: '完了',
             amount: {

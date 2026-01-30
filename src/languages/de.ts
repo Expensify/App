@@ -6998,6 +6998,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             keyword: 'Schlüsselwort',
             keywords: 'Schlüsselwörter',
             limit: 'Limit',
+            limitDescription: 'Legen Sie eine Obergrenze für die Ergebnisse Ihrer Suche fest.',
             currency: 'Währung',
             completed: 'Abgeschlossen',
             amount: {

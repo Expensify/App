@@ -6674,6 +6674,7 @@ ${amount} para ${merchant} - ${date}`,
             keyword: 'Palabra clave',
             keywords: 'Palabras clave',
             limit: 'Límite',
+            limitDescription: 'Establece un límite para los resultados de tu búsqueda.',
             currency: 'Divisa',
             completed: 'Completadas',
             card: {

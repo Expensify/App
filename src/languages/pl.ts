@@ -6958,6 +6958,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             keyword: 'Słowo kluczowe',
             keywords: 'Słowa kluczowe',
             limit: 'Limit',
+            limitDescription: 'Ustaw limit wyników wyszukiwania.',
             currency: 'Waluta',
             completed: 'Zakończone',
             amount: {

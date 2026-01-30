@@ -6920,6 +6920,7 @@ const translations = {
             keyword: 'Keyword',
             keywords: 'Keywords',
             limit: 'Limit',
+            limitDescription: 'Set a limit for the results of your search.',
             currency: 'Currency',
             completed: 'Completed',
             amount: {
