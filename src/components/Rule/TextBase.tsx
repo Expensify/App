@@ -10,30 +10,30 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {InputID} from '@src/types/form/ExpenseRuleForm';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
 
-type TextBaseProps = {
-    fieldID: InputID;
+type TextBaseProps<TFormID extends OnyxFormKey> = {
+    fieldID: string;
     hint?: string;
     isRequired?: boolean;
     title: string;
     label: string;
     characterLimit?: number;
-    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXPENSE_RULE_FORM>) => void;
+    formID: TFormID;
+    onSubmit: (values: FormOnyxValues<TFormID>) => void;
 };
 
-function TextBase({fieldID, hint, isRequired, title, label, onSubmit, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: TextBaseProps) {
+function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title, label, onSubmit, formID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: TextBaseProps<TFormID>) {
     const {translate} = useLocalize();
-    const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
+    const [form] = useOnyx(formID, {canBeMissing: true});
     const styles = useThemeStyles();
 
-    const currentValue = form?.[fieldID] ?? '';
+    const currentValue = (form as Record<string, unknown>)?.[fieldID] ?? '';
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXPENSE_RULE_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EXPENSE_RULE_FORM> = {};
-        const fieldValue = values[fieldID] ?? '';
+    const validate = (values: FormOnyxValues<TFormID>) => {
+        const errors: FormInputErrors<TFormID> = {};
+        const fieldValue = values[fieldID as keyof FormOnyxValues<TFormID>] ?? '';
 
         if (typeof fieldValue !== 'string') {
             return errors;
@@ -42,12 +42,12 @@ function TextBase({fieldID, hint, isRequired, title, label, onSubmit, characterL
         const trimmedValue = fieldValue.trim();
 
         if (isRequired && !isRequiredFulfilled(fieldValue)) {
-            errors[fieldID] = translate('common.error.fieldRequired');
+            (errors as Record<string, string>)[fieldID] = translate('common.error.fieldRequired');
         } else {
             const {isValid, byteLength} = isValidInputLength(trimmedValue, characterLimit);
 
             if (!isValid) {
-                errors[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, characterLimit);
+                (errors as Record<string, string>)[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, characterLimit);
             }
         }
 
@@ -57,7 +57,7 @@ function TextBase({fieldID, hint, isRequired, title, label, onSubmit, characterL
     return (
         <FormProvider
             style={[styles.flex1, styles.ph5]}
-            formID={ONYXKEYS.FORMS.EXPENSE_RULE_FORM}
+            formID={formID}
             validate={validate}
             onSubmit={onSubmit}
             submitButtonText={translate('common.save')}
