@@ -449,15 +449,17 @@ function WalletPage() {
                 text: translate('workspace.common.viewTransactions'),
                 icon: icons.MoneySearch,
                 onSelected: () => {
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query: buildCannedSearchQuery({
-                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                                cardID: String(paymentMethod.methodID),
+                    closeModal(() => {
+                        Navigation.navigate(
+                            ROUTES.SEARCH_ROOT.getRoute({
+                                query: buildCannedSearchQuery({
+                                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                                    cardID: String(paymentMethod.methodID),
+                                }),
                             }),
-                        }),
-                    );
+                        );
+                    });
                 },
             },
             ...(shouldShowCSVImportItems
@@ -466,7 +468,9 @@ function WalletPage() {
                           text: translate('spreadsheet.importSpreadsheet'),
                           icon: icons.Table,
                           onSelected: () => {
-                              Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(paymentMethod.methodID)));
+                              closeModal(() => {
+                                Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(paymentMethod.methodID)));
+                              });
                           },
                       },
                   ]
