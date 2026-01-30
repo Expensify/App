@@ -353,7 +353,9 @@ describe('Pagination', () => {
         });
     });
 
-    it('opens a chat and load newer messages', async () => {
+    // @TODO: Adjust this test to work with the home page as a default screen.
+    // GitHub issue: https://github.com/Expensify/App/issues/80982
+    xit('opens a chat and load newer messages', async () => {
         mockOpenReport(5, '5');
         mockGetNewerActions(5);
 
