@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 
 type UnreportedExpenseListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    readOnly?: boolean;
     violations?: Record<string, TransactionViolation[]>;
 };
 
@@ -25,6 +26,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
     showTooltip,
     isDisabled,
     onFocus,
+    readOnly,
     shouldSyncFocus,
     onSelectRow,
     violations,
@@ -47,7 +49,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
-    const isItemDisabled = !!isDisabled && !isSelected;
+    const isItemDisabled = (!!isDisabled && !isSelected) || readOnly;
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
@@ -61,29 +63,32 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                 role={getButtonRole(true)}
                 isNested
                 onMouseDown={(e) => e.preventDefault()}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!item.isDisabled && !readOnly && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 style={[pressableStyle, isFocused && StyleUtils.getItemBackgroundColorStyle(!!isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)]}
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
-                <TransactionItemRow
-                    transactionItem={transactionItem}
-                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`]}
-                    shouldUseNarrowLayout
-                    isSelected={isSelected}
-                    shouldShowTooltip={showTooltip}
-                    dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    onCheckboxPress={() => {
-                        onSelectRow(item);
-                    }}
-                    isDisabled={isItemDisabled}
-                    shouldShowCheckbox
-                    style={styles.p3}
-                />
+                {({hovered}) => (
+                    <TransactionItemRow
+                        transactionItem={transactionItem}
+                        violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`]}
+                        shouldUseNarrowLayout
+                        isSelected={isSelected}
+                        shouldShowTooltip={showTooltip}
+                        dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        onCheckboxPress={() => {
+                            onSelectRow(item);
+                        }}
+                        isDisabled={isItemDisabled}
+                        shouldShowCheckbox={!readOnly}
+                        style={styles.p3}
+                        isHover={hovered}
+                    />
+                )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );

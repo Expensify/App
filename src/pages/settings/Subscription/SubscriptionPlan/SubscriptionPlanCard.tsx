@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectCircle from '@components/SelectCircle';
@@ -14,9 +15,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSubscriptionPlanInfo} from '@libs/SubscriptionUtils';
+import {getSubscriptionPlanInfo, isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import SubscriptionPlanCardActionButton from './SubscriptionPlanCardActionButton';
 
 type PersonalPolicyTypeExcludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
@@ -81,37 +82,61 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
         ));
     };
 
+    const shouldHideSubscriptionSettingsButton =
+        isSubscriptionTypeOfInvoicing(privateSubscription?.type) &&
+        !isFromComparisonModal &&
+        ((subscriptionPlan === CONST.POLICY.TYPE.TEAM && !hasTeam2025Pricing) || subscriptionPlan !== CONST.POLICY.TYPE.TEAM);
+
+    const subscriptionPlanCardActionButtonWrapStyles = (() => {
+        if (shouldHideSubscriptionSettingsButton) {
+            return shouldUseNarrowLayout ? [] : styles.pb2;
+        }
+        if (shouldUseNarrowLayout) {
+            return styles.pb5;
+        }
+
+        return styles.pb8;
+    })();
+
     return (
         <View style={[styles.borderedContentCard, styles.borderRadiusComponentLarge, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
-            <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
-                <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                    <Icon
-                        src={src}
-                        width={variables.iconHeader}
-                        height={variables.iconHeader}
-                    />
-                    <View>
-                        <SelectCircle
-                            isChecked={isSelected}
-                            selectCircleStyles={[styles.bgTransparent, styles.borderNone]}
+            {!privateSubscription ? (
+                <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
+                    <ActivityIndicator />
+                </View>
+            ) : (
+                <>
+                    <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
+                        <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                            <Icon
+                                src={src}
+                                width={variables.iconHeader}
+                                height={variables.iconHeader}
+                            />
+                            <View>
+                                <SelectCircle
+                                    isChecked={isSelected}
+                                    selectCircleStyles={[styles.bgTransparent, styles.borderNone]}
+                                />
+                            </View>
+                        </View>
+                        <Text style={[styles.headerText, styles.mv2, styles.textHeadlineH2]}>{title}</Text>
+                        <Text style={styles.labelStrong}>{subtitle}</Text>
+                        <Text style={[styles.textLabelSupporting, styles.textSmall]}>{note}</Text>
+                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mt3, styles.mb1]}>{description}</Text>
+                        {renderBenefits()}
+                    </View>
+                    <View style={subscriptionPlanCardActionButtonWrapStyles}>
+                        <SubscriptionPlanCardActionButton
+                            subscriptionPlan={subscriptionPlan}
+                            isFromComparisonModal={isFromComparisonModal}
+                            isSelected={isSelected}
+                            style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                            closeComparisonModal={closeComparisonModal}
                         />
                     </View>
-                </View>
-                <Text style={[styles.headerText, styles.mv2, styles.textHeadlineH2]}>{title}</Text>
-                <Text style={styles.labelStrong}>{subtitle}</Text>
-                <Text style={[styles.textLabelSupporting, styles.textSmall]}>{note}</Text>
-                <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mt3, styles.mb1]}>{description}</Text>
-                {renderBenefits()}
-            </View>
-            <View style={shouldUseNarrowLayout ? styles.pb5 : styles.pb8}>
-                <SubscriptionPlanCardActionButton
-                    subscriptionPlan={subscriptionPlan}
-                    isFromComparisonModal={isFromComparisonModal}
-                    isSelected={isSelected}
-                    style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                    closeComparisonModal={closeComparisonModal}
-                />
-            </View>
+                </>
+            )}
         </View>
     );
 }

@@ -13,6 +13,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -61,6 +62,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [reportMetadataCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -69,7 +71,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const theme = useTheme();
@@ -79,7 +83,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
-    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+    const isWeb = platform === CONST.PLATFORM.WEB;
     const emptyLHNIllustration = useEmptyLHNIllustration();
 
     const firstReportIDWithGBRorRBR = useMemo(() => {
@@ -225,7 +229,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
+            const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
             const lastMessageTextFromReport = getLastMessageTextForReport({
+                translate,
                 report: item,
                 lastActorDetails,
                 movedFromReport,
@@ -233,6 +239,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 policy: itemPolicy,
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
                 policyForMovingExpensesID,
+                reportMetadata: itemReportMetadata,
+                currentUserAccountID,
             });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
@@ -282,14 +290,17 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                     activePolicyID={activePolicyID}
                     onboardingPurpose={introSelected?.choice}
+                    onboarding={onboarding}
                     isFullscreenVisible={isFullscreenVisible}
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
                     localeCompare={localeCompare}
+                    translate={translate}
                     testID={index}
                     isReportArchived={isReportArchived}
                     lastAction={lastAction}
                     lastActionReport={lastActionReport}
+                    currentUserAccountID={currentUserAccountID}
                 />
             );
         },
@@ -297,6 +308,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reports,
             reportNameValuePairs,
             reportActions,
+            reportMetadataCollection,
             isOffline,
             reportAttributes,
             policy,
@@ -313,10 +325,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             onLayoutItem,
             activePolicyID,
             introSelected?.choice,
+            onboarding,
             isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
             localeCompare,
+            translate,
+            currentUserAccountID,
         ],
     );
 
@@ -380,18 +395,18 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-            if (isWebOrDesktop) {
+            if (isWeb) {
                 saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
             }
             triggerScrollEvent();
         },
-        [estimatedItemSize, isWebOrDesktop, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
+        [estimatedItemSize, isWeb, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
     );
 
     const onLayout = useCallback(() => {
         const offset = getScrollOffset(route);
 
-        if (!(offset && flashListRef.current) || isWebOrDesktop) {
+        if (!(offset && flashListRef.current) || isWeb) {
             return;
         }
 
@@ -402,7 +417,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             flashListRef.current.scrollToOffset({offset});
         });
-    }, [getScrollOffset, route, isWebOrDesktop]);
+    }, [getScrollOffset, route, isWeb]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -443,7 +458,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
-                    initialScrollIndex={isWebOrDesktop ? getScrollIndex(route) : undefined}
+                    initialScrollIndex={isWeb ? getScrollIndex(route) : undefined}
                     maintainVisibleContentPosition={{disabled: true}}
                     drawDistance={1000}
                     removeClippedSubviews

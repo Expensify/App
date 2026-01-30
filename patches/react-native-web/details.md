@@ -131,3 +131,18 @@
 - Upstream PR/issue: This was a patch on top of patches 008 and 009 of react-native-web.
 - E/App issue: https://github.com/Expensify/App/issues/66821
 - PR introducing patch: https://github.com/Expensify/App/pull/69820
+
+### [react-native-web+0.21.2+012+submitBehavior-support.patch](react-native-web+0.21.2+012+submitBehavior-support.patch)
+
+- Reason:
+    ```
+    Adds support for the `submitBehavior` prop in TextInput component for web.
+    React Native deprecated `blurOnSubmit` in favor of `submitBehavior` (React Native 0.73+),
+    but React Native Web doesn't natively support this prop. This patch implements the web
+    equivalent behavior, mapping `submitBehavior` values ('submit', 'blurAndSubmit', 'newline')
+    to the appropriate keyboard handling logic while maintaining backwards compatibility with
+    the deprecated `blurOnSubmit` prop.
+    ```
+- Upstream PR/issue: https://github.com/necolas/react-native-web/issues/2817
+- E/App issue: https://github.com/Expensify/App/issues/73782
+- PR introducing patch: https://github.com/Expensify/App/pull/76332

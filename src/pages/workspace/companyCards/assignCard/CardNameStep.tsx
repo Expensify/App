@@ -37,7 +37,7 @@ function CardNameStep({route}: CardNameStepProps) {
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         setAssignCardStepAndData({
             cardToAssign: {
-                cardName: values.name,
+                customCardName: values.name,
             },
             isEditing: false,
         });
@@ -49,7 +49,7 @@ function CardNameStep({route}: CardNameStepProps) {
         const length = values.name.length;
 
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+            addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', length, CONST.STANDARD_LENGTH_LIMIT));
         }
 
         return errors;
@@ -74,7 +74,7 @@ function CardNameStep({route}: CardNameStepProps) {
                 />
                 <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
                 <FormProvider
-                    key={cardToAssign?.cardName}
+                    key={cardToAssign?.customCardName}
                     formID={ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM}
                     submitButtonText={translate('common.save')}
                     onSubmit={submit}
@@ -90,7 +90,7 @@ function CardNameStep({route}: CardNameStepProps) {
                         label={translate('workspace.moreFeatures.companyCards.cardName')}
                         aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={cardToAssign?.cardName}
+                        defaultValue={cardToAssign?.customCardName}
                         ref={inputCallbackRef}
                     />
                 </FormProvider>

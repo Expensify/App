@@ -52,6 +52,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
 
+    /** Method to trigger when pressing rotate button of the header */
+    onRotateButtonPress?: () => void;
+
     /** Method to trigger when pressing close button of the header */
     onCloseButtonPress?: () => void;
 
@@ -72,6 +75,12 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should show a loading indicator replacing the download button */
     isDownloading?: boolean;
+
+    /** Whether we should show a rotate button */
+    shouldShowRotateButton?: boolean;
+
+    /** Whether we should show a loading indicator replacing the rotate button */
+    isRotating?: boolean;
 
     /** Whether we should show a pin button */
     shouldShowPinButton?: boolean;

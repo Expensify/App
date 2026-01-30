@@ -77,7 +77,8 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             if (isCreatedAction(reportAction)) {
                 return formatReportLastMessageText(
-                    SidebarUtils.getWelcomeMessage(report, policy, participantPersonalDetailList, localeCompare, isReportArchived).messageText ?? translate('report.noActivityYet'),
+                    SidebarUtils.getWelcomeMessage(report, policy, participantPersonalDetailList, translate, localeCompare, isReportArchived).messageText ??
+                        translate('report.noActivityYet'),
                 );
             }
 
@@ -92,9 +93,10 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
     const searchedReportActions = useMemo(() => {
         return (sortedAllReportActions ?? [])
+            .filter((reportAction) => reportAction?.reportActionID)
             .filter(
                 (reportAction) =>
-                    reportAction.reportActionID.includes(debouncedSearchValue) || getReportActionDebugText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
+                    reportAction.reportActionID?.includes(debouncedSearchValue) || getReportActionDebugText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
             )
             .map((reportAction) => ({
                 reportActionID: reportAction.reportActionID,

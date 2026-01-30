@@ -42,7 +42,6 @@ let youTranslation = '';
 
 Onyx.connect({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
     callback: (value) => {
         if (value ?? true) {
             return;
@@ -153,7 +152,7 @@ function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
  */
 function getAccountIDsByLogins(logins: string[]): number[] {
     return logins.reduce<number[]>((foundAccountIDs, login) => {
-        const currentDetail = personalDetails.find((detail) => detail?.login === login?.toLowerCase());
+        const currentDetail = getPersonalDetailByEmail(login);
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(generateAccountID(login));
@@ -215,7 +214,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
     newLogins: string[],
     newAccountIDs: number[],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-): Required<Pick<OnyxData, 'optimisticData' | 'finallyData'>> {
+): OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
@@ -236,7 +235,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         personalDetailsCleanup[accountID] = null;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -244,7 +243,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -424,6 +423,19 @@ const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined
 };
 
 /**
+ * Creates a lookup map from an array of PersonalDetails for O(1) access by accountID.
+ * This is useful when you need to look up personal details by accountID multiple times
+ * to avoid O(n) .find() calls in loops.
+ */
+function createPersonalDetailsLookupByAccountID(details: PersonalDetails[]): Record<number, PersonalDetails> {
+    const map: Record<number, PersonalDetails> = {};
+    for (const detail of details) {
+        map[detail.accountID] = detail;
+    }
+    return map;
+}
+
+/**
  * Checks whether any personal details are missing
  */
 function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
@@ -457,4 +469,5 @@ export {
     getLoginByAccountID,
     getPhoneNumber,
     arePersonalDetailsMissing,
+    createPersonalDetailsLookupByAccountID,
 };

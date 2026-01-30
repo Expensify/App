@@ -3,24 +3,22 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, isExportedToIntegrationAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
 
 type ExportedIconCellProps = {
-    reportID?: string;
+    reportActions?: ReportAction[];
 };
 
-function ExportedIconCell({reportID}: ExportedIconCellProps) {
+function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const reportActions = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
 
-    const actions = Object.values(reportActions[0] ?? {});
+    const actions = reportActions ?? [];
+    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
 
     let isExportedToCsv = false;
     let isExportedToNetsuite = false;
@@ -38,15 +36,18 @@ function ExportedIconCell({reportID}: ExportedIconCellProps) {
         }
 
         if (isExportedToIntegrationAction(action)) {
-            const label = getOriginalMessage(action)?.label;
+            const message = getOriginalMessage(action);
+            const label = message?.label;
+            const type = message?.type;
+            isExportedToCsv = isExportedToCsv || type === CONST.EXPORT_TEMPLATE;
             isExportedToXero = isExportedToXero || label === CONST.EXPORT_LABELS.XERO;
-            isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT;
             isExportedToNetsuite = isExportedToNetsuite || label === CONST.EXPORT_LABELS.NETSUITE;
             isExportedToQuickbooksOnline = isExportedToQuickbooksOnline || label === CONST.EXPORT_LABELS.QBO;
             isExportedToQuickbooksDesktop = isExportedToQuickbooksDesktop || label === CONST.EXPORT_LABELS.QBD;
             isExportedToZenefits = isExportedToZenefits || label === CONST.EXPORT_LABELS.ZENEFITS;
             isExportedToBillCom = isExportedToBillCom || label === CONST.EXPORT_LABELS.BILLCOM;
             isExportedToCertinia = isExportedToCertinia || label === CONST.EXPORT_LABELS.CERTINIA;
+            isExportedToIntacct = isExportedToIntacct || label === CONST.EXPORT_LABELS.INTACCT || label === CONST.EXPORT_LABELS.SAGE_INTACCT;
         }
     }
 

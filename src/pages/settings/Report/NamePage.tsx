@@ -3,8 +3,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {isGroupChat, isTripRoom} from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import GroupChatNameEditPage from '@pages/GroupChatNameEditPage';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import TripChatNameEditPage from '@pages/TripChatNameEditPage';
 import type SCREENS from '@src/SCREENS';
 import RoomNamePage from './RoomNamePage';

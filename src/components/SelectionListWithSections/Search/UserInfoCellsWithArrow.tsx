@@ -2,8 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +37,7 @@ function UserInfoCellsWithArrow({
     fromRecipientStyle?: ViewStyle;
     shouldUseArrowIcon?: boolean;
 }) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRightLong']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -60,7 +61,7 @@ function UserInfoCellsWithArrow({
                 <>
                     {shouldUseArrowIcon ? (
                         <Icon
-                            src={Expensicons.ArrowRightLong}
+                            src={icons.ArrowRightLong}
                             width={variables.iconSizeXXSmall}
                             height={variables.iconSizeXXSmall}
                             fill={theme.icon}

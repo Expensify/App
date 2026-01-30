@@ -32,7 +32,7 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -51,7 +51,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const hasAvatar = !!policy?.avatarURL;
     const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
 
-    const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
+    const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || icons.FallbackAvatar;
     const defaultWorkspaceAvatarColors = policyID ? StyleUtils.getDefaultWorkspaceAvatarColor(policyID) : StyleUtils.getDefaultWorkspaceAvatarColor('');
 
     const svgLogo = !hasAvatar ? defaultWorkspaceAvatar : undefined;

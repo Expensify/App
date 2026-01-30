@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -74,7 +74,7 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="NetSuiteCollectionAccountSelectPage"
             headerContent={headerContent}
-            sections={netsuiteCollectionAccountOptions.length ? [{data: netsuiteCollectionAccountOptions}] : []}
+            data={netsuiteCollectionAccountOptions}
             listItem={RadioListItem}
             onSelectRow={updateCollectionAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}

@@ -1,5 +1,5 @@
 import {circularDeepEqual, deepEqual} from 'fast-equals';
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
@@ -50,7 +50,8 @@ function PopoverWithMeasuredContentBase({
     shouldSkipRemeasurement = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
-    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const {currentActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewState();
+    const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const [popoverWidth, setPopoverWidth] = useState(popoverDimensions.width);
@@ -100,8 +101,8 @@ function PopoverWithMeasuredContentBase({
         // it handles the case when `measurePopover` is called with values like: 192, 192.00003051757812, 192
         // if we update it, then animation in `ActionSheetAwareScrollView` may be re-running
         // and we'll see out-of-sync and junky animation
-        if (actionSheetAwareScrollViewContext.currentActionSheetState.get().current.payload?.popoverHeight !== Math.floor(height) && height !== 0) {
-            actionSheetAwareScrollViewContext.transitionActionSheetState({
+        if (currentActionSheetState.get().current.payload?.popoverHeight !== Math.floor(height) && height !== 0) {
+            transitionActionSheetState({
                 type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
                 payload: {
                     popoverHeight: Math.floor(height),
@@ -225,6 +226,8 @@ function PopoverWithMeasuredContentBase({
         </View>
     );
 }
+
+PopoverWithMeasuredContentBase.displayName = 'PopoverWithMeasuredContentBase';
 
 export default React.memo(PopoverWithMeasuredContentBase, (prevProps, nextProps) => {
     if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {

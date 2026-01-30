@@ -1,12 +1,12 @@
 import Computer from '@assets/images/computer.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
-import LaptopOnDeskDeprecated from '@assets/images/laptop-on-desk-deprecated.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
+import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -14,9 +14,9 @@ import Approval from '@assets/images/simple-illustrations/simple-illustration__a
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
+import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
-import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
@@ -29,6 +29,7 @@ import EmailAddress from '@assets/images/simple-illustrations/simple-illustratio
 import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
+import FastMoney from '@assets/images/simple-illustrations/simple-illustration__fastmoney.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
@@ -43,55 +44,58 @@ import Luggage from '@assets/images/simple-illustrations/simple-illustration__lu
 import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
+import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
-    Encryption,
+    Abacus,
+    Alert,
+    Approval,
+    Binoculars,
+    BlueShield,
+    Buildings,
+    CalendarMonthly,
+    Car,
+    CarIce,
     ChatBubbles,
-    PinkCar,
-    Computer,
+    CheckmarkCircle,
     Clock,
+    CommentBubbles,
+    Computer,
+    ConciergeBot,
+    ConciergeBubble,
+    CreditCardEyes,
+    CreditCardsNewGreen,
     EmailAddress,
     EmptyCardState,
+    EmptyShelves,
+    EmptyStateTravel,
+    Encryption,
     EnvelopeReceipt,
+    ExpensifyApprovedLogo,
     ExpensifyCardImage,
-    Mailbox,
-    CreditCardsNewGreen,
+    FastMoney,
+    Filters,
+    Fireworks,
+    Flash,
+    Gears,
+    HeadSet,
+    Hourglass,
+    House,
     LaptopWithSecondScreenAndHourglass,
     LaptopWithSecondScreenSync,
     LaptopWithSecondScreenX,
+    Lightbulb,
+    LockClosed,
+    LockClosedOrange,
     LockOpen,
     Luggage,
     MagnifyingGlassReceipt,
-    ConciergeBot,
-    ConciergeBubble,
-    HeadSet,
-    Hourglass,
-    CommentBubbles,
-    Puzzle,
-    LockClosed,
-    Gears,
-    Approval,
-    House,
-    Buildings,
-    Alert,
-    Abacus,
-    Binoculars,
-    Car,
+    Mailbox,
     Pencil,
-    CarIce,
-    Lightbulb,
-    ExpensifyApprovedLogo,
-    CheckmarkCircle,
-    CreditCardEyes,
-    LockClosedOrange,
-    Filters,
-    TurtleInShell,
-    Flash,
     PendingTravel,
-    EmptyStateTravel,
-    EmptyShelves,
-    BlueShield,
-    LaptopOnDeskDeprecated,
+    Puzzle,
+    ThumbsUpStars,
+    TurtleInShell,
 };

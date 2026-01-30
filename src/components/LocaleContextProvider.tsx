@@ -8,9 +8,8 @@ import {buildEmojisTrie} from '@libs/EmojiTrie';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
-import localeEventCallback from '@libs/Localize/localeEventCallback';
 import {format} from '@libs/NumberFormatUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {setLocale} from '@userActions/App';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
@@ -95,6 +94,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         if (isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
             return undefined;
         }
+
         if (nvpPreferredLocale && isSupportedLocale(nvpPreferredLocale)) {
             return nvpPreferredLocale;
         }
@@ -108,13 +108,21 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             return;
         }
 
-        setLocale(localeToApply, nvpPreferredLocale);
         IntlStore.load(localeToApply);
-        localeEventCallback(localeToApply);
+        setLocale(localeToApply, nvpPreferredLocale);
 
         // For locales without emoji support, fallback on English
         const normalizedLocale = isFullySupportedLocale(localeToApply) ? localeToApply : CONST.LOCALES.DEFAULT;
+
+        startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT, {
+            name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
+            op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT),
+        });
+
         importEmojiLocale(normalizedLocale).then(() => {
+            endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
+
             buildEmojisTrie(normalizedLocale);
         });
     }, [localeToApply, nvpPreferredLocale]);
@@ -130,7 +138,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         }
 
         setCurrentLocale(locale);
-        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
     }, [areTranslationsLoading]);
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails?.timezone?.selected]);

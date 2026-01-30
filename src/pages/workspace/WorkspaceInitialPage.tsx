@@ -6,13 +6,12 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -25,6 +24,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
@@ -40,11 +40,12 @@ import {
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyFeatureEnabled,
+    isTimeTrackingEnabled,
     shouldShowEmployeeListError,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -56,7 +57,6 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import useHasWorkspaceCompanyCardErrors from './companyCards/hooks/useHasWorkspaceCompanyCardErrors';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -109,6 +109,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Users',
         'Workflows',
         'LuggageWithLines',
+        'Clock',
     ] as const);
 
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -117,7 +118,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`, {canBeMissing: true});
-    const {login, accountID} = useCurrentUserPersonalDetails();
+    const {login} = useCurrentUserPersonalDetails();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policy?.id);
     const waitForNavigate = useWaitForNavigation();
@@ -129,13 +130,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const isUberForBusinessEnabled = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS);
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id, allReports)?.reportID;
-    const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`, {canBeMissing: true});
-    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
-    const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
+    const isPolicyTimeTrackingEnabled = isTimeTrackingEnabled(policy);
     const policyFeatureStates = useMemo(
         () => ({
             [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
@@ -152,6 +149,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.receiptPartners?.enabled ?? false),
             [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
+            [CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]: isPolicyTimeTrackingEnabled,
         }),
         [
             policy?.areDistanceRatesEnabled,
@@ -170,6 +168,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             policy?.receiptPartners?.enabled,
             isUberForBusinessEnabled,
             policy?.isTravelEnabled,
+            isPolicyTimeTrackingEnabled,
         ],
     ) as PolicyFeatureStates;
 
@@ -190,6 +189,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const policyID = policy?.id;
     const policyName = policy?.name ?? '';
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
@@ -203,7 +203,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const [highlightedFeature, setHighlightedFeature] = useState<string | undefined>(undefined);
 
-    const hasCompanyCardFeedError = useHasWorkspaceCompanyCardErrors({policyID});
+    const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
+    const shouldShowRBR = shouldShowRbrForWorkspaceAccountID[workspaceAccountID];
 
     const workspaceMenuItems: WorkspaceMenuItem[] = useMemo(() => {
         const protectedMenuItems: WorkspaceMenuItem[] = [];
@@ -330,7 +331,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 icon: expensifyIcons.CreditCard,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.COMPANY_CARDS,
-                brickRoadIndicator: hasCompanyCardFeedError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
             });
         }
@@ -342,6 +343,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.PER_DIEM,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+            });
+        }
+
+        if (isBetaEnabled(CONST.BETAS.TIME_TRACKING) && featureStates?.[CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED]) {
+            protectedMenuItems.push({
+                translationKey: 'iou.time',
+                icon: expensifyIcons.Clock,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.TIME_TRACKING,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED,
             });
         }
 
@@ -401,6 +412,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         expensifyIcons.CreditCard,
         expensifyIcons.CalendarSolid,
         expensifyIcons.InvoiceGeneric,
+        expensifyIcons.Clock,
         singleExecution,
         waitForNavigate,
         featureStates,
@@ -413,7 +425,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         highlightedFeature,
         shouldShowEnterCredentialsError,
         hasPolicyCategoryError,
-        hasCompanyCardFeedError,
+        shouldShowRBR,
+        isBetaEnabled,
     ]);
 
     // We only update feature states if they aren't pending.
@@ -511,7 +524,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 !shouldDisplayLHB && (
                     <NavigationTabBar
                         selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingCameraButton={false}
+                        shouldShowFloatingButtons={false}
                     />
                 )
             }
@@ -565,25 +578,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             ))}
                         </View>
                     </OfflineWithFeedback>
-                    {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
-                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                            <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
-                            <OfflineWithFeedback
-                                pendingAction={reportPendingAction}
-                                shouldShowErrorMessages={false}
-                            >
-                                <MenuItem
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                    title={getReportName(currentUserPolicyExpenseChat)}
-                                    description={translate('workspace.common.workspace')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
-                                    shouldShowRightIcon
-                                    wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
-                                    iconReportID={currentUserPolicyExpenseChatReportID}
-                                />
-                            </OfflineWithFeedback>
-                        </View>
-                    )}
                 </ScrollView>
                 {shouldShowNavigationTabBar && shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </FullPageNotFoundView>

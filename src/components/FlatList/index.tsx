@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import type {CustomFlatListProps} from './types';
 
@@ -43,7 +44,16 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     return flatList?.getScrollableNode() as HTMLElement | undefined;
 }
 
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll: onScrollProp, initialNumToRender, ref, ...restProps}: CustomFlatListProps<TItem>) {
+function MVCPFlatList<TItem>({
+    maintainVisibleContentPosition,
+    horizontal = false,
+    onScroll: onScrollProp,
+    initialNumToRender,
+    shouldHideContent = false,
+    ref,
+    ...restProps
+}: CustomFlatListProps<TItem>) {
+    const styles = useThemeStyles();
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -52,7 +62,6 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
     const lastScrollOffsetRef = useRef(0);
     const isListRenderedRef = useRef(false);
     const mvcpAutoscrollToTopThresholdRef = useRef(mvcpAutoscrollToTopThreshold);
-    // eslint-disable-next-line react-compiler/react-compiler
     mvcpAutoscrollToTopThresholdRef.current = mvcpAutoscrollToTopThreshold;
 
     const getScrollOffset = useCallback((): number => {
@@ -251,6 +260,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                 }
                 restProps.onLayout?.(e);
             }}
+            contentContainerStyle={[restProps.contentContainerStyle, shouldHideContent && styles.visibilityHidden]}
         />
     );
 }

@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAvatarErrors, getCurrentUserAccountID, updatePolicyRoomAvatar} from '@libs/actions/Report';
+import {clearAvatarErrors, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {isDefaultAvatar} from '@libs/UserAvatarUtils';
@@ -14,8 +14,6 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
 
@@ -24,9 +22,10 @@ type RoomHeaderAvatarsProps = {
     report: Report;
     policy: OnyxEntry<Policy>;
     participants: number[];
+    currentUserAccountID: number;
 };
 
-function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, report, policy, participants, currentUserAccountID}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report?.reportID, icon.id.toString()));
@@ -38,10 +37,9 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
         }
     };
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'ImageCropSquareMask']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'FallbackAvatar', 'ImageCropSquareMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const currentUserAccountID = getCurrentUserAccountID();
     const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR;
 
     if (!icons.length) {
@@ -64,8 +62,8 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
-                    onImageRemoved={() => updatePolicyRoomAvatar(report.reportID)}
-                    onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, file)}
+                    onImageRemoved={() => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl)}
+                    onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, currentUserAccountID, report.avatarUrl, file)}
                     editIcon={expensifyIcons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     pendingAction={report.pendingFields?.avatar}
@@ -86,7 +84,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                 onPress={() => navigateToAvatarPage(icon)}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={icon.name ?? ''}
-                disabled={icon.source === Expensicons.FallbackAvatar}
+                disabled={icon.source === expensifyIcons.FallbackAvatar}
             >
                 <Avatar
                     source={icon.source}
@@ -123,7 +121,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                             onPress={() => navigateToAvatarPage(icon)}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={icon.name ?? ''}
-                            disabled={icon.source === Expensicons.FallbackAvatar}
+                            disabled={icon.source === expensifyIcons.FallbackAvatar}
                         >
                             <Avatar
                                 source={icon.source}

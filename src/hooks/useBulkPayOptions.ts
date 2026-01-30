@@ -1,9 +1,9 @@
 import truncate from 'lodash/truncate';
-import {useCallback, useMemo} from 'react';
 import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
@@ -35,6 +35,7 @@ type UseBulkPayOptionProps = {
     isCurrencySupportedWallet?: boolean;
     currency: string | undefined;
     formattedAmount: string;
+    onlyShowPayElsewhere: boolean;
 };
 
 type UseBulkPayOptionReturnType = {
@@ -52,6 +53,7 @@ function useBulkPayOptions({
     isCurrencySupportedWallet,
     currency,
     formattedAmount,
+    onlyShowPayElsewhere,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
     const {translate} = useLocalize();
@@ -97,68 +99,66 @@ function useBulkPayOptions({
         });
     }
 
-    const getPaymentSubitems = useCallback(
-        (payAsBusiness: boolean) => {
-            const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
-
-            return formattedPaymentMethods
-                .filter((method) => {
-                    const accountData = method?.accountData as AccountData;
-                    return accountData?.type === requiredAccountType;
-                })
-                .map((formattedPaymentMethod) => ({
-                    text: formattedPaymentMethod?.title ?? '',
-                    description: formattedPaymentMethod?.description ?? '',
-                    icon: formattedPaymentMethod?.icon,
-                    shouldUpdateSelectedIndex: true,
-                    iconStyles: formattedPaymentMethod?.iconStyles,
-                    iconHeight: formattedPaymentMethod?.iconSize,
-                    iconWidth: formattedPaymentMethod?.iconSize,
-                    key: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                    additionalData: {
-                        payAsBusiness,
-                        methodID: formattedPaymentMethod.methodID,
-                        paymentMethod: formattedPaymentMethod.accountType,
-                    },
-                }));
-        },
-        [formattedPaymentMethods],
-    );
+    const getPaymentSubItems = (payAsBusiness: boolean) => {
+        const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
+        return formattedPaymentMethods
+            .filter((method) => {
+                const accountData = method?.accountData as AccountData;
+                const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
+                return accountData?.type === requiredAccountType && !isPartiallySetup;
+            })
+            .map((formattedPaymentMethod) => ({
+                text: formattedPaymentMethod?.title ?? '',
+                description: formattedPaymentMethod?.description ?? '',
+                icon: formattedPaymentMethod?.icon,
+                shouldUpdateSelectedIndex: true,
+                iconStyles: formattedPaymentMethod?.iconStyles,
+                iconHeight: formattedPaymentMethod?.iconSize,
+                iconWidth: formattedPaymentMethod?.iconSize,
+                key: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                additionalData: {
+                    payAsBusiness,
+                    methodID: formattedPaymentMethod.methodID,
+                    paymentMethod: formattedPaymentMethod.accountType,
+                },
+            }));
+    };
 
     const latestBankItems = getLatestBankAccountItem();
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
-    const bulkPayButtonOptions = useMemo(() => {
-        const buttonOptions = [];
-
-        if (!selectedReportID || !selectedPolicyID) {
-            return undefined;
-        }
+    let bulkPayButtonOptions;
+    if (!selectedReportID || !selectedPolicyID) {
+        bulkPayButtonOptions = undefined;
+    } else if (onlyShowPayElsewhere) {
+        bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+    } else {
+        bulkPayButtonOptions = [];
 
         if (shouldShowBusinessBankAccountOptions) {
-            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+            bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
         }
 
         if (canUseWallet) {
             if (personalBankAccountList.length && canUsePersonalBankAccount) {
-                buttonOptions.push({
+                bulkPayButtonOptions.push({
                     text: translate('iou.settleWallet', {formattedAmount: ''}),
                     key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                     icon: icons.Wallet,
                 });
             } else if (canUsePersonalBankAccount) {
-                buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
+                bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
             }
 
             if (activeAdminPolicies.length === 0 && !isPersonalOnlyOption) {
-                buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+                bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
             }
         }
 
         if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet && !isPersonalOnlyOption) {
             for (const activePolicy of activeAdminPolicies) {
                 const policyName = activePolicy.name;
-                buttonOptions.push({
+                bulkPayButtonOptions.push({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
                     icon: icons.Building,
                     key: activePolicy.id,
@@ -168,7 +168,7 @@ function useBulkPayOptions({
         }
 
         if (shouldShowPayElsewhereOption) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+            bulkPayButtonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         }
 
         if (isInvoiceReport) {
@@ -183,7 +183,7 @@ function useBulkPayOptions({
                     },
                 };
                 return [
-                    ...(isCurrencySupported ? getPaymentSubitems(payAsBusiness) : []),
+                    ...(isCurrencySupported ? getPaymentSubItems(payAsBusiness) : []),
                     ...(isCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
@@ -197,13 +197,13 @@ function useBulkPayOptions({
             };
 
             if (isIndividualInvoiceRoomUtil(chatReport)) {
-                buttonOptions.push({
+                bulkPayButtonOptions.push({
                     text: translate('iou.settlePersonal', {formattedAmount}),
                     icon: icons.User,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: getInvoicesOptions(false),
                 });
-                buttonOptions.push({
+                bulkPayButtonOptions.push({
                     text: translate('iou.settleBusiness', {formattedAmount}),
                     icon: icons.Building,
                     backButtonText: translate('iou.business'),
@@ -211,33 +211,10 @@ function useBulkPayOptions({
                 });
             } else {
                 // If there is pay as business option, we should show the submenu items instead.
-                buttonOptions.push(...getInvoicesOptions(true));
+                bulkPayButtonOptions.push(...getInvoicesOptions(true));
             }
         }
-
-        return buttonOptions;
-    }, [
-        translate,
-        icons.Building,
-        icons.User,
-        selectedReportID,
-        selectedPolicyID,
-        shouldShowBusinessBankAccountOptions,
-        canUseWallet,
-        hasMultiplePolicies,
-        hasSinglePolicy,
-        isPersonalOnlyOption,
-        shouldShowPayElsewhereOption,
-        isInvoiceReport,
-        paymentMethods,
-        personalBankAccountList.length,
-        canUsePersonalBankAccount,
-        activeAdminPolicies,
-        currency,
-        chatReport,
-        getPaymentSubitems,
-        formattedAmount,
-    ]);
+    }
 
     return {
         bulkPayButtonOptions,

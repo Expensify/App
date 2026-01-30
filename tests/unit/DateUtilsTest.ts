@@ -2,6 +2,7 @@
 import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
@@ -9,6 +10,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Log');
@@ -353,7 +355,7 @@ describe('DateUtils', () => {
         });
 
         it('returns empty string when input date is empty', () => {
-            expect(DateUtils.getStatusUntilDate('', inputTimeZoneNY, currentTimeZone)).toBe('');
+            expect(DateUtils.getStatusUntilDate(translateLocal, '', inputTimeZoneNY, currentTimeZone)).toBe('');
         });
 
         it('returns "Until h:mm a" when input and current timezone are same', () => {
@@ -361,7 +363,7 @@ describe('DateUtils', () => {
             const targetTime = set(nowInTZ, {hours: 15, minutes: 34, seconds: 0, milliseconds: 0});
             const inputDateStr = tzFormat(targetTime, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
 
-            const result = DateUtils.getStatusUntilDate(inputDateStr, currentTimeZone, currentTimeZone);
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStr, currentTimeZone, currentTimeZone);
             const expectedLabel = tzFormat(targetTime, CONST.DATE.LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
@@ -373,7 +375,7 @@ describe('DateUtils', () => {
 
             const inputDateStrNY = tzFormat(endOfTodayCurrent, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneNY});
 
-            const result = DateUtils.getStatusUntilDate(inputDateStrNY, inputTimeZoneNY, inputTimeZoneNY);
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrNY, inputTimeZoneNY, inputTimeZoneNY);
             expect(result).toBe('Until tomorrow');
         });
 
@@ -381,7 +383,7 @@ describe('DateUtils', () => {
             const targetTimeLA = set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 34, seconds: 0, milliseconds: 0});
             const inputDateStrNY = tzFormat(targetTimeLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneNY});
 
-            const result = DateUtils.getStatusUntilDate(inputDateStrNY, inputTimeZoneNY, currentTimeZone);
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrNY, inputTimeZoneNY, currentTimeZone);
 
             const date = fromZonedTime(inputDateStrNY, inputTimeZoneNY);
             const converted = toZonedTime(date, currentTimeZone);
@@ -394,7 +396,7 @@ describe('DateUtils', () => {
             const twoDaysLaterLA = addDays(set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 0, seconds: 0, milliseconds: 0}), 2);
             const inputDateStrParis = tzFormat(twoDaysLaterLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneParis});
 
-            const result = DateUtils.getStatusUntilDate(inputDateStrParis, inputTimeZoneParis, currentTimeZone);
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrParis, inputTimeZoneParis, currentTimeZone);
 
             const date = fromZonedTime(inputDateStrParis, inputTimeZoneParis);
             const converted = toZonedTime(date, currentTimeZone);
@@ -407,7 +409,7 @@ describe('DateUtils', () => {
             const endOfTodayTokyo = endOfDay(toZonedTime(new Date(), inputTimeZoneTokyo));
             const inputDateStrTokyo = tzFormat(endOfTodayTokyo, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
 
-            const result = DateUtils.getStatusUntilDate(inputDateStrTokyo, inputTimeZoneTokyo, currentTimeZone);
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrTokyo, inputTimeZoneTokyo, currentTimeZone);
 
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
@@ -421,7 +423,7 @@ describe('DateUtils', () => {
             const laFutureDateStr = '2026-01-02 09:15:00';
             const inputDateStrTokyo = tzFormat(fromZonedTime(laFutureDateStr, currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
 
-            const result = DateUtils.getStatusUntilDate(inputDateStrTokyo, inputTimeZoneTokyo, currentTimeZone);
+            const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStrTokyo, inputTimeZoneTokyo, currentTimeZone);
 
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
@@ -479,6 +481,40 @@ describe('DateUtils', () => {
             expect(result).toContain('to');
             expect(result).toContain('2024-01-05');
             expect(result).toContain('12 days');
+        });
+    });
+
+    describe('formatCountdownTimer', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(LOCALE, path, ...params);
+
+        it('should format hours, minutes, and seconds correctly', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 5, 30, 45);
+            expect(result).toBe('5h 30m 45s');
+        });
+
+        it('should pad single digit minutes with leading zero', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 2, 5, 30);
+            expect(result).toBe('2h 05m 30s');
+        });
+
+        it('should pad single digit seconds with leading zero', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 1, 15, 8);
+            expect(result).toBe('1h 15m 08s');
+        });
+
+        it('should pad both minutes and seconds with leading zeros', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 0, 3, 7);
+            expect(result).toBe('0h 03m 07s');
+        });
+
+        it('should handle zero values for all parameters', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 0, 0, 0);
+            expect(result).toBe('0h 00m 00s');
+        });
+
+        it('should handle large hour values', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 23, 59, 59);
+            expect(result).toBe('23h 59m 59s');
         });
     });
 });
