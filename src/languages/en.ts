@@ -1007,7 +1007,7 @@ const translations = {
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
             },
             fixCompanyCardConnection: {
-                title: ({bankName}: {bankName: string}) => `Fix ${bankName} company card connection`,
+                title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
                 subtitle: 'Workspace > Company cards',
             },
             fixAccountingConnection: {

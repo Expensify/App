@@ -2,9 +2,11 @@ import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
-import {getBankName} from '@libs/CardUtils';
+import useOnyx from '@hooks/useOnyx';
+import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import colors from '@styles/theme/colors';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
@@ -18,21 +20,24 @@ type FixCompanyCardConnectionProps = {
 };
 
 function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProps) {
-    const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCardExclamation'] as const);
 
-    const bankName = getBankName(card.bank as CompanyCardFeed);
+    // Get the card feeds data to access custom nicknames
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`, {canBeMissing: true});
+    const customFeedName = cardFeeds?.settings?.companyCardNicknames?.[card.bank as CompanyCardFeed];
+    const feedName = getCustomOrFormattedFeedName(translate, card.bank as CompanyCardFeed, customFeedName, false) ?? '';
 
     return (
         <BaseWidgetItem
             icon={icons.CreditCardExclamation}
-            iconBackgroundColor={theme.widgetIconBG}
-            iconFill={theme.widgetIconFill}
-            title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {bankName})}
+            iconBackgroundColor={colors.tangerine200}
+            iconFill={colors.tangerine700}
+            title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
             subtitle={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
+            isDanger
         />
     );
 }
