@@ -143,11 +143,20 @@ function run() {
     const expensifyClassicArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.expensifyClassic}`);
     const newExpensifyArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.newExpensify}`);
     const travelArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.travel}`);
+    const consolidatedArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.consolidated}`);
+
 
     const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === platformNames.expensifyClassic);
     const newExpensifyRoute = routes.platforms.find((platform) => platform.href === platformNames.newExpensify);
     const travelRoute = routes.platforms.find((platform) => platform.href === platformNames.travel);
+    const consolidatedRoute = routes.platforms.find(
+    (platform) => platform.href === platformNames.consolidated
+);
 
+    if (!consolidatedRoute) {
+    console.error('Consolidated platform missing from _routes.yml');
+    process.exit(1);
+}
     if (expensifyClassicArticleHubs.length !== expensifyClassicRoute?.hubs.length) {
         console.error(warnMessage(platformNames.expensifyClassic));
         process.exit(1);
@@ -163,9 +172,15 @@ function run() {
         process.exit(1);
     }
 
+    if (consolidatedArticleHubs.length !== consolidatedRoute?.hubs.length) {
+        console.error(warnMessage(platformNames.consolidated));
+        process.exit(1);
+}
+
     createHubsWithArticles(expensifyClassicArticleHubs, platformNames.expensifyClassic, expensifyClassicRoute.hubs);
     createHubsWithArticles(newExpensifyArticleHubs, platformNames.newExpensify, newExpensifyRoute.hubs);
     createHubsWithArticles(travelArticleHubs, platformNames.travel, travelRoute.hubs);
+    createHubsWithArticles(consolidatedArticleHubs, platformNames.consolidated, consolidatedRoute.hubs);
 
     // Convert the object to YAML and write it to the file
     let yamlString = yaml.dump(routes);
