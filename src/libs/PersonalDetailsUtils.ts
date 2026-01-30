@@ -51,7 +51,7 @@ Onyx.connect({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             youTranslation = translateLocal('common.you').toLowerCase();
         }
-    
+
         if (!hiddenTranslation) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             hiddenTranslation = translateLocal('common.hidden');
