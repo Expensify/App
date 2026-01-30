@@ -74,9 +74,14 @@ function IOURequestStepOdometerImage({
     const handleDrop = useCallback(
         (event: DragEvent) => {
             const files = Array.from(event.dataTransfer?.files ?? []);
-            if (files.length > 0) {
-                validateFiles(files as FileObject[]);
+            if (files.length === 0) {
+                return;
             }
+            for (const file of files) {
+                // eslint-disable-next-line no-param-reassign
+                file.uri = URL.createObjectURL(file);
+            }
+            validateFiles(files as FileObject[], Array.from(event.dataTransfer?.items ?? []));
         },
         [validateFiles],
     );
