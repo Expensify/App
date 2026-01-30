@@ -470,7 +470,7 @@ function WalletPage() {
                               Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(paymentMethod.methodID));
                           },
                       },
-                ]
+                  ]
                 : []),
             ...(shouldShowDeleteCardButton
                 ? [
