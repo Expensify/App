@@ -931,9 +931,6 @@ const staticStyles = (theme: ThemeColors) =>
         actionableItemButton: {
             paddingTop: 8,
             paddingBottom: 8,
-            backgroundColor: 'transparent',
-            borderWidth: 1,
-            borderColor: theme.border,
             alignItems: 'flex-start',
             borderRadius: variables.componentBorderRadiusMedium,
         },
@@ -942,9 +939,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.buttonPressedBG,
         },
 
-        actionableItemButtonHovered: {
-            borderWidth: 1,
-        },
 
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,

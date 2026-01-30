@@ -1730,10 +1730,12 @@ function PureReportActionItem({
                                             shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
                                             primaryTextNumberOfLines={actionableButtonsNoLines}
                                             styles={{
-                                                text: [isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined, actionContainsFollowUps && styles.fontWeightNormal],
+                                                text: [isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined],
                                                 button: actionContainsFollowUps ? [styles.actionableItemButton, hovered && styles.actionableItemButtonBackgroundHovered] : undefined,
-                                                buttonHover: actionContainsFollowUps ? styles.actionableItemButtonHovered : undefined,
-                                                container: actionContainsFollowUps && shouldUseNarrowLayout ? [styles.alignItemsStretch] : undefined,
+                                                container: [
+                                                    actionContainsFollowUps && shouldUseNarrowLayout ? styles.alignItemsStretch : undefined,
+                                                    actionContainsFollowUps ? styles.mt5 : undefined,
+                                                ],
                                             }}
                                         />
                                     )}
