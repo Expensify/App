@@ -1,3 +1,4 @@
+import reportsSelector from '@selectors/Attributes';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -15,6 +16,7 @@ import {deleteReportField, updateReportField, updateReportName} from '@libs/acti
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {EditRequestNavigatorParamList} from '@libs/Navigation/types';
+import {getReportName as getReportNameFromReportNameUtils} from '@libs/ReportNameUtils';
 import {
     getReportFieldKey,
     hasViolations as hasViolationsReportUtils,
@@ -40,6 +42,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const fieldKey = getReportFieldKey(route.params.fieldID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
     const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
@@ -85,7 +88,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);
+    const fieldValue = isReportFieldTitle ? getReportNameFromReportNameUtils(report, reportAttributes) : (reportField.value ?? reportField.defaultValue);
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];
