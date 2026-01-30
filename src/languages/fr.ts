@@ -567,6 +567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         address: 'Adresse',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: 'Ignorer',
         chatWithAccountManager: (accountManagerDisplayName: string) =>
             `Vous avez besoin de quelque chose de spécifique ? Discutez avec votre chargé de compte, ${accountManagerDisplayName}.`,
@@ -644,7 +645,6 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Mois',
         home: 'Accueil',
         week: 'Semaine',
-        secondAbbreviation: 's',
         year: 'Année',
         quarter: 'Trimestre',
     },
