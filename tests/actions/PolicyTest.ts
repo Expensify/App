@@ -1,10 +1,11 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+// eslint-disable-next-line no-restricted-syntax -- this is needed to allow mocking
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -174,13 +175,12 @@ describe('actions/Policy', () => {
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             }
 
-            // Following tasks are filtered in prepareOnboardingOnyxData: 'viewTour', 'addAccountingIntegration' and 'setupCategoriesAndTags' (-3)
-            const {onboardingMessages} = getOnboardingMessages();
-            const expectedManageTeamDefaultTasksCount = onboardingMessages[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 3;
+            // We do not pass tasks to `#admins` channel in favour of backed generated followup-list
+            const expectedManageTeamDefaultTasksCount = 0;
 
             // After filtering, two actions are added to the list =- signoff message (+1) and default create action (+1)
             const expectedReportActionsOfTypeCreatedCount = 1;
-            const expectedSignOffMessagesCount = 1;
+            const expectedSignOffMessagesCount = 0;
             expect(adminReportActions.length).toBe(expectedManageTeamDefaultTasksCount + expectedReportActionsOfTypeCreatedCount + expectedSignOffMessagesCount);
 
             let reportActionsOfTypeCreatedCount = 0;
@@ -1077,6 +1077,113 @@ describe('actions/Policy', () => {
             expect(policy?.pendingFields?.approvalMode).toBeFalsy();
             expect(policy?.employeeList).toEqual(employeeList);
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+        });
+
+        it('should optimistically refresh next steps for submitted expense reports when changing approval mode', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const buildNextStepNewSpy = jest
+                .spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew')
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- This test covers legacy NextStep optimistic updates which still use the deprecated type.
+                .mockReturnValue({type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Mock next step'}]} as never);
+
+            const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
+            const isExpenseReportSpy = jest.spyOn(ReportUtils, 'isExpenseReport');
+            const hasViolationsSpy = jest.spyOn(ReportUtils, 'hasViolations');
+
+            const policyID = Policy.generatePolicyID();
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: ESH_EMAIL,
+                owner: ESH_EMAIL,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const submittedExpenseReport1 = {reportID: '100', policyID, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED} as unknown as Report;
+            const submittedExpenseReport2 = {reportID: '101', policyID, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED} as unknown as Report;
+            getAllPolicyReportsSpy.mockReturnValue([submittedExpenseReport1, submittedExpenseReport2]);
+            isExpenseReportSpy.mockReturnValue(true);
+            hasViolationsSpy.mockReturnValue(false);
+
+            const nextStepKey1 = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedExpenseReport1.reportID}` as const;
+            const nextStepKey2 = `${ONYXKEYS.COLLECTION.NEXT_STEP}${submittedExpenseReport2.reportID}` as const;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- We need a minimal ReportNextStepDeprecated shape to simulate rollback on failure.
+            const currentNextStep1 = {type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 1'}]} as never;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- We need a minimal ReportNextStepDeprecated shape to simulate rollback on failure.
+            const currentNextStep2 = {type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 2'}]} as never;
+
+            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
+                reportNextSteps: {
+                    [nextStepKey1]: currentNextStep1,
+                    [nextStepKey2]: currentNextStep2,
+                },
+                transactionViolations: {},
+                betas: [],
+            });
+            await waitForBatchedUpdates();
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE,
+                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: nextStepKey1}),
+                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: nextStepKey2}),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: nextStepKey1, value: currentNextStep1}),
+                        expect.objectContaining({onyxMethod: Onyx.METHOD.MERGE, key: nextStepKey2, value: currentNextStep2}),
+                    ]),
+                }),
+            );
+
+            expect(buildNextStepNewSpy).toHaveBeenCalledTimes(2);
+
+            apiWriteSpy.mockRestore();
+            buildNextStepNewSpy.mockRestore();
+            getAllPolicyReportsSpy.mockRestore();
+            isExpenseReportSpy.mockRestore();
+            hasViolationsSpy.mockRestore();
+        });
+
+        it('should not update next steps when additionalData is not provided', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const buildNextStepNewSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildNextStepNew');
+            const getAllPolicyReportsSpy = jest.spyOn(ReportUtils, 'getAllPolicyReports');
+
+            const policyID = Policy.generatePolicyID();
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                approver: ESH_EMAIL,
+                owner: ESH_EMAIL,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            await waitForBatchedUpdates();
+
+            expect(getAllPolicyReportsSpy).not.toHaveBeenCalled();
+            expect(buildNextStepNewSpy).not.toHaveBeenCalled();
+
+            const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {optimisticData?: Array<{key?: string}>; failureData?: Array<{key?: string}>} | undefined;
+            expect(writeOptions).toBeTruthy();
+            expect((writeOptions?.optimisticData ?? []).some((u) => (u?.key ?? '').startsWith(ONYXKEYS.COLLECTION.NEXT_STEP))).toBe(false);
+            expect((writeOptions?.failureData ?? []).some((u) => (u?.key ?? '').startsWith(ONYXKEYS.COLLECTION.NEXT_STEP))).toBe(false);
+
+            apiWriteSpy.mockRestore();
+            buildNextStepNewSpy.mockRestore();
+            getAllPolicyReportsSpy.mockRestore();
         });
     });
 
