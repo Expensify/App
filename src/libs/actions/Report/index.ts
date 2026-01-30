@@ -102,9 +102,8 @@ import {
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
-import * as ReportActionsFollowupUtils from '@libs/ReportActionsFollowupUtils';
+import * as ReportActionsFollowupUtils from '@libs/ReportActionFollowupUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {getLastVisibleAction} from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
@@ -177,6 +176,24 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
+import {clearByKey} from '@userActions/CachedPDFPaths';
+import {setDownload} from '@userActions/Download';
+import {close} from '@userActions/Modal';
+import navigateFromNotification from '@userActions/navigateFromNotification';
+import {getAll} from '@userActions/PersistedRequests';
+import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from '@userActions/Policy/Member';
+import {createPolicyExpenseChats} from '@userActions/Policy/Policy';
+import {
+    createUpdateCommentMatcher,
+    resolveCommentDeletionConflicts,
+    resolveDuplicationConflictAction,
+    resolveEditCommentWithNewAddCommentRequest,
+    resolveOpenReportDuplicationConflictAction,
+} from '@userActions/RequestConflictUtils';
+import {isAnonymousUser} from '@userActions/Session';
+import {onServerDataReady} from '@userActions/Welcome';
+import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -212,24 +229,6 @@ import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
-import {clearByKey} from './CachedPDFPaths';
-import {setDownload} from './Download';
-import {close} from './Modal';
-import navigateFromNotification from './navigateFromNotification';
-import {getAll} from './PersistedRequests';
-import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from './Policy/Member';
-import {createPolicyExpenseChats} from './Policy/Policy';
-import {
-    createUpdateCommentMatcher,
-    resolveCommentDeletionConflicts,
-    resolveDuplicationConflictAction,
-    resolveEditCommentWithNewAddCommentRequest,
-    resolveOpenReportDuplicationConflictAction,
-} from './RequestConflictUtils';
-import {isAnonymousUser} from './Session';
-import {onServerDataReady} from './Welcome';
-import {getOnboardingMessages} from './Welcome/OnboardingFlow';
-import type {OnboardingCompanySize, OnboardingMessage} from './Welcome/OnboardingFlow';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -274,6 +273,11 @@ type GuidedSetupData = Array<
 
 type ReportError = {
     type?: string;
+};
+
+type PregeneratedResponseParams = {
+    optimisticConciergeReportActionID: string;
+    pregeneratedResponse: string;
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
@@ -555,6 +559,7 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
         return null;
     }
 
+    // Mark followup-list as selected after a comment has been posted below the follow up list comment
     const updatedHtml = html.replace(/<followup-list(\s[^>]*)?>/, '<followup-list selected>');
     return {
         ...reportAction,
@@ -577,8 +582,18 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
  * @param report - The report where the comment should be added
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  * @param isInSidePanel - Whether the comment is being added from the side panel
+ * @param pregeneratedResponseParams - Optional params for pre-generated response (API only, no optimistic action - used when response display is delayed)
  */
-function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject, isInSidePanel = false) {
+function addActions(
+    report: OnyxEntry<Report>,
+    notifyReportID: string,
+    ancestors: Ancestor[],
+    timezoneParam: Timezone,
+    text = '',
+    file?: FileObject,
+    isInSidePanel = false,
+    pregeneratedResponseParams?: PregeneratedResponseParams,
+) {
     if (!report?.reportID) {
         return;
     }
@@ -644,7 +659,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
 
     // Check if the last visible action is from Concierge with unresolved followups
     // If so, optimistically resolve them by adding the updated action to optimisticReportActions
-    const lastVisibleAction = getLastVisibleAction(reportID);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID);
     const lastActorAccountID = lastVisibleAction?.actorAccountID;
     const lastActionReportActionID = lastVisibleAction?.reportActionID;
     const resolvedAction = buildOptimisticResolvedFollowups(lastVisibleAction);
@@ -671,6 +686,12 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         if (pageHTML) {
             parameters.pageHTML = pageHTML;
         }
+    }
+
+    // Add pregenerated params
+    if (pregeneratedResponseParams) {
+        parameters.optimisticConciergeReportActionID = pregeneratedResponseParams.optimisticConciergeReportActionID;
+        parameters.pregeneratedResponse = pregeneratedResponseParams.pregeneratedResponse;
     }
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
@@ -716,7 +737,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         };
     }
 
-    const failureReportActions: Record<string, OptimisticAddCommentReportAction | ReportAction> = {};
+    const failureReportActions: Record<string, OptimisticAddCommentReportAction | ReportAction | null> = {};
 
     for (const [actionKey, action] of Object.entries(optimisticReportActions)) {
         failureReportActions[actionKey] = {
@@ -728,6 +749,11 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     // In case of error bring back the follow up buttons to the cast comment
     if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID) {
         failureReportActions[lastActionReportActionID] = lastVisibleAction;
+    }
+
+    // In case of error, remove the optimistic Concierge response
+    if (pregeneratedResponseParams) {
+        failureReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = null;
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
@@ -805,11 +831,20 @@ function addAttachmentWithComment(
 }
 
 /** Add a single comment to a report */
-function addComment(report: OnyxEntry<Report>, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean, isInSidePanel?: boolean) {
+function addComment(
+    report: OnyxEntry<Report>,
+    notifyReportID: string,
+    ancestors: Ancestor[],
+    text: string,
+    timezoneParam: Timezone,
+    shouldPlaySound?: boolean,
+    isInSidePanel?: boolean,
+    pregeneratedResponseParams?: PregeneratedResponseParams,
+) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(report, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel);
+    addActions(report, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel, pregeneratedResponseParams);
 }
 
 function reportActionsExist(reportID: string): boolean {
@@ -1517,7 +1552,7 @@ function createTransactionThreadReport(
         }
     }
 
-    if (!reportToUse) {
+    if (!reportToUse?.reportID) {
         Log.warn('Cannot build transaction thread report without a valid report');
         return;
     }
@@ -2835,15 +2870,16 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
     API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
-function updateDescription(reportID: string, currentDescription: string, newMarkdownValue: string, currentUserAccountID: number) {
+function updateDescription(report: Report, newMarkdownValue: string, currentUserAccountID: number) {
     // No change needed
+    const currentDescription = report.description ?? '';
     if (Parser.htmlToMarkdown(currentDescription) === newMarkdownValue) {
         return;
     }
 
+    const reportID = report.reportID;
     const parsedDescription = getParsedComment(newMarkdownValue, {reportID});
     const optimisticDescriptionUpdatedReportAction = buildOptimisticRoomDescriptionUpdatedReportAction(parsedDescription);
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -4151,12 +4187,9 @@ function inviteToGroupChat(report: Report, inviteeEmailsToAccountIDs: InvitedEma
 /** Removes people from a room
  *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+function removeFromRoom(report: Report, targetAccountIDs: number[]) {
+    const reportID = report.reportID;
     const reportMetadata = getReportMetadata(reportID);
-    if (!report) {
-        return;
-    }
 
     const removeParticipantsData: Record<number, null> = {};
     for (const accountID of targetAccountIDs) {
@@ -4221,8 +4254,8 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     API.write(WRITE_COMMANDS.REMOVE_FROM_ROOM, parameters, {optimisticData, failureData, successData});
 }
 
-function removeFromGroupChat(reportID: string, accountIDList: number[]) {
-    removeFromRoom(reportID, accountIDList);
+function removeFromGroupChat(report: Report, accountIDList: number[]) {
+    removeFromRoom(report, accountIDList);
 }
 
 function optimisticReportLastData(
@@ -5070,6 +5103,7 @@ function deleteAppReport(
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.SELF_DM_REPORT_ID
         >
     > = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -5100,6 +5134,11 @@ function deleteAppReport(
                         createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: selfDMReportID,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -6550,46 +6589,6 @@ function resolveConciergeDescriptionOptions(
 }
 
 /**
- * Resolves a suggested followup by posting the selected question as a comment
- * and optimistically updating the HTML to mark the followup-list as resolved.
- * @param report - The report where the action exists
- * @param notifyReportID - The report ID to notify for new actions
- * @param reportAction - The report action containing the followup-list
- * @param selectedFollowup - The followup question selected by the user
- * @param timezoneParam - The user's timezone
- * @param ancestors - Array of ancestor reports for proper threading
- */
-function resolveSuggestedFollowup(
-    report: OnyxEntry<Report>,
-    notifyReportID: string | undefined,
-    reportAction: OnyxEntry<ReportAction>,
-    selectedFollowup: string,
-    timezoneParam: Timezone,
-    ancestors: Ancestor[] = [],
-) {
-    const reportID = report?.reportID;
-    const reportActionID = reportAction?.reportActionID;
-
-    if (!reportID || !reportActionID) {
-        return;
-    }
-
-    const resolvedAction = buildOptimisticResolvedFollowups(reportAction);
-
-    if (!resolvedAction) {
-        return;
-    }
-
-    // Optimistically update the HTML to mark followup-list as resolved
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportActionID]: resolvedAction,
-    });
-
-    // Post the selected followup question as a comment
-    addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup, timezoneParam);
-}
-
-/**
  * Enhances existing transaction thread reports with additional context for navigation
  *
  * This is NOT the same as createTransactionThreadReport - this function only adds missing
@@ -6689,7 +6688,6 @@ export {
     resolveActionableReportMentionWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
-    resolveSuggestedFollowup,
     savePrivateNotesDraft,
     saveReportActionDraft,
     saveReportDraftComment,

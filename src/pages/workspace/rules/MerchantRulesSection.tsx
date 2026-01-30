@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCleanedTagName} from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -125,7 +126,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 <View style={[styles.mt3]}>
                     {sortedRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
-                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName);
+                        const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
                         const ruleDescription = getRuleDescription(rule, translate, fieldLabels);
 
                         return (
