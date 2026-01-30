@@ -8200,6 +8200,9 @@ const CONST = {
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
         },
+        DISCOVER_SECTION: {
+            TEST_DRIVE: 'DiscoverSection-TestDrive',
+        },
     },
 
     DOMAIN: {
