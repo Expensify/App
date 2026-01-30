@@ -1,6 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
-import {searchResultsErrorSelector} from '@selectors/Snapshot';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
@@ -25,6 +24,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -38,13 +38,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
 import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
-import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
@@ -54,7 +53,7 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {CurrencyList, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
@@ -90,7 +89,7 @@ function SearchFiltersBar({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
-    const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
+    const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
@@ -102,16 +101,14 @@ function SearchFiltersBar({
     const personalDetails = usePersonalDetails();
     const filterFormValues = useFilterFormValues(queryJSON);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading} = useSearchContext();
+    const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading, currentSearchResults} = useSearchContext();
+    const {currencyList, getCurrencySymbol} = useCurrencyList();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
@@ -138,7 +135,6 @@ function SearchFiltersBar({
             }));
     }, [workspaces]);
 
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const hasMultipleOutputCurrency = useMemo(() => {
         const policies = Object.values(allPolicies ?? {}).filter((policy): policy is Policy => isPaidGroupPolicy(policy));
@@ -156,7 +152,7 @@ function SearchFiltersBar({
         return workspaceOptions.filter((option) => normalizedIDs.includes(option.value));
     }, [searchAdvancedFiltersForm.policyID, queryJSON.policyID, workspaceOptions]);
 
-    const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
+    const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
 
     const [typeOptions, type] = useMemo(() => {
@@ -193,17 +189,17 @@ function SearchFiltersBar({
     }, [translate, unsafeGroupBy]);
 
     const [groupCurrencyOptions, groupCurrency] = useMemo(() => {
-        const options = getGroupCurrencyOptions(currencyList);
+        const options = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
         const value = options.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
         return [options, value];
-    }, [searchAdvancedFiltersForm.groupCurrency, currencyList]);
+    }, [searchAdvancedFiltersForm.groupCurrency, currencyList, getCurrencySymbol]);
 
     const [feedOptions, feed] = useMemo(() => {
         const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
-        const options = getFeedOptions(allFeeds, allCards);
+        const options = getFeedOptions(allFeeds, nonPersonalAndWorkspaceCards);
         const value = feedFilterValues ? options.filter((option) => feedFilterValues.includes(option.value)) : [];
         return [options, value];
-    }, [flatFilters, allFeeds, allCards]);
+    }, [flatFilters, allFeeds, nonPersonalAndWorkspaceCards]);
 
     const [statusOptions, status] = useMemo(() => {
         const options = type ? getStatusOptions(translate, type.value) : [];
@@ -308,14 +304,26 @@ function SearchFiltersBar({
                 updatedFilterFormValues.columns = [];
             }
 
-            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
+            // Preserve the current sortBy, sortOrder, and limit from queryJSON when updating filters
+            let queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
+                sortBy: queryJSON.sortBy,
+                sortOrder: queryJSON.sortOrder,
+                limit: queryJSON.limit,
+            });
+
+            if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
+                queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
+            }
+            if (!queryString) {
+                return;
+            }
 
             close(() => {
-                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
                 Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
-        [searchAdvancedFiltersForm],
+        [searchAdvancedFiltersForm, queryJSON.sortBy, queryJSON.sortOrder, queryJSON.limit],
     );
 
     const openAdvancedFilters = useCallback(() => {

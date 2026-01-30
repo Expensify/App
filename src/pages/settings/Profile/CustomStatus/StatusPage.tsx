@@ -15,6 +15,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -39,6 +40,7 @@ import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
 const initialEmoji = '💬';
 
 function StatusPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -167,7 +169,7 @@ function StatusPage() {
         }
 
         return () => clearDraftCustomStatus();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const validateForm = useCallback(
@@ -274,7 +276,7 @@ function StatusPage() {
                                 title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
                                 description={fallbackVacationDelegateLogin}
                                 avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                icon={vacationDelegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                                icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 numberOfLinesDescription={1}
                                 shouldShowRightIcon

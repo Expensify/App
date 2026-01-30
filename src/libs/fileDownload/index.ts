@@ -2,7 +2,7 @@ import fetchFileDownload from './DownloadUtils';
 import type {FileDownload} from './types';
 
 /**
- * The function downloads an attachment on web/desktop platforms.
+ * The function downloads an attachment on web platforms.
  */
 const fileDownload: FileDownload = (
     translate,

@@ -48,17 +48,12 @@ const defaultPluginsForWebpack = [
     '@babel/plugin-transform-export-namespace-from',
 ];
 
-// The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
-// ignore it for desktop builds.
-if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
-    console.debug('This is not a desktop build, adding babel-plugin-annotate-react');
-    defaultPluginsForWebpack.push([
-        '@fullstory/babel-plugin-annotate-react',
-        {
-            native: true,
-        },
-    ]);
-}
+defaultPluginsForWebpack.push([
+    '@fullstory/babel-plugin-annotate-react',
+    {
+        native: true,
+    },
+]);
 
 if (process.env.DEBUG_BABEL_TRACE) {
     defaultPluginsForWebpack.push(traceTransformer);
@@ -70,7 +65,7 @@ const webpack = {
 };
 
 const metro = {
-    presets: [require('@react-native/babel-preset')],
+    presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: true}]],
     plugins: [
         ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
 
@@ -125,7 +120,6 @@ const metro = {
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',
                     '@userActions': './src/libs/actions',
-                    '@desktop': './desktop',
                     '@github': './.github',
                     '@selectors': './src/selectors',
                 },
@@ -182,6 +176,14 @@ module.exports = (api) => {
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
+
+    const isJest = runningIn === 'babel-jest';
+    if (isJest) {
+        return {
+            ...metro,
+            presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: false}]],
+        };
+    }
 
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };

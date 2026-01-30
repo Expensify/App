@@ -7,8 +7,8 @@ import type {LineLayer} from 'react-map-gl';
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
-import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
+import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -928,6 +928,24 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        actionableItemButton: {
+            paddingTop: 8,
+            paddingBottom: 8,
+            backgroundColor: 'transparent',
+            borderWidth: 1,
+            borderColor: theme.border,
+            alignItems: 'flex-start',
+            borderRadius: variables.componentBorderRadiusMedium,
+        },
+
+        actionableItemButtonBackgroundHovered: {
+            borderColor: theme.buttonPressedBG,
+        },
+
+        actionableItemButtonHovered: {
+            borderWidth: 1,
+        },
+
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
         },
@@ -1043,6 +1061,12 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
+        badgeNewFeature: {
+            minHeight: 20,
+            height: 20,
+            paddingHorizontal: 8,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -1142,15 +1166,6 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.heading,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
-        },
-
-        headerGap: {
-            height: CONST.DESKTOP_HEADER_PADDING,
-        },
-
-        searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 2,
-            backgroundColor: theme.appBG,
         },
 
         reportOptions: {
@@ -1275,17 +1290,11 @@ const staticStyles = (theme: ThemeColors) =>
             textAlign: 'right',
         },
 
-        optionRowAmountMobileInputContainer: {
-            width: variables.splitExpenseAmountMobileWidth,
-        },
-
         optionRowPercentInputContainer: {
-            width: variables.splitExpensePercentageMobileWidth,
+            width: variables.splitExpensePercentageWidth,
         },
 
         optionRowPercentInput: {
-            width: variables.splitExpensePercentageWidth,
-            textAlign: 'right',
             marginRight: 2,
         },
 
@@ -1603,6 +1612,7 @@ const staticStyles = (theme: ThemeColors) =>
         searchSidebar: {
             width: variables.sideBarWithLHBWidth,
             height: '100%',
+            backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
@@ -1647,6 +1657,15 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        floatingSecondaryActionButton: {
+            backgroundColor: theme.buttonDefaultBG,
+            height: variables.componentSizeLarge,
+            width: variables.componentSizeLarge,
+            borderRadius: 999,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         floatingActionButtonSmall: {
             width: variables.componentSizeNormal,
             height: variables.componentSizeNormal,
@@ -1655,6 +1674,40 @@ const staticStyles = (theme: ThemeColors) =>
         floatingCameraButton: {
             position: 'absolute',
             top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingCameraButtonAboveFab: {
+            position: 'absolute',
+            // floatingActionButton top property value (componentSizeLarge + 16) +
+            // + floatingCameraButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
+            top: 2 * -variables.componentSizeLarge - 28,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingActionButtonPosition: {
+            position: 'absolute',
+            top: -variables.componentSizeLarge - 16,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingGpsButton: {
+            position: 'absolute',
+            // floatingCameraButton top property value (componentSizeLarge + 16) +
+            // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
+            top: 2 * -variables.componentSizeLarge - 28,
+            right: 16,
+            zIndex: 10,
+        },
+
+        floatingGpsButtonAboveFab: {
+            position: 'absolute',
+            // floatingActionButton top property value (componentSizeLarge + 16) +
+            // + floatingCameraButton height (componentSizeLarge) + gap (12) + floatingGpsButton height (componentSizeLarge) + gap (12) = 3 * variables.componentSizeLarge + 40
+            top: 3 * -variables.componentSizeLarge - 40,
             right: 16,
             zIndex: 10,
         },
@@ -2102,6 +2155,13 @@ const staticStyles = (theme: ThemeColors) =>
                 paddingBottom: 0,
                 alignSelf: 'center',
                 verticalAlign: 'middle',
+                ...(Platform.OS === 'android' && {
+                    height: undefined,
+                    lineHeight: undefined,
+                    alignSelf: 'stretch',
+                    flexGrow: 1,
+                    flexShrink: 1,
+                }),
             },
             0,
         ),
@@ -2531,10 +2591,16 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        blockingErrorViewContainer: {
+        searchBlockingErrorViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
             maxWidth: 475,
             alignSelf: 'center',
+        },
+
+        companyCardsBlockingErrorViewContainer: {
+            maxWidth: 475,
+            alignSelf: 'center',
+            flex: undefined,
         },
 
         forcedBlockingViewContainer: {
@@ -3294,6 +3360,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 180,
         },
 
+        mfaBlockingViewAnimation: {
+            width: 180,
+            height: 180,
+        },
+
         locationErrorLinkText: {
             textAlignVertical: 'center',
             fontSize: variables.fontSizeLabel,
@@ -3608,6 +3679,17 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             marginBottom: 20,
             marginHorizontal: variables.sectionMargin,
+        },
+
+        widgetContainer: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            overflow: 'hidden',
+        },
+
+        homePageContentContainer: {
+            flexGrow: 1,
+            padding: 20,
         },
 
         cardSectionIllustration: {
@@ -4110,11 +4192,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 10,
         },
 
-        desktopSignInButtonContainer: {
-            width: 40,
-            height: 40,
-        },
-
         signInIconButton: {
             paddingVertical: 2,
         },
@@ -4142,7 +4219,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         tabSelectorButton: {
             height: variables.tabSelectorButtonHeight,
-            padding: variables.tabSelectorButtonPadding,
+            paddingHorizontal: variables.tabSelectorButtonPadding,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
@@ -5051,13 +5128,8 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
-        desktopAppRetiredIllustration: {
-            width: variables.desktopAppRetiredIllustrationW,
-            height: variables.desktopAppRetiredIllustrationH,
-        },
-
-        desktopAppRetiredViewTextContainer: {
-            width: variables.desktopAppRetiredViewContainerWidth,
+        twoFARequiredOverlay: {
+            zIndex: 20, // must be greater than floatingCameraButton.zIndex
         },
 
         twoFARequiredContainer: {
@@ -5079,6 +5151,11 @@ const staticStyles = (theme: ThemeColors) =>
         uberConfirmationIllustrationContainer: {
             width: 260,
             height: 172,
+        },
+
+        gpsWebIllustrationContainer: {
+            width: 286,
+            height: 188,
         },
 
         emptyStateCardIllustrationContainer: {
@@ -5280,6 +5357,11 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
+        workflowApprovalLimitText: {
+            marginLeft: 32,
+            paddingBottom: 0,
+        },
+
         integrationIcon: {
             overflow: 'hidden',
             borderRadius: variables.buttonBorderRadius,
@@ -5289,7 +5371,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
             padding: 16,
-            flexWrap: 'wrap',
         },
 
         accountSwitcherPopover: {
@@ -5359,6 +5440,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.translucentNavigationBarBackgroundColor,
         },
 
+        todoBadge: {
+            width: variables.w36,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: 0,
+            paddingRight: 0,
+        },
+
         stickToBottom: {
             position: 'absolute',
             bottom: 0,
@@ -5394,10 +5483,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
-        },
-
-        testDriveBannerGap: {
-            height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
 
         twoColumnLayoutCol: {
@@ -5639,6 +5724,14 @@ const staticStyles = (theme: ThemeColors) =>
         saveTheWorldStaticIllustration: {
             width: 179,
             height: 180,
+        },
+        paymentMethodErrorRow: {
+            paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
+        },
+        discoverSectionImage: {
+            width: '100%',
+            height: undefined,
+            aspectRatio: 2.2,
         },
     }) satisfies StaticStyles;
 
@@ -6134,6 +6227,29 @@ const plainStyles = (theme: ThemeColors) =>
         searchTopBarZIndexStyle: {
             zIndex: variables.searchTopBarZIndex,
         },
+
+        getWidgetContainerTitleStyle: (color: string) =>
+            ({
+                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+                fontSize: 17,
+                lineHeight: 20,
+                color,
+            }) satisfies TextStyle,
+
+        homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
+                gap: 20,
+                width: '100%',
+            }) satisfies ViewStyle,
+
+        homePageLeftColumn: (shouldUseNarrowLayout: boolean) =>
+            shouldUseNarrowLayout
+                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
+                : ({flex: 2, flexBasis: '66.666%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
+
+        homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
+            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 1, flexBasis: '33.333%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

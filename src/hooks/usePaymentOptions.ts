@@ -2,6 +2,7 @@ import {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import type SettlementButtonProps from '@components/SettlementButton/types';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
@@ -16,7 +17,7 @@ import Navigation from '@navigation/Navigation';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
+import type {AccountData, BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -40,7 +41,10 @@ type UsePaymentOptionsProps = Pick<
     | 'shouldShowApproveButton'
     | 'shouldDisableApproveButton'
     | 'onlyShowPayElsewhere'
->;
+> & {
+    /** Whether this is a selected transaction action (bulk action from selection mode) */
+    isSelectedTransactionAction?: boolean;
+};
 
 /**
  * Configures and returns payment options based on the context of the IOU report and user settings.
@@ -58,6 +62,7 @@ function usePaymentOptions({
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
+    isSelectedTransactionAction,
 }: UsePaymentOptionsProps): PaymentOrApproveOption[] {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'Bank', 'Wallet', 'Cash']);
     const styles = useThemeStyles();
@@ -68,10 +73,11 @@ function usePaymentOptions({
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
-    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
+    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID, conciergeReportID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
     const lastPaymentMethodSelector = useCallback(
         (paymentMethod: OnyxEntry<LastPaymentMethod>) => {
@@ -105,7 +111,7 @@ function usePaymentOptions({
             return;
         }
         lastPaymentMethodRef.current = lastPaymentMethod;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingLastPaymentMethod]);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
@@ -162,16 +168,31 @@ function usePaymentOptions({
         if (isInvoiceReport) {
             const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles, translate);
             const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
-            const getPaymentSubitems = (payAsBusiness: boolean) =>
-                formattedPaymentMethods.map((formattedPaymentMethod) => ({
-                    text: formattedPaymentMethod?.title ?? '',
-                    description: formattedPaymentMethod?.description ?? '',
-                    icon: formattedPaymentMethod?.icon,
-                    onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType),
-                    iconStyles: formattedPaymentMethod?.iconStyles,
-                    iconHeight: formattedPaymentMethod?.iconSize,
-                    iconWidth: formattedPaymentMethod?.iconSize,
-                }));
+            const getPaymentSubItems = (payAsBusiness: boolean) => {
+                const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
+                return formattedPaymentMethods
+                    .filter((method) => {
+                        const accountData = method?.accountData as AccountData;
+                        const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
+                        return accountData?.type === requiredAccountType && !isPartiallySetup;
+                    })
+                    .map((formattedPaymentMethod) => ({
+                        text: formattedPaymentMethod?.title ?? '',
+                        description: formattedPaymentMethod?.description ?? '',
+                        icon: formattedPaymentMethod?.icon,
+                        onSelected: () =>
+                            onPress({
+                                paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                                payAsBusiness,
+                                methodID: formattedPaymentMethod.methodID,
+                                paymentMethod: formattedPaymentMethod.accountType,
+                                isSelectedTransactionAction,
+                            }),
+                        iconStyles: formattedPaymentMethod?.iconStyles,
+                        iconHeight: formattedPaymentMethod?.iconSize,
+                        iconWidth: formattedPaymentMethod?.iconSize,
+                    }));
+            };
 
             const addBankAccountItem = {
                 text: translate('bankAccount.addBankAccount'),
@@ -189,12 +210,12 @@ function usePaymentOptions({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
-                        ...(isCurrencySupported ? getPaymentSubitems(false) : []),
+                        ...(isCurrencySupported ? getPaymentSubItems(false) : []),
                         {
                             text: translate('iou.payElsewhere', {formattedAmount: ''}),
                             icon: icons.Cash,
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                            onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, isSelectedTransactionAction}),
                         },
                         ...(isCurrencySupported ? [addBankAccountItem] : []),
                     ],
@@ -207,13 +228,13 @@ function usePaymentOptions({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
-                    ...(isCurrencySupported ? getPaymentSubitems(true) : []),
+                    ...(isCurrencySupported ? getPaymentSubItems(true) : []),
                     ...(isCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: icons.Cash,
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, true),
+                        onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, payAsBusiness: true, isSelectedTransactionAction}),
                     },
                 ],
             });
@@ -230,7 +251,7 @@ function usePaymentOptions({
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible except for component initialization when the last payment method is not initialized yet.
         // We need to be sure that onPress should be wrapped in an useCallback to prevent unnecessary updates.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         isLoadingLastPaymentMethod,
         iouReport,
@@ -247,6 +268,7 @@ function usePaymentOptions({
         onPress,
         onlyShowPayElsewhere,
         icons,
+        isSelectedTransactionAction,
     ]);
 
     return paymentButtonOptions;

@@ -1,6 +1,5 @@
-import {createPoliciesSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,28 +13,19 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import {fetchOutstandingReportsForWorkspace} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {
-    canAddTransaction,
-    getOutstandingReportsForUser,
-    getPolicyName,
-    getReportName,
-    isIOUReport,
-    isOpenReport,
-    isReportOwner,
-    isSelfDM,
-    sortOutstandingReportsBySelected,
-} from '@libs/ReportUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {canAddTransaction, getPolicyName, getReportName, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 
@@ -59,10 +49,6 @@ type Props = {
     isPerDiemRequest: boolean;
 };
 
-const policyIdSelector = (policy: OnyxEntry<Policy>) => policy?.id;
-
-const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policyIdSelector);
-
 function IOURequestEditReportCommon({
     backTo,
     transactionIDs,
@@ -80,7 +66,6 @@ function IOURequestEditReportCommon({
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const {translate, localeCompare} = useLocalize();
     const {options} = useOptionsList();
-    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -97,13 +82,11 @@ function IOURequestEditReportCommon({
         return currentUserPersonalDetails.accountID;
     }, [targetOwnerAccountID, selectedReport?.ownerAccountID, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
+    // Pass the expense's policyID so that the "Create report" button shows the correct workspace
+    // instead of defaulting to the user's active workspace
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, selectedReport?.policyID);
 
     const [perDiemWarningModalVisible, setPerDiemWarningModalVisible] = useState(false);
-
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
-
-    const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
 
     const [isLoadingOutstandingReports] = useOnyx(ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS);
 
@@ -113,6 +96,7 @@ function IOURequestEditReportCommon({
         () => resolvedReportOwnerAccountID === currentUserPersonalDetails.accountID || isSelectedReportUnreported,
         [resolvedReportOwnerAccountID, currentUserPersonalDetails.accountID, isSelectedReportUnreported],
     );
+    const isAdmin = useMemo(() => isPolicyAdmin(reportPolicy), [reportPolicy]);
     const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
 
     const reportTransactions = useReportTransactions(selectedReportID);
@@ -141,45 +125,14 @@ function IOURequestEditReportCommon({
         fetchOutstandingReportsForWorkspace(policyID, resolvedReportOwnerAccountID);
     }, [selectedPolicyID, selectedReport?.policyID, resolvedReportOwnerAccountID]);
 
-    const expenseReports = useMemo(() => {
-        // Early return if no reports are available to prevent useless loop
-        if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
-            return [];
-        }
-        const personalPolicyID = getPersonalPolicy()?.id;
-        if (!selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport)) {
-            return Object.values(allPoliciesID ?? {})
-                .filter((policyID) => personalPolicyID !== policyID)
-                .flatMap((policyID) => {
-                    if (!policyID) {
-                        return [];
-                    }
-                    const reports = getOutstandingReportsForUser(
-                        policyID,
-                        resolvedReportOwnerAccountID,
-                        outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-                        reportNameValuePairs,
-                        isEditing,
-                    );
-
-                    return reports;
-                });
-        }
-        return getOutstandingReportsForUser(
-            selectedPolicyID,
-            resolvedReportOwnerAccountID,
-            outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-            reportNameValuePairs,
-            isEditing,
-        );
-    }, [outstandingReportsByPolicyID, resolvedReportOwnerAccountID, allPoliciesID, reportNameValuePairs, selectedReport, selectedPolicyID, isEditing]);
+    const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
 
     const reportOptions: TransactionGroupListItem[] = useMemo(() => {
-        if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
+        if (outstandingReports.length === 0) {
             return [];
         }
 
-        return expenseReports
+        return outstandingReports
             .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare))
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
@@ -209,7 +162,7 @@ function IOURequestEditReportCommon({
                     policyID: matchingOption?.policyID ?? report.policyID,
                 };
             });
-    }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, selectedReportID, options.reports, localeCompare, allPolicies, currentUserPersonalDetails.accountID]);
+    }, [debouncedSearchValue, outstandingReports, selectedReportID, options.reports, localeCompare, allPolicies, currentUserPersonalDetails.accountID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -283,7 +236,7 @@ function IOURequestEditReportCommon({
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
     const createReportOption = useMemo(() => {
-        if (!createReport || (isEditing && !isOwner)) {
+        if (!createReport || (isEditing && !isOwner && !isAdmin)) {
             return undefined;
         }
 
@@ -295,7 +248,7 @@ function IOURequestEditReportCommon({
                 icon={icons.Document}
             />
         );
-    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, handleCreateReport]);
+    }, [icons.Document, createReport, translate, policyForMovingExpenses?.name, handleCreateReport, isEditing, isOwner, isAdmin]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
@@ -303,7 +256,7 @@ function IOURequestEditReportCommon({
             return false;
         }
 
-        if (expenseReports.length === 0 || shouldShowNotFoundPageFromProps) {
+        if (outstandingReports.length === 0 || shouldShowNotFoundPageFromProps) {
             return true;
         }
 
@@ -311,12 +264,11 @@ function IOURequestEditReportCommon({
             return false;
         }
 
-        const isAdmin = isPolicyAdmin(reportPolicy);
         const isOpen = isOpenReport(selectedReport);
         const isSubmitter = isReportOwner(selectedReport);
         // If the report is Open, then only submitters, admins can move expenses
         return isOpen && !isAdmin && !isSubmitter;
-    }, [createReportOption, expenseReports.length, shouldShowNotFoundPageFromProps, selectedReport, reportPolicy]);
+    }, [createReportOption, outstandingReports.length, shouldShowNotFoundPageFromProps, selectedReport, isAdmin]);
 
     const hidePerDiemWarningModal = () => setPerDiemWarningModalVisible(false);
 
@@ -333,7 +285,8 @@ function IOURequestEditReportCommon({
                 data={reportOptions}
                 onSelectRow={handleSelectReport}
                 isLoadingNewOptions={isLoadingOutstandingReports}
-                shouldShowTextInput={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                isRowMultilineSupported
+                shouldShowTextInput={outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 textInputOptions={{
                     value: searchValue,
                     label: translate('common.search'),

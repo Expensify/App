@@ -54,16 +54,14 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
-        with:
-          IS_DESKTOP_BUILD: true
 
       - name: Remove E/App version from package-lock.json
         shell: bash
         run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
 
       - name: Restore ESLint cache
-        # v4
-        uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        # v5.0.1
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: node_modules/.cache/eslint-changed
           key: ${{ runner.os }}-eslint-changed-${{ hashFiles('eslint.changed.config.*', 'normalized-package-lock.json') }}-${{ github.sha }}
@@ -71,12 +69,20 @@ jobs:
             ${{ runner.os }}-eslint-changed-${{ hashFiles('eslint.changed.config.*', 'normalized-package-lock.json') }}-
             ${{ runner.os }}-eslint-changed-
 
+      # ESLint's cache doesn't track cross-file TypeScript dependencies, which can cause stale errors.
+      # If lint fails, we clear the cache and retry to rule out false positives.
+      # See: https://typescript-eslint.io/troubleshooting/faqs/eslint/#can-i-use-eslints---cache-with-typescript-eslint
       - name: Run ESLint to check for deprecation warnings
-        run: npm run lint-changed
+        run: |
+          if ! npm run lint-changed; then
+            echo "Lint failed, clearing cache and retrying..."
+            rm -rf node_modules/.cache/eslint-changed
+            npm run lint-changed
+          fi
 
       - name: Save ESLint cache
-        # v4
-        uses: actions/cache/save@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        # v5.0.1
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
         if: always()
         with:
           path: node_modules/.cache/eslint-changed

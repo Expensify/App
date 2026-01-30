@@ -2,7 +2,6 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
-import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -20,6 +19,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -30,7 +30,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -58,13 +58,13 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
-import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
-import getInitialNumToRender from '@pages/home/report/getInitialNumReportActionsToRender';
-import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
-import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
-import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
+import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
+import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
+import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import shouldDisplayNewMarkerOnReportAction from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import variables from '@styles/variables';
-import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
+import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -167,12 +167,12 @@ function MoneyRequestReportActionsList({
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
@@ -302,7 +302,7 @@ function MoneyRequestReportActionsList({
     useEffect(() => {
         setUnreadMarkerTime(reportLastReadTime);
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     useEffect(() => {
@@ -331,7 +331,7 @@ function MoneyRequestReportActionsList({
                 readActionSkipped.current = true;
             }
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
 
     useEffect(() => {
@@ -349,7 +349,7 @@ function MoneyRequestReportActionsList({
 
         const hasNewMessagesInView = scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = reportActions.some(
-            (reportAction) => newMessageTimeReference && newMessageTimeReference < reportAction.created && reportAction.actorAccountID !== getCurrentUserAccountID(),
+            (reportAction) => newMessageTimeReference && newMessageTimeReference < reportAction.created && reportAction.actorAccountID !== currentUserAccountID,
         );
 
         if (!hasNewMessagesInView || !hasUnreadReportAction) {
@@ -363,7 +363,7 @@ function MoneyRequestReportActionsList({
         //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
 
     /**
@@ -399,14 +399,13 @@ function MoneyRequestReportActionsList({
                     message: reportAction,
                     nextMessage: nextAction,
                     isEarliestReceivedOfflineMessage,
-                    accountID: currentUserAccountID,
+                    currentUserAccountID,
                     prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
                     unreadMarkerTime,
                     scrollingVerticalOffset: scrollingVerticalBottomOffset.current,
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
 
-            // eslint-disable-next-line react-compiler/react-compiler
             if (shouldDisplayNewMarker) {
                 return [reportAction.reportActionID, index];
             }
@@ -529,7 +528,7 @@ function MoneyRequestReportActionsList({
         };
 
         // This effect handles subscribing to events, so we only want to run it on mount, and in case reportID changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
     useEffect(() => {
@@ -647,8 +646,8 @@ function MoneyRequestReportActionsList({
 
         didLayout.current = true;
 
-        markOpenReportEnd(reportID);
-    }, [reportID]);
+        markOpenReportEnd(report);
+    }, [report]);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
     // Wrapped into useCallback to stabilize children re-renders

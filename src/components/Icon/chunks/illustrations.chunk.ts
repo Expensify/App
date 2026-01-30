@@ -36,11 +36,14 @@ import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 // Other Images
 import Hand from '@assets/images/hand.svg';
-import LaptopOnDeskDeprecated from '@assets/images/laptop-on-desk-deprecated.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
+// Multifactor Authentication Illustrations
+import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
+import OpenPadlock from '@assets/images/multifactorAuthentication/open-padlock.svg';
+import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-of-time.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
 // Product Illustrations
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
@@ -92,9 +95,9 @@ import Binoculars from '@assets/images/simple-illustrations/simple-illustration_
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
+import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
-import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
@@ -108,6 +111,7 @@ import EmailAddress from '@assets/images/simple-illustrations/simple-illustratio
 import EmptyShelves from '@assets/images/simple-illustrations/simple-illustration__empty-shelves.svg';
 import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
+import FastMoney from '@assets/images/simple-illustrations/simple-illustration__fastmoney.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
@@ -158,6 +162,7 @@ import TrashCan from '@assets/images/simple-illustrations/simple-illustration__t
 import TravelAlerts from '@assets/images/simple-illustrations/simple-illustration__travelalerts.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
+import UserShield from '@assets/images/simple-illustrations/simple-illustration__user-shield.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
@@ -306,8 +311,8 @@ const Illustrations = {
     Approval,
     Binoculars,
     Buildings,
+    CalendarMonthly,
     Car,
-    PinkCar,
     ChatBubbles,
     CheckmarkCircle,
     CommentBubbles,
@@ -318,6 +323,7 @@ const Illustrations = {
     EmptyShelves,
     Encryption,
     EnvelopeReceipt,
+    FastMoney,
     Filters,
     Flash,
     Gears,
@@ -330,9 +336,14 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     ShieldYellow,
-    LaptopOnDeskDeprecated,
     Clock,
     Members,
+    UserShield,
+
+    // Multifactor Authentication Illustrations
+    OpenPadlock,
+    RunOutOfTime,
+    HumptyDumpty,
 };
 
 /**

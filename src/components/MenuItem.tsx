@@ -1,9 +1,10 @@
 import type {ImageContentFit} from 'expo-image';
 import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {useContext, useMemo, useRef} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -17,8 +18,8 @@ import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -35,7 +36,6 @@ import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
@@ -85,6 +85,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether the badge should be shown as success */
         badgeSuccess?: boolean;
+
+        /** Callback to fire when the badge is pressed */
+        onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
         /** Used to apply offline styles to child text components */
         style?: StyleProp<ViewStyle>;
@@ -207,6 +210,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Text to display for the item */
         title?: string;
+
+        /** Accessibility label for the menu item */
+        accessibilityLabel?: string;
 
         /** Component to display as the title */
         titleComponent?: ReactElement;
@@ -396,6 +402,24 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
+
+        /** Additional styles for the root wrapper View */
+        rootWrapperStyle?: StyleProp<ViewStyle>;
+
+        /** The accessibility role to use for this menu item */
+        role?: Role;
+
+        /** Whether to show the badge in a separate row */
+        shouldShowBadgeInSeparateRow?: boolean;
+
+        /** Whether to show the badge below the title */
+        shouldShowBadgeBelow?: boolean;
+
+        /** Whether item should be accessible */
+        shouldBeAccessible?: boolean;
+
+        /** Whether item should be focusable with keyboard */
+        tabIndex?: 0 | -1;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -415,6 +439,9 @@ function MenuItem({
     badgeText,
     badgeIcon,
     badgeSuccess,
+    onBadgePress,
+    shouldShowBadgeInSeparateRow = false,
+    shouldShowBadgeBelow = false,
     style,
     wrapperStyle,
     titleWrapperStyle,
@@ -436,13 +463,13 @@ function MenuItem({
     iconWidth,
     iconHeight,
     iconStyles,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     shouldShowTitleIcon = false,
     titleIcon,
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
-    iconRight = Expensicons.ArrowRight,
+    iconRight,
     furtherDetailsIcon,
     furtherDetails,
     furtherDetailsNumberOfLines = 2,
@@ -460,6 +487,7 @@ function MenuItem({
     focused = false,
     disabled = false,
     title,
+    accessibilityLabel,
     titleComponent,
     titleContainerStyle,
     subtitle,
@@ -525,7 +553,12 @@ function MenuItem({
     ref,
     isFocused,
     sentryLabel,
+    rootWrapperStyle,
+    role = CONST.ROLE.MENUITEM,
+    shouldBeAccessible = true,
+    tabIndex = 0,
 }: MenuItemProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -538,6 +571,7 @@ function MenuItem({
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
+    const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -607,7 +641,7 @@ function MenuItem({
         return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
     }, [shouldParseHelperText, helperHtml]);
 
-    const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
+    const hasPressableRightComponent = (iconRight ?? icons.ArrowRight) || (shouldShowRightComponent && rightComponent);
 
     const renderTitleContent = () => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
@@ -675,7 +709,10 @@ function MenuItem({
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
     return (
-        <View onBlur={onBlur}>
+        <View
+            style={rootWrapperStyle}
+            onBlur={onBlur}
+        >
             {!!label && !isLabelHoverable && (
                 <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
@@ -721,9 +758,10 @@ function MenuItem({
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
-                                role={CONST.ROLE.MENUITEM}
-                                accessibilityLabel={title ? title.toString() : ''}
-                                accessible
+                                role={role}
+                                accessibilityLabel={accessibilityLabel ?? defaultAccessibilityLabel}
+                                accessible={shouldBeAccessible}
+                                tabIndex={tabIndex}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
                             >
@@ -805,7 +843,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                                                     source={icon}
-                                                                    fallbackIcon={fallbackIcon}
+                                                                    fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
                                                                     name={title}
                                                                     avatarID={avatarID}
                                                                     type={CONST.ICON_TYPE_WORKSPACE}
@@ -816,7 +854,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     source={icon}
                                                                     avatarID={avatarID}
-                                                                    fallbackIcon={fallbackIcon}
+                                                                    fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
                                                                     size={avatarSize}
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
@@ -912,18 +950,30 @@ function MenuItem({
                                                                 </Text>
                                                             </View>
                                                         )}
+                                                        {!!badgeText && shouldShowBadgeBelow && (
+                                                            <Badge
+                                                                text={badgeText}
+                                                                icon={badgeIcon}
+                                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml3, styles.mt2]}
+                                                                success={badgeSuccess}
+                                                                onPress={onBadgePress}
+                                                                pressable={!!onBadgePress}
+                                                            />
+                                                        )}
                                                         {furtherDetailsComponent}
                                                         {titleComponent}
                                                     </View>
                                                 </View>
                                             </View>
                                             <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
-                                                {!!badgeText && (
+                                                {!!badgeText && !shouldShowBadgeInSeparateRow && !shouldShowBadgeBelow && (
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
                                                         badgeStyles={badgeStyle}
                                                         success={badgeSuccess}
+                                                        onPress={onBadgePress}
+                                                        pressable={!!onBadgePress}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -953,7 +1003,7 @@ function MenuItem({
                                                 {!!brickRoadIndicator && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                         <Icon
-                                                            src={Expensicons.DotIndicator}
+                                                            src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                                                         />
                                                     </View>
@@ -974,7 +1024,7 @@ function MenuItem({
                                                         ]}
                                                     >
                                                         <Icon
-                                                            src={iconRight}
+                                                            src={iconRight ?? icons.ArrowRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
                                                             width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                             height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
@@ -985,7 +1035,7 @@ function MenuItem({
                                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
                                                 {shouldShowSelectedItemCheck && isSelected && (
                                                     <Icon
-                                                        src={Expensicons.Checkmark}
+                                                        src={icons.Checkmark}
                                                         fill={theme.iconSuccessFill}
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
@@ -1005,6 +1055,16 @@ function MenuItem({
                                                 )}
                                             </View>
                                         </View>
+                                        {!!badgeText && shouldShowBadgeInSeparateRow && (
+                                            <Badge
+                                                text={badgeText}
+                                                icon={badgeIcon}
+                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2]}
+                                                success={badgeSuccess}
+                                                onPress={onBadgePress}
+                                                pressable={!!onBadgePress}
+                                            />
+                                        )}
                                         {!!errorText && (
                                             <FormHelpMessage
                                                 isError

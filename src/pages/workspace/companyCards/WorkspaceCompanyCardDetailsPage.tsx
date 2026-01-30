@@ -1,6 +1,6 @@
 import {format, parseISO} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
@@ -56,6 +56,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
+    const isUnassigningRef = useRef(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -69,7 +70,16 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
-    const card = allBankCards?.[cardID];
+    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+
+    // Prefer feed-scoped card from WORKSPACE_CARDS_LIST to maintain proper access control
+    // Only use CARD_LIST as fallback if card is being unassigned (has pendingAction: DELETE)
+    // This prevents showing cards from other feeds/workspaces via deep links while still
+    // preventing NotHerePage flash during the unassignment flow
+    const feedScopedCard = allBankCards?.[cardID];
+    const globalCard = cardList?.[cardID];
+    const isCardBeingUnassigned = globalCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const card = feedScopedCard ?? (isCardBeingUnassigned ? globalCard : undefined);
 
     const cardBank = card?.bank ?? '';
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -84,6 +94,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
         if (card) {
+            isUnassigningRef.current = true;
             unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         }
         Navigation.goBack();
@@ -100,7 +111,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         return format(getLocalDateFromDatetime(card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
 
-    if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
+    // Don't show NotFoundPage if card is being unassigned or data is still loading
+    if ((!card && !isUnassigningRef.current && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigningRef.current)) {
         return <NotFoundPage />;
     }
 
