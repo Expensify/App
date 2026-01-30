@@ -1,5 +1,5 @@
 import React from 'react';
-import CreditCard from '@assets/images/creditcard.svg';
+import ExpensifyCardIcon from '@assets/images/expensify-card-icon.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -17,7 +17,7 @@ function ActivateCard({card}: ActivateCardProps) {
 
     return (
         <BaseWidgetItem
-            icon={CreditCard}
+            icon={ExpensifyCardIcon}
             iconBackgroundColor={theme.widgetIconBG}
             iconFill={theme.widgetIconFill}
             title={translate('homePage.timeSensitiveSection.activateCard.title')}
