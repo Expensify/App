@@ -2179,6 +2179,9 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderá o acesso a esta conta bancária comercial. Ainda concluiremos quaisquer pagamentos em andamento.`,
         reachOutForHelp: 'Está sendo usada com o Cartão Expensify. <concierge-link>Entre em contato com o Concierge</concierge-link> se precisar descompartilhar.',
         unshareErrorModalTitle: 'Não foi possível descompartilhar a conta bancária',
+        deleteCard: 'Excluir cartão',
+        deleteCardConfirmation:
+            'Todas as transações de cartão não enviadas, incluindo aquelas em relatórios em aberto, serão removidas. Tem certeza de que deseja excluir este cartão? Esta ação não pode ser desfeita.',
     },
     cardPage: {
         expensifyCard: 'Cartão Expensify',
