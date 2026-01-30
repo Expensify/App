@@ -997,6 +997,7 @@ const translations = {
         timeSensitiveSection: {
             title: 'Time sensitive',
             cta: 'Claim',
+            ctaFix: 'Fix',
             offer50off: {
                 title: 'Get 50% off your first year!',
                 subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} remaining`,
@@ -1004,6 +1005,14 @@ const translations = {
             offer25off: {
                 title: 'Get 25% off your first year!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
+            },
+            fixCompanyCardConnection: {
+                title: ({bankName}: {bankName: string}) => `Fix ${bankName} company card connection`,
+                subtitle: 'Workspace > Company cards',
+            },
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
+                subtitle: 'Workspace > Accounting',
             },
         },
         announcements: 'Announcements',
