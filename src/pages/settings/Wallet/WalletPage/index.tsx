@@ -442,8 +442,7 @@ function WalletPage() {
     );
 
     const cardThreeDotsMenuItems = useMemo(() => {
-        const isCSVImport = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
-        const shouldShowDeleteCardButton = isCSVImport && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
+        const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
         return [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
             {
@@ -461,7 +460,7 @@ function WalletPage() {
                     );
                 },
             },
-            ...(isCSVImport && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT)
+            ...(shouldShowCSVImportItems
                 ? [
                       {
                           text: translate('spreadsheet.importSpreadsheet'),
@@ -472,7 +471,7 @@ function WalletPage() {
                       },
                   ]
                 : []),
-            ...(shouldShowDeleteCardButton
+            ...(shouldShowCSVImportItems
                 ? [
                       {
                           text: translate('common.delete'),
