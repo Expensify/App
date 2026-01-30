@@ -1,10 +1,12 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import {rand64} from '@libs/NumberUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,9 +29,19 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`, {canBeMissing: true});
+    const [isImportingTransactions, setIsImportingTransactions] = useState(false);
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
-    const layoutType = useMemo(() => `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_${rand64()}_`, []);
+    const prefilledLayoutType = addNewCard?.data?.layoutType;
+    const layoutType = useMemo(
+        () => prefilledLayoutType ?? `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_${rand64()}_`,
+        [prefilledLayoutType],
+    );
+    const [existingCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${layoutType}`, {canBeMissing: true});
 
     const columnNames = useMemo(() => generateColumnNames(spreadsheet?.data?.length ?? 0), [spreadsheet?.data?.length]);
 
@@ -109,8 +121,33 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
                 rows.push(row);
             }
         }
-        importCSVCompanyCards(policyID, layoutName, layoutType, columnMappings, rows);
-    }, [columnNames, policyID, spreadsheet?.columns, spreadsheet?.data, layoutName, layoutType, validate]);
+        setIsImportingTransactions(true);
+        importCSVCompanyCards({
+            policyID,
+            workspaceAccountID,
+            layoutName,
+            layoutType,
+            columnMappings,
+            csvData: rows,
+            containsHeader: spreadsheet?.containsHeader ?? true,
+            existingCardsList,
+            lastSelectedFeed: lastSelectedFeed ?? undefined,
+            workspaceCardFeeds,
+        });
+    }, [
+        validate,
+        layoutName,
+        columnNames,
+        spreadsheet?.columns,
+        spreadsheet?.data,
+        spreadsheet?.containsHeader,
+        policyID,
+        layoutType,
+        workspaceAccountID,
+        existingCardsList,
+        lastSelectedFeed,
+        workspaceCardFeeds,
+    ]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -120,6 +157,11 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     if (!spreadsheetColumns) {
         return <NotFoundPage />;
     }
+
+    const closeImportPageAndModal = () => {
+        setIsImportingTransactions(false);
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -142,6 +184,11 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
                     errors={validationErrors}
                     columnRoles={columnRoles}
                     learnMoreLink={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
+                    isButtonLoading={isImportingTransactions}
+                />
+                <ImportSpreadsheetConfirmModal
+                    isVisible={spreadsheet?.shouldFinalModalBeOpened ?? false}
+                    closeImportPageAndModal={closeImportPageAndModal}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

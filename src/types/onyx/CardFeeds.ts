@@ -242,6 +242,9 @@ type AddNewCardFeedData = {
     /** Name of the CSV layout template */
     companyCardLayoutName?: string;
 
+    /** Identifier for the CSV layout template */
+    layoutType?: string;
+
     /** Whether to use advanced fields in the CSV layout */
     useAdvancedFields?: boolean;
 
