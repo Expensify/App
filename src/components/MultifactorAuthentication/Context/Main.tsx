@@ -171,10 +171,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // 5. Check if authorization is required
-        const isAuthorizationRequired = !isAuthorizationComplete;
-
-        if (isAuthorizationRequired) {
+        // 5. Authorize the user if that has not already been done
+        if (!isAuthorizationComplete) {
             // Request authorization challenge if not already fetched
             if (!authorizationChallenge) {
                 const {challenge, reason: challengeReason} = await requestAuthorizationChallenge();
