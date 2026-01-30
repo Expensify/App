@@ -366,22 +366,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const {closeSidePanel} = useSidePanel();
 
     useEffect(() => {
-        if (
-            !isFocused ||
-            !reportIDFromRoute ||
-            report?.reportID ||
-            reportMetadata?.isLoadingInitialReportActions ||
-            reportMetadata?.isOptimisticReport ||
-            isLoadingApp ||
-            userLeavingStatus
-        ) {
-            return;
-        }
-
-        Navigation.goBack();
-    }, [isFocused, reportIDFromRoute, report?.reportID, reportMetadata?.isLoadingInitialReportActions, reportMetadata?.isOptimisticReport, isLoadingApp, userLeavingStatus]);
-
-    useEffect(() => {
         if (!prevIsFocused || isFocused) {
             return;
         }
@@ -555,6 +539,32 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         userLeavingStatus,
         currentReportIDFormRoute,
         firstRender,
+    ]);
+
+    useEffect(() => {
+        if (
+            !isFocused ||
+            !reportIDFromRoute ||
+            report?.reportID ||
+            reportMetadata?.isLoadingInitialReportActions ||
+            reportMetadata?.isOptimisticReport ||
+            isLoadingApp ||
+            userLeavingStatus ||
+            shouldShowNotFoundPage
+        ) {
+            return;
+        }
+
+        Navigation.goBack();
+    }, [
+        isFocused,
+        reportIDFromRoute,
+        report?.reportID,
+        reportMetadata?.isLoadingInitialReportActions,
+        reportMetadata?.isOptimisticReport,
+        isLoadingApp,
+        userLeavingStatus,
+        shouldShowNotFoundPage,
     ]);
 
     const createOneTransactionThreadReport = useCallback(() => {
