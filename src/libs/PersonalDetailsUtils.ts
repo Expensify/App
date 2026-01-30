@@ -43,16 +43,18 @@ let youTranslation = '';
 Onyx.connect({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
     callback: (value) => {
-        if (value === false) {
-            if (!youTranslation) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                youTranslation = translateLocal('common.you').toLowerCase();
-            }
+        if (value ?? true) {
+            return;
+        }
 
-            if (!hiddenTranslation) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                hiddenTranslation = translateLocal('common.hidden');
-            }
+        if (!youTranslation) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            youTranslation = translateLocal('common.you').toLowerCase();
+        }
+    
+        if (!hiddenTranslation) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            hiddenTranslation = translateLocal('common.hidden');
         }
     },
 });
