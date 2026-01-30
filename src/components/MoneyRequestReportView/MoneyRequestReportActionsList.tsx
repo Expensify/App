@@ -208,6 +208,7 @@ function MoneyRequestReportActionsList({
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
         isDeleteModalVisible,
         hideDeleteModal,
     } = useSelectedTransactionsActions({
@@ -721,10 +722,11 @@ function MoneyRequestReportActionsList({
                         onConfirm={() => {
                             const shouldNavigateBack =
                                 transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
-                            handleDeleteTransactions();
                             if (shouldNavigateBack) {
                                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                                Navigation.goBack(backToRoute);
+                                handleDeleteTransactionsWithNavigation(backToRoute);
+                            } else {
+                                handleDeleteTransactions();
                             }
                         }}
                         onCancel={hideDeleteModal}

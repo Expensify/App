@@ -307,6 +307,18 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
     },
+    SETTINGS_WALLET_PERSONAL_CARD_DETAILS: {
+        route: 'settings/wallet/personal-card/:cardID',
+        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}` as const,
+    },
+    SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME: {
+        route: 'settings/wallet/personal-card/:cardID/edit/name',
+        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/edit/name` as const,
+    },
+    SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: {
+        route: 'settings/wallet/personal-card/:cardID/edit/transaction-start-date',
+        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/edit/transaction-start-date` as const,
+    },
     SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE: {
         route: 'settings/wallet/card/:cardID/confirm-magic-code',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-magic-code` as const,
@@ -2498,6 +2510,10 @@ const ROUTES = {
             return `workspaces/${policyID}/travel` as const;
         },
     },
+    WORKSPACE_TRAVEL_SETTINGS_ACCOUNT: {
+        route: 'workspaces/:policyID/travel/settings/account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/account` as const,
+    },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',
         getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
@@ -2624,6 +2640,21 @@ const ROUTES = {
         route: 'workspaces/:policyID/per-diem/edit/currency/:rateID/:subRateID',
         getRoute: (policyID: string, rateID: string, subRateID: string) => `workspaces/${policyID}/per-diem/edit/currency/${rateID}/${subRateID}` as const,
     },
+
+    WORKSPACE_TIME_TRACKING: {
+        route: 'workspaces/:policyID/time-tracking',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TIME_TRACKING route');
+            }
+            return `workspaces/${policyID}/time-tracking` as const;
+        },
+    },
+    WORKSPACE_TIME_TRACKING_DEFAULT_RATE: {
+        route: 'workspaces/:policyID/time-tracking/rate',
+        getRoute: (policyID: string) => `workspaces/${policyID}/time-tracking/rate` as const,
+    },
+
     REPORTS_DEFAULT_TITLE: {
         route: 'workspaces/:policyID/reports/name',
         getRoute: (policyID: string) => `workspaces/${policyID}/reports/name` as const,
@@ -2680,6 +2711,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-to-match',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-to-match` as const,
     },
+    RULES_MERCHANT_MATCH_TYPE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-to-match/type',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-to-match/type` as const,
+    },
     RULES_MERCHANT_MERCHANT: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant` as const,
@@ -2711,6 +2746,10 @@ const ROUTES = {
     RULES_MERCHANT_EDIT: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID',
         getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID}` as const,
+    },
+    RULES_MERCHANT_PREVIEW_MATCHES: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new/preview-matches',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/preview-matches` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {

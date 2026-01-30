@@ -20,6 +20,7 @@ import {LOCALES} from './LOCALES';
 // Freezing the array ensures that it cannot be unintentionally modified.
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
+const EMPTY_SET = new Set<string>();
 
 // Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
@@ -724,6 +725,7 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
+        CSV_CARD_IMPORT: 'csvCardImport',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
@@ -979,6 +981,7 @@ const CONST = {
     connectionsVideoPaths,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
+    EMPTY_SET,
     DEFAULT_NUMBER_ID,
     DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
@@ -1248,6 +1251,7 @@ const CONST = {
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DEW_SUBMIT_FAILED: 'DEWSUBMITFAILED',
+                DEW_APPROVE_FAILED: 'DEWAPPROVEFAILED',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
                 DYNAMIC_EXTERNAL_WORKFLOW_ROUTED: 'DYNAMICEXTERNALWORKFLOWROUTED',
@@ -1294,6 +1298,7 @@ const CONST = {
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 REROUTE: 'REROUTE',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
+                SETTLEMENT_ACCOUNT_LOCKED: 'SETTLEMENTACCOUNTLOCKED',
                 SHARE: 'SHARE', // OldDot Action
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
@@ -1710,12 +1715,7 @@ const CONST = {
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
-        CONTEXT_MEMORY: 'Memory',
         CONTEXT_POLICIES: 'Policies',
-        // Breadcrumb names
-        BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
-        BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
-        BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
         TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
@@ -1772,11 +1772,6 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         CONFIG: {
             SKELETON_MIN_DURATION: 10_000,
-            MEMORY_THRESHOLD_CRITICAL_PERCENTAGE: 90,
-            MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
-            // Memory Thresholds (in MB)
-            MEMORY_THRESHOLD_WARNING: 120,
-            MEMORY_THRESHOLD_CRITICAL: 50,
         },
     },
     PRIORITY_MODE: {
@@ -3488,6 +3483,13 @@ const CONST = {
         SMALL_NORMAL: 'small-normal',
         LARGE_NORMAL: 'large-normal',
     },
+
+    PERSONAL_CARD: {
+        BANK_NAME: {
+            CSV: 'upload',
+        },
+    },
+
     COMPANY_CARD: {
         FEED_BANK_NAME: {
             MASTER_CARD: 'cdf',
@@ -3583,6 +3585,8 @@ const CONST = {
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
         CONNECTION_ERROR: 'connectionError',
+        WORKSPACE_FEEDS_LOAD_ERROR: 'workspaceFeedsLoadError',
+        FEED_LOAD_ERROR: 'feedLoadError',
         STEP: {
             SELECT_BANK: 'SelectBank',
             SELECT_FEED_TYPE: 'SelectFeedType',
@@ -3775,6 +3779,7 @@ const CONST = {
             BILLABLE: 'billable',
             CATEGORY: 'category',
             DESCRIPTION: 'comment',
+            MATCH_TYPE: 'matchType',
             MERCHANT_TO_MATCH: 'merchantToMatch',
             MERCHANT: 'merchant',
             REIMBURSABLE: 'reimbursable',
@@ -4076,6 +4081,7 @@ const CONST = {
         CONTAINER_VERTICAL_MARGIN: variables.componentSizeNormal,
     },
     MICROSECONDS_PER_MS: 1000,
+    MILLISECONDS_PER_SECOND: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {
         ADD: 'add',
         DELETE: 'delete',
@@ -5672,6 +5678,7 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
+        TRANSITION_END_SCREEN_WRAPPER: 'transitionEndScreenWrapper',
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
@@ -6886,6 +6893,9 @@ const CONST = {
             MERCHANT: 'merchant',
             TAG: 'tag',
             MONTH: 'month',
+            WEEK: 'week',
+            YEAR: 'year',
+            QUARTER: 'quarter',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -6982,6 +6992,21 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                WEEK: {
+                    WEEK: this.TABLE_COLUMNS.GROUP_WEEK,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                YEAR: {
+                    YEAR: this.TABLE_COLUMNS.GROUP_YEAR,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                QUARTER: {
+                    QUARTER: this.TABLE_COLUMNS.GROUP_QUARTER,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -7027,6 +7052,9 @@ const CONST = {
                 MERCHANT: [this.TABLE_COLUMNS.GROUP_MERCHANT, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 TAG: [this.TABLE_COLUMNS.GROUP_TAG, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -7126,11 +7154,15 @@ const CONST = {
             GROUP_MERCHANT: 'groupMerchant',
             GROUP_TAG: 'groupTag',
             GROUP_MONTH: 'groupmonth',
+            GROUP_WEEK: 'groupweek',
+            GROUP_YEAR: 'groupyear',
+            GROUP_QUARTER: 'groupquarter',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
             OR: 'or',
             EQUAL_TO: 'eq',
+            CONTAINS: 'contains',
             NOT_EQUAL_TO: 'neq',
             GREATER_THAN: 'gt',
             GREATER_THAN_OR_EQUAL_TO: 'gte',
@@ -7220,6 +7252,7 @@ const CONST = {
             SORT_ORDER: 'sort-order',
             POLICY_ID: 'workspace',
             GROUP_BY: 'group-by',
+            VIEW: 'view',
             DATE: 'date',
             AMOUNT: 'amount',
             TOTAL: 'total',
@@ -7317,6 +7350,10 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_CATEGORY]: 'group-category',
                 [this.TABLE_COLUMNS.GROUP_MERCHANT]: 'group-merchant',
                 [this.TABLE_COLUMNS.GROUP_TAG]: 'group-tag',
+                [this.TABLE_COLUMNS.GROUP_MONTH]: 'group-month',
+                [this.TABLE_COLUMNS.GROUP_WEEK]: 'group-week',
+                [this.TABLE_COLUMNS.GROUP_YEAR]: 'group-year',
+                [this.TABLE_COLUMNS.GROUP_QUARTER]: 'group-quarter',
             };
         },
         NOT_MODIFIER: 'Not',
@@ -7755,6 +7792,7 @@ const CONST = {
         HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
         HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
         HAS_UNRESOLVED_CARD_FRAUD_ALERT: 'hasUnresolvedCardFraudAlert',
+        HAS_DEW_APPROVE_FAILED: 'hasDEWApproveFailed',
     },
 
     CARD_FRAUD_ALERT_RESOLUTION: {
@@ -8168,6 +8206,29 @@ const CONST = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+    },
+
+    HOME: {
+        ANNOUNCEMENTS: [
+            {
+                title: 'Start the year with smarter spending, admin controls, and more.',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-january-2026-product-update',
+                publishedDate: '2026-01-28',
+            },
+            {
+                title: 'Our favorite features + final upgrades of the year',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-2025-year-end-product-update',
+                publishedDate: '2025-12-22',
+            },
+            {
+                title: 'Uber for business + Expensify automates ride and meal receipts',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/uber-for-business-and-expensify-integration-update',
+                publishedDate: '2025-12-01',
+            },
+        ],
     },
 
     SECTION_LIST_ITEM_TYPE: {
