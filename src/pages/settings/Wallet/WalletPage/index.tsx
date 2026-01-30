@@ -442,26 +442,40 @@ function WalletPage() {
     );
 
     const cardThreeDotsMenuItems = useMemo(() => {
-        const isCSVImport = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
-        const shouldShowDeleteCardButton = isCSVImport && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
+        const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
         return [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
             {
                 text: translate('workspace.common.viewTransactions'),
                 icon: icons.MoneySearch,
                 onSelected: () => {
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query: buildCannedSearchQuery({
-                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                                cardID: String(paymentMethod.methodID),
+                    closeModal(() => {
+                        Navigation.navigate(
+                            ROUTES.SEARCH_ROOT.getRoute({
+                                query: buildCannedSearchQuery({
+                                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                                    cardID: String(paymentMethod.methodID),
+                                }),
                             }),
-                        }),
-                    );
+                        );
+                    });
                 },
             },
-            ...(shouldShowDeleteCardButton
+            ...(shouldShowCSVImportItems
+                ? [
+                      {
+                          text: translate('spreadsheet.importSpreadsheet'),
+                          icon: icons.Table,
+                          onSelected: () => {
+                              closeModal(() => {
+                                  Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(paymentMethod.methodID)));
+                              });
+                          },
+                      },
+                  ]
+                : []),
+            ...(shouldShowCSVImportItems
                 ? [
                       {
                           text: translate('common.delete'),
@@ -475,7 +489,7 @@ function WalletPage() {
                   ]
                 : []),
         ];
-    }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
+    }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
         return (
