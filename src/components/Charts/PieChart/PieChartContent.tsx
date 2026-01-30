@@ -38,20 +38,11 @@ function processDataIntoSlices(data: PieChartDataPoint[], startAngle: number): P
         originalIndex: index,
     }));
 
-    // Separate slices that meet minimum percentage threshold
-    const validSlices: typeof withPercentages = [];
-    const smallSlices: typeof withPercentages = [];
 
-    for (const slice of withPercentages) {
-        if (slice.percentage >= PIE_CHART_MIN_SLICE_PERCENTAGE) {
-            validSlices.push(slice);
-        } else {
-            smallSlices.push(slice);
-        }
-    }
+    withPercentages.sort((a, b) => b.value - a.value);
 
-    // Sort valid slices by value descending
-    validSlices.sort((a, b) => b.value - a.value);
+    const validSlices = withPercentages.filter((slice) => slice.percentage >= PIE_CHART_MIN_SLICE_PERCENTAGE);
+    const smallSlices = withPercentages.filter((slice) => slice.percentage < PIE_CHART_MIN_SLICE_PERCENTAGE);
 
     // If we have more than maxSlices, move smallest to "Other"
     while (validSlices.length > PIE_CHART_MAX_SLICES - (smallSlices.length > 0 ? 1 : 0)) {

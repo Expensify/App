@@ -94,7 +94,7 @@ const PIE_CHART_MIN_SLICE_PERCENTAGE = 2;
 const PIE_CHART_MAX_SLICES = 20;
 
 /** Label for aggregated small slices */
-const PIE_CHART_OTHER_LABEL = 'Remaining';
+const PIE_CHART_OTHER_LABEL = 'Other';
 
 /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
 const PIE_CHART_START_ANGLE = -90;
