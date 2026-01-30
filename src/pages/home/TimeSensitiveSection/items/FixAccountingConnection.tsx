@@ -25,7 +25,7 @@ function FixAccountingConnection({connectionName, policyID}: FixAccountingConnec
     return (
         <BaseWidgetItem
             icon={icons.Exclamation}
-            iconBackgroundColor={colors.tangerine200}
+            iconBackgroundColor={colors.tangerine100}
             iconFill={colors.tangerine700}
             title={translate('homePage.timeSensitiveSection.fixAccountingConnection.title', {integrationName})}
             subtitle={translate('homePage.timeSensitiveSection.fixAccountingConnection.subtitle')}

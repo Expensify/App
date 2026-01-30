@@ -41,7 +41,7 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
     const theme = useTheme();
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap4]}>
             <View style={styles.getWidgetItemIconContainerStyle(iconBackgroundColor)}>
                 <Icon
                     src={icon}
@@ -50,7 +50,7 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
                     fill={iconFill ?? theme.white}
                 />
             </View>
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter]}>
+            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.gap1]}>
                 {!!subtitle && <Text style={styles.widgetItemSubtitle}>{subtitle}</Text>}
                 <Text style={styles.widgetItemTitle}>{title}</Text>
             </View>

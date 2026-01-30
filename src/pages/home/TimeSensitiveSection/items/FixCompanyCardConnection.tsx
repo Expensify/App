@@ -31,7 +31,7 @@ function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProp
     return (
         <BaseWidgetItem
             icon={icons.CreditCardExclamation}
-            iconBackgroundColor={colors.tangerine200}
+            iconBackgroundColor={colors.tangerine100}
             iconFill={colors.tangerine700}
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
             subtitle={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.subtitle')}
