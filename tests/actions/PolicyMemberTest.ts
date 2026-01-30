@@ -279,14 +279,15 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const defaultApprover = 'approver@gmail.com';
             const newUserEmail = 'user@gmail.com';
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 approver: defaultApprover,
-            });
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -294,9 +295,9 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     waitForCollectionCallback: false,
-                    callback: (policy) => {
+                    callback: (policyResult) => {
                         Onyx.disconnect(connection);
-                        const newEmployee = policy?.employeeList?.[newUserEmail];
+                        const newEmployee = policyResult?.employeeList?.[newUserEmail];
                         expect(newEmployee).not.toBeUndefined();
                         expect(newEmployee?.email).toBe(newUserEmail);
                         expect(newEmployee?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -321,11 +322,12 @@ describe('actions/PolicyMember', () => {
             const auditorEmail = 'auditor@example.com';
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 approver: defaultApprover,
-            });
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
                 ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 policyID,
@@ -339,9 +341,9 @@ describe('actions/PolicyMember', () => {
 
             // When adding a new admin, auditor, and user members
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber);
-            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.AUDITOR, TestHelper.formatPhoneNumber);
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.AUDITOR, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -381,6 +383,7 @@ describe('actions/PolicyMember', () => {
             const expenseReportID = '2';
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
+            const policy = createRandomPolicy(Number(policyID));
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
                 ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -403,7 +406,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding the user to the workspace
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
