@@ -20,6 +20,7 @@ import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/Se
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -130,6 +131,17 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         setShowPopupButton(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const handleEscapeKey = useCallback(() => {
+        if (textInputRef.current?.isFocused()) {
+            textInputRef.current.blur();
+        }
+    }, []);
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscapeKey, {
+        captureOnInputs: true,
+        shouldBubble: false,
+    });
 
     const handleSearchAction = useCallback(
         (value: string) => {
