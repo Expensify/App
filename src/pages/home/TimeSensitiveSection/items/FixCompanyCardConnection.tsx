@@ -21,7 +21,7 @@ type FixCompanyCardConnectionProps = {
 
 function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProps) {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Connect'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Connect']);
 
     // Get the card feeds data to access custom nicknames
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`, {canBeMissing: true});

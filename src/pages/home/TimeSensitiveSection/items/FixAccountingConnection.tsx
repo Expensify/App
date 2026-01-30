@@ -18,7 +18,7 @@ type FixAccountingConnectionProps = {
 
 function FixAccountingConnection({connectionName, policyID}: FixAccountingConnectionProps) {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Connect'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Connect']);
 
     const integrationName = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 
