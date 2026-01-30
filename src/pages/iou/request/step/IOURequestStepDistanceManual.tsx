@@ -140,6 +140,8 @@ function IOURequestStepDistanceManual({
         return isCreatingNewRequest ? translate('common.next') : translate('common.save');
     }, [shouldSkipConfirmation, translate, isCreatingNewRequest]);
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     const navigateToNextPage = useCallback(
         (amount: string) => {
             const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
@@ -161,6 +163,7 @@ function IOURequestStepDistanceManual({
                         currentUserEmailParam,
                         isASAPSubmitBetaEnabled,
                         parentReportNextStep,
+                        recentWaypoints,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -228,6 +231,7 @@ function IOURequestStepDistanceManual({
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
             reportID,
+            recentWaypoints,
             currentUserPersonalDetails.accountID,
         ],
     );

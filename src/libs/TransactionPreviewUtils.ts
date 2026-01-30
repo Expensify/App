@@ -44,6 +44,7 @@ import {
     isPending,
     isScanning,
 } from './TransactionUtils';
+import {filterReceiptViolations} from './Violations/ViolationsUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -139,7 +140,10 @@ function getViolationTranslatePath(
     isTransactionOnHold: boolean,
     shouldShowOnlyViolations: boolean,
 ): TranslationPathOrText {
-    const filteredViolations = violations.filter((violation) => {
+    // Filter out receiptRequired when itemizedReceiptRequired exists (itemized supersedes regular receipt)
+    const receiptFilteredViolations = filterReceiptViolations(violations);
+
+    const filteredViolations = receiptFilteredViolations.filter((violation) => {
         if (shouldShowOnlyViolations) {
             return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
         }

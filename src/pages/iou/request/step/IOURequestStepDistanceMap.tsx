@@ -418,6 +418,7 @@ function IOURequestStepDistanceMap({
                     transactionThreadReport: report,
                     parentReport,
                     waypoints,
+                    recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
                     policyTagList: policyTags,
@@ -457,6 +458,7 @@ function IOURequestStepDistanceMap({
         transaction?.transactionID,
         transactionBackup,
         waypoints,
+        recentWaypoints,
     ]);
 
     const renderItem = useCallback(
