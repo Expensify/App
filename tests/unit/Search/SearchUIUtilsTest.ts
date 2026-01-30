@@ -1,7 +1,7 @@
-import { renderHook } from '@testing-library/react-native';
-import type { OnyxCollection } from 'react-native-onyx';
+import {renderHook} from '@testing-library/react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type { SelectedTransactionInfo } from '@components/Search/types';
+import type {SelectedTransactionInfo} from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
@@ -22,26 +22,26 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
-import { createTransactionThreadReport } from '@userActions/Report';
+import {createTransactionThreadReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
-import { setOptimisticDataForTransactionThreadPreview } from '@userActions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type { CardFeedForDisplay } from '@src/libs/CardFeedUtils';
-import { getUserFriendlyValue } from '@src/libs/SearchQueryUtils';
+import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type { Connections } from '@src/types/onyx/Policy';
-import type { SearchDataTypes } from '@src/types/onyx/SearchResults';
+import type {Connections} from '@src/types/onyx/Policy';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getOnyxValue from '../../utils/getOnyxValue';
-import { formatPhoneNumber, localeCompare, translateLocal } from '../../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -202,7 +202,7 @@ const reportAction1: OnyxTypes.ReportAction = {
     actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:21',
-    message: [{ type: 'COMMENT', html: 'IOU', text: 'IOU' }],
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '11111111',
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -217,7 +217,7 @@ const reportAction2: OnyxTypes.ReportAction = {
     actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:22',
-    message: [{ type: 'COMMENT', html: 'IOU', text: 'IOU' }],
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '22222222',
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -232,7 +232,7 @@ const reportAction3: OnyxTypes.ReportAction = {
     actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:23',
-    message: [{ type: 'COMMENT', html: 'IOU', text: 'IOU' }],
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '33333333',
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -247,7 +247,7 @@ const reportAction4: OnyxTypes.ReportAction = {
     actorAccountID: adminAccountID,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     created: '2024-12-21 13:05:24',
-    message: [{ type: 'COMMENT', html: 'IOU', text: 'IOU' }],
+    message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     reportActionID: '44444444',
     originalMessage: {
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -705,7 +705,7 @@ const reportActionListItems = [
             IOUTransactionID: transactionID,
         },
         reportName: report1.reportName,
-        message: [{ type: 'COMMENT', html: 'IOU', text: 'IOU' }],
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
         accountID: 18439984,
@@ -754,7 +754,7 @@ const reportActionListItems = [
             IOUTransactionID: transactionID2,
         },
         reportName: report2.reportName,
-        message: [{ type: 'COMMENT', html: 'IOU', text: 'IOU' }],
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
         ...reportAction3,
@@ -773,7 +773,7 @@ const reportActionListItems = [
             IOUTransactionID: transactionID3,
         },
         reportName: report3.reportName,
-        message: [{ type: 'COMMENT', html: 'IOU', text: 'IOU' }],
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
     {
         ...reportAction4,
@@ -792,7 +792,7 @@ const reportActionListItems = [
             IOUTransactionID: transactionID4,
         },
         reportName: report3.reportName,
-        message: [{ type: 'COMMENT', html: 'IOU', text: 'IOU' }],
+        message: [{type: 'COMMENT', html: 'IOU', text: 'IOU'}],
     },
 ] as ReportActionListItemType[];
 
@@ -808,7 +808,7 @@ const transactionsListItems = [
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: { comment: '' },
+        comment: {comment: ''},
         created: '2024-12-21',
         submitted: undefined,
         approved: undefined,
@@ -867,7 +867,7 @@ const transactionsListItems = [
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: { comment: '' },
+        comment: {comment: ''},
         created: '2024-12-21',
         submitted: '2024-12-21 13:05:20',
         approved: undefined,
@@ -936,7 +936,7 @@ const transactionsListItems = [
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: { comment: '' },
+        comment: {comment: ''},
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: undefined,
@@ -1000,7 +1000,7 @@ const transactionsListItems = [
         cardID: undefined,
         cardName: undefined,
         category: '',
-        comment: { comment: '' },
+        comment: {comment: ''},
         created: '2025-03-05',
         submitted: '2025-03-05',
         approved: undefined,
@@ -1106,7 +1106,7 @@ const transactionReportGroupListItems = [
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
@@ -1212,7 +1212,7 @@ const transactionReportGroupListItems = [
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 created: '2024-12-21',
                 exported: '',
                 currency: 'USD',
@@ -1334,7 +1334,7 @@ const transactionReportGroupListItems = [
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 created: '2025-03-05',
                 exported: '',
                 currency: 'VND',
@@ -1395,7 +1395,7 @@ const transactionReportGroupListItems = [
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 created: '2025-03-05',
                 exported: '',
                 currency: 'VND',
@@ -2013,7 +2013,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return `View` action for transaction on policy with delayed submission and with violations when current user is submitter and the expense was submitted', async () => {
-            await Onyx.merge(ONYXKEYS.SESSION, { accountID: submitterAccountID });
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
             const localSearchResults = {
                 ...searchResults.data,
                 [`policy_${policyID}`]: {
@@ -2154,7 +2154,7 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `Pay` action for an IOU report ready to be paid', async () => {
-            Onyx.merge(ONYXKEYS.SESSION, { accountID: adminAccountID });
+            Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             await waitForBatchedUpdates();
             const iouReportKey = `report_${reportID3}`;
             const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}).at(0);
@@ -4378,7 +4378,7 @@ describe('SearchUIUtils', () => {
         };
 
         it('should return the default menu items', () => {
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
                 .map((section) => section.menuItems)
                 .flat();
@@ -4457,7 +4457,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4521,7 +4521,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4564,7 +4564,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -4574,7 +4574,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {}, reportCounts);
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -4591,7 +4591,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4621,7 +4621,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4655,7 +4655,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -4676,7 +4676,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4720,7 +4720,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {}, reportCounts);
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -4746,7 +4746,7 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections(
                 icons.current,
                 adminEmail,
@@ -4769,7 +4769,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const { result: icons } = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
             const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {}, reportCounts)
                 .map((section) => section.menuItems)
                 .flat();
@@ -4829,7 +4829,7 @@ describe('SearchUIUtils', () => {
     });
 
     test('Should show `View` to overlimit approver', () => {
-        Onyx.merge(ONYXKEYS.SESSION, { accountID: overlimitApproverAccountID });
+        Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
         searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
         return waitForBatchedUpdates().then(() => {
             let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', overlimitApproverAccountID, {}, {}).at(0);
@@ -4850,7 +4850,7 @@ describe('SearchUIUtils', () => {
     });
 
     test('Should show `Approve` for report', () => {
-        Onyx.merge(ONYXKEYS.SESSION, { accountID: adminAccountID });
+        Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
 
         const result: OnyxTypes.SearchResults = {
             data: {
@@ -4972,25 +4972,25 @@ describe('SearchUIUtils', () => {
 
     test('Should determine whether the date, amount, and tax column require wide columns or not', () => {
         // Test case 1: `isAmountLengthLong` should be false if the current symbol + amount length does not exceed 11 characters
-        const { shouldShowAmountInWideColumn } = SearchUIUtils.getWideAmountIndicators(transactionsListItems);
+        const {shouldShowAmountInWideColumn} = SearchUIUtils.getWideAmountIndicators(transactionsListItems);
         expect(shouldShowAmountInWideColumn).toBe(false);
 
         const transaction = transactionsListItems.at(0);
 
         // Test case 2: `isAmountLengthLong` should be true when the current symbol + amount length exceeds 11 characters
         // `isTaxAmountLengthLong` should be false if current symbol + tax amount length does not exceed 11 characters
-        const { shouldShowAmountInWideColumn: isAmountLengthLong2, shouldShowTaxAmountInWideColumn } = SearchUIUtils.getWideAmountIndicators([
+        const {shouldShowAmountInWideColumn: isAmountLengthLong2, shouldShowTaxAmountInWideColumn} = SearchUIUtils.getWideAmountIndicators([
             ...transactionsListItems,
-            { ...transaction, amount: 99999999.99, taxAmount: 2332.77, modifiedAmount: undefined },
+            {...transaction, amount: 99999999.99, taxAmount: 2332.77, modifiedAmount: undefined},
         ] as TransactionListItemType[]);
         expect(isAmountLengthLong2).toBe(true);
         expect(shouldShowTaxAmountInWideColumn).toBe(false);
 
         // Test case 3: Both `isAmountLengthLong` and `isTaxAmountLengthLong` should be true
         // when the current symbol + amount and current symbol + tax amount lengths exceed 11 characters
-        const { shouldShowAmountInWideColumn: isAmountLengthLong3, shouldShowTaxAmountInWideColumn: isTaxAmountLengthLong2 } = SearchUIUtils.getWideAmountIndicators([
+        const {shouldShowAmountInWideColumn: isAmountLengthLong3, shouldShowTaxAmountInWideColumn: isTaxAmountLengthLong2} = SearchUIUtils.getWideAmountIndicators([
             ...transactionsListItems,
-            { ...transaction, amount: 99999999.99, taxAmount: 45555555.55, modifiedAmount: undefined },
+            {...transaction, amount: 99999999.99, taxAmount: 45555555.55, modifiedAmount: undefined},
         ] as TransactionListItemType[]);
         expect(isAmountLengthLong3).toBe(true);
         expect(isTaxAmountLengthLong2).toBe(true);
@@ -5184,7 +5184,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'empty',
                 merchant: '',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: '',
                 managerID: submitterAccountID,
@@ -5195,7 +5195,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'merchant',
                 merchant: 'Test Merchant',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: '',
                 managerID: submitterAccountID,
@@ -5206,7 +5206,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'category',
                 merchant: '',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: 'Office Supplies',
                 tag: '',
                 managerID: submitterAccountID,
@@ -5217,7 +5217,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'tag',
                 merchant: '',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: 'Project A',
                 managerID: submitterAccountID,
@@ -5228,7 +5228,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'description',
                 merchant: '',
                 modifiedMerchant: '',
-                comment: { comment: 'Business meeting lunch' },
+                comment: {comment: 'Business meeting lunch'},
                 category: '',
                 tag: '',
                 managerID: submitterAccountID,
@@ -5239,7 +5239,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'differentUsers',
                 merchant: '',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: '',
                 managerID: adminAccountID, // Different from current user
@@ -5291,7 +5291,7 @@ describe('SearchUIUtils', () => {
                 [`report_${reportID2}`]: searchResults.data[`report_${reportID2}`],
                 [`transactions_${emptyTransaction.transactionID}`]: emptyTransaction,
                 [`transactions_${differentUsersTransaction.transactionID}`]: differentUsersTransaction,
-                [`reportActions_${reportID2}`]: { [differentUsersTransactionIOUAction.reportActionID]: differentUsersTransactionIOUAction },
+                [`reportActions_${reportID2}`]: {[differentUsersTransactionIOUAction.reportActionID]: differentUsersTransactionIOUAction},
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false);
@@ -5314,7 +5314,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'test',
                 merchant: 'Test Merchant',
                 modifiedMerchant: '',
-                comment: { comment: 'Test description' },
+                comment: {comment: 'Test description'},
                 category: 'Office Supplies',
                 tag: 'Project A',
                 accountID: submitterAccountID, // Different from current user
@@ -5342,7 +5342,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'reimbursableTx',
                 merchant: 'Test Merchant',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: '',
                 billable: true,
@@ -5352,7 +5352,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'nonReimbursableTx',
                 merchant: 'Test Merchant 2',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: '',
                 reimbursable: false,
@@ -5377,7 +5377,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'reimbursableTx1',
                 merchant: 'Test Merchant 1',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: '',
                 reimbursable: true,
@@ -5388,7 +5388,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'reimbursableTx2',
                 merchant: 'Test Merchant 2',
                 modifiedMerchant: '',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: '',
                 tag: '',
                 billable: true,
@@ -5407,7 +5407,7 @@ describe('SearchUIUtils', () => {
                 transactionID: 'modified',
                 merchant: '',
                 modifiedMerchant: 'Modified Merchant',
-                comment: { comment: '' },
+                comment: {comment: ''},
                 category: 'none', // This is in CONST.SEARCH.CATEGORY_EMPTY_VALUE
                 tag: CONST.SEARCH.TAG_EMPTY_VALUE, // This is the empty tag value
                 accountID: adminAccountID,
@@ -5517,7 +5517,7 @@ describe('SearchUIUtils', () => {
 
     describe('createAndOpenSearchTransactionThread', () => {
         const threadReportID = 'thread-report-123';
-        const threadReport = { reportID: threadReportID };
+        const threadReport = {reportID: threadReportID};
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
         const backTo = '/search/all';
@@ -5545,7 +5545,7 @@ describe('SearchUIUtils', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, true);
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({ reportID: transactionListItem.reportID, backTo }));
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
         });
     });
 
@@ -5561,7 +5561,7 @@ describe('SearchUIUtils', () => {
         it('Should create an optimistic parent report if the hasParentReport is false', async () => {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, { hasParentReport: false } as SearchUtils.TransactionPreviewData);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasParentReport: false} as SearchUtils.TransactionPreviewData);
 
             await waitForBatchedUpdates();
 
@@ -5574,7 +5574,7 @@ describe('SearchUIUtils', () => {
         it('Should create an optimistic parent report action if the hasParentReportAction is false', async () => {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, { hasParentReportAction: false } as SearchUtils.TransactionPreviewData);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasParentReportAction: false} as SearchUtils.TransactionPreviewData);
 
             await waitForBatchedUpdates();
 
@@ -5587,7 +5587,7 @@ describe('SearchUIUtils', () => {
         it('Should create an optimistic transaction if the hasTransaction is false', async () => {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, { hasTransaction: false } as SearchUtils.TransactionPreviewData);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransaction: false} as SearchUtils.TransactionPreviewData);
 
             await waitForBatchedUpdates();
 
@@ -5599,7 +5599,7 @@ describe('SearchUIUtils', () => {
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, { hasTransactionThreadReport: false } as SearchUtils.TransactionPreviewData, '456');
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransactionThreadReport: false} as SearchUtils.TransactionPreviewData, '456');
 
             await waitForBatchedUpdates();
 
@@ -5768,7 +5768,7 @@ describe('SearchUIUtils', () => {
                 },
             } as unknown as Record<string, SelectedTransactionInfo>;
 
-            await Onyx.merge(ONYXKEYS.SESSION, { accountID: TEST_ACCOUNT_ID });
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
             expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, false)).toBe(true);
         });
@@ -6024,7 +6024,7 @@ describe('SearchUIUtils', () => {
                 },
             } as unknown as Record<string, SelectedTransactionInfo>;
 
-            await Onyx.merge(ONYXKEYS.SESSION, { accountID: TEST_ACCOUNT_ID });
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
             expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, false)).toBe(true);
         });
