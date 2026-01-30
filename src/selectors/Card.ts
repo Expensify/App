@@ -1,8 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isPersonalCard} from '@libs/CardUtils';
+import {isCard, isCardHiddenFromSearch, isCardPendingActivate, isCardPendingIssue, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
-import type {CardList, NonPersonalAndWorkspaceCardListDerivedValue} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import type {Card, CardList, NonPersonalAndWorkspaceCardListDerivedValue} from '@src/types/onyx';
 
 /**
  * Filter out cards that are hidden from search.
@@ -41,4 +42,43 @@ const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspac
  */
 const cardByIdSelector = (cardID: string) => (cardList: OnyxEntry<CardList>) => cardList?.[cardID];
 
-export {filterCardsHiddenFromSearch, filterOutPersonalCards, defaultExpensifyCardSelector, cardByIdSelector};
+type TimeSensitiveCardsResult = {
+    cardsNeedingShippingAddress: Card[];
+    cardsNeedingActivation: Card[];
+};
+
+/**
+ * Selector that filters cards to find physical Expensify cards that need shipping address or activation.
+ * Returns two arrays: cards pending issue (need shipping) and cards pending activation.
+ */
+const timeSensitiveCardsSelector = (cards: OnyxEntry<CardList>): TimeSensitiveCardsResult => {
+    const result: TimeSensitiveCardsResult = {
+        cardsNeedingShippingAddress: [],
+        cardsNeedingActivation: [],
+    };
+
+    for (const card of Object.values(cards ?? {})) {
+        if (!isCard(card)) {
+            continue;
+        }
+
+        // Only consider physical Expensify cards
+        const isPhysicalExpensifyCard = card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual;
+        if (!isPhysicalExpensifyCard) {
+            continue;
+        }
+
+        if (isCardPendingIssue(card)) {
+            result.cardsNeedingShippingAddress.push(card);
+        }
+
+        if (isCardPendingActivate(card)) {
+            result.cardsNeedingActivation.push(card);
+        }
+    }
+
+    return result;
+};
+
+export {filterCardsHiddenFromSearch, filterOutPersonalCards, defaultExpensifyCardSelector, cardByIdSelector, timeSensitiveCardsSelector};
+export type {TimeSensitiveCardsResult};
