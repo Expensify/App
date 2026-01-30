@@ -1,17 +1,17 @@
-import type {Color} from '@shopify/react-native-skia';
-import React, {useCallback, useState} from 'react';
-import type {ColorValue, LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
-import {Pie, PolarChart} from 'victory-native';
+import type { Color } from '@shopify/react-native-skia';
+import React, { useCallback, useState } from 'react';
+import type { ColorValue, LayoutChangeEvent } from 'react-native';
+import { View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+import { Pie, PolarChart } from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import {getChartColor} from '@components/Charts/chartColors';
+import { getChartColor } from '@components/Charts/chartColors';
 import ChartHeader from '@components/Charts/ChartHeader';
 import ChartTooltip from '@components/Charts/ChartTooltip';
-import {PIE_CHART_MAX_SLICES, PIE_CHART_MIN_SLICE_PERCENTAGE, PIE_CHART_START_ANGLE, TOOLTIP_BAR_GAP} from '@components/Charts/constants';
-import type {PieChartDataPoint, PieChartProps, ProcessedSlice} from '@components/Charts/types';
+import { PIE_CHART_MAX_SLICES, PIE_CHART_MIN_SLICE_PERCENTAGE, PIE_CHART_START_ANGLE, TOOLTIP_BAR_GAP } from '@components/Charts/constants';
+import type { PieChartDataPoint, PieChartProps, ProcessedSlice } from '@components/Charts/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -158,11 +158,11 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
     return -1;
 }
 
-function PieChartContent({data, title, titleIcon, isLoading, valueUnit, onSlicePress}: PieChartProps) {
+function PieChartContent({ data, title, titleIcon, isLoading, valueUnit, onSlicePress }: PieChartProps) {
     const styles = useThemeStyles();
-    const [canvasSize, setCanvasSize] = useState({width: 0, height: 0});
+    const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
     const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
-    const {translate} = useLocalize();
+    const { translate } = useLocalize();
 
     // Shared values for hover state
     const isHovering = useSharedValue(false);
@@ -170,18 +170,18 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, onSliceP
     const cursorY = useSharedValue(0);
 
     const handleLayout = (event: LayoutChangeEvent) => {
-        const {width, height} = event.nativeEvent.layout;
-        setCanvasSize({width, height});
+        const { width, height } = event.nativeEvent.layout;
+        setCanvasSize({ width, height });
     };
 
     // Process data into slices with aggregation, make following code react compiler compatible, and use the last slice label from the translation
-    const processedSlices: ProcessedSlice[] = processDataIntoSlices(data, PIE_CHART_START_ANGLE, translate('search.pieChartLastSlice'));
+    const processedSlices: ProcessedSlice[] = processDataIntoSlices(data, PIE_CHART_START_ANGLE, translate('workspace.accounting.other'));
 
     // Calculate pie geometry
-    const pieGeometry = {radius: Math.min(canvasSize.width, canvasSize.height) / 2, centerX: canvasSize.width / 2, centerY: canvasSize.height / 2} as const;
+    const pieGeometry = { radius: Math.min(canvasSize.width, canvasSize.height) / 2, centerX: canvasSize.width / 2, centerY: canvasSize.height / 2 } as const;
 
     // Transform data for Victory Native PolarChart
-    const chartData = processedSlices.map((slice: {label: string; value: number; color: Color}) => ({
+    const chartData = processedSlices.map((slice: { label: string; value: number; color: Color }) => ({
         label: slice.label,
         value: slice.value,
         color: slice.color,
@@ -189,7 +189,7 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, onSliceP
 
     // Handle hover state updates
     const updateActiveSlice = (x: number, y: number) => {
-        const {radius, centerX, centerY} = pieGeometry;
+        const { radius, centerX, centerY } = pieGeometry;
         const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, 0, processedSlices);
         setActiveSliceIndex(sliceIndex);
     };
@@ -240,7 +240,7 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, onSliceP
         Gesture.Tap().onEnd((e) => {
             'worklet';
 
-            const {radius, centerX, centerY} = pieGeometry;
+            const { radius, centerX, centerY } = pieGeometry;
             const sliceIndex = findSliceAtPosition(e.x, e.y, centerX, centerY, radius, 0, processedSlices);
 
             if (sliceIndex >= 0) {
@@ -275,20 +275,20 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, onSliceP
             position: 'absolute',
             left: cursorX.get(),
             top: cursorY.get() - TOOLTIP_BAR_GAP,
-            transform: [{translateX: '-50%'}, {translateY: '-100%'}],
+            transform: [{ translateX: '-50%' }, { translateY: '-100%' }],
             opacity: isHovering.get() ? 1 : 0,
             pointerEvents: 'none',
         };
     });
 
     const renderLegendItem = useCallback(
-        (slice: {label: string; value: number; color: Color}) => {
+        (slice: { label: string; value: number; color: Color }) => {
             return (
                 <View
                     key={`legend-${slice.label}`}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.mr4, styles.mb2]}
                 >
-                    <View style={[styles.pieChartLegendDot, {backgroundColor: slice.color as ColorValue | undefined}]} />
+                    <View style={[styles.pieChartLegendDot, { backgroundColor: slice.color as ColorValue | undefined }]} />
                     <Text style={[styles.textNormal, styles.ml2]}>{slice.label}</Text>
                 </View>
             );
