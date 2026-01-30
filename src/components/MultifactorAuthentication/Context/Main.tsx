@@ -99,7 +99,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         // 4. Check if registration is required (not registered yet)
-        const isRegistrationRequired = !biometrics.isRegisteredInAuth() && !isRegistrationComplete;
+        const isRegistrationRequired = !(await biometrics.isRegisteredInAuth()) && !isRegistrationComplete;
 
         if (isRegistrationRequired) {
             // Need validate code before registration

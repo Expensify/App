@@ -140,23 +140,35 @@ describe('useNativeBiometrics hook', () => {
     });
 
     describe('isRegisteredLocally', () => {
-        it('should return local registration status from info', () => {
+        it('should return false when no local key exists', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.isRegisteredLocally()).toBe(false);
+            const isRegistered = await result.current.isRegisteredLocally();
+            expect(isRegistered).toBe(false);
+        });
+
+        it('should return true when local key exists', async () => {
+            (PublicKeyStore.get as jest.Mock).mockResolvedValue({
+                value: 'public-key-123',
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_RETRIEVED,
+            });
+
+            const {result} = renderHook(() => useNativeBiometrics());
+
+            const isRegistered = await result.current.isRegisteredLocally();
+            expect(isRegistered).toBe(true);
         });
     });
 
     describe('isRegisteredInAuth', () => {
-        it('should return auth registration status from info', () => {
+        it('should return false when no local key exists', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.isRegisteredInAuth()).toBe(false);
+            const isRegistered = await result.current.isRegisteredInAuth();
+            expect(isRegistered).toBe(false);
         });
-    });
 
-    describe('local state refresh', () => {
-        it('should update info based on local key storage and Onyx state', async () => {
+        it('should return true when local key exists in auth backend', async () => {
             mockMultifactorAuthenticationPublicKeyIDs = ['public-key-123'];
             (PublicKeyStore.get as jest.Mock).mockResolvedValue({
                 value: 'public-key-123',
@@ -165,26 +177,26 @@ describe('useNativeBiometrics hook', () => {
 
             const {result} = renderHook(() => useNativeBiometrics());
 
-            // Wait for useEffect to run
-            await act(async () => {
-                await Promise.resolve();
-            });
+            const isRegistered = await result.current.isRegisteredInAuth();
+            expect(isRegistered).toBe(true);
+        });
+    });
+
+    describe('isAnyDeviceRegistered', () => {
+        it('should return true when Onyx has registered public keys', () => {
+            mockMultifactorAuthenticationPublicKeyIDs = ['public-key-123'];
+
+            const {result} = renderHook(() => useNativeBiometrics());
 
             expect(result.current.isAnyDeviceRegistered).toBe(true);
-            expect(result.current.info.isBiometryRegisteredLocally).toBe(true);
-            expect(result.current.info.isLocalPublicKeyInAuth).toBe(true);
         });
 
-        it('should call public key store with the accountID on mount', async () => {
-            renderHook(() => useNativeBiometrics());
+        it('should return false when Onyx has no registered public keys', () => {
+            mockMultifactorAuthenticationPublicKeyIDs = [];
 
-            // Wait for useEffect to run
-            await act(async () => {
-                await Promise.resolve();
-            });
+            const {result} = renderHook(() => useNativeBiometrics());
 
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            expect(PublicKeyStore.get).toHaveBeenCalledWith(12345);
+            expect(result.current.isAnyDeviceRegistered).toBe(false);
         });
     });
 

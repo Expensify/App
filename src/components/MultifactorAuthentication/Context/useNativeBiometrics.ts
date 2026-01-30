@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
@@ -19,10 +19,6 @@ import type {Account} from '@src/types/onyx';
 type BiometricsInfo = {
     /** Whether device supports biometric authentication */
     deviceSupportsBiometrics: boolean;
-    /** Whether biometrics is registered locally on this device */
-    isBiometryRegisteredLocally: boolean;
-    /** Whether local public key exists in auth backend */
-    isLocalPublicKeyInAuth: boolean;
 };
 
 type RegisterParams = {
@@ -70,10 +66,10 @@ type UseNativeBiometricsReturn = {
     doesDeviceSupportBiometrics: () => boolean;
 
     /** Check if biometrics is registered locally */
-    isRegisteredLocally: () => boolean;
+    isRegisteredLocally: () => Promise<boolean>;
 
     /** Check if local public key is in auth backend */
-    isRegisteredInAuth: () => boolean;
+    isRegisteredInAuth: () => Promise<boolean>;
 
     /** Register biometrics on device */
     register: (params: RegisterParams, onResult: (result: RegisterResult) => Promise<void> | void) => Promise<void>;
@@ -139,37 +135,26 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         return biometrics || credentials;
     }, []);
 
-    const [info, setInfo] = useState<BiometricsInfo>({
-        deviceSupportsBiometrics: doesDeviceSupportBiometrics(),
-        isBiometryRegisteredLocally: false,
-        isLocalPublicKeyInAuth: false,
-    });
-
-    const refreshLocalState = useCallback(async () => {
-        const config = await isBiometryConfigured(accountID, multifactorAuthenticationPublicKeyIDs ?? []);
-        setInfo({
+    const info = useMemo<BiometricsInfo>(
+        () => ({
             deviceSupportsBiometrics: doesDeviceSupportBiometrics(),
-            isBiometryRegisteredLocally: config.isBiometryRegisteredLocally,
-            isLocalPublicKeyInAuth: config.isLocalPublicKeyInAuth,
-        });
-    }, [accountID, doesDeviceSupportBiometrics, multifactorAuthenticationPublicKeyIDs]);
+        }),
+        [doesDeviceSupportBiometrics],
+    );
 
-    useEffect(() => {
-        refreshLocalState();
-    }, [refreshLocalState]);
+    const isRegisteredLocally = useCallback(async () => {
+        const config = await isBiometryConfigured(accountID);
+        return config.isBiometryRegisteredLocally;
+    }, [accountID]);
 
-    const isRegisteredLocally = () => {
-        return info.isBiometryRegisteredLocally;
-    };
+    const isRegisteredInAuth = useCallback(async () => {
+        const config = await isBiometryConfigured(accountID, multifactorAuthenticationPublicKeyIDs ?? []);
+        return config.isLocalPublicKeyInAuth;
+    }, [accountID, multifactorAuthenticationPublicKeyIDs]);
 
-    const isRegisteredInAuth = () => {
-        return info.isLocalPublicKeyInAuth;
-    };
-
-    const resetKeysForAccount = async () => {
+    const resetKeysForAccount = useCallback(async () => {
         await resetKeys(accountID);
-        await refreshLocalState();
-    };
+    }, [accountID]);
 
     const register = async (params: RegisterParams, onResult: (result: RegisterResult) => Promise<void> | void) => {
         const {nativePromptTitle} = params;
