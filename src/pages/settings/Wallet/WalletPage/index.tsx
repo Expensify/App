@@ -15,6 +15,7 @@ import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -254,7 +255,7 @@ function WalletPage() {
             return;
         }
 
-        const isConfirmed = await showConfirmModal({
+        const result = await showConfirmModal({
             title: translate('walletPage.deleteCard'),
             prompt: translate('walletPage.deleteCardConfirmation'),
             confirmText: translate('common.delete'),
@@ -263,7 +264,7 @@ function WalletPage() {
             danger: true,
         });
 
-        if (isConfirmed) {
+        if (result.action === ModalActions.CONFIRM) {
             deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports});
         }
         setSelectedCard(undefined);
