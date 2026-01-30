@@ -115,14 +115,7 @@ const OnboardingGuard: NavigationGuard = {
     name: 'OnboardingGuard',
 
     evaluate: (state, action, context): GuardResult => {
-        // Don't redirect during transition flow (e.g., switching between apps)
         const isTransitioning = context.currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
-
-        if (isTransitioning) {
-            Log.info('[OnboardingGuard] Allowing navigation - in transition flow', false, {currentUrl: context.currentUrl});
-            return {type: 'ALLOW'};
-        }
-
         const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
@@ -130,7 +123,7 @@ const OnboardingGuard: NavigationGuard = {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
 
-        const shouldSkipOnboarding = isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
+        const shouldSkipOnboarding = isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
