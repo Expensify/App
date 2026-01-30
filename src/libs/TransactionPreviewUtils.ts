@@ -274,9 +274,9 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (RBRMessage === undefined && hasDynamicExternalWorkflow(policy)) {
-        const dewFailedAction = getMostRecentActiveDEWSubmitFailedAction(reportActions);
-        if (dewFailedAction && isDynamicExternalWorkflowSubmitFailedAction(dewFailedAction)) {
-            const originalMessage = getOriginalMessage(dewFailedAction);
+        const dewSubmitFailedAction = getMostRecentActiveDEWSubmitFailedAction(reportActions);
+        if (dewSubmitFailedAction && isDynamicExternalWorkflowSubmitFailedAction(dewSubmitFailedAction)) {
+            const originalMessage = getOriginalMessage(dewSubmitFailedAction);
             const dewErrorMessage = originalMessage?.message;
             RBRMessage = dewErrorMessage ? {text: dewErrorMessage} : {translationPath: 'iou.error.other'};
         }
