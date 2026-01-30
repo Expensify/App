@@ -770,8 +770,8 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             revoke: '取り消す',
             title: '顔／指紋 & パスキー',
-            explanation: '1 台以上のデバイスで顔／指紋またはパスキーによる認証が有効になっています。アクセスを取り消すと、次回どのデバイスで認証する場合でもマジックコードが必要になります',
-            confirmationPrompt: '本当に続行しますか？今後どのデバイスでも次回の認証にはマジックコードが必要になります',
+            explanation: '1 台以上のデバイスで顔 / 指紋またはパスキー認証が有効になっています。アクセスを取り消すと、今後どのデバイスでも次回の認証時にマジックコードが必要になります',
+            confirmationPrompt: '本当に実行しますか？次回、どのデバイスで確認する場合でも、マジックコードが必要になります',
             cta: 'アクセスを取り消す',
             noDevices: '顔認証 / 指紋認証 またはパスキー認証用に登録されているデバイスがありません。  \nいずれかを登録すると、ここでそのアクセスを取り消せるようになります。',
             dismiss: '了解',
@@ -7166,7 +7166,7 @@ ${reportName}
                 addedConnection: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} に接続済み`,
                 leftTheChat: 'チャットを退出しました',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `${feedName} の接続が切断されています。カードの取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください`,
+                    `${feedName} との接続が切断されています。カードの取引明細の取り込みを再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `ビジネス銀行口座へのPlaid接続が切断されています。Expensifyカードを引き続きご利用いただくには、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
