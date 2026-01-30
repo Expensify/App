@@ -8311,6 +8311,8 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             cta: 'Demande',
             offer50off: {title: 'Obtenez 50 % de réduction sur votre première année !', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} restant`},
             offer25off: {title: 'Obtenez 25 % de réduction sur votre première année !', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'jour' : 'jours'} restants`},
+            addShippingAddress: {title: 'Nous avons besoin de votre adresse de livraison', subtitle: 'Indiquez une adresse pour recevoir votre carte Expensify.', cta: 'Ajouter une adresse'},
+            activateCard: {title: 'Activer votre carte Expensify', subtitle: 'Validez votre carte et commencez à dépenser.', cta: 'Activer'},
         },
     },
 };

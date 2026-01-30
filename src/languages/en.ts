@@ -1005,6 +1005,16 @@ const translations = {
                 title: 'Get 25% off your first year!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
             },
+            addShippingAddress: {
+                title: 'We need your shipping address',
+                subtitle: 'Provide an address to receive your Expensify Card.',
+                cta: 'Add address',
+            },
+            activateCard: {
+                title: 'Activate your Expensify Card',
+                subtitle: 'Validate your card and start spending.',
+                cta: 'Activate',
+            },
         },
         announcements: 'Announcements',
         discoverSection: {

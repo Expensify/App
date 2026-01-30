@@ -8202,6 +8202,8 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             cta: '申請',
             offer50off: {title: '初年度が50％オフ！', subtitle: ({formattedTime}: {formattedTime: string}) => `残り${formattedTime}`},
             offer25off: {title: '初年度が25％オフ！', subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日'}`},
+            addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify Card を受け取る住所を入力してください。', cta: '住所を追加'},
+            activateCard: {title: 'Expensify Card を有効化', subtitle: 'カードを認証して、すぐに支出を始めましょう。', cta: '有効化'},
         },
     },
 };
