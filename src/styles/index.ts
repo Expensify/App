@@ -2591,10 +2591,16 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        blockingErrorViewContainer: {
+        searchBlockingErrorViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
             maxWidth: 475,
             alignSelf: 'center',
+        },
+
+        companyCardsBlockingErrorViewContainer: {
+            maxWidth: 475,
+            alignSelf: 'center',
+            flex: undefined,
         },
 
         forcedBlockingViewContainer: {
@@ -3681,9 +3687,54 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        widgetItemButton: {
+            minWidth: 68,
+        },
+
+        widgetItemSubtitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 16,
+            color: theme.textSupporting,
+        },
+
+        widgetItemTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            color: theme.text,
+        },
+
+        forYouEmptyStateContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 20,
+            marginBottom: 52,
+        },
+
+        forYouEmptyStateTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            marginTop: 20,
+            textAlign: 'center',
+            color: theme.text,
+        },
+
+        forYouEmptyStateSubtitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: 16,
+            marginTop: 2,
+            textAlign: 'center',
+            color: theme.textSupporting,
+        },
+
         homePageContentContainer: {
             flexGrow: 1,
-            padding: 20,
+            paddingTop: 0,
+            paddingHorizontal: 20,
+            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -5722,10 +5773,53 @@ const staticStyles = (theme: ThemeColors) =>
         paymentMethodErrorRow: {
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
+        chartHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: variables.componentBorderRadius,
+            marginBottom: variables.sectionMargin,
+        },
+        chartTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            color: theme.text,
+        },
+        chartTooltipWrapper: {
+            alignItems: 'center',
+        },
+        chartTooltipBox: {
+            backgroundColor: theme.heading,
+            borderRadius: variables.componentBorderRadiusSmall,
+            paddingVertical: 4,
+            paddingHorizontal: 8,
+        },
+        chartTooltipText: {
+            color: theme.textReversed,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightSmall,
+            whiteSpace: 'nowrap',
+        },
+        chartTooltipPointer: {
+            width: 0,
+            height: 0,
+            backgroundColor: theme.transparent,
+            borderStyle: 'solid',
+        },
+        barChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+        barChartChartContainer: {
+            minHeight: 250,
+        },
         discoverSectionImage: {
             width: '100%',
             height: undefined,
             aspectRatio: 2.2,
+        },
+        dateIconSize: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
         },
     }) satisfies StaticStyles;
 
@@ -6019,6 +6113,14 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
+        getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+            flexDirection: 'column',
+            marginBottom: shouldUseNarrowLayout ? 20 : 32,
+            marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
+            paddingVertical: 12,
+            gap: 24,
+        }),
+
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
             const SEARCHBAR_HEIGHT = isSearchable ? 52 : 0;
             const SEARCHBAR_PADDING = isSearchable ? 12 : 0;
@@ -6229,6 +6331,31 @@ const plainStyles = (theme: ThemeColors) =>
                 lineHeight: 20,
                 color,
             }) satisfies TextStyle,
+
+        getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                marginBottom: 20,
+                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
+                marginTop: shouldUseNarrowLayout ? 20 : 32,
+            }) satisfies ViewStyle,
+
+        widgetContainerIconWrapper: {
+            flexGrow: 0,
+            flexShrink: 0,
+            marginRight: 11,
+        },
+
+        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
+            ({
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: variables.componentBorderRadiusNormal,
+                width: variables.componentSizeNormal,
+                height: variables.componentSizeNormal,
+                backgroundColor,
+            }) satisfies ViewStyle,
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({

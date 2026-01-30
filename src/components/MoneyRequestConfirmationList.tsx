@@ -85,7 +85,6 @@ import SelectionList from './SelectionListWithSections';
 import type {SectionListDataType} from './SelectionListWithSections/types';
 import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
-import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
@@ -958,7 +957,7 @@ function MoneyRequestConfirmationList({
      * @param {String} paymentMethod
      */
     const confirm = useCallback(
-        ({paymentType}: PaymentActionParams) => {
+        (paymentMethod: PaymentMethodType | undefined) => {
             if (!!routeError || !transactionID) {
                 return;
             }
@@ -1052,7 +1051,7 @@ function MoneyRequestConfirmationList({
 
                 onConfirm?.(selectedParticipants);
             } else {
-                if (!paymentType) {
+                if (!paymentMethod) {
                     return;
                 }
                 if (isDelegateAccessRestricted) {
@@ -1062,8 +1061,8 @@ function MoneyRequestConfirmationList({
                 if (formError) {
                     return;
                 }
-                Log.info(`[IOU] Sending money via: ${paymentType}`);
-                onSendMoney?.(paymentType);
+                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+                onSendMoney?.(paymentMethod);
             }
         },
         [
@@ -1182,7 +1181,7 @@ function MoneyRequestConfirmationList({
                     <View>
                         <ButtonWithDropdownMenu
                             pressOnEnter
-                            onPress={(event, value) => confirm({paymentType: value as PaymentMethodType})}
+                            onPress={(event, value) => confirm(value as PaymentMethodType)}
                             options={splitOrRequestOptions}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             enterKeyEventListenerPriority={1}
