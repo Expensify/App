@@ -4,7 +4,6 @@ import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
-import useGuardedNavigationState from '@hooks/useGuardedNavigationState';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,6 +25,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import {isWorkspacesTabScreenName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
@@ -102,9 +102,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const previousAuthenticated = usePrevious(authenticated);
 
-    const guardedLastVisitedState = useGuardedNavigationState(lastVisitedPath, linkingConfig.config);
     const path = initialUrl ? getPathFromURL(initialUrl) : null;
-    const guardedDeepLinkState = useGuardedNavigationState(path, linkingConfig.config);
 
     const initialState = useMemo(() => {
         if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL.route) && shouldOpenLastVisitedPath(lastVisitedPath) && isOnboardingCompleted && authenticated) {
@@ -112,7 +110,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
             });
 
-            return guardedLastVisitedState;
+            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
         }
 
         if (!account || account.isFromPublicDomain) {
@@ -135,14 +133,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
             if (!isSpecificDeepLink) {
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
-                return guardedLastVisitedState;
+                return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
             }
-        }
-
-        // If there's a specific deep link, use guarded state to ensure guards are evaluated
-        // This prevents incomplete-onboarding users from bypassing guards via deep links
-        if (path && path !== '/') {
-            return guardedDeepLinkState;
         }
 
         // Default behavior - let React Navigation handle the initial state
