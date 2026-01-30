@@ -469,7 +469,7 @@ function WalletPage() {
                           icon: icons.Table,
                           onSelected: () => {
                               closeModal(() => {
-                                Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(paymentMethod.methodID)));
+                                  Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(paymentMethod.methodID)));
                               });
                           },
                       },
