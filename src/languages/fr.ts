@@ -8295,6 +8295,12 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             cta: 'Demande',
             offer50off: {title: 'Obtenez 50 % de réduction sur votre première année !', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} restant`},
             offer25off: {title: 'Obtenez 25 % de réduction sur votre première année !', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'jour' : 'jours'} restants`},
+            ctaFix: 'Corriger',
+            fixCompanyCardConnection: {
+                title: ({bankName}: {bankName: string}) => `Corriger la connexion de la carte professionnelle ${bankName}`,
+                subtitle: 'Espace de travail > Cartes d’entreprise',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Réparer la connexion ${integrationName}`, subtitle: 'Espace de travail > Comptabilité'},
         },
     },
 };

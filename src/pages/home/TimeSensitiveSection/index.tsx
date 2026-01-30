@@ -1,5 +1,5 @@
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import WidgetContainer from '@components/WidgetContainer';
@@ -52,7 +52,7 @@ function TimeSensitiveSection() {
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
     // Selector for filtering admin policies
-    const adminPoliciesSelectorWrapper = (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? '');
+    const adminPoliciesSelectorWrapper = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector: adminPoliciesSelectorWrapper});
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const hasTeam2025Pricing = useHasTeam2025Pricing();
@@ -165,7 +165,7 @@ function TimeSensitiveSection() {
 
                 {/* Priority 4: Early adoption discount offers */}
                 {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
-                {shouldShow25off && discountInfo && <Offer25off days={discountInfo.days} />}
+                {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
             </View>
         </WidgetContainer>
     );
