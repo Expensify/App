@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspace, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType} from '@libs/PaymentUtils';
 import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -103,11 +104,12 @@ function SettlementButton({
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`, {canBeMissing: true});
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policy, accountID);
-    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
+    const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID, conciergeReportID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : (iouReport?.policyID ?? CONST.POLICY.ID_FAKE);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -213,14 +215,15 @@ function SettlementButton({
         return false;
     }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID, showLockedAccountModal, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
-    const getPaymentSubitems = useCallback(
+    const getPaymentSubItems = useCallback(
         (payAsBusiness: boolean) => {
             const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
 
             return formattedPaymentMethods
                 .filter((method) => {
                     const accountData = method?.accountData as AccountData;
-                    return accountData?.type === requiredAccountType;
+                    const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
+                    return accountData?.type === requiredAccountType && !isPartiallySetup;
                 })
                 .map((formattedPaymentMethod) => ({
                     text: formattedPaymentMethod?.title ?? '',
@@ -375,7 +378,7 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 };
                 return [
-                    ...(isCurrencySupported ? getPaymentSubitems(payAsBusiness) : []),
+                    ...(isCurrencySupported ? getPaymentSubItems(payAsBusiness) : []),
                     ...(isCurrencySupported && isPolicyCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
@@ -519,19 +522,8 @@ function SettlementButton({
             ? ((formattedPaymentMethods.find((method) => method.methodID === policy?.achAccount?.bankAccountID) ?? formattedPaymentMethods.at(0)) as BankAccount)
             : bankAccount;
 
-        if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && (isExpenseReport || isInvoiceReport))) {
-            if (isInvoiceReport) {
-                const isBusinessBankAccount = bankAccountToDisplay?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
-                return translate(isBusinessBankAccount ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? '');
-            }
-            if (!personalBankAccountList.length) {
-                return;
-            }
-
-            return translate('common.wallet');
-        }
-
-        if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || hasIntentToPay) && !!policy?.achAccount) {
+        // Handle bank account payments first (expense reports require bank account, never wallet)
+        if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || (hasIntentToPay && isExpenseReport)) && !!policy?.achAccount) {
             if (policy?.achAccount?.accountNumber) {
                 return translate('paymentMethodList.bankAccountLastFour', policy?.achAccount?.accountNumber?.slice(-4));
             }
@@ -541,6 +533,20 @@ function SettlementButton({
             }
 
             return translate('paymentMethodList.bankAccountLastFour', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4));
+        }
+
+        // Handle wallet payments for IOUs and bank account display for invoices
+        if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && isInvoiceReport)) {
+            if (isInvoiceReport) {
+                const isBusinessBankAccount = bankAccountToDisplay?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
+                return translate(isBusinessBankAccount ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? '');
+            }
+
+            if (!personalBankAccountList.length) {
+                return;
+            }
+
+            return translate('common.wallet');
         }
 
         if (bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.methodID === policy?.achAccount?.bankAccountID && isExpenseReportUtil(iouReport)) {
