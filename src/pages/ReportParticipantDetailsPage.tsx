@@ -53,7 +53,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = () => {
         setIsRemoveMemberConfirmModalVisible(false);
-        removeFromGroupChat(report?.reportID, [accountID]);
+        removeFromGroupChat(report, [accountID]);
         Navigation.goBack(backTo);
     };
 

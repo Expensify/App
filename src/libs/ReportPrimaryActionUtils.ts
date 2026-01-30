@@ -14,7 +14,15 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPreferredExporter,
 } from './PolicyUtils';
-import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, hasPendingDEWSubmit, isMoneyRequestAction} from './ReportActionsUtils';
+import {
+    getAllReportActions,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportAction,
+    hasPendingDEWApprove,
+    hasPendingDEWSubmit,
+    isMoneyRequestAction,
+} from './ReportActionsUtils';
 import {
     canAddTransaction as canAddTransactionUtil,
     canHoldUnholdReportAction,
@@ -83,12 +91,12 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
 function isSubmitAction(
     report: Report,
     reportTransactions: Transaction[],
+    reportMetadata: OnyxEntry<ReportMetadata>,
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     violations?: OnyxCollection<TransactionViolation[]>,
     currentUserEmail?: string,
     currentUserAccountID?: number,
-    reportMetadata?: OnyxEntry<ReportMetadata>,
 ) {
     if (isArchivedReport(reportNameValuePairs)) {
         return false;
@@ -128,12 +136,18 @@ function isSubmitAction(
     return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0 && transactionAreComplete;
 }
 
-function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, policy?: Policy) {
+function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
     }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
+        return false;
+    }
+
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
     if (!isCurrentUserManager) {
@@ -446,7 +460,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isApproveAction(report, reportTransactions, currentUserAccountID, policy)) {
+    if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
@@ -458,7 +472,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID, reportMetadata)) {
+    if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 

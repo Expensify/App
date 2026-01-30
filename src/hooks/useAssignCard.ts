@@ -25,6 +25,7 @@ import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
 import useCurrencyList from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
@@ -44,6 +45,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : ({} as CombinedCardFeed);
+    const {translate} = useLocalize();
 
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -53,7 +55,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const fetchCompanyCards = () => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate);
     };
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});

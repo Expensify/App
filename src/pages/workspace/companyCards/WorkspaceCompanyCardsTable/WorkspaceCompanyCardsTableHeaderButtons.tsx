@@ -105,10 +105,11 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
         },
     ];
 
+    const isCsvFeed = feedName?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
     const secondPart = ` (${domainName ?? policy?.name})`;
-    const supportingText = `${firstPart}${secondPart}`;
+    const supportingText = isCsvFeed ? translate('cardPage.csvCardDescription') : `${firstPart}${secondPart}`;
 
     const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -127,7 +128,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     <AccountSwitcherSkeletonView
                         avatarSize={CONST.AVATAR_SIZE.DEFAULT}
                         width={FEED_SELECTOR_SKELETON_WIDTH}
-                        style={[shouldShowNarrowLayout ? [styles.mb2, styles.mt2] : styles.mb11, styles.mw100]}
+                        style={[shouldShowNarrowLayout ? [styles.mb2, styles.mt2] : [styles.mb11, styles.mt2], styles.mw100]}
                     />
                 ) : (
                     <FeedSelector
@@ -166,7 +167,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     </View>
                 </View>
             </View>
-            {(isFeedConnectionBroken || hasFeedErrors) && (
+            {!isLoading && (isFeedConnectionBroken || hasFeedErrors) && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
                         src={expensifyIcons.DotIndicator}

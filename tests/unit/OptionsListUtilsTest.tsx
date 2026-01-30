@@ -1592,7 +1592,7 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getMemberInviteOptions()', () => {
-        it('should sort personal details alphabetically', () => {
+        it('should sort personal details alphabetically and return expected structure', () => {
             // Given a set of personalDetails
             // When we call getMemberInviteOptions
             const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, []);
@@ -1602,6 +1602,23 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
             expect(results.personalDetails.at(2)?.text).toBe('Captain America');
             expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
+
+            // Then the results should contain expected structure
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            expect(results.recentReports).toEqual([]);
+            expect(results.currentUserOption).toBeUndefined();
+        });
+
+        it('should exclude logins when excludeLogins is provided', () => {
+            // Given a set of personalDetails and excludeLogins
+            const excludeLogins = {'reedrichards@expensify.com': true};
+
+            // When we call getMemberInviteOptions with excludeLogins
+            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, [], excludeLogins);
+
+            // Then the excluded login should not be in the results
+            const excludedUser = results.personalDetails.find((detail) => detail.login === 'reedrichards@expensify.com');
+            expect(excludedUser).toBeUndefined();
         });
     });
 

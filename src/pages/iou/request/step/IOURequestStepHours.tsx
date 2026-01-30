@@ -53,7 +53,7 @@ function IOURequestStepHours({
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const defaultPolicyRate = policy ? getDefaultTimeTrackingRate(policy) : undefined;
+    const defaultPolicyRate = getDefaultTimeTrackingRate(policy);
     const rate = transaction?.comment?.units?.rate ?? defaultPolicyRate;
 
     const {translate} = useLocalize();

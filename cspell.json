@@ -250,6 +250,7 @@
         "Ferroalloy",
         "FinancialForce",
         "firebaselogging",
+        "fireroom",
         "firstname",
         "Fiscale",
         "flac",
@@ -819,6 +820,8 @@
         "Wooo",
         "Splittable",
         "pgrep",
+        "skia",
+        "canvaskit",
         "Invoicify"
     ],
     "ignorePaths": [

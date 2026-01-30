@@ -164,6 +164,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Component to be displayed on the right */
         rightComponent?: ReactNode;
 
+        /** Component to be displayed on the left */
+        leftComponent?: ReactNode;
+
         /** A description text to show under the title */
         description?: string;
 
@@ -503,6 +506,7 @@ function MenuItem({
     shouldShowDescriptionOnTop = false,
     shouldShowRightComponent = false,
     rightComponent,
+    leftComponent,
     rightIconReportID,
     avatarSize = CONST.AVATAR_SIZE.DEFAULT,
     isSmallAvatarSubscriptMenu = false,
@@ -778,6 +782,7 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
+                                                    {!!leftComponent && <View style={[styles.mr3]}>{leftComponent}</View>}
                                                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                                                     {isIDPassed && (
                                                         <ReportActionAvatars

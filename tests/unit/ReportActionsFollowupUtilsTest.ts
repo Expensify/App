@@ -1,9 +1,9 @@
 import CONST from '../../src/CONST';
-import {containsActionableFollowUps, parseFollowupsFromHtml} from '../../src/libs/ReportActionsFollowupUtils';
+import {containsActionableFollowUps, parseFollowupsFromHtml} from '../../src/libs/ReportActionFollowupUtils';
 import {stripFollowupListFromHtml} from '../../src/libs/ReportActionsUtils';
 import type {ReportAction} from '../../src/types/onyx';
 
-describe('FollowupUtils', () => {
+describe('ReportActionsFollowupUtils', () => {
     describe('parseFollowupsFromHtml', () => {
         it('should return null when no followup-list exists', () => {
             const html = '<p>Hello world</p>';
@@ -60,6 +60,42 @@ describe('FollowupUtils', () => {
         it('should return empty array for unresolved followup-list with no followups', () => {
             const html = '<followup-list></followup-list>';
             expect(parseFollowupsFromHtml(html)).toEqual([]);
+        });
+
+        it('should parse followup with pre-generated response', () => {
+            const html = `<followup-list>
+  <followup>
+    <followup-text>How do I set up QuickBooks?</followup-text>
+    <followup-response>To set up QuickBooks, go to Settings > Integrations...</followup-response>
+  </followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings > Integrations...'}]);
+        });
+
+        it('should parse multiple followups with mixed response availability', () => {
+            const html = `<followup-list>
+  <followup>
+    <followup-text>Question without response</followup-text>
+  </followup>
+  <followup>
+    <followup-text>Question with response</followup-text>
+    <followup-response>Here is the cached response</followup-response>
+  </followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([
+                {text: 'Question without response', response: undefined},
+                {text: 'Question with response', response: 'Here is the cached response'},
+            ]);
+        });
+
+        it('should handle empty followup-response element', () => {
+            const html = `<followup-list>
+  <followup>
+    <followup-text>Question</followup-text>
+    <followup-response></followup-response>
+  </followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'Question', response: ''}]);
         });
     });
 

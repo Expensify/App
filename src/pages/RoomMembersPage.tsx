@@ -148,7 +148,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
      */
     const removeUsers = useCallback(() => {
         if (report) {
-            removeFromRoom(report.reportID, selectedMembers);
+            removeFromRoom(report, selectedMembers);
         }
         setSearchValue('');
         // eslint-disable-next-line @typescript-eslint/no-deprecated
