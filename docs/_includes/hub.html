@@ -3,27 +3,51 @@
 {% assign activeHub = urlParts[3] %}
 
 {% assign platform = site.data.routes.platforms | where: "href", activePlatform | first %}
-
 {% assign hub = platform.hubs | where: "href", activeHub | first %}
 
-<h1 class="title">{{ hub.title }}</h1>
+{% if hub %}
+  <h1 class="title">{{ hub.title }}</h1>
+  <p>{{ hub.description }}</p>
 
-<p>{{ hub.description }}</p>
+  {% assign sections = hub.sections %}
+  {% assign articles = hub.articles %}
 
-{% if hub.articles %}
-    {% assign sortedSectionsAndArticles = hub.sections | concat: hub.articles | sort: 'title' %}
-{% else %}
-    {% assign sortedSectionsAndArticles = hub.sections | default: empty | sort: 'title' %}
-{% endif%}
+  {% assign combined = nil %}
 
-<section>
-    <div class="cards-group">
+  {% if sections and articles %}
+    {% assign combined = sections | concat: articles %}
+  {% elsif sections %}
+    {% assign combined = sections %}
+  {% elsif articles %}
+    {% assign combined = articles %}
+  {% endif %}
+
+  {% if combined %}
+    {% assign sortedSectionsAndArticles = combined | sort: 'title' %}
+  {% endif %}
+
+  {% if sortedSectionsAndArticles %}
+    <section>
+      <div class="cards-group">
         {% for item in sortedSectionsAndArticles %}
-            {% if item.articles %}
-                {% include section-card.html platform=activePlatform hub=hub.href section=item.href title=item.title %}
-            {% else %}
-                {% include article-card.html hub=hub.href href=item.href title=item.title platform=activePlatform %}
-            {% endif %}
+          {% if item.articles %}
+            {% include section-card.html
+              platform=activePlatform
+              hub=hub.href
+              section=item.href
+              title=item.title
+            %}
+          {% else %}
+            {% include article-card.html
+              platform=activePlatform
+              hub=hub.href
+              href=item.href
+              title=item.title
+            %}
+          {% endif %}
         {% endfor %}
-    </div>
-</section>
+      </div>
+    </section>
+  {% endif %}
+{% endif %}
+
