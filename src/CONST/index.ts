@@ -744,7 +744,6 @@ const CONST = {
         ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
-        NEW_DOT_HOME: 'newDotHome',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
     },
     BUTTON_STATES: {
