@@ -1,3 +1,4 @@
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -787,6 +788,120 @@ describe('ModifiedExpenseMessage', () => {
                 const expectedResult = `removed the category based on past activity (previously "Travel")`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when policy rules modify an expense', () => {
+            let environmentURL: string;
+            beforeAll(async () => {
+                environmentURL = await getEnvironmentURL();
+            });
+
+            it('returns the correct text message with multiple overrides', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            category: 'Travel',
+                            merchant: "McDonald's",
+                            billable: true,
+                            reimbursable: true,
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `set the category to "Travel", merchant to "McDonald's", marked the expense as "billable", and marked the expense as "reimbursable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message with tax rate overrides', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            tax: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                field_id_TAX: {
+                                    externalID: '',
+                                    name: 'New Tax Rate',
+                                    value: '10',
+                                },
+                            },
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `set the tax rate to "New Tax Rate" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message with two overrides', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            category: 'Travel',
+                            merchant: "McDonald's",
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `set the category to "Travel" and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message with a single override', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            billable: true,
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message with boolean overrides', () => {
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            reimbursable: true,
+                            billable: true,
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                const result = getForReportAction({reportAction, policyID: report.policyID});
+
+                const expectedResult = `marked the expense as "reimbursable" and marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
                 expect(result).toEqual(expectedResult);
             });
