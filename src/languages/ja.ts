@@ -2153,7 +2153,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: '支払いや入金を行うために銀行口座を追加してください。',
         addDebitOrCreditCard: 'デビットカードまたはクレジットカードを追加',
         assignedCards: '割り当てられたカード',
-        assignedCardsDescription: 'これらは、ワークスペース管理者が会社の支出を管理するために割り当てたカードです。',
+        assignedCardsDescription: 'これらのカードからの取引は自動的に同期されます。',
         expensifyCard: 'Expensify Card',
         walletActivationPending: 'お客様の情報を確認しています。数分後にもう一度ご確認ください。',
         walletActivationFailed: '残念ながら、現在はウォレットを有効にできません。詳しいサポートについては、Concierge にチャットでお問い合わせください。',
@@ -2206,6 +2206,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: '不審な取引',
         suspiciousBannerDescription: 'お客様のカードで不審な取引を検知しました。確認するには下をタップしてください。',
         cardLocked: '弊社チームがあなたの会社のアカウントを確認している間、カードは一時的にロックされています。',
+        markTransactionsAsReimbursable: '取引を経費精算対象としてマーク',
+        markTransactionsDescription: '有効にすると、このカードからインポートされた取引は、デフォルトで「立替精算対象」としてマークされます。',
         cardDetails: {
             cardNumber: 'バーチャルカード番号',
             expiration: '有効期限',
