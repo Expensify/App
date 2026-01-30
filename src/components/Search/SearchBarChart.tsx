@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {BarChart} from '@components/Charts';
-import type {ChartDataPoint} from '@components/Charts';
+import type {ChartDataPoint, YAxisUnitPosition} from '@components/Charts';
 import type {TransactionGroupListItemType} from '@components/SelectionListWithSections/types';
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -22,8 +22,8 @@ type SearchBarChartProps = {
     /** Function to build filter query from grouped item */
     getFilterQuery: (item: GroupedItem) => string;
 
-    /** Callback when a bar is pressed - receives the filter query to apply */
-    onBarPress?: (filterQuery: string) => void;
+    /** Callback when a chart item is pressed - receives the filter query to apply */
+    onItemPress?: (filterQuery: string) => void;
 
     /** Whether data is loading */
     isLoading?: boolean;
@@ -32,10 +32,10 @@ type SearchBarChartProps = {
     yAxisUnit?: string;
 
     /** Position of currency symbol relative to value */
-    yAxisUnitPosition?: 'left' | 'right';
+    yAxisUnitPosition?: YAxisUnitPosition;
 };
 
-function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBarPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchBarChartProps) {
+function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onItemPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchBarChartProps) {
     // Transform grouped transaction data to BarChart format
     const chartData: ChartDataPoint[] = useMemo(() => {
         return data.map((item) => {
@@ -52,7 +52,7 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBar
 
     const handleBarPress = useCallback(
         (dataPoint: ChartDataPoint, index: number) => {
-            if (!onBarPress) {
+            if (!onItemPress) {
                 return;
             }
 
@@ -62,9 +62,9 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBar
             }
 
             const filterQuery = getFilterQuery(item as GroupedItem);
-            onBarPress(filterQuery);
+            onItemPress(filterQuery);
         },
-        [data, getFilterQuery, onBarPress],
+        [data, getFilterQuery, onItemPress],
     );
 
     return (

@@ -2,10 +2,10 @@ import type {SkFont} from '@shopify/react-native-skia';
 import {useMemo} from 'react';
 import {Y_AXIS_LABEL_OFFSET} from '@components/Charts/constants';
 
-/** Rotation angle for X-axis labels - 45 degrees (in degrees) */
+/** Rotation angle for X-axis labels - 45 degrees */
 const X_AXIS_LABEL_ROTATION_45 = -45;
 
-/** Rotation angle for X-axis labels - 90 degrees (in degrees) */
+/** Rotation angle for X-axis labels - 90 degrees */
 const X_AXIS_LABEL_ROTATION_90 = -90;
 
 /** Sin of 45 degrees - used to calculate effective width of rotated labels */

@@ -2,20 +2,22 @@ import colors from '@styles/theme/colors';
 
 /**
  * Expensify Chart Color Palette.
- * Sequence logic:
- * 1. Row Sequence: 400, 600, 300, 500, 700
- * 2. Hue Order: Yellow, Tangerine, Pink, Green, Ice, Blue
+ *
+ * Shades are ordered (400, 600, 300, 500, 700) so that sequential colors have
+ * maximum contrast, making adjacent chart segments easy to distinguish.
+ *
+ * Within each shade, hues cycle: Yellow, Tangerine, Pink, Green, Ice, Blue.
  */
 const CHART_PALETTE: string[] = (() => {
-    const rows = [400, 600, 300, 500, 700] as const;
+    const shades = [400, 600, 300, 500, 700] as const;
     const hues = ['yellow', 'tangerine', 'pink', 'green', 'ice', 'blue'] as const;
 
     const palette: string[] = [];
 
-    // Generate the 30 unique combinations (5 rows × 6 hues)
-    for (const row of rows) {
+    // Generate the 30 unique combinations (5 shades × 6 hues)
+    for (const shade of shades) {
         for (const hue of hues) {
-            const colorKey = `${hue}${row}`;
+            const colorKey = `${hue}${shade}`;
             if (colors[colorKey]) {
                 palette.push(colors[colorKey]);
             }

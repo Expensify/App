@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 /** The height of the chart tooltip pointer */
 const TOOLTIP_POINTER_HEIGHT = 4;
 

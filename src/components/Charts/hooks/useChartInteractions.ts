@@ -14,12 +14,16 @@ const TOOLTIP_BAR_GAP = 8;
 type HitTestArgs = {
     /** Current raw X position of the cursor */
     cursorX: number;
+
     /** Current raw Y position of the cursor */
     cursorY: number;
+
     /** Calculated X position of the matched data point */
     targetX: number;
+
     /** Calculated Y position of the matched data point */
     targetY: number;
+
     /** The bottom boundary of the chart area */
     chartBottom: number;
 };
@@ -30,11 +34,13 @@ type HitTestArgs = {
 type UseChartInteractionsProps = {
     /** Callback triggered when a valid data point is tapped/clicked */
     handlePress: (index: number) => void;
+
     /**
      * Worklet function to determine if the cursor is technically "hovering"
      * over a specific chart element (e.g., within a bar's width or a point's radius).
      */
     checkIsOver: (args: HitTestArgs) => boolean;
+
     /** Optional shared value containing bar dimensions used for hit-testing in bar charts */
     barGeometry?: SharedValue<{barWidth: number; chartBottom: number; yZero: number}>;
 };
@@ -48,33 +54,11 @@ type CartesianActionsHandle = {
 };
 
 /**
- * Hook to manage complex chart interactions including hover gestures (web),
+ * Hook to manage chart interactions including hover gestures (web),
  * tap gestures (mobile/web), hit-testing, and animated tooltip positioning.
  *
- * It synchronizes high-frequency interaction data from the UI thread to React state
+ * Synchronizes high-frequency interaction data from the UI thread to React state
  * for metadata display (like tooltips) and navigation.
- *
- * @param props - Configuration including press handlers and hit-test logic.
- * @returns An object containing refs, gestures, and state for the chart component.
- *
- * @example
- * ```tsx
- * const { actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle } = useChartInteractions({
- * handlePress: (index) => console.log("Pressed index:", index),
- * checkIsOver: ({ cursorX, targetX, barWidth }) => {
- * 'worklet';
- * return Math.abs(cursorX - targetX) < barWidth / 2;
- * },
- * barGeometry: myBarSharedValue,
- * });
- *
- * return (
- * <View>
- * <CartesianChart customGestures={customGestures} actionsRef={actionsRef} ... />
- * {isTooltipActive && <Animated.View style={tooltipStyle}><Tooltip index={activeDataIndex} /></Animated.View>}
- * </View>
- * );
- * ```
  */
 function useChartInteractions({handlePress, checkIsOver, barGeometry}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */

@@ -152,9 +152,8 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
     const title = translate(`search.chartTitles.${groupBy}`);
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
-    const handleBarPress = useCallback(
+    const handleItemPress = useCallback(
         (filterQuery: string) => {
-            // Build new query string from current query + filter, then parse it
             const currentQueryString = buildSearchQueryString(queryJSON);
             const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
 
@@ -163,18 +162,15 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
                 return;
             }
 
-            // Modify the query object directly: remove groupBy and view to show table
             newQueryJSON.groupBy = undefined;
             newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
 
-            // Build the final query string and navigate
             const newQueryString = buildSearchQueryString(newQueryJSON);
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
         },
         [queryJSON],
     );
 
-    // Get currency symbol and position from first data item
     const {yAxisUnit, yAxisUnitPosition} = useMemo((): {yAxisUnit: string; yAxisUnitPosition: 'left' | 'right'} => {
         const firstItem = data.at(0) as GroupedItem | undefined;
         const currency = firstItem?.currency ?? 'USD';
@@ -200,7 +196,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
                     titleIcon={titleIcon}
                     getLabel={getLabel}
                     getFilterQuery={getFilterQuery}
-                    onBarPress={handleBarPress}
+                    onItemPress={handleItemPress}
                     isLoading={isLoading}
                     yAxisUnit={yAxisUnit}
                     yAxisUnitPosition={yAxisUnitPosition}
