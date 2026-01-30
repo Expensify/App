@@ -38,7 +38,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
@@ -363,7 +363,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
-    const {closeSidePanel} = useSidePanel();
+    const {closeSidePanel} = useSidePanelActions();
 
     useEffect(() => {
         if (

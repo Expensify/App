@@ -2,7 +2,8 @@ import {useNavigationState} from '@react-navigation/native';
 import {useEffect} from 'react';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelActions from '@hooks/useSidePanelActions';
+import useSidePanelState from '@hooks/useSidePanelState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
@@ -17,7 +18,8 @@ function toggleSidePanelWithHistory(isVisible: boolean) {
 }
 
 export default function useSyncSidePanelWithHistory() {
-    const {closeSidePanel, openSidePanel, shouldHideSidePanel} = useSidePanel();
+    const {shouldHideSidePanel} = useSidePanelState();
+    const {closeSidePanel, openSidePanel} = useSidePanelActions();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
     const lastHistoryEntry = useNavigationState((state) => state?.history?.at(-1));
     const previousLastHistoryEntry = usePrevious(lastHistoryEntry);
