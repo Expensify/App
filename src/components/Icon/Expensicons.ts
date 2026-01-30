@@ -3,6 +3,7 @@ import Apple from '@assets/images/apple.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import Bank from '@assets/images/bank.svg';
+import Basket from '@assets/images/basket.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
@@ -96,6 +97,7 @@ import Link from '@assets/images/link.svg';
 import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
+import Meter from '@assets/images/meter.svg';
 import Minus from '@assets/images/minus.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
@@ -167,8 +169,9 @@ export {
     Apple,
     AttachmentNotFound,
     Bank,
-    Bill,
+    Basket,
     Bell,
+    Bill,
     Bolt,
     Bug,
     Building,
@@ -232,6 +235,7 @@ export {
     LinkCopy,
     Mail,
     MakeAdmin,
+    Meter,
     MoneyBag,
     MoneyCircle,
     MoneySearch,

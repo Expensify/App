@@ -35,8 +35,8 @@ function IOURequestStepOdometerImage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isDraggingOver} = useContext(DragAndDropContext);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'ReceiptScan']);
-    const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'Meter']);
+    const isTransactionDraft = shouldUseTransactionDraft(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -73,9 +73,14 @@ function IOURequestStepOdometerImage({
     const handleDrop = useCallback(
         (event: DragEvent) => {
             const files = Array.from(event.dataTransfer?.files ?? []);
-            if (files.length > 0) {
-                validateFiles(files as FileObject[]);
+            if (files.length === 0) {
+                return;
             }
+            for (const file of files) {
+                // eslint-disable-next-line no-param-reassign
+                file.uri = URL.createObjectURL(file);
+            }
+            validateFiles(files as FileObject[], Array.from(event.dataTransfer?.items ?? []));
         },
         [validateFiles],
     );
@@ -122,7 +127,7 @@ function IOURequestStepOdometerImage({
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>{!(isDraggingOver ?? isDraggingOverWrapper) && desktopUploadView()}</View>
                     <DragAndDropConsumer onDrop={handleDrop}>
                         <DropZoneUI
-                            icon={lazyIcons.ReceiptScan}
+                            icon={lazyIcons.Meter}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={title}
                             dropTextStyles={styles.receiptDropText}

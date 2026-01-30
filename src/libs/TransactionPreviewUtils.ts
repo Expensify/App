@@ -26,12 +26,15 @@ import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
     getAmount,
+    getExpenseTypeTranslationKey,
     getFormattedCreated,
+    getTransactionType,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
+    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -39,11 +42,10 @@ import {
     isMerchantMissing,
     isOnHold,
     isPending,
-    isPerDiemRequest,
     isScanning,
-    isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
+import {filterReceiptViolations} from './Violations/ViolationsUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -139,7 +141,10 @@ function getViolationTranslatePath(
     isTransactionOnHold: boolean,
     shouldShowOnlyViolations: boolean,
 ): TranslationPathOrText {
-    const filteredViolations = violations.filter((violation) => {
+    // Filter out receiptRequired when itemizedReceiptRequired exists (itemized supersedes regular receipt)
+    const receiptFilteredViolations = filterReceiptViolations(violations);
+
+    const filteredViolations = receiptFilteredViolations.filter((violation) => {
         if (shouldShowOnlyViolations) {
             return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
         }
@@ -213,7 +218,6 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
-    const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
@@ -256,8 +260,11 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
+        const amountMissing = isAmountMissing(transaction);
         const merchantMissing = isMerchantMissing(transaction);
-        if (merchantMissing) {
+        if (amountMissing && merchantMissing) {
+            RBRMessage = {translationPath: 'violations.reviewRequired'};
+        } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
@@ -268,26 +275,20 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (RBRMessage === undefined && hasDynamicExternalWorkflow(policy)) {
-        const dewFailedAction = getMostRecentActiveDEWSubmitFailedAction(reportActions);
-        if (dewFailedAction && isDynamicExternalWorkflowSubmitFailedAction(dewFailedAction)) {
-            const originalMessage = getOriginalMessage(dewFailedAction);
+        const dewSubmitFailedAction = getMostRecentActiveDEWSubmitFailedAction(reportActions);
+        if (dewSubmitFailedAction && isDynamicExternalWorkflowSubmitFailedAction(dewSubmitFailedAction)) {
+            const originalMessage = getOriginalMessage(dewSubmitFailedAction);
             const dewErrorMessage = originalMessage?.message;
             RBRMessage = dewErrorMessage ? {text: dewErrorMessage} : {translationPath: 'iou.error.other'};
         }
     }
 
-    let previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
+    let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
 
     if (isDistanceRequest(transaction)) {
-        previewHeaderText = [{translationPath: 'common.distance'}];
-
         if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
             RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
         }
-    } else if (isPerDiemRequest(transaction)) {
-        previewHeaderText = [{translationPath: 'common.perDiem'}];
-    } else if (isTimeRequest(transaction)) {
-        previewHeaderText = [{translationPath: 'iou.time'}];
     } else if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
