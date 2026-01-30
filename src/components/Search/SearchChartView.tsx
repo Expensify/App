@@ -1,6 +1,6 @@
-import React, {useCallback, useMemo} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {View} from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {
     TransactionCardGroupListItemType,
@@ -15,19 +15,20 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrencyDisplayInfoForCharts} from '@libs/CurrencyUtils';
+import { getCurrencyDisplayInfoForCharts } from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import { buildSearchQueryJSON, buildSearchQueryString } from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SearchBarChart from './SearchBarChart';
-import type {ChartView, SearchGroupBy, SearchQueryJSON} from './types';
+import type { ChartView, SearchGroupBy, SearchQueryJSON } from './types';
+import SearchPieChart from './SearchPieChart';
 
 type GroupedItem =
     | TransactionMemberGroupListItemType
@@ -88,7 +89,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
         getFilterQuery: (item: GroupedItem) => {
             const monthItem = item as TransactionMonthGroupListItemType;
-            const {start, end} = DateUtils.getMonthDateRange(monthItem.year, monthItem.month);
+            const { start, end } = DateUtils.getMonthDateRange(monthItem.year, monthItem.month);
             return `date>=${start} date<=${end}`;
         },
     },
@@ -97,7 +98,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item as TransactionWeekGroupListItemType).formattedWeek ?? '',
         getFilterQuery: (item: GroupedItem) => {
             const weekItem = item as TransactionWeekGroupListItemType;
-            const {start, end} = DateUtils.getWeekDateRange(weekItem.week);
+            const { start, end } = DateUtils.getWeekDateRange(weekItem.week);
             return `date>=${start} date<=${end}`;
         },
     },
@@ -106,7 +107,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item as TransactionYearGroupListItemType).formattedYear ?? '',
         getFilterQuery: (item: GroupedItem) => {
             const yearItem = item as TransactionYearGroupListItemType;
-            const {start, end} = DateUtils.getYearDateRange(yearItem.year);
+            const { start, end } = DateUtils.getYearDateRange(yearItem.year);
             return `date>=${start} date<=${end}`;
         },
     },
@@ -115,7 +116,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         getLabel: (item: GroupedItem) => (item as TransactionQuarterGroupListItemType).formattedQuarter ?? '',
         getFilterQuery: (item: GroupedItem) => {
             const quarterItem = item as TransactionQuarterGroupListItemType;
-            const {start, end} = DateUtils.getQuarterDateRange(quarterItem.year, quarterItem.quarter);
+            const { start, end } = DateUtils.getQuarterDateRange(quarterItem.year, quarterItem.quarter);
             return `date>=${start} date<=${end}`;
         },
     },
@@ -126,7 +127,7 @@ type SearchChartViewProps = {
     queryJSON: SearchQueryJSON;
 
     /** The view type (bar, etc.) */
-    view: Exclude<ChartView, 'line' | 'pie'>;
+    view: Exclude<ChartView, 'line'>;
 
     /** The groupBy parameter */
     groupBy: SearchGroupBy;
@@ -144,20 +145,21 @@ type SearchChartViewProps = {
 /**
  * Map of chart view types to their corresponding chart components.
  */
-const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'line' | 'pie'>, typeof SearchBarChart> = {
+const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'line'>, typeof SearchBarChart | typeof SearchPieChart> = {
     [CONST.SEARCH.VIEW.BAR]: SearchBarChart,
+    [CONST.SEARCH.VIEW.PIE]: SearchPieChart,
 };
 
 /**
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: SearchChartViewProps) {
+function SearchChartView({ queryJSON, view, groupBy, data, isLoading, onScroll }: SearchChartViewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const { translate } = useLocalize();
+    const { shouldUseNarrowLayout } = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar'] as const);
-    const {titleIconName, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const { titleIconName, getLabel, getFilterQuery } = CHART_GROUP_BY_CONFIG[groupBy];
     const titleIcon = icons[titleIconName];
     const title = translate(`search.chartTitles.${groupBy}`);
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
@@ -179,16 +181,16 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
 
             // Build the final query string and navigate
             const newQueryString = buildSearchQueryString(newQueryJSON);
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({ query: newQueryString }));
         },
         [queryJSON],
     );
 
     // Get currency symbol and position from first data item
-    const {yAxisUnit, yAxisUnitPosition} = useMemo((): {yAxisUnit: string; yAxisUnitPosition: 'left' | 'right'} => {
+    const { yAxisUnit, yAxisUnitPosition } = useMemo((): { yAxisUnit: string; yAxisUnitPosition: 'left' | 'right' } => {
         const firstItem = data.at(0) as GroupedItem | undefined;
         const currency = firstItem?.currency ?? 'USD';
-        const {symbol, position} = getCurrencyDisplayInfoForCharts(currency);
+        const { symbol, position } = getCurrencyDisplayInfoForCharts(currency);
 
         return {
             yAxisUnit: symbol,

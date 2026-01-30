@@ -40,4 +40,38 @@ type BarChartProps = {
     useSingleColor?: boolean;
 };
 
-export type {BarChartDataPoint, BarChartProps};
+type PieChartDataPoint = {
+    /** Label displayed for the slice (e.g., "Amazon", "Travel") */
+    label: string;
+
+    /** Numeric value for the slice (e.g., display amount) */
+    value: number;
+
+    /** Currency code for formatting */
+    currency: string;
+
+    /** Query string for navigation when slice is clicked (optional) */
+    onClickQuery?: string;
+};
+
+type PieChartProps = {
+    /** Data points to display */
+    data: PieChartDataPoint[];
+
+    /** Chart title (e.g., "Top Categories", "Spend by Merchant") */
+    title?: string;
+
+    /** Icon displayed next to the title */
+    titleIcon?: IconAsset;
+
+    /** Whether data is loading */
+    isLoading?: boolean;
+
+    /** Callback when a slice is pressed */
+    onSlicePress?: (dataPoint: PieChartDataPoint, index: number) => void;
+
+    /** Symbol/unit for value labels in tooltip (e.g., '$', '€'). */
+    valueUnit?: string;
+};
+
+export type { BarChartDataPoint, BarChartProps, PieChartDataPoint, PieChartProps };

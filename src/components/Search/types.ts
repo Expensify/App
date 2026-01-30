@@ -1,10 +1,10 @@
-import type {ValueOf} from 'type-fest';
-import type {PaymentMethod} from '@components/KYCWall/types';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type { ValueOf } from 'type-fest';
+import type { PaymentMethod } from '@components/KYCWall/types';
+import type { ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType } from '@components/SelectionListWithSections/types';
+import type { SearchKey } from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
-import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type { Report, ReportAction, SearchResults, Transaction } from '@src/types/onyx';
+import type { SearchDataTypes } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
@@ -115,8 +115,8 @@ type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | In
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
-// LineChart and PieChart are not implemented so we exclude them here to prevent TypeScript errors in `SearchChartView.tsx`.
-type ChartView = Exclude<SearchView, 'table' | 'line' | 'pie'>;
+// LineChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
+type ChartView = Exclude<SearchView, 'table' | 'line'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
