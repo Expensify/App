@@ -303,7 +303,12 @@ function navigate(route: Route, options?: LinkToOptions) {
             });
         }
     }
-    linkTo(navigationRef.current, route, options);
+
+    let updatedRoute;
+    if (route.startsWith(CONST.SAML_REDIRECT_URL)) {
+        updatedRoute = ROUTES.HOME;
+    }
+    linkTo(navigationRef.current, updatedRoute ?? route, options);
     closeSidePanelOnNarrowScreen();
 }
 /**
