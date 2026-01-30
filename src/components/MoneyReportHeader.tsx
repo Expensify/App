@@ -7,6 +7,7 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useExportProgressModal from '@hooks/useExportProgressModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -39,7 +40,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
-import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
+import {getExportTemplates, search} from '@libs/actions/Search';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -418,14 +419,7 @@ function MoneyReportHeader({
 
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
-    const showExportProgressModal = useCallback(() => {
-        return showConfirmModal({
-            title: translate('export.exportInProgress'),
-            prompt: translate('export.conciergeWillSend'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [showConfirmModal, translate]);
+    const {queueExportSearchWithTemplate} = useExportProgressModal();
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
@@ -433,12 +427,6 @@ function MoneyReportHeader({
                 return;
             }
 
-            showExportProgressModal().then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                clearSelectedTransactions(undefined, true);
-            });
             queueExportSearchWithTemplate({
                 templateName,
                 templateType,
@@ -448,7 +436,7 @@ function MoneyReportHeader({
                 policyID,
             });
         },
-        [moneyRequestReport, showExportProgressModal, clearSelectedTransactions],
+        [moneyRequestReport, queueExportSearchWithTemplate],
     );
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);

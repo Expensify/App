@@ -8092,6 +8092,7 @@ const translations = {
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
+        openConcierge: 'Open Concierge',
     },
     domain: {
         notVerified: 'Not verified',
