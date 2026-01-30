@@ -153,7 +153,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 }
 
                 // Call backend to register the public key
-                if (!result.publicKey || !result.authenticationMethod) {
+                if (!result.publicKey || !result.authenticationMethod || !registrationChallenge.challenge) {
                     setError({
                         reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
                     });
@@ -222,7 +222,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         return;
                     }
 
-                    // Call backend with signed challenge
                     if (!result.signedChallenge || !result.authenticationMethod) {
                         setError({
                             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
@@ -230,6 +229,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         return;
                     }
 
+                    // Call backend with signed challenge
                     const scenarioResult = await processScenario(scenario, {
                         signedChallenge: result.signedChallenge,
                         authenticationMethod: result.authenticationMethod,
