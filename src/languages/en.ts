@@ -749,6 +749,8 @@ const translations = {
         looksLikeYouRanOutOfTime: 'Looks like you ran out of time! Please try again at the merchant.',
         youRanOutOfTime: 'You ran out of time',
         letsVerifyItsYou: 'Let’s verify it’s you',
+        nowLetsAuthenticateYou: "Now, let's authenticate you...",
+        letsAuthenticateYou: "Let's authenticate you...",
         verifyYourself: {
             biometrics: 'Verify yourself with your face or fingerprint',
         },

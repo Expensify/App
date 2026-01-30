@@ -5,7 +5,7 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
-import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationPromptType} from './components/MultifactorAuthentication/config/types';
+import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationPromptType, MultifactorAuthenticationScenario} from './components/MultifactorAuthentication/config/types';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
@@ -3811,7 +3811,8 @@ const ROUTES = {
 
     MULTIFACTOR_AUTHENTICATION_PROMPT: {
         route: `multifactor-authentication/prompt/:promptType`,
-        getRoute: (promptType: MultifactorAuthenticationPromptType) => `multifactor-authentication/prompt/${promptType}` as const,
+        getRoute: (promptType: MultifactorAuthenticationPromptType, scenario?: MultifactorAuthenticationScenario) =>
+            `multifactor-authentication/prompt/${promptType}${scenario ? `?scenario=${scenario}` : ''}` as const,
     },
 
     MULTIFACTOR_AUTHENTICATION_NOT_FOUND: 'multifactor-authentication/not-found',

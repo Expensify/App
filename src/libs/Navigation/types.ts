@@ -12,7 +12,7 @@ import type {
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
-import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
+import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationPromptType, MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import type {SearchQueryString} from '@components/Search/types';
 import type {ReplacementReason} from '@libs/actions/Card';
 import type {IOURequestType} from '@libs/actions/IOU';
@@ -3076,6 +3076,7 @@ type MultifactorAuthenticationParamList = {
     };
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
         promptType: MultifactorAuthenticationPromptType;
+        scenario?: MultifactorAuthenticationScenario;
     };
 };
 

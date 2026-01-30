@@ -762,6 +762,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: 'Wygląda na to, że zabrakło ci czasu! Spróbuj ponownie u sprzedawcy.',
         youRanOutOfTime: 'Czas minął',
         letsVerifyItsYou: 'Sprawdźmy, czy to ty',
+        nowLetsAuthenticateYou: 'Teraz zweryfikujmy Cię...',
+        letsAuthenticateYou: 'Zweryfikujmy Cię...',
         verifyYourself: {
             biometrics: 'Zweryfikuj się za pomocą twarzy lub odcisku palca',
         },

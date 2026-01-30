@@ -9,7 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 type MultifactorAuthenticationPromptContentProps = {
     animation: DotLottieAnimation;
     title: TranslationPaths;
-    subtitle: TranslationPaths;
+    subtitle?: TranslationPaths;
 };
 
 function MultifactorAuthenticationPromptContent({title, subtitle, animation}: MultifactorAuthenticationPromptContentProps) {
@@ -24,7 +24,7 @@ function MultifactorAuthenticationPromptContent({title, subtitle, animation}: Mu
                 animationWebStyle={styles.mfaBlockingViewAnimation}
                 title={translate(title)}
                 titleStyles={styles.mb2}
-                subtitle={translate(subtitle)}
+                subtitle={subtitle ? translate(subtitle) : undefined}
                 subtitleStyle={styles.textSupporting}
                 containerStyle={styles.ph5}
                 testID="MultifactorAuthenticationPromptContent"
