@@ -45,6 +45,7 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
+    canSubmitTimeExpenseFromWorkspace,
     getLengthOfTag,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
@@ -365,6 +366,10 @@ function MoneyRequestView({
         canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy) &&
         isPolicyAccessible(policy, currentUserEmailParam);
 
+    const shouldRestrictEditingReportDueToFeatureDisabled =
+        (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy) && !(isExpenseUnreported && !!perDiemOriginalPolicy)) ||
+        (isTimeRequest && !canSubmitTimeExpenseFromWorkspace(policy) && isEmptyObject(policiesWithTime));
+
     const canEditReport =
         isEditable &&
         canEditFieldOfMoneyRequest(
@@ -377,8 +382,7 @@ function MoneyRequestView({
             moneyRequestReport,
             policy,
         ) &&
-        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy)) &&
-        (!isTimeRequest || !isEmptyObject(policiesWithTime));
+        !shouldRestrictEditingReportDueToFeatureDisabled;
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
