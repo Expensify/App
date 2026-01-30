@@ -275,6 +275,11 @@ type ReportError = {
     type?: string;
 };
 
+type PregeneratedResponseParams = {
+    optimisticConciergeReportActionID: string;
+    pregeneratedResponse: string;
+};
+
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 let conciergeReportIDOnyxConnect: string | undefined;
 let deprecatedCurrentUserAccountID = -1;
@@ -577,8 +582,18 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
  * @param report - The report where the comment should be added
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  * @param isInSidePanel - Whether the comment is being added from the side panel
+ * @param pregeneratedResponseParams - Optional params for pre-generated response (API only, no optimistic action - used when response display is delayed)
  */
-function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject, isInSidePanel = false) {
+function addActions(
+    report: OnyxEntry<Report>,
+    notifyReportID: string,
+    ancestors: Ancestor[],
+    timezoneParam: Timezone,
+    text = '',
+    file?: FileObject,
+    isInSidePanel = false,
+    pregeneratedResponseParams?: PregeneratedResponseParams,
+) {
     if (!report?.reportID) {
         return;
     }
@@ -673,6 +688,12 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         }
     }
 
+    // Add pregenerated params
+    if (pregeneratedResponseParams) {
+        parameters.optimisticConciergeReportActionID = pregeneratedResponseParams.optimisticConciergeReportActionID;
+        parameters.pregeneratedResponse = pregeneratedResponseParams.pregeneratedResponse;
+    }
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -716,7 +737,7 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         };
     }
 
-    const failureReportActions: Record<string, OptimisticAddCommentReportAction | ReportAction> = {};
+    const failureReportActions: Record<string, OptimisticAddCommentReportAction | ReportAction | null> = {};
 
     for (const [actionKey, action] of Object.entries(optimisticReportActions)) {
         failureReportActions[actionKey] = {
@@ -728,6 +749,11 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
     // In case of error bring back the follow up buttons to the cast comment
     if (lastActorAccountID === CONST.ACCOUNT_ID.CONCIERGE && lastActionReportActionID) {
         failureReportActions[lastActionReportActionID] = lastVisibleAction;
+    }
+
+    // In case of error, remove the optimistic Concierge response
+    if (pregeneratedResponseParams) {
+        failureReportActions[pregeneratedResponseParams.optimisticConciergeReportActionID] = null;
     }
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
@@ -805,11 +831,20 @@ function addAttachmentWithComment(
 }
 
 /** Add a single comment to a report */
-function addComment(report: OnyxEntry<Report>, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean, isInSidePanel?: boolean) {
+function addComment(
+    report: OnyxEntry<Report>,
+    notifyReportID: string,
+    ancestors: Ancestor[],
+    text: string,
+    timezoneParam: Timezone,
+    shouldPlaySound?: boolean,
+    isInSidePanel?: boolean,
+    pregeneratedResponseParams?: PregeneratedResponseParams,
+) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(report, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel);
+    addActions(report, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel, pregeneratedResponseParams);
 }
 
 function reportActionsExist(reportID: string): boolean {
@@ -1517,7 +1552,7 @@ function createTransactionThreadReport(
         }
     }
 
-    if (!reportToUse) {
+    if (!reportToUse?.reportID) {
         Log.warn('Cannot build transaction thread report without a valid report');
         return;
     }
@@ -2835,15 +2870,16 @@ function deleteReportField(reportID: string, reportField: PolicyReportField) {
     API.write(WRITE_COMMANDS.DELETE_REPORT_FIELD, parameters, {optimisticData, failureData, successData});
 }
 
-function updateDescription(reportID: string, currentDescription: string, newMarkdownValue: string, currentUserAccountID: number) {
+function updateDescription(report: Report, newMarkdownValue: string, currentUserAccountID: number) {
     // No change needed
+    const currentDescription = report.description ?? '';
     if (Parser.htmlToMarkdown(currentDescription) === newMarkdownValue) {
         return;
     }
 
+    const reportID = report.reportID;
     const parsedDescription = getParsedComment(newMarkdownValue, {reportID});
     const optimisticDescriptionUpdatedReportAction = buildOptimisticRoomDescriptionUpdatedReportAction(parsedDescription);
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -4151,12 +4187,9 @@ function inviteToGroupChat(report: Report, inviteeEmailsToAccountIDs: InvitedEma
 /** Removes people from a room
  *  Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+function removeFromRoom(report: Report, targetAccountIDs: number[]) {
+    const reportID = report.reportID;
     const reportMetadata = getReportMetadata(reportID);
-    if (!report) {
-        return;
-    }
 
     const removeParticipantsData: Record<number, null> = {};
     for (const accountID of targetAccountIDs) {
@@ -4221,8 +4254,8 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     API.write(WRITE_COMMANDS.REMOVE_FROM_ROOM, parameters, {optimisticData, failureData, successData});
 }
 
-function removeFromGroupChat(reportID: string, accountIDList: number[]) {
-    removeFromRoom(reportID, accountIDList);
+function removeFromGroupChat(report: Report, accountIDList: number[]) {
+    removeFromRoom(report, accountIDList);
 }
 
 function optimisticReportLastData(
@@ -5070,6 +5103,7 @@ function deleteAppReport(
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.SELF_DM_REPORT_ID
         >
     > = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -5100,6 +5134,11 @@ function deleteAppReport(
                         createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SELF_DM_REPORT_ID,
+                value: selfDMReportID,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,

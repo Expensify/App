@@ -192,6 +192,9 @@ const SCREENS = {
             UNSHARE_BANK_ACCOUNT: 'Settings_Wallet_Unshare_Bank_Account',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
             SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
+            PERSONAL_CARD_DETAILS: 'Settings_Wallet_Personal_Card_Details',
+            PERSONAL_CARD_EDIT_NAME: 'Settings_Wallet_Personal_Card_Edit_Name',
+            PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: 'Settings_Wallet_Personal_Card_Edit_Transaction_Start_Date',
         },
 
         EXIT_SURVEY: {
@@ -769,6 +772,7 @@ const SCREENS = {
         RULES_MERCHANT_DESCRIPTION: 'Rules_Merchant_Description',
         RULES_MERCHANT_REIMBURSABLE: 'Rules_Merchant_Reimbursable',
         RULES_MERCHANT_BILLABLE: 'Rules_Merchant_Billable',
+        RULES_MERCHANT_PREVIEW_MATCHES: 'Rules_Merchant_Preview_Matches',
         RULES_MERCHANT_EDIT: 'Rules_Merchant_Edit',
         PER_DIEM: 'Per_Diem',
         PER_DIEM_IMPORT: 'Per_Diem_Import',
@@ -779,6 +783,8 @@ const SCREENS = {
         PER_DIEM_EDIT_SUBRATE: 'Per_Diem_Edit_Subrate',
         PER_DIEM_EDIT_AMOUNT: 'Per_Diem_Edit_Amount',
         PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency',
+        TIME_TRACKING: 'Time_Tracking',
+        TIME_TRACKING_DEFAULT_RATE: 'Time_Tracking_Default_Rate',
     },
 
     EDIT_REQUEST: {
