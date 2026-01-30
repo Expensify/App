@@ -1,17 +1,18 @@
-import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
+import { WithSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import type {BarChartProps} from '@components/Charts/types';
+import type { BarChartProps } from '@components/Charts/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+const getBarChartContent = () => import('./BarChartContent');
 function BarChart(props: BarChartProps) {
     const styles = useThemeStyles();
 
     return (
         <WithSkiaWeb
-            opts={{locateFile: (file: string) => `/${file}`}}
-            getComponent={() => import('./BarChartContent')}
+            opts={{ locateFile: (file: string) => `/${file}` }}
+            getComponent={getBarChartContent}
             componentProps={props}
             fallback={
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.highlightBG, styles.br4, styles.p5]}>
