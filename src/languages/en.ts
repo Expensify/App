@@ -2173,6 +2173,7 @@ const translations = {
     },
     personalCard: {
         brokenConnection: 'Your card connection is broken',
+        fixCard: 'Fix card',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`,
     },

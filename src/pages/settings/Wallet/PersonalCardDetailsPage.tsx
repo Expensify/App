@@ -1,9 +1,12 @@
 import {format} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
@@ -13,14 +16,15 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, isPersonalCard} from '@libs/CardUtils';
+import {getCardFeedIcon, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
-import {syncCard, unassignCard} from '@userActions/Card';
+import {clearCardErrorField, syncCard, unassignCard} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,6 +52,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
+    const isCardBroken = card ? isCardConnectionBroken(card) : false;
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = getDisplayNameOrDefault(cardholder);
     const isUserPersonalCard = !!(card && isPersonalCard(card));
@@ -108,6 +113,34 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                         width={variables.cardPreviewWidth}
                     />
                 </View>
+                {isCardBroken && (
+                    <OfflineWithFeedback
+                        pendingAction={card?.pendingFields?.lastScrape}
+                        errorRowStyles={[styles.ph5, styles.mb3]}
+                        errors={getLatestErrorField(card ?? {}, 'lastScrape')}
+                        onClose={() => {
+                            if (!card) {
+                                return;
+                            }
+                            clearCardErrorField(card.cardID, 'lastScrape');
+                        }}
+                    >
+                        <View style={[styles.ph5, styles.mb3]}>
+                            <FormHelpMessage
+                                isError
+                                shouldShowRedDotIndicator
+                                message={translate('personalCard.brokenConnection')}
+                                style={styles.mb3}
+                            />
+                            <Button
+                                text={translate('personalCard.fixCard')}
+                                //  onPress={}
+                                isDisabled={isOffline || card?.isLoadingLastUpdated}
+                                style={styles.mb0}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                )}
                 {!!card && (
                     <PersonalCardDetailsHeaderMenu
                         card={card}

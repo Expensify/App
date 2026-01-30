@@ -3686,14 +3686,13 @@ function getCardIssuedMessage({
     }
 }
 
-function getCardConnectionBrokenMessage(reportAction: OnyxEntry<ReportAction>, card: Card | undefined, translate: LocaleContextProps['translate']) {
+function getCardConnectionBrokenMessage(reportAction: OnyxEntry<ReportAction>, card: Card | undefined, translate: LocaleContextProps['translate'], connectionLink: string) {
     if (!isCardBrokenConnectionAction(reportAction) || !isPersonalCardBrokenConnection(card)) {
         return '';
     }
     const cardName = card?.cardName;
-    const isPlaid = !!getPlaidInstitutionId(card?.bank);
-    const personalCardName = isPlaid && cardName ? cardName : getBankName(card?.bank as CompanyCardFeed);
-    return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink: ''});
+    const personalCardName = cardName ?? getBankName(card?.bank as CompanyCardFeed);
+    return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
 }
 
 function getRoomChangeLogMessage(translate: LocalizedTranslate, reportAction: ReportAction) {

@@ -119,8 +119,7 @@ function TransactionPreviewContent({
     const isIOUActionType = isMoneyRequestAction(action);
     const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
-    // TODO add correct link to card page in wallet settings
-    const connectionLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
+    const connectionLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(transaction?.cardID ?? ''))}`;
     const violationMessage = firstViolation
         ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL, connectionLink, cardList)
         : undefined;
