@@ -170,7 +170,6 @@ const FILTER_KEYS = {
 
     COLUMNS: 'columns',
     LIMIT: 'limit',
-    VIEW: 'view',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -540,7 +539,6 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.VIEW]: SearchView;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
         [FILTER_KEYS.COLUMNS]: SearchCustomColumnIds[];
-        [FILTER_KEYS.VIEW]: ValueOf<typeof CONST.SEARCH.VIEW>;
 
         [FILTER_KEYS.STATUS]: string[] | string;
 
@@ -679,8 +677,6 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.ATTENDEE]: string[];
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
-        [FILTER_KEYS.IS]: string[];
-        [FILTER_KEYS.HAS]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
         [FILTER_KEYS.LIMIT]: string;
     } & Record<ReportFieldTextKey, string> &
