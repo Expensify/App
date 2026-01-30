@@ -83,7 +83,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox, reportItem.transactions.length]);
 
-    const isReportPendingDelete = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || item.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isReportPendingDelete = reportItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportItem.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
     // like isAttendeeTrackingEnabled is not missing
