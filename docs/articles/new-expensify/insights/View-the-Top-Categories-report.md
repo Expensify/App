@@ -31,9 +31,6 @@ Click **Reports** in the left navigation, then click **Top categories** under th
 **Mobile:**  
 Tap **Reports** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top categories**.
 
-**ADD A SCREENSHOT HERE.**  
-Suggestion: Reports view showing “Top categories” selected in the navigation menu.
-
 ---
 
 ## What the Top Categories report shows
