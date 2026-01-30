@@ -567,6 +567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         address: '住所',
         hourAbbreviation: '時間',
         minuteAbbreviation: 'm',
+        secondAbbreviation: '秒',
         skip: 'スキップ',
         chatWithAccountManager: (accountManagerDisplayName: string) => `何か特定のご要望がありますか？アカウントマネージャーの${accountManagerDisplayName}とチャットしましょう。`,
         chatNow: '今すぐチャット',
@@ -8191,6 +8192,12 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
                 allCaughtUp: 'すべて確認済みです',
                 upcomingTodos: '今後のTo-doがここに表示されます。',
             },
+        },
+        timeSensitiveSection: {
+            title: '至急',
+            cta: '申請',
+            offer50off: {title: '初年度が50％オフ！', subtitle: ({formattedTime}: {formattedTime: string}) => `残り${formattedTime}`},
+            offer25off: {title: '初年度が25％オフ！', subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日'}`},
         },
     },
 };
