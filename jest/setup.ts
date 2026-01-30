@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
+import type {ReactNode} from 'react';
 import {useMemo} from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
@@ -9,6 +10,7 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
+import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
@@ -33,6 +35,12 @@ jest.mock('react-native-onyx/dist/storage', () => mockStorage);
 
 // Mock NativeEventEmitter as it is needed to provide mocks of libraries which include it
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
+
+// Mock expo-task-manager
+jest.mock('expo-task-manager', () => ({
+    defineTask: jest.fn(),
+    // Add other methods here if you use them
+}));
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
@@ -91,6 +99,9 @@ jest.mock('react-native-sound', () => {
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
+
+// Jest has no access to the native secure store module, so we mock it with the web implementation.
+jest.mock('@src/libs/MultifactorAuthentication/Biometrics/SecureStore', () => MockedSecureStore);
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
@@ -275,6 +286,19 @@ jest.mock('@src/hooks/useWorkletStateMachine/runOnUISync', () => ({
 
 jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
+}));
+
+jest.mock('@shopify/react-native-skia', () => ({
+    useFont: jest.fn(() => null),
+    matchFont: jest.fn(() => null),
+    listFontFamilies: jest.fn(() => []),
+}));
+
+jest.mock('victory-native', () => ({
+    Bar: jest.fn(() => null),
+    CartesianChart: jest.fn(
+        ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
+    ),
 }));
 
 // Provide a default global fetch mock for tests that do not explicitly set it up

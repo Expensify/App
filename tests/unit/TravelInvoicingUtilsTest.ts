@@ -6,7 +6,6 @@ import {
     getTravelSettlementFrequency,
     getTravelSpend,
     hasTravelInvoicingSettlementAccount,
-    PROGRAM_TRAVEL_US,
 } from '@src/libs/TravelInvoicingUtils';
 import type {BankAccountList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
@@ -14,7 +13,7 @@ import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 describe('TravelInvoicingUtils', () => {
     describe('PROGRAM_TRAVEL_US constant', () => {
         it('Should be defined as TRAVEL_US', () => {
-            expect(PROGRAM_TRAVEL_US).toBe('TRAVEL_US');
+            expect(CONST.TRAVEL.PROGRAM_TRAVEL_US).toBe('TRAVEL_US');
         });
     });
 

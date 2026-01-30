@@ -15,8 +15,7 @@ function CentralInvoicingSubtitleWrapper({htmlComponent}: CentralInvoicingSubtit
     return (
         <View style={[styles.mt2, styles.mr5]}>
             <Text style={[styles.mutedNormalTextLabel, styles.textLabelSupportingEmptyValue, styles.lh20]}>
-                {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subtitle')}
-                {htmlComponent}
+                {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subtitle')} {htmlComponent}
             </Text>
         </View>
     );

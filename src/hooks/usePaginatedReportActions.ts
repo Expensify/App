@@ -27,9 +27,9 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
 
     const getSortedAllReportActionsSelector = useCallback(
         (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
-            return getSortedReportActionsForDisplay(allReportActions, hasWriteAccess, true);
+            return getSortedReportActionsForDisplay(allReportActions, hasWriteAccess, true, undefined, nonEmptyStringReportID);
         },
-        [hasWriteAccess],
+        [hasWriteAccess, nonEmptyStringReportID],
     );
 
     const [sortedAllReportActions] = useOnyx(
