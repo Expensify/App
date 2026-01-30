@@ -1,3 +1,4 @@
+import type { Color } from '@shopify/react-native-skia';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type BarChartDataPoint = {
@@ -74,4 +75,15 @@ type PieChartProps = {
     valueUnit?: string;
 };
 
-export type {BarChartDataPoint, BarChartProps, PieChartDataPoint, PieChartProps};
+type ProcessedSlice = {
+    label: string;
+    value: number;
+    color: Color;
+    percentage: number;
+    startAngle: number;
+    endAngle: number;
+    originalIndex: number;
+    isOther: boolean;
+};
+
+export type { BarChartDataPoint, BarChartProps, PieChartDataPoint, PieChartProps, ProcessedSlice };
