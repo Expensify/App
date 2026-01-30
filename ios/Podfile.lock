@@ -2800,6 +2800,36 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - react-native-skia (2.4.14):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - react-native-view-shot (4.0.0):
     - boost
     - DoubleConversion
@@ -4195,6 +4225,7 @@ DEPENDENCIES:
   - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
   - react-native-release-profiler (from `../node_modules/react-native-release-profiler`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - "react-native-skia (from `../node_modules/@shopify/react-native-skia`)"
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - "react-native-wallet (from `../node_modules/@expensify/react-native-wallet`)"
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -4477,6 +4508,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-release-profiler"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-skia:
+    :path: "../node_modules/@shopify/react-native-skia"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
   react-native-wallet:
@@ -4727,6 +4760,7 @@ SPEC CHECKSUMS:
   react-native-plaid-link-sdk: 425c0a3a923310fcd8489142209ff1508372a7bf
   react-native-release-profiler: 6c3ed1765fee48e869170e4af339c838a747eaee
   react-native-safe-area-context: 0a3b034bb63a5b684dd2f5fffd3c90ef6ed41ee8
+  react-native-skia: 51f30133876025c83e933f4f7253479e6de5d937
   react-native-view-shot: 28aca10c6c6e5331959ba4b6cb2fced572f88af3
   react-native-wallet: 4e3cc1f48ca653ad4a96df8da7e6bd9c8987b3e3
   react-native-webview: cdce419e8022d0ef6f07db21890631258e7a9e6e
