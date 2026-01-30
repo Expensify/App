@@ -118,6 +118,7 @@ Supported groupings include:
 - `group-by:from`
 - `group-by:card`
 - `group-by:withdrawal-id`
+- `group-by:category` 
 
 ---
 
