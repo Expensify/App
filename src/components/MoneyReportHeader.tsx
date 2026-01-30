@@ -452,7 +452,11 @@ function MoneyReportHeader({
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const isOnSearch = route.name.toLowerCase().startsWith('search');
-    const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
+    const {
+        options: originalSelectedTransactionsOptions,
+        handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
+    } = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
         allTransactionsLength: transactions.length,
