@@ -329,7 +329,11 @@ function SearchPage({route}: SearchPageProps) {
             {
                 query: status,
                 jsonQuery: JSON.stringify(queryJSON),
-                reportIDList: selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [],
+                reportIDList:
+                    selectedReports.length > 0
+                        ? (selectedReports.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [])
+                        : (Object.values(selectedTransactions ?? {}).map((transaction) => transaction?.reportID ?? '') ?? []),
+
                 transactionIDList: selectedTransactionsKeys,
             },
             () => {
