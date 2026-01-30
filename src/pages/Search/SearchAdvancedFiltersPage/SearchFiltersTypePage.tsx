@@ -44,7 +44,7 @@ function SearchFiltersTypePage() {
 
     const applyChanges = useCallback(() => {
         const hasTypeChanged = selectedItem !== searchAdvancedFiltersForm?.type;
-        const filteredHasValues = filterValidHasValues(searchAdvancedFiltersForm?.has, selectedItem, translate);
+        const filteredHasValues = filterValidHasValues(searchAdvancedFiltersForm?.has, selectedItem, translate) ?? [];
         const updatedFilters = {
             type: selectedItem,
             ...(hasTypeChanged && {
