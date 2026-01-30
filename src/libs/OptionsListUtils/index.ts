@@ -63,6 +63,7 @@ import {
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
     getUpdateRoomDescriptionMessage,
+    hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
@@ -72,6 +73,7 @@ import {
     isClosedAction,
     isCreatedTaskReportAction,
     isDeletedParentAction,
+    isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isInviteOrRemovedAction,
     isMarkAsClosedAction,
@@ -721,12 +723,17 @@ function getLastMessageTextForReport({
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
+        const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+        const isPendingAdd = lastReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
         if (automaticAction) {
             lastMessageTextFromReport = Parser.htmlToText(translate('iou.automaticallyApproved'));
+        } else if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
+            lastMessageTextFromReport = translate('iou.queuedToApproveViaDEW');
         } else {
             lastMessageTextFromReport = translate('iou.approvedMessage');
         }
-    } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction)) {
+    } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction) || isDynamicExternalWorkflowApproveFailedAction(lastReportAction)) {
         lastMessageTextFromReport = getOriginalMessage(lastReportAction)?.message ?? translate('iou.error.genericCreateFailureMessage');
     } else if (isUnapprovedAction(lastReportAction)) {
         lastMessageTextFromReport = translate('iou.unapproved');
@@ -2585,7 +2592,7 @@ function getMemberInviteOptions(
 ): Options {
     return getValidOptions(
         {personalDetails, reports: []},
-        allPolicies,
+        undefined,
         undefined,
         nvpDismissedProductTraining,
         loginList,
@@ -3052,7 +3059,10 @@ function shouldUseBoldText(report: SearchOptionData): boolean {
 }
 
 function getManagerMcTestParticipant(currentUserAccountID: number, personalDetails?: OnyxEntry<PersonalDetailsList>): Participant | undefined {
-    const managerMcTestPersonalDetails = Object.values(personalDetails ?? allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === CONST.EMAIL.MANAGER_MCTEST);
+    // Use O(1) cache lookup when using global personal details, fall back to O(n) search for custom personal details
+    const managerMcTestPersonalDetails = personalDetails
+        ? Object.values(personalDetails).find((personalDetail) => personalDetail?.login === CONST.EMAIL.MANAGER_MCTEST)
+        : getPersonalDetailByEmail(CONST.EMAIL.MANAGER_MCTEST);
     const managerMcTestReport =
         managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
     return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
