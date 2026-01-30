@@ -2,6 +2,7 @@
 import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
@@ -16,10 +17,6 @@ jest.mock('@src/libs/Log');
 
 const LOCALE = CONST.LOCALES.EN;
 const UTC = 'UTC';
-const SHORT_DATE_FORMAT = CONST.DATE.SHORT_DATE_FORMAT.replace('-', '/'); // Short date format for en locale is MM/dd
-const SHORT_DATE_WITH_LOCAL_TIME_FORMAT = `${SHORT_DATE_FORMAT}, ${CONST.DATE.LOCAL_TIME_FORMAT}`; // e.g. "MM/dd, h:mm a"
-const FNS_FORMAT_STRING = 'MM/dd/yyyy'; // FNS format string for en locale is MM/dd/yyyy
-const FNS_DATE_WITH_LOCAL_TIME_FORMAT = `${FNS_FORMAT_STRING}, ${CONST.DATE.LOCAL_TIME_FORMAT}`; // e.g. "MM/dd/yyyy, h:mm a"
 describe('DateUtils', () => {
     beforeAll(() => {
         Onyx.init({
@@ -64,16 +61,16 @@ describe('DateUtils', () => {
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
-        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime, LOCALE);
+        const formattedDate = DateUtils.formatToLongDateWithWeekday(datetime);
         expect(formattedDate).toBe('Monday, November 7, 2022');
     });
 
     it('formatToDayOfWeek should return a weekday', () => {
-        const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime), LOCALE);
+        const weekDay = DateUtils.formatToDayOfWeek(new Date(datetime));
         expect(weekDay).toBe('Monday');
     });
     it('formatToLocalTime should return a date in a local format', () => {
-        const localTime = DateUtils.formatToLocalTime(datetime, LOCALE);
+        const localTime = DateUtils.formatToLocalTime(datetime);
         expect(localTime).toBe('12:00 AM');
     });
 
@@ -403,7 +400,7 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrParis, inputTimeZoneParis);
             const converted = toZonedTime(date, currentTimeZone);
-            const expectedLabel = tzFormat(converted, SHORT_DATE_WITH_LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
+            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
@@ -417,7 +414,7 @@ describe('DateUtils', () => {
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
 
-            const expectedLabel = tzFormat(converted, SHORT_DATE_WITH_LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
+            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
@@ -430,7 +427,7 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
-            const expectedLabel = tzFormat(converted, FNS_DATE_WITH_LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
+            const expectedLabel = tzFormat(converted, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
@@ -484,6 +481,40 @@ describe('DateUtils', () => {
             expect(result).toContain('to');
             expect(result).toContain('2024-01-05');
             expect(result).toContain('12 days');
+        });
+    });
+
+    describe('formatCountdownTimer', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(LOCALE, path, ...params);
+
+        it('should format hours, minutes, and seconds correctly', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 5, 30, 45);
+            expect(result).toBe('5h 30m 45s');
+        });
+
+        it('should pad single digit minutes with leading zero', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 2, 5, 30);
+            expect(result).toBe('2h 05m 30s');
+        });
+
+        it('should pad single digit seconds with leading zero', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 1, 15, 8);
+            expect(result).toBe('1h 15m 08s');
+        });
+
+        it('should pad both minutes and seconds with leading zeros', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 0, 3, 7);
+            expect(result).toBe('0h 03m 07s');
+        });
+
+        it('should handle zero values for all parameters', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 0, 0, 0);
+            expect(result).toBe('0h 00m 00s');
+        });
+
+        it('should handle large hour values', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 23, 59, 59);
+            expect(result).toBe('23h 59m 59s');
         });
     });
 });

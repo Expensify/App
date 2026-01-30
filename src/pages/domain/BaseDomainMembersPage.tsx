@@ -58,7 +58,7 @@ type BaseDomainMembersPageProps = {
     getCustomRightElement?: (accountID: number) => React.ReactNode;
 
     /** Function to return additional row-specific properties like errors or pending actions */
-    getCustomRowProps?: (accountID: number) => {errors?: Errors; pendingAction?: PendingAction};
+    getCustomRowProps?: (accountID: number, email?: string) => {errors?: Errors; pendingAction?: PendingAction};
 
     /** Callback fired when the user dismisses an error message for a specific row */
     onDismissError?: (item: MemberOption) => void;
@@ -114,7 +114,7 @@ function BaseDomainMembersPage({
     const data: MemberOption[] = accountIDs.map((accountID) => {
         const details = personalDetails?.[accountID];
         const login = details?.login ?? '';
-        const customProps = getCustomRowProps?.(accountID);
+        const customProps = getCustomRowProps?.(accountID, login);
         const isPendingActionDelete = customProps?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
         return {
@@ -134,7 +134,7 @@ function BaseDomainMembersPage({
             rightElement: getCustomRightElement?.(accountID),
             errors: getLatestError(customProps?.errors),
             pendingAction: customProps?.pendingAction,
-            isInteractive: !isPendingActionDelete,
+            isInteractive: !isPendingActionDelete && !details?.isOptimisticPersonalDetail,
             isDisabled: isPendingActionDelete,
         };
     });

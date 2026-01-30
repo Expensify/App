@@ -1,12 +1,14 @@
 import type {RouteProp} from '@react-navigation/native';
+import {useNavigationState} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {memo, useContext, useEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
+import GPSTripStateChecker from '@components/GPSTripStateChecker';
+import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
@@ -15,7 +17,7 @@ import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -34,7 +36,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
@@ -42,6 +44,7 @@ import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -83,6 +86,7 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
+const loadHomePage = () => require<ReactComponentModule>('../../../pages/home/HomePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
@@ -152,11 +156,19 @@ function AuthScreens() {
         canBeMissing: true,
     });
     const {isOnboardingCompleted, shouldShowRequire2FAPage} = useOnboardingFlowRouter();
-    const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
+    const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
+    const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
-        useContext(WideRHPContext);
+        useWideRHPState();
+
+    // Check if the user is currently on a 2FA setup screen
+    // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
+    const isIn2FASetupFlow = useNavigationState((state) => {
+        const focusedScreenName = getDeepestFocusedScreenName(state);
+        return isTwoFactorSetupScreen(focusedScreenName);
+    });
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
@@ -218,8 +230,18 @@ function AuthScreens() {
 
         NetworkConnection.listenForReconnect();
         NetworkConnection.onReconnect(() => handleNetworkReconnect());
+
+        // Pusher initialization span
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
+        });
         PusherConnectionManager.init();
-        initializePusher();
+        initializePusher().finally(() => {
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
+        });
+
         // Sometimes when we transition from old dot to new dot, the client is not the leader
         // so we need to initialize the client again
         if (!isClientTheLeader() && isTransitioning) {
@@ -267,7 +289,7 @@ function AuthScreens() {
             shortcutsOverviewShortcutConfig.shortcutKey,
             () => {
                 Modal.close(() => {
-                    if (Navigation.isOnboardingFlow()) {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                         return;
                     }
 
@@ -289,7 +311,7 @@ function AuthScreens() {
             searchShortcutConfig.shortcutKey,
             () => {
                 Session.callFunctionIfActionIsAllowed(() => {
-                    if (Navigation.isOnboardingFlow()) {
+                    if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                         return;
                     }
                     toggleSearch();
@@ -303,7 +325,7 @@ function AuthScreens() {
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                if (Navigation.isOnboardingFlow()) {
+                if (Navigation.isOnboardingFlow() || shouldShowRequire2FAPage) {
                     return;
                 }
                 Session.callFunctionIfActionIsAllowed(() => Modal.close(() => Navigation.navigate(ROUTES.NEW)))();
@@ -503,6 +525,7 @@ function AuthScreens() {
                     NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
                     SCREENS.WORKSPACES_LIST,
+                    SCREENS.HOME,
                     SCREENS.SEARCH.ROOT,
                 ]}
             >
@@ -511,6 +534,11 @@ function AuthScreens() {
                     name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                     options={getFullscreenNavigatorOptions}
                     getComponent={loadReportSplitNavigator}
+                />
+                <RootStack.Screen
+                    name={SCREENS.HOME}
+                    options={rootNavigatorScreenOptions.fullScreenTabPage}
+                    getComponent={loadHomePage}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
@@ -544,7 +572,7 @@ function AuthScreens() {
                 />
                 <RootStack.Screen
                     name={SCREENS.WORKSPACES_LIST}
-                    options={rootNavigatorScreenOptions.workspacesListPage}
+                    options={rootNavigatorScreenOptions.fullScreenTabPage}
                     component={WorkspacesListPage}
                 />
                 <RootStack.Screen
@@ -664,13 +692,6 @@ function AuthScreens() {
                         }}
                     />
                 )}
-                {shouldShowRequire2FAPage && (
-                    <RootStack.Screen
-                        name={SCREENS.REQUIRE_TWO_FACTOR_AUTH}
-                        options={{...rootNavigatorScreenOptions.fullScreen, gestureEnabled: false}}
-                        component={RequireTwoFactorAuthenticationPage}
-                    />
-                )}
                 <RootStack.Screen
                     name={SCREENS.WORKSPACE_JOIN_USER}
                     options={{
@@ -710,7 +731,10 @@ function AuthScreens() {
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
+            {/* Full-screen 2FA enforcement overlay - blocks all interaction until 2FA is set up */}
+            {shouldShowRequire2FAPage && !isIn2FASetupFlow && <RequireTwoFactorAuthenticationPage />}
             <SearchRouterModal />
+            <GPSTripStateChecker />
             <OpenAppFailureModal />
             <PriorityModeController />
             <OpenConfirmNavigateExpensifyClassicModal />
