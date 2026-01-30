@@ -316,10 +316,14 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                     setShowValidationModal(false);
                 }}
                 success
+                onCancel={() => setShowValidationModal(false)}
                 prompt={
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML
-                            onLinkPress={() => navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID))}
+                            onLinkPress={() => {
+                                setShowValidationModal(false);
+                                navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+                            }}
                             html={translate('workflowsPayerPage.shareBankAccount.validationDescription', {
                                 admin: selectedPayerDetails?.displayName ?? '',
                             })}
@@ -332,6 +336,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             <ConfirmModal
                 title={translate('workflowsPayerPage.shareBankAccount.errorTitle')}
                 isVisible={showErrorModal}
+                onCancel={() => setShowErrorModal(false)}
                 onConfirm={() => {
                     setShowErrorModal(false);
                 }}
