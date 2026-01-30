@@ -147,9 +147,13 @@ function searchHelpsite(query) {
     resultsContainer.innerHTML = '';
     resultsContainer.appendChild(cloneTemplate('search-loading-template'));
 
+    const isClassic = window.location.pathname.startsWith('/expensify-classic/');
     const formData = new FormData();
     formData.append('command', 'SearchHelpsite');
     formData.append('query', query.trim());
+    if (isClassic) {
+        formData.append('platform', 'expensify-classic');
+    }
 
     fetch(SEARCH_API_URL, {
         method: 'POST',
