@@ -20,8 +20,6 @@ import shouldUseAspectRatioForEReceipts from './shouldUseAspectRatioForEReceipts
 // It is used to avoid updating the image width in a loop.
 const MIN_UPDATE_WIDTH_DIFF = 1000;
 
-type Style = {height: number; borderRadius: number; margin: number};
-
 type ReceiptImageProps = (
     | {
           /** Transaction ID of the transaction the receipt belongs to */
@@ -76,9 +74,6 @@ type ReceiptImageProps = (
 
     /** Whether the receipt image requires an authToken */
     isAuthTokenRequired?: boolean;
-
-    /** Any additional styles to apply */
-    style?: Style;
 
     /** The file extension of the receipt file */
     fileExtension?: string;
@@ -139,7 +134,6 @@ function ReceiptImage({
     isEReceipt = false,
     source,
     isAuthTokenRequired,
-    style,
     fileExtension,
     iconSize,
     loadingIconSize,
@@ -197,9 +191,9 @@ function ReceiptImage({
     }
 
     if (isThumbnail || (isEReceipt && isPerDiemRequest)) {
-        const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
+        const props = isThumbnail && {fileExtension, isReceiptThumbnail: true};
         return (
-            <View style={style ?? [styles.w100, styles.h100]}>
+            <View style={[styles.w100, styles.h100]}>
                 <EReceiptThumbnail
                     transactionID={transactionID}
                     iconSize={iconSize}
