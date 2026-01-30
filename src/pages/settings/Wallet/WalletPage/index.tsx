@@ -486,7 +486,7 @@ function WalletPage() {
                   ]
                 : []),
         ];
-    }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
+    }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
         return (
