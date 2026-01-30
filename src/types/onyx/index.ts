@@ -32,6 +32,7 @@ import type {
     WorkspaceCardFeedsStatus,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
+import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
@@ -39,7 +40,13 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
-import type {CardFeedErrorsDerivedValue, OutstandingReportsByPolicyIDDerivedValue, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue} from './DerivedValues';
+import type {
+    CardFeedErrorsDerivedValue,
+    NonPersonalAndWorkspaceCardListDerivedValue,
+    OutstandingReportsByPolicyIDDerivedValue,
+    ReportAttributesDerivedValue,
+    ReportTransactionsAndViolationsDerivedValue,
+} from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
@@ -323,6 +330,7 @@ export type {
     LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
+    NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
@@ -335,4 +343,5 @@ export type {
     DomainErrors,
     DomainPendingActions,
     DomainSecurityGroup,
+    CodingRuleMatchingTransaction,
 };

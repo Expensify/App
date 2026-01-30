@@ -16,8 +16,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-const loadReportScreen = () => require<ReactComponentModule>('@pages/home/ReportScreen').default;
-const loadSidebarScreen = () => require<ReactComponentModule>('@pages/home/sidebar/BaseSidebarScreen').default;
+const loadReportScreen = () => require<ReactComponentModule>('@pages/inbox/ReportScreen').default;
+const loadSidebarScreen = () => require<ReactComponentModule>('@pages/inbox/sidebar/BaseSidebarScreen').default;
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
 /**
@@ -63,14 +63,14 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     return (
         <FreezeWrapper>
             <Split.Navigator
-                persistentScreens={[SCREENS.HOME]}
-                sidebarScreen={SCREENS.HOME}
+                persistentScreens={[SCREENS.INBOX]}
+                sidebarScreen={SCREENS.INBOX}
                 defaultCentralScreen={SCREENS.REPORT}
                 parentRoute={route}
                 screenOptions={splitNavigatorScreenOptions.centralScreen}
             >
                 <Split.Screen
-                    name={SCREENS.HOME}
+                    name={SCREENS.INBOX}
                     getComponent={loadSidebarScreen}
                     options={splitNavigatorScreenOptions.sidebarScreen}
                 />
