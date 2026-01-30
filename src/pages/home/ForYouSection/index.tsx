@@ -6,10 +6,10 @@ import WidgetContainer from '@components/WidgetContainer';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportCounts from '@hooks/useReportCounts';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTodos from '@hooks/useTodos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -25,7 +25,7 @@ function ForYouSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {reportCounts} = useTodos();
+    const reportCounts = useReportCounts();
     const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Send', 'ThumbsUp', 'Export']);
 
     const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];

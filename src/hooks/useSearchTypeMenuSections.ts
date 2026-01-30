@@ -11,7 +11,7 @@ import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import useTodos from './useTodos';
+import useReportCounts from './useReportCounts';
 
 const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -43,9 +43,15 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
 });
 
 /**
- * Get a list of all search groupings, along with their search items. Also returns the
- * currently focused search, based on the hash
+ * Selector to determine if suggested search data is ready to display
+ * Returns true if at least one policy has both employeeList and exporter defined
  */
+const isSuggestedSearchDataReadySelector = (policies: OnyxCollection<Policy>): boolean => {
+    const policiesList = Object.values(policies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
+
+    return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
+};
+
 const useSearchTypeMenuSections = () => {
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: defaultExpensifyCardSelector});
 
@@ -57,11 +63,12 @@ const useSearchTypeMenuSections = () => {
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const [isSuggestedSearchDataReady] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isSuggestedSearchDataReadySelector, canBeMissing: true});
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
-    const {reportCounts} = useTodos();
+    const reportCounts = useReportCounts();
 
     const handlePendingConfirm = useCallback(
         (shouldDismissEmptyReportsConfirmation: boolean) => {
@@ -88,12 +95,6 @@ const useSearchTypeMenuSections = () => {
         }
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
-
-    const isSuggestedSearchDataReady = useMemo(() => {
-        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
-
-        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
-    }, [allPolicies]);
 
     const typeMenuSections = useMemo(
         () =>
@@ -127,8 +128,10 @@ const useSearchTypeMenuSections = () => {
         ],
     );
 
+    const getTypeMenuSections = useCallback(() => typeMenuSections, [typeMenuSections]);
+
     return {
-        typeMenuSections,
+        getTypeMenuSections,
         CreateReportConfirmationModal,
         shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
     };
