@@ -1,7 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,6 +7,8 @@ import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 type SearchSingleSelectionPickerItem = {
     name: string;
@@ -72,14 +71,12 @@ function SearchSingleSelectionPicker({
                       {
                           title: undefined,
                           data: initiallySelectedItemSection,
-                          shouldShow: initiallySelectedItemSection.length > 0,
-                          indexOffset: 0,
+                          sectionIndex: 0,
                       },
                       {
                           title: pickerTitle,
                           data: remainingItemsSection,
-                          shouldShow: remainingItemsSection.length > 0,
-                          indexOffset: initiallySelectedItemSection.length,
+                          sectionIndex: 1,
                       },
                   ],
             noResultsFound: isEmpty,
@@ -121,21 +118,27 @@ function SearchSingleSelectionPicker({
         ),
         [resetChanges, applyChanges],
     );
+
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('common.search'),
+        onChangeText: setSearchTerm,
+        headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
+    };
+
+
     return (
         <SelectionList
             sections={sections}
-            initiallyFocusedOptionKey={initiallySelectedItem?.value}
-            textInputValue={searchTerm}
-            onChangeText={setSearchTerm}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onSelectRow={onSelectItem}
-            headerMessage={noResultsFound ? translate('common.noResultsFound') : undefined}
-            footerContent={shouldAutoSave ? undefined : footerContent}
-            shouldStopPropagation
-            showLoadingPlaceholder={!noResultsFound}
-            shouldShowTooltips
             ListItem={SingleSelectListItem}
+            initiallyFocusedItemKey={initiallySelectedItem?.value}
+            shouldShowTextInput={shouldShowTextInput}
+            textInputOptions={textInputOptions}
+            footerContent={shouldAutoSave ? undefined : footerContent}
+            showLoadingPlaceholder={!noResultsFound}
             shouldUpdateFocusedIndex
+            shouldStopPropagation
         />
     );
 }
