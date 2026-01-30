@@ -1,25 +1,26 @@
-import {adminAccountIDsSelector, domainNameSelector, selectSecurityGroupsForAccount} from '@selectors/Domain';
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {useState} from 'react';
+import { adminAccountIDsSelector, domainNameSelector, selectSecurityGroupsForAccount } from '@selectors/Domain';
+import { personalDetailsSelector } from '@selectors/PersonalDetails';
+import React, { useState } from 'react';
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import { ModalActions } from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {closeUserAccount} from '@libs/actions/Domain';
+import { closeUserAccount } from '@libs/actions/Domain';
 import Navigation from '@navigation/Navigation';
-import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@navigation/types';
+import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
+import type { SettingsNavigatorParamList } from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
 
@@ -67,9 +68,9 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         }
 
         const result = await showConfirmModal({
-            title: translate('domain.members.closeAccount'),
+            title: translate('domain.members.closeAccount', {count: 1}),
             prompt: translate('domain.members.closeAccountPrompt'),
-            confirmText: translate('domain.members.closeAccount'),
+            confirmText: translate('domain.members.closeAccount', {count: 1}),
             cancelText: translate('common.cancel'),
             danger: true,
             shouldShowCancelButton: true,
@@ -96,7 +97,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const avatarButton = (
         <Button
-            text={translate('domain.members.closeAccount')}
+            text={translate('domain.members.closeAccount', {count: 1})}
             onPress={() => setIsModalVisible(true)}
             isDisabled={!isAdmin}
             icon={icons.RemoveMembers}
@@ -111,7 +112,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 avatarButton={avatarButton}
             />
             <DecisionModal
-                title={translate('domain.members.closeAccount')}
+                title={translate('domain.members.closeAccount', {count: 1})}
                 prompt={translate('domain.members.closeAccountInfo')}
                 isSmallScreenWidth={isSmallScreenWidth}
                 onFirstOptionSubmit={handleForceCloseAccount}
