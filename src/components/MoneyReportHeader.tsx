@@ -49,15 +49,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {
-    buildOptimisticNextStepForDEWOfflineSubmission,
-    buildOptimisticNextStepForDynamicExternalWorkflowError,
+    buildOptimisticNextStepForDEWOffline,
+    buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
+    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
 } from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getIOUActionForReportID, getOriginalMessage, getReportAction, hasPendingDEWSubmit, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getOriginalMessage, getReportAction, hasPendingDEWApprove, hasPendingDEWSubmit, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -70,6 +71,7 @@ import {
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getPolicyExpenseChat,
+    getReasonAndReportActionThatRequiresAttention,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
@@ -132,6 +134,7 @@ import ActivityIndicator from './ActivityIndicator';
 import AnimatedSubmitButton from './AnimatedSubmitButton';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
@@ -142,6 +145,7 @@ import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
+import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
 import {ModalActions} from './Modal/Global/ModalContext';
@@ -157,7 +161,6 @@ import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
-import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
 
 type MoneyReportHeaderProps = {
@@ -327,6 +330,7 @@ function MoneyReportHeader({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
+    const isDEWPolicy = isDEWBetaEnabled && hasDynamicExternalWorkflow(policy);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
 
@@ -447,6 +451,22 @@ function MoneyReportHeader({
     );
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const isOnSearch = route.name.toLowerCase().startsWith('search');
+    const {
+        options: originalSelectedTransactionsOptions,
+        handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
+    } = useSelectedTransactionsActions({
+        report: moneyRequestReport,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        onExportOffline: () => setOfflineModalVisible(true),
+        policy,
+        beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
+        isOnSearch,
+    });
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
@@ -454,8 +474,8 @@ function MoneyReportHeader({
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const shouldShowApproveButton = useMemo(
-        () => (canApproveIOU(moneyRequestReport, policy, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
-        [moneyRequestReport, policy, transactions, hasOnlyPendingTransactions, isApprovedAnimationRunning],
+        () => (canApproveIOU(moneyRequestReport, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
+        [moneyRequestReport, policy, reportMetadata, transactions, hasOnlyPendingTransactions, isApprovedAnimationRunning],
     );
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
@@ -476,19 +496,31 @@ function MoneyReportHeader({
 
     let optimisticNextStep = isBlockSubmitDueToPreventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
-    // Check for DEW submit failed or pending - show appropriate next step
-    if (isDEWBetaEnabled && hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
-        const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
-            if (action.reportActionID) {
-                acc[action.reportActionID] = action;
+    // Check for DEW submit/approve failed or pending - show appropriate next step
+    if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
+        if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+            const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
+                if (action.reportActionID) {
+                    acc[action.reportActionID] = action;
+                }
+                return acc;
+            }, {});
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
+
+            if (errors?.dewSubmitFailed) {
+                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
+            } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
+                optimisticNextStep = buildOptimisticNextStepForDEWOffline();
             }
-            return acc;
-        }, {});
-        const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
-        if (errors?.dewSubmitFailed) {
-            optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowError(theme.danger);
-        } else if (isOffline && hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
-            optimisticNextStep = buildOptimisticNextStepForDEWOfflineSubmission();
+        } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, undefined, isArchivedReport);
+            const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
+            const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
+            if (hasDEWApproveFailed && isCurrentUserTheApprover) {
+                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
+            } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
+                optimisticNextStep = buildOptimisticNextStepForDEWOffline();
+            }
         }
     }
 
@@ -512,11 +544,11 @@ function MoneyReportHeader({
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const confirmPayment = useCallback(
-        ({paymentType: selectedPaymentType, payAsBusiness, methodID, paymentMethod, isSelectedTransactionAction}: PaymentActionParams) => {
-            if (!selectedPaymentType || !chatReport) {
+        (type?: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
+            if (!type || !chatReport) {
                 return;
             }
-            setPaymentType(selectedPaymentType);
+            setPaymentType(type);
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
@@ -528,11 +560,9 @@ function MoneyReportHeader({
                     setIsHoldMenuVisible(true);
                 }
             } else if (isInvoiceReport) {
-                if (!isSelectedTransactionAction) {
-                    startAnimation();
-                }
+                startAnimation();
                 payInvoice({
-                    paymentMethodType: selectedPaymentType,
+                    paymentMethodType: type,
                     chatReport,
                     invoiceReport: moneyRequestReport,
                     invoiceReportCurrentNextStepDeprecated: nextStep,
@@ -545,15 +575,10 @@ function MoneyReportHeader({
                     paymentMethod,
                     activePolicy,
                 });
-                if (isSelectedTransactionAction) {
-                    clearSelectedTransactions(true);
-                }
             } else {
-                if (!isSelectedTransactionAction) {
-                    startAnimation();
-                }
+                startAnimation();
                 payMoneyRequest({
-                    paymentType: selectedPaymentType,
+                    paymentType: type,
                     chatReport,
                     iouReport: moneyRequestReport,
                     introSelected,
@@ -571,9 +596,6 @@ function MoneyReportHeader({
                         isOffline,
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
-                }
-                if (isSelectedTransactionAction) {
-                    clearSelectedTransactions(true);
                 }
             }
         },
@@ -597,7 +619,6 @@ function MoneyReportHeader({
             currentSearchKey,
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
-            clearSelectedTransactions,
         ],
     );
 
@@ -614,8 +635,8 @@ function MoneyReportHeader({
         }
     };
 
-    const confirmApproval = (skipAnimation?: boolean) => {
-        if (hasDynamicExternalWorkflow(policy)) {
+    const confirmApproval = () => {
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
             showDWEModal();
             return;
         }
@@ -625,9 +646,7 @@ function MoneyReportHeader({
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
-            if (!skipAnimation) {
-                startApprovedAnimation();
-            }
+            startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, true);
         }
     };
@@ -859,22 +878,6 @@ function MoneyReportHeader({
         onlyShowPayElsewhere,
     });
 
-    // Payment options for selection mode - these include isSelectedTransactionAction flag
-    // so that bulk payments from the selection dropdown properly clear selected transactions
-    const selectionModePaymentOptions = usePaymentOptions({
-        currency: moneyRequestReport?.currency,
-        iouReport: moneyRequestReport,
-        chatReportID: chatReport?.reportID,
-        formattedAmount: totalAmount,
-        policyID: moneyRequestReport?.policyID,
-        onPress: confirmPayment,
-        shouldHidePaymentOptions: !shouldShowPayButton,
-        shouldShowApproveButton,
-        shouldDisableApproveButton,
-        onlyShowPayElsewhere,
-        isSelectedTransactionAction: true,
-    });
-
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(expensifyIcons, moneyRequestReport?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
         [moneyRequestReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
@@ -993,7 +996,7 @@ function MoneyReportHeader({
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
             <Button
                 success
-                onPress={() => confirmApproval()}
+                onPress={confirmApproval}
                 text={translate('iou.approve')}
                 isDisabled={isBlockSubmitDueToPreventSelfApproval}
             />
@@ -1236,7 +1239,7 @@ function MoneyReportHeader({
             icon: expensifyIcons.ThumbsUp,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
-            onSelected: () => confirmApproval(true),
+            onSelected: confirmApproval,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),
@@ -1577,37 +1580,6 @@ function MoneyReportHeader({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionThreadReportID]);
 
-    const applicableTransactionActions = useMemo(() => {
-        const allowedActions = [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT, CONST.REPORT.PRIMARY_ACTIONS.APPROVE, CONST.REPORT.PRIMARY_ACTIONS.PAY];
-        return allowedActions
-            .filter((actionType) => {
-                return actionType === primaryAction || secondaryActions.includes(actionType);
-            })
-            .map((actionType) => {
-                // For PAY action, use selectionModePaymentOptions which includes isSelectedTransactionAction flag
-                if (actionType === CONST.REPORT.SECONDARY_ACTIONS.PAY) {
-                    return {
-                        ...secondaryActionsImplementation[actionType],
-                        subMenuItems: Object.values(selectionModePaymentOptions),
-                    };
-                }
-                return secondaryActionsImplementation[actionType];
-            });
-    }, [primaryAction, secondaryActions, secondaryActionsImplementation, selectionModePaymentOptions]);
-
-    const isOnSearch = route.name.toLowerCase().startsWith('search');
-    const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
-        report: moneyRequestReport,
-        reportActions,
-        allTransactionsLength: transactions.length,
-        session,
-        onExportFailed: () => setIsDownloadErrorModalVisible(true),
-        onExportOffline: () => setOfflineModalVisible(true),
-        policy,
-        beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
-        isOnSearch,
-        reportLevelActions: applicableTransactionActions,
-    });
     useEffect(() => {
         if (!hasFinishedPDFDownload || !canTriggerAutomaticPDFDownload.current) {
             return;
@@ -1639,13 +1611,21 @@ function MoneyReportHeader({
             }
             if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                Navigation.goBack(backToRoute);
+                handleDeleteTransactionsWithNavigation(backToRoute);
+            } else {
+                handleDeleteTransactions();
             }
-            // It has been handled like the rest of the delete cases. It will be refactored along with other cases.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => handleDeleteTransactions());
         });
-    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo, chatReport?.reportID]);
+    }, [
+        showConfirmModal,
+        translate,
+        selectedTransactionIDs.length,
+        transactions,
+        handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
+        route.params?.backTo,
+        chatReport?.reportID,
+    ]);
 
     const showExportAgainModal = useCallback(() => {
         if (!connectedIntegration) {
@@ -1718,7 +1698,7 @@ function MoneyReportHeader({
             />
         );
     }
-    const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow, isSelectedTransactionAction?: boolean) =>
+    const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
         selectPaymentType({
             event,
             iouPaymentType,
@@ -1733,7 +1713,6 @@ function MoneyReportHeader({
             confirmApproval,
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
-            isSelectedTransactionAction,
         });
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
@@ -1762,23 +1741,22 @@ function MoneyReportHeader({
                                 chatReportID={chatReport?.reportID}
                                 iouReport={moneyRequestReport}
                                 onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType})}
+                                onSuccessfulKYC={(payment) => confirmPayment(payment)}
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
                             />
                         )}
                         {shouldShowSelectedTransactionsButton && (
-                            <MoneyReportHeaderKYCDropdown
-                                chatReportID={chatReport?.reportID}
-                                iouReport={moneyRequestReport}
-                                onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType, isSelectedTransactionAction: true})}
-                                options={selectedTransactionsOptions}
-                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                                isSelectedTransactionAction
-                                ref={kycWallRef}
-                            />
+                            <View>
+                                <ButtonWithDropdownMenu
+                                    onPress={() => null}
+                                    options={selectedTransactionsOptions}
+                                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                                    isSplitButton={false}
+                                    shouldAlwaysShowDropdownMenu
+                                />
+                            </View>
                         )}
                     </View>
                 )}
@@ -1786,15 +1764,13 @@ function MoneyReportHeader({
             {!shouldDisplayNarrowMoreButton &&
                 (shouldShowSelectedTransactionsButton ? (
                     <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
-                        <MoneyReportHeaderKYCDropdown
-                            chatReportID={chatReport?.reportID}
-                            iouReport={moneyRequestReport}
-                            onPaymentSelect={onPaymentSelect}
-                            onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType, isSelectedTransactionAction: true})}
+                        <ButtonWithDropdownMenu
+                            onPress={() => null}
                             options={selectedTransactionsOptions}
                             customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                            isSelectedTransactionAction
-                            ref={kycWallRef}
+                            isSplitButton={false}
+                            shouldAlwaysShowDropdownMenu
+                            wrapperStyle={styles.w100}
                         />
                     </View>
                 ) : (
@@ -1805,7 +1781,7 @@ function MoneyReportHeader({
                                 chatReportID={chatReport?.reportID}
                                 iouReport={moneyRequestReport}
                                 onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType})}
+                                onSuccessfulKYC={(payment) => confirmPayment(payment)}
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}

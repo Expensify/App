@@ -4822,6 +4822,44 @@ function enablePolicyTimeTracking(policyID: string, enabled: boolean) {
     }
 }
 
+/**
+ * Update policy's time tracking default hourly rate.
+ * The rate should be passed in currency units, not subunits.
+ */
+function setPolicyTimeTrackingDefaultRate(policyID: string, rate: number) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    units: {
+                        time: {
+                            rate,
+                        },
+                    },
+                    pendingFields: {
+                        timeTrackingDefaultRate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        timeTrackingDefaultRate: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TIME_TRACKING_DEFAULT_RATE, {policyID, defaultRate: rate}, onyxData);
+}
+
 function openPolicyMoreFeaturesPage(policyID: string) {
     const params: OpenPolicyMoreFeaturesPageParams = {policyID};
 
@@ -6905,4 +6943,5 @@ export {
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,
     setPolicyRequireCompanyCardsEnabled,
+    setPolicyTimeTrackingDefaultRate,
 };
