@@ -137,7 +137,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             const isSoftPromptRequired = softPromptApproved === undefined && biometrics.info.deviceSupportsBiometrics;
 
             if (isSoftPromptRequired) {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS));
                 return;
             }
 
