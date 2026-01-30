@@ -16,13 +16,12 @@ import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 
 const pages = [
-    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT_PAGE_NAME.INSTALL, component: NetSuiteTokenSetupContent},
-    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT_PAGE_NAME.AUTHENTICATION, component: NetSuiteTokenSetupContent},
-    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT_PAGE_NAME.SOAP, component: NetSuiteTokenSetupContent},
-    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT_PAGE_NAME.ACCESS_TOKEN, component: NetSuiteTokenSetupContent},
-    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT_PAGE_NAME.CREDENTIALS, component: NetSuiteTokenInputForm},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.AUTHENTICATION, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.SOAP, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.ACCESS_TOKEN, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS, component: NetSuiteTokenInputForm},
 ];
-const CREDENTIALS_PAGE_INDEX = 4;
 
 function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
@@ -37,7 +36,7 @@ function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
     const {CurrentPage, nextPage, prevPage, pageIndex, moveTo, currentPageName} = useSubPage<CustomSubPageTokenInputProps>({
         pages,
         onFinished: submit,
-        startFrom: hasAuthError ? CREDENTIALS_PAGE_INDEX : 0,
+        startFrom: hasAuthError ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.CREDENTIALS_PAGE_INDEX : 0,
         buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(route.params.policyID, pageName),
     });
 
@@ -69,7 +68,7 @@ function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubPageHeader
                     currentStepIndex={pageIndex}
-                    stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
+                    stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST}
                     onStepSelected={moveTo}
                 />
             </View>
