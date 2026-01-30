@@ -144,7 +144,7 @@ function IOURequestStepDistanceManual({
     const navigateToNextPage = useCallback(
         (amount: string) => {
             const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
-            setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft);
+            setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft, unit);
 
             if (action === CONST.IOU.ACTION.EDIT) {
                 if (distance !== distanceAsFloat) {
@@ -233,6 +233,7 @@ function IOURequestStepDistanceManual({
             reportID,
             recentWaypoints,
             currentUserPersonalDetails.accountID,
+            unit,
         ],
     );
 

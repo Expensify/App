@@ -619,7 +619,7 @@ function handleMoneyRequestStepDistanceNavigation({
             lastSelectedDistanceRates,
         });
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-        setCustomUnitRateID(transactionID, rateID);
+        setCustomUnitRateID(transactionID, rateID, transaction, defaultExpensePolicy);
         setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserAccountID).then(() => {
             Navigation.navigate(
                 ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(

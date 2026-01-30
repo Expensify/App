@@ -195,7 +195,7 @@ function IOURequestStepParticipants({
 
         const rateID = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         for (const transaction of transactions) {
-            setCustomUnitRateID(transaction.transactionID, rateID);
+            setCustomUnitRateID(transaction.transactionID, rateID, transaction, activePolicy);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(
                 transaction.transactionID,
@@ -256,11 +256,11 @@ function IOURequestStepParticipants({
 
                 if (transactions.length > 0) {
                     for (const transaction of transactions) {
-                        setCustomUnitRateID(transaction.transactionID, rateID);
+                        setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
                     }
                 } else {
                     // Fallback to using initialTransactionID directly
-                    setCustomUnitRateID(initialTransactionID, rateID);
+                    setCustomUnitRateID(initialTransactionID, rateID, undefined, policy);
                 }
             }
 

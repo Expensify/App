@@ -24,7 +24,6 @@ import {
     setIndividualShare,
     setMoneyRequestAmount,
     setMoneyRequestCategory,
-    setMoneyRequestDistance,
     setMoneyRequestMerchant,
     setMoneyRequestPendingFields,
     setMoneyRequestTag,
@@ -36,7 +35,6 @@ import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateGPSDistance} from '@libs/GPSDraftDetailsUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
@@ -347,8 +345,8 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        setCustomUnitRateID(transactionID, lastSelectedRate);
-    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense]);
+        setCustomUnitRateID(transactionID, lastSelectedRate, transaction, policy);
+    }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, transaction, policy]);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
     const rate = mileageRate.rate;
@@ -394,19 +392,6 @@ function MoneyRequestConfirmationList({
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-
-    // Update GPS distance whenever the current distance unit differs from the one that was used
-    // to calculate the distance stored in transaction.comment.customUnit.quantity
-    const gpsDistance = transaction?.comment?.customUnit?.quantity;
-    const gpsDistanceWithCurrentDistanceUnit = calculateGPSDistance(distance, unit);
-    const shouldUpdateGpsDistance = isGPSDistanceRequest && gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
-    useEffect(() => {
-        if (!shouldUpdateGpsDistance || !transactionID || isReadOnly) {
-            return;
-        }
-
-        setMoneyRequestDistance(transactionID, gpsDistanceWithCurrentDistanceUnit, true);
-    }, [shouldUpdateGpsDistance, transactionID, isReadOnly, gpsDistanceWithCurrentDistanceUnit]);
 
     let amountToBeUsed = iouAmount;
 
@@ -513,7 +498,7 @@ function MoneyRequestConfirmationList({
         // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
         const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
         if (matchingRate?.customUnitRateID) {
-            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID);
+            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy);
             return;
         }
 
@@ -530,6 +515,7 @@ function MoneyRequestConfirmationList({
         isMovingTransactionFromTrackExpense,
         setFormError,
         clearFormErrors,
+        transaction,
     ]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
