@@ -1012,7 +1012,7 @@ const translations = {
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
-                subtitle: 'Workspace > Connections',
+                subtitle: 'Workspace > Accounting',
             },
         },
         announcements: 'Announcements',

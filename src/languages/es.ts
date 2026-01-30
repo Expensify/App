@@ -752,11 +752,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'día' : 'días'} restantes`,
             },
             fixCompanyCardConnection: {
-                title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
+                title: ({feedName}: {feedName: string}) => (feedName ? `Reconectar la tarjeta corporativa de ${feedName}` : 'Reconectar la tarjeta corporativa'),
                 subtitle: 'Espacio de trabajo > Tarjetas de empresa',
             },
             fixAccountingConnection: {
-                title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
+                title: ({integrationName}: {integrationName: string}) => `Reconectar con ${integrationName}`,
                 subtitle: 'Espacio de trabajo > Contabilidad',
             },
         },
