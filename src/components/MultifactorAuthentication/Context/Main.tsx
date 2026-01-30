@@ -200,7 +200,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 },
                 async (result: AuthorizeResult) => {
                     if (!result.success) {
-                        // Check if re-registration is needed
+                        // Re-registration may be needed even though we checked credentials above, because:
+                        // - The local public key was deleted between the check and authorization
+                        // - The server no longer accepts the local public key (not in allowCredentials)
                         if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED) {
                             await biometrics.resetKeysForAccount();
                             dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
