@@ -13234,27 +13234,37 @@ function removeUnchangedBulkEditFields(
     transaction: OnyxTypes.Transaction,
     baseIouReport: OnyxEntry<OnyxTypes.Report> | null,
     policy: OnyxEntry<OnyxTypes.Policy>,
-) {
-    const changeKeys = Object.keys(transactionChanges) as Array<keyof TransactionChanges>;
-    if (changeKeys.length === 0) {
-        return;
-    }
-
+): TransactionChanges {
     const iouType = isInvoiceReportReportUtils(baseIouReport ?? undefined) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
     const allowNegative = shouldEnableNegative(baseIouReport ?? undefined, policy, iouType);
     const currentDetails = getTransactionDetails(transaction, undefined, policy, allowNegative);
+    if (!currentDetails) {
+        return transactionChanges;
+    }
+
+    const changeKeys = Object.keys(transactionChanges) as Array<keyof TransactionChanges>;
+    if (changeKeys.length === 0) {
+        return transactionChanges;
+    }
+
+    let filteredChanges: TransactionChanges = {};
 
     for (const field of changeKeys) {
-        const currentValue = currentDetails?.[field as keyof TransactionDetails];
         const nextValue = transactionChanges[field];
+        const currentValue = currentDetails[field as keyof TransactionDetails];
         const shouldNormalizeString = typeof currentValue === 'string' || typeof nextValue === 'string';
         const normalizedCurrentValue = shouldNormalizeString ? (currentValue ?? '') : currentValue;
         const normalizedNextValue = shouldNormalizeString ? (nextValue ?? '') : nextValue;
 
-        if (normalizedNextValue === normalizedCurrentValue) {
-            delete transactionChanges[field];
+        if (normalizedNextValue !== normalizedCurrentValue) {
+            filteredChanges = {
+                ...filteredChanges,
+                [field]: nextValue,
+            };
         }
     }
+
+    return filteredChanges;
 }
 
 function updateMultipleMoneyRequests(
@@ -13286,7 +13296,7 @@ function updateMultipleMoneyRequests(
             return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, policy);
         };
 
-        const transactionChanges: TransactionChanges = {};
+        let transactionChanges: TransactionChanges = {};
 
         if (changes.merchant && canEditField(CONST.EDIT_REQUEST_FIELD.MERCHANT)) {
             transactionChanges.merchant = changes.merchant;
@@ -13319,7 +13329,7 @@ function updateMultipleMoneyRequests(
             transactionChanges.reimbursable = changes.reimbursable;
         }
 
-        removeUnchangedBulkEditFields(transactionChanges, transaction, baseIouReport, policy);
+        transactionChanges = removeUnchangedBulkEditFields(transactionChanges, transaction, baseIouReport, policy);
 
         const updates: Record<string, string | number> = {};
         if (transactionChanges.merchant) {
