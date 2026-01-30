@@ -6,6 +6,7 @@ import type {
 } from '@components/MultifactorAuthentication/config/types';
 import type {MarqetaAuthTypeName, MultifactorAuthenticationKeyInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
 import {registerAuthenticationKey} from './index';
 
@@ -34,7 +35,7 @@ function createKeyInfoObject({publicKey, challenge}: {publicKey: string; challen
 
     return {
         rawId,
-        type: 'biometric' as const,
+        type: CONST.MULTIFACTOR_AUTHENTICATION.ED25519_TYPE,
         response: {
             clientDataJSON: clientDataJSONBase64,
             biometric: {
