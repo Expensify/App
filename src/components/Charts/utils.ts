@@ -37,6 +37,6 @@ function getChartColor(index: number): string {
 }
 
 /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
-const DEFAULT_CHART_COLOR = getChartColor(4);
+const DEFAULT_CHART_COLOR = getChartColor(5);
 
 export {getChartColor, DEFAULT_CHART_COLOR};
