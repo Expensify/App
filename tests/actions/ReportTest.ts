@@ -3755,7 +3755,7 @@ describe('actions/Report', () => {
                 ],
             } as OnyxTypes.ReportAction;
 
-            // Set up initial Onyx state
+            // Set up initial Onyx state with real timers
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
                 [REPORT_ACTION_ID]: reportAction,
@@ -3766,7 +3766,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected
-            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
+            let reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
             const updatedHtml = (reportActions?.[REPORT_ACTION_ID]?.message as Message[])?.at(0)?.html;
             expect(updatedHtml).toContain('<followup-list selected>');
 
@@ -3774,7 +3774,14 @@ describe('actions/Report', () => {
             // With pre-generated response, the API call should include the optimistic Concierge response params
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
 
+            // Wait for the delayed Concierge response (1500ms delay in SuggestedFollowup.ts)
+            await new Promise((resolve) => {
+                setTimeout(resolve, 1600);
+            });
+            await waitForBatchedUpdates();
+
             // Verify an optimistic Concierge report action was created
+            reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
             const allReportActions = Object.values(reportActions ?? {});
             const conciergeActions = allReportActions.filter((action) => action?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE);
             // Should have 2 Concierge actions: the original one and the optimistic response
