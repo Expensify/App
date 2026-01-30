@@ -234,6 +234,7 @@ function IOURequestStepDistanceManual({
             recentWaypoints,
             currentUserPersonalDetails.accountID,
             unit,
+            parentReportNextStep,
         ],
     );
 
