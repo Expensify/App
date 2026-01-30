@@ -1075,14 +1075,14 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     STORYLANE: {
-        ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
-        ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
+        ADMIN_TOUR: 'https://expensify.storylane.io/share/nfrgmfpppolt',
+        ADMIN_TOUR_MOBILE: 'https://expensify.storylane.io/share/7t9urrrcqk5k',
         ADMIN_MIGRATED: 'https://app.storylane.io/share/qlgnexxbsdtp',
         ADMIN_MIGRATED_MOBILE: 'https://app.storylane.io/share/fgireksbt2oh',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
-        EMPLOYEE_TOUR: 'https://app.storylane.io/share/izmryscwurdd?embed=inline',
-        EMPLOYEE_TOUR_MOBILE: 'https://app.storylane.io/share/wckqdetaacgy?embed=inline',
+        EMPLOYEE_TOUR: 'https://expensify.storylane.io/share/ohsppww6qi71',
+        EMPLOYEE_TOUR_MOBILE: 'https://expensify.storylane.io/share/v8uwkznocw0g',
         EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/v9dr1rjqsd9y',
         EMPLOYEE_MIGRATED_MOBILE: 'https://app.storylane.io/share/qbbob6zvapqo',
     },
