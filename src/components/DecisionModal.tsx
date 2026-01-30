@@ -2,11 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ScrollView from './ScrollView';
 import Button from './Button';
 import Header from './Header';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
+import ScrollView from './ScrollView';
 
 type DecisionModalProps = {
     /** Title describing purpose of modal */
