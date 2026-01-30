@@ -70,12 +70,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             isFlowComplete,
         } = state;
 
-        // 0. Check if flow is already complete - do nothing
-        if (isFlowComplete) {
+        // 0. Check if flow is already complete or scenario not set - do nothing
+        if (isFlowComplete || !scenario) {
             return;
         }
 
-        const scenarioLowerCase = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
+        const scenarioLowerCase = scenario.toLowerCase() as Lowercase<MultifactorAuthenticationScenario>;
         const paths = outcomePaths ?? getOutcomePaths(scenario);
 
         // 1. Check if there's an error - stop processing
