@@ -1113,7 +1113,7 @@ function importCSVCompanyCards({
     const cardNumbersFromCSV = new Set<string>();
     if (cardNumberColumnIndex !== -1) {
         for (const row of csvData.slice(rowsStartIndex)) {
-            const cardNumber = row?.[cardNumberColumnIndex]?.trim();
+            const cardNumber = row?.at(cardNumberColumnIndex)?.trim();
             if (cardNumber) {
                 cardNumbersFromCSV.add(cardNumber);
             }
@@ -1125,7 +1125,8 @@ function importCSVCompanyCards({
     for (const cardName of Object.keys(existingCardList)) {
         existingCardNames.add(cardName);
     }
-    const {cardList: _assignableCardList, ...assignedCards} = existingCardsList ?? {};
+    const {cardList: assignableCardList, ...assignedCards} = existingCardsList ?? {};
+    void assignableCardList;
     for (const card of Object.values(assignedCards)) {
         if (card?.cardName) {
             existingCardNames.add(card.cardName);

@@ -107,16 +107,17 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             return;
         }
 
-        const columnMappings = columnNames.map((_, index) => spreadsheet?.columns?.[index] ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
+        const columnNamesByIndex = Object.values(spreadsheet?.columns ?? {});
+        const columnMappings = columnNames.map((_, index) => columnNamesByIndex.at(index) ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
 
         // Transform columns-based data to rows-based data, including the header
         const columns = spreadsheet?.data ?? [];
         const rows: string[][] = [];
         if (columns.length > 0) {
-            for (let rowIndex = 0; rowIndex < columns[0].length; rowIndex++) {
+            for (let rowIndex = 0; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
                 const row: string[] = [];
-                for (let colIndex = 0; colIndex < columns.length; colIndex++) {
-                    row.push(columns[colIndex][rowIndex] ?? '');
+                for (const column of columns) {
+                    row.push(column.at(rowIndex) ?? '');
                 }
                 rows.push(row);
             }
