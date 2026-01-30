@@ -1025,7 +1025,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSuccessfulTitle: 'インポートに成功しました',
         importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories}件のカテゴリーが追加されました。` : 'カテゴリを1件追加しました。'),
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
-            importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已添加 ${transactions} 笔交易。` : '已添加 1 笔交易。'),
+            transactions > 1 ? `${transactions} 件の取引が追加されました。` : '1 件の取引が追加されました。',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'メンバーは追加または更新されていません。';
@@ -4806,9 +4806,9 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             addNewCard: {
                 other: 'その他',
                 fileImport: 'ファイルから取引をインポート',
-                createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
-                companyCardLayoutName: 'Company card layout name',
-                useAdvancedFields: 'Use advanced fields (not recommended)',
+                createFileFeedHelpText: `<muted-text>会社カードの経費をインポートするには、この<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">ヘルプガイド</a>に従ってください。</muted-text>`,
+                companyCardLayoutName: '法人カードレイアウト名',
+                useAdvancedFields: '詳細フィールドを使用（非推奨）',
                 cardProviders: {
                     gl1025: 'American Express コーポレートカード',
                     cdf: 'Mastercard 商用カード',
@@ -4888,23 +4888,23 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     cancelText: 'スキップ',
                 },
                 csvColumns: {
-                    cardNumber: 'Card number',
-                    postedDate: 'Date',
-                    merchant: 'Merchant',
-                    amount: 'Amount',
-                    currency: 'Currency',
-                    ignore: 'Ignore',
-                    originalTransactionDate: 'Original transaction date',
-                    originalAmount: 'Original amount',
-                    originalCurrency: 'Original currency',
-                    comment: 'Comment',
-                    category: 'Category',
-                    tag: 'Tag',
-                    uniqueID: 'Unique ID',
+                    cardNumber: 'カード番号',
+                    postedDate: '日付',
+                    merchant: '加盟店',
+                    amount: '金額',
+                    currency: '通貨',
+                    ignore: '無視',
+                    originalTransactionDate: '元の取引日',
+                    originalAmount: '元の金額',
+                    originalCurrency: '元の通貨',
+                    comment: 'コメント',
+                    category: 'カテゴリ',
+                    tag: 'タグ',
+                    uniqueID: '一意のID',
                 },
                 csvErrors: {
-                    requiredColumns: (missingColumns: string) => `Please assign a column to each of the attributes: ${missingColumns}.`,
-                    duplicateColumns: (duplicateColumn: string) => `Oops! You've mapped a single field ("${duplicateColumn}") to multiple columns. Please review and try again.`,
+                    requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
+                    duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
                 },
             },
             statementCloseDate: {
