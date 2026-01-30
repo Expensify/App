@@ -46,7 +46,9 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
         let itemsTotalCount = 0;
 
         for (const section of sections) {
-            if (section.title) {
+            const sectionDataLength = section.data?.length ?? 0;
+            itemsTotalCount += sectionDataLength;
+            if (section.title && sectionDataLength > 0) {
                 disabledIndices.push(data.length);
                 data.push({
                     type: CONST.SECTION_LIST_ITEM_TYPE.HEADER,
@@ -55,7 +57,6 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
                     isDisabled: true,
                 });
             }
-            itemsTotalCount += section.data?.length ?? 0;
 
             for (const item of section.data ?? []) {
                 const currentIndex = data.length;
@@ -67,7 +68,7 @@ function useFlattenedSections<TItem extends ListItem>(sections: Array<Section<TI
                 } as SectionListItem<TItem>;
                 data.push(itemData);
 
-                if (item.keyForList === initiallyFocusedItemKey) {
+                if (item.keyForList === initiallyFocusedItemKey && focusedIndex === -1) {
                     focusedIndex = currentIndex;
                 }
 
