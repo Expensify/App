@@ -114,6 +114,8 @@ function OptionRowLHNData({
         movedFromReport,
         movedToReport,
         currentUserAccountID,
+        lastAction,
+        lastActionReport,
     ]);
 
     return (
