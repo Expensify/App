@@ -7,6 +7,7 @@ import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
-import TextLink from '@components/TextLink';
 
 type AnchorRendererProps = CustomRendererProps<TText | TPhrasing> & {
     /** Key of the element */
