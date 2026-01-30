@@ -60,6 +60,7 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
                 onPress={onCtaPress}
                 small
                 style={styles.widgetItemButton}
+                // Prop spreading allows parent components to pass additional button styling props (e.g., danger: true)
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...buttonProps}
             />

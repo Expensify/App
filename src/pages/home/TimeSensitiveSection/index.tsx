@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hasSynchronizationErrorMessage} from '@libs/actions/connections';
+import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -45,7 +45,7 @@ function TimeSensitiveSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {login} = useCurrentUserPersonalDetails();
 
@@ -69,9 +69,9 @@ function TimeSensitiveSection() {
             continue;
         }
 
-        // Check if there's a sync in progress for this policy
+        // Check if there's a sync in progress for this policy using the proper check that handles JOB_DONE and timeout
         const syncProgress = connectionSyncProgress?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
-        const isSyncInProgress = !!syncProgress?.stageInProgress;
+        const isSyncInProgress = isConnectionInProgress(syncProgress, policy);
 
         for (const connectionName of Object.keys(policyConnections) as ConnectionName[]) {
             if (hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
