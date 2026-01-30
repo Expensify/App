@@ -7016,6 +7016,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
         },
+        pieChartLastSlice: 'Other',
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
             accessPlaceHolder: 'Open for details',

@@ -6763,6 +6763,7 @@ ${amount} para ${merchant} - ${date}`,
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Años',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
+        pieChartLastSlice: 'Otro',
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos.',
             accessPlaceHolder: 'Abrir para ver detalles',

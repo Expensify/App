@@ -10,9 +10,10 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import {getChartColor} from '@components/Charts/chartColors';
 import ChartHeader from '@components/Charts/ChartHeader';
 import ChartTooltip from '@components/Charts/ChartTooltip';
-import {PIE_CHART_MAX_SLICES, PIE_CHART_MIN_SLICE_PERCENTAGE, PIE_CHART_OTHER_LABEL, PIE_CHART_START_ANGLE, TOOLTIP_BAR_GAP} from '@components/Charts/constants';
+import {PIE_CHART_MAX_SLICES, PIE_CHART_MIN_SLICE_PERCENTAGE, PIE_CHART_START_ANGLE, TOOLTIP_BAR_GAP} from '@components/Charts/constants';
 import type {PieChartDataPoint, PieChartProps, ProcessedSlice} from '@components/Charts/types';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 /**
@@ -20,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
  * - Slices below minPercentage are aggregated into "Other"
  * - If more than maxSlices, smallest are aggregated into "Other"
  */
-function processDataIntoSlices(data: PieChartDataPoint[], startAngle: number): ProcessedSlice[] {
+function processDataIntoSlices(data: PieChartDataPoint[], startAngle: number, lastSliceLabel: string): ProcessedSlice[] {
     if (data.length === 0) {
         return [];
     }
@@ -83,7 +84,7 @@ function processDataIntoSlices(data: PieChartDataPoint[], startAngle: number): P
 
         const otherColor = getChartColor(validSlices.length);
         finalSlices.push({
-            label: PIE_CHART_OTHER_LABEL,
+            label: lastSliceLabel,
             value: otherValue,
             color: otherColor,
             percentage: otherPercentage,
@@ -161,6 +162,7 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, onSliceP
     const styles = useThemeStyles();
     const [canvasSize, setCanvasSize] = useState({width: 0, height: 0});
     const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
+    const {translate} = useLocalize();
 
     // Shared values for hover state
     const isHovering = useSharedValue(false);
@@ -172,8 +174,8 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, onSliceP
         setCanvasSize({width, height});
     };
 
-    // Process data into slices with aggregation, make following code react compiler compatible
-    const processedSlices: ProcessedSlice[] = processDataIntoSlices(data, PIE_CHART_START_ANGLE);
+    // Process data into slices with aggregation, make following code react compiler compatible, and use the last slice label from the translation
+    const processedSlices: ProcessedSlice[] = processDataIntoSlices(data, PIE_CHART_START_ANGLE, translate('search.pieChartLastSlice'));
 
     // Calculate pie geometry
     const pieGeometry = {radius: Math.min(canvasSize.width, canvasSize.height) / 2, centerX: canvasSize.width / 2, centerY: canvasSize.height / 2} as const;
