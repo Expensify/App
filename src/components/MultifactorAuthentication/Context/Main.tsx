@@ -137,16 +137,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
             const nativePromptTitle = translate(nativePromptTitleTPath);
 
-            if (!registrationChallenge.challenge) {
-                dispatch({
-                    type: 'SET_ERROR',
-                    payload: {
-                        reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
-                    },
-                });
-                return;
-            }
-
             await biometrics.register({nativePromptTitle}, async (result: RegisterResult) => {
                 if (!result.success) {
                     dispatch({
