@@ -20,6 +20,9 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The bank account chosen for the card settlement */
     paymentBankAccountID: number;
 
+    /** The previous bank account chosen for the card settlement, used for reverting failed updates */
+    previousPaymentBankAccountID?: number;
+
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 

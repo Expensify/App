@@ -3086,6 +3086,381 @@ describe('actions/IOU', () => {
             expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
         });
+
+        it('creates new chat report when participant does not match existing chat report participants', () => {
+            const amount = 10000;
+            const comment = 'Test participant mismatch';
+
+            // Create an existing chat report between RORY and JULES (not CARLOS)
+            const existingChatReport: Report = {
+                reportID: '9999',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [JULES_ACCOUNT_ID]: JULES_PARTICIPANT},
+            };
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingChatReport.reportID}`, existingChatReport)
+                .then(() => {
+                    // Request money from CARLOS, but pass the existing chat report with JULES
+                    // This simulates the scenario where submit frequency is disabled and user selects a different participant
+                    requestMoney({
+                        report: existingChatReport,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant: 'Test',
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: 123,
+                        currentUserEmailParam: 'existing@example.com',
+                        policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
+                        isSelfTourViewed: false,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // A NEW chat report should be created for RORY and CARLOS
+                                    // The existing chat report between RORY and JULES should still exist
+                                    const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
+
+                                    // There should be at least 2 chat reports (existing one + new one for RORY/CARLOS)
+                                    // Plus a transaction thread
+                                    expect(chatReports.length).toBeGreaterThanOrEqual(2);
+
+                                    // Find the chat report that has RORY and CARLOS as participants
+                                    const newChatReport = chatReports.find((report) => {
+                                        const participantKeys = Object.keys(report?.participants ?? {}).map(Number);
+                                        return participantKeys.includes(RORY_ACCOUNT_ID) && participantKeys.includes(CARLOS_ACCOUNT_ID) && participantKeys.length === 2;
+                                    });
+
+                                    // The new chat report should exist and NOT be the existing one
+                                    expect(newChatReport).toBeDefined();
+                                    expect(newChatReport?.reportID).not.toBe(existingChatReport.reportID);
+
+                                    // The new chat report should have RORY and CARLOS as participants
+                                    expect(newChatReport?.participants).toEqual({
+                                        [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
+                                        [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
+                                    });
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume);
+        });
+
+        it('reuses existing chat report when participant matches chat report participants', () => {
+            const amount = 10000;
+            const comment = 'Test participant match';
+
+            // Create an existing chat report between RORY and CARLOS (matching the participant)
+            const existingChatReport: Report = {
+                reportID: '8888',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+            };
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingChatReport.reportID}`, existingChatReport)
+                .then(() => {
+                    // Request money from CARLOS with matching chat report
+                    requestMoney({
+                        report: existingChatReport,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant: 'Test',
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: 123,
+                        currentUserEmailParam: 'existing@example.com',
+                        policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
+                        isSelfTourViewed: false,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // The existing chat report should be reused
+                                    const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
+
+                                    // Find the chat report that has RORY and CARLOS as participants
+                                    const chatReportWithParticipants = chatReports.find((report) => {
+                                        const participantKeys = Object.keys(report?.participants ?? {}).map(Number);
+                                        return participantKeys.includes(RORY_ACCOUNT_ID) && participantKeys.includes(CARLOS_ACCOUNT_ID) && participantKeys.length === 2;
+                                    });
+
+                                    // The existing chat report should be reused
+                                    expect(chatReportWithParticipants?.reportID).toBe(existingChatReport.reportID);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume);
+        });
+
+        it('skips participant validation for policy expense chat participant', () => {
+            const amount = 10000;
+            const comment = 'Test policy expense chat';
+            const policyID = 'policy123';
+
+            // Create a policy expense chat report
+            const policyExpenseChatReport: Report = {
+                reportID: '7777',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT},
+            };
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChatReport.reportID}`, policyExpenseChatReport)
+                .then(() => {
+                    // Request money with isPolicyExpenseChat: true - should skip participant validation
+                    requestMoney({
+                        report: policyExpenseChatReport,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: policyExpenseChatReport.reportID},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant: 'Test',
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: 123,
+                        currentUserEmailParam: 'existing@example.com',
+                        policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
+                        isSelfTourViewed: false,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // The policy expense chat report should be reused (participant validation skipped)
+                                    const policyExpenseChats = Object.values(allReports ?? {}).filter((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+                                    // The original policy expense chat should still exist
+                                    expect(policyExpenseChats.some((report) => report?.reportID === policyExpenseChatReport.reportID)).toBe(true);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume);
+        });
+
+        it('skips participant validation when chatReport is a Policy Expense Chat', () => {
+            const amount = 10000;
+            const comment = 'Test chatReport is policy expense chat';
+            const policyID = 'policy456';
+
+            // Create a policy expense chat report (the chatReport itself is a policy expense chat)
+            const policyExpenseChatReport: Report = {
+                reportID: '6666',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [JULES_ACCOUNT_ID]: JULES_PARTICIPANT},
+            };
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChatReport.reportID}`, policyExpenseChatReport)
+                .then(() => {
+                    // Request money from CARLOS but passing a policy expense chat report with different participants (JULES)
+                    // Since the chatReport is a policy expense chat, participant validation should be skipped
+                    requestMoney({
+                        report: policyExpenseChatReport,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant: 'Test',
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: 123,
+                        currentUserEmailParam: 'existing@example.com',
+                        policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
+                        isSelfTourViewed: false,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // Even though participants don't match (JULES vs CARLOS),
+                                    // since the chatReport is a policy expense chat, it should be reused
+                                    // (no new 1:1 DM chat should be created for this case)
+                                    const policyExpenseChats = Object.values(allReports ?? {}).filter((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+                                    // The policy expense chat should still exist
+                                    expect(policyExpenseChats.some((report) => report?.reportID === policyExpenseChatReport.reportID)).toBe(true);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume);
+        });
+
+        it('skips participant validation for self-DM report with accountID 0', () => {
+            const amount = 10000;
+            const comment = 'Test self-DM track expense';
+
+            // Create a self-DM report (Your Space)
+            const selfDMReport: Report = {
+                reportID: '5555',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT},
+            };
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport)
+                .then(() => {
+                    // Track expense in self-DM with accountID: 0 (as getMoneyRequestParticipantsFromReport does)
+                    // This simulates the scenario where user starts an expense from "Your Space"
+                    requestMoney({
+                        report: selfDMReport,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            // accountID: 0 is used for self-DM participants (represents the report itself, not another user)
+                            participant: {accountID: 0, reportID: selfDMReport.reportID, isPolicyExpenseChat: false},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant: 'Test',
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                        currentUserEmailParam: RORY_EMAIL,
+                        policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
+                        isSelfTourViewed: false,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // The self-DM report should be reused (participant validation should be skipped)
+                                    // No new 1:1 DM chat with accountID 0 should be created
+                                    const selfDMReports = Object.values(allReports ?? {}).filter((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM);
+
+                                    // The original self-DM report should still exist
+                                    expect(selfDMReports.some((report) => report?.reportID === selfDMReport.reportID)).toBe(true);
+
+                                    // There should NOT be a new invalid chat report with accountID 0 participant
+                                    const chatReportsWithZeroParticipant = Object.values(allReports ?? {}).filter((report) => {
+                                        if (report?.type !== CONST.REPORT.TYPE.CHAT || report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM) {
+                                            return false;
+                                        }
+                                        const participantKeys = Object.keys(report?.participants ?? {}).map(Number);
+                                        return participantKeys.includes(0);
+                                    });
+
+                                    // No chat reports should have accountID 0 as a participant (that would be invalid)
+                                    expect(chatReportsWithZeroParticipant.length).toBe(0);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume);
+        });
     });
 
     describe('createDistanceRequest', () => {

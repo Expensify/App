@@ -6242,13 +6242,11 @@ describe('SearchUIUtils', () => {
     });
 
     describe('view autocomplete values', () => {
-        test('should include all view values (table, bar, line, pie)', () => {
+        test('should include all view values (table, bar)', () => {
             const viewValues = Object.values(CONST.SEARCH.VIEW);
             expect(viewValues).toContain('table');
             expect(viewValues).toContain('bar');
-            expect(viewValues).toContain('line');
-            expect(viewValues).toContain('pie');
-            expect(viewValues).toHaveLength(4);
+            expect(viewValues).toHaveLength(2);
         });
 
         test('should correctly map view values to user-friendly values', () => {
@@ -6256,7 +6254,7 @@ describe('SearchUIUtils', () => {
             const userFriendlyValues = viewValues.map((value) => getUserFriendlyValue(value));
 
             // All view values should be mapped (they may be the same or different)
-            expect(userFriendlyValues).toHaveLength(4);
+            expect(userFriendlyValues).toHaveLength(2);
             expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
         });
     });
