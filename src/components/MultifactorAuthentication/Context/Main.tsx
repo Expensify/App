@@ -126,8 +126,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
-            // Check if soft prompt is needed (soft prompt not answered + device supports)
-            const isSoftPromptRequired = !softPromptApproved && biometrics.info.deviceSupportsBiometrics;
+            // Check if soft prompt is needed (device support already verified above)
+            const isSoftPromptRequired = !softPromptApproved;
 
             if (isSoftPromptRequired) {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS), {forceReplace: true});
