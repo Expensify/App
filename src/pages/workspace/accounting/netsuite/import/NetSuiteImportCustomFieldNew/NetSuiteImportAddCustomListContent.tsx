@@ -78,7 +78,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, route}: NetSui
 
     const goBackToConfirmStep = () => {
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(route.params.policyID, CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.CONFIRM));
-    }
+    };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
