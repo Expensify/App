@@ -33,6 +33,7 @@ import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate} fr
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {AnchorPosition} from '@styles/index';
 import colors from '@styles/theme/colors';
@@ -60,7 +61,7 @@ function SecuritySettingsPage() {
     const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
@@ -240,8 +241,8 @@ function SecuritySettingsPage() {
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
-        () =>
-            delegates
+        () => {
+            const menuItems = delegates
                 .filter((d) => !d.optimisticAccountID)
                 .map(({email, role, pendingAction, pendingFields}) => {
                     const personalDetail = getPersonalDetailByEmail(email);
@@ -284,14 +285,16 @@ function SecuritySettingsPage() {
                         onPress,
                         success: selectedEmail === email,
                     };
-                }),
+                });
+            return sortAlphabetically(menuItems, 'title', localeCompare);
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail, icons.FallbackAvatar, icons.ThreeDots],
+        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail, icons.FallbackAvatar, icons.ThreeDots, localeCompare],
     );
 
     const delegatorMenuItems: MenuItemProps[] = useMemo(
-        () =>
-            delegators.map(({email, role}) => {
+        () => {
+            const menuItems = delegators.map(({email, role}) => {
                 const personalDetail = getPersonalDetailByEmail(email);
                 const formattedEmail = formatPhoneNumber(email);
 
@@ -306,9 +309,11 @@ function SecuritySettingsPage() {
                     wrapperStyle: [styles.sectionMenuItemTopDescription],
                     interactive: false,
                 };
-            }),
+            });
+            return sortAlphabetically(menuItems, 'title', localeCompare);
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [delegators, styles, translate, personalDetails, icons.FallbackAvatar],
+        [delegators, styles, translate, personalDetails, icons.FallbackAvatar, localeCompare],
     );
 
     const delegatePopoverMenuItems: PopoverMenuItem[] = [
