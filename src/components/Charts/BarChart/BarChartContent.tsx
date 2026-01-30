@@ -259,6 +259,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                             lineWidth: X_AXIS_LINE_WIDTH,
                             formatXLabel: formatXAxisLabel,
                             labelRotate: labelRotation,
+                            labelOverflow: 'visible',
                         }}
                         yAxis={[
                             {
