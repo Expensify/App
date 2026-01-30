@@ -567,6 +567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         address: 'Adres',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: 'Overslaan',
         chatWithAccountManager: (accountManagerDisplayName: string) => `Iets specifieks nodig? Chat met je accountmanager, ${accountManagerDisplayName}.`,
         chatNow: 'Nu chatten',
@@ -643,6 +644,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Maand',
         home: 'Start',
         week: 'Week',
+        year: 'Jaar',
+        quarter: 'Kwartaal',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1052,6 +1055,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bevestig hieronder de details voor de ${count} nieuwe werkruimteleden die als onderdeel van deze upload zullen worden toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transacties zijn geïmporteerd.` : '1 transactie is geïmporteerd.',
     },
     receipt: {
         upload: 'Bon uploaden',
@@ -2154,7 +2159,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Voeg een bankrekening toe om betalingen te doen of te ontvangen.',
         addDebitOrCreditCard: 'Debit- of kredietkaart toevoegen',
         assignedCards: 'Toegewezen kaarten',
-        assignedCardsDescription: 'Dit zijn kaarten die door een workspacebeheerder zijn toegewezen om de uitgaven van het bedrijf te beheren.',
+        assignedCardsDescription: 'Transacties van deze kaarten worden automatisch gesynchroniseerd.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: 'We beoordelen je gegevens. Kom over een paar minuten terug!',
         walletActivationFailed: 'Helaas kan je wallet op dit moment niet worden ingeschakeld. Chat alsjeblieft met Concierge voor verdere hulp.',
@@ -2187,6 +2192,9 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Deze kaart bundelt uitgaven zoals vliegtickets, treinreizen, autoverhuur en soms hotels in één enkele rekening.',
             instructions: 'Je wordt gevraagd om de laatste 4 cijfers. Je kunt ze hieronder weergeven met de knop.',
         },
+        deleteCard: 'Kaart verwijderen',
+        deleteCardConfirmation:
+            'Alle niet-ingediende kaarttransacties, inclusief die in openstaande rapporten, worden verwijderd. Weet je zeker dat je deze kaart wilt verwijderen? Je kunt deze actie niet ongedaan maken.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2217,6 +2225,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Verdachte transactie',
         suspiciousBannerDescription: 'We hebben verdachte transacties op uw kaart opgemerkt. Tik hieronder om ze te bekijken.',
         cardLocked: 'Je kaart is tijdelijk geblokkeerd terwijl ons team het account van je bedrijf controleert.',
+        markTransactionsAsReimbursable: 'Transacties markeren als vergoedbaar',
+        markTransactionsDescription: 'Indien ingeschakeld, worden transacties die van deze kaart zijn geïmporteerd standaard als terugbetaalbaar gemarkeerd.',
         cardDetails: {
             cardNumber: 'Virtueel kaartnummer',
             expiration: 'Vervaldatum',
@@ -4943,6 +4953,15 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             editStartDateDescription:
                 'Kies een nieuwe startdatum voor transacties. We synchroniseren alle transacties vanaf die datum, met uitzondering van de transacties die we al hebben geïmporteerd.',
             unassignCardFailedError: 'Kaartontkoppeling mislukt.',
+            importTransactions: {
+                title: 'Transacties importeren uit bestand',
+                description: 'Pas de instellingen voor je bestand aan die bij het importeren worden toegepast.',
+                cardDisplayName: 'Kaartweergavenaam',
+                currency: 'Valuta',
+                transactionsAreReimbursable: 'Transacties zijn terugbetaalbaar',
+                flipAmountSign: 'Teken van bedrag omdraaien',
+                importButton: 'Transacties importeren',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kan kaartfeeds niet laden',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -6969,6 +6988,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
             limit: 'Limiet',
+            limitDescription: 'Stel een limiet in voor de resultaten van je zoekopdracht.',
             currency: 'Valuta',
             completed: 'Voltooid',
             amount: {
@@ -7007,6 +7027,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaar',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartaal',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7047,6 +7069,19 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
         topSpenders: 'Grootste uitgaven',
+        view: {label: 'Bekijken', table: 'Tabel', bar: 'Bar'},
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Kaarten',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exporten',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorieën',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Handelaars',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Maanden',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Weken',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaren',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
+        },
     },
     genericErrorPage: {
         title: 'O jee, er is iets misgegaan!',
@@ -8233,6 +8268,14 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
                 allCaughtUp: 'Je bent helemaal bij',
                 upcomingTodos: 'Aankomende taken verschijnen hier.',
             },
+        },
+        timeSensitiveSection: {
+            title: 'Tijdgevoelig',
+            cta: 'Declaratie',
+            offer50off: {title: 'Krijg 50% korting op je eerste jaar!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} resterend`},
+            offer25off: {title: 'Krijg 25% korting op je eerste jaar!', subtitle: ({days}: {days: number}) => `Nog ${days} ${days === 1 ? 'dag' : 'dagen'} resterend`},
+            addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Voer een adres in om je Expensify Card te ontvangen.', cta: 'Adres toevoegen'},
+            activateCard: {title: 'Activeer je Expensify Card', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
         },
     },
 };

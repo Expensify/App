@@ -567,6 +567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         address: 'Endereço',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: 'Pular',
         chatWithAccountManager: (accountManagerDisplayName: string) => `Precisa de algo específico? Converse com seu gerente de conta, ${accountManagerDisplayName}.`,
         chatNow: 'Conversar agora',
@@ -642,6 +643,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Mês',
         home: 'Início',
         week: 'Semana',
+        year: 'Ano',
+        quarter: 'Trimestre',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -1051,6 +1054,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Confirme os detalhes abaixo para os ${count} novos membros do workspace que serão adicionados como parte deste upload. Membros existentes não receberão nenhuma atualização de função nem mensagens de convite.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transações foram importadas.` : '1 transação foi importada.',
     },
     receipt: {
         upload: 'Enviar recibo',
@@ -2151,7 +2156,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Adicione uma conta bancária para fazer ou receber pagamentos.',
         addDebitOrCreditCard: 'Adicionar cartão de débito ou crédito',
         assignedCards: 'Cartões atribuídos',
-        assignedCardsDescription: 'Estes são cartões atribuídos por um administrador do workspace para gerenciar os gastos da empresa.',
+        assignedCardsDescription: 'As transações desses cartões são sincronizadas automaticamente.',
         expensifyCard: 'Cartão Expensify',
         walletActivationPending: 'Estamos analisando suas informações. Volte daqui a alguns minutos!',
         walletActivationFailed: 'Infelizmente, sua carteira não pode ser ativada neste momento. Converse com o Concierge para obter mais assistência.',
@@ -2182,6 +2187,9 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Este cartão consolida despesas como passagens aéreas, trem, aluguel de carros e, às vezes, hotéis em uma única conta.',
             instructions: 'Será solicitado que você informe os últimos 4 dígitos. Você pode revelá-los abaixo usando o botão.',
         },
+        deleteCard: 'Excluir cartão',
+        deleteCardConfirmation:
+            'Todas as transações de cartão não enviadas, incluindo aquelas em relatórios em aberto, serão removidas. Tem certeza de que deseja excluir este cartão? Esta ação não pode ser desfeita.',
     },
     cardPage: {
         expensifyCard: 'Cartão Expensify',
@@ -2212,6 +2220,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Transação suspeita',
         suspiciousBannerDescription: 'Notamos transações suspeitas no seu cartão. Toque abaixo para revisar.',
         cardLocked: 'Seu cartão está temporariamente bloqueado enquanto nossa equipe analisa a conta da sua empresa.',
+        markTransactionsAsReimbursable: 'Marcar transações como reembolsáveis',
+        markTransactionsDescription: 'Quando ativado, as transações importadas deste cartão são marcadas como reembolsáveis por padrão.',
         cardDetails: {
             cardNumber: 'Número do cartão virtual',
             expiration: 'Vencimento',
@@ -4931,6 +4941,15 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Escolha uma nova data de início das transações. Vamos sincronizar todas as transações a partir dessa data, excluindo aquelas que já importamos.',
             unassignCardFailedError: 'Falha ao desatribuir o cartão.',
+            importTransactions: {
+                title: 'Importar transações do arquivo',
+                description: 'Ajuste as configurações do seu arquivo que serão aplicadas na importação.',
+                cardDisplayName: 'Nome exibido no cartão',
+                currency: 'Moeda',
+                transactionsAreReimbursable: 'As transações são reembolsáveis',
+                flipAmountSign: 'Inverter o sinal do valor',
+                importButton: 'Importar transações',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Não foi possível carregar os feeds do cartão',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar os feeds de cartões do workspace. Tente novamente ou entre em contato com o administrador.',
@@ -6959,6 +6978,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             keyword: 'Palavra-chave',
             keywords: 'Palavras-chave',
             limit: 'Limite',
+            limitDescription: 'Defina um limite para os resultados da sua pesquisa.',
             currency: 'Moeda',
             completed: 'Concluído',
             amount: {
@@ -6997,6 +7017,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Ano',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7037,6 +7059,19 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
         },
         topSpenders: 'Maiores gastadores',
+        view: {label: 'Ver', table: 'Tabela', bar: 'Bar'},
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'De',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Cartões',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exportações',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorias',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Comerciantes',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Meses',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Semanas',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Anos',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
+        },
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',
@@ -8228,6 +8263,14 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
                 allCaughtUp: 'Você está em dia',
                 upcomingTodos: 'Próximas tarefas aparecerão aqui.',
             },
+        },
+        timeSensitiveSection: {
+            title: 'Urgente',
+            cta: 'Solicitação',
+            offer50off: {title: 'Ganhe 50% de desconto no seu primeiro ano!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} restante`},
+            offer25off: {title: 'Ganhe 25% de desconto no seu primeiro ano!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'dia' : 'dias'} restantes`},
+            addShippingAddress: {title: 'Precisamos do seu endereço de entrega', subtitle: 'Forneça um endereço para receber seu Expensify Card.', cta: 'Adicionar endereço'},
+            activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
         },
     },
 };

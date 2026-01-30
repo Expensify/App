@@ -15,10 +15,12 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Navigation from '@navigation/Navigation';
@@ -1869,62 +1871,6 @@ const transactionMerchantGroupListItemsSorted: TransactionMerchantGroupListItemT
     },
 ];
 
-const searchResultsGroupByWeek: OnyxTypes.SearchResults = {
-    data: {
-        personalDetailsList: {},
-        [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {
-            week: '2026-01-25',
-            count: 5,
-            currency: 'USD',
-            total: 250,
-        },
-        [`${CONST.SEARCH.GROUP_PREFIX}2025-12-28` as const]: {
-            week: '2025-12-28',
-            count: 3,
-            currency: 'USD',
-            total: 75,
-        },
-    },
-    search: {
-        count: 8,
-        currency: 'USD',
-        hasMoreResults: false,
-        hasResults: true,
-        offset: 0,
-        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-        total: 325,
-        isLoading: false,
-        type: 'expense',
-    },
-};
-
-// Note: formattedWeek uses DateUtils.getFormattedDateRangeForSearch which returns a date range format
-// For week starting 2026-01-25 (Sunday), it would format as "Jan 25 - Jan 31, 2026" (if same year)
-// or "Jan 25, 2026 - Feb 1, 2026" (if different year)
-// We'll use a placeholder that matches the actual format
-const transactionWeekGroupListItems: TransactionWeekGroupListItemType[] = [
-    {
-        week: '2026-01-25',
-        count: 5,
-        currency: 'USD',
-        total: 250,
-        groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-        formattedWeek: 'Jan 25 - Jan 31, 2026',
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-    {
-        week: '2025-12-28',
-        count: 3,
-        currency: 'USD',
-        total: 75,
-        groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-        formattedWeek: 'Dec 28, 2025 - Jan 3, 2026',
-        transactions: [],
-        transactionsQueryJSON: undefined,
-    },
-];
-
 const searchResultsGroupByMonth: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {},
@@ -1956,32 +1902,94 @@ const searchResultsGroupByMonth: OnyxTypes.SearchResults = {
     },
 };
 
-const transactionMonthGroupListItems: TransactionMonthGroupListItemType[] = [
-    {
-        year: 2026,
-        month: 1,
-        count: 5,
-        currency: 'USD',
-        total: 250,
-        groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
-        formattedMonth: 'January 2026',
-        sortKey: 202601,
-        transactions: [],
-        transactionsQueryJSON: undefined,
+const searchResultsGroupByYear: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}2026` as const]: {
+            year: 2026,
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}2025` as const]: {
+            year: 2025,
+            count: 3,
+            currency: 'USD',
+            total: 75,
+        },
     },
-    {
-        year: 2025,
-        month: 12,
-        count: 3,
+    search: {
+        count: 8,
         currency: 'USD',
-        total: 75,
-        groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
-        formattedMonth: 'December 2025',
-        sortKey: 202512,
-        transactions: [],
-        transactionsQueryJSON: undefined,
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 325,
+        isLoading: false,
+        type: 'expense',
     },
-];
+};
+
+const searchResultsGroupByQuarter: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {
+            year: 2026,
+            quarter: 1,
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}2025_4` as const]: {
+            year: 2025,
+            quarter: 4,
+            count: 3,
+            currency: 'USD',
+            total: 75,
+        },
+    },
+    search: {
+        count: 8,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 325,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
+const searchResultsGroupByWeek: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {
+            week: '2026-01-25',
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}2025-12-21` as const]: {
+            week: '2025-12-21',
+            count: 3,
+            currency: 'USD',
+            total: 75,
+        },
+    },
+    search: {
+        count: 8,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+        total: 325,
+        isLoading: false,
+        type: 'expense',
+    },
+};
 
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
@@ -2695,6 +2703,33 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getMonthSections result when type is EXPENSE and groupBy is month', () => {
+            const transactionMonthGroupListItems: TransactionMonthGroupListItemType[] = [
+                {
+                    year: 2026,
+                    month: 1,
+                    count: 5,
+                    currency: 'USD',
+                    total: 250,
+                    groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+                    formattedMonth: 'January 2026',
+                    sortKey: 202601,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    year: 2025,
+                    month: 12,
+                    count: 3,
+                    currency: 'USD',
+                    total: 75,
+                    groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+                    formattedMonth: 'December 2025',
+                    sortKey: 202512,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+            ];
+
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -2796,7 +2831,252 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isTransactionWeekGroupListItemType(weekItem)).toBe(true);
         });
 
+        it('should return getYearSections result when type is EXPENSE and groupBy is year', () => {
+            const transactionYearGroupListItems: TransactionYearGroupListItemType[] = [
+                {
+                    year: 2026,
+                    count: 5,
+                    currency: 'USD',
+                    total: 250,
+                    groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
+                    formattedYear: '2026',
+                    sortKey: 2026,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    year: 2025,
+                    count: 3,
+                    currency: 'USD',
+                    total: 75,
+                    groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
+                    formattedYear: '2025',
+                    sortKey: 2025,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+            ];
+
+            expect(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByYear.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    groupBy: CONST.SEARCH.GROUP_BY.YEAR,
+                    allReportMetadata: {},
+                })[0],
+            ).toStrictEqual(transactionYearGroupListItems);
+        });
+
+        it('should format year names correctly', () => {
+            const dataWithDifferentYears: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026` as const]: {
+                    year: 2026,
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}2024` as const]: {
+                    year: 2024,
+                    count: 1,
+                    currency: 'USD',
+                    total: 25,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithDifferentYears,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.YEAR,
+                allReportMetadata: {},
+            }) as [TransactionYearGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.formattedYear === '2026')).toBe(true);
+            expect(result.some((item) => item.formattedYear === '2024')).toBe(true);
+        });
+
+        it('should calculate sortKey correctly for year groups', () => {
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByYear.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.YEAR,
+                allReportMetadata: {},
+            }) as [TransactionYearGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.sortKey === 2026)).toBe(true);
+            expect(result.some((item) => item.sortKey === 2025)).toBe(true);
+        });
+
+        it('should return isTransactionYearGroupListItemType true for year group items', () => {
+            const yearItem: TransactionYearGroupListItemType = {
+                year: 2026,
+                count: 5,
+                currency: 'USD',
+                total: 250,
+                groupedBy: CONST.SEARCH.GROUP_BY.YEAR,
+                formattedYear: '2026',
+                sortKey: 2026,
+                transactions: [],
+                transactionsQueryJSON: undefined,
+            };
+
+            expect(SearchUIUtils.isTransactionYearGroupListItemType(yearItem)).toBe(true);
+        });
+
+        it('should return getQuarterSections result when type is EXPENSE and groupBy is quarter', () => {
+            const transactionQuarterGroupListItems: TransactionQuarterGroupListItemType[] = [
+                {
+                    year: 2026,
+                    quarter: 1,
+                    count: 5,
+                    currency: 'USD',
+                    total: 250,
+                    groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                    formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                    sortKey: 20261,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    year: 2025,
+                    quarter: 4,
+                    count: 3,
+                    currency: 'USD',
+                    total: 75,
+                    groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                    formattedQuarter: 'Q4 2025 (Oct 1 - Dec 31)',
+                    sortKey: 20254,
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+            ];
+
+            expect(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByQuarter.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                    allReportMetadata: {},
+                })[0],
+            ).toStrictEqual(transactionQuarterGroupListItems);
+        });
+
+        it('should format quarter names correctly', () => {
+            const dataWithDifferentQuarters: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {
+                    year: 2026,
+                    quarter: 1,
+                    count: 2,
+                    currency: 'USD',
+                    total: 50,
+                },
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_3` as const]: {
+                    year: 2026,
+                    quarter: 3,
+                    count: 1,
+                    currency: 'USD',
+                    total: 25,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: dataWithDifferentQuarters,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                allReportMetadata: {},
+            }) as [TransactionQuarterGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1 - Mar 31)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1 - Sep 30)')).toBe(true);
+        });
+
+        it('should calculate sortKey correctly for quarter groups', () => {
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByQuarter.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                allReportMetadata: {},
+            }) as [TransactionQuarterGroupListItemType[], number];
+
+            expect(result).toHaveLength(2);
+            expect(result.some((item) => item.sortKey === 20261)).toBe(true);
+            expect(result.some((item) => item.sortKey === 20254)).toBe(true);
+        });
+
+        it('should return isTransactionQuarterGroupListItemType true for quarter group items', () => {
+            const quarterItem: TransactionQuarterGroupListItemType = {
+                year: 2026,
+                quarter: 1,
+                count: 5,
+                currency: 'USD',
+                total: 250,
+                groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                sortKey: 20261,
+                transactions: [],
+                transactionsQueryJSON: undefined,
+            };
+
+            expect(SearchUIUtils.isTransactionQuarterGroupListItemType(quarterItem)).toBe(true);
+        });
         it('should return getWeekSections result when type is EXPENSE and groupBy is week', () => {
+            const transactionWeekGroupListItems: TransactionWeekGroupListItemType[] = [
+                {
+                    week: '2026-01-25',
+                    count: 5,
+                    currency: 'USD',
+                    total: 250,
+                    groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    formattedWeek: 'Jan 25 - Jan 31, 2026',
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+                {
+                    week: '2025-12-21',
+                    count: 3,
+                    currency: 'USD',
+                    total: 75,
+                    groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    formattedWeek: 'Dec 21 - Dec 27, 2025',
+                    transactions: [],
+                    transactionsQueryJSON: undefined,
+                },
+            ];
+
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4761,6 +5041,110 @@ describe('SearchUIUtils', () => {
             const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response2.export).toBe(true);
         });
+
+        test('Should show Top Categories when areCategoriesEnabled is true', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(true);
+        });
+
+        test('Should hide Top Categories when areCategoriesEnabled is false', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
+
+        test('Should not show Top Categories when areCategoriesEnabled is undefined', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: undefined,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
+
+        test('Should not show Top Categories for free policies even if categories are enabled', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
+
+        test('Should show Top Categories if at least one policy has categories enabled', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policyOne: {
+                    id: 'policyOne',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+                policyTwo: {
+                    id: 'policyTwo',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(true);
+        });
+
+        test('Should hide Top Categories if all policies have categories disabled', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policyOne: {
+                    id: 'policyOne',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+                policyTwo: {
+                    id: 'policyTwo',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
     });
 
     describe('Test getColumnsToShow', () => {
@@ -5858,13 +6242,11 @@ describe('SearchUIUtils', () => {
     });
 
     describe('view autocomplete values', () => {
-        test('should include all view values (table, bar, line, pie)', () => {
+        test('should include all view values (table, bar)', () => {
             const viewValues = Object.values(CONST.SEARCH.VIEW);
             expect(viewValues).toContain('table');
             expect(viewValues).toContain('bar');
-            expect(viewValues).toContain('line');
-            expect(viewValues).toContain('pie');
-            expect(viewValues).toHaveLength(4);
+            expect(viewValues).toHaveLength(2);
         });
 
         test('should correctly map view values to user-friendly values', () => {
@@ -5872,7 +6254,7 @@ describe('SearchUIUtils', () => {
             const userFriendlyValues = viewValues.map((value) => getUserFriendlyValue(value));
 
             // All view values should be mapped (they may be the same or different)
-            expect(userFriendlyValues).toHaveLength(4);
+            expect(userFriendlyValues).toHaveLength(2);
             expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
         });
     });

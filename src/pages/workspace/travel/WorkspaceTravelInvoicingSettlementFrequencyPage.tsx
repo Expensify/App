@@ -19,13 +19,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceTravelSettlementFrequencyPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY>;
+type WorkspaceTravelInvoicingSettlementFrequencyPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY>;
 
 type FrequencyItem = ListItem & {
     value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>;
 };
 
-function WorkspaceTravelSettlementFrequencyPage({route}: WorkspaceTravelSettlementFrequencyPageProps) {
+function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTravelInvoicingSettlementFrequencyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
@@ -60,7 +60,7 @@ function WorkspaceTravelSettlementFrequencyPage({route}: WorkspaceTravelSettleme
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={WorkspaceTravelSettlementFrequencyPage.displayName}
+            testID="WorkspaceTravelInvoicingSettlementFrequencyPage"
         >
             <HeaderWithBackButton
                 title={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementFrequencyLabel')}
@@ -81,6 +81,4 @@ function WorkspaceTravelSettlementFrequencyPage({route}: WorkspaceTravelSettleme
     );
 }
 
-WorkspaceTravelSettlementFrequencyPage.displayName = 'WorkspaceTravelSettlementFrequencyPage';
-
-export default WorkspaceTravelSettlementFrequencyPage;
+export default WorkspaceTravelInvoicingSettlementFrequencyPage;

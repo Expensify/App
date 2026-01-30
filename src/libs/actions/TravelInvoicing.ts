@@ -5,6 +5,7 @@ import * as API from '@libs/API';
 import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams, UpdateTravelInvoicingSettlementFrequencyParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -55,8 +56,7 @@ function openPolicyTravelPage(policyID: string, workspaceAccountID: number) {
  * Updates the paymentBankAccountID in the Travel Invoicing card settings.
  */
 function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountID: number, settlementBankAccountID: number, previousPaymentBankAccountID?: number) {
-    const cardSettingsKey =
-        `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${string}`;
+    const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
@@ -126,23 +126,12 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
  * Also resets the paymentBankAccountID to the previous valid value (or null if none existed).
  */
 function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number, paymentBankAccountID: number | null) {
-    const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`,
-            value: {
-                errorFields: {
-                    paymentBankAccountID: null,
-                },
-                pendingFields: {
-                    paymentBankAccountID: null,
-                },
-                paymentBankAccountID,
-                previousPaymentBankAccountID: null,
-            },
-        },
-    ];
-    Onyx.update(onyxData);
+    Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
+        errors: null,
+        pendingAction: null,
+        paymentBankAccountID,
+        previousPaymentBankAccountID: null,
+    });
 }
 
 /**
@@ -156,8 +145,7 @@ function updateTravelInvoiceSettlementFrequency(
     frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
     currentMonthlySettlementDate?: Date,
 ) {
-    const cardSettingsKey =
-        `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${string}`;
+    const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
     // If Monthly, set date (optimistically today). If Daily, set null.
     const monthlySettlementDate = frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY ? new Date() : null;
@@ -229,21 +217,15 @@ function updateTravelInvoiceSettlementFrequency(
  * Clears any errors from the Travel Invoicing settlement frequency settings.
  */
 function clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID: number, monthlySettlementDate: Date | null | undefined) {
-    const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`,
-            value: {
-                errors: null,
-                errorFields: {
-                    monthlySettlementDate: null,
-                },
-                monthlySettlementDate: monthlySettlementDate ?? null,
-                previousMonthlySettlementDate: null,
-            },
+    Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
+        errors: null,
+        errorFields: {
+            monthlySettlementDate: null,
         },
-    ];
-    Onyx.update(onyxData);
+        pendingAction: null,
+        monthlySettlementDate: monthlySettlementDate ?? null,
+        previousMonthlySettlementDate: null,
+    });
 }
 
 export {

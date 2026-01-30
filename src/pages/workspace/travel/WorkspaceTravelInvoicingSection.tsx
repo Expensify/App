@@ -18,6 +18,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     getIsTravelInvoicingEnabled,
+    getTravelInvoicingCardSettingsKey,
     getTravelLimit,
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
@@ -54,7 +55,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // For Travel Invoicing, we use a travel-specific card settings key
     // The format is: private_expensifyCardSettings_{workspaceAccountID}_{feedType}
     // where feedType is PROGRAM_TRAVEL_US for Travel Invoicing
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID), {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     // Use pure selectors to derive state
@@ -139,7 +140,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     >
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.settlementAccountLabel')}
-                            title={settlementAccountNumber || translate('common.none')}
+                            title={settlementAccountNumber}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             titleStyle={settlementAccountNumber ? styles.textNormalThemeText : styles.colorMuted}

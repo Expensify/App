@@ -11,6 +11,7 @@ import type UpdateBeneficialOwnersForBankAccountParams from './parameters/Update
 type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
+    IMPORT_CSV_TRANSACTIONS: 'ImportCSVTransactions',
     CLEAN_POLICY_TAGS: 'ClearPolicyTags',
     IMPORT_MULTI_LEVEL_TAGS: 'ImportMultiLevelTags',
     SET_WORKSPACE_AUTO_HARVESTING: 'SetWorkspaceAutoHarvesting',
@@ -49,6 +50,7 @@ const WRITE_COMMANDS = {
     UPDATE_EXPENSIFY_CARD_TITLE: 'UpdateExpensifyCardTitle',
     UPDATE_EXPENSIFY_CARD_LIMIT_TYPE: 'UpdateExpensifyCardLimitType',
     CARD_DEACTIVATE: 'Card_Deactivate',
+    DELETE_PERSONAL_CARD: 'DeleteCard',
     CHRONOS_REMOVE_OOO_EVENT: 'Chronos_RemoveOOOEvent',
     MAKE_DEFAULT_PAYMENT_METHOD: 'MakeDefaultPaymentMethod',
     TOGGLE_WORKSPACE_UBER_AUTO_INVITE: 'ToggleWorkspaceUberAutoInvite',
@@ -490,10 +492,11 @@ const WRITE_COMMANDS = {
     OPEN_POLICY_ADD_CARD_FEED_PAGE: 'OpenPolicyAddCardFeedPage',
     SET_FEED_STATEMENT_PERIOD_END_DAY: 'SetFeedStatementPeriodEndDay',
     ASSIGN_COMPANY_CARD: 'AssignCard',
-    UNASSIGN_COMPANY_CARD: 'UnassignCard',
-    UPDATE_COMPANY_CARD: 'SyncCard',
+    UNASSIGN_CARD: 'UnassignCard',
+    SYNC_CARD: 'SyncCard',
     UPDATE_COMPANY_CARD_NAME: 'SetCardName',
     UPDATE_CARD_TRANSACTION_START_DATE: 'UpdateCardTransactionStartDate',
+    SET_PERSONAL_CARD_REIMBURSABLE: 'SetPersonalCardReimbursable',
     SET_CARD_EXPORT_ACCOUNT: 'SetCardExportAccount',
     SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS: 'SetPersonalDetailsAndShipExpensifyCards',
     SET_INVOICING_TRANSFER_BANK_ACCOUNT: 'SetInvoicingTransferBankAccount',
@@ -550,6 +553,7 @@ const WRITE_COMMANDS = {
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
 
 type WriteCommandParameters = {
+    [WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS]: Parameters.ImportCSVTransactionsParams;
     [WRITE_COMMANDS.CLEAN_POLICY_TAGS]: Parameters.CleanPolicyTagsParams;
     [WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS]: Parameters.ImportMultiLevelTagsParams;
     [WRITE_COMMANDS.DISMISS_REFERRAL_BANNER]: Parameters.DismissReferralBannerParams;
@@ -573,6 +577,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE]: Parameters.UpdateExpensifyCardTitleParams;
     [WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE]: Parameters.UpdateExpensifyCardLimitTypeParams;
     [WRITE_COMMANDS.CARD_DEACTIVATE]: Parameters.CardDeactivateParams;
+    [WRITE_COMMANDS.DELETE_PERSONAL_CARD]: Parameters.DeletePersonalCardParams;
     [WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD]: Parameters.MakeDefaultPaymentMethodParams;
     [WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_INVITE]: Parameters.TogglePolicyUberAutoInvitePageParams;
     [WRITE_COMMANDS.SET_WORKSPACE_UBER_CENTRAL_BILL]: Parameters.ChangePolicyUberBillingAccountPageParams;
@@ -615,10 +620,11 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_COMPANY_CARD_FEED_NAME]: Parameters.SetCompanyCardFeedName;
     [WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED]: Parameters.DeleteCompanyCardFeed;
     [WRITE_COMMANDS.ASSIGN_COMPANY_CARD]: Parameters.AssignCompanyCardParams;
-    [WRITE_COMMANDS.UNASSIGN_COMPANY_CARD]: Parameters.UnassignCompanyCard;
-    [WRITE_COMMANDS.UPDATE_COMPANY_CARD]: Parameters.UpdateCompanyCard;
+    [WRITE_COMMANDS.UNASSIGN_CARD]: Parameters.UnassignCardParams;
+    [WRITE_COMMANDS.SYNC_CARD]: Parameters.SyncCardParams;
     [WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME]: Parameters.UpdateCompanyCardNameParams;
     [WRITE_COMMANDS.UPDATE_CARD_TRANSACTION_START_DATE]: Parameters.UpdateCardTransactionStartDateParams;
+    [WRITE_COMMANDS.SET_PERSONAL_CARD_REIMBURSABLE]: Parameters.SetPersonalCardReimbursableParams;
     [WRITE_COMMANDS.SET_CARD_EXPORT_ACCOUNT]: Parameters.SetCompanyCardExportAccountParams;
     [WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY]: Parameters.SetCompanyCardTransactionLiability;
     [WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE]: Parameters.OpenPolicyAddCardFeedPageParams;

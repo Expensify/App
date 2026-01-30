@@ -8,16 +8,16 @@ import {
 // We need to import API because it is used in the tests
 // eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
+import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 describe('TravelInvoicing', () => {
     let spyAPIWrite: jest.SpyInstance;
-    let spyOnyxUpdate: jest.SpyInstance;
+    let spyOnyxMerge: jest.SpyInstance;
 
     beforeEach(() => {
         spyAPIWrite = jest.spyOn(API, 'write');
-        spyOnyxUpdate = jest.spyOn(Onyx, 'update');
+        spyOnyxMerge = jest.spyOn(Onyx, 'merge');
     });
 
     afterEach(() => {
@@ -29,7 +29,7 @@ describe('TravelInvoicing', () => {
         const workspaceAccountID = 456;
         const settlementBankAccountID = 789;
         const previousPaymentBankAccountID = 111;
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
         setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, settlementBankAccountID, previousPaymentBankAccountID);
 
@@ -46,10 +46,13 @@ describe('TravelInvoicing', () => {
                         value: expect.objectContaining({
                             paymentBankAccountID: settlementBankAccountID,
                             previousPaymentBankAccountID,
+                            isLoading: true,
                             pendingFields: expect.objectContaining({
                                 paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             }),
-                            isLoading: true,
+                            errorFields: expect.objectContaining({
+                                paymentBankAccountID: null,
+                            }),
                         }),
                     }),
                 ]),
@@ -59,10 +62,13 @@ describe('TravelInvoicing', () => {
                         value: expect.objectContaining({
                             paymentBankAccountID: settlementBankAccountID,
                             previousPaymentBankAccountID: null,
+                            isLoading: false,
                             pendingFields: expect.objectContaining({
                                 paymentBankAccountID: null,
                             }),
-                            isLoading: false,
+                            errorFields: expect.objectContaining({
+                                paymentBankAccountID: null,
+                            }),
                         }),
                     }),
                 ]),
@@ -72,10 +78,13 @@ describe('TravelInvoicing', () => {
                         value: expect.objectContaining({
                             paymentBankAccountID: settlementBankAccountID,
                             previousPaymentBankAccountID,
+                            isLoading: false,
                             pendingFields: expect.objectContaining({
                                 paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             }),
-                            isLoading: false,
+                            errorFields: expect.objectContaining({
+                                paymentBankAccountID: expect.anything() as unknown,
+                            }),
                         }),
                     }),
                 ]),
@@ -86,45 +95,34 @@ describe('TravelInvoicing', () => {
     it('clearTravelInvoicingSettlementAccountErrors clears errors and pendingFields', () => {
         const workspaceAccountID = 456;
         const restoredAccountID = 111;
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
         clearTravelInvoicingSettlementAccountErrors(workspaceAccountID, restoredAccountID);
 
-        expect(spyOnyxUpdate).toHaveBeenCalledWith(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    key: cardSettingsKey,
-                    value: expect.objectContaining({
-                        errorFields: {
-                            paymentBankAccountID: null,
-                        },
-                        pendingFields: expect.objectContaining({
-                            paymentBankAccountID: null,
-                        }),
-                        paymentBankAccountID: restoredAccountID,
-                        previousPaymentBankAccountID: null,
-                    }),
-                }),
-            ]),
-        );
+        expect(spyOnyxMerge).toHaveBeenCalledWith(cardSettingsKey, {
+            errors: null,
+            pendingAction: null,
+            paymentBankAccountID: restoredAccountID,
+            previousPaymentBankAccountID: null,
+        });
     });
 
     it('clearTravelInvoicingSettlementFrequencyErrors clears errors', () => {
         const workspaceAccountID = 456;
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
-        clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, undefined);
+        const monthlySettlementDate = new Date('2026-01-01');
+        clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID, monthlySettlementDate);
 
-        expect(spyOnyxUpdate).toHaveBeenCalledWith(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    key: cardSettingsKey,
-                    value: expect.objectContaining({
-                        errors: null,
-                    }),
-                }),
-            ]),
-        );
+        expect(spyOnyxMerge).toHaveBeenCalledWith(cardSettingsKey, {
+            errors: null,
+            errorFields: {
+                monthlySettlementDate: null,
+            },
+            pendingAction: null,
+            monthlySettlementDate: monthlySettlementDate ?? null,
+            previousMonthlySettlementDate: null,
+        });
     });
 
     it('updateTravelInvoiceSettlementFrequency sends correct optimistic, success, and failure data', () => {
@@ -132,7 +130,7 @@ describe('TravelInvoicing', () => {
         const workspaceAccountID = 456;
         const frequency = CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
         const currentMonthlySettlementDate = new Date('2024-01-01');
-        const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+        const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
         // Set fake time to ensure deterministic optimistic data
         const mockDate = new Date('2024-05-20');

@@ -566,6 +566,7 @@ const translations: TranslationDeepObject<typeof en> = {
         address: 'Adresse',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: 'Überspringen',
         chatWithAccountManager: (accountManagerDisplayName: string) => `Brauchen Sie etwas Bestimmtes? Chatten Sie mit Ihrem Account Manager, ${accountManagerDisplayName}.`,
         chatNow: 'Jetzt chatten',
@@ -642,6 +643,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Monat',
         home: 'Startseite',
         week: 'Woche',
+        year: 'Jahr',
+        quarter: 'Quartal',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1054,6 +1057,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bitte bestätige die folgenden Details für die ${count} neuen Workspace-Mitglieder, die im Rahmen dieses Uploads hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladung Nachrichten.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} Transaktionen wurden importiert.` : '1 Transaktion wurde importiert.',
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -2159,7 +2164,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Fügen Sie ein Bankkonto hinzu, um Zahlungen zu senden oder zu empfangen.',
         addDebitOrCreditCard: 'Debit- oder Kreditkarte hinzufügen',
         assignedCards: 'Zugewiesene Karten',
-        assignedCardsDescription: 'Dies sind Karten, die von einem Workspace-Admin vergeben wurden, um die Ausgaben des Unternehmens zu verwalten.',
+        assignedCardsDescription: 'Transaktionen von diesen Karten werden automatisch synchronisiert.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: 'Wir überprüfen gerade Ihre Angaben. Bitte schauen Sie in ein paar Minuten noch einmal vorbei!',
         walletActivationFailed: 'Leider kann deine Wallet derzeit nicht aktiviert werden. Bitte chatte mit Concierge, um weitere Unterstützung zu erhalten.',
@@ -2191,6 +2196,9 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'Diese Karte fasst Ausgaben wie Flugtickets, Bahnfahrten, Mietwagen und manchmal auch Hotels in einem einzigen Konto zusammen.',
             instructions: 'Du wirst nach den letzten 4 Ziffern gefragt. Du kannst sie unten über den Button anzeigen.',
         },
+        deleteCard: 'Karte löschen',
+        deleteCardConfirmation:
+            'Alle nicht eingereichten Kartentransaktionen, einschließlich der auf offenen Berichten, werden entfernt. Möchten Sie diese Karte wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2221,6 +2229,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Verdächtige Transaktion',
         suspiciousBannerDescription: 'Wir haben verdächtige Transaktionen auf Ihrer Karte festgestellt. Tippen Sie unten, um sie zu überprüfen.',
         cardLocked: 'Ihre Karte ist vorübergehend gesperrt, während unser Team das Konto Ihres Unternehmens überprüft.',
+        markTransactionsAsReimbursable: 'Transaktionen als erstattungsfähig markieren',
+        markTransactionsDescription: 'Wenn aktiviert, werden von dieser Karte importierte Transaktionen standardmäßig als erstattungsfähig markiert.',
         cardDetails: {
             cardNumber: 'Virtuelle Kartennummer',
             expiration: 'Ablauf',
@@ -4961,6 +4971,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             editStartDateDescription:
                 'Wählen Sie ein neues Startdatum für Transaktionen. Wir synchronisieren alle Transaktionen ab diesem Datum, ausgenommen diejenigen, die wir bereits importiert haben.',
             unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
+            importTransactions: {
+                title: 'Transaktionen aus Datei importieren',
+                description: 'Bitte passen Sie die Einstellungen für Ihre Datei an, die beim Import angewendet werden.',
+                cardDisplayName: 'Name der Karte',
+                currency: 'Währung',
+                transactionsAreReimbursable: 'Transaktionen sind erstattungsfähig',
+                flipAmountSign: 'Vorzeichen des Betrags umkehren',
+                importButton: 'Transaktionen importieren',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kartenfeeds konnten nicht geladen werden',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -6997,6 +7016,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             keyword: 'Schlüsselwort',
             keywords: 'Schlüsselwörter',
             limit: 'Limit',
+            limitDescription: 'Legen Sie eine Obergrenze für die Ergebnisse Ihrer Suche fest.',
             currency: 'Währung',
             completed: 'Abgeschlossen',
             amount: {
@@ -7035,6 +7055,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahr',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartal',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7075,6 +7097,19 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
         topSpenders: 'Top-Ausgaben',
+        view: {label: 'Ansehen', table: 'Tabelle', bar: 'Bar'},
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Karten',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exporte',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorien',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Monate',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Wochen',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
+        },
     },
     genericErrorPage: {
         title: 'Oh je, etwas ist schiefgelaufen!',
@@ -8271,6 +8306,14 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 allCaughtUp: 'Du bist auf dem neuesten Stand',
                 upcomingTodos: 'Anstehende To-dos werden hier angezeigt.',
             },
+        },
+        timeSensitiveSection: {
+            title: 'Zeitkritisch',
+            cta: 'Antrag',
+            offer50off: {title: 'Erhalte 50 % Rabatt auf dein erstes Jahr!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} verbleibend`},
+            offer25off: {title: 'Erhalten Sie 25 % Rabatt auf Ihr erstes Jahr!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'Tag' : 'Tage'} verbleiben`},
+            addShippingAddress: {title: 'Wir benötigen Ihre Versandadresse', subtitle: 'Gib eine Adresse an, um deine Expensify Card zu erhalten.', cta: 'Adresse hinzufügen'},
+            activateCard: {title: 'Aktiviere deine Expensify Card', subtitle: 'Bestätige deine Karte und beginne mit dem Ausgeben.', cta: 'Aktivieren'},
         },
     },
 };

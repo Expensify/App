@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Beta, Card, CardList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
@@ -101,6 +102,14 @@ function getTravelSettlementFrequency(cardSettings: OnyxEntry<ExpensifyCardSetti
 }
 
 /**
+ * Gets the Onyx key for Travel Invoicing card settings.
+ * This function returns a properly typed key without requiring type assertions.
+ */
+function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${number}_${typeof CONST.TRAVEL.PROGRAM_TRAVEL_US}` {
+    return `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+}
+
+/**
  * Gets the user's Travel Invoicing card from the card list.
  * Returns the first card with isTravelCard NVP set to true.
  */
@@ -135,6 +144,7 @@ export {
     getTravelSpend,
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
+    getTravelInvoicingCardSettingsKey,
     getTravelInvoicingCard,
     isTravelCVVEligible,
     isTravelCVVTestingEnabled,

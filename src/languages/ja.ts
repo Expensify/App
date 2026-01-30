@@ -567,6 +567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         address: '住所',
         hourAbbreviation: '時間',
         minuteAbbreviation: 'm',
+        secondAbbreviation: '秒',
         skip: 'スキップ',
         chatWithAccountManager: (accountManagerDisplayName: string) => `何か特定のご要望がありますか？アカウントマネージャーの${accountManagerDisplayName}とチャットしましょう。`,
         chatNow: '今すぐチャット',
@@ -642,6 +643,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: '月',
         home: 'ホーム',
         week: '週',
+        year: '年',
+        quarter: '四半期',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1050,6 +1053,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `このアップロードで追加される新しいワークスペースメンバー${count}人分の詳細を、以下で確認してください。既存のメンバーには、ロールの更新や招待メッセージは送信されません。`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions}件の取引がインポートされました。` : '1件の取引がインポートされました。',
     },
     receipt: {
         upload: '領収書をアップロード',
@@ -2151,7 +2156,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: '支払いや入金を行うために銀行口座を追加してください。',
         addDebitOrCreditCard: 'デビットカードまたはクレジットカードを追加',
         assignedCards: '割り当てられたカード',
-        assignedCardsDescription: 'これらは、ワークスペース管理者が会社の支出を管理するために割り当てたカードです。',
+        assignedCardsDescription: 'これらのカードからの取引は自動的に同期されます。',
         expensifyCard: 'Expensify Card',
         walletActivationPending: 'お客様の情報を確認しています。数分後にもう一度ご確認ください。',
         walletActivationFailed: '残念ながら、現在はウォレットを有効にできません。詳しいサポートについては、Concierge にチャットでお問い合わせください。',
@@ -2182,6 +2187,8 @@ const translations: TranslationDeepObject<typeof en> = {
             description: 'このカードは、航空運賃、鉄道、レンタカー、場合によってはホテルなどの経費を、1つの口座にまとめて集約します。',
             instructions: '最後の4桁の入力を求められます。下のボタンを使って表示できます。',
         },
+        deleteCard: 'カードを削除',
+        deleteCardConfirmation: '未提出のカード取引（未精算レポート上の取引も含む）はすべて削除されます。このカードを本当に削除してもよろしいですか？この操作は元に戻せません。',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2210,6 +2217,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: '不審な取引',
         suspiciousBannerDescription: 'お客様のカードで不審な取引を検知しました。確認するには下をタップしてください。',
         cardLocked: '弊社チームがあなたの会社のアカウントを確認している間、カードは一時的にロックされています。',
+        markTransactionsAsReimbursable: '取引を経費精算対象としてマーク',
+        markTransactionsDescription: '有効にすると、このカードからインポートされた取引は、デフォルトで「立替精算対象」としてマークされます。',
         cardDetails: {
             cardNumber: 'バーチャルカード番号',
             expiration: '有効期限',
@@ -4918,6 +4927,15 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: '新しい取引の開始日を選択してください。その日以降のすべての取引を、すでに取り込んだものを除いて同期します。',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
+            importTransactions: {
+                title: 'ファイルから取引をインポート',
+                description: 'インポート時に適用されるファイルの設定を調整してください。',
+                cardDisplayName: 'カード表示名',
+                currency: '通貨',
+                transactionsAreReimbursable: '取扱明細は精算対象です',
+                flipAmountSign: '金額の符号を反転',
+                importButton: '取引をインポート',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースのカードフィードを読み込む際にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
@@ -6925,6 +6943,7 @@ ${reportName}
             keyword: 'キーワード',
             keywords: 'キーワード',
             limit: '制限',
+            limitDescription: '検索結果の制限を設定します。',
             currency: '通貨',
             completed: '完了',
             amount: {
@@ -6963,6 +6982,8 @@ ${reportName}
                 [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
                 [CONST.SEARCH.GROUP_BY.MONTH]: '月',
                 [CONST.SEARCH.GROUP_BY.WEEK]: '週',
+                [CONST.SEARCH.GROUP_BY.YEAR]: '年',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -7003,6 +7024,19 @@ ${reportName}
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
         topSpenders: 'トップ支出者',
+        view: {label: '表示', table: 'テーブル', bar: 'バー'},
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'エクスポート',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'カテゴリー',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: '加盟店',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'タグ',
+            [CONST.SEARCH.GROUP_BY.MONTH]: '月',
+            [CONST.SEARCH.GROUP_BY.WEEK]: '週',
+            [CONST.SEARCH.GROUP_BY.YEAR]: '年',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
+        },
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
@@ -8169,6 +8203,14 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
                 allCaughtUp: 'すべて確認済みです',
                 upcomingTodos: '今後のTo-doがここに表示されます。',
             },
+        },
+        timeSensitiveSection: {
+            title: '至急',
+            cta: '申請',
+            offer50off: {title: '初年度が50％オフ！', subtitle: ({formattedTime}: {formattedTime: string}) => `残り${formattedTime}`},
+            offer25off: {title: '初年度が25％オフ！', subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日'}`},
+            addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify Card を受け取る住所を入力してください。', cta: '住所を追加'},
+            activateCard: {title: 'Expensify Card を有効化', subtitle: 'カードを認証して、すぐに支出を始めましょう。', cta: '有効化'},
         },
     },
 };

@@ -20,6 +20,7 @@ import {LOCALES} from './LOCALES';
 // Freezing the array ensures that it cannot be unintentionally modified.
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
+const EMPTY_SET = new Set<string>();
 
 // Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
@@ -724,6 +725,7 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
+        CSV_CARD_IMPORT: 'csvCardImport',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
@@ -979,6 +981,7 @@ const CONST = {
     connectionsVideoPaths,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
+    EMPTY_SET,
     DEFAULT_NUMBER_ID,
     DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
@@ -4078,6 +4081,7 @@ const CONST = {
         CONTAINER_VERTICAL_MARGIN: variables.componentSizeNormal,
     },
     MICROSECONDS_PER_MS: 1000,
+    MILLISECONDS_PER_SECOND: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {
         ADD: 'add',
         DELETE: 'delete',
@@ -5674,6 +5678,7 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
+        TRANSITION_END_SCREEN_WRAPPER: 'transitionEndScreenWrapper',
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
@@ -6889,6 +6894,8 @@ const CONST = {
             TAG: 'tag',
             MONTH: 'month',
             WEEK: 'week',
+            YEAR: 'year',
+            QUARTER: 'quarter',
         },
         get TYPE_CUSTOM_COLUMNS() {
             return {
@@ -6990,6 +6997,16 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                YEAR: {
+                    YEAR: this.TABLE_COLUMNS.GROUP_YEAR,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                QUARTER: {
+                    QUARTER: this.TABLE_COLUMNS.GROUP_QUARTER,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -7036,6 +7053,8 @@ const CONST = {
                 TAG: [this.TABLE_COLUMNS.GROUP_TAG, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 MONTH: [this.TABLE_COLUMNS.GROUP_MONTH, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -7136,6 +7155,8 @@ const CONST = {
             GROUP_TAG: 'groupTag',
             GROUP_MONTH: 'groupmonth',
             GROUP_WEEK: 'groupweek',
+            GROUP_YEAR: 'groupyear',
+            GROUP_QUARTER: 'groupquarter',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7161,8 +7182,6 @@ const CONST = {
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
-            LINE: 'line',
-            PIE: 'pie',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7333,6 +7352,8 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_TAG]: 'group-tag',
                 [this.TABLE_COLUMNS.GROUP_MONTH]: 'group-month',
                 [this.TABLE_COLUMNS.GROUP_WEEK]: 'group-week',
+                [this.TABLE_COLUMNS.GROUP_YEAR]: 'group-year',
+                [this.TABLE_COLUMNS.GROUP_QUARTER]: 'group-quarter',
             };
         },
         NOT_MODIFIER: 'Not',
@@ -8185,6 +8206,29 @@ const CONST = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
         /** Onyx prefix for domain security groups */
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+    },
+
+    HOME: {
+        ANNOUNCEMENTS: [
+            {
+                title: 'Start the year with smarter spending, admin controls, and more.',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-january-2026-product-update',
+                publishedDate: '2026-01-28',
+            },
+            {
+                title: 'Our favorite features + final upgrades of the year',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-2025-year-end-product-update',
+                publishedDate: '2025-12-22',
+            },
+            {
+                title: 'Uber for business + Expensify automates ride and meal receipts',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/uber-for-business-and-expensify-integration-update',
+                publishedDate: '2025-12-01',
+            },
+        ],
     },
 
     SECTION_LIST_ITEM_TYPE: {

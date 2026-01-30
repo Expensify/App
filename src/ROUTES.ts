@@ -307,6 +307,18 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
     },
+    SETTINGS_WALLET_PERSONAL_CARD_DETAILS: {
+        route: 'settings/wallet/personal-card/:cardID',
+        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}` as const,
+    },
+    SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME: {
+        route: 'settings/wallet/personal-card/:cardID/edit/name',
+        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/edit/name` as const,
+    },
+    SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: {
+        route: 'settings/wallet/personal-card/:cardID/edit/transaction-start-date',
+        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/edit/transaction-start-date` as const,
+    },
     SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE: {
         route: 'settings/wallet/card/:cardID/confirm-magic-code',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-magic-code` as const,
@@ -381,6 +393,27 @@ const ROUTES = {
     },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS: 'settings/wallet/import-transactions',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_CARD_NAME: 'settings/wallet/import-transactions/card-name',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_CURRENCY: 'settings/wallet/import-transactions/currency',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET: {
+        route: 'settings/wallet/import-transactions-spreadsheet/:cardID?',
+        getRoute: (cardID?: number) => {
+            if (cardID) {
+                return `settings/wallet/import-transactions-spreadsheet/${cardID}` as const;
+            }
+            return 'settings/wallet/import-transactions-spreadsheet' as const;
+        },
+    },
+    SETTINGS_WALLET_TRANSACTIONS_IMPORTED: {
+        route: 'settings/wallet/transactions-imported/:cardID?',
+        getRoute: (cardID?: number) => {
+            if (cardID) {
+                return `settings/wallet/transactions-imported/${cardID}` as const;
+            }
+            return 'settings/wallet/transactions-imported' as const;
+        },
+    },
     SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
         route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged` as const,
@@ -2741,8 +2774,8 @@ const ROUTES = {
         getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID}` as const,
     },
     RULES_MERCHANT_PREVIEW_MATCHES: {
-        route: 'workspaces/:policyID/rules/merchant-rules/new/preview-matches',
-        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/new/preview-matches` as const,
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
