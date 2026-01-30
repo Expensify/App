@@ -1040,6 +1040,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: `请确认以下将通过本次上传添加的新工作区成员的详细信息。现有成员不会收到任何角色更新或邀请消息。`,
             other: (count: number) => `请确认以下有关将在此次上传中添加的 ${count} 位新的工作区成员的详细信息。现有成员不会收到任何角色更新或邀请消息。`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已导入 ${transactions} 笔交易。` : '已导入 1 笔交易。'),
     },
     receipt: {
         upload: '上传收据',
@@ -2158,6 +2159,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} 将失去对此企业银行账户的访问权限。我们仍将完成所有正在进行的付款。`,
         reachOutForHelp: '此账户正在与 Expensify 卡一起使用。如果您需要取消共享，请联系礼宾部。',
         unshareErrorModalTitle: '无法取消共享银行账户',
+        deleteCard: '删除卡片',
+        deleteCardConfirmation: '所有未提交的银行卡交易（包括开放报表中的交易）都将被移除。确定要删除此银行卡吗？此操作无法撤销。',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -4844,6 +4847,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: '选择一个新的交易起始日期。我们将从该日期起同步所有交易，但不包括已经导入的交易。',
             unassignCardFailedError: '卡片取消分配失败。',
+            importTransactions: {
+                title: '从文件导入交易',
+                description: '请调整文件的设置，这些设置将在导入时应用。',
+                cardDisplayName: '卡片显示名称',
+                currency: '货币',
+                transactionsAreReimbursable: '交易可报销',
+                flipAmountSign: '翻转金额符号',
+                importButton: '导入交易',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片信息流',
                 workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时出错。请重试或联系您的管理员。',
@@ -6809,6 +6821,7 @@ ${reportName}
             keyword: '关键字',
             keywords: '关键词',
             limit: '限制',
+            limitDescription: '为搜索结果设置限制。',
             currency: '货币',
             completed: '已完成',
             amount: {
@@ -6889,6 +6902,7 @@ ${reportName}
             allMatchingItemsSelected: '已选择所有匹配的项目',
         },
         topSpenders: '最高支出者',
+        view: {label: '查看', table: '表格', bar: '栏'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',
             [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
@@ -8016,6 +8030,8 @@ ${reportName}
             cta: '报销申请',
             offer50off: {title: '首年立享五折优惠！', subtitle: ({formattedTime}: {formattedTime: string}) => `剩余 ${formattedTime}`},
             offer25off: {title: '首次年度订阅立享 25% 折扣！', subtitle: ({days}: {days: number}) => `剩余 ${days} ${days === 1 ? '天' : '天'}`},
+            addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify Card。', cta: '添加地址'},
+            activateCard: {title: '激活您的 Expensify Card', subtitle: '验证您的卡片并开始消费。', cta: '激活'},
         },
     },
 };

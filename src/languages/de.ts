@@ -1058,6 +1058,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bitte bestätige die folgenden Details für die ${count} neuen Workspace-Mitglieder, die im Rahmen dieses Uploads hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladung Nachrichten.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} Transaktionen wurden importiert.` : '1 Transaktion wurde importiert.',
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -2194,6 +2196,9 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} verliert den Zugriff auf dieses Geschäftskonto. Laufende Zahlungen werden weiterhin ausgeführt.`,
         reachOutForHelp: 'Dieses Konto wird mit der Expensify Card verwendet. <concierge-link>Wenden Sie sich an den Concierge</concierge-link>, wenn Sie die Freigabe aufheben möchten.',
         unshareErrorModalTitle: 'Bankkonto kann nicht freigegeben werden',
+        deleteCard: 'Karte löschen',
+        deleteCardConfirmation:
+            'Alle nicht eingereichten Kartentransaktionen, einschließlich der auf offenen Berichten, werden entfernt. Möchten Sie diese Karte wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -4966,6 +4971,15 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             editStartDateDescription:
                 'Wählen Sie ein neues Startdatum für Transaktionen. Wir synchronisieren alle Transaktionen ab diesem Datum, ausgenommen diejenigen, die wir bereits importiert haben.',
             unassignCardFailedError: 'Aufhebung der Kartenzuweisung fehlgeschlagen.',
+            importTransactions: {
+                title: 'Transaktionen aus Datei importieren',
+                description: 'Bitte passen Sie die Einstellungen für Ihre Datei an, die beim Import angewendet werden.',
+                cardDisplayName: 'Name der Karte',
+                currency: 'Währung',
+                transactionsAreReimbursable: 'Transaktionen sind erstattungsfähig',
+                flipAmountSign: 'Vorzeichen des Betrags umkehren',
+                importButton: 'Transaktionen importieren',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kartenfeeds konnten nicht geladen werden',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7001,6 +7015,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             keyword: 'Schlüsselwort',
             keywords: 'Schlüsselwörter',
             limit: 'Limit',
+            limitDescription: 'Legen Sie eine Obergrenze für die Ergebnisse Ihrer Suche fest.',
             currency: 'Währung',
             completed: 'Abgeschlossen',
             amount: {
@@ -7081,6 +7096,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
         topSpenders: 'Top-Ausgaben',
+        view: {label: 'Ansehen', table: 'Tabelle', bar: 'Bar'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Karten',
@@ -8300,6 +8316,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             cta: 'Antrag',
             offer50off: {title: 'Erhalte 50 % Rabatt auf dein erstes Jahr!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} verbleibend`},
             offer25off: {title: 'Erhalten Sie 25 % Rabatt auf Ihr erstes Jahr!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'Tag' : 'Tage'} verbleiben`},
+            addShippingAddress: {title: 'Wir benötigen Ihre Versandadresse', subtitle: 'Gib eine Adresse an, um deine Expensify Card zu erhalten.', cta: 'Adresse hinzufügen'},
+            activateCard: {title: 'Aktiviere deine Expensify Card', subtitle: 'Bestätige deine Karte und beginne mit dem Ausgeben.', cta: 'Aktivieren'},
         },
     },
 };

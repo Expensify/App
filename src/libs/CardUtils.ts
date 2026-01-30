@@ -897,6 +897,16 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
 }
 
 /**
+ * Generate a random cardID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
+ * There were approximately 24,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly 0.25 billionth of the space for these numbers,
+ * so we live with the 1 in 4 billion chance of a collision with an older ID until we can switch to 64-bit IDs.
+ *
+ */
+function generateCardID(): number {
+    return Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32);
+}
+
+/**
  * Check if there are any assigned cards that should be displayed in the wallet page.
  * This includes active Expensify cards, company cards (domain), and personal cards.
  */
@@ -981,6 +991,7 @@ export {
     COMPANY_CARD_BANK_ICON_NAMES,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
+    generateCardID,
     hasDisplayableAssignedCards,
 };
 

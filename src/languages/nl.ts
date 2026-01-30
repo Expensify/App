@@ -1056,6 +1056,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bevestig hieronder de details voor de ${count} nieuwe werkruimteleden die als onderdeel van deze upload zullen worden toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transacties zijn geïmporteerd.` : '1 transactie is geïmporteerd.',
     },
     receipt: {
         upload: 'Bon uploaden',
@@ -2190,6 +2192,9 @@ const translations: TranslationDeepObject<typeof en> = {
             `${admin} verliest de toegang tot deze zakelijke bankrekening. We zullen alle betalingen die in behandeling zijn nog steeds voltooien.`,
         reachOutForHelp: 'Deze wordt gebruikt met de Expensify Card. <concierge-link>Neem contact op met Concierge</concierge-link> als u de deling ongedaan wilt maken.',
         unshareErrorModalTitle: 'Deling bankrekening kan niet ongedaan worden gemaakt',
+        deleteCard: 'Kaart verwijderen',
+        deleteCardConfirmation:
+            'Alle niet-ingediende kaarttransacties, inclusief die in openstaande rapporten, worden verwijderd. Weet je zeker dat je deze kaart wilt verwijderen? Je kunt deze actie niet ongedaan maken.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -4948,6 +4953,15 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             editStartDateDescription:
                 'Kies een nieuwe startdatum voor transacties. We synchroniseren alle transacties vanaf die datum, met uitzondering van de transacties die we al hebben geïmporteerd.',
             unassignCardFailedError: 'Kaartontkoppeling mislukt.',
+            importTransactions: {
+                title: 'Transacties importeren uit bestand',
+                description: 'Pas de instellingen voor je bestand aan die bij het importeren worden toegepast.',
+                cardDisplayName: 'Kaartweergavenaam',
+                currency: 'Valuta',
+                transactionsAreReimbursable: 'Transacties zijn terugbetaalbaar',
+                flipAmountSign: 'Teken van bedrag omdraaien',
+                importButton: 'Transacties importeren',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kan kaartfeeds niet laden',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -6973,6 +6987,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
             limit: 'Limiet',
+            limitDescription: 'Stel een limiet in voor de resultaten van je zoekopdracht.',
             currency: 'Valuta',
             completed: 'Voltooid',
             amount: {
@@ -7053,6 +7068,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
         topSpenders: 'Grootste uitgaven',
+        view: {label: 'Bekijken', table: 'Tabel', bar: 'Bar'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Kaarten',
@@ -8262,6 +8278,8 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             cta: 'Declaratie',
             offer50off: {title: 'Krijg 50% korting op je eerste jaar!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} resterend`},
             offer25off: {title: 'Krijg 25% korting op je eerste jaar!', subtitle: ({days}: {days: number}) => `Nog ${days} ${days === 1 ? 'dag' : 'dagen'} resterend`},
+            addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Voer een adres in om je Expensify Card te ontvangen.', cta: 'Adres toevoegen'},
+            activateCard: {title: 'Activeer je Expensify Card', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
         },
     },
 };

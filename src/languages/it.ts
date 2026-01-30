@@ -1056,6 +1056,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Conferma i dettagli qui sotto per i ${count} nuovi membri dello spazio di lavoro che verranno aggiunti come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti del ruolo né messaggi di invito.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transazioni sono state importate.` : '1 transazione è stata importata.',
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -2191,6 +2193,9 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderà l'accesso a questo conto bancario aziendale. Completeremo comunque tutti i pagamenti in corso.`,
         reachOutForHelp: 'È in uso con la carta Expensify. <concierge-link>Contatta il Concierge</concierge-link> se devi revocare la condivisione.',
         unshareErrorModalTitle: 'Impossibile revocare la condivisione del conto bancario',
+        deleteCard: 'Elimina carta',
+        deleteCardConfirmation:
+            'Tutte le transazioni con carta non inviate, comprese quelle nei report aperti, verranno rimosse. Sei sicuro di voler eliminare questa carta? Non puoi annullare questa azione.',
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -4951,6 +4956,15 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Scegli una nuova data di inizio per le transazioni. Sincronizzeremo tutte le transazioni da quella data in poi, escludendo quelle già importate.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
+            importTransactions: {
+                title: 'Importa transazioni da file',
+                description: 'Regola le impostazioni per il tuo file che verranno applicate all’importazione.',
+                cardDisplayName: 'Nome visualizzato carta',
+                currency: 'Valuta',
+                transactionsAreReimbursable: 'Le transazioni sono rimborsabili',
+                flipAmountSign: 'Inverti segno importo',
+                importButton: 'Importa transazioni',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed delle carte',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -6990,6 +7004,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
             limit: 'Limite',
+            limitDescription: 'Imposta un limite per i risultati della tua ricerca.',
             currency: 'Valuta',
             completed: 'Completato',
             amount: {
@@ -7070,6 +7085,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         topSpenders: 'Maggiori spenditori',
+        view: {label: 'Visualizza', table: 'Tabella', bar: 'Bar'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
@@ -8286,6 +8302,8 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             cta: 'Richiesta',
             offer50off: {title: 'Ottieni il 50% di sconto sul tuo primo anno!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} rimanenti`},
             offer25off: {title: 'Ottieni il 25% di sconto sul tuo primo anno!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'giorno' : 'giorni'} rimanenti`},
+            addShippingAddress: {title: 'Abbiamo bisogno del tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Expensify Card.', cta: 'Aggiungi indirizzo'},
+            activateCard: {title: 'Attiva la tua Expensify Card', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
         },
     },
 };
