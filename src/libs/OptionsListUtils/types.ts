@@ -180,7 +180,9 @@ type IsValidReportsConfig = Pick<
     | 'isRestrictedToPreferredPolicy'
     | 'preferredPolicyID'
     | 'shouldAlwaysIncludeDM'
->;
+> & {
+    currentUserAccountID: number;
+};
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
@@ -211,6 +213,8 @@ type GetUserToInviteConfig = {
     optionsToExclude?: GetOptionsConfig['selectedOptions'];
     countryCode?: number;
     loginList: OnyxEntry<Login>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
