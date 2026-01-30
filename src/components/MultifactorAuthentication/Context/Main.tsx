@@ -99,9 +99,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         // 4. Check if registration is required (not registered yet)
-        const needsRegistration = !biometrics.isRegisteredInAuth() && !isRegistrationComplete;
+        const isRegistrationRequired = !biometrics.isRegisteredInAuth() && !isRegistrationComplete;
 
-        if (needsRegistration) {
+        if (isRegistrationRequired) {
             // Need validate code before registration
             if (!validateCode) {
                 requestValidateCodeAction();
@@ -134,9 +134,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             }
 
             // Check if soft prompt is needed (soft prompt not answered + device supports)
-            const needsSoftPrompt = softPromptApproved === undefined && biometrics.info.deviceSupportsBiometrics;
+            const isSoftPromptRequired = softPromptApproved === undefined && biometrics.info.deviceSupportsBiometrics;
 
-            if (needsSoftPrompt) {
+            if (isSoftPromptRequired) {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
                 return;
             }
@@ -180,9 +180,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         // 5. Check if authorization is required
-        const needsAuthorization = !isAuthorizationComplete;
+        const isAuthorizationRequired = !isAuthorizationComplete;
 
-        if (needsAuthorization) {
+        if (isAuthorizationRequired) {
             // Request authorization challenge if not already fetched
             if (!authorizationChallenge) {
                 const {challenge, reason: challengeReason} = await requestAuthorizationChallenge();
