@@ -5,7 +5,6 @@ import Animated from 'react-native-reanimated';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
@@ -121,7 +120,7 @@ type SearchChartViewProps = {
     groupBy: SearchGroupBy;
 
     /** Grouped transaction data from search results */
-    data: TransactionGroupListItemType[];
+    data: GroupedItem[];
 
     /** Whether data is loading */
     isLoading?: boolean;
@@ -172,7 +171,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll}: 
     );
 
     const {yAxisUnit, yAxisUnitPosition} = useMemo((): {yAxisUnit: string; yAxisUnitPosition: 'left' | 'right'} => {
-        const firstItem = data.at(0) as GroupedItem | undefined;
+        const firstItem = data.at(0);
         const currency = firstItem?.currency ?? 'USD';
         const {symbol, position} = getCurrencyDisplayInfoForCharts(currency);
 

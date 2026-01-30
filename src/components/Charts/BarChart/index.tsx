@@ -2,8 +2,8 @@ import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import type {BarChartProps} from './BarChartContent';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {BarChartProps} from './BarChartContent';
 
 function BarChart(props: BarChartProps) {
     const styles = useThemeStyles();

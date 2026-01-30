@@ -2,8 +2,8 @@ import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import type {LineChartProps} from './LineChartContent';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {LineChartProps} from './LineChartContent';
 
 function LineChart(props: LineChartProps) {
     const styles = useThemeStyles();

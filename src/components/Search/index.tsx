@@ -56,6 +56,7 @@ import {
     isTransactionCardGroupListItemType,
     isTransactionCategoryGroupListItemType,
     isTransactionGroupListItemType,
+    isGroupedItemArray,
     isTransactionListItemType,
     isTransactionMemberGroupListItemType,
     isTransactionMerchantGroupListItemType,
@@ -1307,14 +1308,14 @@ function Search({
 
     const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE) && !!validGroupBy;
 
-    if (shouldShowChartView) {
+    if (shouldShowChartView && isGroupedItemArray(sortedData)) {
         return (
             <SearchScopeProvider>
                 <SearchChartView
                     queryJSON={queryJSON}
                     view={view}
                     groupBy={validGroupBy}
-                    data={sortedData as TransactionGroupListItemType[]}
+                    data={sortedData}
                     isLoading={shouldShowLoadingState}
                     onScroll={onSearchListScroll}
                 />

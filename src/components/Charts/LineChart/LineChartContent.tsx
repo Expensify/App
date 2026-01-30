@@ -7,19 +7,12 @@ import {CartesianChart, Line, Scatter} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
-import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
-import {
-    CHART_CONTENT_MIN_HEIGHT,
-    CHART_PADDING,
-    X_AXIS_LINE_WIDTH,
-    Y_AXIS_LABEL_OFFSET,
-    Y_AXIS_LINE_WIDTH,
-    Y_AXIS_TICK_COUNT,
-} from '@components/Charts/constants';
+import {CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LABEL_OFFSET, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
+import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -86,16 +79,13 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         truncatedLabels,
     });
 
-    const checkIsOverDot = useCallback(
-        (args: HitTestArgs) => {
-            'worklet';
+    const checkIsOverDot = useCallback((args: HitTestArgs) => {
+        'worklet';
 
-            const dx = args.cursorX - args.targetX;
-            const dy = args.cursorY - args.targetY;
-            return Math.sqrt(dx * dx + dy * dy) <= DOT_INNER_RADIUS;
-        },
-        [],
-    );
+        const dx = args.cursorX - args.targetX;
+        const dy = args.cursorY - args.targetY;
+        return Math.sqrt(dx * dx + dy * dy) <= DOT_INNER_RADIUS;
+    }, []);
 
     const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
         handlePress: handlePointPress,
