@@ -7051,7 +7051,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
         topSpenders: 'Grootste uitgaven',
-        view: {label: 'Bekijken', table: 'Tabel', bar: 'Bar'},
+        view: {label: 'Bekijken', table: 'Tabel', bar: 'Bar', line: 'Lijn'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Kaarten',
