@@ -27,7 +27,7 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileChrome} from '@libs/Browser';
+import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
@@ -256,6 +256,27 @@ function BaseTextInput({
             hasValueRef.current = false;
         }
     };
+
+    /**
+     * Forces Safari to recalculate text layout when input height changes.
+     * Safari's Shadow DOM doesn't reflow text automatically when container height
+     * changes, causing text to remain stuck on the previous number of lines.
+     * https://github.com/Expensify/App/issues/76785
+     */
+    useEffect(() => {
+        if (!input.current || !(isSafari() || isMobileSafari()) || textInputHeight === 0) {
+            return;
+        }
+
+        const element = input.current;
+        const originalWhiteSpace = element.style.whiteSpace;
+
+        element.style.whiteSpace = 'nowrap';
+        // Force layout calculation on the next frame
+        requestAnimationFrame(() => {
+            element.style.whiteSpace = originalWhiteSpace || '';
+        });
+    }, [textInputHeight]);
 
     const togglePasswordVisibility = useCallback(() => {
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
