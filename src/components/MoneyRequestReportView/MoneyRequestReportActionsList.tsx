@@ -50,7 +50,7 @@ import {
     isCurrentActionUnread,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
-    shouldReportActionBeVisible,
+    isReportActionVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
@@ -171,6 +171,7 @@ function MoneyRequestReportActionsList({
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
 
@@ -226,17 +227,29 @@ function MoneyRequestReportActionsList({
     const visibleReportActions = useMemo(() => {
         const filteredActions = reportActions.filter((reportAction) => {
             const isActionVisibleOnMoneyReport = isActionVisibleOnMoneyRequestReport(reportAction, shouldShowHarvestCreatedAction);
+            if (!isActionVisibleOnMoneyReport) {
+                return false;
+            }
 
-            return (
-                isActionVisibleOnMoneyReport &&
-                (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
-                isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)
-            );
+            const passesOfflineCheck = isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;
+            if (!passesOfflineCheck) {
+                return false;
+            }
+
+            const actionReportID = reportAction.reportID ?? reportID;
+            if (!isReportActionVisible(reportAction, actionReportID, canPerformWriteAction, visibleReportActionsData)) {
+                return false;
+            }
+
+            if (!isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)) {
+                return false;
+            }
+
+            return true;
         });
 
         return filteredActions.toReversed();
-    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction]);
+    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
 
     const reportActionSize = useRef(visibleReportActions.length);
     const lastAction = visibleReportActions.at(-1);
