@@ -1,15 +1,14 @@
 import React, {useCallback, useMemo, useRef} from 'react';
-import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {FormRef} from '@components/Form/types';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
-import useSubStep from '@hooks/useSubStep';
+import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import {updateNetSuiteCustomLists} from '@userActions/connections/NetSuiteCommands';
 import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -17,7 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
-import type {Policy} from '@src/types/onyx';
 import {getCustomListInitialSubstep, getSubstepValues} from './customUtils';
 import ChooseCustomListStep from './substeps/ChooseCustomListStep';
 import ConfirmCustomListStep from './substeps/ConfirmCustomListStep';
@@ -25,16 +23,21 @@ import CustomListMappingStep from './substeps/CustomListMappingStep';
 import TransactionFieldIDStep from './substeps/TransactionFieldIDStep';
 
 type NetSuiteImportAddCustomListContentProps = {
-    policy: OnyxEntry<Policy>;
+    policy: WithPolicyConnectionsProps['policy'];
+    route: WithPolicyConnectionsProps['route'];
     draftValues: OnyxEntry<NetSuiteCustomFieldForm>;
 };
 
-const formSteps = [ChooseCustomListStep, TransactionFieldIDStep, CustomListMappingStep, ConfirmCustomListStep];
+const pages = [
+    {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.NAME, component: ChooseCustomListStep},
+    {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.FIELD_ID, component: TransactionFieldIDStep},
+    {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.MAPPING_TITLE, component: CustomListMappingStep},
+    {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.CONFIRM, component: ConfirmCustomListStep},
+];
 
-function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImportAddCustomListContentProps) {
+function NetSuiteImportAddCustomListContent({policy, draftValues, route}: NetSuiteImportAddCustomListContentProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
     const formRef = useRef<FormRef | null>(null);
 
     const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
@@ -66,45 +69,40 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
         });
     }, [values, customLists, policyID]);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        screenIndex,
-        moveTo,
-        goToTheLastStep,
-    } = useSubStep<CustomFieldSubStepWithPolicy>({
-        bodyContent: formSteps,
+    const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo} = useSubPage<CustomFieldSubPageWithPolicy>({
+        pages,
         startFrom,
         onFinished: handleFinishStep,
+        buildRoute: (pageName, action) => ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(route.params.policyID, pageName, action),
     });
+
+    const goBackToConfirmStep = () => {
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD.getRoute(route.params.policyID, CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.PAGE_NAME.CONFIRM));
+    }
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToTheLastStep();
+            goBackToConfirmStep();
             return;
         }
 
         // Clicking back on the first screen should go back to listing
-        if (screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CUSTOM_LIST_PICKER) {
+        if (pageIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CUSTOM_LIST_PICKER) {
             clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM);
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
             return;
         }
-        ref.current?.movePrevious();
         formRef.current?.resetErrors();
-        prevScreen();
+        prevPage();
     };
 
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
-            goToTheLastStep();
+            goBackToConfirmStep();
             return;
         }
-        ref.current?.moveNext();
-        nextScreen();
-    }, [goToTheLastStep, isEditing, nextScreen]);
+        nextPage();
+    }, [isEditing, goBackToConfirmStep, nextPage]);
 
     return (
         <ConnectionLayout
@@ -120,18 +118,16 @@ function NetSuiteImportAddCustomListContent({policy, draftValues}: NetSuiteImpor
             shouldUseScrollView={false}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    ref={ref}
-                    startStepIndex={startFrom}
-                    stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES}
+                <InteractiveStepSubPageHeader
+                    currentStepIndex={pageIndex}
+                    stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST.STEP_INDEX_LIST}
                 />
             </View>
             <View style={[styles.flexGrow1, styles.mt3]}>
-                <SubStep
+                <CurrentPage
                     isEditing={isEditing}
                     onNext={handleNextScreen}
                     onMove={moveTo}
-                    screenIndex={screenIndex}
                     policyID={policyID}
                     policy={policy}
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}
