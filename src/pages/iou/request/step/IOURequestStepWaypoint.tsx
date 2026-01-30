@@ -101,7 +101,6 @@ function IOURequestStepWaypoint({
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
-    console.log("shouldDisableEditor", shouldDisableEditor);
     const goBack = () => {
         if (backTo) {
             Navigation.goBack(backTo);
