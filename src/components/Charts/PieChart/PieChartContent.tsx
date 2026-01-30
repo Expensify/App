@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { LayoutChangeEvent } from 'react-native';
+import type { ColorValue, LayoutChangeEvent } from 'react-native';
 import { View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -366,7 +366,7 @@ function PieChartContent({ data, title, titleIcon, isLoading, valueUnit, onSlice
                     </Animated.View>
                 )}
             </View>
-            <View style={[styles.dFlex, styles.justifyContentCenter, styles.alignItemsCenter, styles.mh8, styles.mt8, styles.flexRow, styles.flexWrap]}>
+            <View style={styles.pieChartLegendContainer}>
                 {chartData.map((slice) => (
                     <View
                         key={`legend-${slice.label}`}
@@ -374,12 +374,10 @@ function PieChartContent({ data, title, titleIcon, isLoading, valueUnit, onSlice
                     >
                         {/* The Dot: Background color is pulled directly from the data slice */}
                         <View
-                            style={{
-                                borderRadius: "50%",
-                                width: 12,
-                                height: 12,
-                                backgroundColor: typeof slice.color === "string" ? slice.color : undefined,
-                            }}
+                            style={[
+                                styles.pieChartLegendDot,
+                                { backgroundColor: slice.color as ColorValue | undefined },
+                            ]}
                         />
 
                         {/* The Label: Text is pulled directly from the data slice label */}

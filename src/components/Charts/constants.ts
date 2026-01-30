@@ -88,13 +88,13 @@ const X_AXIS_LABEL_MAX_HEIGHT_RATIO = 0.35;
 const LABEL_ELLIPSIS = '...';
 
 /** Minimum percentage for a slice to be shown individually (slices below this are aggregated to "Other") */
-const PIE_CHART_MIN_SLICE_PERCENTAGE = 2;
+const PIE_CHART_MIN_SLICE_PERCENTAGE = 1;
 
 /** Maximum number of slices before aggregating smallest to "Other" */
 const PIE_CHART_MAX_SLICES = 20;
 
 /** Label for aggregated small slices */
-const PIE_CHART_OTHER_LABEL = 'Other';
+const PIE_CHART_OTHER_LABEL = 'Remaining';
 
 /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
 const PIE_CHART_START_ANGLE = -90;
