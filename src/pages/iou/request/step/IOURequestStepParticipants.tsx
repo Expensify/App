@@ -164,7 +164,7 @@ function IOURequestStepParticipants({
     // because we want to first check if the p2p rate exists on the workspace.
     // If it doesn't exist - we'll show an error message to force the user to choose a valid rate from the workspace.
     useEffect(() => {
-        if (!isMovingTransactionFromTrackExpense || !isFocused) {
+        if (!isMovingTransactionFromTrackExpense) {
             return;
         }
 
