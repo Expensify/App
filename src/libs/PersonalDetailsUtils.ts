@@ -46,16 +46,12 @@ Onyx.connect({
         if (value ?? true) {
             return;
         }
-
-        if (!youTranslation) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            youTranslation = translateLocal('common.you').toLowerCase();
-        }
-
-        if (!hiddenTranslation) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            hiddenTranslation = translateLocal('common.hidden');
-        }
+        
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        hiddenTranslation = translateLocal('common.hidden');
+        
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        youTranslation = translateLocal('common.you').toLowerCase();
     },
 });
 
