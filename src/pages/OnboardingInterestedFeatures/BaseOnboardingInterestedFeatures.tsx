@@ -257,6 +257,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         currentUserPersonalDetails.accountID,
         currentUserPersonalDetails.email,
         introSelected,
+        isSelfTourViewed,
     ]);
 
     // Create items for enabled features

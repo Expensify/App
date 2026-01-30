@@ -2627,6 +2627,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
             onboardingPolicyID: policyID,
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
+            isSelfTourViewed,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
