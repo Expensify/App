@@ -1,13 +1,15 @@
-import {useState} from 'react';
+import {useContext, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {initSplitExpense} from '@libs/actions/IOU';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
-import {getExportTemplates} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
+import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -22,11 +24,13 @@ import {
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -67,6 +71,7 @@ function useSelectedTransactionsActions({
     isOnSearch?: boolean;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -80,7 +85,7 @@ function useSelectedTransactionsActions({
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
-    const {login} = useCurrentUserPersonalDetails();
+    const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (transaction) {
@@ -143,6 +148,31 @@ function useSelectedTransactionsActions({
         Navigation.removeReportScreen(new Set(deletedThreadReportIDs));
     };
 
+    const handleDeleteTransactionsWithNavigation = (backToRoute?: Route) => {
+        Navigation.goBack(backToRoute);
+
+        if (!backToRoute && !navigationRef.canGoBack()) {
+            handleDeleteTransactions();
+            return;
+        }
+
+        // When deleting IOUs on the search route, as soon as Navigation.goBack returns to the search route,
+        // the search API may be triggered.
+        // At this point, the transaction has not yet been deleted on the server, which causes the report
+        // to disappear > reappear > and then disappear again.
+        // Since the search API above will return data where the transaction has not yet been deleted,
+        // we temporarily prevent the search API from being triggered until handleDeleteTransactions is completed.
+        const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+        const {enableSearchAPIPrevention, disableSearchAPIPrevention} = handlePreventSearchAPI(currentSearchQueryJSON?.hash);
+        enableSearchAPIPrevention?.();
+
+        const listener = DeviceEventEmitter.addListener(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER, () => {
+            handleDeleteTransactions();
+            listener.remove();
+            disableSearchAPIPrevention?.();
+        });
+    };
+
     const showDeleteModal = () => {
         setIsDeleteModalVisible(true);
     };
@@ -184,6 +214,11 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.Stopwatch,
                 value: HOLD,
                 onSelected: () => {
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+
                     if (!report?.reportID) {
                         return;
                     }
@@ -198,6 +233,11 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.Stopwatch,
                 value: UNHOLD,
                 onSelected: () => {
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+
                     for (const transactionID of selectedTransactionIDs) {
                         const action = getIOUActionForTransactionID(reportActions, transactionID);
                         if (!action?.childReportID) {
@@ -219,6 +259,11 @@ function useSelectedTransactionsActions({
                 icon: expensifyIcons.ThumbsDown,
                 value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
                 onSelected: () => {
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
                 },
             });
@@ -317,7 +362,8 @@ function useSelectedTransactionsActions({
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
         const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
-        const canSplitTransaction = selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', policy);
+        const canSplitTransaction =
+            selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, login ?? '', currentUserAccountID, policy);
 
         if (canSplitTransaction) {
             options.push({
@@ -355,6 +401,7 @@ function useSelectedTransactionsActions({
     return {
         options: computedOptions,
         handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
         isDeleteModalVisible,
         showDeleteModal,
         hideDeleteModal,

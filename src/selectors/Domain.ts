@@ -103,6 +103,8 @@ const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 
+const defaultSecurityGroupIDSelector = (domain: OnyxEntry<Domain>) => domain?.domain_defaultSecurityGroupID;
+
 export {
     domainMemberSamlSettingsSelector,
     domainSettingsPrimaryContactSelector,
@@ -114,5 +116,6 @@ export {
     domainEmailSelector,
     adminPendingActionSelector,
     technicalContactSettingsSelector,
+    defaultSecurityGroupIDSelector,
     vacationDelegateSelector,
 };

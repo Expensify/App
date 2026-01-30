@@ -1,7 +1,7 @@
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
- * Basic errors for domain admins
+ * Basic errors for domain
  */
 type GeneralDomainErrors = {
     /**
@@ -38,6 +38,11 @@ type DomainErrors = {
      * Errors related to the "use technical contact billing card" setting
      */
     useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors for the domain itself
+     */
+    errors: OnyxCommon.Errors;
 } & GeneralDomainErrors;
 
 export default DomainErrors;
