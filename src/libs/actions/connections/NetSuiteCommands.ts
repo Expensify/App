@@ -601,7 +601,11 @@ function updateNetSuiteCustomSegments(
     );
 }
 
-function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[], modifiedListID: string, pendingAction: OnyxCommon.PendingAction) {
+function updateNetSuiteCustomLists(policyID: string | undefined, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[], modifiedListID: string, pendingAction: OnyxCommon.PendingAction) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords, modifiedListID, pendingAction);
     API.write(
         WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS,

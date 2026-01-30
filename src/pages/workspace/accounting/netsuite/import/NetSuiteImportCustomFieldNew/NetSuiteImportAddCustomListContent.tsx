@@ -36,7 +36,7 @@ const pages = [
 ];
 
 function NetSuiteImportAddCustomListContent({policy, draftValues, route}: NetSuiteImportAddCustomListContentProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const formRef = useRef<FormRef | null>(null);
 
