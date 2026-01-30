@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import useReportCounts from '@hooks/useReportCounts';
-import * as ReportPrimaryActionUtils from '@libs/ReportPrimaryActionUtils';
+import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -71,10 +71,10 @@ describe('useReportCounts', () => {
             report_1: expenseReport,
         };
 
-        (ReportPrimaryActionUtils.isSubmitAction as jest.Mock).mockReturnValue(true);
-        (ReportPrimaryActionUtils.isApproveAction as jest.Mock).mockReturnValue(false);
-        (ReportPrimaryActionUtils.isPrimaryPayAction as jest.Mock).mockReturnValue(false);
-        (ReportPrimaryActionUtils.isExportAction as jest.Mock).mockReturnValue(false);
+        (isSubmitAction as jest.Mock).mockReturnValue(true);
+        (isApproveAction as jest.Mock).mockReturnValue(false);
+        (isPrimaryPayAction as jest.Mock).mockReturnValue(false);
+        (isExportAction as jest.Mock).mockReturnValue(false);
 
         const {result} = renderHook(() => useReportCounts());
 
@@ -102,10 +102,10 @@ describe('useReportCounts', () => {
             report_2: expenseReport2,
         };
 
-        (ReportPrimaryActionUtils.isSubmitAction as jest.Mock).mockImplementation((report: Report) => report.reportID === '1');
-        (ReportPrimaryActionUtils.isApproveAction as jest.Mock).mockImplementation((report: Report) => report.reportID === '1');
-        (ReportPrimaryActionUtils.isPrimaryPayAction as jest.Mock).mockImplementation((report: Report) => report.reportID === '2');
-        (ReportPrimaryActionUtils.isExportAction as jest.Mock).mockImplementation((report: Report) => report.reportID === '2');
+        (isSubmitAction as jest.Mock).mockImplementation((report: Report) => report.reportID === '1');
+        (isApproveAction as jest.Mock).mockImplementation((report: Report) => report.reportID === '1');
+        (isPrimaryPayAction as jest.Mock).mockImplementation((report: Report) => report.reportID === '2');
+        (isExportAction as jest.Mock).mockImplementation((report: Report) => report.reportID === '2');
 
         const {result} = renderHook(() => useReportCounts());
 
@@ -126,7 +126,7 @@ describe('useReportCounts', () => {
             report_1: chatReport,
         };
 
-        (ReportPrimaryActionUtils.isSubmitAction as jest.Mock).mockReturnValue(true);
+        (isSubmitAction as jest.Mock).mockReturnValue(true);
 
         const {result} = renderHook(() => useReportCounts());
 

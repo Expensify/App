@@ -22,10 +22,10 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false)})));
 jest.mock('@hooks/useReportCounts', () =>
     jest.fn(() => ({
-        [require('@src/CONST').default.SEARCH.SEARCH_KEYS.SUBMIT]: 0,
-        [require('@src/CONST').default.SEARCH.SEARCH_KEYS.APPROVE]: 0,
-        [require('@src/CONST').default.SEARCH.SEARCH_KEYS.PAY]: 0,
-        [require('@src/CONST').default.SEARCH.SEARCH_KEYS.EXPORT]: 0,
+        submit: 0,
+        approve: 0,
+        pay: 0,
+        export: 0,
     })),
 );
 

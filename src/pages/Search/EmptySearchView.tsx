@@ -1,6 +1,6 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
