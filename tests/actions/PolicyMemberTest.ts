@@ -749,12 +749,10 @@ describe('actions/PolicyMember', () => {
         it('should show a "single member added message" when a new member is added', async () => {
             // Given a workspace
             const policyID = '1';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                ...createRandomPolicy(Number(policyID)),
-            });
+            const policy = createRandomPolicy(Number(policyID));
 
             // When importing 1 new member to the workspace
-            Member.importPolicyMembers(policyID, [{email: 'user@gmail.com', role: 'user'}]);
+            Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: 'user'}]);
 
             await waitForBatchedUpdates();
 
@@ -776,12 +774,10 @@ describe('actions/PolicyMember', () => {
         it('should show a "multiple members added message" when multiple new members are added', async () => {
             // Given a workspace
             const policyID = '1';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                ...createRandomPolicy(Number(policyID)),
-            });
+            const policy = createRandomPolicy(Number(policyID));
 
             // When importing multiple new members to the workspace
-            Member.importPolicyMembers(policyID, [
+            Member.importPolicyMembers(policy, [
                 {email: 'user@gmail.com', role: 'user'},
                 {email: 'user2@gmail.com', role: 'user'},
             ]);
@@ -808,17 +804,17 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [userEmail]: {
                         role: userRole,
                     },
                 },
-            });
+            };
 
             // When importing 1 existing member to the workspace with the same role
-            Member.importPolicyMembers(policyID, [{email: userEmail, role: userRole}]);
+            Member.importPolicyMembers(policy, [{email: userEmail, role: userRole}]);
 
             await waitForBatchedUpdates();
 
@@ -842,17 +838,17 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [userEmail]: {
                         role: userRole,
                     },
                 },
-            });
+            };
 
             // When importing 1 existing member with a different role
-            Member.importPolicyMembers(policyID, [{email: userEmail, role: 'admin'}]);
+            Member.importPolicyMembers(policy, [{email: userEmail, role: 'admin'}]);
 
             await waitForBatchedUpdates();
 
@@ -878,7 +874,7 @@ describe('actions/PolicyMember', () => {
             const userRole = 'user';
             const userEmail2 = 'user2@gmail.com';
             const userRole2 = 'user';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [userEmail]: {
@@ -888,10 +884,10 @@ describe('actions/PolicyMember', () => {
                         role: userRole2,
                     },
                 },
-            });
+            };
 
             // When importing multiple existing members with a different role
-            Member.importPolicyMembers(policyID, [
+            Member.importPolicyMembers(policy, [
                 {email: userEmail, role: 'admin'},
                 {email: userEmail2, role: 'admin'},
             ]);
@@ -918,17 +914,17 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [userEmail]: {
                         role: userRole,
                     },
                 },
-            });
+            };
 
             // When importing 1 new member and 1 existing member with a different role
-            Member.importPolicyMembers(policyID, [
+            Member.importPolicyMembers(policy, [
                 {email: 'new_user@gmail.com', role: 'user'},
                 {email: userEmail, role: 'admin'},
             ]);
@@ -957,7 +953,7 @@ describe('actions/PolicyMember', () => {
             const userRole = 'user';
             const userEmail2 = 'user2@gmail.com';
             const userRole2 = 'user';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [userEmail]: {
@@ -967,10 +963,10 @@ describe('actions/PolicyMember', () => {
                         role: userRole2,
                     },
                 },
-            });
+            };
 
             // When importing multiple new members and multiple existing members with a different role
-            Member.importPolicyMembers(policyID, [
+            Member.importPolicyMembers(policy, [
                 {email: 'new_user@gmail.com', role: 'user'},
                 {email: 'new_user2@gmail.com', role: 'user'},
                 {email: userEmail, role: 'admin'},

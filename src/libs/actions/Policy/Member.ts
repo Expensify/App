@@ -1016,10 +1016,11 @@ type PolicyMember = {
     forwardsTo?: string;
 };
 
-function importPolicyMembers(policyID: string, members: PolicyMember[]) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]) {
+    if (!policy?.id) {
+        Log.warn('importPolicyMembers called without a valid policy');
+        return;
+    }
     const {added, updated} = members.reduce(
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
@@ -1037,7 +1038,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
     const onyxData = updateImportSpreadsheetData(added, updated);
 
     const parameters = {
-        policyID,
+        policyID: policy.id,
         employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role, submitsTo: member.submitsTo, forwardsTo: member.forwardsTo}))),
     };
 
