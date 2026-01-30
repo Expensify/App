@@ -1581,6 +1581,9 @@ function MoneyReportHeader({
         const allowedActions = [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT, CONST.REPORT.PRIMARY_ACTIONS.APPROVE, CONST.REPORT.PRIMARY_ACTIONS.PAY];
         return allowedActions
             .filter((actionType) => {
+                if (actionType === CONST.REPORT.PRIMARY_ACTIONS.PAY && !shouldShowPayButton) {
+                    return false;
+                }
                 return actionType === primaryAction || secondaryActions.includes(actionType);
             })
             .map((actionType) => {
@@ -1616,7 +1619,7 @@ function MoneyReportHeader({
                 }
                 return secondaryActionsImplementation[actionType];
             });
-    }, [primaryAction, secondaryActions, secondaryActionsImplementation, selectionModePaymentOptions, isOffline, canAllowSettlement, shouldBlockSubmit, isBlockSubmitDueToPreventSelfApproval]);
+    }, [primaryAction, secondaryActions, secondaryActionsImplementation, selectionModePaymentOptions, isOffline, canAllowSettlement, shouldBlockSubmit, isBlockSubmitDueToPreventSelfApproval, shouldShowPayButton]);
 
     const isOnSearch = route.name.toLowerCase().startsWith('search');
     const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
