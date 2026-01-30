@@ -10,14 +10,20 @@ import useOnyx from '@hooks/useOnyx';
 import importTransactionsFromCSV from '@libs/actions/ImportTransactions';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-function TransactionsImportedPage() {
+type TransactionsImportedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.TRANSACTIONS_IMPORTED>;
+
+function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
+    const {cardID: existingCardID} = route.params ?? {};
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImporting, setIsImporting] = useState(false);
@@ -72,8 +78,9 @@ function TransactionsImportedPage() {
         }
 
         setIsImporting(true);
-        importTransactionsFromCSV(spreadsheet);
-    }, [validate, spreadsheet]);
+        // If existingCardID is provided, add transactions to that card instead of creating a new one
+        importTransactionsFromCSV(spreadsheet, existingCardID ? Number(existingCardID) : undefined);
+    }, [validate, spreadsheet, existingCardID]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return null;
@@ -99,7 +106,7 @@ function TransactionsImportedPage() {
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.importTransactions.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute())}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(existingCardID ? Number(existingCardID) : undefined))}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}

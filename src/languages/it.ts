@@ -769,15 +769,15 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Abilita una verifica rapida e sicura utilizzando il tuo viso o impronta digitale. Nessuna password o codice necessario.',
         },
         revoke: {
-            revoke: 'Revoca',
             title: 'Riconoscimento facciale/impronta digitale & passkey',
             explanation:
-                'La verifica con volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo',
-            confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo',
+                'La verifica tramite volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo.',
+            confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo.',
             cta: 'Revoca accesso',
             noDevices: 'Non hai alcun dispositivo registrato per la verifica con volto/impronta digitale o passkey. Se ne registri uno, potrai revocare tale accesso da qui.',
             dismiss: 'Ho capito',
             error: 'Richiesta non riuscita. Riprova più tardi.',
+            remove: 'Rimuovi',
         },
     },
     validateCodeModal: {
@@ -7254,7 +7254,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connesso a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'ha lasciato la chat',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `La connessione ${feedName} non funziona. Per ripristinare le importazioni delle carte, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>`,
+                    `La connessione ${feedName} non funziona. Per ripristinare le importazioni delle carte, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al tuo conto bancario aziendale è interrotta. <a href='${walletRoute}'>Ricollega il tuo conto bancario ${maskedAccountNumber}</a> per continuare a usare le tue carte Expensify.`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8316,6 +8316,8 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             cta: 'Richiesta',
             offer50off: {title: 'Ottieni il 50% di sconto sul tuo primo anno!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} rimanenti`},
             offer25off: {title: 'Ottieni il 25% di sconto sul tuo primo anno!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'giorno' : 'giorni'} rimanenti`},
+            addShippingAddress: {title: 'Abbiamo bisogno del tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Expensify Card.', cta: 'Aggiungi indirizzo'},
+            activateCard: {title: 'Attiva la tua Expensify Card', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
         },
     },
 };

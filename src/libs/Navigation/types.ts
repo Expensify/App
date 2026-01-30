@@ -1459,6 +1459,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;
@@ -2775,7 +2776,7 @@ type TestDriveDemoNavigatorParamList = {
 };
 
 type SharedScreensParamList = {
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
+    [SCREENS.HOME]: undefined;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
         email?: string;
         accountID?: number;

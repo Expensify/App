@@ -764,14 +764,14 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: '使用您的脸部或指纹启用快速安全验证。无需密码或代码。',
         },
         revoke: {
-            revoke: '撤销',
             title: '面部识别/指纹识别与通行密钥',
-            explanation: '在一台或多台设备上已启用面部 / 指纹或通行密钥验证。撤销访问权限后，下次在任何设备上进行验证时都需要使用魔法验证码',
-            confirmationPrompt: '你确定吗？在任何设备上进行下一步验证时，你都需要一个魔法代码',
+            explanation: '一个或多个设备已启用面容 / 指纹或通行密钥验证。撤销访问后，下次在任何设备上进行验证时都需要输入魔术代码。',
+            confirmationPrompt: '你确定吗？接下来在任何设备上进行验证时，你都需要使用魔法验证码。',
             cta: '撤销访问权限',
             noDevices: '您尚未注册任何用于人脸/指纹或通行密钥验证的设备。如果您注册了设备，您将可以在此撤销其访问权限。',
             dismiss: '明白了',
             error: '请求失败。请稍后重试。',
+            remove: '移除',
         },
     },
     validateCodeModal: {
@@ -7064,7 +7064,7 @@ ${reportName}
                 addedConnection: ({connectionName}: ConnectionNameParams) => `已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: '已离开聊天',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>`,
+                    `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您的企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用您的 Expensify 卡。`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8043,6 +8043,8 @@ ${reportName}
             cta: '报销申请',
             offer50off: {title: '首年立享五折优惠！', subtitle: ({formattedTime}: {formattedTime: string}) => `剩余 ${formattedTime}`},
             offer25off: {title: '首次年度订阅立享 25% 折扣！', subtitle: ({days}: {days: number}) => `剩余 ${days} ${days === 1 ? '天' : '天'}`},
+            addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify Card。', cta: '添加地址'},
+            activateCard: {title: '激活您的 Expensify Card', subtitle: '验证您的卡片并开始消费。', cta: '激活'},
         },
     },
 };
