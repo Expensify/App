@@ -93,7 +93,8 @@ function TimeSensitiveSection() {
             }
 
             // Find the policy associated with this card's fundID (workspaceAccountID)
-            const matchingPolicy = adminPolicies.find((policy) => policy.workspaceAccountID === Number(card.fundID));
+            const cardFundID = Number(card.fundID);
+            const matchingPolicy = adminPolicies.find((policy) => policy.workspaceAccountID === cardFundID);
 
             if (!matchingPolicy) {
                 continue;
