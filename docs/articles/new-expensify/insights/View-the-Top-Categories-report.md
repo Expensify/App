@@ -5,7 +5,7 @@ keywords: [New Expensify, Top Categories, expense categories, category spending,
 internalScope: Audience is Workspace Admins, Approvers, and Auditors. Covers using the Top Categories suggested search to view expense totals by category. Does not cover employee-level analysis or merchant-level grouping.
 ---
 
-# View the Top Categories report in New Expensify
+# View the Top Categories report
 
 The **Top Categories** report shows which expense categories had the highest total spend last month. It’s an easy way to:
 
@@ -21,14 +21,12 @@ This report is a pre-built suggested search that uses filters to group your expe
 
 The Top Categories report is available to Workspace Admins, Approvers, and Auditors on both web and mobile.
 
-**Note:** Exporting data is only available on web.
-
 ---
 
 ## Where to find the Top Categories report
 
 **Web:**  
-Use the navigation tabs on the left and select **Reports**, then click **Top categories** under the **Insights** section.
+Click **Reports** in the left navigation, then click **Top categories** under the **Insights** section
 
 **Mobile:**  
 Tap **Reports** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top categories**.
@@ -38,7 +36,7 @@ Suggestion: Reports view showing “Top categories” selected in the navigation
 
 ---
 
-## What information the Top Categories report shows
+## What the Top Categories report shows
 
 The Top Categories report is powered by Expensify’s search query engine using grouping and filters. The report shows:
 
@@ -59,11 +57,11 @@ Click any row to view all expenses tied to that category.
 
 ---
 
-## Can you customize the Top Categories report?
+## How to customize the Top Categories report 
 
-Yes - you can adjust filters like status, expense type or employee to explore spending trends. However, the Top Categories report is a built-in suggested search, so you can’t save changes to it directly.
+You can adjust filters like status, expense type or employee to explore spending trends.
 
-However, the Top Categories report is a suggested search, so changes cannot be saved directly to that report.
+The Top Categories report is a suggested search template. You cannot save changes directly to this report, but you can create a custom version.
 
 To create and save a custom report:
 
@@ -87,9 +85,11 @@ Workspace Admins and finance teams use the Top Categories report to:
 
 # FAQ
 
-## Can you export the Top Categories report?
+## Can I export the Top Categories report?
 
-Not directly — the Top Categories report can’t be exported with its grouped totals or summary data. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data.
+The Top Categories report can’t be exported with its grouped totals or summary data directly. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data.
+
+To export expenses:
 
 1. Go to the **Reports** or **Expenses** tab.
 2. Use filters to group by category and apply the same timeframe.
@@ -101,10 +101,6 @@ The **Top Categories** report shows the highest-spending **expense categories**,
 
 - Use **Top Categories** to track spending by type (e.g., Travel, Meals).
 - Use **Top Spenders** to track who is submitting the most expenses.
-
-## Can other people see my Top Categories report?
-
-Only Workspace Admins, Approvers, and Auditors can access the Top Categories report for a workspace. Regular members do not have access.
 
 ## How is the Top Categories report calculated?
 
