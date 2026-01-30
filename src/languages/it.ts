@@ -567,6 +567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         address: 'Indirizzo',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: 'Salta',
         chatWithAccountManager: (accountManagerDisplayName: string) => `Hai bisogno di qualcosa in particolare? Chatta con il tuo account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chatta ora',
@@ -643,6 +644,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Mese',
         home: 'Home',
         week: 'Settimana',
+        year: 'Anno',
+        quarter: 'Trimestre',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1052,6 +1055,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Conferma i dettagli qui sotto per i ${count} nuovi membri dello spazio di lavoro che verranno aggiunti come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti del ruolo né messaggi di invito.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transazioni sono state importate.` : '1 transazione è stata importata.',
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -1133,6 +1138,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: 'Rimuovi suddivisione',
         splitExpenseCannotBeEditedModalTitle: 'Questa spesa non può essere modificata',
         splitExpenseCannotBeEditedModalDescription: 'Le spese approvate o pagate non possono essere modificate',
+        splitExpenseDistanceErrorModalDescription: 'Correggi l’errore della tariffa di distanza e riprova.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Paga ${name ?? 'qualcuno'}`,
         expense: 'Spesa',
         categorize: 'Classifica',
@@ -1255,6 +1261,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `inviato${memo ? `, dicendo ${memo}` : ''}`,
         automaticallySubmitted: `inviato tramite <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">invio ritardato</a>`,
         queuedToSubmitViaDEW: "in coda per l'invio tramite flusso di approvazione personalizzato",
+        queuedToApproveViaDEW: "in coda per l'approvazione tramite flusso di approvazione personalizzato",
         trackedAmount: (formattedAmount: string, comment?: string) => `monitoraggio ${formattedAmount}${comment ? `per ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividi ${amount}`,
         didSplitAmount: (formattedAmount: string, comment: string) => `dividi ${formattedAmount}${comment ? `per ${comment}` : ''}`,
@@ -2154,7 +2161,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Aggiungi un conto bancario per effettuare o ricevere pagamenti.',
         addDebitOrCreditCard: 'Aggiungi carta di debito o di credito',
         assignedCards: 'Carte assegnate',
-        assignedCardsDescription: 'Queste sono carte assegnate da un amministratore dello spazio di lavoro per gestire le spese dell’azienda.',
+        assignedCardsDescription: 'Le transazioni da queste carte si sincronizzano automaticamente.',
         expensifyCard: 'Carta Expensify',
         walletActivationPending: 'Stiamo esaminando le tue informazioni. Ricontrolla tra qualche minuto!',
         walletActivationFailed: 'Purtroppo il tuo portafoglio non può essere attivato in questo momento. Chatta con Concierge per ulteriore assistenza.',
@@ -2180,6 +2187,9 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderà l'accesso a questo conto bancario aziendale. Completeremo comunque tutti i pagamenti in corso.`,
         reachOutForHelp: 'È in uso con la carta Expensify. <concierge-link>Contatta il Concierge</concierge-link> se devi revocare la condivisione.',
         unshareErrorModalTitle: 'Impossibile revocare la condivisione del conto bancario',
+        deleteCard: 'Elimina carta',
+        deleteCardConfirmation:
+            'Tutte le transazioni con carta non inviate, comprese quelle nei report aperti, verranno rimosse. Sei sicuro di voler eliminare questa carta? Non puoi annullare questa azione.',
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -2210,6 +2220,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Transazione sospetta',
         suspiciousBannerDescription: 'Abbiamo notato transazioni sospette sulla tua carta. Tocca qui sotto per controllarle.',
         cardLocked: 'La tua carta è temporaneamente bloccata mentre il nostro team esamina l’account della tua azienda.',
+        markTransactionsAsReimbursable: 'Contrassegna le transazioni come rimborsabili',
+        markTransactionsDescription: 'Quando è abilitata, le transazioni importate da questa carta sono contrassegnate come rimborsabili per impostazione predefinita.',
         cardDetails: {
             cardNumber: 'Numero carta virtuale',
             expiration: 'Scadenza',
@@ -4938,6 +4950,15 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Scegli una nuova data di inizio per le transazioni. Sincronizzeremo tutte le transazioni da quella data in poi, escludendo quelle già importate.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
+            importTransactions: {
+                title: 'Importa transazioni da file',
+                description: 'Regola le impostazioni per il tuo file che verranno applicate all’importazione.',
+                cardDisplayName: 'Nome visualizzato carta',
+                currency: 'Valuta',
+                transactionsAreReimbursable: 'Le transazioni sono rimborsabili',
+                flipAmountSign: 'Inverti segno importo',
+                importButton: 'Importa transazioni',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed delle carte',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -6392,10 +6413,17 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 editRuleTitle: 'Modifica regola',
                 deleteRule: 'Elimina regola',
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
+                previewMatches: 'Anteprima corrispondenze',
+                previewMatchesEmptyStateTitle: 'Niente da mostrare',
+                previewMatchesEmptyStateSubtitle: 'Nessuna spesa non inviata corrisponde a questa regola.',
                 matchType: 'Tipo di corrispondenza',
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Corrisponde esattamente',
                 expensesExactlyMatching: 'Per le spese che corrispondono esattamente:',
+                duplicateRuleTitle: 'Esiste già una regola simile per questo commerciante',
+                duplicateRulePrompt: (merchantName: string) => `Vuoi salvare una nuova regola per "${merchantName}" anche se ne hai già una esistente?`,
+                saveAnyway: 'Salva comunque',
+                applyToExistingUnsubmittedExpenses: 'Applica alle spese esistenti non inviate',
             },
         },
         planTypePage: {
@@ -6970,6 +6998,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
             limit: 'Limite',
+            limitDescription: 'Imposta un limite per i risultati della tua ricerca.',
             currency: 'Valuta',
             completed: 'Completato',
             amount: {
@@ -7002,12 +7031,14 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carta',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo', //_/\__/_/  \_,_/\__/\__/\_,_/
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID prelievo',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Anno',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7048,6 +7079,19 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         topSpenders: 'Maggiori spenditori',
+        view: {label: 'Visualizza', table: 'Tabella', bar: 'Bar'},
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Esportazioni',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commercianti',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Mesi',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimane',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Anni',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestri',
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, qualcosa è andato storto!',
@@ -7933,6 +7977,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             hasChildReportAwaitingAction: 'Il report figlio è in attesa di azione',
             hasMissingInvoiceBankAccount: 'Non ha un conto bancario per la fattura',
             hasUnresolvedCardFraudAlert: 'Ha un avviso di frode sulla carta non risolto',
+            hasDEWApproveFailed: 'Approvazione DEW fallita',
         },
         reasonRBR: {
             hasErrors: 'Presenta errori nei dati del report o nelle azioni del report',
@@ -8225,8 +8270,27 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         discoverSection: {
             title: 'Scopri',
             menuItemTitleNonAdmin: 'Scopri come creare spese e inviare report.',
-            menuItemTitleAdmin: 'Scopri come invitare membri, modificare i flussi di approvazione e riconciliare le carte aziendali.',
+            menuItemTitleAdmin: 'Scopri come invitare i membri, modificare i flussi di approvazione e riconciliare le carte aziendali.',
             menuItemDescription: 'Scopri cosa può fare Expensify in 2 minuti',
+        },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `Invia ${count} ${count === 1 ? 'rendiconto' : 'rapporti'}`,
+            approve: ({count}: {count: number}) => `Approva ${count} ${count === 1 ? 'rendiconto' : 'rapporti'}`,
+            pay: ({count}: {count: number}) => `Paga ${count} ${count === 1 ? 'rendiconto' : 'rapporti'}`,
+            export: ({count}: {count: number}) => `Esporta ${count} ${count === 1 ? 'rendiconto' : 'rapporti'}`,
+            begin: 'Inizia',
+            emptyStateMessages: {
+                nicelyDone: 'Ben fatto',
+                keepAnEyeOut: 'Tieni d’occhio cosa arriverà dopo!',
+                allCaughtUp: 'Sei in pari',
+                upcomingTodos: 'Le prossime attività da fare verranno visualizzate qui.',
+            },
+        },
+        timeSensitiveSection: {
+            title: 'Urgente',
+            cta: 'Richiesta',
+            offer50off: {title: 'Ottieni il 50% di sconto sul tuo primo anno!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} rimanenti`},
+            offer25off: {title: 'Ottieni il 25% di sconto sul tuo primo anno!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'giorno' : 'giorni'} rimanenti`},
         },
     },
 };

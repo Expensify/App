@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
+import type {ReactNode} from 'react';
 import {useMemo} from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
@@ -279,6 +280,19 @@ jest.mock('@src/hooks/useWorkletStateMachine/runOnUISync', () => ({
 
 jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
+}));
+
+jest.mock('@shopify/react-native-skia', () => ({
+    useFont: jest.fn(() => null),
+    matchFont: jest.fn(() => null),
+    listFontFamilies: jest.fn(() => []),
+}));
+
+jest.mock('victory-native', () => ({
+    Bar: jest.fn(() => null),
+    CartesianChart: jest.fn(
+        ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
+    ),
 }));
 
 // Provide a default global fetch mock for tests that do not explicitly set it up
