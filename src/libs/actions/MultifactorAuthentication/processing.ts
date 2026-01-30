@@ -14,6 +14,10 @@ type ProcessResult = {
     reason: MultifactorAuthenticationReason;
 };
 
+function isHttpSuccess(httpCode: number | undefined): boolean {
+    return String(httpCode).startsWith('2');
+}
+
 type RegistrationParams = {
     publicKey: string;
     authenticationMethod: MarqetaAuthTypeName;
@@ -61,7 +65,7 @@ async function processRegistration(params: RegistrationParams): Promise<ProcessR
         currentPublicKeyIDs: params.currentPublicKeyIDs,
     });
 
-    const success = String(httpCode).startsWith('2');
+    const success = isHttpSuccess(httpCode);
 
     return {
         success,
@@ -83,7 +87,7 @@ async function processScenario<T extends MultifactorAuthenticationScenario>(
     }
 
     const {httpCode, reason} = await currentScenario.action(params);
-    const success = String(httpCode).startsWith('2');
+    const success = isHttpSuccess(httpCode);
 
     return {
         success,
