@@ -63,6 +63,9 @@ type IconProps = {
 
     /** The image cache policy */
     cachePolicy?: ImageProps['cachePolicy'];
+
+    /** Accessibility label for the icon */
+    accessibilityLabel?: string;
 };
 
 function Icon({
@@ -83,6 +86,7 @@ function Icon({
     isButtonIcon = false,
     enableMultiGestureCanvas = false,
     cachePolicy,
+    accessibilityLabel,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -117,6 +121,8 @@ function Icon({
     if (inline) {
         return (
             <View
+                accessibilityLabel={accessibilityLabel}
+                accessible={!!accessibilityLabel}
                 testID={testID}
                 style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
             >
@@ -139,6 +145,8 @@ function Icon({
     if (canUseTouchScreen() && enableMultiGestureCanvas) {
         return (
             <View
+                accessibilityLabel={accessibilityLabel}
+                accessible={!!accessibilityLabel}
                 style={StyleSheet.absoluteFill}
                 onLayout={updateCanvasSize}
             >
@@ -177,11 +185,12 @@ function Icon({
 
     return (
         <View
+            accessibilityLabel={accessibilityLabel}
+            accessible={!!accessibilityLabel}
             testID={testID}
             style={additionalStyles}
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
-            accessible={false}
         >
             <ImageSVG
                 src={src}

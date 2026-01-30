@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
@@ -37,6 +38,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
+    const {translate} = useLocalize();
 
     const HTMLMessage = useMemo(() => {
         if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
@@ -62,6 +64,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                 <Icon
                     src={icons.DotIndicator}
                     fill={theme.danger}
+                    accessibilityLabel={translate('common.yourReviewIsRequired')}
                 />
             )}
             {isInfo && (
@@ -70,6 +73,7 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
                     fill={theme.icon}
                     small
                     additionalStyles={[styles.mr1]}
+                    accessibilityLabel={translate('common.yourReviewIsRequired')}
                 />
             )}
             <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
