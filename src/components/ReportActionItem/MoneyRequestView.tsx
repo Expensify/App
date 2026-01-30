@@ -153,7 +153,7 @@ const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => 
         }),
     );
 };
-const timePoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => isTimeTrackingEnabled(policy)));
+const anyTimeTrackingPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => Object.entries(policies ?? {}).some(([, policy]) => isTimeTrackingEnabled(policy));
 
 function MoneyRequestView({
     allReports,
@@ -215,8 +215,8 @@ function MoneyRequestView({
     });
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
 
-    const [policiesWithTime] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: timePoliciesSelector,
+    const [doesAnyPolicyWithTimeTrackingEnabledExist] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: anyTimeTrackingPoliciesSelector,
         canBeMissing: true,
     });
 
@@ -368,7 +368,7 @@ function MoneyRequestView({
 
     const shouldRestrictEditingReportDueToFeatureDisabled =
         (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy) && !(isExpenseUnreported && !!perDiemOriginalPolicy)) ||
-        (isTimeRequest && !canSubmitTimeExpenseFromWorkspace(policy) && isEmptyObject(policiesWithTime));
+        (isTimeRequest && !canSubmitTimeExpenseFromWorkspace(policy) && !doesAnyPolicyWithTimeTrackingEnabledExist);
 
     const canEditReport =
         isEditable &&
