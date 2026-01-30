@@ -222,13 +222,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         return;
                     }
 
-                    if (!result.signedChallenge || !result.authenticationMethod) {
-                        setError({
-                            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
-                        });
-                        return;
-                    }
-
                     // Call backend with signed challenge
                     const scenarioResult = await processScenario(scenario, {
                         signedChallenge: result.signedChallenge,

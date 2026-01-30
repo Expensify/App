@@ -42,12 +42,19 @@ type AuthorizeParams<T extends MultifactorAuthenticationScenario> = {
     challenge: AuthenticationChallenge;
 };
 
-type AuthorizeResult = {
-    success: boolean;
+type AuthorizeResultSuccess = {
+    success: true;
     reason: MultifactorAuthenticationReason;
-    signedChallenge?: SignedChallenge;
-    authenticationMethod?: MarqetaAuthTypeName;
+    signedChallenge: SignedChallenge;
+    authenticationMethod: MarqetaAuthTypeName;
 };
+
+type AuthorizeResultFailure = {
+    success: false;
+    reason: MultifactorAuthenticationReason;
+};
+
+type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;
 
 type UseNativeBiometricsReturn = {
     /** Biometrics info about device and registration status */
@@ -251,6 +258,14 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         const signedChallenge = signTokenED25519(challenge, privateKeyData.value, publicKey);
         const authenticationMethodCode = privateKeyData.type;
         const marqetaAuthType = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === authenticationMethodCode)?.MQ_VALUE;
+
+        if (!marqetaAuthType) {
+            onResult({
+                success: false,
+                reason: VALUES.REASON.GENERIC.BAD_REQUEST,
+            });
+            return;
+        }
 
         // Return signed challenge - let callback handle backend authorization
         await onResult({
