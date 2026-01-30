@@ -461,7 +461,7 @@ function WalletPage() {
                     );
                 },
             },
-            ...(isCSVImport
+            ...(isCSVImport && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT)
                 ? [
                       {
                           text: translate('spreadsheet.importSpreadsheet'),
