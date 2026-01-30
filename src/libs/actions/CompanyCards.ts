@@ -1133,21 +1133,13 @@ function importCSVCompanyCards({
         }
     }
 
-    const newCardEntries = Object.fromEntries(
-        [...cardNumbersFromCSV]
-            .filter((cardName) => !existingCardNames.has(cardName))
-            .map((cardName) => [cardName, cardName]),
-    );
+    const newCardEntries = Object.fromEntries([...cardNumbersFromCSV].filter((cardName) => !existingCardNames.has(cardName)).map((cardName) => [cardName, cardName]));
     const mergedCardList = {...existingCardList, ...newCardEntries};
     const newCardEntriesCount = Object.keys(newCardEntries).length;
     const transactionsCount = Math.max(csvData.length - rowsStartIndex, 0);
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER
-            | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
-            | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED
-        >
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED>
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
