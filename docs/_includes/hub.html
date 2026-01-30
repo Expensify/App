@@ -13,7 +13,7 @@
 {% if hub.articles %}
     {% assign sortedSectionsAndArticles = hub.sections | concat: hub.articles | sort: 'title' %}
 {% else %}
-    {% assign sortedSectionsAndArticles = hub.sections | sort: 'title' %}
+    {% assign sortedSectionsAndArticles = hub.sections | default: empty | sort: 'title' %}
 {% endif%}
 
 <section>
