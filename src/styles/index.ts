@@ -6092,10 +6092,8 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
-            marginBottom: shouldUseNarrowLayout ? 20 : 32,
-            marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
+            marginBottom: shouldUseNarrowLayout ? 8 : 12,
             paddingVertical: 12,
-            gap: 24,
         }),
 
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {

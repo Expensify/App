@@ -1,5 +1,6 @@
 import React from 'react';
 import {Image, Linking, View} from 'react-native';
+import type {OnyxValue} from 'react-native-onyx';
 import HomeTestDriveImage from '@assets/images/home-testdrive-image.png';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -16,7 +17,16 @@ import {completeTestDriveTask} from '@libs/actions/Task';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+// This selector returns true if the user has seen the tour, or if the onboarding NVP is not loaded yet. Thanks to this, discover section does not disappear when the onboarding NVP is loaded.
+function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
+    if (isEmptyObject(onboarding)) {
+        return true;
+    }
+
+    return !!onboarding?.selfTourViewed;
+}
 
 const MAX_NUMBER_OF_LINES_TITLE = 4;
 
