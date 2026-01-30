@@ -282,6 +282,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorCode: 'Código de autenticação de dois fatores',
         workspaces: 'Workspaces',
         inbox: 'Caixa de entrada',
+        yourReviewIsRequired: 'Sua revisão é necessária',
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Sucesso',
         group: 'Grupo',

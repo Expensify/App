@@ -282,6 +282,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorCode: '2要素コード',
         workspaces: 'ワークスペース',
         inbox: '受信トレイ',
+        yourReviewIsRequired: '確認が必要です',
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: '成功',
         group: 'グループ',

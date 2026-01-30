@@ -282,6 +282,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorCode: '双重验证代码',
         workspaces: '工作区',
         inbox: '收件箱',
+        yourReviewIsRequired: '需要您的审核',
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: '成功',
         group: '群组',

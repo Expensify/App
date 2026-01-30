@@ -282,6 +282,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorCode: 'Kod dwuskładnikowy',
         workspaces: 'Przestrzenie robocze',
         inbox: 'Skrzynka odbiorcza',
+        yourReviewIsRequired: 'Wymagana jest Twoja weryfikacja',
         // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Sukces',
         group: 'Grupa',
