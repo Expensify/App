@@ -35,9 +35,8 @@ let isReadyPromise = new Promise((resolve) => {
 });
 
 /**
- * Checks if the network layer has all required data to process requests.
- * Resolves the ready promise when both session and credentials have been loaded from storage,
- * and credentials are either empty (user needs to sign in) or contain valid authentication data.
+ * This is a hack to workaround the fact that Onyx may not yet have read these values from storage by the time Network starts processing requests.
+ * If the values are undefined we haven't read them yet. If they are null or have a value then we have and the network is "ready".
  */
 function checkRequiredData() {
     if (!hasReceivedSession || !hasReceivedCredentials) {
@@ -53,11 +52,14 @@ function checkRequiredData() {
 }
 
 function resetHasReadRequiredDataFromStorage() {
-    hasReceivedSession = false;
-    hasReceivedCredentials = false;
     isReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
+
+    // If both callbacks have already fired, check immediately as they won't fire again
+    if (hasReceivedSession && hasReceivedCredentials) {
+        checkRequiredData();
+    }
 }
 
 Onyx.connectWithoutView({
