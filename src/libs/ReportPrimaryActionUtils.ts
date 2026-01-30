@@ -553,8 +553,8 @@ type GetReportActionBadgeParams = {
     currentUserAccountID: number;
     currentUserLogin: string;
     bankAccountList: OnyxEntry<BankAccountList>;
-    policy?: Policy;
-    reportNameValuePairs?: ReportNameValuePairs;
+    policy: OnyxEntry<Policy>;
+    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     reportTransactions: Transaction[];
     reportActions?: ReportAction[];
 };
@@ -584,19 +584,19 @@ function getReportActionBadge({
     }
 
     // Check in workflow order (furthest down first): Export > Pay > Approve > Submit
-    if (isExportAction(report, currentUserLogin, policy, reportActions)) {
+    if (isExportAction(report, currentUserLogin, policy ?? undefined, reportActions)) {
         return {verb: CONST.ACTION_BADGE_VERBS.EXPORT};
     }
 
-    if (isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, bankAccountList, policy, reportNameValuePairs)) {
+    if (isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, bankAccountList, policy ?? undefined, reportNameValuePairs ?? undefined)) {
         return {verb: CONST.ACTION_BADGE_VERBS.PAY};
     }
 
-    if (isApproveAction(report, reportTransactions, currentUserAccountID, undefined, policy)) {
+    if (isApproveAction(report, reportTransactions, currentUserAccountID, undefined, policy ?? undefined)) {
         return {verb: CONST.ACTION_BADGE_VERBS.APPROVE};
     }
 
-    if (isSubmitAction(report, reportTransactions, undefined, policy, reportNameValuePairs)) {
+    if (isSubmitAction(report, reportTransactions, undefined, policy ?? undefined, reportNameValuePairs ?? undefined)) {
         return {verb: CONST.ACTION_BADGE_VERBS.SUBMIT};
     }
 

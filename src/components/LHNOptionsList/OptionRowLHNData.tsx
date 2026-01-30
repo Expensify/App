@@ -149,8 +149,8 @@ function OptionRowLHNData({
             currentUserAccountID,
             currentUserLogin,
             bankAccountList,
-            policy: policy ?? undefined,
-            reportNameValuePairs: reportNameValuePairs ?? undefined,
+            policy,
+            reportNameValuePairs,
             reportTransactions,
             reportActions: reportActionsList,
         });
