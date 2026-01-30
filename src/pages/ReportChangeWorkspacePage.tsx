@@ -38,8 +38,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {DismissedProductTraining, PersonalDetailsList} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
-import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type ReportChangeWorkspacePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>;
 

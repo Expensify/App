@@ -29,6 +29,8 @@ import {
     getActionableCardFraudAlertResolutionMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
@@ -43,6 +45,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportAction,
     getOriginalMessage,
+    getPlaidBalanceFailureMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
@@ -61,6 +64,7 @@ import {
     getReportActionActorAccountID,
     getReportActionMessageText,
     getRoomAvatarUpdatedMessage,
+    getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
@@ -869,6 +873,8 @@ function getOptionData({
             result.alternateText = Parser.htmlToText(getIntegrationSyncFailedMessage(translate, lastAction, report?.policyID));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
             result.alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
+            result.alternateText = Parser.htmlToText(getPlaidBalanceFailureMessage(translate, lastAction));
         } else if (
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
@@ -906,6 +912,10 @@ function getOptionData({
             result.alternateText = getWorkspaceFeatureEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
             result.alternateText = getWorkspaceAttendeeTrackingUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
+            result.alternateText = getAutoPayApprovedReportsEnabledMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
+            result.alternateText = getAutoReimbursementMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER) {
             result.alternateText = getDefaultApproverUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO) {
@@ -987,6 +997,8 @@ function getOptionData({
             result.alternateText = Parser.htmlToText(getChangedApproverActionMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
             result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
+            result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
