@@ -8,7 +8,7 @@ Overall Retrieval Score: 9.3 / 10
 -->
 
 ---
-title: How to manage subscriptions in Expensify
+title: Managing subscriptions in Expensify
 description: Learn how to cancel a monthly or annual subscription, request early cancellation, update your payment method, or fix blocked billing actions.
 keywords: [cancel subscription, update payment method, early cancellation, billing issues, subscription blocked, change card, subscription renewal]
 internalScope: Audience is billing owners. Covers subscription types, cancellation logic, early cancellation, updating payment methods, and billing blocks. Does not cover workspace deletion or transferring billing ownership.
