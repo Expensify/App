@@ -216,9 +216,3 @@ platforms:
         title: billing
         icon: /assets/images/accounting.svg
         description: "Learn about billing."
-
-
-      - href: subscription-and-plan-management
-        title: Subscription and Plan Management
-        icon: /assets/images/subscription-annual.svg
-        description: Manage subscriptions and plans.
