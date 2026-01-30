@@ -69,9 +69,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         if (error) {
             if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS) {
                 const noEligibleMethodsOutcome = getOutcomePath(scenarioLowerCase, 'no-eligible-methods');
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(noEligibleMethodsOutcome));
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(noEligibleMethodsOutcome), {forceReplace: true});
             } else {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.failureOutcome));
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.failureOutcome), {forceReplace: true});
             }
             dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
             return;
@@ -95,7 +95,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // Need validate code before registration
             if (!validateCode) {
                 requestValidateCodeAction();
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_MAGIC_CODE);
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_MAGIC_CODE, {forceReplace: true});
                 return;
             }
 
@@ -127,7 +127,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             const isSoftPromptRequired = !softPromptApproved && biometrics.info.deviceSupportsBiometrics;
 
             if (isSoftPromptRequired) {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS));
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS), {forceReplace: true});
                 return;
             }
 
@@ -249,7 +249,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         // 6. All steps completed - success
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome));
+        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome), {forceReplace: true});
         dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
     }, [biometrics, dispatch, state, translate]);
 
