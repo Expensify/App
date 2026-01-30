@@ -2,6 +2,7 @@
 // These functions use makeRequestWithSideEffects because challenge data must be returned immediately
 // for security and timing requirements (see detailed explanation below)
 import Onyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 import {makeRequestWithSideEffects} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -88,13 +89,33 @@ type AuthenticationChallengeResponse = {
 
 async function requestRegistrationChallenge(validateCode: string): Promise<RegistrationChallengeResponse> {
     try {
+        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+            {
+                key: ONYXKEYS.ACCOUNT,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    isLoading: true,
+                    loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
+                },
+            },
+        ];
+        const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+            {
+                key: ONYXKEYS.ACCOUNT,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    isLoading: false,
+                    loadingForm: undefined,
+                },
+            },
+        ];
         const response = await makeRequestWithSideEffects(
             SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE,
             {
                 challengeType: 'registration',
                 validateCode,
             },
-            {},
+            {optimisticData, finallyData},
         );
         const {jsonCode, challenge, publicKeys, message} = response ?? {};
         const parsedResponse = parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_AUTHENTICATION_CHALLENGE, message);
