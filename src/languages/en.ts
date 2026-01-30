@@ -1014,6 +1014,16 @@ const translations = {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
                 subtitle: 'Workspace > Accounting',
             },
+            addShippingAddress: {
+                title: 'We need your shipping address',
+                subtitle: 'Provide an address to receive your Expensify Card.',
+                cta: 'Add address',
+            },
+            activateCard: {
+                title: 'Activate your Expensify Card',
+                subtitle: 'Validate your card and start spending.',
+                cta: 'Activate',
+            },
         },
         announcements: 'Announcements',
         discoverSection: {
@@ -1082,6 +1092,8 @@ const translations = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.'),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transactions have been imported.` : '1 transaction has been imported.',
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
         importDescription: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
@@ -2186,6 +2198,9 @@ const translations = {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure you want to delete this account?',
+        deleteCard: 'Delete card',
+        deleteCardConfirmation:
+            'All unsubmitted card transactions, including those on open reports, will be removed. Are you sure you want to delete this card? You cannot undo this action.',
         error: {
             notOwnerOfBankAccount: 'An error occurred while setting this bank account as your default payment method',
             invalidBankAccount: 'This bank account is temporarily suspended',
@@ -4927,6 +4942,15 @@ const translations = {
             assignCardFailedError: 'Card assignment failed.',
             unassignCardFailedError: 'Card unassignment failed.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            importTransactions: {
+                title: 'Import transactions from file',
+                description: 'Please adjust the settings for your file that will be applied on import.',
+                cardDisplayName: 'Card display name',
+                currency: 'Currency',
+                transactionsAreReimbursable: 'Transactions are reimbursable',
+                flipAmountSign: 'Flip amount sign',
+                importButton: 'Import transactions',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -6926,6 +6950,7 @@ const translations = {
             keyword: 'Keyword',
             keywords: 'Keywords',
             limit: 'Limit',
+            limitDescription: 'Set a limit for the results of your search.',
             currency: 'Currency',
             completed: 'Completed',
             amount: {
@@ -6982,6 +7007,11 @@ const translations = {
         },
         has: 'Has',
         groupBy: 'Group by',
+        view: {
+            label: 'View',
+            table: 'Table',
+            bar: 'Bar',
+        },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cards',

@@ -223,7 +223,8 @@ function PaymentMethodList({
                 if (card.fundID) {
                     const feedNameWithDomainID = getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID);
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
-                } else {
+                } else if (card.bank !== CONST.PERSONAL_CARD.BANK_NAME.CSV) {
+                    // Don't show red dot for CSV imported cards without fundID
                     shouldShowRBR = true;
                 }
 
@@ -242,9 +243,8 @@ function PaymentMethodList({
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
-                    const cardDisplayName = maskCardNumber(card.cardName, card.bank);
+                    const cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
                     const pressHandler = onPress as CardPressHandler;
-
                     let cardDescription;
                     if (isUserPersonalCard) {
                         cardDescription = lastFourPAN;
@@ -253,32 +253,33 @@ function PaymentMethodList({
                     } else {
                         cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
                     }
-                    // Personal cards navigate to personal card details page
+                    // Personal cards navigate to personal card details page (except CSV cards which need 3-dot menu for delete)
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
-                    const cardOnPress = isUserPersonalCard
-                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
-                        : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-                              pressHandler({
-                                  event: e,
-                                  cardData: card,
-                                  icon: {
-                                      icon,
-                                      iconStyles: [styles.cardIcon],
-                                      iconWidth: variables.cardIconWidth,
-                                      iconHeight: variables.cardIconHeight,
-                                  },
-                                  cardID: card.cardID,
-                              });
+                    const cardOnPress =
+                        isUserPersonalCard && !isCSVCard
+                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
+                            : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                                  pressHandler({
+                                      event: e,
+                                      cardData: card,
+                                      icon: {
+                                          icon,
+                                          iconStyles: [styles.cardIcon],
+                                          iconWidth: variables.cardIconWidth,
+                                          iconHeight: variables.cardIconHeight,
+                                      },
+                                      cardID: card.cardID,
+                                  });
 
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl: isUserPersonalCard ? undefined : plaidUrl,
-                        title: cardDisplayName,
+                        title: cardTitle,
                         description: isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription,
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
-                        shouldShowThreeDotsMenu: !isUserPersonalCard,
+                        shouldShowThreeDotsMenu: !isUserPersonalCard || isCSVCard,
                         errors: card.errors,
                         canDismissError: false,
                         pendingAction: card.pendingAction,

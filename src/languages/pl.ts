@@ -1056,6 +1056,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Potwierdź poniższe szczegóły dla ${count} nowych członków przestrzeni roboczej, którzy zostaną dodani w ramach tego przesyłania. Istniejący członkowie nie otrzymają żadnych aktualizacji ról ani wiadomości z zaproszeniem.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `Zaimportowano ${transactions} transakcji.` : 'Zaimportowano 1 transakcję.'),
     },
     receipt: {
         upload: 'Prześlij paragon',
@@ -2181,6 +2182,9 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} utraci dostęp do tego firmowego konta bankowego. Nadal będziemy realizować wszystkie płatności w toku.`,
         reachOutForHelp: 'Jest ono używane z kartą Expensify. <concierge-link>Skontaktuj się z Concierge</concierge-link>, jeśli chcesz je anulować.',
         unshareErrorModalTitle: 'Nie można anulować udostępniania konta bankowego',
+        deleteCard: 'Usuń kartę',
+        deleteCardConfirmation:
+            'Wszystkie niewysłane transakcje kartą, w tym znajdujące się w otwartych raportach, zostaną usunięte. Czy na pewno chcesz usunąć tę kartę? Nie można cofnąć tej czynności.',
     },
     cardPage: {
         expensifyCard: 'Karta Expensify',
@@ -4931,6 +4935,15 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Wybierz nową datę początkową transakcji. Zsynchronizujemy wszystkie transakcje od tej daty, z wyłączeniem tych, które już zostały zaimportowane.',
             unassignCardFailedError: 'Nie udało się odłączyć karty.',
+            importTransactions: {
+                title: 'Importuj transakcje z pliku',
+                description: 'Dostosuj ustawienia dla swojego pliku, które zostaną zastosowane podczas importu.',
+                cardDisplayName: 'Wyświetlana nazwa karty',
+                currency: 'Waluta',
+                transactionsAreReimbursable: 'Transakcje podlegają zwrotowi',
+                flipAmountSign: 'Odwróć znak kwoty',
+                importButton: 'Importuj transakcje',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Nie można było wczytać kanałów kart',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się z administratorem.',
@@ -6955,6 +6968,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             keyword: 'Słowo kluczowe',
             keywords: 'Słowa kluczowe',
             limit: 'Limit',
+            limitDescription: 'Ustaw limit wyników wyszukiwania.',
             currency: 'Waluta',
             completed: 'Zakończone',
             amount: {
@@ -6987,7 +7001,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karta',
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID wypłaty',
+                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Identyfikator wypłaty',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategoria',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Sprzedawca',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
@@ -7035,6 +7049,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             allMatchingItemsSelected: 'Wybrano wszystkie pasujące elementy',
         },
         topSpenders: 'Najwięksi wydający',
+        view: {label: 'Zobacz', table: 'Tabela', bar: 'Pasek'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Karty',
@@ -8242,6 +8257,8 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
                 subtitle: 'Workspace > Karty firmowe',
             },
             fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Napraw połączenie ${integrationName}`, subtitle: 'Obszar roboczy > Księgowość'},
+            addShippingAddress: {title: 'Potrzebujemy Twojego adresu do wysyłki', subtitle: 'Podaj adres, na który mamy wysłać Twoją kartę Expensify.', cta: 'Dodaj adres'},
+            activateCard: {title: 'Aktywuj swoją kartę Expensify', subtitle: 'Zweryfikuj swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
         },
     },
 };

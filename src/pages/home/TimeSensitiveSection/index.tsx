@@ -5,20 +5,21 @@ import type {OnyxCollection} from 'react-native-onyx';
 import WidgetContainer from '@components/WidgetContainer';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasSynchronizationErrorMessage} from '@libs/actions/connections';
-import {getEarlyDiscountInfo, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
+import useTimeSensitiveOffers from './hooks/useTimeSensitiveOffers';
+import ActivateCard from './items/ActivateCard';
+import AddShippingAddress from './items/AddShippingAddress';
 import FixAccountingConnection from './items/FixAccountingConnection';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import Offer25off from './items/Offer25off';
@@ -47,27 +48,18 @@ function TimeSensitiveSection() {
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {login} = useCurrentUserPersonalDetails();
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
 
-    // Selector for filtering admin policies
+    // Use custom hooks for offers and cards (Release 3)
+    const {shouldShow50off, shouldShow25off, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
+    const {shouldShowAddShippingAddress, shouldShowActivateCard, cardsNeedingShippingAddress, cardsNeedingActivation} = useTimeSensitiveCards();
+
+    // Selector for filtering admin policies (Release 4)
     const adminPoliciesSelectorWrapper = useCallback((policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, login ?? ''), [login]);
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector: adminPoliciesSelectorWrapper});
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
-    const hasTeam2025Pricing = useHasTeam2025Pricing();
-    const subscriptionPlan = useSubscriptionPlan();
 
-    // Get card feed errors for company card connections
+    // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
-
-    // Use the same logic as the subscription page to determine if discount banner should be shown
-    const shouldShowDiscount = shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID);
-    const discountInfo = getEarlyDiscountInfo(firstDayFreeTrial);
-
-    // Determine which offer to show based on discount type (they are mutually exclusive)
-    const shouldShow50off = shouldShowDiscount && discountInfo?.discountType === 50;
-    const shouldShow25off = shouldShowDiscount && discountInfo?.discountType === 25;
 
     // Find policies with broken accounting connections (only for admins)
     const brokenAccountingConnections: BrokenAccountingConnection[] = [];
@@ -116,19 +108,20 @@ function TimeSensitiveSection() {
 
     const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
     const hasBrokenAccountingConnections = brokenAccountingConnections.length > 0;
-    const hasAnyTimeSensitiveContent = shouldShow50off || shouldShow25off || hasBrokenCompanyCards || hasBrokenAccountingConnections;
+    const hasAnyTimeSensitiveContent =
+        shouldShow50off || shouldShow25off || hasBrokenCompanyCards || hasBrokenAccountingConnections || shouldShowAddShippingAddress || shouldShowActivateCard;
 
     if (!hasAnyTimeSensitiveContent) {
         return null;
     }
 
-    // Priority order (from design doc):
-    // 1. Potential card fraud (Release 3 - not implemented here)
+    // Priority order:
+    // 1. Potential card fraud ( not implemented here)
     // 2. Broken bank connections (company cards)
     // 3. Broken accounting connections
     // 4. Early adoption discount (50% or 25%)
-    // 5. Expensify card shipping (Release 3 - not implemented here)
-    // 6. Expensify card activation (Release 3 - not implemented here)
+    // 5. Expensify card shipping
+    // 6. Expensify card activation
     return (
         <WidgetContainer
             icon={icons.Stopwatch}
@@ -166,6 +159,24 @@ function TimeSensitiveSection() {
                 {/* Priority 4: Early adoption discount offers */}
                 {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
                 {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
+
+                {/* Priority 5: Expensify card shipping */}
+                {shouldShowAddShippingAddress &&
+                    cardsNeedingShippingAddress.map((card) => (
+                        <AddShippingAddress
+                            key={card.cardID}
+                            card={card}
+                        />
+                    ))}
+
+                {/* Priority 6: Expensify card activation */}
+                {shouldShowActivateCard &&
+                    cardsNeedingActivation.map((card) => (
+                        <ActivateCard
+                            key={card.cardID}
+                            card={card}
+                        />
+                    ))}
             </View>
         </WidgetContainer>
     );

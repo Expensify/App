@@ -1053,6 +1053,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `このアップロードで追加される新しいワークスペースメンバー${count}人分の詳細を、以下で確認してください。既存のメンバーには、ロールの更新や招待メッセージは送信されません。`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions}件の取引がインポートされました。` : '1件の取引がインポートされました。',
     },
     receipt: {
         upload: '領収書をアップロード',
@@ -2179,6 +2181,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} はこのビジネス銀行口座にアクセスできなくなります。処理中のお支払いは引き続き完了します。`,
         reachOutForHelp: 'この口座は Expensify カードで使用されています。共有を解除する必要がある場合は、<concierge-link>コンシェルジュまでお問い合わせください</concierge-link>。',
         unshareErrorModalTitle: '銀行口座の共有を解除できません',
+        deleteCard: 'カードを削除',
+        deleteCardConfirmation: '未提出のカード取引（未精算レポート上の取引も含む）はすべて削除されます。このカードを本当に削除してもよろしいですか？この操作は元に戻せません。',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -4917,6 +4921,15 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: '新しい取引の開始日を選択してください。その日以降のすべての取引を、すでに取り込んだものを除いて同期します。',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
+            importTransactions: {
+                title: 'ファイルから取引をインポート',
+                description: 'インポート時に適用されるファイルの設定を調整してください。',
+                cardDisplayName: 'カード表示名',
+                currency: '通貨',
+                transactionsAreReimbursable: '取扱明細は精算対象です',
+                flipAmountSign: '金額の符号を反転',
+                importButton: '取引をインポート',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースのカードフィードを読み込む際にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
@@ -6923,6 +6936,7 @@ ${reportName}
             keyword: 'キーワード',
             keywords: 'キーワード',
             limit: '制限',
+            limitDescription: '検索結果の制限を設定します。',
             currency: '通貨',
             completed: '完了',
             amount: {
@@ -7003,6 +7017,7 @@ ${reportName}
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
         topSpenders: 'トップ支出者',
+        view: {label: '表示', table: 'テーブル', bar: 'バー'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
             [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
@@ -8193,6 +8208,8 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
                 subtitle: 'ワークスペース > 会社カード',
             },
             fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`, subtitle: 'ワークスペース > 会計'},
+            addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify Card を受け取る住所を入力してください。', cta: '住所を追加'},
+            activateCard: {title: 'Expensify Card を有効化', subtitle: 'カードを認証して、すぐに支出を始めましょう。', cta: '有効化'},
         },
     },
 };

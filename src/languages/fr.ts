@@ -1059,6 +1059,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Veuillez confirmer les détails ci-dessous pour les ${count} nouveaux membres d’espace de travail qui seront ajoutés dans le cadre de cet import. Les membres existants ne recevront aucune mise à jour de rôle ni message d’invitation.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transactions ont été importées.` : '1 transaction a été importée.',
     },
     receipt: {
         upload: 'Téléverser un reçu',
@@ -2194,6 +2196,9 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perdra l’accès à ce compte bancaire professionnel. Les paiements en cours seront honorés.`,
         reachOutForHelp: 'Ce compte est utilisé avec la carte Expensify. <concierge-link>Contactez le service de conciergerie</concierge-link> si vous souhaitez le retirer du partage.',
         unshareErrorModalTitle: 'Impossible de retirer le partage du compte bancaire',
+        deleteCard: 'Supprimer la carte',
+        deleteCardConfirmation:
+            'Toutes les transactions de carte non soumises, y compris celles figurant dans les rapports ouverts, seront supprimées. Êtes-vous sûr de vouloir supprimer cette carte ? Cette action est irréversible.',
     },
     cardPage: {
         expensifyCard: 'Carte Expensify',
@@ -4967,6 +4972,15 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             editStartDateDescription:
                 'Choisissez une nouvelle date de début des transactions. Nous synchroniserons toutes les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
             unassignCardFailedError: 'Échec de la désaffectation de la carte.',
+            importTransactions: {
+                title: 'Importer des transactions depuis un fichier',
+                description: 'Veuillez ajuster les paramètres de votre fichier qui seront appliqués lors de l’importation.',
+                cardDisplayName: 'Nom d’affichage de la carte',
+                currency: 'Devise',
+                transactionsAreReimbursable: 'Les transactions sont remboursables',
+                flipAmountSign: 'Inverser le signe du montant',
+                importButton: 'Importer des transactions',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de carte',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7007,6 +7021,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
             limit: 'Limite',
+            limitDescription: 'Définissez une limite pour les résultats de votre recherche.',
             currency: 'Devise',
             completed: 'Terminé',
             amount: {
@@ -7042,7 +7057,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'ID de retrait',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Catégorie',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Commerçant',
-                [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
+                [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Année',
@@ -7087,6 +7102,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
         topSpenders: 'Plus gros dépensiers',
+        view: {label: 'Afficher', table: 'Tableau', bar: 'Barre'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cartes',
@@ -8301,6 +8317,8 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
                 subtitle: 'Espace de travail > Cartes d’entreprise',
             },
             fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Réparer la connexion ${integrationName}`, subtitle: 'Espace de travail > Comptabilité'},
+            addShippingAddress: {title: 'Nous avons besoin de votre adresse de livraison', subtitle: 'Indiquez une adresse pour recevoir votre carte Expensify.', cta: 'Ajouter une adresse'},
+            activateCard: {title: 'Activer votre carte Expensify', subtitle: 'Validez votre carte et commencez à dépenser.', cta: 'Activer'},
         },
     },
 };
