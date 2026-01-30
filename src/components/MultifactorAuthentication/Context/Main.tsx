@@ -90,15 +90,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // 2. Check if scenario is set
-        if (!scenario) {
-            setError({
-                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
-            });
-            return;
-        }
-
-        // 3. Check if device is compatible
+        // 2. Check if device is compatible
         if (!biometrics.doesDeviceSupportBiometrics()) {
             setError({
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS,
