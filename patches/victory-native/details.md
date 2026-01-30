@@ -2,6 +2,10 @@
 
 ## 001+fix-rotated-label-bounds-check
 
+- **Patch:** [victory-native+41.20.2+001+fix-rotated-label-bounds-check.patch](victory-native+41.20.2+001+fix-rotated-label-bounds-check.patch)
+- **Issue:** https://github.com/Expensify/App/issues/80970
+- **PR:** https://github.com/Expensify/App/pull/80967
+
 **Problem:** Victory Native's XAxis component calculates label bounds using the unrotated text width, even when `labelRotate` is specified. This causes labels near the chart edges to be incorrectly hidden when rotated.
 
 For example, at 90° rotation:
@@ -18,6 +22,8 @@ rotatedWidth = textWidth * |cos(angle)| + fontSize * |sin(angle)|
 Use this `rotatedLabelWidth` for the bounds check (`canFitLabelContent`) while preserving the original `labelWidth` for positioning and rotation origin calculations.
 
 ## 002+add-label-overflow-prop
+
+- **Patch:** [victory-native+41.20.2+002+add-label-overflow-prop.patch](victory-native+41.20.2+002+add-label-overflow-prop.patch)
 
 **Problem:** Victory Native's XAxis component applies a `canFitLabelContent` bounds check that hides labels near chart edges. When consumers already control label visibility via `formatXLabel` (returning `''` for skipped labels), this creates double-filtering — labels are hidden both by the consumer's skip logic and by Victory's bounds check. This causes non-uniform gaps and missing end labels.
 
