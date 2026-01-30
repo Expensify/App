@@ -15,7 +15,7 @@ function NetSuiteTokenSetupContent({onNext, currentPageName}: CustomSubPageToken
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const stepKeys = CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_KEYS;
+    const stepKeys = CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_KEYS;
     const currentStepKey = stepKeys[currentPageName as keyof typeof stepKeys];
 
     const titleKey = `workspace.netsuite.tokenInput.formSteps.${currentStepKey}.title` as TranslationPaths;
