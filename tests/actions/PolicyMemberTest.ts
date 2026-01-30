@@ -110,7 +110,7 @@ describe('actions/PolicyMember', () => {
             Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
             // When a user's role is set as admin on a policy
-            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
+            Member.updateWorkspaceMembersRole(fakePolicy, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -153,7 +153,7 @@ describe('actions/PolicyMember', () => {
             });
             await waitForBatchedUpdates();
             // When an admin is demoted from their admin role to a user role
-            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
+            Member.updateWorkspaceMembersRole(fakePolicy, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
