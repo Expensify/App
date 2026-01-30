@@ -2153,7 +2153,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Adicione uma conta bancária para fazer ou receber pagamentos.',
         addDebitOrCreditCard: 'Adicionar cartão de débito ou crédito',
         assignedCards: 'Cartões atribuídos',
-        assignedCardsDescription: 'Estes são cartões atribuídos por um administrador do workspace para gerenciar os gastos da empresa.',
+        assignedCardsDescription: 'As transações desses cartões são sincronizadas automaticamente.',
         expensifyCard: 'Cartão Expensify',
         walletActivationPending: 'Estamos analisando suas informações. Volte daqui a alguns minutos!',
         walletActivationFailed: 'Infelizmente, sua carteira não pode ser ativada neste momento. Converse com o Concierge para obter mais assistência.',
@@ -2208,6 +2208,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Transação suspeita',
         suspiciousBannerDescription: 'Notamos transações suspeitas no seu cartão. Toque abaixo para revisar.',
         cardLocked: 'Seu cartão está temporariamente bloqueado enquanto nossa equipe analisa a conta da sua empresa.',
+        markTransactionsAsReimbursable: 'Marcar transações como reembolsáveis',
+        markTransactionsDescription: 'Quando ativado, as transações importadas deste cartão são marcadas como reembolsáveis por padrão.',
         cardDetails: {
             cardNumber: 'Número do cartão virtual',
             expiration: 'Vencimento',

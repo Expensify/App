@@ -2155,7 +2155,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Dodaj konto bankowe, aby wysyłać lub otrzymywać płatności.',
         addDebitOrCreditCard: 'Dodaj kartę debetową lub kredytową',
         assignedCards: 'Przypisane karty',
-        assignedCardsDescription: 'To są karty przypisane przez administratora przestrzeni roboczej do zarządzania wydatkami firmowymi.',
+        assignedCardsDescription: 'Transakcje z tych kart synchronizują się automatycznie.',
         expensifyCard: 'Karta Expensify',
         walletActivationPending: 'Przeglądamy Twoje informacje. Sprawdź ponownie za kilka minut!',
         walletActivationFailed: 'Niestety Twojego portfela nie można teraz włączyć. Skontaktuj się z Concierge, aby uzyskać dalszą pomoc.',
@@ -2210,6 +2210,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Podejrzana transakcja',
         suspiciousBannerDescription: 'Zauważyliśmy podejrzane transakcje na Twojej karcie. Stuknij poniżej, aby je sprawdzić.',
         cardLocked: 'Twoja karta jest tymczasowo zablokowana, podczas gdy nasz zespół sprawdza konto Twojej firmy.',
+        markTransactionsAsReimbursable: 'Oznacz transakcje jako podlegające zwrotowi',
+        markTransactionsDescription: 'Gdy ta opcja jest włączona, transakcje zaimportowane z tej karty są domyślnie oznaczane jako podlegające zwrotowi.',
         cardDetails: {
             cardNumber: 'Numer wirtualnej karty',
             expiration: 'Wygaśnięcie',

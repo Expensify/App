@@ -2182,7 +2182,7 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         assignedCards: 'Assigned cards',
-        assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
+        assignedCardsDescription: 'Transactions from these cards sync automatically.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
@@ -2236,6 +2236,8 @@ const translations = {
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',
         cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
+        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
+        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
         csvCardDescription: 'CSV Import',
         cardDetails: {
             cardNumber: 'Virtual card number',
