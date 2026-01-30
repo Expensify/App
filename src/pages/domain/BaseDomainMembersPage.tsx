@@ -58,7 +58,7 @@ type BaseDomainMembersPageProps = {
     getCustomRightElement?: (accountID: number) => React.ReactNode;
 
     /** Function to return additional row-specific properties like errors or pending actions */
-    getCustomRowProps?: (accountID: number, email?: string) => {errors?: Errors; pendingAction?: PendingAction};
+    getCustomRowProps?: (accountID: number, accountEmail?: string) => {errors?: Errors; pendingAction?: PendingAction};
 
     /** Callback fired when the user dismisses an error message for a specific row */
     onDismissError?: (item: MemberOption) => void;

@@ -5,7 +5,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type { DomainMemberBulkActionType, DropdownOption } from '@components/ButtonWithDropdownMenu/types';
 import useConfirmModal from '@hooks/useConfirmModal';
 import { useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations } from '@hooks/useLazyAsset';
-import {defaultSecurityGroupIDSelector, memberAccountIDsSelector} from '@selectors/Domain';
+import {defaultSecurityGroupIDSelector, memberAccountIDsSelector, memberPendingActionSelector} from '@selectors/Domain';
 import React from 'react';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -39,7 +39,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const styles = useThemeStyles();
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
-    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true});
+    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true, selector: memberPendingActionSelector});
     const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: defaultSecurityGroupIDSelector});
     const [controlledSelectedMembers, controlledSetSelectedMembers] = useState<string[]>([]);
     const {showConfirmModal} = useConfirmModal();
@@ -111,10 +111,13 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         );
     };
 
-    const getCustomRowProps = (accountID: number, email?: string) => ({
-        errors: getLatestError(domainErrors?.memberErrors?.[email ?? accountID]?.errors),
-        pendingAction: domainPendingActions?.member?.[email ?? accountID]?.pendingAction,
-    });
+    const getCustomRowProps = (accountID: number, email?: string) => {
+        const errorKey = email ?? accountID;
+        const errors = getLatestError(domainErrors?.memberErrors?.[errorKey]?.errors) ?? undefined;
+        const pendingAction = email ? domainPendingAction?.[email] : undefined;
+
+        return {errors, pendingAction};
+    };
 
     return (
         <BaseDomainMembersPage

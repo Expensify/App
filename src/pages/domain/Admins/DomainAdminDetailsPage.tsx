@@ -91,6 +91,4 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     );
 }
 
-DomainAdminDetailsPage.displayName = 'DomainAdminDetailsPage';
-
 export default DomainAdminDetailsPage;

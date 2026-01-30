@@ -8351,7 +8351,14 @@ ${amount} para ${merchant} - ${date}`,
             findMember: 'Buscar miembro',
             addMember: 'Añadir miembro',
             email: 'Dirección de correo electrónico',
-            errors: {
+            closeAccount: 'Cerrar cuenta',
+            closeAccountPrompt: '¿Estás seguro? Esta acción es permanente.',
+            forceCloseAccount: 'Forzar cierre de cuenta',
+            safeCloseAccount: 'Cierre seguro de cuenta',
+            closeAccountInfo:
+                'Recomendamos cerrar la cuenta de forma segura para omitir el cierre si hay: <ul><li>Aprobaciones pendientes</li><li>Reembolsos en curso</li><li>No hay otro método de inicio de sesión</li></ul>De lo contrario, puedes ignorar las precauciones de seguridad anteriores y forzar el cierre de las cuentas seleccionadas.',
+            error: {
+                removeMember: 'No se pudo eliminar a este usuario. Por favor, inténtalo de nuevo.',
                 addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.',
             },
         },
