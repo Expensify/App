@@ -1,6 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isCardPendingActivate, isCardPendingIssue, isPersonalCard} from '@libs/CardUtils';
+import {isCard, isCardHiddenFromSearch, isCardPendingActivate, isCardPendingIssue, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import type {Card, CardList, NonPersonalAndWorkspaceCardListDerivedValue} from '@src/types/onyx';
@@ -73,8 +73,7 @@ const timeSensitiveCardsSelector = (cards: OnyxEntry<CardList>): TimeSensitiveCa
         }
 
         // Only consider Expensify cards
-        const isExpensifyCard = card.bank === CONST.EXPENSIFY_CARD.BANK;
-        if (!isExpensifyCard) {
+        if (!isExpensifyCard(card)) {
             continue;
         }
 
