@@ -287,6 +287,7 @@ function IOURequestStepDistanceMap({
             iouType,
             report,
             policy,
+            policyForMovingExpenses,
             transaction,
             reportID,
             transactionID,

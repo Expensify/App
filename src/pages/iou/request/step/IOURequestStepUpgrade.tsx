@@ -95,7 +95,7 @@ function IOURequestStepUpgrade({
                 if (!policyID || !reportID) {
                     return;
                 }
-                // For track expense we want to create the expense inside self dm (which reportID not expenseReportID).
+                // For track expense, we want to create the expense inside self dm (which is not expenseReportID).
                 if (!isTrack) {
                     setTransactionReport(transactionID, {reportID: expenseReportID}, true);
                     // Let the confirmation step decide the distance rate because policy data is not fully available at this step

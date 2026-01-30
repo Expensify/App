@@ -4749,15 +4749,15 @@ function canEditFieldOfMoneyRequest(
         );
     }
 
+    // Unreported transaction from OldDot can have the reportID as an empty string
+    const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports
-        return (isExpenseReport(moneyRequestReport) || isTrackExpenseAction(reportAction)) && isDistanceRequest(transaction);
+        return (isExpenseReport(moneyRequestReport) || isUnreportedExpense) && isDistanceRequest(transaction);
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
-        // Unreported transaction from OldDot can have the reportID as an empty string
-        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-
         if (isUnreportedExpense) {
             return true;
         }
@@ -4797,7 +4797,6 @@ function canEditFieldOfMoneyRequest(
         );
     }
 
-    const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     if (isUnreportedExpense && !isRequestor) {
         return false;
     }
