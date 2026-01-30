@@ -116,6 +116,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
+        DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
