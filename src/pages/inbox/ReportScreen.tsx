@@ -373,13 +373,14 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             reportMetadata?.isLoadingInitialReportActions ||
             reportMetadata?.isOptimisticReport ||
             isLoadingApp ||
-            userLeavingStatus
+            userLeavingStatus ||
+            !reportWasDeleted
         ) {
             return;
         }
 
         Navigation.goBack();
-    }, [isFocused, reportIDFromRoute, report?.reportID, reportMetadata?.isLoadingInitialReportActions, reportMetadata?.isOptimisticReport, isLoadingApp, userLeavingStatus]);
+    }, [isFocused, reportIDFromRoute, report?.reportID, reportMetadata?.isLoadingInitialReportActions, reportMetadata?.isOptimisticReport, isLoadingApp, userLeavingStatus, reportWasDeleted]);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
