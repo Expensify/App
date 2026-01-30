@@ -95,9 +95,7 @@ function BaseListItem<TItem extends ListItem>({
     } else {
         role = getButtonRole(true) ?? CONST.ROLE.BUTTON;
     }
-    const accessibilityState = isRadioOption || isCheckboxOption
-        ? {checked: !!item.isSelected, selected: !!isFocused}
-        : {selected: !!isFocused};
+    const accessibilityState = isRadioOption || isCheckboxOption ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
 
     return (
         <OfflineWithFeedback
