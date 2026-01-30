@@ -561,6 +561,7 @@ const translations = {
         address: 'Address',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: 'Skip',
         chatWithAccountManager: (accountManagerDisplayName: string) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
@@ -634,6 +635,8 @@ const translations = {
         nonReimbursableTotal: 'Non-reimbursable total',
         month: 'Month',
         week: 'Week',
+        year: 'Year',
+        quarter: 'Quarter',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -991,12 +994,37 @@ const translations = {
     },
     homePage: {
         forYou: 'For you',
+        timeSensitiveSection: {
+            title: 'Time sensitive',
+            cta: 'Claim',
+            offer50off: {
+                title: 'Get 50% off your first year!',
+                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} remaining`,
+            },
+            offer25off: {
+                title: 'Get 25% off your first year!',
+                subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
+            },
+        },
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
             menuItemTitleNonAdmin: 'Learn how to create expenses and submit reports.',
             menuItemTitleAdmin: 'Learn how to invite members, edit approval workflows, and reconcile company cards.',
             menuItemDescription: 'See what Expensify can do in 2 min',
+        },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `Submit ${count} ${count === 1 ? 'report' : 'reports'}`,
+            approve: ({count}: {count: number}) => `Approve ${count} ${count === 1 ? 'report' : 'reports'}`,
+            pay: ({count}: {count: number}) => `Pay ${count} ${count === 1 ? 'report' : 'reports'}`,
+            export: ({count}: {count: number}) => `Export ${count} ${count === 1 ? 'report' : 'reports'}`,
+            begin: 'Begin',
+            emptyStateMessages: {
+                nicelyDone: 'Nicely done',
+                keepAnEyeOut: "Keep an eye out for what's coming next!",
+                allCaughtUp: "You're all caught up",
+                upcomingTodos: 'Upcoming to-dos will appear here.',
+            },
         },
     },
     allSettingsScreen: {
@@ -1140,6 +1168,7 @@ const translations = {
         removeSplit: 'Remove split',
         splitExpenseCannotBeEditedModalTitle: "This expense can't be edited",
         splitExpenseCannotBeEditedModalDescription: 'Approved or paid expenses cannot be edited',
+        splitExpenseDistanceErrorModalDescription: 'Please fix the distance rate error and try again.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
         expense: 'Expense',
         categorize: 'Categorize',
@@ -1258,6 +1287,7 @@ const translations = {
         submitted: ({memo}: SubmittedWithMemoParams) => `submitted${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
         queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
+        queuedToApproveViaDEW: 'queued to approve via custom approval workflow',
         trackedAmount: (formattedAmount: string, comment?: string) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         didSplitAmount: (formattedAmount: string, comment: string) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -2147,6 +2177,9 @@ const translations = {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure you want to delete this account?',
+        deleteCard: 'Delete card',
+        deleteCardConfirmation:
+            'All unsubmitted card transactions, including those on open reports, will be removed. Are you sure you want to delete this card? You cannot undo this action.',
         error: {
             notOwnerOfBankAccount: 'An error occurred while setting this bank account as your default payment method',
             invalidBankAccount: 'This bank account is temporarily suspended',
@@ -2165,7 +2198,7 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         assignedCards: 'Assigned cards',
-        assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
+        assignedCardsDescription: 'Transactions from these cards sync automatically.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
@@ -2219,6 +2252,8 @@ const translations = {
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',
         cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
+        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
+        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
         csvCardDescription: 'CSV Import',
         cardDetails: {
             cardNumber: 'Virtual card number',
@@ -5226,7 +5261,8 @@ const translations = {
             },
             timeTracking: {
                 title: 'Time',
-                subtitle: 'Set an hourly billable rate for employees to get paid for their time.',
+                subtitle: 'Set a billable hourly rate for time tracking.',
+                defaultHourlyRate: 'Default hourly rate',
             },
         },
         reports: {
@@ -6253,9 +6289,12 @@ const translations = {
                 expensesExactlyMatching: 'For expenses exactly matching:',
                 applyUpdates: 'Apply these updates:',
                 saveRule: 'Save rule',
+                previewMatches: 'Preview matches',
                 confirmError: 'Enter merchant and apply at least one update',
                 confirmErrorMerchant: 'Please enter merchant',
                 confirmErrorUpdate: 'Please apply at least one update',
+                previewMatchesEmptyStateTitle: 'Nothing to show',
+                previewMatchesEmptyStateSubtitle: 'No unsubmitted expenses match this rule.',
                 deleteRule: 'Delete rule',
                 deleteRuleConfirmation: 'Are you sure you want to delete this rule?',
                 ruleSummaryTitle: (merchantName: string, isExactMatch: boolean) => `If merchant ${isExactMatch ? 'exactly matches' : 'contains'} "${merchantName}"`,
@@ -6266,6 +6305,10 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
+                duplicateRuleTitle: 'Similar merchant rule already exists',
+                duplicateRulePrompt: (merchantName: string) => `Do you want to save a new rule for "${merchantName}" even though you already have an existing one?`,
+                saveAnyway: 'Save anyway',
+                applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
             },
             categoryRules: {
                 title: 'Category rules',
@@ -6881,6 +6924,7 @@ const translations = {
             keyword: 'Keyword',
             keywords: 'Keywords',
             limit: 'Limit',
+            limitDescription: 'Set a limit for the results of your search.',
             currency: 'Currency',
             completed: 'Completed',
             amount: {
@@ -6919,6 +6963,8 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Month',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6935,6 +6981,23 @@ const translations = {
         },
         has: 'Has',
         groupBy: 'Group by',
+        view: {
+            label: 'View',
+            table: 'Table',
+            bar: 'Bar',
+        },
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'From',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Cards',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exports',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categories',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Merchants',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Months',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Weeks',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
+        },
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
             accessPlaceHolder: 'Open for details',
@@ -7909,6 +7972,7 @@ const translations = {
             hasChildReportAwaitingAction: 'Has child report awaiting action',
             hasMissingInvoiceBankAccount: 'Has missing invoice bank account',
             hasUnresolvedCardFraudAlert: 'Has unresolved card fraud alert',
+            hasDEWApproveFailed: 'Has DEW approve failed',
         },
         reasonRBR: {
             hasErrors: 'Has errors in report or report actions data',

@@ -224,6 +224,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: {
+                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME]: {
+                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: {
+                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE.route,
                             exact: true,
@@ -1189,6 +1201,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES]: {
+                            path: ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.route,
+                        },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORTED]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORTED.route,
                         },
@@ -1209,6 +1224,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
+                        },
+                        [SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE]: {
+                            path: ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.route,
                         },
                         [SCREENS.DOMAIN.VERIFY]: {
                             path: ROUTES.DOMAIN_VERIFY.route,
@@ -1796,6 +1814,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_GROUP_BY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY),
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_VIEW_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_STATUS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_SUBMITTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED),
@@ -2115,6 +2134,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.RULES]: {
                     path: ROUTES.WORKSPACE_RULES.route,
+                },
+                [SCREENS.WORKSPACE.TIME_TRACKING]: {
+                    path: ROUTES.WORKSPACE_TIME_TRACKING.route,
                 },
             },
         },
