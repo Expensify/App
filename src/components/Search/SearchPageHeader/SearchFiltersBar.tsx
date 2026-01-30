@@ -44,7 +44,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
 import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
-import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
+import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getViewOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -189,10 +189,7 @@ function SearchFiltersBar({
     }, [translate, unsafeGroupBy]);
 
     const [viewOptions, viewValue] = useMemo(() => {
-        const options = [
-            {text: translate('search.view.table'), value: CONST.SEARCH.VIEW.TABLE},
-            {text: translate('search.view.bar'), value: CONST.SEARCH.VIEW.BAR},
-        ];
+        const options = getViewOptions(translate);
         const value = options.find((option) => option.value === unsafeView) ?? options.at(0) ?? null;
         return [options, value];
     }, [translate, unsafeView]);
