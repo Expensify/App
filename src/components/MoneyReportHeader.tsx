@@ -452,7 +452,11 @@ function MoneyReportHeader({
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const isOnSearch = route.name.toLowerCase().startsWith('search');
-    const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
+    const {
+        options: originalSelectedTransactionsOptions,
+        handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
+    } = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
         allTransactionsLength: transactions.length,
@@ -1607,13 +1611,21 @@ function MoneyReportHeader({
             }
             if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                Navigation.goBack(backToRoute);
+                handleDeleteTransactionsWithNavigation(backToRoute);
+            } else {
+                handleDeleteTransactions();
             }
-            // It has been handled like the rest of the delete cases. It will be refactored along with other cases.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => handleDeleteTransactions());
         });
-    }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo, chatReport?.reportID]);
+    }, [
+        showConfirmModal,
+        translate,
+        selectedTransactionIDs.length,
+        transactions,
+        handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
+        route.params?.backTo,
+        chatReport?.reportID,
+    ]);
 
     const showExportAgainModal = useCallback(() => {
         if (!connectedIntegration) {

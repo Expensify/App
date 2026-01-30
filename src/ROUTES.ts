@@ -307,6 +307,18 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
     },
+    SETTINGS_WALLET_PERSONAL_CARD_DETAILS: {
+        route: 'settings/wallet/personal-card/:cardID',
+        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}` as const,
+    },
+    SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME: {
+        route: 'settings/wallet/personal-card/:cardID/edit/name',
+        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/edit/name` as const,
+    },
+    SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: {
+        route: 'settings/wallet/personal-card/:cardID/edit/transaction-start-date',
+        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/edit/transaction-start-date` as const,
+    },
     SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_MAGIC_CODE: {
         route: 'settings/wallet/card/:cardID/confirm-magic-code',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-magic-code` as const,

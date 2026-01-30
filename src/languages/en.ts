@@ -561,6 +561,7 @@ const translations = {
         address: 'Address',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: 'Skip',
         chatWithAccountManager: (accountManagerDisplayName: string) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
@@ -993,6 +994,18 @@ const translations = {
     },
     homePage: {
         forYou: 'For you',
+        timeSensitiveSection: {
+            title: 'Time sensitive',
+            cta: 'Claim',
+            offer50off: {
+                title: 'Get 50% off your first year!',
+                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} remaining`,
+            },
+            offer25off: {
+                title: 'Get 25% off your first year!',
+                subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
+            },
+        },
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -2164,6 +2177,9 @@ const translations = {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure you want to delete this account?',
+        deleteCard: 'Delete card',
+        deleteCardConfirmation:
+            'All unsubmitted card transactions, including those on open reports, will be removed. Are you sure you want to delete this card? You cannot undo this action.',
         error: {
             notOwnerOfBankAccount: 'An error occurred while setting this bank account as your default payment method',
             invalidBankAccount: 'This bank account is temporarily suspended',
@@ -2182,7 +2198,7 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         assignedCards: 'Assigned cards',
-        assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
+        assignedCardsDescription: 'Transactions from these cards sync automatically.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
@@ -2236,6 +2252,8 @@ const translations = {
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',
         cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
+        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
+        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
         csvCardDescription: 'CSV Import',
         cardDetails: {
             cardNumber: 'Virtual card number',
@@ -6902,6 +6920,7 @@ const translations = {
             keyword: 'Keyword',
             keywords: 'Keywords',
             limit: 'Limit',
+            limitDescription: 'Set a limit for the results of your search.',
             currency: 'Currency',
             completed: 'Completed',
             amount: {
@@ -6958,6 +6977,18 @@ const translations = {
         },
         has: 'Has',
         groupBy: 'Group by',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'From',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Cards',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exports',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categories',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Merchants',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Months',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Weeks',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
+        },
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
             accessPlaceHolder: 'Open for details',

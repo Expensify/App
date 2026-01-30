@@ -725,6 +725,7 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
+        CSV_CARD_IMPORT: 'csvCardImport',
         DEFAULT_ROOMS: 'defaultRooms',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
@@ -4080,6 +4081,7 @@ const CONST = {
         CONTAINER_VERTICAL_MARGIN: variables.componentSizeNormal,
     },
     MICROSECONDS_PER_MS: 1000,
+    MILLISECONDS_PER_SECOND: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {
         ADD: 'add',
         DELETE: 'delete',
@@ -5676,6 +5678,7 @@ const CONST = {
     },
     EVENTS: {
         SCROLLING: 'scrolling',
+        TRANSITION_END_SCREEN_WRAPPER: 'transitionEndScreenWrapper',
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
