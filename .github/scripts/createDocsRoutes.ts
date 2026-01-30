@@ -43,6 +43,7 @@ const platformNames = {
     expensifyClassic: 'expensify-classic',
     newExpensify: 'new-expensify',
     travel: 'travel',
+    consolidated: 'consolidated',
 } as const;
 
 /**
