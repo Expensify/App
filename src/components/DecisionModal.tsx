@@ -1,7 +1,8 @@
 import React from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import ScrollView from './ScrollView';
 import Button from './Button';
 import Header from './Header';
 import Modal from './Modal';
