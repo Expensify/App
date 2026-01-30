@@ -94,20 +94,25 @@ function SelectBankStep() {
         ? Object.values(CONST.COMPANY_CARDS.BANKS)
         : Object.values(CONST.COMPANY_CARDS.BANKS).filter((bank) => bank !== CONST.COMPANY_CARDS.BANKS.FILE_IMPORT);
 
-    const data = availableBanks.map((bank) => ({
-        value: bank,
-        text: getBankDisplayText(bank),
-        keyForList: bank,
-        isSelected: bankSelected === bank,
-        leftElement: (
-            <Icon
-                src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
-            />
-        ),
-    }));
+    const data = availableBanks.map((bank) => {
+        const iconSize = bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? variables.iconSizeMedium : variables.iconSizeExtraLarge;
+
+        return {
+            value: bank,
+            text: getBankDisplayText(bank),
+            keyForList: bank,
+            isSelected: bankSelected === bank,
+            leftElement: (
+                <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.iconSizeExtraLarge, height: variables.iconSizeExtraLarge}]}>
+                    <Icon
+                        src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
+                        height={iconSize}
+                        width={iconSize}
+                    />
+                </View>
+            ),
+        };
+    });
 
     const confirmButtonOptions = useMemo(
         () => ({
