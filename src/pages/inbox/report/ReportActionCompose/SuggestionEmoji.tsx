@@ -5,7 +5,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {suggestEmojis} from '@libs/EmojiUtils';
+import {suggestEmojis, isPositionInsideCodeBlock} from '@libs/EmojiUtils';
 import {trimLeadingSpace} from '@libs/SuggestionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,12 +72,19 @@ function SuggestionEmoji({
      */
     const insertSelectedEmoji = useCallback(
         (highlightedEmojiIndexInner: number) => {
-            const commentBeforeColon = value.slice(0, suggestionValues.colonIndex);
             const emojiObject = highlightedEmojiIndexInner !== -1 ? suggestionValues.suggestedEmojis.at(highlightedEmojiIndexInner) : undefined;
-            const emojiCode = emojiObject?.types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? emojiObject.types.at(preferredSkinTone) : emojiObject?.code;
-            const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
+            if (!emojiObject) {
+                return;
+            }
 
-            updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
+            const commentBeforeColon = value.slice(0, suggestionValues.colonIndex);
+            const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
+            const isInsideCodeBlock = isPositionInsideCodeBlock(value, suggestionValues.colonIndex);
+            const emojiOrShortcode = isInsideCodeBlock
+                ? `:${emojiObject.name}:`
+                : (emojiObject.types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? emojiObject.types.at(preferredSkinTone) : emojiObject.code) ?? '';
+
+            updateComment(`${commentBeforeColon}${emojiOrShortcode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
 
             // In some Android phones keyboard, the text to search for the emoji is not cleared
             // will be added after the user starts typing again on the keyboard. This package is
@@ -85,8 +92,8 @@ function SuggestionEmoji({
             resetKeyboardInput?.();
 
             setSelection({
-                start: suggestionValues.colonIndex + (emojiCode?.length ?? 0) + CONST.SPACE_LENGTH,
-                end: suggestionValues.colonIndex + (emojiCode?.length ?? 0) + CONST.SPACE_LENGTH,
+                start: suggestionValues.colonIndex + emojiOrShortcode.length + CONST.SPACE_LENGTH,
+                end: suggestionValues.colonIndex + emojiOrShortcode.length + CONST.SPACE_LENGTH,
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
         },

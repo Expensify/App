@@ -6,6 +6,9 @@ import {buildEmojisTrie} from '@libs/EmojiTrie';
 // eslint-disable-next-line no-restricted-syntax
 import * as EmojiUtils from '@libs/EmojiUtils';
 
+// Unmock to use real parseExpensiMark for code block detection tests
+jest.unmock('@expensify/react-native-live-markdown');
+
 describe('EmojiTest', () => {
     beforeAll(async () => {
         await importEmojiLocale('en');
@@ -147,6 +150,147 @@ describe('EmojiTest', () => {
     it('will return undefined cursor position when no emoji is replaced', () => {
         const text = 'Hi there!';
         expect(EmojiUtils.replaceEmojis(text).cursorPosition).toBe(undefined);
+    });
+
+    describe('code block handling', () => {
+        it('should not replace emoji shortcode inside inline code block', () => {
+            const text = '`:smile:`';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('`:smile:`');
+        });
+
+        it('should not replace emoji shortcode inside code fence', () => {
+            const text = '```\n:smile:\n```';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('```\n:smile:\n```');
+        });
+
+        it('should replace emoji shortcode outside code block but not inside', () => {
+            const text = ':smile: and `:wave:`';
+            // Note: trailing space is added after the emoji, code block content stays unchanged
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('😄 and `:wave:`');
+        });
+
+        it('should revert emoji unicode to shortcode when inside code block (Slack behavior)', () => {
+            const text = '`😄`';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('`:smile:`');
+        });
+
+        it('should revert multiple emojis inside code block', () => {
+            const text = '`😄👋`';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('`:smile::wave:`');
+        });
+
+        it('should not revert emoji outside code block', () => {
+            const text = '😄 and `test`';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('😄 and `test`');
+        });
+
+        it('should handle mixed scenario with emoji inside and outside code blocks', () => {
+            const text = ':wave: hello `😄` world';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('👋 hello `:smile:` world');
+        });
+
+        it('should handle same shortcode both inside and outside code block', () => {
+            // Regression test: indexOf was returning the first occurrence for both,
+            // causing the shortcode outside to not be converted
+            const text = 'hello `:joy:` world :joy:';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('hello `:joy:` world 😂 ');
+        });
+
+        it('should revert skin-tone emoji without orphaned modifier', () => {
+            // Regression test: character-by-character iteration was splitting 👍🏽 into 👍 + 🏽
+            const text = '`👍🏽`';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('`:+1:`');
+        });
+
+        it('should handle code fence with emoji correctly', () => {
+            // Regression test: overlapping codeblock and pre ranges were causing extra colons
+            const text = '```\n😂\n```';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('```\n:joy:\n```');
+        });
+
+        it('should handle multiple same shortcodes with some inside code blocks', () => {
+            const text = ':joy: `:joy:` :joy:';
+            // First and third :joy: should convert, second should stay as shortcode
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('😂 `:joy:` 😂 ');
+        });
+
+        it('should handle multiple consecutive code blocks', () => {
+            const text = '`:joy:` `:wave:`';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('`:joy:` `:wave:`');
+        });
+
+        it('should handle code block at beginning with shortcode at end', () => {
+            const text = '`:joy:` and :wave:';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('`:joy:` and 👋 ');
+        });
+
+        it('should handle code fence with language specifier', () => {
+            // Note: parseExpensiMark doesn't recognize code fences with language specifiers (```js)
+            // so the shortcode gets converted. This is a limitation of the markdown parser.
+            const text = '```js\n:joy:\n```';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('```js\n😂 \n```');
+        });
+
+        it('should keep unknown shortcode inside code block unchanged', () => {
+            const text = '`:unknown_emoji:`';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('`:unknown_emoji:`');
+        });
+
+        it('should handle empty code block without crashing', () => {
+            const text = '`` and :joy:';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('`` and 😂 ');
+        });
+
+        it('should revert different skin-tone variations correctly', () => {
+            // Light skin tone
+            const text1 = '`👍🏻`';
+            expect(EmojiUtils.replaceEmojis(text1).text).toBe('`:+1:`');
+
+            // Dark skin tone
+            const text2 = '`👍🏿`';
+            expect(EmojiUtils.replaceEmojis(text2).text).toBe('`:+1:`');
+        });
+
+        it('should handle emoji and shortcode in same code block', () => {
+            // Emoji gets reverted, shortcode stays as-is
+            const text = '`😄 :wave:`';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('`:smile: :wave:`');
+        });
+
+        it('should handle multiple code fences with content between', () => {
+            const text = '```\n:joy:\n```\nhello :wave:\n```\n:smile:\n```';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('```\n:joy:\n```\nhello 👋 \n```\n:smile:\n```');
+        });
+
+        it('should handle shortcode spanning across would-be code block boundary', () => {
+            // Backtick in the middle of shortcode - not a valid code block
+            const text = ':jo`y:';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe(':jo`y:');
+        });
+    });
+
+    describe('isPositionInsideCodeBlock', () => {
+        it('should return true for position inside inline code', () => {
+            const text = '`:joy:`';
+            // Position 1 is the colon after the backtick
+            expect(EmojiUtils.isPositionInsideCodeBlock(text, 1)).toBe(true);
+        });
+
+        it('should return false for position outside code block', () => {
+            const text = 'hello `:joy:`';
+            // Position 0 is 'h' which is outside
+            expect(EmojiUtils.isPositionInsideCodeBlock(text, 0)).toBe(false);
+        });
+
+        it('should return false for empty text', () => {
+            expect(EmojiUtils.isPositionInsideCodeBlock('', 0)).toBe(false);
+        });
+
+        it('should return true for position inside code fence', () => {
+            const text = '```\ncode\n```';
+            // Position 4 is inside the code fence content
+            expect(EmojiUtils.isPositionInsideCodeBlock(text, 4)).toBe(true);
+        });
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
