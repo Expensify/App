@@ -26,6 +26,7 @@ import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import PlanTypeSelector from './PlanTypeSelector';
 import ScrollView from './ScrollView';
 import Text from './Text';
 import TextInput from './TextInput';
@@ -33,6 +34,7 @@ import TextInput from './TextInput';
 type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
     currency: string;
+    planType: string;
     avatarFile: File | CustomRNImageManipulatorResult | undefined;
     policyID: string;
 };
@@ -77,6 +79,10 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                 errors[INPUT_IDS.CURRENCY] = translate('common.error.fieldRequired');
             }
 
+            if (!isRequiredFulfilled(values[INPUT_IDS.PLAN_TYPE])) {
+                errors[INPUT_IDS.PLAN_TYPE] = translate('common.error.fieldRequired');
+            }
+
             return errors;
         },
         [translate],
@@ -92,6 +98,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
+    const userPlanType = draftValues?.planType ?? CONST.POLICY.TYPE.TEAM;
 
     useEffect(() => {
         return () => {
@@ -159,6 +166,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         onSubmit({
                             name: val[INPUT_IDS.NAME],
                             currency: val[INPUT_IDS.CURRENCY],
+                            planType: val[INPUT_IDS.PLAN_TYPE],
                             avatarFile,
                             policyID,
                         })
@@ -194,6 +202,14 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                 value={userCurrency}
                                 shouldShowCurrencySymbol
                                 currencySelectorRoute={ROUTES.CURRENCY_SELECTION}
+                            />
+                        </View>
+                        <View style={[styles.mhn5]}>
+                            <InputWrapper
+                                InputComponent={PlanTypeSelector}
+                                inputID={INPUT_IDS.PLAN_TYPE}
+                                label={translate('workspace.common.planType')}
+                                value={userPlanType}
                             />
                         </View>
                     </View>
