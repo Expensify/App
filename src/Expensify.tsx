@@ -33,7 +33,7 @@ import Timing from './libs/actions/Timing';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
-import {processInitialURL, startModule} from './libs/DeepLinkHandler';
+import {clearModule, processInitialURL, startModule} from './libs/DeepLinkHandler';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
 import Growl, {growlRef} from './libs/Growl';
@@ -126,7 +126,6 @@ function Expensify() {
 
     useDebugShortcut();
     usePriorityMode();
-    startModule();
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
@@ -157,6 +156,13 @@ function Expensify() {
             op: CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE,
             parentSpan: bootsplashSpan.current,
         });
+    }, []);
+
+    useEffect(() => {
+        startModule();
+        return () => {
+            clearModule();
+        };
     }, []);
 
     const isAuthenticated = useIsAuthenticated();

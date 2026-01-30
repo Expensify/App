@@ -1,5 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {Linking} from 'react-native';
+import {Linking, NativeEventSubscription} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {openReportFromDeepLink} from '@libs/actions/Link';
@@ -22,6 +22,8 @@ let hasReportsReceived = false;
 let hasOnboardingPurposeSelectedReceived = false;
 let hasOnboardingCompanySizeReceived = false;
 let hasOnboardingInitialPathReceived = false;
+
+let linkinEventSubscription: NativeEventSubscription | null = null;
 
 let hasSessionLoaded = false;
 
@@ -147,7 +149,7 @@ function initializeDeepLinkHandler() {
         return;
     }
 
-    Linking.addEventListener('url', (state) => {
+    linkinEventSubscription = Linking.addEventListener('url', (state) => {
         handleDeepLink(state.url, true);
     });
 
@@ -166,6 +168,11 @@ function processInitialURL(url: string | null) {
     handleDeepLink(url, false);
 }
 
+function clearModule() {
+    linkinEventSubscription?.remove();
+    linkinEventSubscription = null;
+}
+
 startModule();
 
-export {processInitialURL, startModule};
+export {processInitialURL, startModule, clearModule};
