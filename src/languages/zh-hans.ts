@@ -2153,6 +2153,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} 将失去对此企业银行账户的访问权限。我们仍将完成所有正在进行的付款。`,
         reachOutForHelp: '此账户正在与 Expensify 卡一起使用。如果您需要取消共享，请联系礼宾部。',
         unshareErrorModalTitle: '无法取消共享银行账户',
+        deleteCard: '删除卡片',
+        deleteCardConfirmation: '所有未提交的银行卡交易（包括开放报表中的交易）都将被移除。确定要删除此银行卡吗？此操作无法撤销。',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

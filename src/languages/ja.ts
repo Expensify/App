@@ -2181,6 +2181,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} はこのビジネス銀行口座にアクセスできなくなります。処理中のお支払いは引き続き完了します。`,
         reachOutForHelp: 'この口座は Expensify カードで使用されています。共有を解除する必要がある場合は、<concierge-link>コンシェルジュまでお問い合わせください</concierge-link>。',
         unshareErrorModalTitle: '銀行口座の共有を解除できません',
+        deleteCard: 'カードを削除',
+        deleteCardConfirmation: '未提出のカード取引（未精算レポート上の取引も含む）はすべて削除されます。このカードを本当に削除してもよろしいですか？この操作は元に戻せません。',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
