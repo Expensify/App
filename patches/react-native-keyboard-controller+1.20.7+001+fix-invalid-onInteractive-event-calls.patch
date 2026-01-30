@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Interactive.swift b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Interactive.swift
+index d1ccd45..0695b74 100644
+--- a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Interactive.swift
++++ b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Interactive.swift
+@@ -30,6 +30,10 @@ extension KeyboardMovementObserver {
+       return
+     }
+ 
++    if KeyboardEventsIgnorer.shared.shouldIgnore {
++      return
++    }
++
+     let position = keyboardTrackingView.interactive(point: changeValue)
+ 
+     if position == KeyboardTrackingView.invalidPosition {
