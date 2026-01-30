@@ -7009,6 +7009,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             keyword: 'Schlüsselwort',
             keywords: 'Schlüsselwörter',
             limit: 'Limit',
+            limitDescription: 'Legen Sie eine Obergrenze für die Ergebnisse Ihrer Suche fest.',
             currency: 'Währung',
             completed: 'Abgeschlossen',
             amount: {
@@ -7089,6 +7090,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
         topSpenders: 'Top-Ausgaben',
+        view: {label: 'Ansehen', table: 'Tabelle', bar: 'Bar'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Karten',

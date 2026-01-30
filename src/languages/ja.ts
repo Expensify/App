@@ -6936,6 +6936,7 @@ ${reportName}
             keyword: 'キーワード',
             keywords: 'キーワード',
             limit: '制限',
+            limitDescription: '検索結果の制限を設定します。',
             currency: '通貨',
             completed: '完了',
             amount: {
@@ -7016,6 +7017,7 @@ ${reportName}
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
         topSpenders: 'トップ支出者',
+        view: {label: '表示', table: 'テーブル', bar: 'バー'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
             [CONST.SEARCH.GROUP_BY.CARD]: 'カード',

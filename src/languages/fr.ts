@@ -7021,6 +7021,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             keyword: 'Mot-clé',
             keywords: 'Mots-clés',
             limit: 'Limite',
+            limitDescription: 'Définissez une limite pour les résultats de votre recherche.',
             currency: 'Devise',
             completed: 'Terminé',
             amount: {
@@ -7101,6 +7102,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
         topSpenders: 'Plus gros dépensiers',
+        view: {label: 'Afficher', table: 'Tableau', bar: 'Barre'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cartes',

@@ -6998,6 +6998,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             keyword: 'Parola chiave',
             keywords: 'Parole chiave',
             limit: 'Limite',
+            limitDescription: 'Imposta un limite per i risultati della tua ricerca.',
             currency: 'Valuta',
             completed: 'Completato',
             amount: {
@@ -7078,6 +7079,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         topSpenders: 'Maggiori spenditori',
+        view: {label: 'Visualizza', table: 'Tabella', bar: 'Bar'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',

@@ -6968,6 +6968,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             keyword: 'Słowo kluczowe',
             keywords: 'Słowa kluczowe',
             limit: 'Limit',
+            limitDescription: 'Ustaw limit wyników wyszukiwania.',
             currency: 'Waluta',
             completed: 'Zakończone',
             amount: {
@@ -7048,6 +7049,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             allMatchingItemsSelected: 'Wybrano wszystkie pasujące elementy',
         },
         topSpenders: 'Najwięksi wydający',
+        view: {label: 'Zobacz', table: 'Tabela', bar: 'Pasek'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Karty',

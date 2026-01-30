@@ -6970,6 +6970,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             keyword: 'Palavra-chave',
             keywords: 'Palavras-chave',
             limit: 'Limite',
+            limitDescription: 'Defina um limite para os resultados da sua pesquisa.',
             currency: 'Moeda',
             completed: 'Concluído',
             amount: {
@@ -7050,6 +7051,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
         },
         topSpenders: 'Maiores gastadores',
+        view: {label: 'Ver', table: 'Tabela', bar: 'Bar'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cartões',

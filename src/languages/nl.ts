@@ -6981,6 +6981,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
             limit: 'Limiet',
+            limitDescription: 'Stel een limiet in voor de resultaten van je zoekopdracht.',
             currency: 'Valuta',
             completed: 'Voltooid',
             amount: {
@@ -7061,6 +7062,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
         topSpenders: 'Grootste uitgaven',
+        view: {label: 'Bekijken', table: 'Tabel', bar: 'Bar'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Kaarten',
