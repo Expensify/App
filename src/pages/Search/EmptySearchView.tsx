@@ -7,12 +7,12 @@ import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewS
 import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
-import ConfirmModal from '@components/ConfirmModal';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia, MediaTypes} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
@@ -20,6 +20,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
@@ -42,7 +43,7 @@ import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolatio
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -166,7 +167,7 @@ function EmptySearchViewContent({
         },
     ];
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
-    const [modalVisible, setModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -237,6 +238,30 @@ function EmptySearchViewContent({
         }
     };
 
+    const handleRedirectToExpensifyClassic = () => {
+        showConfirmModal({
+            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+            confirmText: translate('exitSurvey.goToExpensifyClassic'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        });
+    };
+
+    const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
+        interceptAnonymousUser(() => {
+            if (shouldRedirectToExpensifyClassic) {
+                handleRedirectToExpensifyClassic();
+                return;
+            }
+            startMoneyRequest(iouType, generateReportID());
+        });
+    };
+
     const typeMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
 
     const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
@@ -294,12 +319,14 @@ function EmptySearchViewContent({
                     </View>
                 ))}
             </View>
-            <SearchScopeProvider isOnSearch={false}>
-                <BookTravelButton
-                    text={translate('search.searchResults.emptyTripResults.buttonText')}
-                    activePolicyID={activePolicy?.id}
-                />
-            </SearchScopeProvider>
+            {!!activePolicy?.isTravelEnabled && (
+                <SearchScopeProvider isOnSearch={false}>
+                    <BookTravelButton
+                        text={translate('search.searchResults.emptyTripResults.buttonText')}
+                        activePolicyID={activePolicy?.id}
+                    />
+                </SearchScopeProvider>
+            )}
         </>
     );
 
@@ -432,14 +459,7 @@ function EmptySearchViewContent({
                                     : []),
                                 {
                                     buttonText: translate('iou.createExpense'),
-                                    buttonAction: () =>
-                                        interceptAnonymousUser(() => {
-                                            if (shouldRedirectToExpensifyClassic) {
-                                                setModalVisible(true);
-                                                return;
-                                            }
-                                            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
-                                        }),
+                                    buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
                                     success: true,
                                 },
                             ],
@@ -465,14 +485,7 @@ function EmptySearchViewContent({
                                 : []),
                             {
                                 buttonText: translate('workspace.invoices.sendInvoice'),
-                                buttonAction: () =>
-                                    interceptAnonymousUser(() => {
-                                        if (shouldRedirectToExpensifyClassic) {
-                                            setModalVisible(true);
-                                            return;
-                                        }
-                                        startMoneyRequest(CONST.IOU.TYPE.INVOICE, generateReportID());
-                                    }),
+                                buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
                                 success: true,
                             },
                         ],
@@ -526,18 +539,6 @@ function EmptySearchViewContent({
                 </GenericEmptyStateComponent>
             </ScrollView>
             {CreateReportConfirmationModal}
-            <ConfirmModal
-                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
-                isVisible={modalVisible}
-                onConfirm={() => {
-                    setModalVisible(false);
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setModalVisible(false)}
-                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
-                confirmText={translate('exitSurvey.goToExpensifyClassic')}
-                cancelText={translate('common.cancel')}
-            />
         </>
     );
 }
