@@ -1,0 +1,12 @@
+import React from 'react';
+import type {LineChartProps} from '@components/Charts/types';
+import LineChartContent from './LineChartContent';
+
+function LineChart(props: LineChartProps) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <LineChartContent {...props} />;
+}
+
+LineChart.displayName = 'LineChart';
+
+export default LineChart;

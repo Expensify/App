@@ -40,4 +40,38 @@ type BarChartProps = {
     useSingleColor?: boolean;
 };
 
-export type {BarChartDataPoint, BarChartProps};
+type LineChartDataPoint = {
+    /** Label displayed under the data point (e.g., "Nov 2025", "Week 3") */
+    label: string;
+
+    /** Total amount (pre-formatted, e.g., dollars not cents) */
+    total: number;
+
+    /** Query string for navigation when point is clicked (optional) */
+    onClickQuery?: string;
+};
+
+type LineChartProps = {
+    /** Data points to display */
+    data: LineChartDataPoint[];
+
+    /** Chart title (e.g., "Spend over time") */
+    title?: string;
+
+    /** Icon displayed next to the title */
+    titleIcon?: IconAsset;
+
+    /** Whether data is loading */
+    isLoading?: boolean;
+
+    /** Callback when a data point is pressed */
+    onPointPress?: (dataPoint: LineChartDataPoint, index: number) => void;
+
+    /** Symbol/unit for Y-axis labels (e.g., '$', '€', 'zł'). Empty string or undefined shows raw numbers. */
+    yAxisUnit?: string;
+
+    /** Position of the unit symbol relative to the value. Defaults to 'left'. */
+    yAxisUnitPosition?: 'left' | 'right';
+};
+
+export type {BarChartDataPoint, BarChartProps, LineChartDataPoint, LineChartProps};

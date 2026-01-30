@@ -87,6 +87,18 @@ const X_AXIS_LABEL_MAX_HEIGHT_RATIO = 0.35;
 /** Ellipsis character for truncated labels */
 const LABEL_ELLIPSIS = '...';
 
+/** Inner dot radius for line chart data points */
+const DOT_INNER_RADIUS = 6;
+
+/** Outer dot radius for line chart data points (background ring) */
+const DOT_OUTER_RADIUS = 8;
+
+/** Y-axis domain anchored at zero for line charts */
+const Y_AXIS_DOMAIN: [number] = [0];
+
+/** Frame configuration for line charts - only left and bottom borders */
+const LINE_CHART_FRAME = {lineWidth: {left: 1, bottom: 1, top: 0, right: 0}};
+
 export {
     CHART_COLORS,
     Y_AXIS_TICK_COUNT,
@@ -110,4 +122,8 @@ export {
     LABEL_PADDING,
     X_AXIS_LABEL_MAX_HEIGHT_RATIO,
     LABEL_ELLIPSIS,
+    DOT_INNER_RADIUS,
+    DOT_OUTER_RADIUS,
+    Y_AXIS_DOMAIN,
+    LINE_CHART_FRAME,
 };
