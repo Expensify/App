@@ -224,7 +224,8 @@ function DistanceRequestStartPage({
                                 )}
                             </TopTab.Screen>
                         )}
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                        {false && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
                             {() => (
                                 <TabScreenWithFocusTrapWrapper>
                                     <IOURequestStepDistanceOdometer
@@ -234,6 +235,7 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
+                        )}
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>
