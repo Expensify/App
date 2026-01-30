@@ -601,7 +601,13 @@ function updateNetSuiteCustomSegments(
     );
 }
 
-function updateNetSuiteCustomLists(policyID: string | undefined, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[], modifiedListID: string, pendingAction: OnyxCommon.PendingAction) {
+function updateNetSuiteCustomLists(
+    policyID: string | undefined,
+    records: NetSuiteCustomList[],
+    oldRecords: NetSuiteCustomList[],
+    modifiedListID: string,
+    pendingAction: OnyxCommon.PendingAction,
+) {
     if (!policyID) {
         return;
     }
