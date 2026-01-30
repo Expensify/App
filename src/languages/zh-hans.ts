@@ -567,6 +567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         address: '地址',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: '跳过',
         chatWithAccountManager: (accountManagerDisplayName: string) => `需要特定帮助？请与您的客户经理 ${accountManagerDisplayName} 聊天。`,
         chatNow: '立即聊天',
@@ -7998,6 +7999,12 @@ ${reportName}
             export: ({count}: {count: number}) => `导出 ${count} ${count === 1 ? '报销单' : '报销单'}`,
             begin: '开始',
             emptyStateMessages: {nicelyDone: '做得很好', keepAnEyeOut: '敬请关注接下来的更新！', allCaughtUp: '你已经全部看完了', upcomingTodos: '即将进行的待办事项会显示在此处。'},
+        },
+        timeSensitiveSection: {
+            title: '时间敏感',
+            cta: '报销申请',
+            offer50off: {title: '首年立享五折优惠！', subtitle: ({formattedTime}: {formattedTime: string}) => `剩余 ${formattedTime}`},
+            offer25off: {title: '首次年度订阅立享 25% 折扣！', subtitle: ({days}: {days: number}) => `剩余 ${days} ${days === 1 ? '天' : '天'}`},
         },
     },
 };
