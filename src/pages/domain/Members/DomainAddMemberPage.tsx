@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +26,19 @@ import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSele
 import INPUT_IDS from '@src/types/form/AddDomainMemberForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+function DomainEmailInput({onInputChange, ref, ...rest}: BaseTextInputProps) {
+    return (
+        <TextInput
+            ref={ref}
+            onChangeText={(value: string) => {
+                onInputChange?.(value.replaceAll('@', ''));
+            }}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
+        />
+    );
+}
 
 type DomainAddMemberProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_MEMBER>;
 
@@ -100,7 +114,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
                     style={[styles.flex1, styles.ph5, styles.pb3]}
                 >
                     <InputWrapper
-                        InputComponent={TextInput}
+                        InputComponent={DomainEmailInput}
                         label={`${translate('common.email')}`}
                         aria-label={`${translate('common.email')}`}
                         role={CONST.ROLE.PRESENTATION}
