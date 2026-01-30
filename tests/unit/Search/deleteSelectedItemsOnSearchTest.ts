@@ -69,7 +69,7 @@ describe('bulkDeleteReports', () => {
             // Should call deleteAppReport for each empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(2);
             expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail, 1, transactions, transactionsViolations, {});
-            expect(deleteAppReport).toHaveBeenCalledWith('report_456', currentUserEmail, transactions, transactionsViolations, {});
+            expect(deleteAppReport).toHaveBeenCalledWith('report_456', currentUserEmail, 1, transactions, transactionsViolations, {});
         });
 
         it('should handle mixed selection of empty reports and transactions', () => {
@@ -233,7 +233,7 @@ describe('bulkDeleteReports', () => {
             // Should only call deleteAppReport for the first report where key === reportID
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
             expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail, 1, transactions, transactionsViolations, {});
-            expect(deleteAppReport).not.toHaveBeenCalledWith('report_456', currentUserEmail, transactions, transactionsViolations);
+            expect(deleteAppReport).not.toHaveBeenCalledWith('report_456', currentUserEmail, 1, transactions, transactionsViolations);
         });
     });
 
