@@ -590,12 +590,6 @@ function SearchFiltersBar({
                           value: groupBy?.text ?? null,
                           filterKey: FILTER_KEYS.GROUP_BY,
                       },
-                      {
-                          label: translate('search.view.label'),
-                          PopoverComponent: viewComponent,
-                          value: viewValue?.text ?? null,
-                          filterKey: FILTER_KEYS.VIEW,
-                      },
                   ]
                 : []),
             ...(shouldDisplayGroupCurrencyFilter
@@ -693,6 +687,16 @@ function SearchFiltersBar({
                           PopoverComponent: workspaceComponent,
                           value: workspaceValue,
                           filterKey: FILTER_KEYS.POLICY_ID,
+                      },
+                  ]
+                : []),
+            ...(shouldDisplayGroupByFilter
+                ? [
+                      {
+                          label: translate('search.view.label'),
+                          PopoverComponent: viewComponent,
+                          value: viewValue?.text ?? null,
+                          filterKey: FILTER_KEYS.VIEW,
                       },
                   ]
                 : []),
