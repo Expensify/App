@@ -1,5 +1,6 @@
 import type {KeyboardEvent} from 'react';
 import {useCallback} from 'react';
+import CONST from '@src/CONST';
 
 /**
  * Custom hook that returns a keyboard event handler which triggers a callback
@@ -14,7 +15,7 @@ import {useCallback} from 'react';
 function useEnterKeyHandler(callback: () => void) {
     return useCallback(
         (event: KeyboardEvent) => {
-            if (event.key !== 'Enter') {
+            if (event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                 return;
             }
             event.preventDefault();
