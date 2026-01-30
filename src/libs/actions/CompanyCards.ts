@@ -1125,8 +1125,8 @@ function importCSVCompanyCards({
     for (const cardName of Object.keys(existingCardList)) {
         existingCardNames.add(cardName);
     }
-    const {cardList: assignableCardList, ...assignedCards} = existingCardsList ?? {};
-    void assignableCardList;
+    const assignedCards = {...(existingCardsList ?? {})};
+    delete assignedCards.cardList;
     for (const card of Object.values(assignedCards)) {
         if (card?.cardName) {
             existingCardNames.add(card.cardName);
