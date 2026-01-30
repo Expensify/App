@@ -13129,6 +13129,34 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
+function removeUnchangedBulkEditFields(
+    transactionChanges: TransactionChanges,
+    transaction: OnyxTypes.Transaction,
+    baseIouReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+) {
+    const changeKeys = Object.keys(transactionChanges) as Array<keyof TransactionChanges>;
+    if (changeKeys.length === 0) {
+        return;
+    }
+
+    const iouType = isInvoiceReportReportUtils(baseIouReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
+    const allowNegative = shouldEnableNegative(baseIouReport, policy, iouType);
+    const currentDetails = getTransactionDetails(transaction, undefined, policy, allowNegative);
+
+    for (const field of changeKeys) {
+        const currentValue = currentDetails?.[field as keyof TransactionDetails];
+        const nextValue = transactionChanges[field];
+        const shouldNormalizeString = typeof currentValue === 'string' || typeof nextValue === 'string';
+        const normalizedCurrentValue = shouldNormalizeString ? (currentValue ?? '') : currentValue;
+        const normalizedNextValue = shouldNormalizeString ? (nextValue ?? '') : nextValue;
+
+        if (normalizedNextValue === normalizedCurrentValue) {
+            delete transactionChanges[field];
+        }
+    }
+}
+
 function updateMultipleMoneyRequests(
     transactionIDs: string[],
     changes: TransactionChanges,
@@ -13190,6 +13218,8 @@ function updateMultipleMoneyRequests(
         if (changes.reimbursable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
             transactionChanges.reimbursable = changes.reimbursable;
         }
+
+        removeUnchangedBulkEditFields(transactionChanges, transaction, baseIouReport, policy);
 
         const updates: Record<string, string | number> = {};
         if (transactionChanges.merchant) {

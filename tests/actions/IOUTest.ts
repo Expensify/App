@@ -9678,6 +9678,54 @@ describe('actions/IOU', () => {
             canEditFieldSpy.mockRestore();
         });
 
+        it('skips updates when bulk edit value matches the current transaction field', () => {
+            const transactionID = 'transaction-1';
+            const transactionThreadReportID = 'thread-1';
+            const iouReportID = 'iou-1';
+            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {});
+
+            expect(writeSpy).not.toHaveBeenCalled();
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
         it('updates report totals across multiple transactions in the same report', () => {
             const firstTransactionID = 'transaction-4';
             const secondTransactionID = 'transaction-5';
