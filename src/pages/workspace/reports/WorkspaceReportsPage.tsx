@@ -1,7 +1,7 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
@@ -162,6 +162,13 @@ function WorkspaceReportFieldsPage({
         </OfflineWithFeedback>
     );
 
+    const reportFieldsAccessibilityLabel = useMemo(() => {
+        if (!hasSyncError && isConnectionVerified && currentConnectionName) {
+            return `${translate('workspace.common.reportFields')}, ${translate('workspace.reportFields.importedFromAccountingSoftware')} ${currentConnectionName} ${translate('workspace.accounting.settings')}`;
+        }
+        return `${translate('workspace.common.reportFields')}, ${translate('workspace.reportFields.subtitle')}`;
+    }, [hasSyncError, isConnectionVerified, currentConnectionName, translate]);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -241,7 +248,7 @@ function WorkspaceReportFieldsPage({
                             <ToggleSettingOptionRow
                                 pendingAction={policy?.pendingFields?.areReportFieldsEnabled}
                                 title={translate('workspace.common.reportFields')}
-                                switchAccessibilityLabel={translate('workspace.common.reportFields')}
+                                switchAccessibilityLabel={reportFieldsAccessibilityLabel}
                                 subtitle={getHeaderText()}
                                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                                 isActive={!!policy?.areReportFieldsEnabled}

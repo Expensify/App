@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -105,85 +106,93 @@ describe('useCompanyCards', () => {
         await Onyx.clear();
     });
 
-    describe('cardFeedType determination', () => {
-        it('should return cardFeedType as customFeed for VCF feeds without accountList', async () => {
+    describe('cardNamesToEncryptedCardNumberMapping derivation', () => {
+        it('should derive cardNamesToEncryptedCardNumberMapping from cardList for custom feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
             (useCardsList as jest.Mock).mockReturnValue([mockCardsList, {status: 'loaded'}]);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
-            expect(result.current.cardFeedType).toBe('customFeed');
+            // For custom feeds without accountList, cardNamesToEncryptedCardNumberMapping comes from cardList
+            expect(result.current.cardNamesToEncryptedCardNumberMapping).toEqual({
+                card1: 'card1',
+                card2: 'card2',
+            });
             expect(result.current.feedName).toBe(mockCustomFeed);
         });
 
-        it('should return cardFeedType as directFeed for OAuth feeds with accountList', async () => {
+        it('should derive cardNamesToEncryptedCardNumberMapping from accountList for OAuth feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
             (useCardFeeds as jest.Mock).mockReturnValue([mockOAuthFeedData, {status: 'loaded'}, undefined]);
             (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
-            expect(result.current.cardFeedType).toBe('directFeed');
+            // For OAuth feeds with accountList, card names map to themselves
+            expect(result.current.cardNamesToEncryptedCardNumberMapping).toEqual({
+                'CREDIT CARD...6607': 'CREDIT CARD...6607',
+                'CREDIT CARD...5501': 'CREDIT CARD...5501',
+            });
             expect(result.current.feedName).toBe(mockOAuthFeed);
             expect(result.current.selectedFeed?.accountList).toEqual(['CREDIT CARD...6607', 'CREDIT CARD...5501']);
         });
 
-        it('should return cardFeedType as directFeed for Plaid feeds', async () => {
+        it('should derive cardNamesToEncryptedCardNumberMapping from accountList for Plaid feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockPlaidFeed);
             (useCardFeeds as jest.Mock).mockReturnValue([mockPlaidFeedData, {status: 'loaded'}, undefined]);
             (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
-            expect(result.current.cardFeedType).toBe('directFeed');
+            // For Plaid feeds with accountList, card names map to themselves
+            expect(result.current.cardNamesToEncryptedCardNumberMapping).toEqual({
+                'Plaid Checking 0000': 'Plaid Checking 0000',
+                'Plaid Credit Card 3333': 'Plaid Credit Card 3333',
+            });
             expect(result.current.feedName).toBe(mockPlaidFeed);
         });
-    });
 
-    describe('cardNames derivation', () => {
-        it('should derive cardNames from cardList for custom feeds', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([mockCardsList, {status: 'loaded'}]);
-
-            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
-
-            expect(result.current.cardFeedType).toBe('customFeed');
-            expect(result.current.cardNames).toEqual(['card1', 'card2']);
-        });
-
-        it('should derive cardNames from accountList for OAuth feeds (direct feeds)', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockOAuthFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
-
-            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
-
-            expect(result.current.cardFeedType).toBe('directFeed');
-            expect(result.current.cardNames).toEqual(['CREDIT CARD...6607', 'CREDIT CARD...5501']);
-        });
-
-        it('should derive cardNames from accountList for Plaid feeds (direct feeds)', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockPlaidFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockPlaidFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
-
-            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
-
-            expect(result.current.cardFeedType).toBe('directFeed');
-            expect(result.current.cardNames).toEqual(['Plaid Checking 0000', 'Plaid Credit Card 3333']);
-        });
-
-        it('should return empty cardNames when cardList is undefined for custom feeds', async () => {
+        it('should return empty cardNamesToEncryptedCardNumberMapping when no cardList or accountList', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
             (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
-            expect(result.current.cardFeedType).toBe('customFeed');
-            expect(result.current.cardNames).toEqual([]);
+            expect(result.current.cardNamesToEncryptedCardNumberMapping).toEqual({});
+        });
+
+        it('should merge accountList and cardList entries, with cardList taking precedence', async () => {
+            // Create a feed that has both accountList AND cardList entries
+            const feedWithBoth: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#${domainID}` as CompanyCardFeedWithDomainID;
+            const feedDataWithAccountList = {
+                [feedWithBoth]: {
+                    ...mockOAuthFeedData[mockOAuthFeed],
+                    accountList: ['CARD A', 'CARD B'],
+                },
+            };
+            const cardsListWithEncrypted = {
+                cardList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'CARD A': 'encrypted_A',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'CARD C': 'encrypted_C',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, feedWithBoth);
+            (useCardFeeds as jest.Mock).mockReturnValue([feedDataWithAccountList, {status: 'loaded'}, undefined]);
+            (useCardsList as jest.Mock).mockReturnValue([cardsListWithEncrypted, {status: 'loaded'}]);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            // accountList entries map to themselves, but cardList entries override with encrypted values
+            expect(result.current.cardNamesToEncryptedCardNumberMapping).toEqual({
+                'CARD A': 'encrypted_A', // cardList overrides accountList
+                'CARD B': 'CARD B', // from accountList only
+                'CARD C': 'encrypted_C', // from cardList only
+            });
         });
     });
 
@@ -195,7 +204,7 @@ describe('useCompanyCards', () => {
             const {result} = renderHook(() => useCompanyCards({policyID: undefined}));
 
             expect(result.current.feedName).toBeUndefined();
-            expect(result.current.cardFeedType).toBeUndefined();
+            expect(result.current.cardNamesToEncryptedCardNumberMapping).toBeUndefined();
             expect(result.current.onyxMetadata).toBeDefined();
         });
     });
@@ -212,7 +221,11 @@ describe('useCompanyCards', () => {
 
             // Should use provided feedName, not lastSelectedFeed
             expect(result.current.feedName).toBe(mockOAuthFeed);
-            expect(result.current.cardFeedType).toBe('directFeed');
+            // OAuth feed has accountList, so cardNamesToEncryptedCardNumberMapping should be populated
+            expect(result.current.cardNamesToEncryptedCardNumberMapping).toEqual({
+                'CREDIT CARD...6607': 'CREDIT CARD...6607',
+                'CREDIT CARD...5501': 'CREDIT CARD...5501',
+            });
         });
     });
 
@@ -253,20 +266,23 @@ describe('useCompanyCards', () => {
             // For commercial feeds, cardList contains {cardName: encryptedNumber}
             expect(result.current.cardList).toEqual(mockCardsListWithEncryptedNumbers.cardList);
 
-            // cardNames should be the keys (display names)
-            expect(result.current.cardNames).toEqual(['490901XXXXXX1234', '490901XXXXXX5678']);
+            // cardNamesToEncryptedCardNumberMapping should map display names to encrypted values
+            expect(result.current.cardNamesToEncryptedCardNumberMapping).toEqual({
+                '490901XXXXXX1234': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED1',
+                '490901XXXXXX5678': 'v12:74E3CA3C4C0FA02F4C754FEN4RYP3ED2',
+            });
         });
 
-        it('should have cardList where keys differ from values for commercial feeds', async () => {
+        it('should have cardNamesToEncryptedCardNumberMapping where keys differ from values for commercial feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
             (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
             (useCardsList as jest.Mock).mockReturnValue([mockCardsListWithEncryptedNumbers, {status: 'loaded'}]);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
-            const cardList = result.current.cardList ?? {};
-            const cardNames = Object.keys(cardList);
-            const encryptedNumbers = Object.values(cardList);
+            const cardNamesMap = result.current.cardNamesToEncryptedCardNumberMapping ?? {};
+            const cardNames = Object.keys(cardNamesMap);
+            const encryptedNumbers = Object.values(cardNamesMap);
 
             // In commercial feeds, the display name (key) should differ from encrypted value (value)
             for (const [index, name] of cardNames.entries()) {
@@ -274,40 +290,43 @@ describe('useCompanyCards', () => {
             }
         });
 
-        it('should not have cardList for direct feeds (accountList is used instead)', async () => {
+        it('should populate cardNamesToEncryptedCardNumberMapping from accountList for direct feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockPlaidFeed);
             (useCardFeeds as jest.Mock).mockReturnValue([mockPlaidFeedData, {status: 'loaded'}, undefined]);
             (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
-            // Direct feeds use accountList, not cardList
+            // Direct feeds use accountList, cardList should be undefined
             expect(result.current.cardList).toBeUndefined();
             expect(result.current.selectedFeed?.accountList).toBeDefined();
-            expect(result.current.cardNames).toEqual(['Plaid Checking 0000', 'Plaid Credit Card 3333']);
+            // cardNamesToEncryptedCardNumberMapping maps card names to themselves for direct feeds
+            expect(result.current.cardNamesToEncryptedCardNumberMapping).toEqual({
+                'Plaid Checking 0000': 'Plaid Checking 0000',
+                'Plaid Credit Card 3333': 'Plaid Credit Card 3333',
+            });
         });
     });
 
     describe('card ID consistency', () => {
-        it('should ensure direct feed cardNames can be used as identifiers', async () => {
+        it('should ensure direct feed cardNamesToEncryptedCardNumberMapping maps names to themselves', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
             (useCardFeeds as jest.Mock).mockReturnValue([mockOAuthFeedData, {status: 'loaded'}, undefined]);
             (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
-            // For direct feeds, cardNames ARE the identifiers (no encryption)
-            const cardNames = result.current.cardNames ?? [];
-            expect(cardNames).toEqual(['CREDIT CARD...6607', 'CREDIT CARD...5501']);
+            // For direct feeds, card names map to themselves (no encryption)
+            const cardNamesMap = result.current.cardNamesToEncryptedCardNumberMapping ?? {};
+            expect(Object.keys(cardNamesMap)).toEqual(['CREDIT CARD...6607', 'CREDIT CARD...5501']);
 
-            // Each card name is both the display value AND the identifier
-            for (const name of cardNames) {
-                expect(typeof name).toBe('string');
-                expect(name.length).toBeGreaterThan(0);
+            // Each card name maps to itself
+            for (const [name, encrypted] of Object.entries(cardNamesMap)) {
+                expect(name).toBe(encrypted);
             }
         });
 
-        it('should ensure commercial feed cardList maps display names to encrypted identifiers', async () => {
+        it('should ensure commercial feed cardNamesToEncryptedCardNumberMapping maps display names to encrypted identifiers', async () => {
             const commercialCardsList = {
                 cardList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -323,16 +342,16 @@ describe('useCompanyCards', () => {
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
-            const cardList = result.current.cardList ?? {};
+            const cardNamesMap = result.current.cardNamesToEncryptedCardNumberMapping ?? {};
 
             // Display names are keys
-            expect(Object.keys(cardList)).toEqual(['VISA - 1234', 'VISA - 5678']);
+            expect(Object.keys(cardNamesMap)).toEqual(['VISA - 1234', 'VISA - 5678']);
 
             // Encrypted identifiers are values
-            expect(Object.values(cardList)).toEqual(['enc_abc123', 'enc_def456']);
+            expect(Object.values(cardNamesMap)).toEqual(['enc_abc123', 'enc_def456']);
 
             // Lookup: given a display name, get the encrypted identifier
-            expect(cardList['VISA - 1234']).toBe('enc_abc123');
+            expect(cardNamesMap['VISA - 1234']).toBe('enc_abc123');
         });
     });
 });

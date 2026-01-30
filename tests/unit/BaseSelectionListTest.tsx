@@ -1,7 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
-import type BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -148,5 +148,38 @@ describe('BaseSelectionList', () => {
         fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`), 'mouseLeave', {stopPropagation: mockStopPropagation});
 
         expect(mockStopPropagation).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not call preventDefault on mouseDown when the target is an INPUT element', () => {
+        render(
+            <OnyxListItemProvider>
+                <BaseListItem
+                    item={{keyForList: '1', text: 'Item 1'}}
+                    onSelectRow={() => {}}
+                    showTooltip={false}
+                    isFocused={false}
+                    keyForList="1"
+                >
+                    <input data-testid="test-input" />
+                </BaseListItem>
+            </OnyxListItemProvider>,
+        );
+
+        const preventDefault = jest.fn();
+        const listItem = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`);
+
+        // Test case 1: Target is INPUT
+        fireEvent(listItem, 'mouseDown', {
+            target: {tagName: CONST.ELEMENT_NAME.INPUT},
+            preventDefault,
+        });
+        expect(preventDefault).not.toHaveBeenCalled();
+
+        // Test case 2: Target is NOT INPUT (e.g., DIV)
+        fireEvent(listItem, 'mouseDown', {
+            target: {tagName: CONST.ELEMENT_NAME.DIV},
+            preventDefault,
+        });
+        expect(preventDefault).toHaveBeenCalled();
     });
 });

@@ -54,6 +54,7 @@ function BaseSearchList({
         },
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
+        captureOnInputs: false,
     });
 
     const renderItemWithKeyboardFocus = useCallback(
@@ -114,7 +115,7 @@ function BaseSearchList({
             renderItem={renderItemWithKeyboardFocus}
             keyExtractor={keyExtractor}
             onScroll={onScroll}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator
             ref={ref}
             extraData={extraData}
             onEndReached={onEndReached}

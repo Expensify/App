@@ -21,7 +21,7 @@ function useNavigateToReportOnRefresh({source, file, reportID}: UseReportNavigat
             if (reportID) {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             } else {
-                Navigation.goBack(ROUTES.HOME);
+                Navigation.goBack(ROUTES.INBOX);
             }
         });
     }, [source, reportID, file]);

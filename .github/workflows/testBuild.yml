@@ -330,7 +330,7 @@ jobs:
     if: ${{ inputs.IOS }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
       PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
     runs-on: macos-15-xlarge
     outputs:

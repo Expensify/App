@@ -1,6 +1,7 @@
-import {useContext} from 'react';
-import {KeyboardDismissibleFlatListContext} from './KeyboardDismissibleFlatListContext';
+import {useKeyboardDismissibleFlatListActions, useKeyboardDismissibleFlatListState} from './KeyboardDismissibleFlatListContext';
 
 export default function useKeyboardDismissibleFlatListValues() {
-    return useContext(KeyboardDismissibleFlatListContext);
+    const state = useKeyboardDismissibleFlatListState();
+    const actions = useKeyboardDismissibleFlatListActions();
+    return {...state, ...actions};
 }

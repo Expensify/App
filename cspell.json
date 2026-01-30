@@ -175,6 +175,7 @@
         "dimen",
         "directfeeds",
         "Dishoom",
+        "displaystatus",
         "DocuSign",
         "domhandler",
         "domparser",
@@ -725,6 +726,7 @@
         "unhold",
         "Unlaminated",
         "Unmigrated",
+        "unmuting",
         "unredacted",
         "unscrollable",
         "unsubmitted",
@@ -756,6 +758,7 @@
         "Warchoł",
         "WDYR",
         "webapps",
+        "webauthn",
         "webcredentials",
         "webrtc",
         "welldone",
@@ -815,7 +818,8 @@
         "RNCORE",
         "Wooo",
         "Splittable",
-        "pgrep"
+        "pgrep",
+        "Invoicify"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

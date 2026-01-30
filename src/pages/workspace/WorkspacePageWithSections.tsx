@@ -92,6 +92,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Content to be added as modal */
         modals?: ReactNode;
+
+        /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+        shouldEnableMaxHeight?: boolean;
     };
 
 function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
@@ -118,6 +121,7 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
+    shouldEnableMaxHeight = true,
     headerContent,
     testID,
     shouldShowNotFoundPage = false,
@@ -200,7 +204,7 @@ function WorkspacePageWithSections({
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
             testID={testID ?? 'WorkspacePageWithSections'}
             shouldShowOfflineIndicator={!shouldShow}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}

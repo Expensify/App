@@ -17,6 +17,10 @@ type SelectedTagOption = {
     pendingAction?: PendingAction;
 };
 
+type TagOption = Option & {
+    keyForList: string;
+};
+
 type TagVisibility = {
     /** Flag indicating if the tag is required */
     isTagRequired: boolean;
@@ -30,7 +34,7 @@ type TagVisibility = {
  *
  * @param tags - an initial tag array
  */
-function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'>>, selectedOptions?: SelectedTagOption[]): Option[] {
+function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'>>, selectedOptions?: SelectedTagOption[]): TagOption[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
         const cleanedName = getCleanedTagName(tag.name);
@@ -89,7 +93,7 @@ function getTagListSections({
         tagSections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            sectionIndex: 0,
             data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
         });
 
@@ -105,7 +109,7 @@ function getTagListSections({
         tagSections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
+            sectionIndex: 1,
             data: getTagsOptions(tagsForSearch, selectedOptions),
         });
 
@@ -116,7 +120,7 @@ function getTagListSections({
         tagSections.push({
             // "All" section when items amount less than the threshold
             title: '',
-            shouldShow: false,
+            sectionIndex: 2,
             data: getTagsOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions),
         });
 
@@ -134,7 +138,7 @@ function getTagListSections({
         tagSections.push({
             // "Selected" section
             title: '',
-            shouldShow: true,
+            sectionIndex: 3,
             data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
         });
     }
@@ -145,7 +149,7 @@ function getTagListSections({
         tagSections.push({
             // "Recent" section
             title: translate('common.recent'),
-            shouldShow: true,
+            sectionIndex: 4,
             data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
     }
@@ -153,7 +157,7 @@ function getTagListSections({
     tagSections.push({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
-        shouldShow: true,
+        sectionIndex: 5,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });
 
@@ -247,4 +251,4 @@ function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTa
 }
 
 export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag};
-export type {SelectedTagOption, TagVisibility};
+export type {SelectedTagOption, TagVisibility, TagOption};

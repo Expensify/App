@@ -37,4 +37,13 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
     return Object.fromEntries(nonFormulaReportFields);
 };
 
-export {activePolicySelector, createPoliciesSelector, createAllPolicyReportFieldsSelector, ownerPoliciesSelector, activeAdminPoliciesSelector};
+const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
+    policy && {
+        outputCurrency: policy.outputCurrency,
+        pendingFields: {
+            timeTrackingDefaultRate: policy.pendingFields?.timeTrackingDefaultRate,
+        },
+        units: policy.units,
+    };
+
+export {activePolicySelector, createPoliciesSelector, createAllPolicyReportFieldsSelector, ownerPoliciesSelector, activeAdminPoliciesSelector, policyTimeTrackingSelector};
