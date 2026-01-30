@@ -1,20 +1,17 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
-import {findFocusedRoute, getPathFromState} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
-import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Account, Onboarding} from '@src/types/onyx';
-import type {GuardContext, GuardResult, NavigationGuard} from './types';
+import type {GuardResult, NavigationGuard} from './types';
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
@@ -111,75 +108,29 @@ function getOnboardingRoute(): Route {
     }) as Route;
 }
 
-const getTargetRoute = (action: NavigationAction) => {
-    if (action.type === 'NAVIGATE' && 'payload' in action && action.payload && typeof action.payload === 'object' && 'name' in action.payload) {
-        return action.payload.name as string;
-    }
-    return null;
-};
-
 /**
  * OnboardingGuard handles ONLY the core NewDot onboarding flow
  */
 const OnboardingGuard: NavigationGuard = {
     name: 'OnboardingGuard',
 
-    evaluate: (state: NavigationState | undefined, action: NavigationAction, context: GuardContext): GuardResult => {
-        // Early exit: If onboarding is already completed, this guard doesn't apply
-        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
-        if (isOnboardingCompleted) {
-            return {type: 'ALLOW'};
-        }
-
-        if (!state?.routes?.length || context.isLoading) {
-            return {type: 'ALLOW'};
-        }
-
-        const targetRoute = getTargetRoute(action);
-        const focusedRoute = findFocusedRoute(state);
-
-        // Early exit: Allow if navigating to or currently on onboarding
-        const isNavigatingToOnboarding = targetRoute && isOnboardingFlowName(targetRoute);
-        const isCurrentlyOnOnboarding = isOnboardingFlowName(focusedRoute?.name);
-
-        if (isNavigatingToOnboarding || isCurrentlyOnOnboarding) {
-            const onboardingRoute = getOnboardingRoute();
-            const currentPath = getPathFromState(state, linkingConfig.config);
-
-            if (currentPath === onboardingRoute) {
-                Log.info('[OnboardingGuard] Allowing, current path matches onboarding route');
-                return {type: 'ALLOW'};
-            }
-
-            Log.info('[OnboardingGuard] Redirecting to onboarding route', false, {onboardingRoute});
-
-            return {
-                type: 'REDIRECT',
-                route: onboardingRoute,
-            };
-        }
-
-        // Only redirect authenticated users
-        if (!context.isAuthenticated) {
-            Log.info('[OnboardingGuard] Allowing navigation - user not authenticated');
-            return {type: 'ALLOW'};
-        }
-
+    evaluate: (state, action, context): GuardResult => {
         // Don't redirect during transition flow (e.g., switching between apps)
-        const isTransitioning = context.currentUrl?.includes('transition');
+        const isTransitioning = context.currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+
         if (isTransitioning) {
             Log.info('[OnboardingGuard] Allowing navigation - in transition flow', false, {currentUrl: context.currentUrl});
             return {type: 'ALLOW'};
         }
 
-        // Calculate all skip conditions
+        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const needsExplanationModal = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
 
-        const shouldSkipOnboarding = isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
+        const shouldSkipOnboarding = isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
