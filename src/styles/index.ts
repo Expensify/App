@@ -1,26 +1,26 @@
 /* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/naming-convention */
-import type { LineLayerStyleProps } from '@rnmapbox/maps/src/utils/MapboxStyles';
+import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
-import type { LineLayer } from 'react-map-gl';
+import type {LineLayer} from 'react-map-gl';
 // eslint-disable-next-line no-restricted-imports
-import type { Animated, ImageStyle, TextStyle, ViewStyle } from 'react-native';
-import { Platform, StyleSheet } from 'react-native';
-import type { PickerStyle } from 'react-native-picker-select';
-import type { SharedValue } from 'react-native-reanimated';
-import { interpolate } from 'react-native-reanimated';
-import type { MixedStyleDeclaration, MixedStyleRecord } from 'react-native-render-html';
-import type { ValueOf } from 'type-fest';
+import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
+import type {PickerStyle} from 'react-native-picker-select';
+import type {SharedValue} from 'react-native-reanimated';
+import {interpolate} from 'react-native-reanimated';
+import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import { ACTIVE_LABEL_SCALE } from '@components/TextInput/styleConst';
-import { animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth } from '@components/WideRHPContextProvider';
-import { getBrowser, isMobile, isMobileSafari, isSafari } from '@libs/Browser';
+import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
+import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
+import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
-import type { Dimensions } from '@src/types/utils/Layout';
-import { defaultTheme } from './theme';
+import type {Dimensions} from '@src/types/utils/Layout';
+import {defaultTheme} from './theme';
 import colors from './theme/colors';
-import type { ThemeColors } from './theme/types';
+import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import addToWalletButtonStyles from './utils/addToWalletButtonStyles';
 import borders from './utils/borders';
@@ -81,12 +81,12 @@ type WebViewStyle = {
     baseFontStyle: MixedStyleDeclaration;
 };
 
-type CustomPickerStyle = PickerStyle & { icon?: ViewStyle };
+type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
 
-type TwoFactorAuthCodesBoxParams = { isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean };
-type WorkspaceUpgradeIntroBoxParams = { isExtraSmallScreenWidth: boolean };
+type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
+type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
 type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
 
@@ -107,9 +107,9 @@ type DynamicStyles = Record<
 type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
-const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? { WebkitTouchCallout: 'none' } : {};
+const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
-const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? { lineHeight: variables.lineHeightXSmall } : { lineHeight: variables.lineHeightNormal };
+const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme: ThemeColors) =>
     ({
@@ -1097,9 +1097,9 @@ const staticStyles = (theme: ThemeColors) =>
             // Applying the Webkit styles only to browsers as it is not available in native.
             ...(getBrowser()
                 ? {
-                    WebkitTextFillColor: theme.textSupporting,
-                    WebkitOpacity: 1,
-                }
+                      WebkitTextFillColor: theme.textSupporting,
+                      WebkitOpacity: 1,
+                  }
                 : {}),
             color: theme.textSupporting,
         },
@@ -2610,7 +2610,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.transparent,
         },
 
-        modalAnimatedContainer: { width: '100%' },
+        modalAnimatedContainer: {width: '100%'},
 
         modalContainerBox: {
             zIndex: 2,
@@ -2632,7 +2632,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: 28,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
-            ...{ borderRadius: variables.buttonBorderRadius },
+            ...{borderRadius: variables.buttonBorderRadius},
         },
 
         reportActionSystemMessageContainer: {
@@ -3093,14 +3093,14 @@ const staticStyles = (theme: ThemeColors) =>
             // These properties are available in browser only
             ...(getBrowser()
                 ? {
-                    caretColor: 'transparent',
-                    WebkitTextFillColor: 'transparent',
-                    // After setting the input text color to transparent, it acquires the background-color.
-                    // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
-                    // Therefore, the transition effect needs to be delayed.
-                    transitionDelay: '99999s',
-                    transitionProperty: 'background-color',
-                }
+                      caretColor: 'transparent',
+                      WebkitTextFillColor: 'transparent',
+                      // After setting the input text color to transparent, it acquires the background-color.
+                      // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+                      // Therefore, the transition effect needs to be delayed.
+                      transitionDelay: '99999s',
+                      transitionProperty: 'background-color',
+                  }
                 : {}),
         },
 
@@ -3151,7 +3151,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
-        moneyRequestAmountContainer: { minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8) },
+        moneyRequestAmountContainer: {minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8)},
 
         requestPreviewBox: {
             marginTop: 12,
@@ -4457,15 +4457,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(getBrowser() && !isMobile() && { transform: 'scale(.5)', fontSize: 22, overflow: 'visible' }),
+            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
             ...(getBrowser() &&
                 isSafari() &&
                 !isMobile() && {
-                transform: 'scale(0.7)',
-                fontSize: 13,
-                lineHeight: 15,
-                overflow: 'visible',
-            }),
+                    transform: 'scale(0.7)',
+                    fontSize: 13,
+                    lineHeight: 15,
+                    overflow: 'visible',
+                }),
         },
 
         onboardingVideoPlayer: {
@@ -4574,7 +4574,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
         },
 
-        receiptEmptyStateFullHeight: { height: '100%', borderRadius: 12 },
+        receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
 
         moneyRequestAttachReceiptThumbnailIcon: {
             position: 'absolute',
@@ -4607,7 +4607,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: variables.componentBorderWidth,
             borderColor: theme.appBG,
         },
-        currentPositionDot: { backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16 },
+        currentPositionDot: {backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16},
 
         mapViewOverlay: {
             flex: 1,
@@ -5438,7 +5438,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         // We have to use 9998 here as sidePanel has to be displayed right under popovers which have z-index of 9999
-        sidePanelContainer: { zIndex: variables.sidePanelZIndex },
+        sidePanelContainer: {zIndex: variables.sidePanelZIndex},
 
         reportPreviewArrowButton: {
             borderRadius: 50,
@@ -5468,7 +5468,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
         },
 
-        avatarSelected: { borderColor: theme.success, borderWidth: 2 },
+        avatarSelected: {borderColor: theme.success, borderWidth: 2},
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
@@ -5906,7 +5906,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             }
 
             return {
-                transform: [{ translateY: translateY.get() }],
+                transform: [{translateY: translateY.get()}],
                 fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
             } satisfies TextStyle;
         },
@@ -5983,7 +5983,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 marginHorizontal: isSmallScreenWidth ? 0 : 20,
             }) satisfies ViewStyle,
 
-        twoFactorAuthCodesBoxPadding: ({ isExtraSmallScreenWidth, isSmallScreenWidth }: TwoFactorAuthCodesBoxParams) => {
+        twoFactorAuthCodesBoxPadding: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams) => {
             let paddingHorizontal = spacing.ph9;
 
             if (isSmallScreenWidth) {
@@ -6015,7 +6015,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 }),
             }) satisfies ViewStyle,
 
-        workspaceUpgradeIntroBox: ({ isExtraSmallScreenWidth }: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
+        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
             let paddingHorizontal = spacing.ph5;
             let paddingVertical = spacing.pv5;
 
@@ -6031,15 +6031,15 @@ const dynamicStyles = (theme: ThemeColors) =>
         },
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
-            ({ marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1 }) satisfies ViewStyle,
+            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1}) satisfies ViewStyle,
 
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({ marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1 }) satisfies ViewStyle,
+        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
         growlNotificationTranslateY: (translateY: SharedValue<number>) => {
             'worklet';
 
             return {
-                transform: [{ translateY: translateY.get() }],
+                transform: [{translateY: translateY.get()}],
             };
         },
 
@@ -6116,9 +6116,9 @@ const dynamicStyles = (theme: ThemeColors) =>
             minHeight,
         }),
 
-        aspectRatioLottie: (animation: DotLottieAnimation) => ({ aspectRatio: animation.w / animation.h }),
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
-        colorSchemeStyle: (colorScheme: ColorScheme) => ({ colorScheme }),
+        colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
         emptyStateHeaderPosition: (isIllustration: boolean) => ({
             alignItems: isIllustration ? 'center' : undefined,
@@ -6166,7 +6166,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             // and never expand over the max height
             const height = Math.min(ESTIMATED_LIST_HEIGHT, MAX_HEIGHT, windowHeight * 0.9);
 
-            return { height };
+            return {height};
         },
 
         getUserSelectionListPopoverHeight: (itemCount: number, windowHeight: number, shouldUseNarrowLayout: boolean, isSearchable = true) => {
@@ -6180,9 +6180,9 @@ const dynamicStyles = (theme: ThemeColors) =>
             // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
             // and never expand over the max height
             const height = Math.min(ESTIMATED_LIST_HEIGHT, CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * 0.9);
-            const width = shouldUseNarrowLayout ? sizing.w100 : { width: CONST.POPOVER_DROPDOWN_WIDTH };
+            const width = shouldUseNarrowLayout ? sizing.w100 : {width: CONST.POPOVER_DROPDOWN_WIDTH};
 
-            return { height, ...width };
+            return {height, ...width};
         },
 
         testDriveModalContainer: (shouldUseNarrowLayout: boolean) => ({
@@ -6348,8 +6348,8 @@ const plainStyles = (theme: ThemeColors) =>
         },
 
         mapDirectionLayer: {
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': theme.success, 'line-width': 7 },
+            layout: {'line-join': 'round', 'line-cap': 'round'},
+            paint: {'line-color': theme.success, 'line-width': 7},
         },
         searchTopBarZIndexStyle: {
             zIndex: variables.searchTopBarZIndex,
@@ -6397,11 +6397,11 @@ const plainStyles = (theme: ThemeColors) =>
 
         homePageLeftColumn: (shouldUseNarrowLayout: boolean) =>
             shouldUseNarrowLayout
-                ? ({ width: '100%', flexDirection: 'column', gap: 20 } satisfies ViewStyle)
-                : ({ flex: 2, flexBasis: '66.666%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20 } satisfies ViewStyle),
+                ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
+                : ({flex: 2, flexBasis: '66.666%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
 
         homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
-            shouldUseNarrowLayout ? ({ width: '100%' } satisfies ViewStyle) : ({ flex: 1, flexBasis: '33.333%', maxWidth: variables.homePageRightColumnMaxWidth } satisfies ViewStyle),
+            shouldUseNarrowLayout ? ({width: '100%'} satisfies ViewStyle) : ({flex: 1, flexBasis: '33.333%', maxWidth: variables.homePageRightColumnMaxWidth} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
@@ -6416,5 +6416,5 @@ type ThemeStyles = ReturnType<typeof styles>;
 const defaultStyles = styles(defaultTheme);
 
 export default styles;
-export { defaultStyles };
-export type { ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams };
+export {defaultStyles};
+export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};

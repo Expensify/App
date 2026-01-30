@@ -74,4 +74,4 @@ type PieChartProps = {
     valueUnit?: string;
 };
 
-export type { BarChartDataPoint, BarChartProps, PieChartDataPoint, PieChartProps };
+export type {BarChartDataPoint, BarChartProps, PieChartDataPoint, PieChartProps};

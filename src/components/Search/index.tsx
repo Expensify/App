@@ -1,17 +1,17 @@
-import { findFocusedRoute, useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle } from 'react-native';
-import { View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import { ModalActions } from '@components/Modal/Global/ModalContext';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
-import type { ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType } from '@components/SelectionListWithSections/types';
+import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import { useWideRHPActions } from '@components/WideRHPContextProvider';
+import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -26,20 +26,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { openOldDotLink } from '@libs/actions/Link';
-import { turnOffMobileSelectionMode, turnOnMobileSelectionMode } from '@libs/actions/MobileSelectionMode';
-import type { TransactionPreviewData } from '@libs/actions/Search';
-import { openSearch, setOptimisticDataForTransactionThreadPreview } from '@libs/actions/Search';
+import {openOldDotLink} from '@libs/actions/Link';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import type {TransactionPreviewData} from '@libs/actions/Search';
+import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
-import { canUseTouchScreen } from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import type { PlatformStackNavigationProp } from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import { isSplitAction } from '@libs/ReportSecondaryActionUtils';
-import { canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions } from '@libs/ReportUtils';
-import { buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString } from '@libs/SearchQueryUtils';
+import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     adjustTimeRangeToDateFilters,
     createAndOpenSearchTransactionThread,
@@ -68,27 +68,27 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import { cancelSpan, endSpan, getSpan, startSpan } from '@libs/telemetry/activeSpans';
-import { getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete } from '@libs/TransactionUtils';
-import Navigation, { navigationRef } from '@navigation/Navigation';
-import type { SearchFullscreenNavigatorParamList } from '@navigation/types';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import Navigation, {navigationRef} from '@navigation/Navigation';
+import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import { columnsSelector } from '@src/selectors/AdvancedSearchFiltersForm';
-import { isActionLoadingSetSelector } from '@src/selectors/ReportMetaData';
-import type { OutstandingReportsByPolicyIDDerivedValue, Transaction } from '@src/types/onyx';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
+import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import SearchChartView from './SearchChartView';
-import { useSearchContext } from './SearchContext';
+import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
-import { SearchScopeProvider } from './SearchScopeProvider';
-import type { SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder } from './types';
+import {SearchScopeProvider} from './SearchScopeProvider';
+import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -110,7 +110,7 @@ function mapTransactionItemToSelectedEntry(
     currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ): [string, SelectedTransactionInfo] {
-    const { canHoldRequest, canUnholdRequest } = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
     return [
         item.keyForList,
@@ -159,12 +159,12 @@ function prepareTransactionsList(
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
-        const { [item.keyForList]: omittedTransaction, ...transactions } = selectedTransactions;
+        const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
 
         return transactions;
     }
 
-    const { canHoldRequest, canUnholdRequest } = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
 
     return {
@@ -215,21 +215,21 @@ function Search({
     searchRequestResponseStatusCode,
     onDEWModalOpen,
 }: SearchProps) {
-    const { type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view } = queryJSON;
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
-    const { isOffline } = useNetwork();
+    const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
-    const { shouldUseNarrowLayout } = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const { showConfirmModal } = useConfirmModal();
-    const { isBetaEnabled } = usePermissions();
+    const {showConfirmModal} = useConfirmModal();
+    const {isBetaEnabled} = usePermissions();
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for enabling the selection mode on small screens only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const { isSmallScreenWidth, isLargeScreenWidth } = useResponsiveLayout();
+    const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
-    const { markReportIDAsExpense } = useWideRHPActions();
+    const {markReportIDAsExpense} = useWideRHPActions();
     const {
         currentSearchHash,
         setCurrentSearchHashAndKey,
@@ -249,20 +249,20 @@ function Search({
     } = useSearchContext();
     const [offset, setOffset] = useState(0);
 
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, { canBeMissing: true });
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, { canBeMissing: true });
-    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, { canBeMissing: true });
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, { canBeMissing: true });
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, { canBeMissing: true });
-    const { accountID, email, login } = useCurrentUserPersonalDetails();
-    const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, { canBeMissing: true, selector: isActionLoadingSetSelector });
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, { canBeMissing: true });
-    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, { canBeMissing: true, selector: columnsSelector });
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, { canBeMissing: true });
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const {accountID, email, login} = useCurrentUserPersonalDetails();
+    const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const { markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense } = useWideRHPActions();
+    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -272,17 +272,17 @@ function Search({
         selector: selectFilteredReportActions,
     });
 
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, { canBeMissing: true });
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, { canBeMissing: true });
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
-    const { defaultCardFeed } = useCardFeedsForDisplay();
+    const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
     const searchKey = useMemo(() => Object.values(suggestedSearches).find((search) => search.similarSearchHash === similarSearchHash)?.key, [suggestedSearches, similarSearchHash]);
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const shouldCalculateTotals = useSearchShouldCalculateTotals(searchKey, similarSearchHash, offset === 0);
 
     const previousReportActions = usePrevious(reportActions);
-    const { translate, localeCompare, formatPhoneNumber } = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     const handleDEWModalOpen = useCallback(() => {
@@ -364,17 +364,17 @@ function Search({
     }, [isSmallScreenWidth]);
 
     useEffect(() => {
-        openSearch({ includePartiallySetupBankAccounts: true });
+        openSearch({includePartiallySetupBankAccounts: true});
     }, []);
 
     useEffect(() => {
         if (!prevIsOffline || isOffline) {
             return;
         }
-        openSearch({ includePartiallySetupBankAccounts: true });
+        openSearch({includePartiallySetupBankAccounts: true});
     }, [isOffline, prevIsOffline]);
 
-    const { newSearchResultKeys, handleSelectionListScroll, newTransactions } = useSearchHighlightAndScroll({
+    const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -491,7 +491,7 @@ function Search({
                 isActionLoadingSet,
                 allReportMetadata,
             });
-            return { ...item, transactions: transactions1 as TransactionListItemType[] };
+            return {...item, transactions: transactions1 as TransactionListItemType[]};
         });
 
         return enriched;
@@ -536,7 +536,7 @@ function Search({
             return;
         }
 
-        handleSearch({ queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading });
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -573,7 +573,7 @@ function Search({
                         continue;
                     }
 
-                    const { canHoldRequest, canUnholdRequest } = canHoldUnholdReportAction(
+                    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
                         transactionItem.report,
                         transactionItem.reportAction,
                         transactionItem.holdReportAction,
@@ -629,7 +629,7 @@ function Search({
                     continue;
                 }
 
-                const { canHoldRequest, canUnholdRequest } = canHoldUnholdReportAction(
+                const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
                     transactionItem.report,
                     transactionItem.reportAction,
                     transactionItem.holdReportAction,
@@ -767,7 +767,7 @@ function Search({
 
             const currentTransactions = itemTransactions ?? item.transactions;
             if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
-                const reducedSelectedTransactions: SelectedTransactions = { ...selectedTransactions };
+                const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
 
                 for (const transaction of currentTransactions) {
                     delete reducedSelectedTransactions[transaction.keyForList];
@@ -817,102 +817,102 @@ function Search({
 
             if (isTransactionMemberGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
-                newFlatFilters.push({ key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{ operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID }] });
-                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.accountID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false });
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
             if (isTransactionCardGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
-                newFlatFilters.push({ key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{ operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.cardID }] });
-                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.cardID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false });
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
             if (isTransactionWithdrawalIDGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID);
-                newFlatFilters.push({ key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{ operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID }] });
-                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: item.entryID}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false });
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
             if (isTransactionCategoryGroupListItemType(item)) {
                 const categoryValue = item.category === '' ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : item.category;
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
-                newFlatFilters.push({ key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, filters: [{ operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: categoryValue }] });
-                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: categoryValue}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false });
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
             if (isTransactionMerchantGroupListItemType(item)) {
                 const merchantValue = item.merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : item.merchant;
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
-                newFlatFilters.push({ key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{ operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: merchantValue }] });
-                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: merchantValue}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false });
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
             if (isTransactionTagGroupListItemType(item)) {
                 const tagValue = item.tag === '' || item.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : item.tag;
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
-                newFlatFilters.push({ key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, filters: [{ operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: tagValue }] });
-                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
+                newFlatFilters.push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: tagValue}]});
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false });
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
             if (isTransactionMonthGroupListItemType(item)) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const { start: monthStart, end: monthEnd } = DateUtils.getMonthDateRange(item.year, item.month);
+                const {start: monthStart, end: monthEnd} = DateUtils.getMonthDateRange(item.year, item.month);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
-                        { operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: monthStart },
-                        { operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: monthEnd },
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: monthStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: monthEnd},
                     ],
                 });
-                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false });
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
@@ -922,22 +922,22 @@ function Search({
                 }
                 // Extract the existing date filter to check for year-to-date or other date limits
                 const existingDateFilter = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const { start: weekStart, end: weekEnd } = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(item.week), existingDateFilter);
+                const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(item.week), existingDateFilter);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
-                        { operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: weekStart },
-                        { operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: weekEnd },
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: weekStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: weekEnd},
                     ],
                 });
-                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false });
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
@@ -947,21 +947,21 @@ function Search({
                     return;
                 }
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const { start: yearStart, end: yearEnd } = DateUtils.getYearDateRange(yearGroupItem.year);
+                const {start: yearStart, end: yearEnd} = DateUtils.getYearDateRange(yearGroupItem.year);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
-                        { operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: yearStart },
-                        { operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: yearEnd },
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: yearStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: yearEnd},
                     ],
                 });
-                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false });
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
@@ -971,21 +971,21 @@ function Search({
                     return;
                 }
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const { start: quarterStart, end: quarterEnd } = DateUtils.getQuarterDateRange(quarterGroupItem.year, quarterGroupItem.quarter);
+                const {start: quarterStart, end: quarterEnd} = DateUtils.getQuarterDateRange(quarterGroupItem.year, quarterGroupItem.quarter);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
-                        { operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: quarterStart },
-                        { operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: quarterEnd },
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: quarterStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: quarterEnd},
                     ],
                 });
-                const newQueryJSON: SearchQueryJSON = { ...queryJSON, groupBy: undefined, flatFilters: newFlatFilters };
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
                 if (!newQueryJSONWithHash) {
                     return;
                 }
-                handleSearch({ queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false });
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
                 return;
             }
 
@@ -1035,13 +1035,13 @@ function Search({
                     unmarkReportIDAsMultiTransactionExpense(reportID);
                 }
 
-                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({ reportID, backTo })));
+                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
 
             if (isReportActionListItemType(item)) {
                 const reportActionID = reportActionItem.reportActionID;
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({ reportID, reportActionID, backTo }));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
                 return;
             }
 
@@ -1051,7 +1051,7 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
             }
 
-            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({ reportID, backTo })));
+            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
         [
             isMobileSelectionModeEnabled,
@@ -1089,9 +1089,9 @@ function Search({
         }
 
         opacity.set(
-            withTiming(0, { duration: CONST.SEARCH.ANIMATION.FADE_DURATION }, () => {
+            withTiming(0, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}, () => {
                 setColumnsToShow(currentColumns);
-                opacity.set(withTiming(1, { duration: CONST.SEARCH.ANIMATION.FADE_DURATION }));
+                opacity.set(withTiming(1, {duration: CONST.SEARCH.ANIMATION.FADE_DURATION}));
             }),
         );
     }, [previousColumns, currentColumns, setColumnsToShow, opacity, offset, isSmallScreenWidth]);
@@ -1123,7 +1123,7 @@ function Search({
                     return item;
                 }
 
-                return { ...item, shouldAnimateInHighlight, hash };
+                return {...item, shouldAnimateInHighlight, hash};
             }),
         [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
     );
@@ -1134,7 +1134,7 @@ function Search({
             // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
                 // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
-                Navigation.setParams({ q: buildCannedSearchQuery(), rawQuery: undefined });
+                Navigation.setParams({q: buildCannedSearchQuery(), rawQuery: undefined});
             });
             if (shouldResetSearchQuery) {
                 setShouldResetSearchQuery(false);
@@ -1267,7 +1267,7 @@ function Search({
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', { isBreakLine: shouldUseNarrowLayout })}
+                    title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
                     subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
                 />
             </View>
@@ -1291,17 +1291,17 @@ function Search({
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         clearSelectedTransactions();
-        const newQuery = buildSearchQueryString({ ...queryJSON, sortBy: column, sortOrder: order });
+        const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
         // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
-        navigation.setParams({ q: newQuery, rawQuery: undefined });
+        navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
-    const { shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported } = shouldShowYearUtil(
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
         searchResults?.data,
         isExpenseReportType ?? false,
     );
-    const { shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn } = getWideAmountIndicators(searchResults?.data);
+    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
@@ -1392,7 +1392,7 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type { SearchProps };
+export type {SearchProps};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 
