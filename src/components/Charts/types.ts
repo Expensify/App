@@ -1,4 +1,4 @@
-import type { Color } from '@shopify/react-native-skia';
+import type {Color} from '@shopify/react-native-skia';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type BarChartDataPoint = {
@@ -86,4 +86,4 @@ type ProcessedSlice = {
     isOther: boolean;
 };
 
-export type { BarChartDataPoint, BarChartProps, PieChartDataPoint, PieChartProps, ProcessedSlice };
+export type {BarChartDataPoint, BarChartProps, PieChartDataPoint, PieChartProps, ProcessedSlice};

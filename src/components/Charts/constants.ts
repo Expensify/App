@@ -1,5 +1,5 @@
-import type { Color } from '@shopify/react-native-skia';
-import type { RoundedCorners } from 'victory-native';
+import type {Color} from '@shopify/react-native-skia';
+import type {RoundedCorners} from 'victory-native';
 import colors from '@styles/theme/colors';
 
 /**
