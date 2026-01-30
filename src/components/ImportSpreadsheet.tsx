@@ -1,12 +1,14 @@
 import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
+import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
@@ -38,6 +40,7 @@ type ImportSpreadsheetProps = {
 };
 
 function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
+    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -130,7 +133,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                                 return JSON.stringify(cell);
                             }),
                         );
-                        setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
+                        setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false, importedSpreadsheet?.importTransactionSettings)
                             .then(() => {
                                 Navigation.navigate(goTo);
                             })

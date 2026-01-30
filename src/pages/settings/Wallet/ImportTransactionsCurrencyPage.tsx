@@ -39,6 +39,4 @@ function ImportTransactionsCurrencyPage() {
     );
 }
 
-ImportTransactionsCurrencyPage.displayName = 'ImportTransactionsCurrencyPage';
-
 export default ImportTransactionsCurrencyPage;

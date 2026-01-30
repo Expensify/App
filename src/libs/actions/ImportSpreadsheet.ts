@@ -1,18 +1,16 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
+import type {ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 
-let importedSpreadsheetData: OnyxEntry<ImportedSpreadsheet>;
-Onyx.connect({
-    key: ONYXKEYS.IMPORTED_SPREADSHEET,
-    callback: (value) => {
-        importedSpreadsheetData = value;
-    },
-});
-
-function setSpreadsheetData(data: string[][], fileURI: string, fileType: string, fileName: string, isImportingMultiLevelTags: boolean): Promise<void | void[]> {
+function setSpreadsheetData(
+    data: string[][],
+    fileURI: string,
+    fileType: string,
+    fileName: string,
+    isImportingMultiLevelTags: boolean,
+    importTransactionSettings?: ImportTransactionSettings,
+): Promise<void | void[]> {
     // Validate that data is a non-empty array
     if (!Array.isArray(data) || data.length === 0) {
         return Promise.reject(new Error('Invalid data format: data is empty or not an array'));
@@ -39,9 +37,8 @@ function setSpreadsheetData(data: string[][], fileURI: string, fileType: string,
         columnNames[colIndex] = CONST.CSV_IMPORT_COLUMNS.IGNORE;
     }
 
-    // Preserve importTransactionSettings from the previous state (set in ImportTransactionsPage)
     // Use Onyx.set to replace the entire object (avoiding stale column data from previous files)
-    // but include the preserved settings
+    // but include the preserved settings passed from the caller
     return Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, {
         data: transposedData,
         columns: columnNames,
@@ -50,7 +47,7 @@ function setSpreadsheetData(data: string[][], fileURI: string, fileType: string,
         fileName,
         isImportingMultiLevelTags,
         // Preserve transaction import settings that were configured before file upload
-        importTransactionSettings: importedSpreadsheetData?.importTransactionSettings,
+        importTransactionSettings,
         // Reset modal state for new import
         shouldFinalModalBeOpened: false,
         importFinalModal: undefined,

@@ -11,6 +11,4 @@ function ImportTransactionsSpreadsheetPage() {
     );
 }
 
-ImportTransactionsSpreadsheetPage.displayName = 'ImportTransactionsSpreadsheetPage';
-
 export default ImportTransactionsSpreadsheetPage;

@@ -119,6 +119,4 @@ function TransactionsImportedPage() {
     );
 }
 
-TransactionsImportedPage.displayName = 'TransactionsImportedPage';
-
 export default TransactionsImportedPage;

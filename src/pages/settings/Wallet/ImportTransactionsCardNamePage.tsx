@@ -76,6 +76,4 @@ function ImportTransactionsCardNamePage() {
     );
 }
 
-ImportTransactionsCardNamePage.displayName = 'ImportTransactionsCardNamePage';
-
 export default ImportTransactionsCardNamePage;
