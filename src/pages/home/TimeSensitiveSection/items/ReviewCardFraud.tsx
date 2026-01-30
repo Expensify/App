@@ -3,9 +3,9 @@ import ExpensifyCardIcon from '@assets/images/expensify-card-icon.svg';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTheme from '@hooks/useTheme';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -18,6 +18,7 @@ type ReviewCardFraudProps = {
 };
 
 function ReviewCardFraud({card}: ReviewCardFraudProps) {
+    const theme = useTheme();
     const {translate} = useLocalize();
 
     // Get the fraud alert report ID and action ID for deeplink navigation
@@ -76,8 +77,8 @@ function ReviewCardFraud({card}: ReviewCardFraudProps) {
     return (
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine700}
+            iconBackgroundColor={theme.widgetIconBG}
+            iconFill={theme.widgetIconFill}
             title={title}
             subtitle={translate('homePage.timeSensitiveSection.reviewCardFraud.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.reviewCardFraud.cta')}

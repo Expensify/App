@@ -7240,7 +7240,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 addedConnection: ({connectionName}: ConnectionNameParams) => `verbunden mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'hat den Chat verlassen',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `Die Verbindung zu ${feedName} ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>`,
+                    `Die ${feedName}-Verbindung ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `die Plaid-Verbindung zu Ihrem Geschäftsbankkonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify-Karten weiterhin nutzen können.`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8308,8 +8308,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             addShippingAddress: {title: 'Wir benötigen Ihre Versandadresse', subtitle: 'Gib eine Adresse an, um deine Expensify Card zu erhalten.', cta: 'Adresse hinzufügen'},
             activateCard: {title: 'Aktiviere deine Expensify Card', subtitle: 'Bestätige deine Karte und beginne mit dem Ausgeben.', cta: 'Aktivieren'},
             reviewCardFraud: {
-                title: 'Verdächtige Aktivitäten auf Ihrer Expensify Card überprüfen',
-                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Überprüfe ${amount} an potenziellem Betrug bei ${merchant}`,
+                title: 'Möglichen Betrug mit Ihrer Expensify Card überprüfen',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Überprüfen Sie potenziellen Betrug in Höhe von ${amount} bei ${merchant}`,
                 subtitle: 'Expensify Card',
                 cta: 'Überprüfen',
             },

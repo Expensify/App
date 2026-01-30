@@ -772,8 +772,8 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Odwołaj',
             title: 'Rozpoznawanie twarzy/odcisk palca i klucze dostępu',
             explanation:
-                'Weryfikacja za pomocą twarzy/odcisku palca lub klucza dostępu jest włączona na jednym lub większej liczbie urządzeń. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
-            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do następnej weryfikacji na dowolnym urządzeniu',
+                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępowa jest włączona na jednym lub większej liczbie urządzeń. Odwołanie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
+            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować kodu magicznego do kolejnej weryfikacji na dowolnym urządzeniu',
             cta: 'Cofnij dostęp',
             noDevices:
                 'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą, odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp w tym miejscu.',
@@ -8255,7 +8255,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             activateCard: {title: 'Aktywuj swoją kartę Expensify', subtitle: 'Zweryfikuj swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
             reviewCardFraud: {
                 title: 'Przejrzyj potencjalne oszustwo na swojej karcie Expensify',
-                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Sprawdź ${amount} pod kątem potencjalnego oszustwa u ${merchant}`,
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Sprawdź ${amount} pod kątem potencjalnego oszustwa w ${merchant}`,
                 subtitle: 'Karta Expensify',
                 cta: 'Przejrzyj',
             },
