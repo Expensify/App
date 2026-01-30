@@ -1,4 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -7,8 +9,6 @@ import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 type SearchSingleSelectionPickerItem = {
     name: string;
@@ -43,80 +43,72 @@ function SearchSingleSelectionPicker({
         setSelectedItem(initiallySelectedItem);
     }, [initiallySelectedItem]);
 
-    const {sections, noResultsFound} = useMemo(() => {
-        const initiallySelectedItemSection = initiallySelectedItem?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
-            ? [
-                  {
-                      text: initiallySelectedItem.name,
-                      keyForList: initiallySelectedItem.value,
-                      isSelected: selectedItem?.value === initiallySelectedItem.value,
-                      value: initiallySelectedItem.value,
-                  },
-              ]
-            : [];
-        const remainingItemsSection = items
-            .filter((item) => item?.value !== initiallySelectedItem?.value && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-            .sort((a, b) => sortOptionsWithEmptyValue(a.name.toString(), b.name.toString(), localeCompare))
-            .map((item) => ({
-                text: item.name,
-                keyForList: item.value,
-                isSelected: selectedItem?.value === item.value,
-                value: item.value,
-            }));
-        const isEmpty = !initiallySelectedItemSection.length && !remainingItemsSection.length;
-        return {
-            sections: isEmpty
-                ? []
-                : [
-                      {
-                          title: undefined,
-                          data: initiallySelectedItemSection,
-                          sectionIndex: 0,
-                      },
-                      {
-                          title: pickerTitle,
-                          data: remainingItemsSection,
-                          sectionIndex: 1,
-                      },
-                  ],
-            noResultsFound: isEmpty,
-        };
-    }, [initiallySelectedItem, selectedItem?.value, items, pickerTitle, debouncedSearchTerm, localeCompare]);
+    const initiallySelectedItemSection = initiallySelectedItem?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
+        ? [
+              {
+                  text: initiallySelectedItem.name,
+                  keyForList: initiallySelectedItem.value,
+                  isSelected: selectedItem?.value === initiallySelectedItem.value,
+                  value: initiallySelectedItem.value,
+              },
+          ]
+        : [];
 
-    const onSelectItem = useCallback(
-        (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
-            if (!item.text || !item.keyForList || !item.value) {
-                return;
-            }
-            if (shouldAutoSave) {
-                onSaveSelection(item.isSelected ? '' : item.value);
-                Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-                return;
-            }
-            if (!item.isSelected) {
-                setSelectedItem({name: item.text, value: item.value});
-            }
-        },
-        [shouldAutoSave, backToRoute, onSaveSelection],
-    );
+    const remainingItemsSection = items
+        .filter((item) => item.value !== initiallySelectedItem?.value && item.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
+        .sort((a, b) => sortOptionsWithEmptyValue(a.name.toString(), b.name.toString(), localeCompare))
+        .map((item) => ({
+            text: item.name,
+            keyForList: item.value,
+            isSelected: selectedItem?.value === item.value,
+            value: item.value,
+        }));
 
-    const resetChanges = useCallback(() => {
+    const noResultsFound = !initiallySelectedItemSection.length && !remainingItemsSection.length;
+
+    const sections = noResultsFound
+        ? []
+        : [
+              {
+                  title: undefined,
+                  data: initiallySelectedItemSection,
+                  sectionIndex: 0,
+              },
+              {
+                  title: pickerTitle,
+                  data: remainingItemsSection,
+                  sectionIndex: 1,
+              },
+          ];
+
+    const onSelectItem = (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
+        if (!item.text || !item.keyForList || !item.value) {
+            return;
+        }
+        if (shouldAutoSave) {
+            onSaveSelection(item.isSelected ? '' : item.value);
+            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+            return;
+        }
+        if (!item.isSelected) {
+            setSelectedItem({name: item.text, value: item.value});
+        }
+    };
+
+    const resetChanges = () => {
         setSelectedItem(undefined);
-    }, []);
+    };
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         onSaveSelection(selectedItem?.value);
         Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [onSaveSelection, selectedItem?.value, backToRoute]);
+    };
 
-    const footerContent = useMemo(
-        () => (
-            <SearchFilterPageFooterButtons
-                applyChanges={applyChanges}
-                resetChanges={resetChanges}
-            />
-        ),
-        [resetChanges, applyChanges],
+    const footerContent = (
+        <SearchFilterPageFooterButtons
+            applyChanges={applyChanges}
+            resetChanges={resetChanges}
+        />
     );
 
     const textInputOptions = {
@@ -125,7 +117,6 @@ function SearchSingleSelectionPicker({
         onChangeText: setSearchTerm,
         headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
     };
-
 
     return (
         <SelectionList
