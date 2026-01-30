@@ -55,18 +55,6 @@ describe('OnboardingGuard', () => {
     });
 
     describe('early exit conditions', () => {
-        it('should block when app is still loading Onyx data', () => {
-            const loadingContext: GuardContext = {
-                isAuthenticated: true,
-                isLoading: true,
-                currentUrl: '',
-            };
-
-            const result = OnboardingGuard.evaluate(mockState, mockAction, loadingContext);
-
-            expect(result.type).toBe('BLOCK');
-        });
-
         it('should allow during app transition', () => {
             const transitionContext: GuardContext = {
                 isAuthenticated: true,

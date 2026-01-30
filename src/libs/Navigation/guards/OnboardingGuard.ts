@@ -136,10 +136,6 @@ const OnboardingGuard: NavigationGuard = {
     name: 'OnboardingGuard',
 
     evaluate: (state, action, context): GuardResult => {
-        if (context.isLoading) {
-            return {type: 'BLOCK', reason: 'App is still loading'};
-        }
-
         if (shouldPreventReset(state, action)) {
             return {type: 'BLOCK', reason: 'Cannot reset to non-onboarding screen while on onboarding'};
         }
@@ -152,7 +148,7 @@ const OnboardingGuard: NavigationGuard = {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
 
-        const shouldSkipOnboarding = isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
+        const shouldSkipOnboarding = context.isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
