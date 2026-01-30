@@ -4951,7 +4951,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 },
                 csvErrors: {
                     requiredColumns: (missingColumns: string) => `Please assign a column to each of the attributes: ${missingColumns}.`,
-                    duplicateColumns: (duplicateColumn: string) => `Oops! You've mapped a single filed ("${duplicateColumn}") to multiple columns. Please review and try again.`,
+                    duplicateColumns: (duplicateColumn: string) => `Oops! You've mapped a single field ("${duplicateColumn}") to multiple columns. Please review and try again.`,
                 },
             },
             statementCloseDate: {
