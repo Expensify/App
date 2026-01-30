@@ -5,7 +5,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {suggestEmojis, isPositionInsideCodeBlock} from '@libs/EmojiUtils';
+import {isPositionInsideCodeBlock, suggestEmojis} from '@libs/EmojiUtils';
 import {trimLeadingSpace} from '@libs/SuggestionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,7 +82,7 @@ function SuggestionEmoji({
             const isInsideCodeBlock = isPositionInsideCodeBlock(value, suggestionValues.colonIndex);
             const emojiOrShortcode = isInsideCodeBlock
                 ? `:${emojiObject.name}:`
-                : (emojiObject.types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? emojiObject.types.at(preferredSkinTone) : emojiObject.code) ?? '';
+                : ((emojiObject.types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? emojiObject.types.at(preferredSkinTone) : emojiObject.code) ?? '');
 
             updateComment(`${commentBeforeColon}${emojiOrShortcode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
 

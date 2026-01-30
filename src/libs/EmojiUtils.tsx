@@ -1,10 +1,10 @@
+import {parseExpensiMark} from '@expensify/react-native-live-markdown';
+import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import {Str} from 'expensify-common';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {parseExpensiMark} from '@expensify/react-native-live-markdown';
-import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import * as Emojis from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import Text from '@components/Text';
@@ -384,6 +384,7 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
     const codeBlockRanges = parseExpensiMark(text);
     const replacements: Array<{position: number; shortcode: string; replacement: string; name: string}> = [];
     const shortcodeSearchPositions: Record<string, number> = {};
+    const englishTrie = normalizedLocale !== CONST.LOCALES.DEFAULT ? emojisTrie[CONST.LOCALES.DEFAULT] : null;
 
     for (const emoji of emojiData) {
         const name = emoji.slice(1, -1);
@@ -399,12 +400,8 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
         }
 
         let checkEmoji = trie.search(name);
-        // Fallback to English if emoji doesn't exist in selected language
-        if (normalizedLocale !== CONST.LOCALES.DEFAULT && !checkEmoji?.metaData?.code) {
-            const englishTrie = emojisTrie[CONST.LOCALES.DEFAULT];
-            if (englishTrie) {
-                checkEmoji = englishTrie.search(name);
-            }
+        if (!checkEmoji?.metaData?.code && englishTrie) {
+            checkEmoji = englishTrie.search(name);
         }
         if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
             const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
@@ -429,13 +426,10 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
     }
 
     let cursorPosition: number | undefined;
-    if (replacements.length > 0) {
-        const offsetFromLeftReplacements = replacements.slice(1).reduce(
-            (acc, r) => acc + (r.replacement.length - r.shortcode.length),
-            0,
-        );
-        const {position, replacement} = replacements[0];
-        cursorPosition = position + replacement.length + offsetFromLeftReplacements;
+    const firstReplacement = replacements.at(0);
+    if (firstReplacement) {
+        const offsetFromLeftReplacements = replacements.slice(1).reduce((acc, r) => acc + (r.replacement.length - r.shortcode.length), 0);
+        cursorPosition = firstReplacement.position + firstReplacement.replacement.length + offsetFromLeftReplacements;
     }
 
     // Append space after last emoji if not already followed by one
