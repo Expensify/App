@@ -1,8 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import SelectableListItem from '@components/SelectionListWithSections/SelectableListItem';
 import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -68,9 +67,9 @@ function CurrencySelectionList({
 
         if (shouldDisplaySelectedOptionOnTop) {
             result.push({
-                title: '',
+                title: undefined,
                 data: selectedOptions,
-                shouldShow: true,
+                sectionIndex: 0,
             });
         }
 
@@ -80,19 +79,27 @@ function CurrencySelectionList({
                     {
                         title: translate('common.recents'),
                         data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(recentlyUsedCurrencyOptions) : recentlyUsedCurrencyOptions,
-                        shouldShow: shouldDisplayRecentlyOptions,
+                        sectionIndex: 1,
                     },
-                    {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unselectedOptions : filteredCurrencies},
+                    {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unselectedOptions : filteredCurrencies, sectionIndex: 2},
                 );
             }
         } else if (!isEmpty) {
             result.push({
                 data: shouldDisplaySelectedOptionOnTop ? unselectedOptions : filteredCurrencies,
+                sectionIndex: 3,
             });
         }
 
         return {sections: result, headerMessage: isEmpty ? translate('common.noResultsFound') : ''};
     }, [currencyList, recentlyUsedCurrencies, searchValue, getUnselectedOptions, translate, initiallySelectedCurrencyCode, selectedCurrencies, excludedCurrencies, getCurrencySymbol]);
+
+    const textInputOptions = {
+        label: searchInputLabel,
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage,
+    };
 
     return (
         <SelectionList
@@ -100,14 +107,11 @@ function CurrencySelectionList({
             {...restProps}
             sections={sections}
             ListItem={canSelectMultiple ? SelectableListItem : RadioListItem}
-            textInputLabel={searchInputLabel}
-            textInputValue={searchValue}
-            onChangeText={setSearchValue}
             onSelectRow={onSelect}
+            textInputOptions={textInputOptions}
+            shouldShowTextInput={!!searchInputLabel}
             shouldSingleExecuteRowSelect
-            headerMessage={headerMessage}
-            initiallyFocusedOptionKey={initiallySelectedCurrencyCode}
-            showScrollIndicator
+            initiallyFocusedItemKey={initiallySelectedCurrencyCode}
             canSelectMultiple={canSelectMultiple}
             showLoadingPlaceholder={!didScreenTransitionEnd}
         />

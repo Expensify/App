@@ -1,11 +1,11 @@
-import type {ListItem, SelectionListProps} from '@components/SelectionListWithSections/types';
+import {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/types';
 
 type CurrencyListItem = ListItem & {
     currencyName: string;
     currencyCode: string;
 };
 
-type CurrencySelectionListProps = Partial<SelectionListProps<CurrencyListItem>> & {
+type CurrencySelectionListProps = Partial<SelectionListWithSectionsProps<CurrencyListItem>> & {
     /** Label for the search text input */
     searchInputLabel: string;
 
