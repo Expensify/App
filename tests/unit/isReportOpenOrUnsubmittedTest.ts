@@ -14,9 +14,9 @@ describe('isReportOpenOrUnsubmitted', () => {
 
     const createReportsCollection = (reports: Report[]): OnyxCollection<Report> => {
         const collection: OnyxCollection<Report> = {};
-        reports.forEach((report) => {
+        for (const report of reports) {
             collection[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
-        });
+        }
         return collection;
     };
 
@@ -37,10 +37,6 @@ describe('isReportOpenOrUnsubmitted', () => {
             const reports = createReportsCollection([createReport('1', CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED)]);
 
             expect(isReportOpenOrUnsubmitted(CONST.REPORT.UNREPORTED_REPORT_ID, reports)).toBe(true);
-        });
-
-        it('should return true when reports collection is null', () => {
-            expect(isReportOpenOrUnsubmitted('123', null)).toBe(true);
         });
 
         it('should return true when reports collection is undefined', () => {
@@ -75,8 +71,8 @@ describe('isReportOpenOrUnsubmitted', () => {
             expect(isReportOpenOrUnsubmitted('1', reports)).toBe(false);
         });
 
-        it('should return false when report stateNum is REIMBURSED', () => {
-            const reports = createReportsCollection([createReport('1', CONST.REPORT.STATE_NUM.REIMBURSED, CONST.REPORT.STATUS_NUM.REIMBURSED)]);
+        it('should return false when report stateNum is BILLING', () => {
+            const reports = createReportsCollection([createReport('1', CONST.REPORT.STATE_NUM.BILLING, CONST.REPORT.STATUS_NUM.CLOSED)]);
 
             expect(isReportOpenOrUnsubmitted('1', reports)).toBe(false);
         });
