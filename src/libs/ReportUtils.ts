@@ -12469,6 +12469,9 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
     return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
 }
 
+/**
+ * Determines whether the report contains some time expenses.
+ */
 function doesReportContainTimeRequests(iouReport: OnyxEntry<Report>): boolean {
     const transactions = getReportTransactions(iouReport?.reportID);
     return transactions.some((transaction) => isTimeRequest(transaction));
