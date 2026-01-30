@@ -6,8 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
-import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
-import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
+import type {AuthenticationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {MarqetaAuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
@@ -25,13 +24,21 @@ type RegisterParams = {
     nativePromptTitle: string;
 };
 
-type RegisterResult = {
-    success: boolean;
-    reason: MultifactorAuthenticationReason;
-    privateKey?: string;
-    publicKey?: string;
-    authenticationMethod?: MarqetaAuthTypeName;
+type BaseRegisterResult = {
+    privateKey: string;
+    publicKey: string;
+    authenticationMethod: MarqetaAuthTypeName;
 };
+
+type RegisterResult =
+    | ({
+          success: true;
+          reason: MultifactorAuthenticationReason;
+      } & BaseRegisterResult)
+    | ({
+          success: false;
+          reason: MultifactorAuthenticationReason;
+      } & Partial<BaseRegisterResult>);
 
 type AuthorizeParams<T extends MultifactorAuthenticationScenario> = {
     scenario: T;

@@ -31,6 +31,9 @@ type FormError = {
     inputCode?: TranslationPaths;
 };
 
+// Reasons that this page can handle
+const HANDLED_REASONS = new Set<string>([VALUES.REASON.BACKEND.INVALID_VALIDATE_CODE]);
+
 function MultifactorAuthenticationValidateCodePage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -51,9 +54,6 @@ function MultifactorAuthenticationValidateCodePage() {
     const {state, setValidateCode, setError, clearContinuableError} = useMultifactorAuthenticationState();
     const {continuableError} = state;
 
-    // Reasons that this page can handle
-    const HANDLED_REASONS: string[] = [VALUES.REASON.BACKEND.INVALID_VALIDATE_CODE];
-
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
     const resendButtonRef = useRef<MultifactorAuthenticationValidateCodeResendButtonHandle>(null);
@@ -72,11 +72,11 @@ function MultifactorAuthenticationValidateCodePage() {
             return;
         }
 
-        if (!HANDLED_REASONS.includes(continuableError.reason)) {
+        if (!HANDLED_REASONS.has(continuableError.reason)) {
             // Cannot handle this error - convert to regular error which will stop the flow
             setError({reason: continuableError.reason, message: continuableError.message});
         }
-    }, [continuableError, setError, HANDLED_REASONS]);
+    }, [continuableError, setError]);
 
     // Auto-blur on error
     useEffect(() => {

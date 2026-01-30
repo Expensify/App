@@ -105,7 +105,7 @@ type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R 
 
 type MultifactorAuthenticationKeyInfo = {
     rawId: Base64URLString;
-    type: 'biometric';
+    type: typeof VALUES.ED25519_TYPE;
     response: {
         clientDataJSON: Base64URLString;
         biometric: {

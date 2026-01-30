@@ -76,11 +76,6 @@ const REASON = {
 /** List of reasons that are continuable (don't stop the MFA flow, displayed on current screen) */
 const CONTINUABLE_REASONS = [REASON.BACKEND.INVALID_VALIDATE_CODE] as const;
 
-/** Check if a reason is continuable (can be handled by screen without stopping flow) */
-function isContinuableReason(reason: string): boolean {
-    return CONTINUABLE_REASONS.includes(reason as (typeof CONTINUABLE_REASONS)[number]);
-}
-
 // Disables ESLint rule because it throws an error when a key is a number like 401.
 /* eslint-disable @typescript-eslint/naming-convention */
 const MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP = {
@@ -230,8 +225,9 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         VALIDATE_CODE: 'validateCode',
     },
     API_RESPONSE_MAP,
+    CONTINUABLE_REASONS,
     REASON,
 } as const;
 
-export {MultifactorAuthenticationCallbacks, CONTINUABLE_REASONS, isContinuableReason};
+export {MultifactorAuthenticationCallbacks};
 export default MULTIFACTOR_AUTHENTICATION_VALUES;

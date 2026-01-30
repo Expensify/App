@@ -5,8 +5,8 @@ import {getOutcomePath, getOutcomePaths} from '@components/MultifactorAuthentica
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useLocalize from '@hooks/useLocalize';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import type {MarqetaAuthTypeName, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
-import {isContinuableReason} from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import {isContinuableReason} from '@libs/MultifactorAuthentication/Biometrics/helpers';
+import type {OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
 import {requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
@@ -134,7 +134,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             }
 
             // Check if soft prompt is needed (soft prompt not answered + device supports)
-            const isSoftPromptRequired = softPromptApproved === undefined && biometrics.info.deviceSupportsBiometrics;
+            const isSoftPromptRequired = !softPromptApproved && biometrics.info.deviceSupportsBiometrics;
 
             if (isSoftPromptRequired) {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS));
@@ -143,6 +143,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
             const nativePromptTitle = translate(nativePromptTitleTPath);
+
+            if (!registrationChallenge.challenge) {
+                setError({
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
+                });
+                return;
+            }
 
             await biometrics.register({nativePromptTitle}, async (result: RegisterResult) => {
                 if (!result.success) {
@@ -153,16 +160,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 }
 
                 // Call backend to register the public key
-                if (!result.publicKey || !result.authenticationMethod || !registrationChallenge.challenge) {
-                    setError({
-                        reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
-                    });
-                    return;
-                }
-
                 const registrationResult = await processRegistration({
                     publicKey: result.publicKey,
-                    authenticationMethod: result.authenticationMethod as MarqetaAuthTypeName,
+                    authenticationMethod: result.authenticationMethod,
                     challenge: registrationChallenge.challenge,
                     currentPublicKeyIDs: biometrics.registeredPublicKeyIDs,
                 });

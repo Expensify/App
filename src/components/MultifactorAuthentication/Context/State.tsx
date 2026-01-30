@@ -2,8 +2,8 @@ import React, {createContext, useCallback, useContext, useMemo, useState} from '
 import type {ReactNode} from 'react';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
+import {isContinuableReason} from '@libs/MultifactorAuthentication/Biometrics/helpers';
 import type {MarqetaAuthTypeName, MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
-import {isContinuableReason} from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 
 type ErrorState = {
     reason: MultifactorAuthenticationReason;
@@ -27,7 +27,7 @@ type MultifactorAuthenticationState = {
     authorizationChallenge: AuthenticationChallenge | undefined;
 
     /** Whether user approved the soft prompt for biometric setup */
-    softPromptApproved: boolean | undefined;
+    softPromptApproved: boolean;
 
     /** Current scenario being executed */
     scenario: MultifactorAuthenticationScenario | undefined;
@@ -70,7 +70,7 @@ type MultifactorAuthenticationStateContextValue = {
     setAuthorizationChallenge: (challenge: AuthenticationChallenge | undefined) => void;
 
     /** Set soft prompt approved state */
-    setSoftPromptApproved: (approved: boolean | undefined) => void;
+    setSoftPromptApproved: (approved: boolean) => void;
 
     /** Set current scenario */
     setScenario: (scenario: MultifactorAuthenticationScenario | undefined) => void;
@@ -103,7 +103,7 @@ const DEFAULT_STATE: MultifactorAuthenticationState = {
     validateCode: undefined,
     registrationChallenge: undefined,
     authorizationChallenge: undefined,
-    softPromptApproved: undefined,
+    softPromptApproved: false,
     scenario: undefined,
     payload: undefined,
     outcomePaths: undefined,
@@ -125,7 +125,7 @@ function MultifactorAuthenticationStateProvider({children}: MultifactorAuthentic
     const [validateCode, setValidateCodeInternal] = useState<string | undefined>(DEFAULT_STATE.validateCode);
     const [registrationChallenge, setRegistrationChallengeInternal] = useState<RegistrationChallenge | undefined>(DEFAULT_STATE.registrationChallenge);
     const [authorizationChallenge, setAuthorizationChallengeInternal] = useState<AuthenticationChallenge | undefined>(DEFAULT_STATE.authorizationChallenge);
-    const [softPromptApproved, setSoftPromptApprovedInternal] = useState<boolean | undefined>(DEFAULT_STATE.softPromptApproved);
+    const [softPromptApproved, setSoftPromptApprovedInternal] = useState<boolean>(DEFAULT_STATE.softPromptApproved);
     const [scenario, setScenarioInternal] = useState<MultifactorAuthenticationScenario | undefined>(DEFAULT_STATE.scenario);
     const [payload, setPayloadInternal] = useState<MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined>(DEFAULT_STATE.payload);
     const [outcomePaths, setOutcomePathsInternal] = useState<OutcomePaths | undefined>(DEFAULT_STATE.outcomePaths);
@@ -163,7 +163,7 @@ function MultifactorAuthenticationStateProvider({children}: MultifactorAuthentic
     const setAuthorizationChallenge = (challenge: AuthenticationChallenge | undefined) => {
         setAuthorizationChallengeInternal(challenge);
     };
-    const setSoftPromptApproved = (value: boolean | undefined) => {
+    const setSoftPromptApproved = (value: boolean) => {
         setSoftPromptApprovedInternal(value);
     };
     const setScenario = (value: MultifactorAuthenticationScenario | undefined) => {

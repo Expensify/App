@@ -100,9 +100,10 @@ describe('useNativeBiometrics hook', () => {
 
             expect(result.current.info).toEqual({
                 deviceSupportsBiometrics: true,
-                isBiometryRegisteredLocally: false,
-                isLocalPublicKeyInAuth: false,
             });
+
+            expect(result.current.isRegisteredLocally()).resolves.toBe(false);
+            expect(result.current.isRegisteredInAuth()).resolves.toBe(false);
         });
 
         it('should derive isAnyDeviceRegistered from Onyx state', () => {
@@ -399,7 +400,7 @@ describe('useNativeBiometrics hook', () => {
     });
 
     describe('resetKeysForAccount', () => {
-        it('should delete keys and refresh local state', async () => {
+        it('should delete keys', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             await act(async () => {
@@ -408,9 +409,6 @@ describe('useNativeBiometrics hook', () => {
 
             expect(publicKeyStoreDelete).toHaveBeenCalledWith(12345);
             expect(privateKeyStoreDelete).toHaveBeenCalledWith(12345);
-            // Local state refresh calls PublicKeyStore.get
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            expect(PublicKeyStore.get).toHaveBeenCalledWith(12345);
         });
     });
 });

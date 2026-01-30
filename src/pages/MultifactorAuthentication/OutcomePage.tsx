@@ -4,28 +4,34 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {MULTIFACTOR_AUTHENTICATION_OUTCOME_MAP} from '@components/MultifactorAuthentication/config';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import type {AuthTypeName, MarqetaAuthTypeName} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
+import type {MultifactorAuthenticationTranslationParams} from '@src/languages/params';
+import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-
-const MARQETA_TO_AUTH_TYPE_NAME: Partial<Record<MarqetaAuthTypeName, AuthTypeName>> = {
-    BIOMETRIC_FACE: 'FaceID',
-    BIOMETRIC_FINGERPRINT: 'Biometrics',
-    KNOWLEDGE_BASED: 'Credentials',
-};
 
 type MultifactorAuthenticationOutcomePageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME>;
 
+function convertMQAuthenticationMethodToDisplayName(MQValue: MarqetaAuthTypeName | undefined): AuthTypeName {
+    return Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({MQ_VALUE: value}) => value === MQValue)?.NAME ?? SECURE_STORE_VALUES.AUTH_TYPE.UNKNOWN.NAME;
+}
+
+type MultifactorAuthenticationLocalize = LocaleContextProps & {
+    translate: <TPath extends TranslationPaths>(path: TPath, params: MultifactorAuthenticationTranslationParams) => string;
+};
+
 function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthenticationOutcomePageProps) {
-    const {translate} = useLocalize();
+    const {translate} = useLocalize() as MultifactorAuthenticationLocalize;
     const styles = useThemeStyles();
     const {state} = useMultifactorAuthenticationState();
     const onGoBackPress = () => {
@@ -39,8 +45,7 @@ function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthentication
     // Get text values from outcome config and translate them
     const headerTitle = translate(data.headerTitle);
     const title = translate(data.title);
-    const authType = (state.authenticationMethod && MARQETA_TO_AUTH_TYPE_NAME[state.authenticationMethod]) ?? 'Unknown';
-    // @ts-expect-error data.description type is TranslationPaths which doesn't narrow to specific param types
+    const authType = convertMQAuthenticationMethodToDisplayName(state.authenticationMethod);
     const description = translate(data.description, {authType, registered: false});
 
     const CustomDescription = data?.customDescription;

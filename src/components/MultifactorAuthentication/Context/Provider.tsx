@@ -1,5 +1,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
+import ComposeProviders from '@components/ComposeProviders';
 import {MultifactorAuthenticationContextProvider} from './Main';
 import MultifactorAuthenticationStateProvider from './State';
 
@@ -8,11 +9,7 @@ type MultifactorAuthenticationProviderProps = {
 };
 
 function MultifactorAuthenticationContextProviders({children}: MultifactorAuthenticationProviderProps) {
-    return (
-        <MultifactorAuthenticationStateProvider>
-            <MultifactorAuthenticationContextProvider>{children}</MultifactorAuthenticationContextProvider>
-        </MultifactorAuthenticationStateProvider>
-    );
+    return <ComposeProviders components={[MultifactorAuthenticationStateProvider, MultifactorAuthenticationContextProvider]}>{children}</ComposeProviders>;
 }
 
 MultifactorAuthenticationContextProviders.displayName = 'MultifactorAuthenticationContextProviders';
