@@ -1,7 +1,6 @@
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
-import ActivityIndicator from '@components/ActivityIndicator';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
@@ -317,94 +316,88 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         reimburserEmail: newReimburserEmail ?? '',
                     });
                 },
-                subMenuItems:
-                    !isOffline && policy?.isLoadingWorkspaceReimbursement === true ? (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={styles.mt7}
-                        />
-                    ) : (
-                        <>
-                            {shouldShowBankAccount ? (
-                                <>
-                                    <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
-                                        <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
-                                    </View>
-                                    <MenuItem
-                                        title={bankTitle}
-                                        description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
-                                        onPress={() => {
-                                            if (isAccountLocked) {
-                                                showLockedAccountModal();
-                                                return;
-                                            }
-                                            navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
-                                        }}
-                                        displayInDefaultIconColor
-                                        icon={bankIcon.icon}
-                                        iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
-                                        iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
-                                        iconStyles={bankIcon.iconStyles}
-                                        disabled={isOffline || !isPolicyAdmin}
-                                        badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
-                                        badgeIcon={isAccountInSetupState ? expensifyIcons.DotIndicator : undefined}
-                                        badgeSuccess={isAccountInSetupState ? true : undefined}
-                                        shouldShowRightIcon={isAccountInSetupState}
-                                        shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                        brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                    />
-                                </>
-                            ) : (
+                subMenuItems: (
+                    <>
+                        {shouldShowBankAccount ? (
+                            <>
+                                <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
+                                    <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
+                                </View>
                                 <MenuItem
-                                    title={translate('bankAccount.addBankAccount')}
-                                    titleStyle={styles.textStrong}
+                                    title={bankTitle}
+                                    description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate)}
                                     onPress={() => {
                                         if (isAccountLocked) {
                                             showLockedAccountModal();
                                             return;
                                         }
-                                        if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
-                                            setIsUpdateWorkspaceCurrencyModalOpen(true);
-                                            return;
-                                        }
-                                        if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
-                                            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
-                                            return;
-                                        }
                                         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                                     }}
-                                    icon={expensifyIcons.Plus}
-                                    iconHeight={20}
-                                    iconWidth={20}
+                                    displayInDefaultIconColor
+                                    icon={bankIcon.icon}
+                                    iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
+                                    iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
+                                    iconStyles={bankIcon.iconStyles}
                                     disabled={isOffline || !isPolicyAdmin}
+                                    badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
+                                    badgeIcon={isAccountInSetupState ? expensifyIcons.DotIndicator : undefined}
+                                    badgeSuccess={isAccountInSetupState ? true : undefined}
+                                    shouldShowRightIcon={isAccountInSetupState}
                                     shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                     brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 />
-                            )}
-                            {shouldShowBankAccount && !isAccountInSetupState && (
-                                <OfflineWithFeedback
-                                    pendingAction={policy?.pendingFields?.reimburser}
-                                    shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
-                                    errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
-                                    onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
-                                    errorRowStyles={[styles.ml7]}
-                                >
-                                    <MenuItemWithTopDescription
-                                        title={displayNameForAuthorizedPayer ?? ''}
-                                        titleStyle={styles.textNormalThemeText}
-                                        descriptionTextStyle={styles.textLabelSupportingNormal}
-                                        description={translate('workflowsPayerPage.payer')}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
-                                        shouldShowRightIcon
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                        brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                    />
-                                </OfflineWithFeedback>
-                            )}
-                        </>
-                    ),
+                            </>
+                        ) : (
+                            <MenuItem
+                                title={translate('bankAccount.addBankAccount')}
+                                titleStyle={styles.textStrong}
+                                onPress={() => {
+                                    if (isAccountLocked) {
+                                        showLockedAccountModal();
+                                        return;
+                                    }
+                                    if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
+                                        setIsUpdateWorkspaceCurrencyModalOpen(true);
+                                        return;
+                                    }
+                                    if (!shouldShowBankAccount && hasValidExistingAccounts && !shouldShowContinueModal) {
+                                        Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(route.params.policyID));
+                                        return;
+                                    }
+                                    navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+                                }}
+                                icon={expensifyIcons.Plus}
+                                iconHeight={20}
+                                iconWidth={20}
+                                disabled={isOffline || !isPolicyAdmin}
+                                shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        )}
+                        {shouldShowBankAccount && !isAccountInSetupState && (
+                            <OfflineWithFeedback
+                                pendingAction={policy?.pendingFields?.reimburser}
+                                shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
+                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                errorRowStyles={[styles.ml7]}
+                            >
+                                <MenuItemWithTopDescription
+                                    title={displayNameForAuthorizedPayer ?? ''}
+                                    titleStyle={styles.textNormalThemeText}
+                                    descriptionTextStyle={styles.textLabelSupportingNormal}
+                                    description={translate('workflowsPayerPage.payer')}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
+                                    shouldShowRightIcon
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                    </>
+                ),
                 isEndOptionRow: true,
                 isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
