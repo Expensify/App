@@ -1,15 +1,16 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Beta, Card, CardList} from '@src/types/onyx';
+import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
 import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
-import Permissions from './Permissions';
 
 /**
  * Feature flag to enable Travel CVV testing on Dev and Staging environments.
  * When enabled, it allows using any card for CVV reveal testing if no specific Travel Card is found.
+ *
+ * TODO: Remove this function and associated logic when Travel Invoicing is fully released
  */
 function isTravelCVVTestingEnabled(): boolean {
     return isDevelopment() || isStaging() || isInternalTestBuild();
@@ -113,15 +114,21 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
  * Gets the user's Travel Invoicing card from the card list.
  * Returns the first card with isTravelCard NVP set to true.
  */
-function getTravelInvoicingCard(cardList: OnyxEntry<CardList>): Card | undefined {
+function getTravelInvoicingCard(cardList: Record<string, WorkspaceCardsList | undefined> | undefined) {
     if (!cardList) {
         return undefined;
     }
 
-    const travelCard = Object.values(cardList)?.find((card) => card?.nameValuePairs?.isTravelCard);
+    // Flatten all WorkspaceCardsList into a single array of Cards
+    // Filter out cardList entries (which are string values) to only get actual Card objects
+    const allCards = Object.values(cardList)
+        .filter((workspaceCards): workspaceCards is WorkspaceCardsList => !!workspaceCards)
+        .flatMap((workspaceCards) => Object.values(workspaceCards))
+        .filter((card): card is Card => typeof card !== 'string' && typeof card?.cardID === 'number');
+    const travelCard = allCards.find((card) => card.nameValuePairs?.isTravelCard);
     // If no travel card is found and testing is enabled, return the first available card
     if (!travelCard && isTravelCVVTestingEnabled()) {
-        return Object.values(cardList)?.at(0);
+        return allCards.find((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
     }
 
     return travelCard;
@@ -131,10 +138,9 @@ function getTravelInvoicingCard(cardList: OnyxEntry<CardList>): Card | undefined
  * Checks if user is eligible to see Travel CVV in Wallet.
  * Requires: TRAVEL_INVOICING beta AND having a travel card.
  */
-function isTravelCVVEligible(betas: OnyxEntry<Beta[]>, cardList: OnyxEntry<CardList>): boolean {
-    const hasBeta = Permissions.isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING as Beta, betas);
+function isTravelCVVEligible(isTravelInvoicingBetaEnabled: boolean, cardList: Record<string, WorkspaceCardsList | undefined> | undefined): boolean {
     const hasTravelCard = !!getTravelInvoicingCard(cardList);
-    return hasBeta && hasTravelCard;
+    return isTravelInvoicingBetaEnabled && hasTravelCard;
 }
 
 export {

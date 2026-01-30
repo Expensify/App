@@ -1,13 +1,14 @@
-import {filterPersonalCards} from '@selectors/Card';
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
 import colors from '@styles/theme/colors';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -20,13 +21,13 @@ function WalletTravelCVVSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines']);
+    const {isBetaEnabled} = usePermissions();
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
 
     const travelCard = getTravelInvoicingCard(cardList);
 
-    if (!isTravelCVVEligible(betas, cardList) || !travelCard) {
+    if (!isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), cardList) || !travelCard) {
         return null;
     }
 
@@ -43,7 +44,5 @@ function WalletTravelCVVSection() {
         />
     );
 }
-
-WalletTravelCVVSection.displayName = 'WalletTravelCVVSection';
 
 export default WalletTravelCVVSection;

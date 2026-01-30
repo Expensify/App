@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -453,7 +453,7 @@ function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePers
  * Determines if the user should be redirected to the missing details page
  * before revealing their card details (for UK/EU cards only).
  */
-function shouldShowMissingDetailsPage(card: OnyxEntry<Card>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+function shouldShowMissingDetailsPage(card: {nameValuePairs?: {feedCountry?: string}} | null | undefined, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
     const isUKOrEUCard = card?.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
     const hasMissingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 

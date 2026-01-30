@@ -328,6 +328,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_TRAVEL_CVV,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.ADD_DEBIT_CARD]: {
                             path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                             exact: true,

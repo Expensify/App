@@ -12,7 +12,7 @@ import {
     hasTravelInvoicingSettlementAccount,
     isTravelCVVEligible,
 } from '@src/libs/TravelInvoicingUtils';
-import type {BankAccountList, Beta, CardList} from '@src/types/onyx';
+import type {BankAccountList, WorkspaceCardsList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 
 jest.mock('@src/libs/Environment/Environment');
@@ -230,32 +230,36 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return undefined when no travel card exists', () => {
             const cardList = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1234': {
-                    cardID: 1234,
-                    state: 3,
-                    nameValuePairs: {
-                        isVirtual: true,
-                        isTravelCard: false,
+                workspaceCards: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1234': {
+                        cardID: 1234,
+                        state: 3,
+                        nameValuePairs: {
+                            isVirtual: true,
+                            isTravelCard: false,
+                        },
                     },
                 },
-            } as unknown as CardList;
+            } as unknown as Record<string, WorkspaceCardsList>;
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeUndefined();
         });
 
         it('Should return the travel card when isTravelCard is true', () => {
             const cardList = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1234': {
-                    cardID: 1234,
-                    state: 3,
-                    nameValuePairs: {
-                        isVirtual: true,
-                        isTravelCard: true,
+                workspaceCards: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1234': {
+                        cardID: 1234,
+                        state: 3,
+                        nameValuePairs: {
+                            isVirtual: true,
+                            isTravelCard: true,
+                        },
                     },
                 },
-            } as unknown as CardList;
+            } as unknown as Record<string, WorkspaceCardsList>;
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeDefined();
             expect(result?.cardID).toBe(1234);
@@ -263,25 +267,27 @@ describe('TravelInvoicingUtils', () => {
 
         it('Should return first travel card when multiple cards exist', () => {
             const cardList = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1111': {
-                    cardID: 1111,
-                    state: 3,
-                    nameValuePairs: {
-                        isVirtual: true,
-                        isTravelCard: false,
+                workspaceCards: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1111': {
+                        cardID: 1111,
+                        state: 3,
+                        nameValuePairs: {
+                            isVirtual: true,
+                            isTravelCard: false,
+                        },
+                    },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '2222': {
+                        cardID: 2222,
+                        state: 3,
+                        nameValuePairs: {
+                            isVirtual: true,
+                            isTravelCard: true,
+                        },
                     },
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '2222': {
-                    cardID: 2222,
-                    state: 3,
-                    nameValuePairs: {
-                        isVirtual: true,
-                        isTravelCard: true,
-                    },
-                },
-            } as unknown as CardList;
+            } as unknown as Record<string, WorkspaceCardsList>;
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeDefined();
             expect(result?.nameValuePairs?.isTravelCard).toBe(true);
@@ -290,16 +296,19 @@ describe('TravelInvoicingUtils', () => {
             isDevelopmentSpy.mockReturnValue(true);
 
             const cardList = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '9999': {
-                    cardID: 9999,
-                    state: 3,
-                    nameValuePairs: {
-                        isVirtual: true,
-                        isTravelCard: false,
+                workspaceCards: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '9999': {
+                        cardID: 9999,
+                        state: 3,
+                        bank: 'Expensify Card',
+                        nameValuePairs: {
+                            isVirtual: true,
+                            isTravelCard: false,
+                        },
                     },
                 },
-            } as unknown as CardList;
+            } as unknown as Record<string, WorkspaceCardsList>;
 
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeDefined();
@@ -309,60 +318,62 @@ describe('TravelInvoicingUtils', () => {
 
     describe('isTravelCVVEligible', () => {
         const mockTravelCardList = {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '1234': {
-                cardID: 1234,
-                state: 3,
-                nameValuePairs: {
-                    isVirtual: true,
-                    isTravelCard: true,
+            workspaceCards: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1234': {
+                    cardID: 1234,
+                    state: 3,
+                    nameValuePairs: {
+                        isVirtual: true,
+                        isTravelCard: true,
+                    },
                 },
             },
-        } as unknown as CardList;
+        } as unknown as Record<string, WorkspaceCardsList>;
 
         const mockNonTravelCardList = {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '5678': {
-                cardID: 5678,
-                state: 3,
-                nameValuePairs: {
-                    isVirtual: true,
-                    isTravelCard: false,
+            workspaceCards: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '5678': {
+                    cardID: 5678,
+                    state: 3,
+                    bank: 'Expensify Card',
+                    nameValuePairs: {
+                        isVirtual: true,
+                        isTravelCard: false,
+                    },
                 },
             },
-        } as unknown as CardList;
+        } as unknown as Record<string, WorkspaceCardsList>;
 
-        const mockBetasWithTravelInvoicing: Beta[] = [CONST.BETAS.TRAVEL_INVOICING as Beta];
-        const mockBetasWithoutTravelInvoicing: Beta[] = [];
-
-        it('Should return false when betas is undefined', () => {
-            const result = isTravelCVVEligible(undefined, mockTravelCardList);
+        it('Should return false when beta is false', () => {
+            const result = isTravelCVVEligible(false, mockTravelCardList);
             expect(result).toBe(false);
         });
 
         it('Should return false when cardList is undefined', () => {
-            const result = isTravelCVVEligible(mockBetasWithTravelInvoicing, undefined);
+            const result = isTravelCVVEligible(true, undefined);
             expect(result).toBe(false);
         });
 
         it('Should return false when no travel card exists', () => {
-            const result = isTravelCVVEligible(mockBetasWithTravelInvoicing, mockNonTravelCardList);
+            const result = isTravelCVVEligible(true, mockNonTravelCardList);
             expect(result).toBe(false);
         });
 
-        it('Should return false when beta is missing', () => {
-            const result = isTravelCVVEligible(mockBetasWithoutTravelInvoicing, mockTravelCardList);
+        it('Should return false when beta is false even with travel card', () => {
+            const result = isTravelCVVEligible(false, mockTravelCardList);
             expect(result).toBe(false);
         });
 
-        it('Should return true when beta is present and travel card exists', () => {
-            const result = isTravelCVVEligible(mockBetasWithTravelInvoicing, mockTravelCardList);
+        it('Should return true when beta is true and travel card exists', () => {
+            const result = isTravelCVVEligible(true, mockTravelCardList);
             expect(result).toBe(true);
         });
 
-        it('Should return true when testing is enabled and beta is present even if no travel card exists', () => {
+        it('Should return true when testing is enabled and beta is true even if no travel card exists', () => {
             isDevelopmentSpy.mockReturnValue(true);
-            const result = isTravelCVVEligible(mockBetasWithTravelInvoicing, mockNonTravelCardList);
+            const result = isTravelCVVEligible(true, mockNonTravelCardList);
             expect(result).toBe(true);
         });
     });
