@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {SelectorType} from '@components/SelectionScreen';
-import {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type CONST from '@src/CONST';

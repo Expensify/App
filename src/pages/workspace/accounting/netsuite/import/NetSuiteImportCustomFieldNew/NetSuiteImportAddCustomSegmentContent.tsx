@@ -42,7 +42,7 @@ const pages = [
 ];
 
 function NetSuiteImportAddCustomSegmentContent({policy, route, draftValues}: NetSuiteImportAddCustomSegmentContentProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const formRef = useRef<FormRef | null>(null);
 

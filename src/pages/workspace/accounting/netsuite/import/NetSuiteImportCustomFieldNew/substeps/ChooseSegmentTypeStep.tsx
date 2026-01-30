@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImportAddCustomSegmentForm';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import NetSuiteCustomSegmentMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomSegmentMappingPicker';
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type CONST from '@src/CONST';
@@ -24,7 +24,7 @@ function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuit
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
 
-            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.SEGMENT_TYPE])) {
+            if (!isRequiredFulfilled(values[INPUT_IDS.SEGMENT_TYPE])) {
                 errors[INPUT_IDS.SEGMENT_TYPE] = translate('common.error.pleaseSelectOne');
             }
 
