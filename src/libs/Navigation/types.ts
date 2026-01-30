@@ -1451,6 +1451,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES]: {
         policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;
