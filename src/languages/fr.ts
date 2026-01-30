@@ -7355,8 +7355,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
     },
     distance: {
         addStop: 'Ajouter un arrêt',
-        deleteWaypoint: 'Supprimer le point de passage',
-        deleteWaypointConfirmation: 'Êtes-vous sûr de vouloir supprimer ce point de passage ?',
         address: 'Adresse',
         waypointDescription: {
             start: 'Commencer',

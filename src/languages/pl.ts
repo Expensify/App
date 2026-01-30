@@ -7303,8 +7303,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
     },
     distance: {
         addStop: 'Dodaj przystanek',
-        deleteWaypoint: 'Usuń punkt trasy',
-        deleteWaypointConfirmation: 'Czy na pewno chcesz usunąć ten punkt trasy?',
         address: 'Adres',
         waypointDescription: {
             start: 'Start',

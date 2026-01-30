@@ -7315,8 +7315,6 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
     },
     distance: {
         addStop: 'Stop toevoegen',
-        deleteWaypoint: 'Waypoint verwijderen',
-        deleteWaypointConfirmation: 'Weet je zeker dat je dit waypoint wilt verwijderen?',
         address: 'Adres',
         waypointDescription: {
             start: 'Start',

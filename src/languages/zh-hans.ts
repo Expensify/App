@@ -7143,8 +7143,6 @@ ${reportName}
     },
     distance: {
         addStop: '添加站点',
-        deleteWaypoint: '删除航路点',
-        deleteWaypointConfirmation: '您确定要删除此途经点吗？',
         address: '地址',
         waypointDescription: {
             start: '开始',

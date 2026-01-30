@@ -7332,8 +7332,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
     },
     distance: {
         addStop: 'Aggiungi fermata',
-        deleteWaypoint: 'Elimina punto intermedio',
-        deleteWaypointConfirmation: 'Sei sicuro di voler eliminare questo waypoint?',
         address: 'Indirizzo',
         waypointDescription: {
             start: 'Inizia',

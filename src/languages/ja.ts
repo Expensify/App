@@ -7270,8 +7270,6 @@ ${reportName}
     },
     distance: {
         addStop: '経由地を追加',
-        deleteWaypoint: 'ウェイポイントを削除',
-        deleteWaypointConfirmation: 'このウェイポイントを削除してもよろしいですか？',
         address: '住所',
         waypointDescription: {
             start: '開始',

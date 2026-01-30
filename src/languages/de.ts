@@ -7343,8 +7343,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
     },
     distance: {
         addStop: 'Stopp hinzufügen',
-        deleteWaypoint: 'Wegpunkt löschen',
-        deleteWaypointConfirmation: 'Möchten Sie diesen Wegpunkt wirklich löschen?',
         address: 'Adresse',
         waypointDescription: {
             start: 'Starten',

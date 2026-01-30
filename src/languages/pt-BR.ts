@@ -7304,8 +7304,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
     },
     distance: {
         addStop: 'Adicionar parada',
-        deleteWaypoint: 'Excluir ponto de passagem',
-        deleteWaypointConfirmation: 'Tem certeza de que deseja excluir este ponto de passagem?',
         address: 'Endereço',
         waypointDescription: {
             start: 'Iniciar',
