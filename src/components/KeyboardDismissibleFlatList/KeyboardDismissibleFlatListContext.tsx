@@ -41,7 +41,6 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
     const layoutMeasurementHeight = useSharedValue(0);
 
     const isKeyboardOpening = useSharedValue(false);
-    const didSkipInitialOnInteractive = useSharedValue(false);
 
     useKeyboardHandler({
         onStart: (e) => {
@@ -52,7 +51,6 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
 
             const willKeyboardOpen = e.progress === 1;
             isKeyboardOpening.set(willKeyboardOpen);
-            didSkipInitialOnInteractive.set(false);
 
 
             if (willKeyboardOpen) {
@@ -96,11 +94,6 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
         onInteractive: (e) => {
             'worklet';
 
-            // This is to fix an issue with react-native-keyboard-controller, where an `onInteractive` event is triggered with an invalid height value when the keyboard is closed
-            if (e.height < height.get() * ON_INTERACTIVE_HEIGHT_THRESHOLD_PERCENTAGE && !didSkipInitialOnInteractive.get()) {
-                didSkipInitialOnInteractive.set(true);
-                return;
-            }
 
             height.set(e.height);
 
@@ -124,7 +117,6 @@ function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildre
         onEnd: (e) => {
             'worklet';
 
-            didSkipInitialOnInteractive.set(false);
             height.set(e.height);
         },
     });
