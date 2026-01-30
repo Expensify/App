@@ -7090,7 +7090,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
         topSpenders: 'Top-Ausgaben',
-        view: {label: 'Ansehen', table: 'Tabelle', bar: 'Bar'},
+        view: {label: 'Ansehen', table: 'Tabelle', bar: 'Bar', line: 'Zeile'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Karten',
@@ -7103,6 +7103,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
         },
+        spendOverTime: 'Ausgaben im Zeitverlauf',
     },
     genericErrorPage: {
         title: 'Oh je, etwas ist schiefgelaufen!',

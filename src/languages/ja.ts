@@ -7017,7 +7017,7 @@ ${reportName}
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
         topSpenders: 'トップ支出者',
-        view: {label: '表示', table: 'テーブル', bar: 'バー'},
+        view: {label: '表示', table: 'テーブル', bar: 'バー', line: '行'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
             [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
@@ -7030,6 +7030,7 @@ ${reportName}
             [CONST.SEARCH.GROUP_BY.YEAR]: '年',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
         },
+        spendOverTime: '時間別支出',
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',

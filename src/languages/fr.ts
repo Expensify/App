@@ -7102,7 +7102,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
         topSpenders: 'Plus gros dépensiers',
-        view: {label: 'Afficher', table: 'Tableau', bar: 'Barre'},
+        view: {label: 'Afficher', table: 'Tableau', bar: 'Barre', line: 'Ligne'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cartes',
@@ -7115,6 +7115,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
         },
+        spendOverTime: 'Dépenses au fil du temps',
     },
     genericErrorPage: {
         title: 'Oh oh, quelque chose s’est mal passé !',

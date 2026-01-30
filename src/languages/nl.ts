@@ -7062,7 +7062,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
         topSpenders: 'Grootste uitgaven',
-        view: {label: 'Bekijken', table: 'Tabel', bar: 'Bar'},
+        view: {label: 'Bekijken', table: 'Tabel', bar: 'Bar', line: 'Regel'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Kaarten',
@@ -7075,6 +7075,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaren',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
         },
+        spendOverTime: 'Uitgaven in de tijd',
     },
     genericErrorPage: {
         title: 'O jee, er is iets misgegaan!',

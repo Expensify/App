@@ -6896,7 +6896,7 @@ ${reportName}
             allMatchingItemsSelected: '已选择所有匹配的项目',
         },
         topSpenders: '最高支出者',
-        view: {label: '查看', table: '表格', bar: '栏'},
+        view: {label: '查看', table: '表格', bar: '栏', line: '行'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',
             [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
@@ -6909,6 +6909,7 @@ ${reportName}
             [CONST.SEARCH.GROUP_BY.YEAR]: '年',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
         },
+        spendOverTime: '一段时间内的支出',
     },
     genericErrorPage: {
         title: '哎呀，出错了！',

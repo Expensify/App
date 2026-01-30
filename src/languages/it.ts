@@ -7079,7 +7079,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         topSpenders: 'Maggiori spenditori',
-        view: {label: 'Visualizza', table: 'Tabella', bar: 'Bar'},
+        view: {label: 'Visualizza', table: 'Tabella', bar: 'Bar', line: 'Riga'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
@@ -7092,6 +7092,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Anni',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestri',
         },
+        spendOverTime: 'Spesa nel tempo',
     },
     genericErrorPage: {
         title: 'Uh-oh, qualcosa è andato storto!',

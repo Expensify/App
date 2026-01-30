@@ -7049,7 +7049,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             allMatchingItemsSelected: 'Wybrano wszystkie pasujące elementy',
         },
         topSpenders: 'Najwięksi wydający',
-        view: {label: 'Zobacz', table: 'Tabela', bar: 'Pasek'},
+        view: {label: 'Zobacz', table: 'Tabela', bar: 'Pasek', line: 'Linia'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Karty',
@@ -7062,6 +7062,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Lata',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartały',
         },
+        spendOverTime: 'Wydatki w czasie',
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',
