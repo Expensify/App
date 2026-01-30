@@ -1096,6 +1096,7 @@ function handleNavigateAfterExpenseCreate({
     }
 
     const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+
     // We mark this transaction to be highlighted when opening the expense search route page
     mergeTransactionIdsHighlightOnSearchRoute(type, {[transactionID]: true});
 
