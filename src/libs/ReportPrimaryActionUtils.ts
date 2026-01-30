@@ -592,11 +592,11 @@ function getReportActionBadge({
         return {verb: CONST.ACTION_BADGE_VERBS.PAY};
     }
 
-    if (isApproveAction(report, reportTransactions, currentUserAccountID, policy)) {
+    if (isApproveAction(report, reportTransactions, currentUserAccountID, undefined, policy)) {
         return {verb: CONST.ACTION_BADGE_VERBS.APPROVE};
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
+    if (isSubmitAction(report, reportTransactions, undefined, policy, reportNameValuePairs)) {
         return {verb: CONST.ACTION_BADGE_VERBS.SUBMIT};
     }
 

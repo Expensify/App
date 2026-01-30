@@ -33,12 +33,7 @@ function ActionBadge({verb, isError = false}: ActionBadgeProps) {
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            <View
-                style={[
-                    styles.actionBadgeDot,
-                    {backgroundColor: badgeColor},
-                ]}
-            />
+            <View style={[styles.actionBadgeDot, {backgroundColor: badgeColor}]} />
             <Text style={[styles.actionBadgeText, {color: badgeColor}]}>{translatedVerb}</Text>
         </View>
     );
