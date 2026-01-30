@@ -713,17 +713,11 @@ function MenuItem({
 
     const isIDPassed = !!iconReportID || !!iconAccountID || iconAccountID === CONST.DEFAULT_NUMBER_ID;
 
-    const isNewWindowIcon = useMemo(() => {
-        return iconRight === icons.NewWindow;
-    }, [iconRight, icons.NewWindow]);
-
-    const enhancedAccessibilityLabel = useMemo(() => {
-        const result = accessibilityLabel ?? defaultAccessibilityLabel;
-        if (isNewWindowIcon) {
-            return `${result}. ${translate('common.opensInNewTab')}`;
-        }
-        return result;
-    }, [accessibilityLabel, defaultAccessibilityLabel, isNewWindowIcon, translate]);
+    const isNewWindowIcon = iconRight === icons.NewWindow;
+    let enhancedAccessibilityLabel = accessibilityLabel ?? defaultAccessibilityLabel;
+    if (isNewWindowIcon) {
+        enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
+    }
 
     return (
         <View
