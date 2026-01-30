@@ -279,22 +279,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const executeScenario = useCallback(
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
             const {successOutcome, failureOutcome, ...payload} = params ?? {};
-
-            // Set initial state
-            dispatch({type: 'SET_SCENARIO', payload: scenario});
-            dispatch({type: 'SET_PAYLOAD', payload: Object.keys(payload).length > 0 ? payload : undefined});
-            dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
-            dispatch({type: 'SET_AUTHORIZATION_COMPLETE', payload: false});
-            dispatch({type: 'SET_FLOW_COMPLETE', payload: false});
-            dispatch({type: 'SET_ERROR', payload: undefined});
-            dispatch({type: 'SET_AUTHENTICATION_METHOD', payload: undefined});
-
             const paths = getOutcomePaths(scenario);
+
             dispatch({
-                type: 'SET_OUTCOME_PATHS',
+                type: 'INIT',
                 payload: {
-                    successOutcome: successOutcome ?? paths.successOutcome,
-                    failureOutcome: failureOutcome ?? paths.failureOutcome,
+                    scenario,
+                    payload: Object.keys(payload).length > 0 ? payload : undefined,
+                    outcomePaths: {
+                        successOutcome: successOutcome ?? paths.successOutcome,
+                        failureOutcome: failureOutcome ?? paths.failureOutcome,
+                    },
                 },
             });
         },

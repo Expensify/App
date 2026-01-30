@@ -72,6 +72,12 @@ const DEFAULT_STATE: MultifactorAuthenticationState = {
     authenticationMethod: undefined,
 };
 
+type InitPayload = {
+    scenario: MultifactorAuthenticationScenario;
+    payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined;
+    outcomePaths: OutcomePaths;
+};
+
 type Action =
     | {type: 'SET_ERROR'; payload: ErrorState | undefined}
     | {type: 'CLEAR_CONTINUABLE_ERROR'}
@@ -86,6 +92,7 @@ type Action =
     | {type: 'SET_AUTHORIZATION_COMPLETE'; payload: boolean}
     | {type: 'SET_FLOW_COMPLETE'; payload: boolean}
     | {type: 'SET_AUTHENTICATION_METHOD'; payload: MarqetaAuthTypeName | undefined}
+    | {type: 'INIT'; payload: InitPayload}
     | {type: 'RESET'};
 
 function stateReducer(state: MultifactorAuthenticationState, action: Action): MultifactorAuthenticationState {
@@ -123,6 +130,13 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, isFlowComplete: action.payload};
         case 'SET_AUTHENTICATION_METHOD':
             return {...state, authenticationMethod: action.payload};
+        case 'INIT':
+            return {
+                ...DEFAULT_STATE,
+                scenario: action.payload.scenario,
+                payload: action.payload.payload,
+                outcomePaths: action.payload.outcomePaths,
+            };
         case 'RESET':
             return DEFAULT_STATE;
         default:
