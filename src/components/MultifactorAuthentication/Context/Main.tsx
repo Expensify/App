@@ -5,7 +5,6 @@ import {getOutcomePath, getOutcomePaths} from '@components/MultifactorAuthentica
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useLocalize from '@hooks/useLocalize';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import {isContinuableReason} from '@libs/MultifactorAuthentication/Biometrics/helpers';
 import type {OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
 import {requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
@@ -45,6 +44,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const process = useCallback(async () => {
         const {
             error,
+            continuableError,
             scenario,
             softPromptApproved,
             validateCode,
@@ -59,6 +59,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 0. Check if flow is already complete or scenario not set - do nothing
         if (isFlowComplete || !scenario) {
+            return;
+        }
+
+        // 0.5 Check if there's a continuable error - pause flow and wait for user to fix it
+        // Continuable errors (like invalid validate code) are displayed on the current screen
+        // and don't stop the entire flow - the user can retry without restarting
+        if (continuableError) {
             return;
         }
 
@@ -104,10 +111,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 const {challenge, reason: challengeReason} = await requestRegistrationChallenge(validateCode);
 
                 if (!challenge) {
-                    // Clear validateCode for continuable errors so user can retry
-                    if (isContinuableReason(challengeReason)) {
-                        dispatch({type: 'SET_VALIDATE_CODE', payload: undefined});
-                    }
                     dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
                     return;
                 }

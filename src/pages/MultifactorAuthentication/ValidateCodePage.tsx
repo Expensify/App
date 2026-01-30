@@ -124,8 +124,10 @@ function MultifactorAuthenticationValidateCodePage() {
             clearAccountMessages();
         }
 
-        // Clear continuable error when user starts typing
+        // Clear validateCode and continuable error when user starts typing after an error
+        // This ensures process() will re-trigger on submit even if user enters the same code
         if (continuableError) {
+            dispatch({type: 'SET_VALIDATE_CODE', payload: undefined});
             dispatch({type: 'CLEAR_CONTINUABLE_ERROR'});
         }
     };
