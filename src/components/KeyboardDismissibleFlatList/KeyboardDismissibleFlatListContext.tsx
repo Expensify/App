@@ -8,8 +8,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import createDummySharedValue from '@src/utils/createDummySharedValue';
 import type {KeyboardDismissibleFlatListActionsContextValue, KeyboardDismissibleFlatListStateContextValue, ListBehavior} from './types';
 
-const ON_INTERACTIVE_HEIGHT_THRESHOLD_PERCENTAGE = 0.9;
-
 const defaultStateValue: KeyboardDismissibleFlatListStateContextValue = {
     keyboardHeight: createDummySharedValue(0),
     keyboardOffset: createDummySharedValue(0),
