@@ -17,37 +17,36 @@ This report is a pre-built suggested search so you can review spending activity 
 
 ---
 
-## Who can use the Top Spenders report
+## Who can use the Top Spenders report 
 
-- **Available to:** Workspace Admins, Approvers, and Auditors
-- **Platforms:**  
-  - **Web:** Full view  
-  - **Mobile:** Read-only  
+The **Top Spenders** report is available to Workspace Admins, Approvers, and Auditors on both web and mobile.
+
+**Note:** Exporting data is only available on web.
 
 ---
 
 ## Where to find the Top Spenders report
 
 **Web:**  
-Use the navigation tabs on the left and select **Top spenders** under the **Reports** section.
+Use the navigation tabs on the left and select **Reports**, then click **Top spenders** under the **Insights** section.
 
 **Mobile:**  
-Tap the hamburger menu in the top-left corner, then select **Top spenders**.
+Tap **Reports** from the navigation tabs on the bottom, then tap the hamburger menu in the top-right corner. Under **Insights**, tap **Top spenders**.
 
 ![Reports page in New Expensify showing the Top spenders view]({{site.url}}/assets/images/top-spender.png)
 
 ---
 
-## What information the Top Spenders report displays
+## What information the Top Spenders report shows
 
 The Top Spenders report is powered by a saved search query using Expensify's grouping and filtering engine. The report shows:
 
-- The **top expense submitters** from last month  
+- The **top expense submitters** for the last last month  
 - The **total amount spent** by each person  
 - The **number of expenses** by each person
 ---
 
-## How to interpret Top Spenders report data
+## How to interpret the Top Spenders report 
 
 Each row represents an individual employee, sorted in descending order by amount. Columns include:
 
