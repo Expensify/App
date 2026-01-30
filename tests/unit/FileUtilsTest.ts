@@ -287,6 +287,7 @@ describe('FileUtils', () => {
             });
         });
 
+        /* eslint-disable no-bitwise */
         describe('with blob: URLs (web) - file header parsing', () => {
             /**
              * Creates a mock JPEG blob with valid SOF0 marker containing specified dimensions.
@@ -513,6 +514,7 @@ describe('FileUtils', () => {
                 await expect(getImageDimensionsAfterResize(file)).resolves.toBeDefined();
             });
         });
+        /* eslint-enable no-bitwise */
     });
 
     describe('getFileValidationErrorText', () => {

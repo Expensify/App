@@ -469,6 +469,7 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
  * Reads image dimensions directly from the file header (JPEG SOF marker or PNG IHDR chunk).
  * This bypasses browser Image API which may downsample large images on mobile browsers.
  */
+// eslint-disable-next-line no-bitwise
 const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; height: number} | null> => {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -479,16 +480,21 @@ const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; h
             if (arr[0] === 0xff && arr[1] === 0xd8) {
                 let offset = 2;
                 while (offset < arr.length) {
-                    if (arr[offset] !== 0xff) break;
+                    if (arr[offset] !== 0xff) {
+                        break;
+                    }
                     const marker = arr[offset + 1];
                     // SOF0 (0xC0), SOF1 (0xC1), SOF2 (0xC2) contain dimensions
                     if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+                        // eslint-disable-next-line no-bitwise
                         const height = (arr[offset + 5] << 8) | arr[offset + 6];
+                        // eslint-disable-next-line no-bitwise
                         const width = (arr[offset + 7] << 8) | arr[offset + 8];
                         resolve({width, height});
                         return;
                     }
                     // Skip to next marker
+                    // eslint-disable-next-line no-bitwise
                     const segmentLength = (arr[offset + 2] << 8) | arr[offset + 3];
                     offset += 2 + segmentLength;
                 }
@@ -497,7 +503,9 @@ const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; h
             // Check for PNG (starts with 0x89 0x50 0x4E 0x47)
             if (arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4e && arr[3] === 0x47) {
                 // PNG IHDR chunk is at offset 16, dimensions are at offset 16+4=20
+                // eslint-disable-next-line no-bitwise
                 const width = (arr[16] << 24) | (arr[17] << 16) | (arr[18] << 8) | arr[19];
+                // eslint-disable-next-line no-bitwise
                 const height = (arr[20] << 24) | (arr[21] << 16) | (arr[22] << 8) | arr[23];
                 resolve({width, height});
                 return;
