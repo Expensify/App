@@ -13232,7 +13232,7 @@ function addReportApprover(
 function removeUnchangedBulkEditFields(
     transactionChanges: TransactionChanges,
     transaction: OnyxTypes.Transaction,
-    baseIouReport: OnyxEntry<OnyxTypes.Report>,
+    baseIouReport: OnyxEntry<OnyxTypes.Report> | null,
     policy: OnyxEntry<OnyxTypes.Policy>,
 ) {
     const changeKeys = Object.keys(transactionChanges) as Array<keyof TransactionChanges>;
@@ -13240,8 +13240,8 @@ function removeUnchangedBulkEditFields(
         return;
     }
 
-    const iouType = isInvoiceReportReportUtils(baseIouReport) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
-    const allowNegative = shouldEnableNegative(baseIouReport, policy, iouType);
+    const iouType = isInvoiceReportReportUtils(baseIouReport ?? undefined) ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
+    const allowNegative = shouldEnableNegative(baseIouReport ?? undefined, policy, iouType);
     const currentDetails = getTransactionDetails(transaction, undefined, policy, allowNegative);
 
     for (const field of changeKeys) {
