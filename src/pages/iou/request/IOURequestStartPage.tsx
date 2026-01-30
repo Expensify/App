@@ -190,7 +190,7 @@ function IOURequestStartPage({
                 personalPolicy,
                 isFromGlobalCreate: transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
-                newIouRequestType: newIOUType,
+                newIouRequestType: newIOUType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP : newIOUType,
                 report,
                 parentReport,
                 currentDate,
