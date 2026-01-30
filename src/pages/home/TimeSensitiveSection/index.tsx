@@ -22,7 +22,7 @@ function TimeSensitiveSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {shouldShow50off, shouldShow25off, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
-    const {shouldShowAddShippingAddress, shouldShowActivateCard, cardNeedingShippingAddress, cardNeedingActivation} = useTimeSensitiveCards();
+    const {shouldShowAddShippingAddress, shouldShowActivateCard, cardsNeedingShippingAddress, cardsNeedingActivation} = useTimeSensitiveCards();
 
     const hasAnyItemToShow = shouldShow50off || shouldShow25off || shouldShowAddShippingAddress || shouldShowActivateCard;
 
@@ -42,8 +42,8 @@ function TimeSensitiveSection() {
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
                 {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
                 {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
-                {shouldShowAddShippingAddress && !!cardNeedingShippingAddress && <AddShippingAddress card={cardNeedingShippingAddress} />}
-                {shouldShowActivateCard && cardNeedingActivation !== undefined && <ActivateCard card={cardNeedingActivation} />}
+                {shouldShowAddShippingAddress && cardsNeedingShippingAddress.map((card) => <AddShippingAddress key={card.cardID} card={card} />)}
+                {shouldShowActivateCard && cardsNeedingActivation.map((card) => <ActivateCard key={card.cardID} card={card} />)}
             </View>
         </WidgetContainer>
     );

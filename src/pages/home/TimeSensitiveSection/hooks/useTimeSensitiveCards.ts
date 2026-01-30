@@ -4,37 +4,38 @@ import useOnyx from '@hooks/useOnyx';
 import {isCardPendingActivate, isCardPendingIssue} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Card} from '@src/types/onyx';
 
 function useTimeSensitiveCards() {
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
 
-    const {cardNeedingShippingAddress, cardNeedingActivation} = useMemo(() => {
+    const {cardsNeedingShippingAddress, cardsNeedingActivation} = useMemo<{cardsNeedingShippingAddress: Card[]; cardsNeedingActivation: Card[]}>(() => {
         const cards = Object.values(cardList ?? {});
 
-        // Find the first card that needs a shipping address (state: NOT_ISSUED)
-        const pendingIssueCard = cards.find(
+        // Find all cards that need a shipping address (state: NOT_ISSUED)
+        const pendingIssueCards = cards.filter(
             (card) => isCardPendingIssue(card) && card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual,
         );
 
-        // Find the first card that needs activation (state: NOT_ACTIVATED)
-        const pendingActivateCard = cards.find(
+        // Find all cards that need activation (state: NOT_ACTIVATED)
+        const pendingActivateCards = cards.filter(
             (card) => isCardPendingActivate(card) && card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual,
         );
 
         return {
-            cardNeedingShippingAddress: pendingIssueCard,
-            cardNeedingActivation: pendingActivateCard,
+            cardsNeedingShippingAddress: pendingIssueCards,
+            cardsNeedingActivation: pendingActivateCards,
         };
     }, [cardList]);
 
-    const shouldShowAddShippingAddress = !!cardNeedingShippingAddress;
-    const shouldShowActivateCard = !!cardNeedingActivation;
+    const shouldShowAddShippingAddress = cardsNeedingShippingAddress.length > 0;
+    const shouldShowActivateCard = cardsNeedingActivation.length > 0;
 
     return {
         shouldShowAddShippingAddress,
         shouldShowActivateCard,
-        cardNeedingShippingAddress,
-        cardNeedingActivation,
+        cardsNeedingShippingAddress,
+        cardsNeedingActivation,
     };
 }
 
