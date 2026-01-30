@@ -27,8 +27,10 @@ describe('useTimeSensitiveCards', () => {
 
         expect(result.current.cardsNeedingShippingAddress).toEqual([]);
         expect(result.current.cardsNeedingActivation).toEqual([]);
+        expect(result.current.cardsWithFraud).toEqual([]);
         expect(result.current.shouldShowAddShippingAddress).toBe(false);
         expect(result.current.shouldShowActivateCard).toBe(false);
+        expect(result.current.shouldShowReviewCardFraud).toBe(false);
     });
 
     it('should return empty arrays when no cards need action', async () => {
@@ -167,5 +169,32 @@ describe('useTimeSensitiveCards', () => {
 
         expect(result.current.cardsNeedingActivation).toHaveLength(1);
         expect(result.current.shouldShowActivateCard).toBe(true);
+    });
+
+    it('should identify cards with fraud and set shouldShowReviewCardFraud to true', async () => {
+        const cardWithFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN});
+        const cardList: CardList = {'1': cardWithFraud};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsWithFraud).toHaveLength(1);
+        expect(result.current.cardsWithFraud[0].cardID).toBe(1);
+        expect(result.current.shouldShowReviewCardFraud).toBe(true);
+    });
+
+    it('should not show fraud review for cards with fraud type NONE', async () => {
+        const cardWithNoFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE});
+        const cardList: CardList = {'1': cardWithNoFraud};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsWithFraud).toHaveLength(0);
+        expect(result.current.shouldShowReviewCardFraud).toBe(false);
     });
 });

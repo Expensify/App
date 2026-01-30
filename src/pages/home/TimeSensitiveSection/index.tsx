@@ -13,6 +13,7 @@ import ActivateCard from './items/ActivateCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import Offer25off from './items/Offer25off';
 import Offer50off from './items/Offer50off';
+import ReviewCardFraud from './items/ReviewCardFraud';
 
 function TimeSensitiveSection() {
     const styles = useThemeStyles();
@@ -22,9 +23,9 @@ function TimeSensitiveSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {shouldShow50off, shouldShow25off, firstDayFreeTrial, discountInfo} = useTimeSensitiveOffers();
-    const {shouldShowAddShippingAddress, shouldShowActivateCard, cardsNeedingShippingAddress, cardsNeedingActivation} = useTimeSensitiveCards();
+    const {shouldShowAddShippingAddress, shouldShowActivateCard, shouldShowReviewCardFraud, cardsNeedingShippingAddress, cardsNeedingActivation, cardsWithFraud} = useTimeSensitiveCards();
 
-    const hasAnyItemToShow = shouldShow50off || shouldShow25off || shouldShowAddShippingAddress || shouldShowActivateCard;
+    const hasAnyItemToShow = shouldShowReviewCardFraud || shouldShow50off || shouldShow25off || shouldShowAddShippingAddress || shouldShowActivateCard;
 
     if (!hasAnyItemToShow) {
         return null;
@@ -40,6 +41,14 @@ function TimeSensitiveSection() {
             titleColor={theme.danger}
         >
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
+                {/* Priority order: 1. Fraud, 2. Discounts, 3. Shipping, 4. Activation */}
+                {shouldShowReviewCardFraud &&
+                    cardsWithFraud.map((card) => (
+                        <ReviewCardFraud
+                            key={card.cardID}
+                            card={card}
+                        />
+                    ))}
                 {shouldShow50off && <Offer50off firstDayFreeTrial={firstDayFreeTrial} />}
                 {shouldShow25off && !!discountInfo && <Offer25off days={discountInfo.days} />}
                 {shouldShowAddShippingAddress &&

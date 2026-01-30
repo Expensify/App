@@ -45,16 +45,26 @@ const cardByIdSelector = (cardID: string) => (cardList: OnyxEntry<CardList>) => 
 type TimeSensitiveCardsResult = {
     cardsNeedingShippingAddress: Card[];
     cardsNeedingActivation: Card[];
+    cardsWithFraud: Card[];
 };
 
 /**
- * Selector that filters cards to find physical Expensify cards that need shipping address or activation.
- * Returns two arrays: cards pending issue (need shipping) and cards pending activation.
+ * Check if a card has potential fraud that needs review.
+ * Returns true if the card has fraud type 'domain' or 'individual'.
+ */
+const isCardWithPotentialFraud = (card: Card): boolean => {
+    return card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL;
+};
+
+/**
+ * Selector that filters cards to find Expensify cards that need time-sensitive action.
+ * Returns arrays for: cards with potential fraud, cards pending issue (need shipping), and cards pending activation.
  */
 const timeSensitiveCardsSelector = (cards: OnyxEntry<CardList>): TimeSensitiveCardsResult => {
     const result: TimeSensitiveCardsResult = {
         cardsNeedingShippingAddress: [],
         cardsNeedingActivation: [],
+        cardsWithFraud: [],
     };
 
     for (const card of Object.values(cards ?? {})) {
@@ -62,9 +72,20 @@ const timeSensitiveCardsSelector = (cards: OnyxEntry<CardList>): TimeSensitiveCa
             continue;
         }
 
-        // Only consider physical Expensify cards
-        const isPhysicalExpensifyCard = card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual;
-        if (!isPhysicalExpensifyCard) {
+        // Only consider Expensify cards
+        const isExpensifyCard = card.bank === CONST.EXPENSIFY_CARD.BANK;
+        if (!isExpensifyCard) {
+            continue;
+        }
+
+        // Check for fraud on any Expensify card (physical or virtual)
+        if (isCardWithPotentialFraud(card)) {
+            result.cardsWithFraud.push(card);
+        }
+
+        // Physical card checks (shipping address and activation)
+        const isPhysicalCard = !card.nameValuePairs?.isVirtual;
+        if (!isPhysicalCard) {
             continue;
         }
 

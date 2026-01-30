@@ -10,15 +10,19 @@ function useTimeSensitiveCards() {
 
     const cardsNeedingShippingAddress = timeSensitiveCards?.cardsNeedingShippingAddress ?? [];
     const cardsNeedingActivation = timeSensitiveCards?.cardsNeedingActivation ?? [];
+    const cardsWithFraud = timeSensitiveCards?.cardsWithFraud ?? [];
 
     const shouldShowAddShippingAddress = cardsNeedingShippingAddress.length > 0;
     const shouldShowActivateCard = cardsNeedingActivation.length > 0;
+    const shouldShowReviewCardFraud = cardsWithFraud.length > 0;
 
     return {
         shouldShowAddShippingAddress,
         shouldShowActivateCard,
+        shouldShowReviewCardFraud,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
+        cardsWithFraud,
     };
 }
 

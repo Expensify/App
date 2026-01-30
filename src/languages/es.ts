@@ -760,6 +760,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Valida tu tarjeta y empieza a gastar.',
                 cta: 'Activa',
             },
+            reviewCardFraud: {
+                title: 'Review potential fraud on your Expensify Card',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => \`Review ${amount} in potential fraud at ${merchant}\`,
+                subtitle: 'Expensify Card',
+                cta: 'Review',
+            },
         },
         announcements: 'Anuncios',
         discoverSection: {

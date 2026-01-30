@@ -193,23 +193,26 @@ describe('timeSensitiveCardsSelector', () => {
         expect(timeSensitiveCardsSelector(undefined)).toEqual({
             cardsNeedingShippingAddress: [],
             cardsNeedingActivation: [],
+            cardsWithFraud: [],
         });
         expect(timeSensitiveCardsSelector({})).toEqual({
             cardsNeedingShippingAddress: [],
             cardsNeedingActivation: [],
+            cardsWithFraud: [],
         });
     });
 
     it('returns empty arrays when no physical Expensify cards need action', () => {
         const cardList: CardList = {
-            '1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-            '2': createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
+            '1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE}),
+            '2': createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE}),
         };
 
         const result = timeSensitiveCardsSelector(cardList);
 
         expect(result.cardsNeedingShippingAddress).toHaveLength(0);
         expect(result.cardsNeedingActivation).toHaveLength(0);
+        expect(result.cardsWithFraud).toHaveLength(0);
     });
 
     it('identifies cards needing shipping address (STATE_NOT_ISSUED)', () => {
@@ -369,5 +372,86 @@ describe('timeSensitiveCardsSelector', () => {
 
         // Verify NOT_ACTIVATED (4) goes to cardsNeedingActivation
         expect(result.cardsNeedingActivation.every((card) => card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED)).toBe(true);
+    });
+
+    it('identifies cards with domain fraud', () => {
+        const cardWithDomainFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN});
+        const normalCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE});
+
+        const cardList: CardList = {
+            '1': cardWithDomainFraud,
+            '2': normalCard,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        expect(result.cardsWithFraud).toHaveLength(1);
+        expect(result.cardsWithFraud[0].cardID).toBe(1);
+        expect(result.cardsWithFraud[0].fraud).toBe(CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
+    });
+
+    it('identifies cards with individual fraud', () => {
+        const cardWithIndividualFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL});
+        const normalCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE});
+
+        const cardList: CardList = {
+            '1': cardWithIndividualFraud,
+            '2': normalCard,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        expect(result.cardsWithFraud).toHaveLength(1);
+        expect(result.cardsWithFraud[0].cardID).toBe(1);
+        expect(result.cardsWithFraud[0].fraud).toBe(CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
+    });
+
+    it('detects fraud on both physical and virtual Expensify cards', () => {
+        const physicalCardWithFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN});
+        const virtualCardWithFraud: Card = {
+            ...createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL}),
+            nameValuePairs: {isVirtual: true} as Card['nameValuePairs'],
+        };
+
+        const cardList: CardList = {
+            '1': physicalCardWithFraud,
+            '2': virtualCardWithFraud,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // Both physical and virtual cards with fraud should be included
+        expect(result.cardsWithFraud).toHaveLength(2);
+    });
+
+    it('excludes non-Expensify cards from fraud detection', () => {
+        const companyCardWithFraud: Card = {
+            ...createRandomCompanyCard(1, {bank: 'vcf'}),
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+        };
+        const expensifyCardWithFraud = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN});
+
+        const cardList: CardList = {
+            '1': companyCardWithFraud,
+            '2': expensifyCardWithFraud,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // Only Expensify card should be included
+        expect(result.cardsWithFraud).toHaveLength(1);
+        expect(result.cardsWithFraud[0].cardID).toBe(2);
+    });
+
+    it('does not include cards with fraud type NONE', () => {
+        const cardWithNoFraud = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN, fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE});
+
+        const cardList: CardList = {
+            '1': cardWithNoFraud,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        expect(result.cardsWithFraud).toHaveLength(0);
     });
 });
