@@ -190,13 +190,12 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
 /**
  * Creates an optimistic card object for the imported transactions
  */
-function buildOptimisticCard(cardDisplayName: string): {card: Card; cardID: string} {
+function buildOptimisticCard(cardDisplayName: string): {card: Card; cardID: number} {
     const cardID = generateCardID();
     return {
         cardID,
         card: {
-            // Cast to number for the Card type, but the actual value is preserved as string in the API call
-            cardID: cardID as unknown as number,
+            cardID,
             state: CONST.EXPENSIFY_CARD.STATE.OPEN,
             // Use the CSV bank name constant so the card shows up in the Assigned Cards section
             bank: CONST.PERSONAL_CARD.BANK_NAME.CSV,
@@ -216,13 +215,12 @@ function buildOptimisticCard(cardDisplayName: string): {card: Card; cardID: stri
 /**
  * Creates optimistic transaction objects from the CSV data
  */
-function buildOptimisticTransactions(transactionList: TransactionFromCSV[], cardID: string, currency: string, isReimbursable: boolean): Transaction[] {
+function buildOptimisticTransactions(transactionList: TransactionFromCSV[], cardID: number, currency: string, isReimbursable: boolean): Transaction[] {
     return transactionList.map(
         (csvTransaction) =>
             ({
                 transactionID: csvTransaction.transactionID,
-                // Cast to number for the Transaction type, but the actual value is preserved as string in the API call
-                cardID: cardID as unknown as number,
+                cardID,
                 created: csvTransaction.created,
                 merchant: csvTransaction.merchant,
                 amount: csvTransaction.amount,
@@ -280,7 +278,7 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
 
     const params: ImportCSVTransactionsParams = {
         transactionList: JSON.stringify(transactionList),
-        cardID: Number(cardID),
+        cardID,
         cardName: cardDisplayName,
         currency,
         reimbursable: isReimbursable,

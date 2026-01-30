@@ -4,6 +4,7 @@ import RNFetchBlob from 'react-native-blob-util';
 import type {TupleToUnion} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
@@ -13,6 +14,7 @@ import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Button from './Button';
@@ -38,6 +40,7 @@ type ImportSpreadsheetProps = {
 };
 
 function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
+    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -130,7 +133,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                                 return JSON.stringify(cell);
                             }),
                         );
-                        setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
+                        setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false, importedSpreadsheet?.importTransactionSettings)
                             .then(() => {
                                 Navigation.navigate(goTo);
                             })

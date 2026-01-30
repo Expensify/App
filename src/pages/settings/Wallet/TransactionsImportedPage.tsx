@@ -126,6 +126,4 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
     );
 }
 
-TransactionsImportedPage.displayName = 'TransactionsImportedPage';
-
 export default TransactionsImportedPage;

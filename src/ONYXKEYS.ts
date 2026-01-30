@@ -359,6 +359,9 @@ const ONYXKEYS = {
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
+    /** Is loading policy rules preview? */
+    IS_LOADING_POLICY_CODING_RULES_PREVIEW: 'isLoadingPolicyCodingRulesPreview',
+
     /** Is the app loaded? */
     HAS_LOADED_APP: 'hasLoadedApp',
 
@@ -694,6 +697,7 @@ const ONYXKEYS = {
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         MERGE_TRANSACTION: 'mergeTransaction_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
+        CODING_RULE_MATCHING_TRANSACTION: 'codingRuleMatchingTransactions_',
         NEXT_STEP: 'reportNextStep_',
         // Manual expense tab selector
         SELECTED_TAB: 'selectedTab_',
@@ -798,6 +802,8 @@ const ONYXKEYS = {
         EDIT_WORKSPACE_COMPANY_CARD_NAME_DRAFT_FORM: 'editCompanyCardNameDraft',
         IMPORT_TRANSACTIONS_FORM: 'importTransactionsForm',
         IMPORT_TRANSACTIONS_FORM_DRAFT: 'importTransactionsFormDraft',
+        EDIT_PERSONAL_CARD_NAME_FORM: 'editPersonalCardName',
+        EDIT_PERSONAL_CARD_NAME_FORM_DRAFT: 'editPersonalCardNameDraft',
         WORKSPACE_REPORT_FIELDS_FORM: 'workspaceReportFieldForm',
         WORKSPACE_REPORT_FIELDS_FORM_DRAFT: 'workspaceReportFieldFormDraft',
         POLICY_CREATE_DISTANCE_RATE_FORM: 'policyCreateDistanceRateForm',
@@ -1015,6 +1021,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME]: FormTypes.WorkspaceCompanyCardFeedName;
     [ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM]: FormTypes.WorkspaceCompanyCardEditName;
     [ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM]: FormTypes.ImportTransactionsForm;
+    [ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM]: FormTypes.EditPersonalCardNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM]: FormTypes.WorkspaceReportFieldForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM]: FormTypes.WorkspaceCategoryDescriptionHintForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM]: FormTypes.WorkspaceCategoryFlagAmountsOverForm;
@@ -1182,6 +1189,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
+    [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
 };
 
 type OnyxValuesMapping = {
@@ -1288,6 +1296,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID]: string;
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
+    [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.APP_PROFILING_IN_PROGRESS]: boolean;

@@ -22,6 +22,4 @@ function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadshee
     );
 }
 
-ImportTransactionsSpreadsheetPage.displayName = 'ImportTransactionsSpreadsheetPage';
-
 export default ImportTransactionsSpreadsheetPage;
