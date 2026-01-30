@@ -939,7 +939,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.buttonPressedBG,
         },
 
-
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
         },
