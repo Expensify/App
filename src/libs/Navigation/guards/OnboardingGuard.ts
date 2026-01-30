@@ -1,12 +1,16 @@
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import Log from '@libs/Log';
+import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -108,6 +112,23 @@ function getOnboardingRoute(): Route {
     }) as Route;
 }
 
+function shouldPreventReset(state: NavigationState, action: NavigationAction) {
+    if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
+        return false;
+    }
+
+    const currentFocusedRoute = findFocusedRoute(state);
+    const targetFocusedRoute = findFocusedRoute(action?.payload as NavigationState);
+
+    // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
+    if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
+        setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * OnboardingGuard handles ONLY the core NewDot onboarding flow
  */
@@ -115,6 +136,14 @@ const OnboardingGuard: NavigationGuard = {
     name: 'OnboardingGuard',
 
     evaluate: (state, action, context): GuardResult => {
+        if (context.isLoading) {
+            return {type: 'BLOCK', reason: 'App is still loading'};
+        }
+
+        if (shouldPreventReset(state, action)) {
+            return {type: 'BLOCK', reason: 'Cannot reset to non-onboarding screen while on onboarding'};
+        }
+
         const isTransitioning = context.currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding) ?? false;
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
