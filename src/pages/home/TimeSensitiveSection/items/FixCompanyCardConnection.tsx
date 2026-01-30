@@ -21,7 +21,7 @@ type FixCompanyCardConnectionProps = {
 
 function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProps) {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['CreditCardExclamation'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Connect'] as const);
 
     // Get the card feeds data to access custom nicknames
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`, {canBeMissing: true});
@@ -30,7 +30,7 @@ function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProp
 
     return (
         <BaseWidgetItem
-            icon={icons.CreditCardExclamation}
+            icon={icons.Connect}
             iconBackgroundColor={colors.tangerine100}
             iconFill={colors.tangerine700}
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
