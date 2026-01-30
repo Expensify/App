@@ -41,6 +41,7 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
+    adjustTimeRangeToDateFilters,
     createAndOpenSearchTransactionThread,
     getColumnsToShow,
     getListItem,
@@ -59,8 +60,11 @@ import {
     isTransactionMemberGroupListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionMonthGroupListItemType,
+    isTransactionQuarterGroupListItemType,
     isTransactionTagGroupListItemType,
+    isTransactionWeekGroupListItemType,
     isTransactionWithdrawalIDGroupListItemType,
+    isTransactionYearGroupListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -80,6 +84,7 @@ import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/t
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
+import SearchChartView from './SearchChartView';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -138,9 +143,6 @@ function mapTransactionItemToSelectedEntry(
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
-            transactionID: item.transactionID,
-            managedCard: item.managedCard,
-            comment: item.comment,
             reportAction: item.reportAction,
             report: item.report,
         },
@@ -196,9 +198,6 @@ function prepareTransactionsList(
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
-            transactionID: item.transactionID,
-            managedCard: item.managedCard,
-            comment: item.comment,
             reportAction: item.reportAction,
             report: item.report,
         },
@@ -216,7 +215,7 @@ function Search({
     searchRequestResponseStatusCode,
     onDEWModalOpen,
 }: SearchProps) {
-    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy} = queryJSON;
+    const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -257,7 +256,8 @@ function Search({
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {accountID, email, login} = useCurrentUserPersonalDetails();
-    const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
@@ -429,11 +429,14 @@ function Search({
             queryJSON,
             isActionLoadingSet,
             cardFeeds,
+            isOffline,
             allTransactionViolations: violations,
+            allReportMetadata,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
         searchKey,
+        isOffline,
         exportReportActions,
         validGroupBy,
         isDataLoaded,
@@ -450,6 +453,7 @@ function Search({
         policies,
         bankAccountList,
         violations,
+        allReportMetadata,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
@@ -485,12 +489,25 @@ function Search({
                 translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
+                allReportMetadata,
             });
             return {...item, transactions: transactions1 as TransactionListItemType[]};
         });
 
         return enriched;
-    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet, bankAccountList]);
+    }, [
+        validGroupBy,
+        isExpenseReportType,
+        baseFilteredData,
+        groupByTransactionSnapshots,
+        accountID,
+        email,
+        translate,
+        formatPhoneNumber,
+        isActionLoadingSet,
+        bankAccountList,
+        allReportMetadata,
+    ]);
 
     const hasLoadedAllTransactions = useMemo(() => {
         if (!validGroupBy) {
@@ -545,7 +562,7 @@ function Search({
 
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
                 // This ensures report-level selection persists when new transactions are added.
-                const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction) => transaction.transactionID in selectedTransactions);
+                const hasAnySelected = isExpenseReportType && transactionGroup.transactions.some((transaction: TransactionListItemType) => transaction.transactionID in selectedTransactions);
 
                 for (const transactionItem of transactionGroup.transactions) {
                     const isSelected = transactionItem.transactionID in selectedTransactions;
@@ -600,9 +617,6 @@ function Search({
                         reportAction: transactionItem.reportAction,
                         isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                         report: transactionItem.report,
-                        transactionID: transactionItem.transactionID,
-                        managedCard: transactionItem.managedCard,
-                        comment: transactionItem.comment,
                     };
                 }
             }
@@ -659,9 +673,6 @@ function Search({
                     reportAction: transactionItem.reportAction,
                     isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                     report: transactionItem.report,
-                    transactionID: transactionItem.transactionID,
-                    managedCard: transactionItem.managedCard,
-                    comment: transactionItem.comment,
                 };
             }
         }
@@ -905,13 +916,94 @@ function Search({
                 return;
             }
 
-            let reportID = item.reportID;
-            if (isTransactionItem && item?.reportAction?.childReportID) {
-                const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                const isFromOneTransactionReport = isOneTransactionReport(item.report);
+            if (isTransactionWeekGroupListItemType(item)) {
+                if (!item.week) {
+                    return;
+                }
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilter = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(item.week), existingDateFilter);
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: weekStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: weekEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionYearGroupListItemType(item)) {
+                const yearGroupItem = item;
+                if (yearGroupItem.year === undefined) {
+                    return;
+                }
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: yearStart, end: yearEnd} = DateUtils.getYearDateRange(yearGroupItem.year);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: yearStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: yearEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            if (isTransactionQuarterGroupListItemType(item)) {
+                const quarterGroupItem = item;
+                if (quarterGroupItem.year === undefined || quarterGroupItem.quarter === undefined) {
+                    return;
+                }
+                const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: quarterStart, end: quarterEnd} = DateUtils.getQuarterDateRange(quarterGroupItem.year, quarterGroupItem.quarter);
+                newFlatFilters.push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: quarterStart},
+                        {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: quarterEnd},
+                    ],
+                });
+                const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
+                const newQuery = buildSearchQueryString(newQueryJSON);
+                const newQueryJSONWithHash = buildSearchQueryJSON(newQuery);
+                if (!newQueryJSONWithHash) {
+                    return;
+                }
+                handleSearch({queryJSON: newQueryJSONWithHash, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                return;
+            }
+
+            // After handling all group types, item should be TransactionListItemType, ReportActionListItemType, or TransactionGroupListItemType
+            if (!isTransactionItem && !isReportActionListItemType(item) && !isTransactionGroupListItemType(item)) {
+                return;
+            }
+
+            const transactionItem = item as TransactionListItemType;
+            const reportActionItem = item as ReportActionListItemType;
+
+            let reportID = transactionItem.reportID ?? reportActionItem.reportID;
+            if (isTransactionItem && transactionItem?.reportAction?.childReportID) {
+                const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                const isFromOneTransactionReport = isOneTransactionReport(transactionItem.report);
 
                 if (isFromSelfDM || !isFromOneTransactionReport) {
-                    reportID = item?.reportAction?.childReportID;
+                    reportID = transactionItem?.reportAction?.childReportID;
                 }
             }
 
@@ -927,8 +1019,9 @@ function Search({
             });
 
             if (isTransactionGroupListItemType(item)) {
-                const firstTransaction = item.transactions.at(0);
-                if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
+                const groupItem = item as TransactionGroupListItemType;
+                const firstTransaction = groupItem.transactions.at(0);
+                if (groupItem.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
                         createAndOpenSearchTransactionThread(firstTransaction, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
                     } else {
@@ -936,7 +1029,7 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
+                if (groupItem.transactions.length > 1) {
                     markReportIDAsMultiTransactionExpense(reportID);
                 } else {
                     unmarkReportIDAsMultiTransactionExpense(reportID);
@@ -947,7 +1040,7 @@ function Search({
             }
 
             if (isReportActionListItemType(item)) {
-                const reportActionID = item.reportActionID;
+                const reportActionID = reportActionItem.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
                 return;
             }
@@ -955,7 +1048,7 @@ function Search({
             markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData, item?.reportAction?.childReportID);
+                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
             }
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
@@ -1172,6 +1265,7 @@ function Search({
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
+                    containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
                     title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
                     subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
@@ -1210,6 +1304,24 @@ function Search({
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
+
+    // Other charts are not implemented yet
+    const shouldShowChartView = view === CONST.SEARCH.VIEW.BAR && !!validGroupBy;
+
+    if (shouldShowChartView) {
+        return (
+            <SearchScopeProvider>
+                <SearchChartView
+                    queryJSON={queryJSON}
+                    view={view}
+                    groupBy={validGroupBy}
+                    data={sortedData as TransactionGroupListItemType[]}
+                    isLoading={shouldShowLoadingState}
+                    onScroll={onSearchListScroll}
+                />
+            </SearchScopeProvider>
+        );
+    }
 
     return (
         <SearchScopeProvider>
