@@ -212,4 +212,7 @@ platforms:
         title: Billing & Subscriptions
         icon: /assets/images/accounting.svg
         description: Learn about billing and subscriptions.
+        sections:
+          - href: overview
+            title: Overview
 
