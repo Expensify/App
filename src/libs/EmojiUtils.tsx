@@ -56,6 +56,9 @@ function revertEmojisInCodeBlocks(text: string): string {
         return text;
     }
 
+    // Process ranges in reverse order to preserve positions when text length changes
+    codeRanges.sort((a, b) => b.start - a.start);
+
     let result = text;
     for (const range of codeRanges) {
         const codeContent = text.slice(range.start, range.start + range.length);

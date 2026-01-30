@@ -262,6 +262,12 @@ describe('EmojiTest', () => {
             expect(EmojiUtils.replaceEmojis(text).text).toBe('```\n:joy:\n```\nhello 👋 \n```\n:smile:\n```');
         });
 
+        it('should revert emojis in multiple inline code blocks correctly', () => {
+            // Regression test: forward processing caused position shifts when emoji→shortcode changed length
+            const text = '`😄` hello `👋`';
+            expect(EmojiUtils.replaceEmojis(text).text).toBe('`:smile:` hello `:wave:`');
+        });
+
         it('should handle shortcode spanning across would-be code block boundary', () => {
             // Backtick in the middle of shortcode - not a valid code block
             const text = ':jo`y:';
