@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
+import type {ButtonProps} from './Button';
 import Icon from './Icon';
 import Text from './Text';
 
@@ -31,11 +32,17 @@ type BaseWidgetItemProps = {
 
     /** Optional: fill color for the icon (defaults to white) */
     iconFill?: string;
+
+    /** Optional: additional props to pass to the Button component (e.g., danger, success) */
+    buttonProps?: Partial<Pick<ButtonProps, 'success' | 'danger'>>;
 };
 
-function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill, buttonProps}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+
+    // Default to success style unless buttonProps specifies otherwise
+    const showSuccess = buttonProps?.success ?? !buttonProps?.danger;
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
@@ -54,7 +61,8 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
             <Button
                 text={ctaText}
                 onPress={onCtaPress}
-                success
+                success={showSuccess}
+                danger={buttonProps?.danger}
                 small
                 style={styles.widgetItemButton}
             />

@@ -24,6 +24,12 @@ type PossibleFraudData = {
     /** Card ID that triggered the fraud detection (for domain-level fraud) */
     triggerCardID?: number;
 
+    /** Amount that triggered the fraud detection (in cents) */
+    triggerAmount?: number;
+
+    /** Merchant name that triggered the fraud detection */
+    triggerMerchant?: string;
+
     /** Report ID for the fraud alert action (used for deeplink) */
     fraudAlertReportID?: number;
 
