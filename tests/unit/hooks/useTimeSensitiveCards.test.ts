@@ -5,8 +5,8 @@ import useTimeSensitiveCards from '@pages/home/TimeSensitiveSection/hooks/useTim
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
-import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import {createRandomExpensifyCard} from '../../utils/collections/card';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 describe('useTimeSensitiveCards', () => {
     beforeAll(() => {

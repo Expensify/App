@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+// Import mocks after they're defined
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+import {getEarlyDiscountInfo, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import useTimeSensitiveOffers from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveOffers';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -20,11 +24,6 @@ jest.mock('@libs/SubscriptionUtils', () => ({
     shouldShowDiscountBanner: jest.fn(() => false),
     getEarlyDiscountInfo: jest.fn(() => null),
 }));
-
-// Import mocks after they're defined
-import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import {getEarlyDiscountInfo, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 
 const mockedUseHasTeam2025Pricing = useHasTeam2025Pricing as jest.Mock;
 const mockedUseSubscriptionPlan = useSubscriptionPlan as jest.Mock;

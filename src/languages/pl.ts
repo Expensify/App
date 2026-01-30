@@ -769,10 +769,10 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł ani kodów.',
         },
         revoke: {
-            revoke: 'Unieważnij',
+            revoke: 'Odwołaj',
             title: 'Rozpoznawanie twarzy/odcisk palca i klucze dostępu',
             explanation:
-                'Weryfikacja za pomocą twarzy/odcisku palca lub klucza dostępu (passkey) jest włączona na jednym lub większej liczbie urządzeń. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
+                'Weryfikacja za pomocą twarzy/odcisku palca lub klucza dostępu jest włączona na jednym lub większej liczbie urządzeń. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
             confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do następnej weryfikacji na dowolnym urządzeniu',
             cta: 'Cofnij dostęp',
             noDevices:
@@ -8253,6 +8253,12 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             offer25off: {title: 'Uzyskaj 25% zniżki na pierwszy rok!', subtitle: ({days}: {days: number}) => `Pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}`},
             addShippingAddress: {title: 'Potrzebujemy Twojego adresu do wysyłki', subtitle: 'Podaj adres, na który mamy wysłać Twoją kartę Expensify.', cta: 'Dodaj adres'},
             activateCard: {title: 'Aktywuj swoją kartę Expensify', subtitle: 'Zweryfikuj swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
+            reviewCardFraud: {
+                title: 'Przejrzyj potencjalne oszustwo na swojej karcie Expensify',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Sprawdź ${amount} pod kątem potencjalnego oszustwa u ${merchant}`,
+                subtitle: 'Karta Expensify',
+                cta: 'Przejrzyj',
+            },
         },
     },
 };

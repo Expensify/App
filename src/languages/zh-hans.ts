@@ -766,8 +766,8 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             revoke: '撤销',
             title: '面部识别/指纹识别与通行密钥',
-            explanation: '在一台或多台设备上已启用面部 / 指纹或通行密钥验证。撤销访问权限后，下次在任何设备上进行验证时都需要使用魔法验证码',
-            confirmationPrompt: '你确定吗？在任何设备上进行下一步验证时，你都需要一个魔法代码',
+            explanation: '在一台或多台设备上已启用面部/指纹或通行密钥验证。撤销访问后，下次在任意设备上进行验证时都需要使用魔法代码',
+            confirmationPrompt: '您确定吗？您在任何设备上的下一次验证都需要一个魔法代码',
             cta: '撤销访问权限',
             noDevices: '您尚未注册任何用于人脸/指纹或通行密钥验证的设备。如果您注册了设备，您将可以在此撤销其访问权限。',
             dismiss: '明白了',
@@ -7040,7 +7040,7 @@ ${reportName}
                 addedConnection: ({connectionName}: ConnectionNameParams) => `已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: '已离开聊天',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>`,
+                    `${feedName} 连接已中断。若要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录您的银行账户</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您的企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用您的 Expensify 卡。`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8021,6 +8021,12 @@ ${reportName}
             offer25off: {title: '首次年度订阅立享 25% 折扣！', subtitle: ({days}: {days: number}) => `剩余 ${days} ${days === 1 ? '天' : '天'}`},
             addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify Card。', cta: '添加地址'},
             activateCard: {title: '激活您的 Expensify Card', subtitle: '验证您的卡片并开始消费。', cta: '激活'},
+            reviewCardFraud: {
+                title: '查看您的 Expensify Card 上的潜在欺诈行为',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `在 ${merchant} 审核可能存在欺诈的金额 ${amount}`,
+                subtitle: 'Expensify Card',
+                cta: '审核',
+            },
         },
     },
 };

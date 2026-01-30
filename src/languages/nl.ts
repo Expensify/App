@@ -7212,7 +7212,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 addedConnection: ({connectionName}: ConnectionNameParams) => `verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'heeft de chat verlaten',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `De ${feedName}-verbinding is verbroken. Om kaartimporten te herstellen, <a href='${workspaceCompanyCardRoute}'>log in bij uw bank</a>`,
+                    `De ${feedName}-verbinding is verbroken. Om kaartimports te herstellen, <a href='${workspaceCompanyCardRoute}'>log in bij uw bank</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met uw zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind uw bankrekening ${maskedAccountNumber} opnieuw</a> om uw Expensify-kaarten te kunnen blijven gebruiken.`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8269,6 +8269,12 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             offer25off: {title: 'Krijg 25% korting op je eerste jaar!', subtitle: ({days}: {days: number}) => `Nog ${days} ${days === 1 ? 'dag' : 'dagen'} resterend`},
             addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Voer een adres in om je Expensify Card te ontvangen.', cta: 'Adres toevoegen'},
             activateCard: {title: 'Activeer je Expensify Card', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
+            reviewCardFraud: {
+                title: 'Controleer mogelijke fraude op je Expensify Card',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Controleer ${amount} aan mogelijke fraude bij ${merchant}`,
+                subtitle: 'Expensify Card',
+                cta: 'Beoordelen',
+            },
         },
     },
 };

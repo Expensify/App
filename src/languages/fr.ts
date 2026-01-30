@@ -774,7 +774,7 @@ const translations: TranslationDeepObject<typeof en> = {
             revoke: 'Révoquer',
             title: 'Reconnaissance faciale/empreinte digitale et passkeys',
             explanation:
-                'La vérification par reconnaissance faciale/empreinte digitale ou par passkey est activée sur un ou plusieurs appareils. Révoquer l’accès exigera un code magique pour la prochaine vérification sur n’importe quel appareil',
+                'La vérification par reconnaissance faciale/empreinte digitale ou par passkey est activée sur un ou plusieurs appareils. La révocation de l’accès nécessitera un code magique pour la prochaine vérification sur n’importe quel appareil',
             confirmationPrompt: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil',
             cta: 'Révoquer l’accès',
             noDevices:
@@ -7252,7 +7252,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connecté à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'a quitté la discussion',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `La connexion à ${feedName} est rompue. Pour rétablir l'importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>`,
+                    `La connexion ${feedName} est interrompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est interrompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> pour continuer à utiliser vos cartes Expensify.`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8313,6 +8313,12 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             offer25off: {title: 'Obtenez 25 % de réduction sur votre première année !', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'jour' : 'jours'} restants`},
             addShippingAddress: {title: 'Nous avons besoin de votre adresse de livraison', subtitle: 'Indiquez une adresse pour recevoir votre carte Expensify.', cta: 'Ajouter une adresse'},
             activateCard: {title: 'Activer votre carte Expensify', subtitle: 'Validez votre carte et commencez à dépenser.', cta: 'Activer'},
+            reviewCardFraud: {
+                title: 'Examiner un éventuel cas de fraude sur votre carte Expensify',
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Examiner ${amount} de fraude potentielle chez ${merchant}`,
+                subtitle: 'Carte Expensify',
+                cta: 'Vérifier',
+            },
         },
     },
 };

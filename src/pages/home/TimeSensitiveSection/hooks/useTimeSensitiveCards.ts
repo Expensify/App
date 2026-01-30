@@ -1,5 +1,5 @@
-import useOnyx from '@hooks/useOnyx';
 import {timeSensitiveCardsSelector} from '@selectors/Card';
+import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function useTimeSensitiveCards() {

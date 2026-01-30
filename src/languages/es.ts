@@ -762,9 +762,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             reviewCardFraud: {
                 title: 'Review potential fraud on your Expensify Card',
-                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => \`Review ${amount} in potential fraud at ${merchant}\`,
+                titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Review ${amount} in potential fraud at ${merchant}`,
                 subtitle: 'Expensify Card',
-                cta: 'Review',
+                cta: 'Revisar',
             },
         },
         announcements: 'Anuncios',
