@@ -643,6 +643,8 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Início',
         week: 'Semana',
         secondAbbreviation: 's',
+        year: 'Ano',
+        quarter: 'Trimestre',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -6990,6 +6992,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etiqueta',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mês',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Ano',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
             },
             feed: 'Feed',
             withdrawalType: {

@@ -2,8 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BaseWidgetItem from '@components/BaseWidgetItem';
-import {Cash, Export, Send, ThumbsUp} from '@components/Icon/Expensicons';
 import WidgetContainer from '@components/WidgetContainer';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,6 +26,7 @@ function ForYouSection() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {reportCounts} = useTodos();
+    const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Send', 'ThumbsUp', 'Export']);
 
     const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
     const approveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE];
@@ -50,28 +51,28 @@ function ForYouSection() {
         {
             key: 'submit',
             count: submitCount,
-            icon: Send,
+            icon: icons.Send,
             translationKey: 'homePage.forYouSection.submit' as const,
             handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.SUBMIT, {from: [`${accountID}`]}),
         },
         {
             key: 'approve',
             count: approveCount,
-            icon: ThumbsUp,
+            icon: icons.ThumbsUp,
             translationKey: 'homePage.forYouSection.approve' as const,
             handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.APPROVE, {to: [`${accountID}`]}),
         },
         {
             key: 'pay',
             count: payCount,
-            icon: Cash,
+            icon: icons.Cash,
             translationKey: 'homePage.forYouSection.pay' as const,
             handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.PAY, {reimbursable: CONST.SEARCH.BOOLEAN.YES, payer: accountID?.toString()}),
         },
         {
             key: 'export',
             count: exportCount,
-            icon: Export,
+            icon: icons.Export,
             translationKey: 'homePage.forYouSection.export' as const,
             handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.EXPORT, {exporter: [`${accountID}`], exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER}),
         },

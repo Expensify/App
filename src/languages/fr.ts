@@ -645,6 +645,8 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Accueil',
         week: 'Semaine',
         secondAbbreviation: 's',
+        year: 'Année',
+        quarter: 'Trimestre',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -7041,6 +7043,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Étiquette',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mois',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Année',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
             },
             feed: 'Flux',
             withdrawalType: {

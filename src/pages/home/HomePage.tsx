@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
+import AnnouncementSection from './AnnouncementSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
@@ -59,7 +60,9 @@ function HomePage() {
                         <ForYouSection />
                         <DiscoverSection />
                     </View>
-                    <View style={styles.homePageRightColumn(shouldUseNarrowLayout)} />
+                    <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
+                        <AnnouncementSection />
+                    </View>
                 </View>
             </ScrollView>
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}

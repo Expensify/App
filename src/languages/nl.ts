@@ -644,6 +644,8 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Start',
         week: 'Week',
         secondAbbreviation: 's',
+        year: 'Jaar',
+        quarter: 'Kwartaal',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -7001,6 +7003,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaar',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartaal',
             },
             feed: 'Feed',
             withdrawalType: {
