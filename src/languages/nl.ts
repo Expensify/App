@@ -1055,6 +1055,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bevestig hieronder de details voor de ${count} nieuwe werkruimteleden die als onderdeel van deze upload zullen worden toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transacties zijn geïmporteerd.` : '1 transactie is geïmporteerd.',
     },
     receipt: {
         upload: 'Bon uploaden',
@@ -4945,6 +4947,15 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             editStartDateDescription:
                 'Kies een nieuwe startdatum voor transacties. We synchroniseren alle transacties vanaf die datum, met uitzondering van de transacties die we al hebben geïmporteerd.',
             unassignCardFailedError: 'Kaartontkoppeling mislukt.',
+            importTransactions: {
+                title: 'Transacties importeren uit bestand',
+                description: 'Pas de instellingen voor je bestand aan die bij het importeren worden toegepast.',
+                cardDisplayName: 'Kaartweergavenaam',
+                currency: 'Valuta',
+                transactionsAreReimbursable: 'Transacties zijn terugbetaalbaar',
+                flipAmountSign: 'Teken van bedrag omdraaien',
+                importButton: 'Transacties importeren',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kan kaartfeeds niet laden',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7051,6 +7062,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
         topSpenders: 'Grootste uitgaven',
+        view: {label: 'Bekijken', table: 'Tabel', bar: 'Bar'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Kaarten',
@@ -8255,6 +8267,8 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             cta: 'Declaratie',
             offer50off: {title: 'Krijg 50% korting op je eerste jaar!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} resterend`},
             offer25off: {title: 'Krijg 25% korting op je eerste jaar!', subtitle: ({days}: {days: number}) => `Nog ${days} ${days === 1 ? 'dag' : 'dagen'} resterend`},
+            addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Voer een adres in om je Expensify Card te ontvangen.', cta: 'Adres toevoegen'},
+            activateCard: {title: 'Activeer je Expensify Card', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
         },
     },
 };

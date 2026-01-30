@@ -1059,6 +1059,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Veuillez confirmer les détails ci-dessous pour les ${count} nouveaux membres d’espace de travail qui seront ajoutés dans le cadre de cet import. Les membres existants ne recevront aucune mise à jour de rôle ni message d’invitation.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transactions ont été importées.` : '1 transaction a été importée.',
     },
     receipt: {
         upload: 'Téléverser un reçu',
@@ -4970,6 +4972,15 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             editStartDateDescription:
                 'Choisissez une nouvelle date de début des transactions. Nous synchroniserons toutes les transactions à partir de cette date, en excluant celles que nous avons déjà importées.',
             unassignCardFailedError: 'Échec de la désaffectation de la carte.',
+            importTransactions: {
+                title: 'Importer des transactions depuis un fichier',
+                description: 'Veuillez ajuster les paramètres de votre fichier qui seront appliqués lors de l’importation.',
+                cardDisplayName: 'Nom d’affichage de la carte',
+                currency: 'Devise',
+                transactionsAreReimbursable: 'Les transactions sont remboursables',
+                flipAmountSign: 'Inverser le signe du montant',
+                importButton: 'Importer des transactions',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de carte',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7091,6 +7102,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
         topSpenders: 'Plus gros dépensiers',
+        view: {label: 'Afficher', table: 'Tableau', bar: 'Barre'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cartes',
@@ -8299,6 +8311,8 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             cta: 'Demande',
             offer50off: {title: 'Obtenez 50 % de réduction sur votre première année !', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} restant`},
             offer25off: {title: 'Obtenez 25 % de réduction sur votre première année !', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'jour' : 'jours'} restants`},
+            addShippingAddress: {title: 'Nous avons besoin de votre adresse de livraison', subtitle: 'Indiquez une adresse pour recevoir votre carte Expensify.', cta: 'Ajouter une adresse'},
+            activateCard: {title: 'Activer votre carte Expensify', subtitle: 'Validez votre carte et commencez à dépenser.', cta: 'Activer'},
         },
     },
 };

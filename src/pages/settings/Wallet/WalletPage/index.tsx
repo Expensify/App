@@ -78,7 +78,7 @@ function WalletPage() {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus']);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table']);
     const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet']);
     const walletIllustration = useWalletSectionIllustration();
 
@@ -528,14 +528,14 @@ function WalletPage() {
                             />
                         </Section>
 
-                        {hasAssignedCard ? (
-                            <Section
-                                subtitle={translate('walletPage.assignedCardsDescription')}
-                                title={translate('walletPage.assignedCards')}
-                                isCentralPane
-                                subtitleMuted
-                                titleStyles={styles.accountSettingsSectionTitle}
-                            >
+                        <Section
+                            subtitle={translate('walletPage.assignedCardsDescription')}
+                            title={translate('walletPage.assignedCards')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            {hasAssignedCard && (
                                 <PaymentMethodList
                                     shouldShowAddBankAccount={false}
                                     shouldShowAssignedCards
@@ -544,8 +544,19 @@ function WalletPage() {
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 />
-                            </Section>
-                        ) : null}
+                            )}
+                            {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
+                                <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                    <MenuItem
+                                        title={translate('workspace.companyCards.importTransactions.importButton')}
+                                        icon={icons.Table}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                    />
+                                </View>
+                            )}
+                        </Section>
 
                         {hasWallet && (
                             <Section
