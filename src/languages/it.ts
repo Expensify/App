@@ -8277,8 +8277,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             offer25off: {title: 'Ottieni il 25% di sconto sul tuo primo anno!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'giorno' : 'giorni'} rimanenti`},
             ctaFix: 'Correggi',
             fixCompanyCardConnection: {
-                title: ({feedName}: {feedName: string}) =>
-                    feedName ? `Correggi la connessione della carta aziendale ${feedName}` : 'Correggi la connessione della carta aziendale',
+                title: ({feedName}: {feedName: string}) => (feedName ? `Correggi la connessione della carta aziendale ${feedName}` : 'Correggi la connessione della carta aziendale'),
                 subtitle: 'Spazio di lavoro > Carte aziendali',
             },
             fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Correggi la connessione ${integrationName}`, subtitle: 'Workspace > Contabilità'},

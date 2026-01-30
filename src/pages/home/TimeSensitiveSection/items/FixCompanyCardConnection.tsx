@@ -37,7 +37,7 @@ function FixCompanyCardConnection({card, policyID}: FixCompanyCardConnectionProp
             subtitle={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
-            isDanger
+            buttonProps={{danger: true}}
         />
     );
 }

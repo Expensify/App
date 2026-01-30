@@ -8188,7 +8188,10 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             offer50off: {title: '初年度が50％オフ！', subtitle: ({formattedTime}: {formattedTime: string}) => `残り${formattedTime}`},
             offer25off: {title: '初年度が25％オフ！', subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日'}`},
             ctaFix: '修正',
-            fixCompanyCardConnection: {title: ({feedName}: {feedName: string}) => (feedName ? `${feedName} 会社カード接続を修正` : '会社カード接続を修正'), subtitle: 'ワークスペース > 会社カード'},
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `${feedName} 会社カード接続を修正` : '会社カード接続を修正'),
+                subtitle: 'ワークスペース > 会社カード',
+            },
             fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`, subtitle: 'ワークスペース > 会計'},
         },
     },

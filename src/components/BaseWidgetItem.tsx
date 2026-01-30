@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
+import type {ButtonProps} from './Button';
 import Icon from './Icon';
 import Text from './Text';
 
@@ -32,11 +33,11 @@ type BaseWidgetItemProps = {
     /** Optional: fill color for the icon (defaults to white) */
     iconFill?: string;
 
-    /** Whether the CTA button should use danger styling instead of success */
-    isDanger?: boolean;
+    /** Additional props to pass to the Button component for styling control */
+    buttonProps?: Partial<ButtonProps>;
 };
 
-function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill, isDanger = false}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill, buttonProps}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -57,10 +58,10 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
             <Button
                 text={ctaText}
                 onPress={onCtaPress}
-                success={!isDanger}
-                danger={isDanger}
                 small
                 style={styles.widgetItemButton}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...buttonProps}
             />
         </View>
     );

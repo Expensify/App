@@ -31,7 +31,7 @@ function FixAccountingConnection({connectionName, policyID}: FixAccountingConnec
             subtitle={translate('homePage.timeSensitiveSection.fixAccountingConnection.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
-            isDanger
+            buttonProps={{danger: true}}
         />
     );
 }
