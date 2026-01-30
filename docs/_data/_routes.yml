@@ -203,13 +203,13 @@ platforms:
         icon: /assets/images/envelope-receipt.svg
         description: "Learn how to create and manage Travel Events for group bookings."
 
-- href: consolidated
-  title: Consolidated
-  hub-title: Consolidated
-  hub-description: Questions? Find the answers by clicking a Category or using the search bar.
-  hubs:
-    - href: billing-and-subscriptions
-      title: Billing & Subscriptions
-      icon: /assets/images/accounting.svg
-      description: Learn about billing and subscriptions.
+  - href: consolidated
+    title: Consolidated
+    hub-title: Consolidated
+    hub-description: Questions? Find the answers by clicking a Category or using the search bar.
+    hubs:
+      - href: billing-and-subscriptions
+        title: Billing & Subscriptions
+        icon: /assets/images/accounting.svg
+        description: Learn about billing and subscriptions.
 
