@@ -2243,7 +2243,13 @@ function getValidOptions(
                 searchText += report.subtitle ?? '';
             } else if (report.isPolicyExpenseChat) {
                 searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
+            } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
+                const participantNames = report.participantsList?.map((participant) => participant.displayName).join(' ') ?? '';
+                const participantLogins = report.participantsList?.map((participant) => participant.login).join(' ') ?? '';
+                searchText += participantNames;
+                searchText += participantLogins;
             }
+
             searchText = deburr(searchText.toLocaleLowerCase());
             return searchTerms.every((term) => searchText.includes(term));
         };
