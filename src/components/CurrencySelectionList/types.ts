@@ -1,4 +1,4 @@
-import {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/types';
+import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/types';
 
 type CurrencyListItem = ListItem & {
     currencyName: string;
