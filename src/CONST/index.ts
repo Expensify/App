@@ -8020,6 +8020,8 @@ const CONST = {
             HOME: 'NavigationTabBar-Home',
             FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
+            FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
+            FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
         },
         FAB_MENU: {
             CREATE_EXPENSE: 'FABMenu-CreateExpense',
