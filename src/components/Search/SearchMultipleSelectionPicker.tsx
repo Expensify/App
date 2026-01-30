@@ -108,6 +108,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             shouldStopPropagation
             shouldShowTooltips
             canSelectMultiple
+            disableMaintainingScrollPosition
             footerContent={
                 <SearchFilterPageFooterButtons
                     applyChanges={applyChanges}
