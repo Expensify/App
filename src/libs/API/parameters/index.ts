@@ -385,10 +385,11 @@ export type {default as OpenPolicyCompanyCardsFeedParams} from './OpenPolicyComp
 export type {default as OpenPolicyAddCardFeedPageParams} from './OpenPolicyAddCardFeedPageParams';
 export type {default as SetFeedStatementPeriodEndDayParams} from './SetFeedStatementPeriodEndDayParams';
 export type {default as AssignCompanyCardParams} from './AssignCompanyCardParams';
-export type {default as UnassignCompanyCard} from './UnassignCompanyCard';
-export type {default as UpdateCompanyCard} from './UpdateCompanyCard';
+export type {default as UnassignCardParams} from './UnassignCardParams';
+export type {default as SyncCardParams} from './SyncCardParams';
 export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNameParams';
 export type {default as UpdateCardTransactionStartDateParams} from './UpdateCardTransactionStartDateParams';
+export type {default as SetPersonalCardReimbursableParams} from './SetPersonalCardReimbursableParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
 export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
@@ -472,4 +473,5 @@ export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRulePa
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
 export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';
 export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';
+export type {default as GetTransactionsMatchingCodingRuleParams} from './GetTransactionsMatchingCodingRuleParams';
 export type {default as SetPolicyTimeTrackingDefaultRateParams} from './SetPolicyTimeTrackingDefaultRateParams';
