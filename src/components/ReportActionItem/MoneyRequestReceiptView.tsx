@@ -121,6 +121,7 @@ function MoneyRequestReceiptView({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -174,16 +175,17 @@ function MoneyRequestReceiptView({
         for (const violation of filteredViolations) {
             const isReceiptFieldViolation = receiptFieldViolationNames.has(violation.name);
             const isReceiptImageViolation = receiptImageViolationNames.has(violation.name);
-            if (isReceiptFieldViolation || isReceiptImageViolation) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink);
+            const isRTERViolation = violation.name === CONST.VIOLATIONS.RTER;
+            if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
+                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, cardList);
                 allViolations.push(violationMessage);
-                if (isReceiptImageViolation) {
+                if (isReceiptImageViolation || isRTERViolation) {
                     imageViolations.push(violationMessage);
                 }
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink]);
+    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
