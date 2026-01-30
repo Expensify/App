@@ -34,7 +34,7 @@ function DiscoverSection() {
         hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const parentReportAction = useParentReportAction(viewTourTaskReport);
-    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
+    const [hasSeenTour = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
 
     const handlePress = () => {
         Linking.openURL(getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin));
