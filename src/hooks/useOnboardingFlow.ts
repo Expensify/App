@@ -131,6 +131,7 @@ function useOnboardingFlowRouter() {
         currentUrl,
         isLoggingInAsNewSessionUser,
         isOnboardingLoading,
+        onboardingValues,
     ]);
 
     return {
