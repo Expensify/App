@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
-import {isCardPendingActivate, isCardPendingIssue} from '@libs/CardUtils';
+import {isCard, isCardPendingActivate, isCardPendingIssue} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
@@ -9,7 +9,7 @@ function useTimeSensitiveCards() {
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
 
     const {cardsNeedingShippingAddress, cardsNeedingActivation} = useMemo<{cardsNeedingShippingAddress: Card[]; cardsNeedingActivation: Card[]}>(() => {
-        const cards = Object.values(cardList ?? {});
+        const cards = Object.values(cardList ?? {}).filter(isCard);
         const isPhysicalExpensifyCard = (card: Card) => card.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual;
 
         return cards.reduce<{cardsNeedingShippingAddress: Card[]; cardsNeedingActivation: Card[]}>(
