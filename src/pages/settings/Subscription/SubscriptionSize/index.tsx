@@ -26,7 +26,7 @@ type SubscriptionSizePageProps = PlatformStackScreenProps<SettingsNavigatorParam
 
 const pages = [
     {pageName: CONST.SUBSCRIPTION_SIZE.PAGE_NAME.SIZE, component: Size},
-    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation},
+    {pageName: CONST.SUBSCRIPTION_SIZE.PAGE_NAME.CONFIRM, component: Confirmation},
 ];
 
 function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
