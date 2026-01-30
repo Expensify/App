@@ -37,12 +37,9 @@ type BarChartProps = CartesianChartProps & {
 /** Inner padding between bars (0.3 = 30% of bar width) */
 const BAR_INNER_PADDING = 0.3;
 
-/** Domain padding configuration for the bar chart */
+/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
 const DOMAIN_PADDING = {
-    left: 0,
-    right: 16,
-    top: 30,
-    bottom: 10,
+    top: 32,
 };
 
 /** Safety buffer multiplier for domain padding calculation */
@@ -114,10 +111,10 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
 
     const domainPadding = useMemo(() => {
         if (chartWidth === 0) {
-            return {left: 0, right: 0, top: DOMAIN_PADDING.top, bottom: DOMAIN_PADDING.bottom};
+            return {...DOMAIN_PADDING, left: 0, right: 0};
         }
         const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
-        return {left: horizontalPadding, right: horizontalPadding + DOMAIN_PADDING.right, top: DOMAIN_PADDING.top, bottom: DOMAIN_PADDING.bottom};
+        return {...DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding + DOMAIN_PADDING.right};
     }, [chartWidth, data.length]);
 
     const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
