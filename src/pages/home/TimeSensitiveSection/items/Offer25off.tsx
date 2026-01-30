@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 type Offer25offProps = {
+    /** The number of days remaining until the offer expires */
     days: number;
 };
 
