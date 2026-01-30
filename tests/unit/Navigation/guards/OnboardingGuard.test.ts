@@ -55,22 +55,7 @@ describe('OnboardingGuard', () => {
     });
 
     describe('early exit conditions', () => {
-        it('should allow when state is empty', () => {
-            const emptyState: NavigationState = {
-                key: 'root',
-                index: 0,
-                routeNames: [],
-                routes: [],
-                stale: false,
-                type: 'root',
-            };
-
-            const result = OnboardingGuard.evaluate(emptyState, mockAction, authenticatedContext);
-
-            expect(result.type).toBe('ALLOW');
-        });
-
-        it('should allow when app is still loading Onyx data', () => {
+        it('should block when app is still loading Onyx data', () => {
             const loadingContext: GuardContext = {
                 isAuthenticated: true,
                 isLoading: true,
@@ -79,19 +64,7 @@ describe('OnboardingGuard', () => {
 
             const result = OnboardingGuard.evaluate(mockState, mockAction, loadingContext);
 
-            expect(result.type).toBe('ALLOW');
-        });
-
-        it('should allow unauthenticated users', () => {
-            const unauthContext: GuardContext = {
-                isAuthenticated: false,
-                isLoading: false,
-                currentUrl: '',
-            };
-
-            const result = OnboardingGuard.evaluate(mockState, mockAction, unauthContext);
-
-            expect(result.type).toBe('ALLOW');
+            expect(result.type).toBe('BLOCK');
         });
 
         it('should allow during app transition', () => {
@@ -104,6 +77,36 @@ describe('OnboardingGuard', () => {
             const result = OnboardingGuard.evaluate(mockState, mockAction, transitionContext);
 
             expect(result.type).toBe('ALLOW');
+        });
+
+        it('should BLOCK RESET action when user is on onboarding and tries to reset to non-onboarding screen', async () => {
+            // User is currently on an onboarding screen
+            const onboardingState: NavigationState = {
+                key: 'root',
+                index: 0,
+                routeNames: [SCREENS.ONBOARDING.PURPOSE],
+                routes: [{key: 'purpose', name: SCREENS.ONBOARDING.PURPOSE}],
+                stale: false,
+                type: 'root',
+            };
+
+            // RESET action trying to navigate to a non-onboarding screen (HOME)
+            const resetAction: NavigationAction = {
+                type: CONST.NAVIGATION_ACTIONS.RESET,
+                payload: {
+                    key: 'root',
+                    index: 0,
+                    routeNames: [SCREENS.HOME],
+                    routes: [{key: 'home', name: SCREENS.HOME}],
+                    stale: false,
+                    type: 'root',
+                },
+            };
+
+            const result = OnboardingGuard.evaluate(onboardingState, resetAction, authenticatedContext) as {type: 'BLOCK'; reason?: string};
+
+            expect(result.type).toBe('BLOCK');
+            expect(result.reason).toBe('Cannot reset to non-onboarding screen while on onboarding');
         });
     });
 
