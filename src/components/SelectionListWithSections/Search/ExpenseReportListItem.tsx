@@ -83,14 +83,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox, reportItem.transactions.length]);
 
-    const isReportPendingDelete = reportItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportItem.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
     // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
     // like isAttendeeTrackingEnabled is not missing
     // Use snapshotReport/snapshotPolicy as fallbacks to fix offline issues where
     // newly created reports aren't in the search snapshot yet
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const reportForViolations = parentReport ?? snapshotReport;
+
+    // Use live report data for pending delete check as snapshot can be stale
+    const liveReport = parentReport ?? reportItem;
+    const isReportPendingDelete = liveReport.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || liveReport.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // Sync missingAttendees violation at render time for each transaction in the report
     // This ensures violations show immediately when category settings change, without needing to click the row
