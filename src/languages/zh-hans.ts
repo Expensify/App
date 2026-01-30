@@ -6832,11 +6832,7 @@ ${reportName}
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '来自',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡',
-<<<<<<< HEAD
-                [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现 ID',
-=======
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: '提现编号',
->>>>>>> main
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: '类别',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: '商户',
                 [CONST.SEARCH.GROUP_BY.TAG]: '标签',
