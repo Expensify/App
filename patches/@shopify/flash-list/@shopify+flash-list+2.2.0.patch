@@ -1,74 +1,21 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
-index 9f5865f..61a1237 100644
+index 9f5865f..eee830e 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
-@@ -283,23 +283,32 @@ export class RecyclerViewManager {
-             return;
-         }
-         const initialScrollIndex = this.getInitialScrollIndex();
--        const initialItemLayout = (_a = this.layoutManager) === null || _a === void 0 ? void 0 : _a.getLayout(initialScrollIndex !== null && initialScrollIndex !== void 0 ? initialScrollIndex : 0);
--        const initialItemOffset = this.propsRef.horizontal
--            ? initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.x
--            : initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.y;
-+
-         if (initialScrollIndex !== undefined) {
--            // console.log(
--            //   "initialItemOffset",
--            //   initialScrollIndex,
--            //   initialItemOffset,
--            //   this.firstItemOffset
--            // );
-+            // Recompute layouts first to get accurate positions
-             this.layoutManager.recomputeLayouts(0, initialScrollIndex);
+@@ -294,9 +294,13 @@ export class RecyclerViewManager {
+             //   initialItemOffset,
+             //   this.firstItemOffset
+             // );
+-            this.layoutManager.recomputeLayouts(0, initialScrollIndex);
 -            this.engagedIndicesTracker.scrollOffset =
 -                initialItemOffset !== null && initialItemOffset !== void 0 ? initialItemOffset : 0 + this.firstItemOffset;
-+
-+            // THEN get the layout (after recompute)
-+            const initialItemLayout = this.layoutManager.getLayout(initialScrollIndex);
-+            const initialItemOffset = this.propsRef.horizontal
-+                ? initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.x
-+                : initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.y;
 +            const initialItemSize = this.propsRef.horizontal
-+                ? initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.width
-+                : initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.height;
-+
++               ? initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.width
++               : initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.height;
 +            const windowSize = this.layoutManager.getWindowsSize();
 +            const viewportSize = this.propsRef.horizontal ? windowSize.width : windowSize.height;
-+
-+            // Position viewport to show last item at bottom
 +            const lastItemBottom = (initialItemOffset !== null && initialItemOffset !== void 0 ? initialItemOffset : 0) + (initialItemSize !== null && initialItemSize !== void 0 ? initialItemSize : 0);
 +            this.engagedIndicesTracker.scrollOffset = Math.max(0, lastItemBottom - viewportSize);
          }
          else {
--            // console.log("initialItemOffset", initialItemOffset, this.firstItemOffset);
-+            const initialItemLayout = (_a = this.layoutManager) === null || _a === void 0 ? void 0 : _a.getLayout(0);
-+            const initialItemOffset = this.propsRef.horizontal
-+                ? initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.x
-+                : initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.y;
-             this.engagedIndicesTracker.scrollOffset =
-                 (initialItemOffset !== null && initialItemOffset !== void 0 ? initialItemOffset : 0) - this.firstItemOffset;
-         }
-@@ -308,13 +317,22 @@ export class RecyclerViewManager {
-         this.progressiveRenderCount++;
-         const layoutManager = this.layoutManager;
-         if (layoutManager) {
--            this.applyInitialScrollAdjustment();
-+            // Only adjust scroll while items are still being measured
-+            if (!this.hasRenderedProgressively) {
-+                this.applyInitialScrollAdjustment();
-+            }
-+
-             const visibleIndices = this.computeVisibleIndices();
-             // console.log("---------> visibleIndices", visibleIndices);
-             this.hasRenderedProgressively = visibleIndices.every((index) => layoutManager.getLayout(index).isHeightMeasured &&
-                 layoutManager.getLayout(index).isWidthMeasured);
-             if (this.hasRenderedProgressively) {
-                 this.isFirstLayoutComplete = true;
-+                // One final adjustment after all items are measured
-+                const initialScrollIndex = this.getInitialScrollIndex();
-+                if (initialScrollIndex !== undefined) {
-+                    this.applyInitialScrollAdjustment();
-+                }
-             }
-             const batchSize = this.numColumns *
-                 this.initialDrawBatchSize ** Math.ceil(this.progressiveRenderCount / 5);
+             // console.log("initialItemOffset", initialItemOffset, this.firstItemOffset);
