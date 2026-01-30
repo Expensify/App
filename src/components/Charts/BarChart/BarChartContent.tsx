@@ -40,6 +40,9 @@ const BAR_INNER_PADDING = 0.3;
 /** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
 const DOMAIN_PADDING = {
     top: 32,
+    bottom: 0,
+    left: 0,
+    right: 0,
 };
 
 /** Safety buffer multiplier for domain padding calculation */
@@ -114,7 +117,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
             return {...DOMAIN_PADDING, left: 0, right: 0};
         }
         const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
-        return {...DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding + DOMAIN_PADDING.right};
+        return {...DOMAIN_PADDING, right: horizontalPadding + DOMAIN_PADDING.right, left: horizontalPadding};
     }, [chartWidth, data.length]);
 
     const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
