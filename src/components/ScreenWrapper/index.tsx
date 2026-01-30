@@ -1,9 +1,9 @@
-import {useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import type {ReactNode} from 'react';
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard} from 'react-native';
+import {DeviceEventEmitter, Keyboard} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
@@ -219,6 +219,31 @@ function ScreenWrapper({
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
+            const timeout = setTimeout(() => {
+                DeviceEventEmitter.emit(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER);
+            }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+
+            const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
+                // Prevent firing the prop callback when user is exiting the page.
+                if (event?.data?.closing) {
+                    return;
+                }
+                clearTimeout(timeout);
+                DeviceEventEmitter.emit(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER);
+            });
+
+            return () => {
+                clearTimeout(timeout);
+                if (unsubscribeTransitionEnd) {
+                    unsubscribeTransitionEnd();
+                }
+            };
+        }, [navigation]),
+    );
 
     const ChildrenContent = useMemo(() => {
         return (
