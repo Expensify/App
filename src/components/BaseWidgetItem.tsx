@@ -31,9 +31,12 @@ type BaseWidgetItemProps = {
 
     /** Optional: fill color for the icon (defaults to white) */
     iconFill?: string;
+
+    /** Whether the CTA button should use danger styling instead of success */
+    isDanger?: boolean;
 };
 
-function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill}: BaseWidgetItemProps) {
+function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, onCtaPress, iconFill, isDanger = false}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -54,7 +57,8 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
             <Button
                 text={ctaText}
                 onPress={onCtaPress}
-                success
+                success={!isDanger}
+                danger={isDanger}
                 small
                 style={styles.widgetItemButton}
             />
