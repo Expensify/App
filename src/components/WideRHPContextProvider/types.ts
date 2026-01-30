@@ -1,6 +1,6 @@
 import type {NavigationRoute} from '@libs/Navigation/types';
 
-type WideRHPContextType = {
+type WideRHPStateContextType = {
     // Route keys of screens that should be displayed in wide format
     wideRHPRouteKeys: string[];
 
@@ -19,6 +19,14 @@ type WideRHPContextType = {
     // If the tertiary overlay should be rendered. This value takes into account the delay of closing transition.
     shouldRenderTertiaryOverlay: boolean;
 
+    // Whether the currently focused route is inside the wide RHP set
+    isWideRHPFocused: boolean;
+
+    // Whether the currently focused route is inside the super wide RHP set
+    isSuperWideRHPFocused: boolean;
+};
+
+type WideRHPActionsContextType = {
     // Show given route as in wide format
     showWideRHPVersion: (route: NavigationRoute) => void;
 
@@ -46,15 +54,17 @@ type WideRHPContextType = {
     // Check if reportID is marked as multi-transaction expense
     isReportIDMarkedAsMultiTransactionExpense: (reportID: string) => boolean;
 
-    // Whether the currently focused route is inside the wide RHP set
-    isWideRHPFocused: boolean;
-
     // Sync super wide and wide RHP keys with the visible RHP screens
     syncRHPKeys: () => void;
 
     // Clear the arrays of wide and super wide rhp keys
     clearWideRHPKeys: () => void;
+
+    // Set that wide rhp is closing
+    setIsWideRHPClosing: (isClosing: boolean) => void;
+
+    // Set that super wide rhp is closing
+    setIsSuperWideRHPClosing: (isClosing: boolean) => void;
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export type {WideRHPContextType};
+export type {WideRHPStateContextType, WideRHPActionsContextType};

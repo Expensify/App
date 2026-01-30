@@ -65,7 +65,9 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
 
     const validateFile = (file: FileObject) => {
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-        if (!CONST.ALLOWED_SPREADSHEET_EXTENSIONS.includes(fileExtension.toLowerCase() as TupleToUnion<typeof CONST.ALLOWED_SPREADSHEET_EXTENSIONS>)) {
+        const allowedExtensions: readonly string[] = isImportingMultiLevelTags ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS : CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
+
+        if (!allowedExtensions.includes(fileExtension.toLowerCase())) {
             setUploadFileError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
         }
@@ -161,7 +163,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             </View>
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react-compiler/react-compiler, react/jsx-props-no-spreading
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
@@ -200,7 +202,6 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             shouldEnableKeyboardAvoidingView={false}
             testID="ImportSpreadsheet"
             shouldEnableMaxHeight={canUseTouchScreen()}
-            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>

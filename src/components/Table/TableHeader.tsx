@@ -20,7 +20,10 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 /**
  * Props for the TableHeader component.
  */
-type TableHeaderProps = ViewProps;
+type TableHeaderProps = ViewProps & {
+    /** Hide table header when search returns no results. */
+    shouldHideHeaderWhenEmptySearch?: boolean;
+};
 
 /**
  * Renders the table header row with sortable column headers.
@@ -45,9 +48,13 @@ type TableHeaderProps = ViewProps;
  * </Table>
  * ```
  */
-function TableHeader<T, ColumnKey extends string = string>({style, ...props}: TableHeaderProps) {
+function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHeaderWhenEmptySearch = true, ...props}: TableHeaderProps) {
     const styles = useThemeStyles();
-    const {columns} = useTableContext<T, ColumnKey>();
+    const {columns, isEmptyResult} = useTableContext<T, ColumnKey>();
+
+    if (shouldHideHeaderWhenEmptySearch && isEmptyResult) {
+        return null;
+    }
 
     return (
         <View

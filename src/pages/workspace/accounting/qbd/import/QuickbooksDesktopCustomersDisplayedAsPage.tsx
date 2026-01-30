@@ -1,12 +1,12 @@
 import React, {useCallback} from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {updateQuickbooksDesktopSyncCustomers} from '@libs/actions/connections/QuickbooksDesktop';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -21,7 +21,7 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
 
     const data: CardListItem[] = [
@@ -44,7 +44,7 @@ function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectio
     const selectDisplayedAs = useCallback(
         (row: CardListItem) => {
             if (row.value !== qbdConfig?.mappings?.customers) {
-                QuickbooksDesktop.updateQuickbooksDesktopSyncCustomers(policyID, row.value, qbdConfig?.mappings?.customers);
+                updateQuickbooksDesktopSyncCustomers(policyID, row.value, qbdConfig?.mappings?.customers);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS.getRoute(policyID));
         },
@@ -57,15 +57,15 @@ function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectio
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksDesktopCustomersDisplayedAsPage"
-            sections={data.length ? [{data}] : []}
+            data={data}
             listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS.getRoute(policyID))}
             onSelectRow={selectDisplayedAs}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.common.displayedAs"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS], qbdConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS)}
+            pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS], qbdConfig?.pendingFields)}
+            errors={getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS)}
             shouldSingleExecuteRowSelect

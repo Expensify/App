@@ -89,7 +89,6 @@ function SearchPageWide({
             <ScreenWrapper
                 testID="Search"
                 shouldEnableMaxHeight
-                headerGapStyles={[styles.searchHeaderGap, styles.h0]}
                 shouldShowOfflineIndicatorInWideScreen={!!searchResults}
                 offlineIndicatorStyle={offlineIndicatorStyle}
             >

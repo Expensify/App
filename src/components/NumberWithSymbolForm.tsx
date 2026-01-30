@@ -26,7 +26,6 @@ import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
-import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
@@ -85,6 +84,9 @@ type NumberWithSymbolFormProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
+
+    /** Callback when the user presses the submit key (Enter) */
+    onSubmitEditing?: () => void;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -146,9 +148,10 @@ function NumberWithSymbolForm({
     clearNegative,
     ref,
     disabled,
+    onSubmitEditing,
     ...props
 }: NumberWithSymbolFormProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
@@ -285,7 +288,7 @@ function NumberWithSymbolForm({
         setNewNumber(stripDecimalsFromAmount(currentNumber));
 
         // we want to update only when decimals change.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [decimals]);
 
     /**
@@ -388,6 +391,7 @@ function NumberWithSymbolForm({
                 autoFocus={props.autoFocus}
                 autoGrowExtraSpace={props.autoGrowExtraSpace}
                 autoGrowMarginSide={props.autoGrowMarginSide}
+                onSubmitEditing={onSubmitEditing}
             />
         );
     }
@@ -454,6 +458,7 @@ function NumberWithSymbolForm({
             isNegative={isNegative}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
+            accessibilityLabel={props.accessibilityLabel}
         />
     );
 
@@ -510,7 +515,7 @@ function NumberWithSymbolForm({
                     <Button
                         shouldShowRightIcon
                         small
-                        iconRight={Expensicons.PlusMinus}
+                        iconRight={icons.PlusMinus}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
                         isContentCentered

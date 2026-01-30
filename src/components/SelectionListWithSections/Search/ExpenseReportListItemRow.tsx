@@ -16,7 +16,7 @@ import getBase62ReportID from '@libs/getBase62ReportID';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, ReportAction} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import ExportedIconCell from './ExportedIconCell';
@@ -28,9 +28,9 @@ import UserInfoCell from './UserInfoCell';
 import WorkspaceCell from './WorkspaceCell';
 
 type ExpenseReportListItemRowProps = {
-    hash: number;
     item: ExpenseReportListItemType;
     policy?: Policy;
+    reportActions?: ReportAction[];
     showTooltip: boolean;
     canSelectMultiple?: boolean;
     isActionLoading?: boolean;
@@ -46,9 +46,9 @@ type ExpenseReportListItemRowProps = {
 };
 
 function ExpenseReportListItemRow({
-    hash,
     item,
     policy,
+    reportActions,
     onCheckboxPress = () => {},
     onButtonPress = () => {},
     isActionLoading,
@@ -113,6 +113,7 @@ function ExpenseReportListItemRow({
                 <StatusCell
                     stateNum={item.stateNum}
                     statusNum={item.statusNum}
+                    isPending={item.shouldShowStatusAsPending}
                 />
             </View>
         ),
@@ -130,7 +131,7 @@ function ExpenseReportListItemRow({
                     <UserInfoCell
                         accountID={item.from.accountID}
                         avatar={item.from.avatar}
-                        displayName={item.from.displayName ?? item.from.login ?? ''}
+                        displayName={item.formattedFrom ?? ''}
                     />
                 )}
             </View>
@@ -141,7 +142,7 @@ function ExpenseReportListItemRow({
                     <UserInfoCell
                         accountID={item.to.accountID}
                         avatar={item.to.avatar}
-                        displayName={item.to.displayName ?? item.to.login ?? ''}
+                        displayName={item.formattedTo ?? ''}
                     />
                 )}
             </View>
@@ -182,10 +183,7 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                <ExportedIconCell
-                    reportID={item.reportID}
-                    hash={hash}
-                />
+                <ExportedIconCell reportActions={reportActions} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
