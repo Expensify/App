@@ -35,7 +35,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import triggerNotifications from '@libs/Notification/triggerNotifications';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
@@ -49,7 +48,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ExpenseRuleForm} from '@src/types/form';
+import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -61,6 +60,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
+import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import Timing from './Timing';
 
@@ -684,6 +684,23 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     }
 
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
+}
+
+function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
+    for (const update of onyxUpdates) {
+        if (!update.shouldNotify && !update.shouldShowPushNotification) {
+            continue;
+        }
+
+        const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+        const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
+
+        for (const action of reportActions) {
+            if (action) {
+                showReportActionNotification(reportID, action);
+            }
+        }
+    }
 }
 
 const isChannelMuted = (reportId: string) =>
@@ -1665,6 +1682,18 @@ function clearDraftRule() {
     Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, null);
 }
 
+function setDraftMerchantRule(ruleData: Partial<MerchantRuleForm>) {
+    Onyx.set(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, ruleData);
+}
+
+function updateDraftMerchantRule(ruleData: Partial<MerchantRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, ruleData);
+}
+
+function clearDraftMerchantRule() {
+    Onyx.set(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, null);
+}
+
 export {
     closeAccount,
     setServerErrorsOnForm,
@@ -1711,4 +1740,7 @@ export {
     setDraftRule,
     updateDraftRule,
     clearDraftRule,
+    setDraftMerchantRule,
+    updateDraftMerchantRule,
+    clearDraftMerchantRule,
 };
