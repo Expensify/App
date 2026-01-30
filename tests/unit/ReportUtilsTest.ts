@@ -2258,7 +2258,7 @@ describe('ReportUtils', () => {
                     const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
                     expect(reportName).toBe(
-                        `The Regions Bank cards connection is broken. To restore card imports, <a href='https://dev.new.expensify.com:8082/workspaces/1/company-cards'>log into your bank</a>`,
+                        `The Regions Bank cards connection is broken. To restore card imports, <a href='https://dev.new.expensify.com:8082/workspaces/1/company-cards'>log into your bank</a>.`,
                     );
                 });
             });

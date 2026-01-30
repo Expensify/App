@@ -27,6 +27,7 @@ function Offer25off({days}: Offer25offProps) {
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.cta')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(ROUTES.HOME))}
+            buttonProps={{success: true}}
         />
     );
 }

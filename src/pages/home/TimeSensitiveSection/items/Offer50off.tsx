@@ -46,6 +46,7 @@ function Offer50off({firstDayFreeTrial}: Offer50offProps) {
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.cta')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(ROUTES.HOME))}
+            buttonProps={{success: true}}
         />
     );
 }

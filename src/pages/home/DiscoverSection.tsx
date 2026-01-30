@@ -1,5 +1,6 @@
 import React from 'react';
 import {Image, Linking, View} from 'react-native';
+import type {OnyxValue} from 'react-native-onyx';
 import HomeTestDriveImage from '@assets/images/home-testdrive-image.png';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -16,7 +17,16 @@ import {completeTestDriveTask} from '@libs/actions/Task';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+// This selector returns true if the user has seen the tour, or if the onboarding NVP is not loaded yet. Thanks to this, discover section does not disappear when the onboarding NVP is loaded.
+function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
+    if (isEmptyObject(onboarding)) {
+        return true;
+    }
+
+    return !!onboarding?.selfTourViewed;
+}
 
 const MAX_NUMBER_OF_LINES_TITLE = 4;
 
@@ -34,7 +44,7 @@ function DiscoverSection() {
         hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const parentReportAction = useParentReportAction(viewTourTaskReport);
-    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
+    const [hasSeenTour = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
 
     const handlePress = () => {
         Linking.openURL(getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin));
@@ -65,6 +75,7 @@ function DiscoverSection() {
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('homePage.discoverSection.title')}
                 style={[shouldUseNarrowLayout ? styles.mh5 : styles.mh8, styles.mb5]}
+                sentryLabel={CONST.SENTRY_LABEL.DISCOVER_SECTION.TEST_DRIVE}
             >
                 <View style={[styles.br2, styles.overflowHidden]}>
                     <Image
@@ -80,8 +91,11 @@ function DiscoverSection() {
                 description={translate('homePage.discoverSection.menuItemDescription')}
                 onPress={handlePress}
                 style={shouldUseNarrowLayout ? styles.mb2 : styles.mb5}
-                wrapperStyle={shouldUseNarrowLayout ? styles.pl5 : styles.pl8}
+                wrapperStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 numberOfLinesTitle={MAX_NUMBER_OF_LINES_TITLE}
+                hasSubMenuItems
+                viewMode={CONST.OPTION_MODE.COMPACT}
+                rightIconWrapperStyle={styles.pl2}
             />
         </WidgetContainer>
     );
