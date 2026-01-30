@@ -5,14 +5,6 @@ import CONST from '@src/CONST';
 
 jest.mock('@libs/MultifactorAuthentication/Biometrics/KeyStore');
 jest.mock('@userActions/MultifactorAuthentication');
-jest.mock('@libs/MultifactorAuthentication/Biometrics/SecureStore', () => ({
-    SECURE_STORE_VALUES: {
-        AUTH_TYPE: {
-            BIOMETRICS: {CODE: 'BIOMETRICS', NAME: 'Biometrics'},
-            PIN: {CODE: 'PIN', NAME: 'PIN'},
-        },
-    },
-}));
 
 describe('MultifactorAuthentication helpers', () => {
     beforeEach(() => {
