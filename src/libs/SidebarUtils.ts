@@ -74,6 +74,7 @@ import {
     getReportActionActorAccountID,
     getReportActionMessageText,
     getRoomAvatarUpdatedMessage,
+    getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
@@ -1020,6 +1021,8 @@ function getOptionData({
             result.alternateText = Parser.htmlToText(getChangedApproverActionMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
             result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
+            result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0

@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import {PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
@@ -566,6 +566,7 @@ const translations: TranslationDeepObject<typeof en> = {
         address: 'Adresse',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: 'Überspringen',
         chatWithAccountManager: (accountManagerDisplayName: string) => `Brauchen Sie etwas Bestimmtes? Chatten Sie mit Ihrem Account Manager, ${accountManagerDisplayName}.`,
         chatNow: 'Jetzt chatten',
@@ -641,6 +642,9 @@ const translations: TranslationDeepObject<typeof en> = {
         newFeature: 'Neue Funktion',
         month: 'Monat',
         home: 'Startseite',
+        week: 'Woche',
+        year: 'Jahr',
+        quarter: 'Quartal',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1135,6 +1139,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: 'Aufteilung entfernen',
         splitExpenseCannotBeEditedModalTitle: 'Diese Ausgabe kann nicht bearbeitet werden',
         splitExpenseCannotBeEditedModalDescription: 'Genehmigte oder bezahlte Ausgaben können nicht bearbeitet werden',
+        splitExpenseDistanceErrorModalDescription: 'Bitte beheben Sie den Fehler bei der Entfernungsrate und versuchen Sie es erneut.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Bezahle ${name ?? 'jemand'}`,
         expense: 'Ausgabe',
         categorize: 'Kategorisieren',
@@ -1257,6 +1262,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `Eingereicht${memo ? `, mit dem Hinweis ${memo}` : ''}`,
         automaticallySubmitted: `eingereicht über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">verspätete Einreichungen</a>`,
         queuedToSubmitViaDEW: 'in die Warteschlange gestellt zur Einreichung über benutzerdefinierten Genehmigungsworkflow',
+        queuedToApproveViaDEW: 'in die Warteschlange gestellt zur Genehmigung über benutzerdefinierten Genehmigungsworkflow',
         trackedAmount: (formattedAmount: string, comment?: string) => `Verfolgung von ${formattedAmount}${comment ? `für ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `Split ${amount}`,
         didSplitAmount: (formattedAmount: string, comment: string) => `aufteilen ${formattedAmount}${comment ? `für ${comment}` : ''}`,
@@ -2156,7 +2162,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Fügen Sie ein Bankkonto hinzu, um Zahlungen zu senden oder zu empfangen.',
         addDebitOrCreditCard: 'Debit- oder Kreditkarte hinzufügen',
         assignedCards: 'Zugewiesene Karten',
-        assignedCardsDescription: 'Dies sind Karten, die von einem Workspace-Admin vergeben wurden, um die Ausgaben des Unternehmens zu verwalten.',
+        assignedCardsDescription: 'Transaktionen von diesen Karten werden automatisch synchronisiert.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: 'Wir überprüfen gerade Ihre Angaben. Bitte schauen Sie in ein paar Minuten noch einmal vorbei!',
         walletActivationFailed: 'Leider kann deine Wallet derzeit nicht aktiviert werden. Bitte chatte mit Concierge, um weitere Unterstützung zu erhalten.',
@@ -2182,6 +2188,9 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} verliert den Zugriff auf dieses Geschäftskonto. Laufende Zahlungen werden weiterhin ausgeführt.`,
         reachOutForHelp: 'Dieses Konto wird mit der Expensify Card verwendet. <concierge-link>Wenden Sie sich an den Concierge</concierge-link>, wenn Sie die Freigabe aufheben möchten.',
         unshareErrorModalTitle: 'Bankkonto kann nicht freigegeben werden',
+        deleteCard: 'Karte löschen',
+        deleteCardConfirmation:
+            'Alle nicht eingereichten Kartentransaktionen, einschließlich der auf offenen Berichten, werden entfernt. Möchten Sie diese Karte wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2212,6 +2221,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Verdächtige Transaktion',
         suspiciousBannerDescription: 'Wir haben verdächtige Transaktionen auf Ihrer Karte festgestellt. Tippen Sie unten, um sie zu überprüfen.',
         cardLocked: 'Ihre Karte ist vorübergehend gesperrt, während unser Team das Konto Ihres Unternehmens überprüft.',
+        markTransactionsAsReimbursable: 'Transaktionen als erstattungsfähig markieren',
+        markTransactionsDescription: 'Wenn aktiviert, werden von dieser Karte importierte Transaktionen standardmäßig als erstattungsfähig markiert.',
         cardDetails: {
             cardNumber: 'Virtuelle Kartennummer',
             expiration: 'Ablauf',
@@ -5303,7 +5314,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Regeln',
                 subtitle: 'Belege verlangen, hohe Ausgaben kennzeichnen und mehr.',
             },
-            timeTracking: {title: 'Zeit', subtitle: 'Legen Sie einen abrechenbaren Stundensatz fest, damit Mitarbeitende für ihre Zeit bezahlt werden.'},
+            timeTracking: {
+                title: 'Zeit',
+                subtitle: 'Legen Sie einen abrechenbaren Stundensatz für die Zeiterfassung fest.',
+                defaultHourlyRate: 'Standardstundensatz',
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -6405,10 +6420,17 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 editRuleTitle: 'Regel bearbeiten',
                 deleteRule: 'Regel löschen',
                 deleteRuleConfirmation: 'Sind Sie sicher, dass Sie diese Regel löschen möchten?',
+                previewMatches: 'Übereinstimmungen anzeigen',
+                previewMatchesEmptyStateTitle: 'Nichts anzuzeigen',
+                previewMatchesEmptyStateSubtitle: 'Keine nicht eingereichten Ausgaben entsprechen dieser Regel.',
                 matchType: 'Abgleichstyp',
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Exakte Übereinstimmung',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
+                duplicateRuleTitle: 'Eine ähnliche Händlerregel existiert bereits',
+                duplicateRulePrompt: (merchantName: string) => `Möchten Sie eine neue Regel für „${merchantName}“ speichern, obwohl Sie bereits eine vorhandene haben?`,
+                saveAnyway: 'Trotzdem speichern',
+                applyToExistingUnsubmittedExpenses: 'Auf bereits vorhandene, noch nicht eingereichte Ausgaben anwenden',
             },
         },
         planTypePage: {
@@ -7013,6 +7035,9 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
+                [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahr',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartal',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7053,6 +7078,18 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
         topSpenders: 'Top-Ausgaben',
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Karten',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exporte',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorien',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Monate',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Wochen',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
+        },
     },
     genericErrorPage: {
         title: 'Oh je, etwas ist schiefgelaufen!',
@@ -7193,6 +7230,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                     `Die ${feedName}-Verbindung ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `die Plaid-Verbindung zu Ihrem Geschäftsbankkonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify-Karten weiterhin nutzen können.`,
+                settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
+                    `Geschäftsbankkonto ${maskedBankAccountNumber} wurde aufgrund eines Problems mit der Erstattung oder der Expensify Card-Abrechnung automatisch gesperrt. Bitte behebe das Problem in deinen <a href="${linkURL}">Workspace-Einstellungen</a>.`,
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten. Bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
@@ -7937,6 +7976,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             hasChildReportAwaitingAction: 'Untergeordneter Bericht wartet auf Aktion',
             hasMissingInvoiceBankAccount: 'Fehlendes Rechnungs-Bankkonto',
             hasUnresolvedCardFraudAlert: 'Hat ungelöste Kreditkartenbetrugswarnung',
+            hasDEWApproveFailed: 'DEW-Genehmigung fehlgeschlagen',
         },
         reasonRBR: {
             hasErrors: 'Enthält Fehler in den Berichtsdaten oder den Berichtsvorgangsdatens',
@@ -8231,8 +8271,27 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         discoverSection: {
             title: 'Entdecken',
             menuItemTitleNonAdmin: 'Erfahren Sie, wie Sie Ausgaben erstellen und Berichte einreichen.',
-            menuItemTitleAdmin: 'Erfahren Sie, wie Sie Mitglieder einladen, Genehmigungsworkflows bearbeiten und Firmenkarten abstimmen.',
-            menuItemDescription: 'Sehen Sie, was Expensify in 2 Minuten kann',
+            menuItemTitleAdmin: 'Erfahren Sie, wie Sie Mitglieder einladen, Genehmigungs-Workflows bearbeiten und Firmenkarten abstimmen.',
+            menuItemDescription: 'Sieh dir in 2 Minuten an, was Expensify kann',
+        },
+        forYouSection: {
+            submit: ({count}: {count: number}) => `Sende ${count} ${count === 1 ? 'Bericht' : 'Berichte'}`,
+            approve: ({count}: {count: number}) => `Genehmige ${count} ${count === 1 ? 'Bericht' : 'Berichte'}`,
+            pay: ({count}: {count: number}) => `Bezahlen ${count} ${count === 1 ? 'Bericht' : 'Berichte'}`,
+            export: ({count}: {count: number}) => `${count} ${count === 1 ? 'Bericht' : 'Berichte'} exportieren`,
+            begin: 'Beginnen',
+            emptyStateMessages: {
+                nicelyDone: 'Gut gemacht',
+                keepAnEyeOut: 'Behalte im Blick, was als Nächstes kommt!',
+                allCaughtUp: 'Du bist auf dem neuesten Stand',
+                upcomingTodos: 'Anstehende To-dos werden hier angezeigt.',
+            },
+        },
+        timeSensitiveSection: {
+            title: 'Zeitkritisch',
+            cta: 'Antrag',
+            offer50off: {title: 'Erhalte 50 % Rabatt auf dein erstes Jahr!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} verbleibend`},
+            offer25off: {title: 'Erhalten Sie 25 % Rabatt auf Ihr erstes Jahr!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'Tag' : 'Tage'} verbleiben`},
         },
     },
 };

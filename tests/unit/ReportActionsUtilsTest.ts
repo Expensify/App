@@ -2081,6 +2081,303 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isDynamicExternalWorkflowApproveFailedAction', () => {
+        it('should return true for DEW_APPROVE_FAILED action type', () => {
+            // Given a report action with DEW_APPROVE_FAILED action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    message: 'This report cannot be approved because of compliance issues.',
+                    automaticAction: false,
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a DEW approve failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
+
+            // Then it should return true because the action type is DEW_APPROVE_FAILED
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-DEW_APPROVE_FAILED action type', () => {
+            // Given a report action with APPROVED action type (not DEW_APPROVE_FAILED)
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    expenseReportID: '1',
+                    amount: 1,
+                    currency: CONST.CURRENCY.USD,
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a DEW approve failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
+
+            // Then it should return false because the action type is not DEW_APPROVE_FAILED
+            expect(result).toBe(false);
+        });
+
+        it('should return false for null action', () => {
+            // Given a null action
+
+            // When checking if the action is a DEW approve failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(null);
+
+            // Then it should return false because the action is null
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('getMostRecentActiveDEWApproveFailedAction', () => {
+        it('should return the DEW action when DEW_APPROVE_FAILED exists and no approval action exists', () => {
+            // Given report actions containing only a DEW_APPROVE_FAILED action
+            const actionId1 = '1';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        message: 'DEW approve failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED>,
+            };
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+            // Then it should return the DEW action because there's no subsequent approval action
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe(actionId1);
+        });
+
+        it('should return the DEW action when DEW_APPROVE_FAILED is more recent than APPROVED', () => {
+            // Given report actions where DEW_APPROVE_FAILED occurred after APPROVED
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        expenseReportID: actionId1,
+                        amount: 1,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>,
+                [actionId2]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId2,
+                    originalMessage: {
+                        message: 'DEW approve failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED>,
+            };
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+            // Then it should return the DEW action because it's more recent than the APPROVED action
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe(actionId2);
+        });
+
+        it('should return undefined when APPROVED is more recent than DEW_APPROVE_FAILED', () => {
+            // Given report actions where APPROVED occurred after DEW_APPROVE_FAILED
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        message: 'DEW approve failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED>,
+                [actionId2]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId2,
+                    originalMessage: {
+                        expenseReportID: actionId2,
+                        amount: 1,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>,
+            };
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+            // Then it should return undefined because a successful APPROVED action supersedes the DEW failure
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when FORWARDED is more recent than DEW_APPROVE_FAILED', () => {
+            // Given report actions where FORWARDED occurred after DEW_APPROVE_FAILED
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        message: 'DEW approve failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED>,
+                [actionId2]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId2,
+                    originalMessage: {
+                        expenseReportID: actionId2,
+                        amount: 1,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>,
+            };
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+            // Then it should return undefined because a successful FORWARDED action supersedes the DEW failure
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when no DEW_APPROVE_FAILED action exists', () => {
+            // Given report actions containing only an APPROVED action (no DEW failures)
+            const actionId1 = '1';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        expenseReportID: actionId1,
+                        amount: 1,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>,
+            };
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+            // Then it should return undefined because there are no DEW failures
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined for empty report actions', () => {
+            // Given an empty report actions object
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction({});
+
+            // Then it should return undefined because there are no actions
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe('hasPendingDEWApprove', () => {
+        it('should return true when pendingExpenseAction is APPROVE and isDEWPolicy is true', () => {
+            // Given reportMetadata with pendingExpenseAction APPROVE and isDEWPolicy is true
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+            };
+
+            // When checking if there's a pending DEW approve
+            const result = ReportActionsUtils.hasPendingDEWApprove(reportMetadata, true);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return false when pendingExpenseAction is APPROVE but isDEWPolicy is false', () => {
+            // Given reportMetadata with pendingExpenseAction APPROVE but isDEWPolicy is false
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+            };
+
+            // When checking if there's a pending DEW approve with isDEWPolicy false
+            const result = ReportActionsUtils.hasPendingDEWApprove(reportMetadata, false);
+
+            // Then it should return false because the policy is not DEW
+            expect(result).toBe(false);
+        });
+
+        it('should return false when pendingExpenseAction is not APPROVE', () => {
+            // Given reportMetadata with pendingExpenseAction SUBMIT (not APPROVE)
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+            };
+
+            // When checking if there's a pending DEW approve
+            const result = ReportActionsUtils.hasPendingDEWApprove(reportMetadata, true);
+
+            // Then it should return false because pendingExpenseAction is SUBMIT, not APPROVE
+            expect(result).toBe(false);
+        });
+
+        it('should return false when pendingExpenseAction is undefined', () => {
+            // Given reportMetadata without pendingExpenseAction
+            const reportMetadata = {};
+
+            // When checking if there's a pending DEW approve
+            const result = ReportActionsUtils.hasPendingDEWApprove(reportMetadata, true);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false when reportMetadata is undefined', () => {
+            // Given undefined reportMetadata
+
+            // When checking if there's a pending DEW approve
+            const result = ReportActionsUtils.hasPendingDEWApprove(undefined, true);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+    });
+
     describe('isDynamicExternalWorkflowSubmitAction', () => {
         it('should return true for SUBMITTED action if workflow is DYNAMICEXTERNAL', () => {
             // Given a report action with SUBMITTED action type and workflow is DYNAMICEXTERNAL
