@@ -18,13 +18,13 @@ type FixAccountingConnectionProps = {
 
 function FixAccountingConnection({connectionName, policyID}: FixAccountingConnectionProps) {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Exclamation'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Connect'] as const);
 
     const integrationName = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 
     return (
         <BaseWidgetItem
-            icon={icons.Exclamation}
+            icon={icons.Connect}
             iconBackgroundColor={colors.tangerine100}
             iconFill={colors.tangerine700}
             title={translate('homePage.timeSensitiveSection.fixAccountingConnection.title', {integrationName})}
