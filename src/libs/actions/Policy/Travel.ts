@@ -2,7 +2,9 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {EnablePolicyTravelParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,6 +45,9 @@ function enablePolicyTravel(policyID: string, enabled: boolean) {
                     pendingFields: {
                         isTravelEnabled: null,
                     },
+                    errorFields: {
+                        isTravelEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
                 },
             },
         ],
@@ -58,6 +63,9 @@ function enablePolicyTravel(policyID: string, enabled: boolean) {
 }
 
 function setPolicyTravelSettings(policyID: string, settings: Partial<OnyxTypes.WorkspaceTravelSettings>) {
+    const policy = PolicyUtils.getPolicy(policyID);
+    const previousTravelSettings = policy?.travelSettings;
+
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -87,8 +95,12 @@ function setPolicyTravelSettings(policyID: string, settings: Partial<OnyxTypes.W
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
+                    travelSettings: previousTravelSettings,
                     pendingFields: {
                         travelSettings: null,
+                    },
+                    errorFields: {
+                        travelSettings: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
             },
