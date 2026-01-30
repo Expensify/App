@@ -12358,23 +12358,6 @@ function getIntegrationIcon(connectionName?: ConnectionName, expensifyIcons?: Re
     return undefined;
 }
 
-function getIntegrationExportIcon(connectionName?: ConnectionName): 'XeroExport' | 'QBOExport' | 'NetSuiteExport' | 'SageIntacctExport' | undefined {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return 'XeroExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO || connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
-        return 'QBOExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return 'NetSuiteExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
-        return 'SageIntacctExport';
-    }
-
-    return undefined;
-}
-
 function canBeExported(report: OnyxEntry<Report>) {
     if (!report?.statusNum) {
         return false;
@@ -13359,7 +13342,6 @@ export {
     getReportViolations,
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
-    getIntegrationExportIcon,
     canBeExported,
     isExported,
     hasExportError,
