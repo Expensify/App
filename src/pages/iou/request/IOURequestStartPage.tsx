@@ -270,7 +270,6 @@ function IOURequestStartPage({
         },
     );
     const shouldShowTimeOption =
-        isBetaEnabled(CONST.BETAS.TIME_TRACKING) &&
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
         ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
 
