@@ -6,14 +6,16 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import {clearSubrates, setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit, getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -79,6 +81,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const isPerDiemTransaction = isPerDiemRequest(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
+    const [transactions] = useOptimisticDraftTransactions(transaction);
 
     const handleGoBack = () => {
         if (isEditing) {
@@ -103,14 +106,31 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             },
         ];
 
-        setTransactionReport(
-            transaction.transactionID,
-            {
-                reportID: item.value,
-                participants,
-            },
-            true,
-        );
+        const currentPolicyID = perDiemOriginalPolicy?.id;
+        const newPolicyID = reportOrDraftReportFromValue?.policyID;
+        const policyChanged = currentPolicyID && newPolicyID && currentPolicyID !== newPolicyID;
+
+        const newPolicy = newPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${newPolicyID}`] : undefined;
+        const newPerDiemCustomUnit = getPerDiemCustomUnit(newPolicy);
+        const newCustomUnitID = newPerDiemCustomUnit?.customUnitID;
+
+        for (const transactionItem of transactions) {
+            setTransactionReport(
+                transactionItem.transactionID,
+                {
+                    reportID: item.value,
+                    participants,
+                },
+                true,
+            );
+        }
+
+        // Clear subrates, and update customUnitID if policy changed for per diem transactions
+        if (policyChanged && isPerDiemTransaction) {
+            setCustomUnitID(transaction.transactionID, newCustomUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+            setCustomUnitRateID(transaction.transactionID, undefined);
+            clearSubrates(transaction.transactionID);
+        }
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
         // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
