@@ -10,7 +10,6 @@ import ChartTooltip from '@components/Charts/ChartTooltip';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Text from '@components/Text';
 import {
-    CHART_COLORS,
     PIE_CHART_MAX_SLICES,
     PIE_CHART_MIN_SLICE_PERCENTAGE,
     PIE_CHART_OTHER_LABEL,
@@ -19,8 +18,8 @@ import {
 } from '@components/Charts/constants';
 import type { PieChartDataPoint, PieChartProps } from '@components/Charts/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { useChartColors } from '@components/Charts/hooks';
-import ChartHeader from '@components/Charts/components/ChartHeader';
+import { getChartColor } from '@components/Charts/chartColors';
+import ChartHeader from '@components/Charts/ChartHeader'
 
 type ProcessedSlice = {
     label: string;
@@ -38,7 +37,7 @@ type ProcessedSlice = {
  * - Slices below minPercentage are aggregated into "Other"
  * - If more than maxSlices, smallest are aggregated into "Other"
  */
-function processDataIntoSlices(data: PieChartDataPoint[], startAngle: number, getChartColor: (index: number) => string | undefined): ProcessedSlice[] {
+function processDataIntoSlices(data: PieChartDataPoint[], startAngle: number): ProcessedSlice[] {
     if (data.length === 0) {
         return [];
     }
@@ -93,7 +92,7 @@ function processDataIntoSlices(data: PieChartDataPoint[], startAngle: number, ge
         finalSlices.push({
             label: slice.label,
             value: slice.value,
-            color: color ?? CHART_COLORS.at(0) ?? ('#000000' as Color),
+            color,
             percentage: slice.percentage,
             startAngle: currentAngle,
             endAngle: currentAngle + sweepAngle,
@@ -109,11 +108,11 @@ function processDataIntoSlices(data: PieChartDataPoint[], startAngle: number, ge
         const otherPercentage = (otherValue / total) * 100;
         const sweepAngle = (otherValue / total) * 360;
 
-        const otherColor = getChartColor(validSlices.length % CHART_COLORS.length);
+        const otherColor = getChartColor(validSlices.length);
         finalSlices.push({
             label: PIE_CHART_OTHER_LABEL,
             value: otherValue,
-            color: otherColor ?? CHART_COLORS.at(0) ?? ('#000000' as Color),
+            color: otherColor,
             percentage: otherPercentage,
             startAngle: currentAngle,
             endAngle: currentAngle + sweepAngle,
@@ -209,7 +208,7 @@ function PieChartContent({ data, title, titleIcon, isLoading, valueUnit, onSlice
     };
 
     // Process data into slices with aggregation, make following code react compiler compatible
-    const processedSlices: ProcessedSlice[] = processDataIntoSlices(data, PIE_CHART_START_ANGLE, getChartColor);
+    const processedSlices: ProcessedSlice[] = processDataIntoSlices(data, PIE_CHART_START_ANGLE);
 
     // Calculate pie geometry, make following code react compiler compatible
     const pieGeometry = { radius: Math.min(canvasSize.width, canvasSize.height) / 2, centerX: canvasSize.width / 2, centerY: canvasSize.height / 2 } as const;
