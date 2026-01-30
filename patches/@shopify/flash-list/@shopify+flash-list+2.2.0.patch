@@ -1,0 +1,21 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
+index 9f5865f..eee830e 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
+@@ -294,9 +294,13 @@ export class RecyclerViewManager {
+             //   initialItemOffset,
+             //   this.firstItemOffset
+             // );
+-            this.layoutManager.recomputeLayouts(0, initialScrollIndex);
+-            this.engagedIndicesTracker.scrollOffset =
+-                initialItemOffset !== null && initialItemOffset !== void 0 ? initialItemOffset : 0 + this.firstItemOffset;
++            const initialItemSize = this.propsRef.horizontal
++               ? initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.width
++               : initialItemLayout === null || initialItemLayout === void 0 ? void 0 : initialItemLayout.height;
++            const windowSize = this.layoutManager.getWindowsSize();
++            const viewportSize = this.propsRef.horizontal ? windowSize.width : windowSize.height;
++            const lastItemBottom = (initialItemOffset !== null && initialItemOffset !== void 0 ? initialItemOffset : 0) + (initialItemSize !== null && initialItemSize !== void 0 ? initialItemSize : 0);
++            this.engagedIndicesTracker.scrollOffset = Math.max(0, lastItemBottom - viewportSize);
+         }
+         else {
+             // console.log("initialItemOffset", initialItemOffset, this.firstItemOffset);

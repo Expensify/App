@@ -1,6 +1,9 @@
+import {FlashList} from '@shopify/flash-list';
+import type {FlashListRef} from '@shopify/flash-list';
 import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, View} from 'react-native';
-import type {ListRenderItemInfo, ViewToken} from 'react-native';
+import type {ForwardedRef} from 'react';
+import {View} from 'react-native';
+import type {FlatList, ListRenderItemInfo, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -93,6 +96,10 @@ import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
 const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) => c?.reports;
+
+function ItemSeparatorComponent() {
+    return <View style={{width: 8}} />;
+}
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -839,19 +846,20 @@ function MoneyRequestReportPreviewContent({
                                         </View>
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
-                                            <FlatList
+                                            <FlashList
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
                                                 snapToInterval={reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap}
                                                 horizontal
                                                 data={carouselTransactions}
-                                                ref={carouselRef}
+                                                ref={carouselRef as ForwardedRef<FlashListRef<Transaction>>}
                                                 nestedScrollEnabled
                                                 bounces={false}
                                                 keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewCarouselStyle.width}`}
-                                                contentContainerStyle={[styles.gap2]}
+                                                ItemSeparatorComponent={ItemSeparatorComponent}
                                                 style={reportPreviewStyles.flatListStyle}
                                                 showsHorizontalScrollIndicator={false}
+                                                // @ts-expect-error type mismatch to be fixed
                                                 renderItem={renderFlatlistItem}
                                                 onViewableItemsChanged={onViewableItemsChanged}
                                                 onEndReached={adjustScroll}
