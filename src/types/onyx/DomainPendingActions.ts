@@ -1,5 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+
 /**
  * General pending action structure for domain members
  * Pending actions structure is dictated by how `domain_` updates are handled in the app to prevent them from resetting unintentionally.
@@ -28,7 +29,7 @@ type DomainPendingAction = {
     /**
      * Pending actions for a specific member, keyed by their accountID
      */
-    member?: Record<number, GeneralDomainAdminPendingAction>;
+    member?: Record<number, GeneralDomainMemberPendingAction>;
 
     /**
      * Pending action for the technical contact email
@@ -39,11 +40,6 @@ type DomainPendingAction = {
      * Pending action for the "use technical contact billing card" setting
      */
     useTechnicalContactBillingCard?: OnyxCommon.PendingAction;
-
-    /**
-     * Pending actions for specific domain member, keyed by their email
-     */
-    member?: Record<string | number, GeneralDomainMemberPendingAction>;
 
     /**
      * Pending action for the domain itself
