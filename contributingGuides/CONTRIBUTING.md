@@ -129,11 +129,11 @@ If you have access to Sentry and are investigating an error, please **assign you
 
 When working on Sentry issues:
 1. **Assign yourself** in Sentry when you start investigating an issue
-2. **Link related GitHub issues** - if there's an existing GitHub issue for the error, or if you create one, link it directly in Sentry using their issue tracking integration
-3. **Update the Sentry issue status** when the fix is merged (mark as resolved with the version number if applicable)
-4. **Add context** in the Sentry issue comments about your findings, even if you determine the issue is already fixed or not actionable
+2. **Link a GitHub issue** - find or create a GitHub issue for the error, then link it in Sentry using their issue tracking integration
+3. **Document your findings** in the linked GitHub issue
+4. **Update the Sentry issue status** when the fix is merged (mark as resolved with the version number if applicable)
 
-This documentation helps future investigators understand the history and current status of errors, potentially saving hours of duplicate work.
+This helps future investigators understand the history and current status of errors, potentially saving hours of duplicate work.
 
 ## Working on Expensify Jobs
 *Reminder: For technical guidance, please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
