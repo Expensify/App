@@ -38,6 +38,21 @@ type BankAccountAdditionalData = {
         /** Powerform files */
         achAuthorizationForm?: FileObject[];
     };
+
+    /** City of the business's address */
+    addressCity?: string;
+
+    /** State of the business's address */
+    addressState?: string;
+
+    /** Business's street address */
+    addressStreet?: string;
+
+    /** Zip code of the business's address */
+    addressZipCode?: string;
+
+    /** Phone number of the company */
+    companyPhone?: string;
 };
 
 /** Model of bank account */
