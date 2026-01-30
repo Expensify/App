@@ -756,10 +756,10 @@ const translations = {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
         },
         revoke: {
-            revoke: 'Revoke',
+            remove: 'Remove',
             title: 'Face/fingerprint & passkeys',
-            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device',
-            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device",
+            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device.',
+            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device.",
             cta: 'Revoke access',
             noDevices: "You don't have any devices registered for face/fingerprint or passkey verification. If you register any, you will be able to revoke that access here.",
             dismiss: 'Got it',
@@ -7152,7 +7152,7 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
                     `there was a problem syncing with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Please fix the issue in <a href="${workspaceAccountingLink}">workspace settings</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>`,
+                    `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
