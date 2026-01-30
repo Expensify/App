@@ -89,7 +89,6 @@ function WalletPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
-    const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
