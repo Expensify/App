@@ -6,19 +6,12 @@ import Animated, {useSharedValue} from 'react-native-reanimated';
 import type {ChartBounds, PointsArray} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import {getChartColor} from '@components/Charts/chartColors';
-import ChartHeader from '@components/Charts/ChartHeader';
-import ChartTooltip from '@components/Charts/ChartTooltip';
+import ChartHeader from '@components/Charts/components/ChartHeader';
+import ChartTooltip from '@components/Charts/components/ChartTooltip';
+import {DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
 import {
-    BAR_INNER_PADDING,
-    BAR_ROUNDED_CORNERS,
-    CHART_COLORS,
     CHART_CONTENT_MIN_HEIGHT,
     CHART_PADDING,
-    DEFAULT_SINGLE_BAR_COLOR_INDEX,
-    DOMAIN_PADDING,
-    DOMAIN_PADDING_SAFETY_BUFFER,
-    FRAME_LINE_WIDTH,
     X_AXIS_LINE_WIDTH,
     Y_AXIS_LABEL_OFFSET,
     Y_AXIS_LINE_WIDTH,
@@ -26,12 +19,34 @@ import {
 } from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout} from '@components/Charts/hooks';
-import type {BarChartProps} from '@components/Charts/types';
+import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+
+type BarChartProps = CartesianChartProps & {
+    /** Callback when a bar is pressed */
+    onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** When true, all bars use the same color. When false (default), each bar uses a different color from the palette. */
+    useSingleColor?: boolean;
+};
+
+/** Inner padding between bars (0.3 = 30% of bar width) */
+const BAR_INNER_PADDING = 0.3;
+
+/** Domain padding configuration for the bar chart */
+const DOMAIN_PADDING = {
+    left: 0,
+    right: 16,
+    top: 30,
+    bottom: 10,
+};
+
+/** Safety buffer multiplier for domain padding calculation */
+const DOMAIN_PADDING_SAFETY_BUFFER = 1.1;
 
 /**
  * Calculate minimum domainPadding required to prevent bars from overflowing chart edges.
@@ -57,7 +72,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const [barAreaWidth, setBarAreaWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
 
-    const defaultBarColor = CHART_COLORS.at(DEFAULT_SINGLE_BAR_COLOR_INDEX);
+    const defaultBarColor = DEFAULT_CHART_COLOR;
 
     // prepare data for display
     const chartData = useMemo(() => {
@@ -67,9 +82,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         }));
     }, [data]);
 
-    // Anchor Y-axis at zero so the baseline is always visible.
-    // When negative values are present, let victory-native auto-calculate the domain to avoid clipping.
-    const yAxisDomain = useMemo((): [number] | undefined => (data.some((point) => point.total < 0) ? undefined : [0]), [data]);
+    const yAxisDomain = useDynamicYDomain(data);
 
     // Handle bar press callback
     const handleBarPress = useCallback(
@@ -169,29 +182,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         barGeometry,
     });
 
-    const tooltipData = useMemo(() => {
-        if (activeDataIndex < 0 || activeDataIndex >= data.length) {
-            return null;
-        }
-        const dataPoint = data.at(activeDataIndex);
-        if (!dataPoint) {
-            return null;
-        }
-        const formatted = dataPoint.total.toLocaleString();
-        let formattedAmount = formatted;
-        if (yAxisUnit) {
-            // Add space for multi-character codes (e.g., "PLN 100") but not for symbols (e.g., "$100")
-            const separator = yAxisUnit.length > 1 ? ' ' : '';
-            formattedAmount = yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
-        }
-        const totalSum = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
-        const percent = totalSum > 0 ? Math.round((Math.abs(dataPoint.total) / totalSum) * 100) : 0;
-        return {
-            label: dataPoint.label,
-            amount: formattedAmount,
-            percentage: percent < 1 ? '<1%' : `${percent}%`,
-        };
-    }, [activeDataIndex, data, yAxisUnit, yAxisUnitPosition]);
+    const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
 
     const renderBar = useCallback(
         (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
@@ -207,7 +198,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                     color={barColor}
                     barCount={barCount}
                     innerPadding={BAR_INNER_PADDING}
-                    roundedCorners={BAR_ROUNDED_CORNERS}
+                    roundedCorners={{topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8}}
                 />
             );
         },
@@ -276,7 +267,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                                 domain: yAxisDomain,
                             },
                         ]}
-                        frame={{lineWidth: FRAME_LINE_WIDTH}}
+                        frame={{lineWidth: 0}}
                         data={chartData}
                     >
                         {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
@@ -297,3 +288,4 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
 }
 
 export default BarChartContent;
+export type {BarChartProps};

@@ -1,14 +1,24 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import {useMemo} from 'react';
-import {
-    LABEL_ELLIPSIS,
-    LABEL_PADDING,
-    SIN_45_DEGREES,
-    X_AXIS_LABEL_MAX_HEIGHT_RATIO,
-    X_AXIS_LABEL_ROTATION_45,
-    X_AXIS_LABEL_ROTATION_90,
-    Y_AXIS_LABEL_OFFSET,
-} from '@components/Charts/constants';
+import {Y_AXIS_LABEL_OFFSET} from '@components/Charts/constants';
+
+/** Rotation angle for X-axis labels - 45 degrees (in degrees) */
+const X_AXIS_LABEL_ROTATION_45 = -45;
+
+/** Rotation angle for X-axis labels - 90 degrees (in degrees) */
+const X_AXIS_LABEL_ROTATION_90 = -90;
+
+/** Sin of 45 degrees - used to calculate effective width of rotated labels */
+const SIN_45_DEGREES = Math.sin(Math.PI / 4); // ≈ 0.707
+
+/** Minimum padding between labels (in pixels) */
+const LABEL_PADDING = 4;
+
+/** Maximum ratio of container height that X-axis labels can occupy. */
+const X_AXIS_LABEL_MAX_HEIGHT_RATIO = 0.35;
+
+/** Ellipsis character for truncated labels */
+const LABEL_ELLIPSIS = '...';
 
 type ChartDataPoint = {
     label: string;

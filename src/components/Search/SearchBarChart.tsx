@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {BarChart} from '@components/Charts';
-import type {BarChartDataPoint} from '@components/Charts';
+import type {ChartDataPoint} from '@components/Charts';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -44,7 +44,7 @@ type SearchBarChartProps = {
 
 function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBarPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchBarChartProps) {
     // Transform grouped transaction data to BarChart format
-    const chartData: BarChartDataPoint[] = useMemo(() => {
+    const chartData: ChartDataPoint[] = useMemo(() => {
         return data.map((item) => {
             const groupedItem = item as GroupedItem;
             const currency = groupedItem.currency ?? 'USD';
@@ -53,13 +53,12 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBar
             return {
                 label: getLabel(groupedItem),
                 total: totalInDisplayUnits,
-                currency,
             };
         });
     }, [data, getLabel]);
 
     const handleBarPress = useCallback(
-        (dataPoint: BarChartDataPoint, index: number) => {
+        (dataPoint: ChartDataPoint, index: number) => {
             if (!onBarPress) {
                 return;
             }

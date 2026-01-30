@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {LineChart} from '@components/Charts';
-import type {LineChartDataPoint} from '@components/Charts';
+import type {ChartDataPoint} from '@components/Charts';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -43,7 +43,7 @@ type SearchLineChartProps = {
 };
 
 function SearchLineChart({data, title, titleIcon, getLabel, getFilterQuery, onBarPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchLineChartProps) {
-    const chartData: LineChartDataPoint[] = useMemo(() => {
+    const chartData: ChartDataPoint[] = useMemo(() => {
         return data.map((item) => {
             const groupedItem = item as GroupedItem;
             const currency = groupedItem.currency ?? 'USD';
@@ -57,7 +57,7 @@ function SearchLineChart({data, title, titleIcon, getLabel, getFilterQuery, onBa
     }, [data, getLabel]);
 
     const handlePointPress = useCallback(
-        (dataPoint: LineChartDataPoint, index: number) => {
+        (dataPoint: ChartDataPoint, index: number) => {
             if (!onBarPress) {
                 return;
             }

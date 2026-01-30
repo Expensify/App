@@ -5,36 +5,32 @@ import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import {CartesianChart, Line, Scatter} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import {getChartColor} from '@components/Charts/chartColors';
-import ChartHeader from '@components/Charts/ChartHeader';
-import ChartTooltip from '@components/Charts/ChartTooltip';
+import ChartHeader from '@components/Charts/components/ChartHeader';
+import ChartTooltip from '@components/Charts/components/ChartTooltip';
+import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
 import {
     CHART_CONTENT_MIN_HEIGHT,
     CHART_PADDING,
-    DOT_INNER_RADIUS,
-    DOT_OUTER_RADIUS,
-    LINE_CHART_FRAME,
     X_AXIS_LINE_WIDTH,
-    Y_AXIS_DOMAIN,
     Y_AXIS_LABEL_OFFSET,
     Y_AXIS_LINE_WIDTH,
     Y_AXIS_TICK_COUNT,
 } from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout} from '@components/Charts/hooks';
-import type {LineChartProps} from '@components/Charts/types';
+import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
-/** Symmetric domain padding for line charts */
-const LINE_DOMAIN_PADDING = {
-    left: 20,
-    right: 20,
-    top: 20,
-    bottom: 20,
+/** Inner dot radius for line chart data points */
+const DOT_INNER_RADIUS = 6;
+
+type LineChartProps = CartesianChartProps & {
+    /** Callback when a data point is pressed */
+    onPointPress?: (dataPoint: ChartDataPoint, index: number) => void;
 };
 
 function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onPointPress}: LineChartProps) {
@@ -44,6 +40,8 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
+
+    const yAxisDomain = useDynamicYDomain(data);
 
     const chartData = useMemo(() => {
         return data.map((point, index) => ({
@@ -104,28 +102,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         checkIsOver: checkIsOverDot,
     });
 
-    const tooltipData = useMemo(() => {
-        if (activeDataIndex < 0 || activeDataIndex >= data.length) {
-            return null;
-        }
-        const dataPoint = data.at(activeDataIndex);
-        if (!dataPoint) {
-            return null;
-        }
-        const formatted = dataPoint.total.toLocaleString();
-        let formattedAmount = formatted;
-        if (yAxisUnit) {
-            const separator = yAxisUnit.length > 1 ? ' ' : '';
-            formattedAmount = yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
-        }
-        const totalSum = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
-        const percent = totalSum > 0 ? Math.round((Math.abs(dataPoint.total) / totalSum) * 100) : 0;
-        return {
-            label: dataPoint.label,
-            amount: formattedAmount,
-            percentage: percent < 1 ? '<1%' : `${percent}%`,
-        };
-    }, [activeDataIndex, data, yAxisUnit, yAxisUnitPosition]);
+    const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
 
     const dynamicChartStyle = useMemo(
         () => ({
@@ -161,7 +138,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                         xKey="x"
                         padding={CHART_PADDING}
                         yKeys={['y']}
-                        domainPadding={LINE_DOMAIN_PADDING}
+                        domainPadding={{left: 20, right: 20, top: 20, bottom: 20}}
                         actionsRef={actionsRef}
                         customGestures={customGestures}
                         xAxis={{
@@ -182,24 +159,24 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                                 lineWidth: Y_AXIS_LINE_WIDTH,
                                 lineColor: theme.border,
                                 labelOffset: Y_AXIS_LABEL_OFFSET,
-                                domain: Y_AXIS_DOMAIN,
+                                domain: yAxisDomain,
                             },
                         ]}
-                        frame={LINE_CHART_FRAME}
+                        frame={{lineWidth: {left: 1, bottom: 1, top: 0, right: 0}}}
                         data={chartData}
                     >
                         {({points}) => (
                             <>
                                 <Line
                                     points={points.y}
-                                    color={getChartColor(5)}
+                                    color={DEFAULT_CHART_COLOR}
                                     strokeWidth={2}
                                     curveType="linear"
                                 />
                                 <Scatter
                                     points={points.y}
                                     radius={DOT_INNER_RADIUS}
-                                    color={getChartColor(5)}
+                                    color={DEFAULT_CHART_COLOR}
                                 />
                             </>
                         )}
@@ -220,3 +197,4 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 }
 
 export default LineChartContent;
+export type {LineChartProps};

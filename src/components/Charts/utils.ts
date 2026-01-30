@@ -36,4 +36,7 @@ function getChartColor(index: number): string {
     return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
 }
 
-export {CHART_PALETTE, getChartColor};
+/** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
+const DEFAULT_CHART_COLOR = getChartColor(4);
+
+export {getChartColor, DEFAULT_CHART_COLOR};

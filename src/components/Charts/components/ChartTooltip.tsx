@@ -3,7 +3,11 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {TOOLTIP_POINTER_HEIGHT, TOOLTIP_POINTER_WIDTH} from './constants';
+/** The height of the chart tooltip pointer */
+const TOOLTIP_POINTER_HEIGHT = 4;
+
+/** The width of the chart tooltip pointer */
+const TOOLTIP_POINTER_WIDTH = 12;
 
 type ChartTooltipProps = {
     /** Label text (e.g., "Airfare", "Amazon") */

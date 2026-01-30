@@ -1,13 +1,10 @@
 import {useCallback} from 'react';
-
-type ChartDataPoint = {
-    label: string;
-};
+import type {ChartDataPoint, YAxisUnitPosition} from '@components/Charts/types';
 
 type UseChartLabelFormatsProps = {
     data: ChartDataPoint[];
     yAxisUnit?: string;
-    yAxisUnitPosition?: 'left' | 'right';
+    yAxisUnitPosition?: YAxisUnitPosition;
     labelSkipInterval: number;
     labelRotation: number;
     truncatedLabels: string[];
