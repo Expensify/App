@@ -32,6 +32,8 @@ import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getPolicy, isPolicyAdmin} from './PolicyUtils';
 import {
     getActionableCardFraudAlertResolutionMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
     getCompanyCardConnectionBrokenMessage,
@@ -42,6 +44,7 @@ import {
     getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
+    getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
@@ -52,6 +55,7 @@ import {
     getRenamedAction,
     getReportActionMessage as getReportActionMessageFromActionsUtils,
     getReportActionText,
+    getSettlementAccountLockedMessage,
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -82,18 +86,15 @@ import {
 import {
     formatReportLastMessageText,
     getDisplayNameForParticipant,
-    getDowngradeWorkspaceMessage,
     getMoneyRequestSpendBreakdown,
     getMovedActionMessage,
     getParentReport,
     getPolicyChangeMessage,
     getPolicyName,
-    getRejectedReportMessage,
     getReportMetadata,
     getReportOrDraftReport,
     getTransactionReportName,
     getUnreportedTransactionMessage,
-    getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
     hasNonReimbursableTransactions,
     isAdminRoom,
@@ -390,7 +391,7 @@ function computeReportNameBasedOnReportAction(
         return translate('iou.forwarded');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
-        return getRejectedReportMessage();
+        return translate('iou.rejectedThisReport');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
         return translate('iou.retracted');
@@ -399,10 +400,10 @@ function computeReportNameBasedOnReportAction(
         return translate('iou.reopened');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
-        return getUpgradeWorkspaceMessage();
+        return translate('workspaceActions.upgradedWorkspace');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
-        return getDowngradeWorkspaceMessage();
+        return translate('workspaceActions.downgradedWorkspace');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
         return getWorkspaceCurrencyUpdateMessage(translate, parentReportAction);
@@ -414,7 +415,7 @@ function computeReportNameBasedOnReportAction(
         return translate('systemMessage.mergedWithCashTransaction');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
-        return Str.htmlDecode(getWorkspaceNameUpdatedMessage(parentReportAction));
+        return Str.htmlDecode(getWorkspaceNameUpdatedMessage(translate, parentReportAction));
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
         return getWorkspaceFrequencyUpdateMessage(translate, parentReportAction);
@@ -430,7 +431,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return getUnreportedTransactionMessage(parentReportAction);
+        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
@@ -444,12 +445,10 @@ function computeReportNameBasedOnReportAction(
         return getPolicyChangeLogDefaultReimbursableMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, parentReportAction);
+        return getPolicyChangeLogMaxExpenseAmountMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, parentReportAction);
+        return getPolicyChangeLogMaxExpenseAgeMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(translate, parentReportAction);
@@ -461,12 +460,16 @@ function computeReportNameBasedOnReportAction(
         return getUpdateACHAccountMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getInvoiceCompanyNameUpdateMessage(translateLocal, parentReportAction);
+        return getInvoiceCompanyNameUpdateMessage(translate, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getInvoiceCompanyWebsiteUpdateMessage(translateLocal, parentReportAction);
+        return getInvoiceCompanyWebsiteUpdateMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED)) {
+        return getAutoPayApprovedReportsEnabledMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
+        return getAutoReimbursementMessage(translate, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(parentReportAction)?.resolution) {
@@ -478,21 +481,19 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
-        return getPolicyChangeMessage(parentReportAction);
+        return getPolicyChangeMessage(translate, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getChangedApproverActionMessage(translateLocal, parentReportAction);
+        return Parser.htmlToText(getChangedApproverActionMessage(translate, parentReportAction));
     }
 
     if (parentReportAction?.actionName && isTagModificationAction(parentReportAction?.actionName)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getCleanedTagName(getWorkspaceTagUpdateMessage(translateLocal, parentReportAction) ?? '');
+        return getCleanedTagName(getWorkspaceTagUpdateMessage(translate, parentReportAction) ?? '');
     }
 
     if (isMovedAction(parentReportAction)) {
-        return getMovedActionMessage(parentReportAction, parentReport);
+        return getMovedActionMessage(translate, parentReportAction, parentReport);
     }
 
     if (isMoneyRequestAction(parentReportAction)) {
@@ -539,11 +540,15 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-        return getIntegrationSyncFailedMessage(translate, parentReportAction, report?.policyID);
+        return Parser.htmlToText(getIntegrationSyncFailedMessage(translate, parentReportAction, report?.policyID));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
         return getCompanyCardConnectionBrokenMessage(translate, parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
+        return getPlaidBalanceFailureMessage(translate, parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
@@ -558,6 +563,10 @@ function computeReportNameBasedOnReportAction(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
         return getWorkspaceCustomUnitRateDeletedMessage(translate, parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
+        return getSettlementAccountLockedMessage(translate, parentReportAction);
     }
 
     return undefined;

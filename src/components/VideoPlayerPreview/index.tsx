@@ -1,5 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
-import type {VideoReadyForDisplayEvent} from 'expo-av';
+import type {SourceLoadEventPayload} from 'expo-video';
 import React, {useEffect, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
@@ -93,10 +93,16 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
 
-    // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
+    // `onSourceLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
-    const onVideoLoaded = (event: VideoReadyForDisplayEvent & {srcElement: HTMLVideoElement}) => {
-        setMeasuredDimensions({width: event.srcElement.videoWidth, height: event.srcElement.videoHeight});
+    const onSourceLoaded = (event: SourceLoadEventPayload) => {
+        const track = event.availableVideoTracks.at(0);
+
+        if (!track) {
+            return;
+        }
+
+        setMeasuredDimensions({width: track.size.width, height: track.size.height});
     };
 
     const handleOnPress = () => {
@@ -131,7 +137,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                 <View style={styles.flex1}>
                     <VideoPlayer
                         url={videoUrl}
-                        onVideoLoaded={onVideoLoaded as (event: VideoReadyForDisplayEvent) => void}
+                        onSourceLoaded={onSourceLoaded}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls
                         style={[styles.w100, styles.h100]}
