@@ -6,7 +6,6 @@ import type * as OnyxCommon from './OnyxCommon';
 
 /** Company card feed name */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
-
 /** Company card feed name with a number */
 type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}`;
 
@@ -172,6 +171,25 @@ type DomainSettings = {
     isLoading?: boolean;
 };
 
+/** Card feeds status */
+type CardFeedsStatus = {
+    /** Whether we are loading the data via the API */
+    isLoading?: boolean;
+
+    /** Collection of errors coming from BE */
+    errors?: OnyxCommon.Errors;
+};
+
+/**
+ * Collection of card feeds status by domain ID
+ */
+type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
+
+/**
+ * Collection of card feeds status by domain ID
+ */
+type WorkspaceCardFeedsStatus = Record<CompanyCardFeed, CardFeedsStatus>;
+
 /** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
@@ -185,13 +203,17 @@ type CardFeeds = {
         /** Account details */
         oAuthAccountDetails?: Partial<Record<CompanyCardFeedWithNumber, DirectCardFeedData>>;
 
+        /** Collection of card feeds status by domain ID */
+        cardFeedsStatus?: WorkspaceCardFeedsStatus;
+
         /** Email address of the technical contact for the domain */
         technicalContactEmail?: string;
 
         /** Whether to use the technical contact's billing card */
         useTechnicalContactBillingCard?: boolean;
     };
-} & DomainSettings;
+} & CardFeedsStatus &
+    DomainSettings;
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
@@ -264,6 +286,9 @@ type CombinedCardFeed = CustomCardFeedData &
 
         /** Feed name */
         feed: CompanyCardFeedWithNumber;
+
+        /** Card feed status */
+        status?: CardFeedsStatus;
     };
 
 /** Card feeds combined by domain ID into one object */
@@ -284,6 +309,9 @@ export type {
     DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
+    CardFeedsStatus,
+    CardFeedsStatusByDomainID,
+    WorkspaceCardFeedsStatus,
     CompanyFeeds,
     CustomCardFeedData,
     CompanyCardNicknames,

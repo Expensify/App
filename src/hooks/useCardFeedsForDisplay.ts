@@ -1,8 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
-import {filterPersonalCards, isCustomFeed, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
+import {isCustomFeed} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
@@ -60,13 +59,7 @@ const useCardFeedsForDisplay = () => {
         }
     }
 
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
-    const expensifyCards = getCardFeedsForDisplay({}, allCards);
-    const defaultExpensifyCard = Object.values(expensifyCards)?.at(0);
-
-    return {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard};
+    return {defaultCardFeed, cardFeedsByPolicy};
 };
 
 export default useCardFeedsForDisplay;

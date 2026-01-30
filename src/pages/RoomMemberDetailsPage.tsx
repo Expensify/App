@@ -27,8 +27,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
 type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
@@ -55,7 +55,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
     const removeUser = () => {
         setIsRemoveMemberConfirmModalVisible(false);
-        removeFromRoom(report?.reportID, [accountID]);
+        removeFromRoom(report, [accountID]);
         Navigation.goBack(backTo);
     };
 

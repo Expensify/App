@@ -10,6 +10,7 @@ import {
     filterAllInactiveCards,
     filterCardsByNonExpensify,
     filterInactiveCards,
+    filterOutPersonalCards,
     flattenWorkspaceCardsList,
     formatCardExpiration,
     getAllCardsForWorkspace,
@@ -640,6 +641,16 @@ describe('CardUtils', () => {
         it('Should return card name without last 4 numbers', () => {
             const maskedCardNumber = maskCardNumber('Business Card Cash - 3001', undefined);
             expect(maskedCardNumber).toBe('Business Card Cash');
+        });
+
+        it('Should return CSV import card display name without 4-character formatting', () => {
+            const maskedCardNumber = maskCardNumber('Checking', CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD);
+            expect(maskedCardNumber).toBe('Checking');
+        });
+
+        it('Should return CSV import card display name as-is for longer names', () => {
+            const maskedCardNumber = maskCardNumber('JustChecking', CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD);
+            expect(maskedCardNumber).toBe('JustChecking');
         });
     });
 
@@ -1687,6 +1698,140 @@ describe('CardUtils', () => {
                 expect(firstCard?.cardName).toBe('Plaid Checking 0000');
                 expect(firstCard?.cardID).toBe('Plaid Checking 0000');
             });
+        });
+    });
+
+    describe('filterOutPersonalCards', () => {
+        it('should return only cards with a valid fundID', () => {
+            const cardList: CardList = {
+                '1': {
+                    cardID: 1,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Company Card 1',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '100',
+                },
+                '2': {
+                    cardID: 2,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Personal Card',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    // No fundID - personal card
+                },
+                '3': {
+                    cardID: 3,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+                    cardName: 'Company Card 2',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '3333',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '200',
+                },
+            };
+
+            const result = filterOutPersonalCards(cardList);
+            const cardIDs = Object.keys(result);
+
+            expect(cardIDs).toHaveLength(2);
+            expect(cardIDs).toContain('1');
+            expect(cardIDs).toContain('3');
+            expect(cardIDs).not.toContain('2');
+        });
+
+        it('should filter out cards with fundID of "0"', () => {
+            const cardList: CardList = {
+                '1': {
+                    cardID: 1,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Card with fundID 0',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '0',
+                },
+                '2': {
+                    cardID: 2,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Card with valid fundID',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '123',
+                },
+            };
+
+            const result = filterOutPersonalCards(cardList);
+            const cardIDs = Object.keys(result);
+
+            expect(cardIDs).toHaveLength(1);
+            expect(cardIDs).toContain('2');
+            expect(cardIDs).not.toContain('1');
+        });
+
+        it('should return empty object for undefined card list', () => {
+            const result = filterOutPersonalCards(undefined);
+            expect(result).toEqual({});
+        });
+
+        it('should return empty object when no cards have fundID', () => {
+            const cardList: CardList = {
+                '1': {
+                    cardID: 1,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Personal Card 1',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+                '2': {
+                    cardID: 2,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+                    cardName: 'Personal Card 2',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+            };
+
+            const result = filterOutPersonalCards(cardList);
+            expect(Object.keys(result)).toHaveLength(0);
+        });
+
+        it('should handle empty card list', () => {
+            const result = filterOutPersonalCards({});
+            expect(result).toEqual({});
         });
     });
 });
