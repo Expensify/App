@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
+import React, {createContext, useContext, useMemo, useReducer} from 'react';
 import type {ReactNode} from 'react';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
@@ -53,48 +53,7 @@ type MultifactorAuthenticationState = {
 
 type MultifactorAuthenticationStateContextValue = {
     state: MultifactorAuthenticationState;
-
-    /** Set error state - automatically routes to error or continuableError based on reason */
-    setError: (error: ErrorState | undefined) => void;
-
-    /** Clear continuable error */
-    clearContinuableError: () => void;
-
-    /** Set validate code */
-    setValidateCode: (validateCode: string | undefined) => void;
-
-    /** Set registration challenge */
-    setRegistrationChallenge: (challenge: RegistrationChallenge | undefined) => void;
-
-    /** Set authorization challenge */
-    setAuthorizationChallenge: (challenge: AuthenticationChallenge | undefined) => void;
-
-    /** Set soft prompt approved state */
-    setSoftPromptApproved: (approved: boolean) => void;
-
-    /** Set current scenario */
-    setScenario: (scenario: MultifactorAuthenticationScenario | undefined) => void;
-
-    /** Set payload for current scenario */
-    setPayload: (payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined) => void;
-
-    /** Set outcome paths */
-    setOutcomePaths: (outcomePaths: OutcomePaths | undefined) => void;
-
-    /** Set registration complete state */
-    setIsRegistrationComplete: (isComplete: boolean) => void;
-
-    /** Set authorization complete state */
-    setIsAuthorizationComplete: (isComplete: boolean) => void;
-
-    /** Set flow complete state */
-    setIsFlowComplete: (isComplete: boolean) => void;
-
-    /** Set authentication method */
-    setAuthenticationMethod: (method: MarqetaAuthTypeName | undefined) => void;
-
-    /** Reset all state to initial values */
-    reset: () => void;
+    dispatch: (action: Action) => void;
 };
 
 const DEFAULT_STATE: MultifactorAuthenticationState = {
@@ -113,6 +72,64 @@ const DEFAULT_STATE: MultifactorAuthenticationState = {
     authenticationMethod: undefined,
 };
 
+type Action =
+    | {type: 'SET_ERROR'; payload: ErrorState | undefined}
+    | {type: 'CLEAR_CONTINUABLE_ERROR'}
+    | {type: 'SET_VALIDATE_CODE'; payload: string | undefined}
+    | {type: 'SET_REGISTRATION_CHALLENGE'; payload: RegistrationChallenge | undefined}
+    | {type: 'SET_AUTHORIZATION_CHALLENGE'; payload: AuthenticationChallenge | undefined}
+    | {type: 'SET_SOFT_PROMPT_APPROVED'; payload: boolean}
+    | {type: 'SET_SCENARIO'; payload: MultifactorAuthenticationScenario | undefined}
+    | {type: 'SET_PAYLOAD'; payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined}
+    | {type: 'SET_OUTCOME_PATHS'; payload: OutcomePaths | undefined}
+    | {type: 'SET_REGISTRATION_COMPLETE'; payload: boolean}
+    | {type: 'SET_AUTHORIZATION_COMPLETE'; payload: boolean}
+    | {type: 'SET_FLOW_COMPLETE'; payload: boolean}
+    | {type: 'SET_AUTHENTICATION_METHOD'; payload: MarqetaAuthTypeName | undefined}
+    | {type: 'RESET'};
+
+function stateReducer(state: MultifactorAuthenticationState, action: Action): MultifactorAuthenticationState {
+    switch (action.type) {
+        case 'SET_ERROR': {
+            if (action.payload === undefined) {
+                return {...state, error: undefined, continuableError: undefined};
+            }
+            if (isContinuableReason(action.payload.reason)) {
+                return {...state, continuableError: action.payload, error: undefined};
+            }
+            return {...state, error: action.payload, continuableError: undefined};
+        }
+        case 'CLEAR_CONTINUABLE_ERROR':
+            return {...state, continuableError: undefined};
+        case 'SET_VALIDATE_CODE':
+            return {...state, validateCode: action.payload};
+        case 'SET_REGISTRATION_CHALLENGE':
+            return {...state, registrationChallenge: action.payload};
+        case 'SET_AUTHORIZATION_CHALLENGE':
+            return {...state, authorizationChallenge: action.payload};
+        case 'SET_SOFT_PROMPT_APPROVED':
+            return {...state, softPromptApproved: action.payload};
+        case 'SET_SCENARIO':
+            return {...state, scenario: action.payload};
+        case 'SET_PAYLOAD':
+            return {...state, payload: action.payload};
+        case 'SET_OUTCOME_PATHS':
+            return {...state, outcomePaths: action.payload};
+        case 'SET_REGISTRATION_COMPLETE':
+            return {...state, isRegistrationComplete: action.payload};
+        case 'SET_AUTHORIZATION_COMPLETE':
+            return {...state, isAuthorizationComplete: action.payload};
+        case 'SET_FLOW_COMPLETE':
+            return {...state, isFlowComplete: action.payload};
+        case 'SET_AUTHENTICATION_METHOD':
+            return {...state, authenticationMethod: action.payload};
+        case 'RESET':
+            return DEFAULT_STATE;
+        default:
+            return state;
+    }
+}
+
 const MultifactorAuthenticationStateContext = createContext<MultifactorAuthenticationStateContextValue | undefined>(undefined);
 
 type MultifactorAuthenticationStateProviderProps = {
@@ -120,142 +137,14 @@ type MultifactorAuthenticationStateProviderProps = {
 };
 
 function MultifactorAuthenticationStateProvider({children}: MultifactorAuthenticationStateProviderProps) {
-    const [error, setErrorInternal] = useState<ErrorState | undefined>(DEFAULT_STATE.error);
-    const [continuableError, setContinuableErrorInternal] = useState<ErrorState | undefined>(DEFAULT_STATE.continuableError);
-    const [validateCode, setValidateCodeInternal] = useState<string | undefined>(DEFAULT_STATE.validateCode);
-    const [registrationChallenge, setRegistrationChallengeInternal] = useState<RegistrationChallenge | undefined>(DEFAULT_STATE.registrationChallenge);
-    const [authorizationChallenge, setAuthorizationChallengeInternal] = useState<AuthenticationChallenge | undefined>(DEFAULT_STATE.authorizationChallenge);
-    const [softPromptApproved, setSoftPromptApprovedInternal] = useState<boolean>(DEFAULT_STATE.softPromptApproved);
-    const [scenario, setScenarioInternal] = useState<MultifactorAuthenticationScenario | undefined>(DEFAULT_STATE.scenario);
-    const [payload, setPayloadInternal] = useState<MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined>(DEFAULT_STATE.payload);
-    const [outcomePaths, setOutcomePathsInternal] = useState<OutcomePaths | undefined>(DEFAULT_STATE.outcomePaths);
-    const [isRegistrationComplete, setIsRegistrationCompleteInternal] = useState<boolean>(DEFAULT_STATE.isRegistrationComplete);
-    const [isAuthorizationComplete, setIsAuthorizationCompleteInternal] = useState<boolean>(DEFAULT_STATE.isAuthorizationComplete);
-    const [isFlowComplete, setIsFlowCompleteInternal] = useState<boolean>(DEFAULT_STATE.isFlowComplete);
-    const [authenticationMethod, setAuthenticationMethodInternal] = useState<MarqetaAuthTypeName | undefined>(DEFAULT_STATE.authenticationMethod);
-
-    const setError = useCallback((value: ErrorState | undefined) => {
-        if (value === undefined) {
-            setErrorInternal(undefined);
-            setContinuableErrorInternal(undefined);
-            return;
-        }
-
-        // Route to appropriate state based on whether the reason is continuable
-        if (isContinuableReason(value.reason)) {
-            setContinuableErrorInternal(value);
-            setErrorInternal(undefined);
-        } else {
-            setErrorInternal(value);
-            setContinuableErrorInternal(undefined);
-        }
-    }, []);
-
-    const clearContinuableError = useCallback(() => {
-        setContinuableErrorInternal(undefined);
-    }, []);
-    const setValidateCode = (value: string | undefined) => {
-        setValidateCodeInternal(value);
-    };
-    const setRegistrationChallenge = (challenge: RegistrationChallenge | undefined) => {
-        setRegistrationChallengeInternal(challenge);
-    };
-    const setAuthorizationChallenge = (challenge: AuthenticationChallenge | undefined) => {
-        setAuthorizationChallengeInternal(challenge);
-    };
-    const setSoftPromptApproved = (value: boolean) => {
-        setSoftPromptApprovedInternal(value);
-    };
-    const setScenario = (value: MultifactorAuthenticationScenario | undefined) => {
-        setScenarioInternal(value);
-    };
-    const setPayload = (value: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined) => {
-        setPayloadInternal(value);
-    };
-    const setOutcomePaths = (value: OutcomePaths | undefined) => {
-        setOutcomePathsInternal(value);
-    };
-    const setIsRegistrationComplete = (value: boolean) => {
-        setIsRegistrationCompleteInternal(value);
-    };
-    const setIsAuthorizationComplete = (value: boolean) => {
-        setIsAuthorizationCompleteInternal(value);
-    };
-    const setIsFlowComplete = (value: boolean) => {
-        setIsFlowCompleteInternal(value);
-    };
-    const setAuthenticationMethod = (value: MarqetaAuthTypeName | undefined) => {
-        setAuthenticationMethodInternal(value);
-    };
-
-    const reset = () => {
-        setErrorInternal(DEFAULT_STATE.error);
-        setContinuableErrorInternal(DEFAULT_STATE.continuableError);
-        setValidateCodeInternal(DEFAULT_STATE.validateCode);
-        setRegistrationChallengeInternal(DEFAULT_STATE.registrationChallenge);
-        setAuthorizationChallengeInternal(DEFAULT_STATE.authorizationChallenge);
-        setSoftPromptApprovedInternal(DEFAULT_STATE.softPromptApproved);
-        setScenarioInternal(DEFAULT_STATE.scenario);
-        setPayloadInternal(DEFAULT_STATE.payload);
-        setOutcomePathsInternal(DEFAULT_STATE.outcomePaths);
-        setIsRegistrationCompleteInternal(DEFAULT_STATE.isRegistrationComplete);
-        setIsAuthorizationCompleteInternal(DEFAULT_STATE.isAuthorizationComplete);
-        setIsFlowCompleteInternal(DEFAULT_STATE.isFlowComplete);
-        setAuthenticationMethodInternal(DEFAULT_STATE.authenticationMethod);
-    };
-
-    const state: MultifactorAuthenticationState = useMemo(
-        () => ({
-            error,
-            continuableError,
-            validateCode,
-            registrationChallenge,
-            authorizationChallenge,
-            softPromptApproved,
-            scenario,
-            payload,
-            outcomePaths,
-            isRegistrationComplete,
-            isAuthorizationComplete,
-            isFlowComplete,
-            authenticationMethod,
-        }),
-        [
-            authenticationMethod,
-            authorizationChallenge,
-            continuableError,
-            error,
-            isAuthorizationComplete,
-            isFlowComplete,
-            isRegistrationComplete,
-            outcomePaths,
-            payload,
-            registrationChallenge,
-            scenario,
-            softPromptApproved,
-            validateCode,
-        ],
-    );
+    const [state, dispatch] = useReducer(stateReducer, DEFAULT_STATE);
 
     const contextValue: MultifactorAuthenticationStateContextValue = useMemo(
         () => ({
             state,
-            setError,
-            clearContinuableError,
-            setValidateCode,
-            setRegistrationChallenge,
-            setAuthorizationChallenge,
-            setSoftPromptApproved,
-            setScenario,
-            setPayload,
-            setOutcomePaths,
-            setIsRegistrationComplete,
-            setIsAuthorizationComplete,
-            setIsFlowComplete,
-            setAuthenticationMethod,
-            reset,
+            dispatch,
         }),
-        [clearContinuableError, setError, state],
+        [state],
     );
 
     return <MultifactorAuthenticationStateContext.Provider value={contextValue}>{children}</MultifactorAuthenticationStateContext.Provider>;
@@ -275,4 +164,4 @@ MultifactorAuthenticationStateProvider.displayName = 'MultifactorAuthenticationS
 
 export default MultifactorAuthenticationStateProvider;
 export {useMultifactorAuthenticationState, MultifactorAuthenticationStateContext, DEFAULT_STATE};
-export type {MultifactorAuthenticationState, MultifactorAuthenticationStateContextValue, ErrorState};
+export type {MultifactorAuthenticationState, MultifactorAuthenticationStateContextValue, ErrorState, Action};

@@ -20,14 +20,14 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {cancel} = useMultifactorAuthentication();
-    const {state, setSoftPromptApproved} = useMultifactorAuthenticationState();
+    const {state, dispatch} = useMultifactorAuthenticationState();
 
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[route.params.promptType];
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
 
     const onConfirm = () => {
-        setSoftPromptApproved(true);
+        dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
     };
 
     const showConfirmModal = () => {

@@ -51,7 +51,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const {cancel} = useMultifactorAuthentication();
 
-    const {state, setValidateCode, setError, clearContinuableError} = useMultifactorAuthenticationState();
+    const {state, dispatch} = useMultifactorAuthenticationState();
     const {continuableError} = state;
 
     // Refs
@@ -74,9 +74,9 @@ function MultifactorAuthenticationValidateCodePage() {
 
         if (!HANDLED_REASONS.has(continuableError.reason)) {
             // Cannot handle this error - convert to regular error which will stop the flow
-            setError({reason: continuableError.reason, message: continuableError.message});
+            dispatch({type: 'SET_ERROR', payload: {reason: continuableError.reason, message: continuableError.message}});
         }
-    }, [continuableError, setError]);
+    }, [continuableError, dispatch]);
 
     // Auto-blur on error
     useEffect(() => {
@@ -126,7 +126,7 @@ function MultifactorAuthenticationValidateCodePage() {
 
         // Clear continuable error when user starts typing
         if (continuableError) {
-            clearContinuableError();
+            dispatch({type: 'CLEAR_CONTINUABLE_ERROR'});
         }
     };
 
@@ -175,7 +175,7 @@ function MultifactorAuthenticationValidateCodePage() {
         setFormError({});
 
         // Set validate code in state context - the process function will handle the rest
-        setValidateCode(inputCode);
+        dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
     };
 
     const onGoBackPress = () => {

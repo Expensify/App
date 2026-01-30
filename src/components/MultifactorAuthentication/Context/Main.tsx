@@ -33,20 +33,7 @@ type MultifactorAuthenticationContextProviderProps = {
 };
 
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
-    const {
-        state,
-        setScenario,
-        setPayload,
-        setOutcomePaths,
-        setError,
-        setValidateCode,
-        setRegistrationChallenge,
-        setAuthorizationChallenge,
-        setIsRegistrationComplete,
-        setIsAuthorizationComplete,
-        setIsFlowComplete,
-        setAuthenticationMethod,
-    } = useMultifactorAuthenticationState();
+    const {state, dispatch} = useMultifactorAuthenticationState();
 
     const biometrics = useNativeBiometrics();
     const {translate} = useLocalize();
@@ -86,14 +73,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             } else {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.failureOutcome));
             }
-            setIsFlowComplete(true);
+            dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
             return;
         }
 
         // 2. Check if device is compatible
         if (!biometrics.doesDeviceSupportBiometrics()) {
-            setError({
-                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS,
+            dispatch({
+                type: 'SET_ERROR',
+                payload: {
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS,
+                },
             });
             return;
         }
@@ -116,20 +106,20 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 if (!challenge) {
                     // Clear validateCode for continuable errors so user can retry
                     if (isContinuableReason(challengeReason)) {
-                        setValidateCode(undefined);
+                        dispatch({type: 'SET_VALIDATE_CODE', payload: undefined});
                     }
-                    setError({reason: challengeReason});
+                    dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
                     return;
                 }
 
                 // Validate that we received a registration challenge (has 'user' and 'rp' properties)
                 const isRegistrationChallengeValid = 'user' in challenge && 'rp' in challenge;
                 if (!isRegistrationChallengeValid) {
-                    setError({reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE});
+                    dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
                     return;
                 }
 
-                setRegistrationChallenge(challenge);
+                dispatch({type: 'SET_REGISTRATION_CHALLENGE', payload: challenge});
                 return;
             }
 
@@ -145,16 +135,22 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             const nativePromptTitle = translate(nativePromptTitleTPath);
 
             if (!registrationChallenge.challenge) {
-                setError({
-                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
+                dispatch({
+                    type: 'SET_ERROR',
+                    payload: {
+                        reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BAD_REQUEST,
+                    },
                 });
                 return;
             }
 
             await biometrics.register({nativePromptTitle}, async (result: RegisterResult) => {
                 if (!result.success) {
-                    setError({
-                        reason: result.reason,
+                    dispatch({
+                        type: 'SET_ERROR',
+                        payload: {
+                            reason: result.reason,
+                        },
                     });
                     return;
                 }
@@ -168,13 +164,16 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 });
 
                 if (!registrationResult.success) {
-                    setError({
-                        reason: registrationResult.reason,
+                    dispatch({
+                        type: 'SET_ERROR',
+                        payload: {
+                            reason: registrationResult.reason,
+                        },
                     });
                     return;
                 }
 
-                setIsRegistrationComplete(true);
+                dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: true});
             });
             return;
         }
@@ -188,18 +187,18 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 const {challenge, reason: challengeReason} = await requestAuthorizationChallenge();
 
                 if (!challenge) {
-                    setError({reason: challengeReason});
+                    dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
                     return;
                 }
 
                 // Validate that we received an authentication challenge (has 'allowCredentials' and 'rpId' properties)
                 const isAuthenticationChallengeValid = 'allowCredentials' in challenge && 'rpId' in challenge;
                 if (!isAuthenticationChallengeValid) {
-                    setError({reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE});
+                    dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
                     return;
                 }
 
-                setAuthorizationChallenge(challenge);
+                dispatch({type: 'SET_AUTHORIZATION_CHALLENGE', payload: challenge});
                 return;
             }
 
@@ -213,11 +212,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         // Check if re-registration is needed
                         if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED) {
                             await biometrics.resetKeysForAccount();
-                            setIsRegistrationComplete(false);
-                            setAuthorizationChallenge(undefined);
+                            dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
+                            dispatch({type: 'SET_AUTHORIZATION_CHALLENGE', payload: undefined});
                         }
-                        setError({
-                            reason: result.reason,
+                        dispatch({
+                            type: 'SET_ERROR',
+                            payload: {
+                                reason: result.reason,
+                            },
                         });
                         return;
                     }
@@ -230,14 +232,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     });
 
                     if (!scenarioResult.success) {
-                        setError({
-                            reason: scenarioResult.reason,
+                        dispatch({
+                            type: 'SET_ERROR',
+                            payload: {
+                                reason: scenarioResult.reason,
+                            },
                         });
                         return;
                     }
 
-                    setAuthenticationMethod(result.authenticationMethod);
-                    setIsAuthorizationComplete(true);
+                    dispatch({type: 'SET_AUTHENTICATION_METHOD', payload: result.authenticationMethod});
+                    dispatch({type: 'SET_AUTHORIZATION_COMPLETE', payload: true});
                 },
             );
             return;
@@ -245,20 +250,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 6. All steps completed - success
         Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome));
-        setIsFlowComplete(true);
-    }, [
-        biometrics,
-        setAuthenticationMethod,
-        setAuthorizationChallenge,
-        setError,
-        setIsAuthorizationComplete,
-        setIsFlowComplete,
-        setIsRegistrationComplete,
-        setRegistrationChallenge,
-        setValidateCode,
-        state,
-        translate,
-    ]);
+        dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+    }, [biometrics, dispatch, state, translate]);
 
     // Run process on every relevant state change, but only after executeScenario has been called
     useEffect(() => {
@@ -288,21 +281,24 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             const {successOutcome, failureOutcome, ...payload} = params ?? {};
 
             // Set initial state
-            setScenario(scenario);
-            setPayload(Object.keys(payload).length > 0 ? payload : undefined);
-            setIsRegistrationComplete(false);
-            setIsAuthorizationComplete(false);
-            setIsFlowComplete(false);
-            setError(undefined);
-            setAuthenticationMethod(undefined);
+            dispatch({type: 'SET_SCENARIO', payload: scenario});
+            dispatch({type: 'SET_PAYLOAD', payload: Object.keys(payload).length > 0 ? payload : undefined});
+            dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
+            dispatch({type: 'SET_AUTHORIZATION_COMPLETE', payload: false});
+            dispatch({type: 'SET_FLOW_COMPLETE', payload: false});
+            dispatch({type: 'SET_ERROR', payload: undefined});
+            dispatch({type: 'SET_AUTHENTICATION_METHOD', payload: undefined});
 
             const paths = getOutcomePaths(scenario);
-            setOutcomePaths({
-                successOutcome: successOutcome ?? paths.successOutcome,
-                failureOutcome: failureOutcome ?? paths.failureOutcome,
+            dispatch({
+                type: 'SET_OUTCOME_PATHS',
+                payload: {
+                    successOutcome: successOutcome ?? paths.successOutcome,
+                    failureOutcome: failureOutcome ?? paths.failureOutcome,
+                },
             });
         },
-        [setAuthenticationMethod, setError, setIsAuthorizationComplete, setIsFlowComplete, setIsRegistrationComplete, setOutcomePaths, setPayload, setScenario],
+        [dispatch],
     );
 
     /**
@@ -311,10 +307,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const cancel = useCallback(() => {
         // Set error to trigger failure navigation
-        setError({
-            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED,
+        dispatch({
+            type: 'SET_ERROR',
+            payload: {
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED,
+            },
         });
-    }, [setError]);
+    }, [dispatch]);
 
     const contextValue: MultifactorAuthenticationContextValue = useMemo(
         () => ({
