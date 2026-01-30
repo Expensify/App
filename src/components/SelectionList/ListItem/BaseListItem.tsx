@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+import type {Role} from 'react-native';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -68,7 +69,16 @@ function BaseListItem<TItem extends ListItem>({
     };
 
     const rightHandSideComponentRender = () => {
-        if (canSelectMultiple || !rightHandSideComponent) {
+        if (!rightHandSideComponent) {
+            return null;
+        }
+
+        // When canSelectMultiple is true, most components (like UserListItem) handle checkboxes in children,
+        // so rightHandSideComponent should be hidden. However, some components (like MultiSelectListItem)
+        // explicitly pass checkboxes as rightHandSideComponent and need them to show.
+        // We check if rightHandSideComponent exists and shouldUseDefaultRightHandSideCheckmark is false,
+        // which indicates the component is handling its own checkbox rendering and wants rightHandSideComponent to show.
+        if (canSelectMultiple && shouldUseDefaultRightHandSideCheckmark) {
             return null;
         }
 
@@ -84,6 +94,21 @@ function BaseListItem<TItem extends ListItem>({
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
     const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark;
+
+    // Use radio role for single-select (e.g. Date dropdown options), checkbox for multi-select, button otherwise
+    const isRadioOption = !canSelectMultiple && !!rightHandSideComponent;
+    const isCheckboxOption = canSelectMultiple;
+    let role: Role | undefined;
+    if (isCheckboxOption) {
+        role = CONST.ROLE.CHECKBOX;
+    } else if (isRadioOption) {
+        role = CONST.ROLE.RADIO;
+    } else {
+        role = getButtonRole(true) ?? CONST.ROLE.BUTTON;
+    }
+    const accessibilityState = isRadioOption || isCheckboxOption
+        ? {checked: !!item.isSelected, selected: !!isFocused}
+        : {selected: !!isFocused};
 
     return (
         <OfflineWithFeedback
@@ -113,7 +138,8 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
-                role={getButtonRole(true)}
+                role={role}
+                accessibilityState={accessibilityState}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
@@ -140,7 +166,6 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused &&

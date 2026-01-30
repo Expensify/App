@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+import type {Role} from 'react-native';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -83,6 +84,21 @@ function BaseListItem<TItem extends ListItem>({
     const defaultAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
     const accessibilityLabel = item.accessibilityLabel ?? defaultAccessibilityLabel;
 
+    // Use radio role for single-select (e.g. Date dropdown options), checkbox for multi-select, button otherwise
+    const isRadioOption = !canSelectMultiple && !!rightHandSideComponent;
+    const isCheckboxOption = canSelectMultiple;
+    let role: Role | undefined;
+    if (isCheckboxOption) {
+        role = CONST.ROLE.CHECKBOX;
+    } else if (isRadioOption) {
+        role = CONST.ROLE.RADIO;
+    } else {
+        role = getButtonRole(true) ?? CONST.ROLE.BUTTON;
+    }
+    const accessibilityState = isRadioOption || isCheckboxOption
+        ? {checked: !!item.isSelected, selected: !!isFocused}
+        : {selected: !!isFocused};
+
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -111,7 +127,8 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={accessibilityLabel}
-                role={getButtonRole(true)}
+                accessibilityState={accessibilityState}
+                role={role}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
