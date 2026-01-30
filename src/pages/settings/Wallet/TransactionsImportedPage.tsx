@@ -79,7 +79,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
 
         setIsImporting(true);
         // If existingCardID is provided, add transactions to that card instead of creating a new one
-        importTransactionsFromCSV(spreadsheet, existingCardID);
+        importTransactionsFromCSV(spreadsheet, existingCardID ? Number(existingCardID) : undefined);
     }, [validate, spreadsheet, existingCardID]);
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {

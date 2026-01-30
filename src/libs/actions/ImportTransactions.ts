@@ -241,7 +241,7 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
  * @param spreadsheet - The imported spreadsheet data
  * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
  */
-function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCardID?: string) {
+function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCardID?: number) {
     const settings = spreadsheet.importTransactionSettings ?? {};
     const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true} = settings;
 
@@ -262,7 +262,7 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
 
     // Use existing cardID if provided, otherwise create a new optimistic card
     const isAddingToExistingCard = !!existingCardID;
-    let cardID: string;
+    let cardID: number;
     let optimisticCard: Card | undefined;
 
     if (isAddingToExistingCard) {

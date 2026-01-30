@@ -467,7 +467,7 @@ function WalletPage() {
                           text: translate('spreadsheet.importSpreadsheet'),
                           icon: icons.Table,
                           onSelected: () => {
-                              Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(paymentMethod.methodID));
+                              Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(paymentMethod.methodID)));
                           },
                       },
                   ]
