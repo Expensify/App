@@ -11,7 +11,7 @@ import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LABEL_OFFSET, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import {useChartBoundsTracking, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import {DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -62,7 +62,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
-    const [barAreaWidth, setBarAreaWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
 
     const defaultBarColor = DEFAULT_CHART_COLOR;
@@ -97,11 +96,28 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         setContainerHeight(height);
     }, []);
 
+    // Store bar geometry for hit-testing (only constants, no arrays)
+    const barGeometry = useSharedValue({barWidth: 0, chartBottom: 0, yZero: 0});
+
+    const onBoundsChange = useCallback(
+        (bounds: ChartBounds, width: number) => {
+            const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * width) / data.length;
+            barGeometry.set({
+                ...barGeometry.get(),
+                barWidth: calculatedBarWidth,
+                chartBottom: bounds.bottom,
+            });
+        },
+        [data.length, barGeometry],
+    );
+
+    const {plotAreaWidth, handleChartBoundsChange} = useChartBoundsTracking(onBoundsChange);
+
     const {labelRotation, labelSkipInterval, truncatedLabels, maxLabelLength} = useChartLabelLayout({
         data,
         font,
         chartWidth,
-        barAreaWidth,
+        plotAreaWidth,
         containerHeight,
     });
 
@@ -121,23 +137,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         labelRotation,
         truncatedLabels,
     });
-
-    // Store bar geometry for hit-testing (only constants, no arrays)
-    const barGeometry = useSharedValue({barWidth: 0, chartBottom: 0, yZero: 0});
-
-    const handleChartBoundsChange = useCallback(
-        (bounds: ChartBounds) => {
-            const domainWidth = bounds.right - bounds.left;
-            const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
-            barGeometry.set({
-                ...barGeometry.get(),
-                barWidth: calculatedBarWidth,
-                chartBottom: bounds.bottom,
-            });
-            setBarAreaWidth(domainWidth);
-        },
-        [data.length, barGeometry],
-    );
 
     const handleScaleChange = useCallback(
         (_xScale: unknown, yScale: (value: number) => number) => {

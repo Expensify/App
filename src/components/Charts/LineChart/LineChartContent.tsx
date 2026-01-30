@@ -10,7 +10,7 @@ import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LABEL_OFFSET, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import {useChartBoundsTracking, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -62,11 +62,13 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         setContainerHeight(height);
     }, []);
 
+    const {plotAreaWidth, handleChartBoundsChange} = useChartBoundsTracking();
+
     const {labelRotation, labelSkipInterval, truncatedLabels, maxLabelLength} = useChartLabelLayout({
         data,
         font,
         chartWidth,
-        barAreaWidth: chartWidth,
+        plotAreaWidth,
         containerHeight,
     });
 
@@ -128,9 +130,10 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                         xKey="x"
                         padding={CHART_PADDING}
                         yKeys={['y']}
-                        domainPadding={{left: 20, right: 20, top: 20, bottom: 20}}
+                        domainPadding={{left: 20, right: 40, top: 20, bottom: 20}}
                         actionsRef={actionsRef}
                         customGestures={customGestures}
+                        onChartBoundsChange={handleChartBoundsChange}
                         xAxis={{
                             font,
                             tickCount: data.length,
