@@ -24,7 +24,6 @@ import type {
     FlagCommentParams,
     GetNewerActionsParams,
     GetOlderActionsParams,
-    GetOutstandingReportsParams,
     GetReportPrivateNoteParams,
     InviteToGroupChatParams,
     InviteToRoomParams,
@@ -4645,10 +4644,9 @@ function searchInServer(searchInput: string, policyID?: string) {
 }
 
 /**
- * Fetch all outstanding reports for a workspace to ensure they are available in Onyx
+ * Fetch all outstanding reports to ensure they are available in Onyx
  */
-function fetchOutstandingReportsForWorkspace(policyID: string, accountID: number) {
-    // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
+function fetchOutstandingReports() {
     const isOffline = NetworkStore.isOffline();
 
     // We do not try to make this request while offline because it sets a loading indicator optimistically
@@ -4681,12 +4679,7 @@ function fetchOutstandingReportsForWorkspace(policyID: string, accountID: number
         },
     ];
 
-    const parameters: GetOutstandingReportsParams = {
-        policyID,
-        accountID,
-    };
-
-    API.read(READ_COMMANDS.GET_OUTSTANDING_REPORTS, parameters, {
+    API.read(READ_COMMANDS.GET_OUTSTANDING_REPORTS, null, {
         optimisticData,
         successData,
         failureData,
@@ -6703,7 +6696,7 @@ export {
     saveReportActionDraft,
     saveReportDraftComment,
     searchInServer,
-    fetchOutstandingReportsForWorkspace,
+    fetchOutstandingReports,
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,

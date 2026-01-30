@@ -17,7 +17,7 @@ import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
-import {fetchOutstandingReportsForWorkspace} from '@libs/actions/Report';
+import {fetchOutstandingReports} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {canAddTransaction, getPolicyName, getReportName, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
@@ -113,17 +113,10 @@ function IOURequestEditReportCommon({
     const shouldShowRemoveFromReport =
         !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport) && isEditing && isOwner && !isReportIOU && !isCardTransaction;
 
-    // Fetch all outstanding reports for the workspace when the component mounts
+    // Fetch all outstanding reports
     useEffect(() => {
-        const policyID = selectedPolicyID ?? selectedReport?.policyID;
-
-        if (!policyID || !resolvedReportOwnerAccountID) {
-            return;
-        }
-
-        // Fetch all outstanding reports for this policy and owner
-        fetchOutstandingReportsForWorkspace(policyID, resolvedReportOwnerAccountID);
-    }, [selectedPolicyID, selectedReport?.policyID, resolvedReportOwnerAccountID]);
+        fetchOutstandingReports();
+    }, []);
 
     const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
 
