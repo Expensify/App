@@ -42,15 +42,18 @@ let youTranslation = '';
 
 Onyx.connect({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
     callback: (value) => {
-        if (value ?? true) {
-            return;
+        if (value === false) {
+            if (!youTranslation) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                youTranslation = translateLocal('common.you').toLowerCase();
+            }
+
+            if (!hiddenTranslation) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                hiddenTranslation = translateLocal('common.hidden');
+            }
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        hiddenTranslation = translateLocal('common.hidden');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        youTranslation = translateLocal('common.you').toLowerCase();
     },
 });
 
