@@ -53,10 +53,11 @@ function checkRequiredData() {
 }
 
 function resetHasReadRequiredDataFromStorage() {
+    hasReceivedSession = false;
+    hasReceivedCredentials = false;
     isReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
-    checkRequiredData();
 }
 
 Onyx.connectWithoutView({
