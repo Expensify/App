@@ -54,6 +54,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
+    const [barAreaWidth, setBarAreaWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
 
     const defaultBarColor = CHART_COLORS.at(DEFAULT_SINGLE_BAR_COLOR_INDEX);
@@ -94,6 +95,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         data,
         font,
         chartWidth,
+        barAreaWidth,
         containerHeight,
     });
 
@@ -126,6 +128,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 barWidth: calculatedBarWidth,
                 chartBottom: bounds.bottom,
             });
+            setBarAreaWidth(domainWidth);
         },
         [data.length, barGeometry],
     );
