@@ -206,15 +206,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [newTransactionID, isExpanded, searchTransactions]);
 
     const handleToggle = useCallback(() => {
-        const newExpandedState = !isExpanded;
-        setIsExpanded(newExpandedState);
-        if (newExpandedState) {
-            // Refresh transactions when expanding
-            searchTransactions(0, true);
-        } else {
-            setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
-        }
-    }, [isExpanded, searchTransactions]);
+        setIsExpanded((prev) => {
+            const newExpandedState = !prev;
+
+            if (newExpandedState) {
+                // Refresh transactions when expanding
+                searchTransactions(0, true);
+            } else {
+                setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
+            }
+
+            return newExpandedState;
+        });
+    }, [searchTransactions]);
 
     const onPress = useCallback(() => {
         if (isExpenseReportType || transactions.length === 0) {
