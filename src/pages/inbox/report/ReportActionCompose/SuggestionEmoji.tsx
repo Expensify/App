@@ -154,6 +154,13 @@ function SuggestionEmoji({
             }
             const leftString = newValue.substring(0, selectionEnd);
             const colonIndex = leftString.lastIndexOf(':');
+
+            // Skip emoji suggestions if cursor is inside a code block
+            if (colonIndex !== -1 && isPositionInsideCodeBlock(newValue, colonIndex)) {
+                resetSuggestions();
+                return;
+            }
+
             const isCurrentlyShowingEmojiSuggestion = isEmojiCode(newValue, selectionEnd);
 
             const nextState: SuggestionsValue = {
