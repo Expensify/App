@@ -69,8 +69,6 @@ function processPendingDeepLinkIfReady() {
         isCurrentlyAuthenticated,
         currentConciergeReportID,
     );
-
-    hasReportsReceived = false;
 }
 
 function setUpOnyxSubscriptions() {
@@ -133,6 +131,11 @@ function handleDeepLink(url: string | null, fromUrlChangeEvent: boolean) {
     }
 
     setUpOnyxSubscriptions();
+
+    hasReportsReceived = false;
+    hasOnboardingPurposeSelectedReceived = false;
+    hasOnboardingCompanySizeReceived = false;
+    hasOnboardingInitialPathReceived = false;
 
     pendingDeepLinkUrl = url;
 
