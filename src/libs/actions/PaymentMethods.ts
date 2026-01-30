@@ -78,7 +78,7 @@ function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
 
 function getMakeDefaultPaymentOnyxData(
     bankAccountID: number,
-    fundID: number,
+    fundID?: number,
     previousPaymentMethod?: PaymentMethod,
     currentPaymentMethod?: PaymentMethod,
     isOptimisticData = true,

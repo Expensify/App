@@ -394,7 +394,6 @@ function deletePaymentBankAccount(
     lastUsedPaymentMethods?: LastPaymentMethod,
     bankAccount?: OnyxEntry<PersonalBankAccount>,
     newBankAccountID?: number,
-    newFundID?: number,
 ) {
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
 
@@ -404,7 +403,7 @@ function deletePaymentBankAccount(
         pendingAction: null,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.USER_WALLET> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -434,9 +433,11 @@ function deletePaymentBankAccount(
         ],
     };
 
-    if (newBankAccountID && !!newFundID) {
-        const newDefaultPaymentMethodOnyxData = getMakeDefaultPaymentOnyxData(newBankAccountID, newFundID);
-        onyxData.optimisticData?.push(...newDefaultPaymentMethodOnyxData);
+    if (newBankAccountID) {
+        const newDefaultPaymentMethodOnyxData = getMakeDefaultPaymentOnyxData(newBankAccountID);
+        onyxData.optimisticData?.push(
+            ...(newDefaultPaymentMethodOnyxData as Array<OnyxUpdate<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.USER_WALLET>>),
+        );
     }
     for (const paymentMethodID of Object.keys(lastUsedPaymentMethods ?? {})) {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID] as LastPaymentMethodType;
