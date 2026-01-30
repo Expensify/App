@@ -312,6 +312,7 @@ const illustrationsMock = {
     EmptyStateBackgroundImage: jest.fn(),
     ExampleCheckES: jest.fn(),
     ExampleCheckEN: jest.fn(),
+    FileImportTable: jest.fn(),
     WorkspaceProfile: jest.fn(),
     ExpensifyApprovedLogo: jest.fn(),
     GenericCompanyCard: jest.fn(),

@@ -746,7 +746,6 @@ const CONST = {
         GPS_MILEAGE: 'gpsMileage',
         NEW_DOT_HOME: 'newDotHome',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
-        CSV_CARD_IMPORT: 'csvCardImport',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
