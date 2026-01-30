@@ -1,16 +1,15 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {FormRef} from '@components/Form/types';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
-import useSubStep from '@hooks/useSubStep';
+import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import {updateNetSuiteCustomSegments} from '@userActions/connections/NetSuiteCommands';
 import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -19,7 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
-import type {Policy} from '@src/types/onyx';
 import {getCustomSegmentInitialSubstep, getSubstepValues} from './customUtils';
 import ChooseSegmentTypeStep from './substeps/ChooseSegmentTypeStep';
 import ConfirmCustomSegmentStep from './substeps/ConfirmCustomSegmentList';
@@ -29,16 +27,23 @@ import CustomSegmentNameStep from './substeps/CustomSegmentNameStep';
 import CustomSegmentScriptIdStep from './substeps/CustomSegmentScriptIdStep';
 
 type NetSuiteImportAddCustomSegmentContentProps = {
-    policy: OnyxEntry<Policy>;
+    policy: WithPolicyConnectionsProps['policy'];
+    route: WithPolicyConnectionsProps['route'];
     draftValues: OnyxEntry<NetSuiteCustomFieldForm>;
 };
 
-const formSteps = [ChooseSegmentTypeStep, CustomSegmentNameStep, CustomSegmentInternalIdStep, CustomSegmentScriptIdStep, CustomSegmentMappingStep, ConfirmCustomSegmentStep];
+const pages = [
+    {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.PAGE_NAME.TYPE, component: ChooseSegmentTypeStep},
+    {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.PAGE_NAME.NAME, component: CustomSegmentNameStep},
+    {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.PAGE_NAME.INTERNAL_ID, component: CustomSegmentInternalIdStep},
+    {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.PAGE_NAME.SCRIPT_ID, component: CustomSegmentScriptIdStep},
+    {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.PAGE_NAME.MAPPING_TITLE, component: CustomSegmentMappingStep},
+    {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.PAGE_NAME.CONFIRM, component: ConfirmCustomSegmentStep},
+];
 
-function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteImportAddCustomSegmentContentProps) {
+function NetSuiteImportAddCustomSegmentContent({policy, route, draftValues}: NetSuiteImportAddCustomSegmentContentProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
     const formRef = useRef<FormRef | null>(null);
 
     const config = policy?.connections?.netsuite?.options?.config;
@@ -70,41 +75,40 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
         });
     }, [values, customSegments, policyID]);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        screenIndex,
-        moveTo,
-        goToTheLastStep,
-    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep});
+    const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo} = useSubPage<CustomFieldSubPageWithPolicy>({
+        pages,
+        startFrom,
+        onFinished: handleFinishStep,
+        buildRoute: (pageName, action) => ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD.getRoute(route.params.policyID, pageName, action),
+    });
+
+    const goBackToConfirmStep = () => {
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD.getRoute(route.params.policyID, CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.PAGE_NAME.CONFIRM));
+    };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToTheLastStep();
+            goBackToConfirmStep();
             return;
         }
 
         // Clicking back on the first screen should go back to listing
-        if (screenIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SEGMENT_TYPE) {
+        if (pageIndex === CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SEGMENT_TYPE) {
             clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM);
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
             return;
         }
-        ref.current?.movePrevious();
         formRef.current?.resetErrors();
-        prevScreen();
+        prevPage();
     };
 
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
-            goToTheLastStep();
+            goBackToConfirmStep();
             return;
         }
-        ref.current?.moveNext();
-        nextScreen();
-    }, [goToTheLastStep, isEditing, nextScreen]);
+        nextPage();
+    }, [goBackToConfirmStep, isEditing, nextPage]);
 
     return (
         <ConnectionLayout
@@ -120,19 +124,16 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
             shouldUseScrollView={false}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    ref={ref}
-                    startStepIndex={startFrom}
-                    stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES}
+                <InteractiveStepSubPageHeader
+                    currentStepIndex={pageIndex}
+                    stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.STEP_INDEX_LIST}
                 />
             </View>
             <View style={[styles.flex1, styles.mt3]}>
-                <SubStep
+                <CurrentPage
                     isEditing={isEditing}
                     onNext={handleNextScreen}
                     onMove={moveTo}
-                    screenIndex={screenIndex}
-                    policyID={policyID}
                     policy={policy}
                     importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}
                     customSegmentType={customSegmentType}

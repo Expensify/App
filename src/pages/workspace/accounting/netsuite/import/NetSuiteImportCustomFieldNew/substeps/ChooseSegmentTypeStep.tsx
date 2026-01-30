@@ -9,14 +9,14 @@ import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImpor
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import NetSuiteCustomSegmentMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomSegmentMappingPicker';
-import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 const STEP_FIELDS = [INPUT_IDS.SEGMENT_TYPE];
 
-function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubStepWithPolicy) {
+function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubPageWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
