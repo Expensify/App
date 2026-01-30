@@ -207,13 +207,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                             await biometrics.resetKeysForAccount();
                             dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
                             dispatch({type: 'SET_AUTHORIZATION_CHALLENGE', payload: undefined});
+                        } else {
+                            dispatch({
+                                type: 'SET_ERROR',
+                                payload: {
+                                    reason: result.reason,
+                                },
+                            });
                         }
-                        dispatch({
-                            type: 'SET_ERROR',
-                            payload: {
-                                reason: result.reason,
-                            },
-                        });
                         return;
                     }
 
