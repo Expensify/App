@@ -8313,7 +8313,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             offer25off: {title: 'Obtenez 25 % de réduction sur votre première année !', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'jour' : 'jours'} restants`},
             ctaFix: 'Corriger',
             fixCompanyCardConnection: {
-                title: ({feedName}: {feedName: string}) => (feedName ? `Corriger la connexion de la carte professionnelle ${feedName}` : 'Corriger la connexion de la carte professionnelle'),
+                title: ({feedName}: {feedName: string}) => (feedName ? `Réparer la connexion de carte d’entreprise ${feedName}` : 'Corriger la connexion de la carte d’entreprise'),
                 subtitle: 'Espace de travail > Cartes d’entreprise',
             },
             fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Réparer la connexion ${integrationName}`, subtitle: 'Espace de travail > Comptabilité'},
