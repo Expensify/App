@@ -253,22 +253,23 @@ function PaymentMethodList({
                     } else {
                         cardDescription = getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards);
                     }
-                    // Personal cards navigate to personal card details page
+                    // Personal cards navigate to personal card details page (except CSV cards which need 3-dot menu for delete)
                     // Company cards use the pressHandler callback (for 3-dot menu behavior)
-                    const cardOnPress = isUserPersonalCard
-                        ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
-                        : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-                              pressHandler({
-                                  event: e,
-                                  cardData: card,
-                                  icon: {
-                                      icon,
-                                      iconStyles: [styles.cardIcon],
-                                      iconWidth: variables.cardIconWidth,
-                                      iconHeight: variables.cardIconHeight,
-                                  },
-                                  cardID: card.cardID,
-                              });
+                    const cardOnPress =
+                        isUserPersonalCard && !isCSVCard
+                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(String(card.cardID)))
+                            : (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                                  pressHandler({
+                                      event: e,
+                                      cardData: card,
+                                      icon: {
+                                          icon,
+                                          iconStyles: [styles.cardIcon],
+                                          iconWidth: variables.cardIconWidth,
+                                          iconHeight: variables.cardIconHeight,
+                                      },
+                                      cardID: card.cardID,
+                                  });
 
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
@@ -278,7 +279,7 @@ function PaymentMethodList({
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         shouldShowRightIcon,
-                        shouldShowThreeDotsMenu: !isUserPersonalCard,
+                        shouldShowThreeDotsMenu: !isUserPersonalCard || isCSVCard,
                         errors: card.errors,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
