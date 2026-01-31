@@ -1,16 +1,17 @@
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {filterOutPersonalCards} from '@selectors/Card';
 import {differenceInDays} from 'date-fns';
 import {stopLocationUpdatesAsync} from 'expo-location';
-import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -21,6 +22,8 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -35,14 +38,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
-import {checkIfFeedConnectionIsBroken, filterPersonalCards, hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
@@ -115,7 +118,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
-    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -144,13 +147,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
 
-    const shouldLogout = useRef(false);
-
     const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
+    const {
+        all: {shouldShowRBR},
+    } = useCardFeedErrors();
+
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     let walletBrickRoadIndicator;
     if (
@@ -158,16 +162,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
         !isEmptyObject(unsharedBankAccount?.errors) ||
-        hasBrokenFeedConnection
+        shouldShowRBR
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    } else if (hasPartiallySetupBankAccount(bankAccountList)) {
-        walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-    } else if (hasPendingCardAction) {
+    } else if (hasPartiallySetupBankAccount(bankAccountList) || hasPendingCardAction) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
-
-    const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
     const hasAccountBeenSwitched = currentUserPersonalDetails.accountID !== previousUserPersonalDetails.accountID;
 
@@ -184,17 +184,36 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         confirmReadyToOpenApp();
     }, []);
 
-    const toggleSignoutConfirmModal = (value: boolean) => {
-        setShouldShowSignoutConfirmModal(value);
+    const {showConfirmModal} = useConfirmModal();
+    const confirmModalTitle = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.title') : translate('common.areYouSure');
+    const confirmModalPrompt = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
+    const confirmModalConfirmText = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
+
+    const showSignOutModal = () => {
+        return showConfirmModal({
+            title: confirmModalTitle,
+            prompt: confirmModalPrompt,
+            confirmText: confirmModalConfirmText,
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
     };
 
-    const signOut = (shouldForceSignout = false) => {
+    const signOut = async (shouldForceSignout = false) => {
         if ((!network.isOffline && !isTrackingGPS) || shouldForceSignout) {
             return signOutAndRedirectToSignIn();
         }
 
         // When offline, warn the user that any actions they took while offline will be lost if they sign out
-        toggleSignoutConfirmModal(true);
+        const result = await showSignOutModal();
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        if (isTrackingGPS) {
+            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
+        }
+        signOut(true);
     };
 
     const surveyThresholdInDays = 30;
@@ -224,6 +243,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             brickRoadIndicator: walletBrickRoadIndicator,
             action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
             badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
+        },
+        {
+            translationKey: 'expenseRulesPage.title',
+            icon: icons.Bolt,
+            screenName: SCREENS.SETTINGS.RULES.ROOT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_RULES),
         },
         {
             translationKey: 'common.preferences',
@@ -474,10 +499,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
-    const confirmModalTitle = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.title') : translate('common.areYouSure');
-    const confirmModalPrompt = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
-    const confirmModalConfirmText = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -496,30 +517,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             >
                 {accountMenuItems}
                 {generalMenuItems}
-                <ConfirmModal
-                    danger
-                    title={confirmModalTitle}
-                    prompt={confirmModalPrompt}
-                    confirmText={confirmModalConfirmText}
-                    cancelText={translate('common.cancel')}
-                    isVisible={shouldShowSignoutConfirmModal}
-                    onConfirm={() => {
-                        if (isTrackingGPS) {
-                            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
-                                console.error('[GPS distance request] Failed to stop location tracking', error),
-                            );
-                        }
-                        toggleSignoutConfirmModal(false);
-                        shouldLogout.current = true;
-                    }}
-                    onCancel={() => toggleSignoutConfirmModal(false)}
-                    onModalHide={() => {
-                        if (!shouldLogout.current) {
-                            return;
-                        }
-                        signOut(true);
-                    }}
-                />
             </ScrollView>
         </ScreenWrapper>
     );

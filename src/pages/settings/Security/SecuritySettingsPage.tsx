@@ -54,7 +54,18 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['ClosedSign', 'Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield', 'Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'ClosedSign',
+        'Pencil',
+        'ArrowCollapse',
+        'FallbackAvatar',
+        'ThreeDots',
+        'UserLock',
+        'UserPlus',
+        'Shield',
+        'Trashcan',
+        'Fingerprint',
+    ] as const);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
@@ -88,6 +99,8 @@ function SecuritySettingsPage() {
 
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
+
+    const hasEverRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== undefined;
 
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
@@ -143,29 +156,40 @@ function SecuritySettingsPage() {
                     Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
                 },
             },
-            {
-                translationKey: 'mergeAccountsPage.mergeAccount',
-                icon: icons.ArrowCollapse,
-                action: () => {
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-                    if (isAccountLocked) {
-                        showLockedAccountModal();
-                        return;
-                    }
-                    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
-                        Navigation.navigate(
-                            ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
-                        );
-                        return;
-                    }
-
-                    Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
-                },
-            },
         ];
+
+        if (hasEverRegisteredForMultifactorAuthentication) {
+            baseMenuItems.push({
+                translationKey: 'multifactorAuthentication.revoke.title',
+                icon: icons.Fingerprint,
+                action: () => {
+                    Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
+                },
+            });
+        }
+
+        baseMenuItems.push({
+            translationKey: 'mergeAccountsPage.mergeAccount',
+            icon: icons.ArrowCollapse,
+            action: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+                if (isAccountLocked) {
+                    showLockedAccountModal();
+                    return;
+                }
+                if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                    Navigation.navigate(
+                        ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                    );
+                    return;
+                }
+
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
+            },
+        });
 
         if (isAccountLocked) {
             baseMenuItems.push({
@@ -210,6 +234,7 @@ function SecuritySettingsPage() {
         icons.ArrowCollapse,
         icons.UserLock,
         icons.Shield,
+        icons.Fingerprint,
         isAccountLocked,
         isDelegateAccessRestricted,
         isUserValidated,
@@ -221,6 +246,7 @@ function SecuritySettingsPage() {
         translate,
         styles.sectionMenuItemTopDescription,
         icons.ClosedSign,
+        hasEverRegisteredForMultifactorAuthentication,
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(

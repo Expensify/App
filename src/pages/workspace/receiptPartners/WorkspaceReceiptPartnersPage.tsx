@@ -45,7 +45,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const receiptPartnerNames = CONST.POLICY.RECEIPT_PARTNERS.NAME;
     const receiptPartnerIntegrations = Object.values(receiptPartnerNames);
-    const {isOffline} = useNetwork();
     const threeDotsMenuContainerRef = useRef<View>(null);
     const policy = usePolicy(policyID);
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
@@ -78,6 +77,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const fetchReceiptPartners = useCallback(() => {
         openPolicyReceiptPartnersPage(policyID);
     }, [policyID]);
+
+    const {isOffline} = useNetwork({onReconnect: fetchReceiptPartners});
 
     useEffect(() => {
         fetchReceiptPartners();
@@ -221,7 +222,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                     text={translate('workspace.accounting.setup')}
                                     style={styles.justifyContentCenter}
                                     small
-                                    isLoading={!policy?.receiptPartners?.uber}
+                                    isLoading={!policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners}
                                     isDisabled={isOffline}
                                 />
                             ),

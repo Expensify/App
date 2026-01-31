@@ -269,7 +269,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
-            removeMembers(policyID, selectedEmployees, policyMemberEmailsToAccountIDs);
+            removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
         });
     };
 
@@ -605,7 +605,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const accountIDsToUpdate = loginsToUpdate.map((login) => policyMemberEmailsToAccountIDs[login]).filter((id) => id !== undefined);
 
         setSelectedEmployees([]);
-        updateWorkspaceMembersRole(route.params.policyID, loginsToUpdate, accountIDsToUpdate, role);
+        updateWorkspaceMembersRole(policy, loginsToUpdate, accountIDsToUpdate, role);
     };
 
     const getBulkActionsButtonOptions = () => {

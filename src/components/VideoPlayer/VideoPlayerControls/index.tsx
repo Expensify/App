@@ -1,4 +1,4 @@
-import type {Video} from 'expo-av';
+import type {VideoPlayer, VideoView} from 'expo-video';
 import type {RefObject} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
@@ -7,8 +7,7 @@ import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
-import {convertMillisecondsToTime} from '@components/VideoPlayer/utils';
-import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
+import {convertSecondsToTime} from '@components/VideoPlayer/utils';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -28,7 +27,10 @@ type VideoPlayerControlsProps = {
     url: string;
 
     /** Ref for video player. */
-    videoPlayerRef: RefObject<Video | null>;
+    videoPlayerRef: RefObject<VideoPlayer | null>;
+
+    /** Ref for video view component. */
+    videoViewRef: RefObject<VideoView | null>;
 
     /** Is video playing. */
     isPlaying: boolean;
@@ -55,6 +57,7 @@ function VideoPlayerControls({
     position,
     url,
     videoPlayerRef,
+    videoViewRef,
     isPlaying,
     small = false,
     style,
@@ -67,7 +70,6 @@ function VideoPlayerControls({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();
-    const {isFullScreenRef} = useFullScreenContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
@@ -76,19 +78,22 @@ function VideoPlayerControls({
     };
 
     const enterFullScreenMode = useCallback(() => {
-        isFullScreenRef.current = true;
         updateCurrentURLAndReportID(url, reportID);
-        videoPlayerRef.current?.presentFullscreenPlayer();
-    }, [isFullScreenRef, reportID, updateCurrentURLAndReportID, url, videoPlayerRef]);
+        videoViewRef.current?.enterFullscreen();
+    }, [reportID, updateCurrentURLAndReportID, url, videoViewRef]);
 
     const seekPosition = useCallback(
         (newPosition: number) => {
-            videoPlayerRef.current?.setStatusAsync({positionMillis: newPosition});
+            if (!videoPlayerRef.current) {
+                return;
+            }
+            // eslint-disable-next-line no-param-reassign
+            videoPlayerRef.current.currentTime = newPosition;
         },
         [videoPlayerRef],
     );
 
-    const durationFormatted = useMemo(() => convertMillisecondsToTime(duration), [duration]);
+    const durationFormatted = useMemo(() => convertSecondsToTime(duration), [duration]);
 
     return (
         <Animated.View
@@ -113,7 +118,7 @@ function VideoPlayerControls({
                         />
                         {shouldShowTime && (
                             <View style={[styles.videoPlayerControlsRow]}>
-                                <Text style={[styles.videoPlayerText, styles.videoPlayerTimeComponentWidth]}>{convertMillisecondsToTime(position)}</Text>
+                                <Text style={[styles.videoPlayerText, styles.videoPlayerTimeComponentWidth]}>{convertSecondsToTime(position)}</Text>
                                 <Text style={[styles.videoPlayerText]}>/</Text>
                                 <Text style={[styles.videoPlayerText, styles.videoPlayerTimeComponentWidth]}>{durationFormatted}</Text>
                             </View>

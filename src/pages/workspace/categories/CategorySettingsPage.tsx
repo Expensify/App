@@ -19,7 +19,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatRequiredFieldsTitle} from '@libs/AttendeeUtils';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {
+    formatDefaultTaxRateText,
+    formatRequireItemizedReceiptsOverText,
+    formatRequireReceiptsOverText,
+    getCategoryApproverRule,
+    getCategoryDefaultTaxRate,
+    getDecodedCategoryName,
+} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -138,6 +145,13 @@ function CategorySettingsPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
+    const requireItemizedReceiptsOverText = useMemo(() => {
+        if (!policy) {
+            return '';
+        }
+        return formatRequireItemizedReceiptsOverText(translate, policy, policyCategory?.maxAmountNoItemizedReceipt);
+    }, [policy, policyCategory?.maxAmountNoItemizedReceipt, translate]);
+
     const requiredFieldsTitle = useMemo(() => {
         if (!policyCategory) {
             return '';
@@ -181,7 +195,7 @@ function CategorySettingsPage({
             setIsCannotDeleteOrDisableLastCategoryModalVisible,
             shouldPreventDisableOrDelete,
             policyData,
-            policyCategory.name,
+            policyCategory?.name,
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
@@ -417,6 +431,16 @@ function CategorySettingsPage({
                                     description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                    }}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
+                                <MenuItemWithTopDescription
+                                    title={requireItemizedReceiptsOverText}
+                                    description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />

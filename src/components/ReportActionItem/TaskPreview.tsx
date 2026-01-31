@@ -29,7 +29,7 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';

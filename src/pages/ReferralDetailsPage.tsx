@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from './inbox/report/ContextMenu/ReportActionContextMenu';
 
 type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 

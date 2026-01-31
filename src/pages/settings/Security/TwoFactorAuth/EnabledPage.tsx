@@ -1,14 +1,14 @@
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -28,7 +28,6 @@ function EnabledPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const [isVisible, setIsVisible] = useState(false);
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {login} = useCurrentUserPersonalDetails();
     const selector = useCallback(
@@ -39,10 +38,15 @@ function EnabledPage() {
     );
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
     const {translate} = useLocalize();
-
-    const closeModal = useCallback(() => {
-        setIsVisible(false);
-    }, []);
+    const {showConfirmModal} = useConfirmModal();
+    const showTwoFactorAuthRequireModal = () => {
+        return showConfirmModal({
+            title: translate('twoFactorAuth.twoFactorAuthCannotDisable'),
+            prompt: translate('twoFactorAuth.twoFactorAuthRequired'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
 
     return (
         <TwoFactorAuthWrapper
@@ -64,23 +68,13 @@ function EnabledPage() {
                     title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onPress={() => {
                         if (hasPolicyWithXeroConnection(adminPolicies)) {
-                            setIsVisible(true);
+                            showTwoFactorAuthRequireModal();
                             return;
                         }
                         Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
                     }}
                     icon={icons.Close}
                     iconFill={theme.danger}
-                />
-                <ConfirmModal
-                    title={translate('twoFactorAuth.twoFactorAuthCannotDisable')}
-                    prompt={translate('twoFactorAuth.twoFactorAuthRequired')}
-                    confirmText={translate('common.buttonConfirm')}
-                    onConfirm={closeModal}
-                    shouldShowCancelButton={false}
-                    onBackdropPress={closeModal}
-                    onCancel={closeModal}
-                    isVisible={isVisible}
                 />
             </ScrollView>
         </TwoFactorAuthWrapper>

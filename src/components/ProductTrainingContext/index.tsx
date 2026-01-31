@@ -152,6 +152,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP &&
                 isModalVisible
             ) {
                 return false;
