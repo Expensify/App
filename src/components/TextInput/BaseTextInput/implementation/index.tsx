@@ -295,12 +295,15 @@ function BaseTextInput({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
+    // autoGrow uses autoGrowMeasurementStyles (includes padding), contentWidth doesn't - add padding manually
+    const containerPadding = !autoGrow && shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0;
+
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         !shouldApplyPaddingToContainer && styles.p0,
         !hasLabel && styles.pt0,
         textInputContainerStyles,
-        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
+        (autoGrow || !!contentWidth) && StyleUtils.getWidthStyle(textInputWidth + containerPadding),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -309,8 +312,10 @@ function BaseTextInput({
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
-    // Extract horizontal padding/border from visible input for hidden measurement input width calculation
-    const textInputMeasurementStyles = StyleUtils.getTextInputMeasurementStyles(newTextInputContainerStyles);
+    // TextInputMeasurement is absolutely positioned, so it doesn’t inherit padding/border.
+    // We extract the horizontal padding/border from the input container to get an accurate width.
+    // This is used by the TextInputMeasurement for autoGrow height calculation.
+    const autoGrowMeasurementStyles = StyleUtils.getTextInputMeasurementStyles(newTextInputContainerStyles);
 
     const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
@@ -569,7 +574,7 @@ function BaseTextInput({
                 onSetTextInputWidth={setTextInputWidth}
                 onSetTextInputHeight={setTextInputHeight}
                 isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
-                textInputMeasurementStyles={textInputMeasurementStyles}
+                autoGrowMeasurementStyles={autoGrowMeasurementStyles}
             />
         </>
     );
