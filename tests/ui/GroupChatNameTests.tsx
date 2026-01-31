@@ -1,7 +1,7 @@
 /* eslint-disable testing-library/no-node-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, cleanup, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {setSidebarLoaded} from '@userActions/App';
@@ -239,6 +239,10 @@ describe('Tests for group chat name', () => {
         PusherHelper.teardown();
 
         return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    afterEach(() => {
+        cleanup();
     });
 
     const participantAccountIDs4 = [USER_A_ACCOUNT_ID, USER_B_ACCOUNT_ID, USER_C_ACCOUNT_ID, USER_D_ACCOUNT_ID];
