@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getExportTemplates} from '@libs/actions/Search';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -196,7 +197,6 @@ function SearchAutocompleteList({
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -223,23 +223,10 @@ function SearchAutocompleteList({
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
             loginList,
-            visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
         });
-    }, [
-        areOptionsInitialized,
-        options,
-        draftComments,
-        nvpDismissedProductTraining,
-        betas,
-        autocompleteQueryValue,
-        countryCode,
-        loginList,
-        visibleReportActionsData,
-        currentUserAccountID,
-        currentUserEmail,
-    ]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -339,6 +326,15 @@ function SearchAutocompleteList({
         return getAutocompleteTags(allPoliciesTags);
     }, [allPoliciesTags]);
     const recentTagsAutocompleteList = useMemo(() => getAutocompleteRecentTags(allRecentTags), [allRecentTags]);
+
+    const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
+    const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const exportedToAutocompleteList = useMemo(() => {
+        const predefinedValues = CONST.SEARCH.PREDEFINED_INTEGRATION_FILTER_VALUES;
+        const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
+        const customNames = exportTemplates.map((t) => t.templateName).filter(Boolean);
+        return [...new Set([...predefinedValues, ...customNames])];
+    }, [integrationsExportTemplates, csvExportLayouts, translate]);
 
     const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = useMemo(() => {
         const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
@@ -450,7 +446,6 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
@@ -484,7 +479,6 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 }).recentReports.filter((chat) => {
@@ -633,6 +627,17 @@ function SearchAutocompleteList({
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO: {
+                const filteredExportedTo = exportedToAutocompleteList
+                    .filter((value) => value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(value.toLowerCase()))
+                    .sort()
+                    .slice(0, 10);
+                return filteredExportedTo.map((value) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO,
+                    text: value,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                }));
+            }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
@@ -673,7 +678,7 @@ function SearchAutocompleteList({
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
-        visibleReportActionsData,
+        exportedToAutocompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

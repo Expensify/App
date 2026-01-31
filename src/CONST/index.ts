@@ -744,6 +744,7 @@ const CONST = {
         ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
+        NEW_DOT_HOME: 'newDotHome',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
     },
     BUTTON_STATES: {
@@ -1075,14 +1076,14 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     STORYLANE: {
-        ADMIN_TOUR: 'https://expensify.storylane.io/share/nfrgmfpppolt',
-        ADMIN_TOUR_MOBILE: 'https://expensify.storylane.io/share/7t9urrrcqk5k',
+        ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
+        ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/b6faqcdsxgww?embed=inline',
         ADMIN_MIGRATED: 'https://app.storylane.io/share/qlgnexxbsdtp',
         ADMIN_MIGRATED_MOBILE: 'https://app.storylane.io/share/fgireksbt2oh',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/mqzy3huvtrhx?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
-        EMPLOYEE_TOUR: 'https://expensify.storylane.io/share/ohsppww6qi71',
-        EMPLOYEE_TOUR_MOBILE: 'https://expensify.storylane.io/share/v8uwkznocw0g',
+        EMPLOYEE_TOUR: 'https://app.storylane.io/share/izmryscwurdd?embed=inline',
+        EMPLOYEE_TOUR_MOBILE: 'https://app.storylane.io/share/wckqdetaacgy?embed=inline',
         EMPLOYEE_MIGRATED: 'https://app.storylane.io/share/v9dr1rjqsd9y',
         EMPLOYEE_MIGRATED_MOBILE: 'https://app.storylane.io/share/qbbob6zvapqo',
     },
@@ -3274,6 +3275,7 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+                CERTINIA: 'certinia',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialForce',
@@ -3295,6 +3297,7 @@ const CONST = {
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
                 financialForce: 'FinancialForce',
+                certinia: 'Certinia',
                 billCom: 'Bill.com',
                 zenefits: 'Zenefits',
                 sap: 'SAP',
@@ -7225,6 +7228,7 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'reportField',
+            EXPORTED_TO: 'exportedTo',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -7291,6 +7295,7 @@ const CONST = {
             ATTENDEE: 'attendee',
             IS: 'is',
             REPORT_FIELD: 'report-field',
+            EXPORTED_TO: 'exported-to',
             COLUMNS: 'columns',
             LIMIT: 'limit',
         },
@@ -7404,6 +7409,7 @@ const CONST = {
         },
         TODO_BADGE_MAX_COUNT: 50,
         TOP_SEARCH_LIMIT: 10,
+        PREDEFINED_INTEGRATION_FILTER_VALUES: ['xero', 'qbo', 'qbd', 'netsuite', 'intacct', 'certinia'],
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
@@ -8018,8 +8024,6 @@ const CONST = {
             HOME: 'NavigationTabBar-Home',
             FLOATING_ACTION_BUTTON: 'NavigationTabBar-FloatingActionButton',
             FLOATING_RECEIPT_BUTTON: 'NavigationTabBar-FloatingReceiptButton',
-            FLOATING_GPS_BUTTON: 'NavigationTabBar-FloatingGpsButton',
-            FLOATING_CAMERA_BUTTON: 'NavigationTabBar-FloatingCameraButton',
         },
         FAB_MENU: {
             CREATE_EXPENSE: 'FABMenu-CreateExpense',
@@ -8199,12 +8203,6 @@ const CONST = {
             VIEW_DESCRIPTION: 'Task-ViewDescription',
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
-        },
-        DISCOVER_SECTION: {
-            TEST_DRIVE: 'DiscoverSection-TestDrive',
-        },
-        HOME_PAGE: {
-            WIDGET_ITEM: 'HomePage-WidgetItem',
         },
     },
 
