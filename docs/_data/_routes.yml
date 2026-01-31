@@ -216,4 +216,11 @@ platforms:
         title: billing
         icon: /assets/images/accounting.svg
         description: "Learn about billing."
+        
+        sections:
+          - href: subscription-and-plan-management
+            title: Subscription and Plan Management
+            articles:
+              - href: what-billing-ownership-means-in-expensify
+                title: What billing ownership means in Expensify
 
