@@ -32,6 +32,7 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areCompanyCardsEnabled: policy.areCompanyCardsEnabled,
         areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
         achAccount: policy.achAccount,
+        areCategoriesEnabled: policy.areCategoriesEnabled,
     };
 
 const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
