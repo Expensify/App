@@ -223,6 +223,14 @@ platforms:
             articles:
               - href: what-billing-ownership-means-in-expensify
                 title: What billing ownership means in Expensify
+              - href: Managing-subscriptions-in-Expensify
+                title: Managing subscriptions in Expensify
+              - href: Deleting-workspaces-in-Expensify
+                title: Deleting a workspace in Expensify
+              - href: How-to-Manage-Billing-and-Subscriptions-in-Expensify-Classic
+                title: Manage Billing & Subscriptions in Expensify Classic
+              - href: How-to-Manage-Subscriptions-and-Billing-in-New-Expensify
+                title: How to manage subscriptions and billing in New Expensify
           
           - href: billing-setup-and-ownership
             title: Billing Setup and Ownership
