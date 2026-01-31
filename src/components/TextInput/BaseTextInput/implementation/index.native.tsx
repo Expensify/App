@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -274,14 +274,8 @@ function BaseTextInput({
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
-    // Extract only width-affecting properties from visible input to apply to hidden measurement input for accurate width calculation.
-    const newHiddenTextInputContainerStyles: StyleProp<TextStyle> = {
-        borderWidth: newTextInputContainerStyles.borderWidth,
-        borderLeftWidth: newTextInputContainerStyles.borderLeftWidth,
-        borderRightWidth: newTextInputContainerStyles.borderRightWidth,
-        paddingLeft: newTextInputContainerStyles.paddingLeft,
-        paddingRight: newTextInputContainerStyles.paddingRight,
-    };
+    // Extract horizontal padding/border from visible input for hidden measurement input width calculation
+    const textInputMeasurementStyles = StyleUtils.getTextInputMeasurementStyles(newTextInputContainerStyles);
 
     const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
@@ -498,7 +492,7 @@ function BaseTextInput({
                 onSetTextInputWidth={setTextInputWidth}
                 onSetTextInputHeight={setTextInputHeight}
                 isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
-                hiddenInputContainerStyles={newHiddenTextInputContainerStyles}
+                textInputMeasurementStyles={textInputMeasurementStyles}
             />
         </>
     );

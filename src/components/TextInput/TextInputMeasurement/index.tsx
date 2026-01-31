@@ -20,7 +20,7 @@ function TextInputMeasurement({
     onSetTextInputWidth,
     onSetTextInputHeight,
     isPrefixCharacterPaddingCalculated,
-    hiddenInputContainerStyles,
+    textInputMeasurementStyles,
 }: TextInputMeasurementProps) {
     const styles = useThemeStyles();
 
@@ -62,8 +62,8 @@ function TextInputMeasurement({
                 // Reference: https://github.com/Expensify/App/issues/34921
                 <Text
                     style={[
-                        hiddenInputContainerStyles,
                         inputStyle,
+                        textInputMeasurementStyles,
                         autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
                         styles.hiddenElementOutsideOfWindow,
                         styles.visibilityHidden,
