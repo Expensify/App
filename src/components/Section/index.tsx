@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -129,6 +130,7 @@ function Section({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
 
     const isLottie = isIllustrationLottieAnimation(illustration);
 
@@ -144,7 +146,7 @@ function Section({
                     iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
                 />
             )}
-            {!!illustration && (
+            {!!illustration && !isReduceMotionEnabled && (
                 <View
                     style={[
                         styles.w100,
