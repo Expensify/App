@@ -314,6 +314,9 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
+
+    /** Whether to expose this row as a radio option for screen readers (single-choice group). Set by RadioListItem. */
+    shouldUseRadioRole?: boolean;
 };
 
 type SplitListItemType = ListItem &

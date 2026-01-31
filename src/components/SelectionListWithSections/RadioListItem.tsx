@@ -51,6 +51,7 @@ function RadioListItem<TItem extends ListItem>({
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
+            shouldUseRadioRole
         >
             <>
                 {!!item.leftElement && item.leftElement}

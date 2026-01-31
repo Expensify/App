@@ -48,6 +48,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
     shouldShowRightCaret = false,
+    shouldUseRadioRole = false,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -73,11 +74,6 @@ function BaseListItem<TItem extends ListItem>({
             return null;
         }
 
-        // When canSelectMultiple is true, most components (like UserListItem) handle checkboxes in children,
-        // so rightHandSideComponent should be hidden. However, some components (like MultiSelectListItem)
-        // explicitly pass checkboxes as rightHandSideComponent and need them to show.
-        // We check if rightHandSideComponent exists and shouldUseDefaultRightHandSideCheckmark is false,
-        // which indicates the component is handling its own checkbox rendering and wants rightHandSideComponent to show.
         if (canSelectMultiple && shouldUseDefaultRightHandSideCheckmark) {
             return null;
         }
@@ -95,8 +91,7 @@ function BaseListItem<TItem extends ListItem>({
 
     const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark;
 
-    // Use radio role for single-select (e.g. Date dropdown options), checkbox for multi-select, button otherwise
-    const isRadioOption = !canSelectMultiple && !!rightHandSideComponent;
+    const isRadioOption = shouldUseRadioRole;
     const isCheckboxOption = canSelectMultiple;
     let role: Role | undefined;
     if (isCheckboxOption) {
@@ -104,7 +99,7 @@ function BaseListItem<TItem extends ListItem>({
     } else if (isRadioOption) {
         role = CONST.ROLE.RADIO;
     } else {
-        role = getButtonRole(true) ?? CONST.ROLE.BUTTON;
+        role = getButtonRole(true);
     }
     const accessibilityState = isRadioOption || isCheckboxOption ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
 

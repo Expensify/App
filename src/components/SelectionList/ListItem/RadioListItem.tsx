@@ -54,6 +54,7 @@ function RadioListItem<TItem extends ListItem>({
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
             shouldUseDefaultRightHandSideCheckmark={!canSelectMultiple || !rightHandSideComponent}
+            shouldUseRadioRole
         >
             <>
                 {!!item.leftElement && item.leftElement}

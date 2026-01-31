@@ -49,6 +49,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
+    shouldUseRadioRole = false,
 }: BaseListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const theme = useTheme();
@@ -84,8 +85,7 @@ function BaseListItem<TItem extends ListItem>({
     const defaultAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
     const accessibilityLabel = item.accessibilityLabel ?? defaultAccessibilityLabel;
 
-    // Use radio role for single-select (e.g. Date dropdown options), checkbox for multi-select, button otherwise
-    const isRadioOption = !canSelectMultiple && !!rightHandSideComponent;
+    const isRadioOption = shouldUseRadioRole;
     const isCheckboxOption = canSelectMultiple;
     let role: Role | undefined;
     if (isCheckboxOption) {
@@ -93,7 +93,7 @@ function BaseListItem<TItem extends ListItem>({
     } else if (isRadioOption) {
         role = CONST.ROLE.RADIO;
     } else {
-        role = getButtonRole(true) ?? CONST.ROLE.BUTTON;
+        role = getButtonRole(true);
     }
     const accessibilityState = isRadioOption || isCheckboxOption ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
 
@@ -148,7 +148,6 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused &&
