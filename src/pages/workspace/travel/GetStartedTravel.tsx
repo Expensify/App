@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import BookTravelButton from '@components/BookTravelButton';
 import FeatureList from '@components/FeatureList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
