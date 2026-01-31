@@ -46,8 +46,14 @@ function cancelSpan(spanId: string) {
     endSpan(spanId);
 }
 
+function cancelAllSpans() {
+    for (const [spanId] of activeSpans.entries()) {
+        cancelSpan(spanId);
+    }
+}
+
 function getSpan(spanId: string) {
     return activeSpans.get(spanId);
 }
 
-export {startSpan, endSpan, getSpan, cancelSpan};
+export {startSpan, endSpan, getSpan, cancelSpan, cancelAllSpans};
