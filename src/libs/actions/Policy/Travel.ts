@@ -73,7 +73,7 @@ function setPolicyTravelSettings(policyID: string, settings: Partial<OnyxTypes.W
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    travelSettings: settings,
+                    travelSettings: {...previousTravelSettings, ...settings},
                     pendingFields: {
                         travelSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
