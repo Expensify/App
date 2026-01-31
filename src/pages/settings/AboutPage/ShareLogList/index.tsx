@@ -28,7 +28,7 @@ function ShareLogList({logSource}: ShareLogListProps) {
                     ancestors,
                     attachments: file,
                     currentUserAccountID: personalDetail.accountID,
-                    timezone: personalDetail?.timezone,
+                    timezone: personalDetail.timezone,
                 });
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportID);
                 Navigation.navigate(routeToNavigate);

@@ -439,13 +439,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        explain(reportAction, originalReportID, translate, currentUserPersonalDetails.accountID, currentUserPersonalDetails?.timezone);
+                        explain(reportAction, originalReportID, translate, currentUserPersonalDetails.accountID, currentUserPersonalDetails.timezone);
                     });
                 });
                 return;
             }
 
-            explain(reportAction, originalReportID, translate, currentUserPersonalDetails.accountID, currentUserPersonalDetails?.timezone);
+            explain(reportAction, originalReportID, translate, currentUserPersonalDetails.accountID, currentUserPersonalDetails.timezone);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,
