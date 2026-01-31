@@ -231,16 +231,4 @@ platforms:
                 title: Manage Billing & Subscriptions in Expensify Classic
               - href: How-to-Manage-Subscriptions-and-Billing-in-New-Expensify
                 title: How to manage subscriptions and billing in New Expensify
-          
-          - href: billing-setup-and-ownership
-            title: Billing Setup and Ownership
-            articles:
-          
-          - href: payment-and-receipts
-            title: Payment and Receipts
-            articles:
-          
-          - href: plans-and-pricing
-            title: Plans and Pricing
-            articles:
 
