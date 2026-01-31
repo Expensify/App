@@ -3,6 +3,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -20,7 +21,6 @@ import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/Se
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -132,16 +132,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleEscapeKey = useCallback(() => {
-        if (textInputRef.current?.isFocused()) {
-            textInputRef.current.blur();
-        }
-    }, []);
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscapeKey, {
-        captureOnInputs: true,
-        shouldBubble: false,
-    });
 
     const handleSearchAction = useCallback(
         (value: string) => {
@@ -389,6 +379,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                                 autocompleteListRef={listRef}
                                 ref={textInputRef}
+                                onKeyPress={handleKeyPress}
                             />
                         </Animated.View>
                         {showPopupButton && (
@@ -425,6 +416,17 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         listRef.current?.updateAndScrollToFocusedIndex(0);
         setIsAutocompleteListVisible(true);
     };
+    const handleKeyPress = useCallback(
+        (e: TextInputKeyPressEvent) => {
+            const keyEvent = e as unknown as KeyboardEvent;
+
+            if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && textInputRef.current?.isFocused()) {
+                keyEvent.preventDefault();
+                textInputRef.current.blur();
+            }
+        },
+        [],
+    );
     // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
     const leftPopoverHorizontalPosition = 12 - BORDER_WIDTH;
     const rightPopoverHorizontalPosition = 4 - BORDER_WIDTH;
@@ -469,6 +471,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             ref={textInputRef}
                             selection={selection}
                             substitutionMap={autocompleteSubstitutions}
+                            onKeyPress={handleKeyPress}
                         />
                     </View>
                     {isAutocompleteListVisible && (
