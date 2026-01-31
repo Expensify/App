@@ -238,8 +238,10 @@ function buildOptimisticTransactions(transactionList: TransactionFromCSV[], card
 
 /**
  * Import transactions from a CSV spreadsheet
+ * @param spreadsheet - The imported spreadsheet data
+ * @param existingCardID - Optional cardID to add transactions to an existing card instead of creating a new one
  */
-function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
+function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCardID?: number) {
     const settings = spreadsheet.importTransactionSettings ?? {};
     const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true} = settings;
 
@@ -258,16 +260,21 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
         return;
     }
 
-    // Create optimistic card
-    const {card: optimisticCard, cardID} = buildOptimisticCard(cardDisplayName);
+    // Use existing cardID if provided, otherwise create a new optimistic card
+    const isAddingToExistingCard = !!existingCardID;
+    let cardID: number;
+    let optimisticCard: Card | undefined;
+
+    if (isAddingToExistingCard) {
+        cardID = existingCardID;
+    } else {
+        const optimisticCardData = buildOptimisticCard(cardDisplayName);
+        cardID = optimisticCardData.cardID;
+        optimisticCard = optimisticCardData.card;
+    }
 
     // Create optimistic transactions
     const optimisticTransactions = buildOptimisticTransactions(transactionList, cardID, currency, isReimbursable);
-
-    // Build optimistic card list update
-    const optimisticCardList: CardList = {
-        [cardID]: optimisticCard,
-    };
 
     const params: ImportCSVTransactionsParams = {
         transactionList: JSON.stringify(transactionList),
@@ -280,11 +287,17 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
     const optimisticData = [] as OnyxUpdate[];
     const failureData = [] as OnyxUpdate[];
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.CARD_LIST,
-        value: optimisticCardList,
-    });
+    // Only add card to optimistic data if we're creating a new card
+    if (!isAddingToExistingCard && optimisticCard) {
+        const optimisticCardList: CardList = {
+            [cardID]: optimisticCard,
+        };
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: optimisticCardList,
+        });
+    }
 
     for (const transaction of optimisticTransactions) {
         optimisticData.push({
@@ -312,27 +325,29 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet) {
         },
     });
 
-    failureData.push(
-        {
+    // Only add card cleanup to failure data if we created a new card
+    if (!isAddingToExistingCard) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
             value: {
                 [cardID]: null,
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IMPORTED_SPREADSHEET,
-            value: {
-                shouldFinalModalBeOpened: true,
-                importFinalModal: {
-                    titleKey: 'spreadsheet.importFailedTitle' as const,
-                    promptKey: 'spreadsheet.importFailedDescription' as const,
-                    promptKeyParams: undefined,
-                },
+        });
+    }
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.IMPORTED_SPREADSHEET,
+        value: {
+            shouldFinalModalBeOpened: true,
+            importFinalModal: {
+                titleKey: 'spreadsheet.importFailedTitle' as const,
+                promptKey: 'spreadsheet.importFailedDescription' as const,
+                promptKeyParams: undefined,
             },
         },
-    );
+    });
 
     API.write(WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS, params, {
         optimisticData,

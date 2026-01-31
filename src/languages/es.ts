@@ -515,7 +515,7 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Activa la verificación rápida y segura usando tu rostro o huella dactilar. No se requieren contraseñas ni códigos.',
         },
         revoke: {
-            revoke: 'Revocar',
+            remove: 'Eliminar',
             title: 'Reconocimiento facial/huella digital y claves de acceso',
             explanation:
                 'La verificación mediante reconocimiento facial, huella digital o clave de acceso está habilitada en uno o más dispositivos. Revocar el acceso requerirá un código mágico para la próxima verificación en cualquier dispositivo.',
@@ -749,6 +749,16 @@ const translations: TranslationDeepObject<typeof en> = {
             offer25off: {
                 title: '¡Obtén 25% de descuento en tu primer año!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'día' : 'días'} restantes`,
+            },
+            addShippingAddress: {
+                title: 'Necesitamos tu dirección de envío',
+                subtitle: 'Proporciona una dirección para recibir tu Tarjeta Expensify.',
+                cta: 'Añade dirección',
+            },
+            activateCard: {
+                title: 'Activa tu Tarjeta Expensify',
+                subtitle: 'Valida tu tarjeta y empieza a gastar.',
+                cta: 'Activa',
             },
         },
         announcements: 'Anuncios',
@@ -6891,7 +6901,7 @@ ${amount} para ${merchant} - ${date}`,
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}) =>
                     `hubo un problema al sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Por favor, soluciona el problema en la <a href="${workspaceAccountingLink}">configuración del espacio de trabajo</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>`,
+                    `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email, role) => `agregó a ${email} como ${role}`,
