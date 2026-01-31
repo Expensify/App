@@ -114,7 +114,6 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
-                role={getButtonRole(true)}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
@@ -135,10 +134,11 @@ function BaseListItem<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
-                tabIndex={item.tabIndex}
+                tabIndex={accessible === false ? -1 : item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
                 testID={testID}
                 accessible={accessible}
+                role={accessible === false ? CONST.ROLE.PRESENTATION : getButtonRole(true)}
                 sentryLabel={`BaseListItem-${keyForList}`}
             >
                 <View

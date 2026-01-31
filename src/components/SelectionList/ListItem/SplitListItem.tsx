@@ -120,10 +120,14 @@ function SplitListItem<TItem extends ListItem>({
                     style={[styles.flex1]}
                     accessible={splitItem.isEditable}
                     accessibilityLabel={textContentAccessibilityLabel}
+                    aria-label={splitItem.isEditable ? textContentAccessibilityLabel : undefined}
                     tabIndex={splitItem.isEditable ? 0 : undefined}
                     role={splitItem.isEditable ? CONST.ROLE.SUMMARY : undefined}
                 >
-                    <View style={[styles.containerWithSpaceBetween, !isBottomVisible && styles.justifyContentCenter]}>
+                    <View
+                        style={[styles.containerWithSpaceBetween, !isBottomVisible && styles.justifyContentCenter]}
+                        aria-hidden={splitItem.isEditable ? true : undefined}
+                    >
                         <View style={[styles.minHeight5, styles.justifyContentCenter]}>
                             <Text
                                 numberOfLines={1}
@@ -151,7 +155,10 @@ function SplitListItem<TItem extends ListItem>({
                         </View>
                     </View>
                     {isBottomVisible && (
-                        <View style={[styles.splitItemBottomContent]}>
+                        <View
+                            style={[styles.splitItemBottomContent]}
+                            aria-hidden={splitItem.isEditable ? true : undefined}
+                        >
                             {!!splitItem.category && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1, !!splitItem.tags?.at(0) && styles.mw50]}>
                                     <Icon
