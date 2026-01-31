@@ -288,6 +288,7 @@ function BaseTextInput({
     return (
         <>
             <View style={[containerStyles]}>
+                {/* eslint-disable-next-line no-restricted-syntax */}
                 <PressableWithoutFeedback
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
