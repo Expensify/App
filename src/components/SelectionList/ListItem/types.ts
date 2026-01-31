@@ -314,6 +314,12 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
+
+    /**
+     * Whether the pressable should be accessible as a single element.
+     * When false, allows child elements (like TextInput) to be independently focusable by screen readers.
+     */
+    accessible?: boolean;
 };
 
 type SplitListItemType = ListItem &

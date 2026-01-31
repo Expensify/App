@@ -47,6 +47,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
     shouldShowRightCaret = false,
+    accessible,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -137,6 +138,7 @@ function BaseListItem<TItem extends ListItem>({
                 tabIndex={item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
                 testID={testID}
+                accessible={accessible}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}

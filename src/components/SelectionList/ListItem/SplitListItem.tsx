@@ -100,6 +100,7 @@ function SplitListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             pendingAction={item.pendingAction}
+            accessible={!splitItem.isEditable}
         >
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.p3]}>
                 <View style={[styles.flex1]}>
