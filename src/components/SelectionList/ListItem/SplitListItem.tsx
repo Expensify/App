@@ -120,6 +120,8 @@ function SplitListItem<TItem extends ListItem>({
                     style={[styles.flex1]}
                     accessible={splitItem.isEditable}
                     accessibilityLabel={textContentAccessibilityLabel}
+                    tabIndex={splitItem.isEditable ? 0 : undefined}
+                    role={splitItem.isEditable ? 'summary' : undefined}
                 >
                     <View style={[styles.containerWithSpaceBetween, !isBottomVisible && styles.justifyContentCenter]}>
                         <View style={[styles.minHeight5, styles.justifyContentCenter]}>
