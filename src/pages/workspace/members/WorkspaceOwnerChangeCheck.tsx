@@ -66,8 +66,8 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             return;
         }
 
-        requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
-    }, [accountID, error, policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login]);
+        requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+    }, [policy, accountID, error, policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login]);
 
     return (
         <>
