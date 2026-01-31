@@ -9639,7 +9639,7 @@ function canSubmitReport(
 
     return (
         isOpenExpenseReport &&
-        (report?.ownerAccountID === userAccountID || report?.managerID === userAccountID || isAdmin) &&
+        (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
         hasTransactionWithoutRTERViolation &&

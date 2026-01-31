@@ -3674,7 +3674,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
         LocalNotification.showCommentNotification(report, reportAction, onClick);
     }
 
-    notifyNewAction(reportID, reportAction, reportAction.actorAccountID === currentUserAccountID);
+    notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID);
 }
 
 /** Clear the errors associated with the IOUs of a given report. */
