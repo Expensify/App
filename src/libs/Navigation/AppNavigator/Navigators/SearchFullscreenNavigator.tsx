@@ -10,6 +10,7 @@ import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import RHPAccessibilityWrapper from './RHPAccessibilityWrapper';
 
 const loadSearchPage = () => require<ReactComponentModule>('@pages/Search/SearchPage').default;
 
@@ -23,20 +24,22 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreens
     usePreloadFullScreenNavigators();
 
     return (
-        <FreezeWrapper>
-            <Stack.Navigator
-                screenOptions={centralScreenOptions}
-                defaultCentralScreen={SCREENS.SEARCH.ROOT}
-                parentRoute={route}
-            >
-                <Stack.Screen
-                    name={SCREENS.SEARCH.ROOT}
-                    getComponent={loadSearchPage}
-                    initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
-                    options={{animation: Animations.NONE}}
-                />
-            </Stack.Navigator>
-        </FreezeWrapper>
+        <RHPAccessibilityWrapper>
+            <FreezeWrapper>
+                <Stack.Navigator
+                    screenOptions={centralScreenOptions}
+                    defaultCentralScreen={SCREENS.SEARCH.ROOT}
+                    parentRoute={route}
+                >
+                    <Stack.Screen
+                        name={SCREENS.SEARCH.ROOT}
+                        getComponent={loadSearchPage}
+                        initialParams={{q: SearchQueryUtils.buildSearchQueryString()}}
+                        options={{animation: Animations.NONE}}
+                    />
+                </Stack.Navigator>
+            </FreezeWrapper>
+        </RHPAccessibilityWrapper>
     );
 }
 

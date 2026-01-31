@@ -92,7 +92,12 @@ function HeaderWithBackButton({
                     {/* Uses absolute positioning so that it's always centered instead of being affected by the
                     presence or absence of back/close buttons to the left/right of it */}
                     <View style={styles.headerProgressBarContainer}>
-                        <View style={styles.headerProgressBar}>
+                        <View
+                            style={styles.headerProgressBar}
+                            role={CONST.ROLE.PROGRESSBAR}
+                            accessibilityLabel={translate('common.progressBarLabel')}
+                            accessibilityValue={{min: 0, max: 100, now: progressBarPercentage}}
+                        >
                             <View style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]} />
                         </View>
                     </View>

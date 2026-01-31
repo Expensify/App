@@ -377,6 +377,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'do',
         genericErrorMessage: 'Ups... coś poszło nie tak i nie udało się zrealizować Twojego żądania. Spróbuj ponownie później.',
         percentage: 'Procent',
+        progressBarLabel: 'Postęp wdrożenia',
         converted: 'Przekonwertowane',
         error: {
             invalidAmount: 'Nieprawidłowa kwota',

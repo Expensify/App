@@ -10,6 +10,7 @@ import type {AuthScreensParamList, DomainSplitNavigatorParamList} from '@libs/Na
 import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import RHPAccessibilityWrapper from './RHPAccessibilityWrapper';
 
 const loadDomainInitialPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainInitialPage').default;
 const loadDomainSamlPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainSamlPage').default;
@@ -25,10 +26,11 @@ function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<Auth
     useEnableBackAnimationWhenOpenedFromTabBar(navigation, route.key);
 
     return (
-        <FocusTrapForScreens>
-            <View style={styles.flex1}>
-                <Split.Navigator
-                    persistentScreens={[SCREENS.DOMAIN.INITIAL]}
+        <RHPAccessibilityWrapper>
+            <FocusTrapForScreens>
+                <View style={styles.flex1}>
+                    <Split.Navigator
+                        persistentScreens={[SCREENS.DOMAIN.INITIAL]}
                     sidebarScreen={SCREENS.DOMAIN.INITIAL}
                     defaultCentralScreen={SCREENS.DOMAIN.ADMINS}
                     parentRoute={route}
@@ -57,9 +59,10 @@ function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<Auth
                         name={SCREENS.DOMAIN.MEMBERS}
                         getComponent={loadDomainMembersPage}
                     />
-                </Split.Navigator>
-            </View>
-        </FocusTrapForScreens>
+                    </Split.Navigator>
+                </View>
+            </FocusTrapForScreens>
+        </RHPAccessibilityWrapper>
     );
 }
 
