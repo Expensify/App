@@ -6574,7 +6574,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     dismissModalAndOpenReportInInboxTab(activeReportID);
 
     if (activeReportID) {
-        notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
+        notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
     }
 }
 
@@ -6926,7 +6926,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         }
     }
 
-    notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
+    notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
