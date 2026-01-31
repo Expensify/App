@@ -2,8 +2,6 @@ import {useContext, useRef} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
-    checkIfFeedConnectionIsBroken,
-    filterInactiveCards,
     getCompanyCardFeed,
     getCompanyFeeds,
     getDefaultCardName,
@@ -22,10 +20,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
 import useCurrencyList from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
@@ -42,10 +42,10 @@ type UseAssignCardProps = {
 };
 
 function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssignCardProps) {
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : ({} as CombinedCardFeed);
+    const {translate} = useLocalize();
 
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -55,16 +55,15 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const fetchCompanyCards = () => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate);
     };
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
 
-    const cardList = allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${feedName}`];
+    const {cardFeedErrors} = useCardFeedErrors();
+    const feedErrors = feedName ? cardFeedErrors[feedName] : undefined;
+    const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
 
-    const filteredFeedCards = filterInactiveCards(cardList);
-    const hasFeedError = feedName ? !!cardFeeds?.[feedName]?.errors : false;
-    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
