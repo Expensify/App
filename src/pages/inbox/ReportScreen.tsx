@@ -380,7 +380,16 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         }
 
         Navigation.goBack();
-    }, [isFocused, reportIDFromRoute, report?.reportID, reportMetadata?.isLoadingInitialReportActions, reportMetadata?.isOptimisticReport, isLoadingApp, userLeavingStatus, reportWasDeleted]);
+    }, [
+        isFocused,
+        reportIDFromRoute,
+        report?.reportID,
+        reportMetadata?.isLoadingInitialReportActions,
+        reportMetadata?.isOptimisticReport,
+        isLoadingApp,
+        userLeavingStatus,
+        reportWasDeleted,
+    ]);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
