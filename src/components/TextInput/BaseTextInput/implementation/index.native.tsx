@@ -274,8 +274,7 @@ function BaseTextInput({
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
-    // Compute styles for the hidden measurement text input to match the visible input's dimensions.
-    // Since the hidden input is absolutely positioned, container styles don't automatically apply.
+    // Hidden measurement input must mirror horizontal padding/border of visible input for accurate width calculation.
     const newHiddenTextInputContainerStyles: StyleProp<TextStyle> = StyleSheet.flatten([styles.hiddenTextInputContainer, !shouldApplyPaddingToContainer && styles.p0]);
 
     const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
