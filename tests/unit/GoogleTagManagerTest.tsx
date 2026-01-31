@@ -12,6 +12,7 @@ import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FundList} from '@src/types/onyx';
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/GoogleTagManager');
@@ -169,6 +170,8 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('workspace_created - categorizeTrackedExpense', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
         trackExpense({
             report: {reportID: '123'},
             isDraftPolicy: true,
@@ -197,7 +200,7 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
-            allBetas: [CONST.BETAS.ALL],
+            recentWaypoints,
         });
 
         await waitForBatchedUpdatesWithAct();
