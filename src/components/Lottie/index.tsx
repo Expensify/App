@@ -11,7 +11,7 @@ import Accessibility from '@libs/Accessibility';
 import {getBrowser, isMobile} from '@libs/Browser';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import CONST from '@src/CONST';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
 type Props = {
     source: DotLottieAnimation;
@@ -21,7 +21,7 @@ type Props = {
 function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props) {
     const animationRef = useRef<LottieView | null>(null);
     const appState = useAppState();
-    const {splashScreenState} = useSplashScreenStateContext();
+    const {splashScreenState} = useSplashScreenState();
     const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
