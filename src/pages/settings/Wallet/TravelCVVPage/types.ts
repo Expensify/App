@@ -1,4 +1,4 @@
-import {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type TravelCVVStateContextType = {
     cvv: string | null;

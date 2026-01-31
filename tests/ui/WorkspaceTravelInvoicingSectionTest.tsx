@@ -5,10 +5,10 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTravelInvoicingSection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -108,7 +108,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
         it('should show BookOrManageYourTrip when paymentBankAccountID is not set', async () => {
             // Given Travel Invoicing card settings exist but without paymentBankAccountID
-            const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_TRAVEL_US` as OnyxKey;
+            const travelInvoicingKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
@@ -130,7 +130,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
     });
 
     describe('When Travel Invoicing is configured', () => {
-        const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_TRAVEL_US` as OnyxKey;
+        const travelInvoicingKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
         const bankAccountKey = ONYXKEYS.BANK_ACCOUNT_LIST;
 
         it('should render the section title when card settings are properly configured', async () => {
@@ -291,7 +291,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     paymentBankAccountID: 12345,
                     remainingLimit: 50000,
                     currentBalance: 10000,
-                    monthlySettlementDate: '2023-10-01',
+                    monthlySettlementDate: new Date(),
                 });
                 await Onyx.merge(bankAccountKey, {
                     12345: {

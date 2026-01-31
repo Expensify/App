@@ -1,7 +1,7 @@
 import type {PropsWithChildren} from 'react';
 import React, {createContext, useContext, useState} from 'react';
-import {Errors} from '@src/types/onyx/OnyxCommon';
-import {TravelCVVActionsContextType, TravelCVVStateContextType} from './types';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {TravelCVVActionsContextType, TravelCVVStateContextType} from './types';
 
 const defaultActionsContext: TravelCVVActionsContextType = {
     setCvv: () => {},
