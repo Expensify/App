@@ -309,8 +309,14 @@ function BaseTextInput({
         shouldAddPaddingBottom && styles.pb1,
     ]);
 
-    // Hidden measurement input must mirror horizontal padding/border of visible input for accurate width calculation.
-    const newHiddenTextInputContainerStyles: StyleProp<TextStyle> = StyleSheet.flatten([styles.hiddenTextInputContainer, !shouldApplyPaddingToContainer && styles.p0]);
+    // Extract only width-affecting properties from visible input to apply to hidden measurement input for accurate width calculation.
+    const newHiddenTextInputContainerStyles: StyleProp<TextStyle> = {
+        borderWidth: newTextInputContainerStyles.borderWidth,
+        borderLeftWidth: newTextInputContainerStyles.borderLeftWidth,
+        borderRightWidth: newTextInputContainerStyles.borderRightWidth,
+        paddingLeft: newTextInputContainerStyles.paddingLeft,
+        paddingRight: newTextInputContainerStyles.paddingRight,
+    };
 
     const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);

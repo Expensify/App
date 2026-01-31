@@ -62,9 +62,9 @@ function TextInputMeasurement({
                 // Reference: https://github.com/Expensify/App/issues/34921
                 <Text
                     style={[
+                        hiddenInputContainerStyles,
                         inputStyle,
                         autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
-                        hiddenInputContainerStyles,
                         styles.hiddenElementOutsideOfWindow,
                         styles.visibilityHidden,
                     ]}
