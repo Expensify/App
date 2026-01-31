@@ -146,7 +146,7 @@ function Section({
                     iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
                 />
             )}
-            {!!illustration && !isReduceMotionEnabled && (
+            {!!illustration && (
                 <View
                     style={[
                         styles.w100,
@@ -157,23 +157,25 @@ function Section({
                         illustrationContainerStyle,
                     ]}
                 >
-                    <View style={[styles.cardSectionIllustration, illustrationStyle]}>
-                        {isLottie ? (
-                            <Lottie
-                                source={illustration}
-                                style={styles.h100}
-                                webStyle={styles.h100}
-                                autoPlay
-                                loop
-                                shouldLoadAfterInteractions={shouldUseNarrowLayout}
-                            />
-                        ) : (
-                            <ImageSVG
-                                src={illustration}
-                                contentFit="contain"
-                            />
-                        )}
-                    </View>
+                    {!isReduceMotionEnabled && (
+                        <View style={[styles.cardSectionIllustration, illustrationStyle]}>
+                            {isLottie ? (
+                                <Lottie
+                                    source={illustration}
+                                    style={styles.h100}
+                                    webStyle={styles.h100}
+                                    autoPlay
+                                    loop
+                                    shouldLoadAfterInteractions={shouldUseNarrowLayout}
+                                />
+                            ) : (
+                                <ImageSVG
+                                    src={illustration}
+                                    contentFit="contain"
+                                />
+                            )}
+                        </View>
+                    )}
                     {overlayContent?.()}
                 </View>
             )}

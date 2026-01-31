@@ -29,6 +29,8 @@ const useReducedMotion = (): boolean => {
     useEffect(() => {
         let isMounted = true;
 
+        const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setIsReduceMotionEnabled);
+
         AccessibilityInfo.isReduceMotionEnabled()
             .then((enabled) => {
                 if (!isMounted) {
@@ -43,8 +45,6 @@ const useReducedMotion = (): boolean => {
                 }
                 setIsReduceMotionEnabled(false);
             });
-
-        const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setIsReduceMotionEnabled);
 
         return () => {
             isMounted = false;
