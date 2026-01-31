@@ -139,6 +139,7 @@ function BaseListItem<TItem extends ListItem>({
                 wrapperStyle={pressableWrapperStyle}
                 testID={testID}
                 accessible={accessible}
+                sentryLabel={`BaseListItem-${keyForList}`}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
