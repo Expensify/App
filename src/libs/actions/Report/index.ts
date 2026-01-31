@@ -832,18 +832,20 @@ function addAttachmentWithComment(
     handlePlaySound();
 }
 
+type AddCommentParams = {
+    report: OnyxEntry<Report>;
+    notifyReportID: string;
+    ancestors: Ancestor[];
+    text: string;
+    timezoneParam: Timezone;
+    currentUserAccountID: number;
+    shouldPlaySound?: boolean;
+    isInSidePanel?: boolean;
+    pregeneratedResponseParams?: PregeneratedResponseParams;
+};
+
 /** Add a single comment to a report */
-function addComment(
-    report: OnyxEntry<Report>,
-    notifyReportID: string,
-    ancestors: Ancestor[],
-    text: string,
-    timezoneParam: Timezone,
-    currentUserAccountID: number,
-    shouldPlaySound?: boolean,
-    isInSidePanel?: boolean,
-    pregeneratedResponseParams?: PregeneratedResponseParams,
-) {
+function addComment({report, notifyReportID, ancestors, text, timezoneParam, currentUserAccountID, shouldPlaySound, isInSidePanel, pregeneratedResponseParams}: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
@@ -1741,7 +1743,15 @@ function explain(
     // Schedule adding the explanation comment on the next animation frame
     // so it runs immediately after navigation completes.
     requestAnimationFrame(() => {
-        addComment(report, report.reportID, [], translate('reportActionContextMenu.explainMessage'), timezone, currentUserAccountID, true);
+        addComment({
+            report,
+            notifyReportID: report.reportID,
+            ancestors: [],
+            text: translate('reportActionContextMenu.explainMessage'),
+            timezoneParam: timezone,
+            currentUserAccountID,
+            shouldPlaySound: true,
+        });
     });
 }
 
@@ -4134,7 +4144,7 @@ function inviteToRoom(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsTo
 function inviteToRoomAction(report: Report, ancestors: Ancestor[], inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone, currentUserAccountID: number) {
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
 
-    addComment(report, report.reportID, ancestors, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, currentUserAccountID, false);
+    addComment({report, notifyReportID: report.reportID, ancestors, text: inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, currentUserAccountID, shouldPlaySound: false});
 }
 
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
@@ -6552,7 +6562,7 @@ function resolveConciergeOptions(
     }
 
     const reportID = report.reportID;
-    addComment(report, notifyReportID ?? reportID, ancestors, selectedValue, timezoneParam, currentUserAccountID);
+    addComment({report, notifyReportID: notifyReportID ?? reportID, ancestors, text: selectedValue, timezoneParam, currentUserAccountID});
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportActionID]: {

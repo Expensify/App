@@ -133,7 +133,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         }
 
         if (isTextShared) {
-            addComment(report, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, personalDetail.accountID);
+            addComment({
+                report,
+                notifyReportID: report.reportID,
+                ancestors,
+                text: message,
+                timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: personalDetail.accountID,
+            });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;

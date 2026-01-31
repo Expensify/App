@@ -194,7 +194,16 @@ function ReportFooter({
             }
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
-            addComment(targetReport, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, personalDetail.accountID, true, isInSidePanel);
+            addComment({
+                report: targetReport,
+                notifyReportID: report.reportID,
+                ancestors: targetReportAncestors,
+                text,
+                timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
+                currentUserAccountID: personalDetail.accountID,
+                shouldPlaySound: true,
+                isInSidePanel,
+            });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask, targetReport, targetReportAncestors, isInSidePanel, personalDetail.accountID],

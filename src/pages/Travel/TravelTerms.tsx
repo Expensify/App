@@ -62,7 +62,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
         const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
 
-        addComment(conciergeReport, conciergeReportID, [], message, CONST.DEFAULT_TIME_ZONE, currentUserAccountID);
+        addComment({report: conciergeReport, notifyReportID: conciergeReportID, ancestors: [], text: message, timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID});
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     }, [translate, account?.primaryLogin, conciergeReportID, conciergeReport, currentUserAccountID]);
 
