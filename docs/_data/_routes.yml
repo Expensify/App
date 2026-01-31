@@ -204,8 +204,8 @@ platforms:
         description: "Learn how to create and manage Travel Events for group bookings."
   
   - href: consolidated
-    title: consolidated
-    hub-title: consolidated
+    title: Consolidated Help Site
+    hub-title: Consolidated Help Site
     hub-description: Questions? Find the answers by clicking a Category or using the search bar.
     url: use.expensify.com
     description: "Get the help you need."
@@ -213,14 +213,26 @@ platforms:
 
     hubs:
       - href: billing
-        title: billing
+        title: Billing & Subscriptions
         icon: /assets/images/accounting.svg
         description: "Learn about billing."
         
         sections:
           - href: subscription-and-plan-management
-            title: Subscription and Plan Management
+            title: Managing Plans and Subscriptions
             articles:
               - href: what-billing-ownership-means-in-expensify
                 title: What billing ownership means in Expensify
+          
+          - href: billing-setup-and-ownership
+            title: Billing Setup and Ownership
+            articles:
+          
+          - href: payment-and-receipts
+            title: Payment and Receipts
+            articles:
+          
+          - href: plans-and-pricing
+            title: Plans and Pricing
+            articles:
 
