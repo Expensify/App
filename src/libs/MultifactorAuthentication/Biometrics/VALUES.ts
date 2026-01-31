@@ -73,9 +73,6 @@ const REASON = {
     },
 } as const;
 
-/** List of reasons that are continuable (don't stop the MFA flow, displayed on current screen) */
-const CONTINUABLE_REASONS = [REASON.BACKEND.INVALID_VALIDATE_CODE] as const;
-
 // Disables ESLint rule because it throws an error when a key is a number like 401.
 /* eslint-disable @typescript-eslint/naming-convention */
 const MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP = {
@@ -225,7 +222,6 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         VALIDATE_CODE: 'validateCode',
     },
     API_RESPONSE_MAP,
-    CONTINUABLE_REASONS,
     REASON,
 } as const;
 

@@ -72,7 +72,7 @@ function MultifactorAuthenticationValidateCodePage() {
             return;
         }
 
-        if (!HANDLED_REASONS.has(continuableError.reason)) {
+        if (continuableError.reason !== VALUES.REASON.BACKEND.INVALID_VALIDATE_CODE) {
             // Cannot handle this error - convert to regular error which will stop the flow
             dispatch({type: 'SET_ERROR', payload: {reason: continuableError.reason, message: continuableError.message}});
         }

@@ -166,15 +166,6 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     const register = async (params: RegisterParams, onResult: (result: RegisterResult) => Promise<void> | void) => {
         const {nativePromptTitle} = params;
 
-        // Check device support
-        if (!doesDeviceSupportBiometrics()) {
-            onResult({
-                success: false,
-                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS,
-            });
-            return;
-        }
-
         // Generate key pair
         const {privateKey, publicKey} = generateKeyPair();
 
