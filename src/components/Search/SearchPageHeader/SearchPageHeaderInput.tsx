@@ -132,17 +132,14 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleKeyPress = useCallback(
-        (e: TextInputKeyPressEvent) => {
-            const keyEvent = e as unknown as KeyboardEvent;
+    const handleKeyPress = useCallback((e: TextInputKeyPressEvent) => {
+        const keyEvent = e as unknown as KeyboardEvent;
 
-            if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && textInputRef.current?.isFocused()) {
-                keyEvent.preventDefault();
-                textInputRef.current.blur();
-            }
-        },
-        [],
-    );
+        if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && textInputRef.current?.isFocused()) {
+            keyEvent.preventDefault();
+            textInputRef.current.blur();
+        }
+    }, []);
 
     const handleSearchAction = useCallback(
         (value: string) => {
