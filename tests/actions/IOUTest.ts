@@ -82,7 +82,7 @@ import type {Participant} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import type {TransactionCollectionDataSet, WaypointCollection} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SafeString from '@src/utils/SafeString';
@@ -3086,100 +3086,465 @@ describe('actions/IOU', () => {
             expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
         });
+
+        it('creates new chat report when participant does not match existing chat report participants', () => {
+            const amount = 10000;
+            const comment = 'Test participant mismatch';
+
+            // Create an existing chat report between RORY and JULES (not CARLOS)
+            const existingChatReport: Report = {
+                reportID: '9999',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [JULES_ACCOUNT_ID]: JULES_PARTICIPANT},
+            };
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingChatReport.reportID}`, existingChatReport)
+                .then(() => {
+                    // Request money from CARLOS, but pass the existing chat report with JULES
+                    // This simulates the scenario where submit frequency is disabled and user selects a different participant
+                    requestMoney({
+                        report: existingChatReport,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant: 'Test',
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: 123,
+                        currentUserEmailParam: 'existing@example.com',
+                        policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
+                        isSelfTourViewed: false,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // A NEW chat report should be created for RORY and CARLOS
+                                    // The existing chat report between RORY and JULES should still exist
+                                    const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
+
+                                    // There should be at least 2 chat reports (existing one + new one for RORY/CARLOS)
+                                    // Plus a transaction thread
+                                    expect(chatReports.length).toBeGreaterThanOrEqual(2);
+
+                                    // Find the chat report that has RORY and CARLOS as participants
+                                    const newChatReport = chatReports.find((report) => {
+                                        const participantKeys = Object.keys(report?.participants ?? {}).map(Number);
+                                        return participantKeys.includes(RORY_ACCOUNT_ID) && participantKeys.includes(CARLOS_ACCOUNT_ID) && participantKeys.length === 2;
+                                    });
+
+                                    // The new chat report should exist and NOT be the existing one
+                                    expect(newChatReport).toBeDefined();
+                                    expect(newChatReport?.reportID).not.toBe(existingChatReport.reportID);
+
+                                    // The new chat report should have RORY and CARLOS as participants
+                                    expect(newChatReport?.participants).toEqual({
+                                        [RORY_ACCOUNT_ID]: RORY_PARTICIPANT,
+                                        [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
+                                    });
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume);
+        });
+
+        it('reuses existing chat report when participant matches chat report participants', () => {
+            const amount = 10000;
+            const comment = 'Test participant match';
+
+            // Create an existing chat report between RORY and CARLOS (matching the participant)
+            const existingChatReport: Report = {
+                reportID: '8888',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+            };
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingChatReport.reportID}`, existingChatReport)
+                .then(() => {
+                    // Request money from CARLOS with matching chat report
+                    requestMoney({
+                        report: existingChatReport,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant: 'Test',
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: 123,
+                        currentUserEmailParam: 'existing@example.com',
+                        policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
+                        isSelfTourViewed: false,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // The existing chat report should be reused
+                                    const chatReports = Object.values(allReports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.CHAT);
+
+                                    // Find the chat report that has RORY and CARLOS as participants
+                                    const chatReportWithParticipants = chatReports.find((report) => {
+                                        const participantKeys = Object.keys(report?.participants ?? {}).map(Number);
+                                        return participantKeys.includes(RORY_ACCOUNT_ID) && participantKeys.includes(CARLOS_ACCOUNT_ID) && participantKeys.length === 2;
+                                    });
+
+                                    // The existing chat report should be reused
+                                    expect(chatReportWithParticipants?.reportID).toBe(existingChatReport.reportID);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume);
+        });
+
+        it('skips participant validation for policy expense chat participant', () => {
+            const amount = 10000;
+            const comment = 'Test policy expense chat';
+            const policyID = 'policy123';
+
+            // Create a policy expense chat report
+            const policyExpenseChatReport: Report = {
+                reportID: '7777',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT},
+            };
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChatReport.reportID}`, policyExpenseChatReport)
+                .then(() => {
+                    // Request money with isPolicyExpenseChat: true - should skip participant validation
+                    requestMoney({
+                        report: policyExpenseChatReport,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: policyExpenseChatReport.reportID},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant: 'Test',
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: 123,
+                        currentUserEmailParam: 'existing@example.com',
+                        policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
+                        isSelfTourViewed: false,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // The policy expense chat report should be reused (participant validation skipped)
+                                    const policyExpenseChats = Object.values(allReports ?? {}).filter((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+                                    // The original policy expense chat should still exist
+                                    expect(policyExpenseChats.some((report) => report?.reportID === policyExpenseChatReport.reportID)).toBe(true);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume);
+        });
+
+        it('skips participant validation when chatReport is a Policy Expense Chat', () => {
+            const amount = 10000;
+            const comment = 'Test chatReport is policy expense chat';
+            const policyID = 'policy456';
+
+            // Create a policy expense chat report (the chatReport itself is a policy expense chat)
+            const policyExpenseChatReport: Report = {
+                reportID: '6666',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [JULES_ACCOUNT_ID]: JULES_PARTICIPANT},
+            };
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChatReport.reportID}`, policyExpenseChatReport)
+                .then(() => {
+                    // Request money from CARLOS but passing a policy expense chat report with different participants (JULES)
+                    // Since the chatReport is a policy expense chat, participant validation should be skipped
+                    requestMoney({
+                        report: policyExpenseChatReport,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant: 'Test',
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: 123,
+                        currentUserEmailParam: 'existing@example.com',
+                        policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
+                        isSelfTourViewed: false,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // Even though participants don't match (JULES vs CARLOS),
+                                    // since the chatReport is a policy expense chat, it should be reused
+                                    // (no new 1:1 DM chat should be created for this case)
+                                    const policyExpenseChats = Object.values(allReports ?? {}).filter((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+                                    // The policy expense chat should still exist
+                                    expect(policyExpenseChats.some((report) => report?.reportID === policyExpenseChatReport.reportID)).toBe(true);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume);
+        });
+
+        it('skips participant validation for self-DM report with accountID 0', () => {
+            const amount = 10000;
+            const comment = 'Test self-DM track expense';
+
+            // Create a self-DM report (Your Space)
+            const selfDMReport: Report = {
+                reportID: '5555',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT},
+            };
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport)
+                .then(() => {
+                    // Track expense in self-DM with accountID: 0 (as getMoneyRequestParticipantsFromReport does)
+                    // This simulates the scenario where user starts an expense from "Your Space"
+                    requestMoney({
+                        report: selfDMReport,
+                        participantParams: {
+                            payeeEmail: RORY_EMAIL,
+                            payeeAccountID: RORY_ACCOUNT_ID,
+                            // accountID: 0 is used for self-DM participants (represents the report itself, not another user)
+                            participant: {accountID: 0, reportID: selfDMReport.reportID, isPolicyExpenseChat: false},
+                        },
+                        transactionParams: {
+                            amount,
+                            attendees: [],
+                            currency: CONST.CURRENCY.USD,
+                            created: '',
+                            merchant: 'Test',
+                            comment,
+                        },
+                        shouldGenerateTransactionThreadReport: true,
+                        isASAPSubmitBetaEnabled: false,
+                        transactionViolations: {},
+                        currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                        currentUserEmailParam: RORY_EMAIL,
+                        policyRecentlyUsedCurrencies: [],
+                        quickAction: undefined,
+                        isSelfTourViewed: false,
+                    });
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+
+                                    // The self-DM report should be reused (participant validation should be skipped)
+                                    // No new 1:1 DM chat with accountID 0 should be created
+                                    const selfDMReports = Object.values(allReports ?? {}).filter((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM);
+
+                                    // The original self-DM report should still exist
+                                    expect(selfDMReports.some((report) => report?.reportID === selfDMReport.reportID)).toBe(true);
+
+                                    // There should NOT be a new invalid chat report with accountID 0 participant
+                                    const chatReportsWithZeroParticipant = Object.values(allReports ?? {}).filter((report) => {
+                                        if (report?.type !== CONST.REPORT.TYPE.CHAT || report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM) {
+                                            return false;
+                                        }
+                                        const participantKeys = Object.keys(report?.participants ?? {}).map(Number);
+                                        return participantKeys.includes(0);
+                                    });
+
+                                    // No chat reports should have accountID 0 as a participant (that would be invalid)
+                                    expect(chatReportsWithZeroParticipant.length).toBe(0);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume);
+        });
     });
 
     describe('createDistanceRequest', () => {
-        it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
-            createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
-                participants: [],
+        function getDefaultDistanceRequestParams(
+            report: Report | undefined,
+            transactionOverrides: Partial<Parameters<typeof createDistanceRequest>[0]['transactionParams']> = {},
+            recentWaypoints: Awaited<ReturnType<typeof getOnyxValue<typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>>> = [],
+        ): Parameters<typeof createDistanceRequest>[0] {
+            return {
+                report,
+                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
                 transactionParams: {
-                    amount: 1,
+                    amount: 1000,
                     attendees: [],
                     currency: CONST.CURRENCY.USD,
                     created: '',
                     merchant: '',
                     comment: '',
                     validWaypoints: {},
+                    ...transactionOverrides,
                 },
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
+                recentWaypoints: recentWaypoints ?? [],
+            };
+        }
+
+        it('does not trigger notifyNewAction when creating distance request in an expense report', async () => {
+            // Given recent waypoints from Onyx
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request in an expense report
+            createDistanceRequest({
+                ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
+                participants: [],
             });
+
+            // Then notifyNewAction should not be called
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
-        it('trigger notifyNewAction when doing the money request in a chat report', () => {
+        it('triggers notifyNewAction when creating distance request in a chat report', async () => {
+            // Given recent waypoints from Onyx
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request in a chat report
             createDistanceRequest({
-                report: {reportID: '123'},
+                ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1}, recentWaypoints),
                 participants: [],
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: undefined,
-                policyRecentlyUsedCurrencies: [],
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
             });
+
+            // Then notifyNewAction should be called once
             expect(notifyNewAction).toHaveBeenCalledTimes(1);
         });
 
         it('correctly sets quickAction', async () => {
-            createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
-                iouType: CONST.IOU.TYPE.SPLIT,
-                participants: [],
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
+            // Given recent waypoints from Onyx
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: undefined,
-                policyRecentlyUsedCurrencies: [],
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-            });
-            await waitForBatchedUpdates();
-            expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
+            // When creating a split distance request for the first time
             createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
+                ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
                 iouType: CONST.IOU.TYPE.SPLIT,
                 participants: [],
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
-                policyRecentlyUsedCurrencies: [],
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
+
+            // Then isFirstQuickAction should be true
+            expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
+
+            // When creating another split distance request with existing quickAction
+            createDistanceRequest({
+                ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
+                iouType: CONST.IOU.TYPE.SPLIT,
+                participants: [],
+                quickAction: {action: CONST.QUICK_ACTIONS.SEND_MONEY, chatReportID: '456'},
+            });
+            await waitForBatchedUpdates();
+
+            // Then quickAction should be updated to SPLIT_DISTANCE with isFirstQuickAction false
             expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toMatchObject({
                 action: CONST.QUICK_ACTIONS.SPLIT_DISTANCE,
                 isFirstQuickAction: false,
@@ -3187,38 +3552,26 @@ describe('actions/IOU', () => {
         });
 
         it('merges policyRecentlyUsedCurrencies into recently used currencies', async () => {
+            // Given initial recently used currencies
             const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
             await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
+            // When creating a distance request with GBP currency
             createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
+                ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1, currency: CONST.CURRENCY.GBP}, recentWaypoints),
                 iouType: CONST.IOU.TYPE.SPLIT,
-                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.GBP,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: undefined,
                 policyRecentlyUsedCurrencies: initialCurrencies,
             });
-
             await waitForBatchedUpdates();
 
+            // Then GBP should be added at the beginning of recently used currencies
             const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
             expect(recentlyUsedCurrencies).toEqual([CONST.CURRENCY.GBP, ...initialCurrencies]);
         });
 
         it('should update policyRecentlyUsedTags when tag is provided', async () => {
-            // Given a policy recently used tags
+            // Given a policy with recently used tags and an IOU report
             const transactionTag = 'new tag';
             const policyID = 'A';
             const tagName = 'Tag';
@@ -3237,32 +3590,16 @@ describe('actions/IOU', () => {
                 [tagName]: {name: tagName},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-            // When creating a distance request
+            // When creating a distance request with a tag
             createDistanceRequest({
-                report: iouReport,
-                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.GBP,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                    tag: transactionTag,
-                },
+                ...getDefaultDistanceRequestParams(iouReport, {amount: 1, currency: CONST.CURRENCY.GBP, tag: transactionTag}, recentWaypoints),
                 policyParams: {policyRecentlyUsedTags},
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: undefined,
-                policyRecentlyUsedCurrencies: [],
             });
-            waitForBatchedUpdates();
+            await waitForBatchedUpdates();
 
-            // Then the transaction tag should be added to the recently used tags collection
+            // Then the tag should be added to recently used tags collection
             const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
@@ -3277,7 +3614,7 @@ describe('actions/IOU', () => {
         });
 
         it('should update policyRecentlyUsedTags when splitting with tag is provided', async () => {
-            // Given a policy recently used tags
+            // Given a policy expense chat with recently used tags
             const transactionTag = 'new tag';
             const policyID = 'A';
             const tagName = 'Tag';
@@ -3295,33 +3632,18 @@ describe('actions/IOU', () => {
                 [tagName]: {name: tagName},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-            // When creating a split distance request
+            // When creating a split distance request with a tag
             createDistanceRequest({
-                report: policyExpenseChat,
+                ...getDefaultDistanceRequestParams(policyExpenseChat, {amount: 1, currency: CONST.CURRENCY.GBP, tag: transactionTag}, recentWaypoints),
                 iouType: CONST.IOU.TYPE.SPLIT,
                 participants: [policyExpenseChat],
-                currentUserLogin: RORY_EMAIL,
-                currentUserAccountID: RORY_ACCOUNT_ID,
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.GBP,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                    tag: transactionTag,
-                },
                 policyParams: {policyRecentlyUsedTags},
-                isASAPSubmitBetaEnabled: false,
-                transactionViolations: {},
-                quickAction: undefined,
-                policyRecentlyUsedCurrencies: [],
             });
-            waitForBatchedUpdates();
+            await waitForBatchedUpdates();
 
-            // Then the transaction tag should be added to the recently used tags collection
+            // Then the tag should be added to recently used tags collection
             const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
@@ -3333,6 +3655,541 @@ describe('actions/IOU', () => {
             });
             expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
+        });
+
+        it('creates a basic distance request with valid waypoints', async () => {
+            // Given a report and valid waypoints
+            const testReport = createRandomReport(1, undefined);
+            const validWaypoints: WaypointCollection = {
+                waypoint0: {
+                    lat: 37.7749,
+                    lng: -122.4194,
+                    address: '1 Market Street, San Francisco, CA, USA',
+                    name: '1 Market Street',
+                },
+                waypoint1: {
+                    lat: 37.8044,
+                    lng: -122.2712,
+                    address: '1 Broadway, Oakland, CA, USA',
+                    name: '1 Broadway',
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request
+            createDistanceRequest(
+                getDefaultDistanceRequestParams(
+                    testReport,
+                    {
+                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                        comment: 'Distance request test',
+                        validWaypoints,
+                        distance: 15000,
+                    },
+                    recentWaypoints,
+                ),
+            );
+            await waitForBatchedUpdates();
+
+            // Then a transaction should be created with correct comment
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(createdTransaction?.comment?.comment).toBe('Distance request test');
+        });
+
+        it('creates a distance request with zero distance', async () => {
+            // Given a report
+            const testReport = createRandomReport(1, undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request with zero distance
+            createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 0, distance: 0}, recentWaypoints));
+            await waitForBatchedUpdates();
+
+            // Then a transaction should be created with zero amount
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(createdTransaction?.amount).toBe(0);
+        });
+
+        it('creates a split distance request between participants', async () => {
+            // Given a report, waypoints, and multiple participants
+            const testReport = createRandomReport(1, undefined);
+            const validWaypoints: WaypointCollection = {
+                waypoint0: {
+                    lat: 37.7749,
+                    lng: -122.4194,
+                    address: '1 Market Street, San Francisco, CA, USA',
+                    name: '1 Market Street',
+                },
+                waypoint1: {
+                    lat: 37.8044,
+                    lng: -122.2712,
+                    address: '1 Broadway, Oakland, CA, USA',
+                    name: '1 Broadway',
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a split distance request
+            createDistanceRequest({
+                ...getDefaultDistanceRequestParams(
+                    testReport,
+                    {
+                        amount: 3000,
+                        merchant: 'Distance Split',
+                        comment: 'Split distance test',
+                        validWaypoints,
+                        distance: 30000,
+                    },
+                    recentWaypoints,
+                ),
+                iouType: CONST.IOU.TYPE.SPLIT,
+                participants: [
+                    {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
+                    {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL},
+                ],
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then at least one transaction should be created
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            expect(Object.values(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
+        });
+
+        it('creates a distance request with odometer values', async () => {
+            // Given a report
+            const testReport = createRandomReport(1, undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request with odometer values
+            createDistanceRequest(
+                getDefaultDistanceRequestParams(
+                    testReport,
+                    {
+                        amount: 500,
+                        comment: 'Odometer test',
+                        odometerStart: 10000,
+                        odometerEnd: 10050,
+                    },
+                    recentWaypoints,
+                ),
+            );
+
+            await waitForBatchedUpdates();
+
+            // Then a transaction should be created with odometer comment
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(createdTransaction?.comment?.comment).toBe('Odometer test');
+        });
+
+        it('creates distance request with category in policy expense chat', async () => {
+            // Given a policy with categories and a policy expense chat
+            const policyID = 'testPolicy123';
+            const testCategory = 'Travel';
+            const fakePolicy = {...createRandomPolicy(1), id: policyID};
+            const fakeCategories = {
+                [testCategory]: {
+                    name: testCategory,
+                    enabled: true,
+                },
+            };
+            const policyExpenseChat: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, fakeCategories);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request with a category
+            createDistanceRequest({
+                ...getDefaultDistanceRequestParams(
+                    policyExpenseChat,
+                    {
+                        amount: 2500,
+                        merchant: 'Work Trip',
+                        comment: 'Business travel',
+                        category: testCategory,
+                    },
+                    recentWaypoints,
+                ),
+                policyParams: {
+                    policy: fakePolicy,
+                    policyCategories: fakeCategories,
+                },
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then a transaction should be created with the category
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(createdTransaction?.category).toBe(testCategory);
+        });
+
+        it('creates distance request and updates recent waypoints', async () => {
+            // Given a report and waypoints with empty recent waypoints
+            const testReport = createRandomReport(1, undefined);
+            const validWaypoints: WaypointCollection = {
+                waypoint0: {
+                    lat: 40.7128,
+                    lng: -74.006,
+                    address: '123 Broadway, New York, NY, USA',
+                    name: '123 Broadway',
+                },
+                waypoint1: {
+                    lat: 40.758,
+                    lng: -73.9855,
+                    address: 'Times Square, New York, NY, USA',
+                    name: 'Times Square',
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            await Onyx.set(ONYXKEYS.NVP_RECENT_WAYPOINTS, []);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request with waypoints
+            createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 1500, validWaypoints}, recentWaypoints));
+            await waitForBatchedUpdates();
+
+            // Then a transaction should be created
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            expect(Object.values(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
+        });
+
+        it('creates distance request with different currencies', async () => {
+            // Given a report
+            const testReport = createRandomReport(1, undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request with EUR currency
+            createDistanceRequest(
+                getDefaultDistanceRequestParams(
+                    testReport,
+                    {
+                        amount: 5000,
+                        currency: CONST.CURRENCY.EUR,
+                        merchant: 'Euro Trip',
+                        comment: 'European travel',
+                    },
+                    recentWaypoints,
+                ),
+            );
+            await waitForBatchedUpdates();
+
+            // Then a transaction should be created with EUR currency
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(createdTransaction?.currency).toBe(CONST.CURRENCY.EUR);
+        });
+
+        it('creates distance request with large amount', async () => {
+            // Given a report and large amount
+            const testReport = createRandomReport(1, undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            const largeAmount = 999999999;
+
+            // When creating a distance request with large amount
+            createDistanceRequest(
+                getDefaultDistanceRequestParams(
+                    testReport,
+                    {
+                        amount: largeAmount,
+                        merchant: 'Long Trip',
+                        comment: 'Very long distance',
+                    },
+                    recentWaypoints,
+                ),
+            );
+            await waitForBatchedUpdates();
+
+            // Then a transaction should be created with the large amount
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(createdTransaction?.amount).toBe(largeAmount);
+        });
+
+        it('preserves special characters in comment when creating distance request', async () => {
+            // Given a report and comment with special characters
+            const testReport = createRandomReport(1, undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            const specialComment = 'Trip with special chars: <>&"\'äöü中文🚗';
+
+            // When creating a distance request with special characters
+            createDistanceRequest(getDefaultDistanceRequestParams(testReport, {comment: specialComment}, recentWaypoints));
+            await waitForBatchedUpdates();
+
+            // Then a transaction should be created with the special comment preserved
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            // The comment contains the original text but HTML special chars are escaped and emoji is wrapped
+            expect(createdTransaction?.comment?.comment).toContain('Trip with special chars');
+            expect(createdTransaction?.comment?.comment).toContain('äöü');
+            expect(createdTransaction?.comment?.comment).toContain('中文');
+        });
+
+        it('creates optimistic transaction with pending action when API is paused', async () => {
+            // Given a report and paused API
+            const testReport = createRandomReport(1, undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request with paused API
+            mockFetch?.pause?.();
+            createDistanceRequest(getDefaultDistanceRequestParams(testReport, {comment: 'API failure test'}, recentWaypoints));
+            await waitForBatchedUpdates();
+
+            // Then optimistic transaction should exist with pending action
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(createdTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        });
+
+        it('creates billable distance request when billable flag is set', async () => {
+            // Given a policy expense chat with billable enabled
+            const policyID = 'billablePolicy';
+            const fakePolicy = {...createRandomPolicy(1), id: policyID, disabledFields: {defaultBillable: false}};
+            const testReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a billable distance request
+            createDistanceRequest({
+                ...getDefaultDistanceRequestParams(
+                    testReport,
+                    {
+                        amount: 1500,
+                        comment: 'Billable distance',
+                        billable: true,
+                    },
+                    recentWaypoints,
+                ),
+                policyParams: {
+                    policy: fakePolicy,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then a billable transaction should be created
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(createdTransaction?.billable).toBe(true);
+        });
+
+        it('creates distance request with tax information', async () => {
+            // Given a policy expense chat with tax settings
+            const policyID = 'taxPolicy';
+            const testTaxCode = 'TAX_20';
+            const testTaxAmount = 200;
+            const fakePolicy = {...createRandomPolicy(1), id: policyID};
+            const testReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request with tax information
+            createDistanceRequest({
+                ...getDefaultDistanceRequestParams(
+                    testReport,
+                    {
+                        comment: 'Tax distance',
+                        taxCode: testTaxCode,
+                        taxAmount: testTaxAmount,
+                    },
+                    recentWaypoints,
+                ),
+                policyParams: {
+                    policy: fakePolicy,
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then a transaction should be created with tax info
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(createdTransaction?.taxCode).toBe(testTaxCode);
+        });
+
+        it('creates distance request with attendees', async () => {
+            // Given a report and attendees
+            const testReport = createRandomReport(1, undefined);
+            const testAttendees: Attendee[] = [
+                {email: RORY_EMAIL, displayName: 'Rory', avatarUrl: ''},
+                {email: CARLOS_EMAIL, displayName: 'Carlos', avatarUrl: ''},
+            ];
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request with attendees
+            createDistanceRequest(
+                getDefaultDistanceRequestParams(
+                    testReport,
+                    {
+                        amount: 2000,
+                        attendees: testAttendees,
+                        merchant: 'Group Trip',
+                        comment: 'Team travel',
+                    },
+                    recentWaypoints,
+                ),
+            );
+            await waitForBatchedUpdates();
+
+            // Then a transaction should be created with attendees
+            let allTransactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    allTransactions = transactions;
+                },
+            });
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0);
+            expect(createdTransaction).toBeTruthy();
+            expect(createdTransaction?.comment?.attendees?.length).toBe(2);
+        });
+
+        it('creates new chat report when creating distance request without existing report', async () => {
+            // Given no existing report (only recent waypoints)
+            const initialReports = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT);
+            const initialReportsCount = Object.keys(initialReports ?? {}).length;
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+            // When creating a distance request without a report
+            createDistanceRequest(getDefaultDistanceRequestParams(undefined, {}, recentWaypoints));
+            await waitForBatchedUpdates();
+
+            // Then a new report should be created along with the transaction
+            const allReports = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT);
+            const allTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+            expect(Object.keys(allReports ?? {}).length).toBeGreaterThan(initialReportsCount);
+            expect(Object.keys(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
+            const createdTransaction = Object.values(allTransactions ?? {}).at(0) as Transaction | undefined;
+            expect(createdTransaction).toBeTruthy();
         });
     });
 
@@ -8322,11 +9179,11 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
-            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if we have only scanning transactions', async () => {
             const policyID = '2';
@@ -8378,11 +9235,11 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
-            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return false if all transactions are pending card or scanning transaction', async () => {
             const policyID = '2';
@@ -8425,11 +9282,11 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
-            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeFalsy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeFalsy();
         });
         it('should return true if at least one transaction is not pending card or scanning transaction', async () => {
             const policyID = '2';
@@ -8478,11 +9335,11 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
-            // Then should return true when passing transactions directly as the third parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeTruthy();
+            // Then should return true when passing transactions directly as the fourth parameter instead of relying on Onyx data
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
-            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, result.current.at(1) as Transaction[])).toBeTruthy();
+            expect(canApproveIOU(result.current.at(0) as Report, fakePolicy, {}, result.current.at(1) as Transaction[])).toBeTruthy();
         });
 
         it('should return false if the report is closed', async () => {
@@ -8511,9 +9368,9 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
             // Then, canApproveIOU should return false since the report is closed
-            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
-            // Then should return false when passing transactions directly as the third parameter instead of relying on Onyx data
-            expect(canApproveIOU(fakeReport, fakePolicy, [fakeTransaction])).toBeFalsy();
+            expect(canApproveIOU(fakeReport, fakePolicy, {})).toBeFalsy();
+            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
+            expect(canApproveIOU(fakeReport, fakePolicy, {}, [fakeTransaction])).toBeFalsy();
         });
     });
 
@@ -10982,7 +11839,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, MOCK_REPORT_ACTIONS);
 
-            expect(getIOUReportActionToApproveOrPay(fakeReport, undefined)).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
+            expect(getIOUReportActionToApproveOrPay(fakeReport, undefined, {})).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
         });
     });
 
