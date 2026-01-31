@@ -160,6 +160,7 @@ function BasePicker<TPickerValue>({
 
     const hasError = !!errorText;
 
+    // Disable Tab focus on mobile to prevent soft keyboard navigation jumping to picker (#25759)
     const pickerTabIndex = isMobile() ? -1 : 0;
 
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
