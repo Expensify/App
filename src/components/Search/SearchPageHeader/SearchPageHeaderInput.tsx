@@ -132,6 +132,18 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const handleKeyPress = useCallback(
+        (e: TextInputKeyPressEvent) => {
+            const keyEvent = e as unknown as KeyboardEvent;
+
+            if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && textInputRef.current?.isFocused()) {
+                keyEvent.preventDefault();
+                textInputRef.current.blur();
+            }
+        },
+        [],
+    );
+
     const handleSearchAction = useCallback(
         (value: string) => {
             // Skip calling handleSearch on the initial mount
@@ -415,14 +427,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         listRef.current?.updateAndScrollToFocusedIndex(0);
         setIsAutocompleteListVisible(true);
     };
-    const handleKeyPress = useCallback((e: TextInputKeyPressEvent) => {
-        const keyEvent = e as unknown as KeyboardEvent;
-
-        if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && textInputRef.current?.isFocused()) {
-            keyEvent.preventDefault();
-            textInputRef.current.blur();
-        }
-    }, []);
     // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
     const leftPopoverHorizontalPosition = 12 - BORDER_WIDTH;
     const rightPopoverHorizontalPosition = 4 - BORDER_WIDTH;
