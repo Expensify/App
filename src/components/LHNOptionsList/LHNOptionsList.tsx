@@ -35,6 +35,7 @@ import {
     getReportActionActorAccountID,
     isInviteOrRemovedAction,
     isMoneyRequestAction,
+    isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -70,6 +71,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -234,10 +236,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
-            // For archived reports, always call getLastMessageTextForReport to get the archive reason message
-            // instead of using lastMessageText from the report
+            const shouldAlwaysRecalculateMessage = isReportArchived || isReportPreviewAction(lastAction);
             const lastMessageTextFromReport =
-                (isReportArchived ? undefined : item.lastMessageText) ??
+                (shouldAlwaysRecalculateMessage ? undefined : item.lastMessageText) ??
                 getLastMessageTextForReport({
                     translate,
                     report: item,
@@ -250,6 +251,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportMetadata: itemReportMetadata,
                     visibleReportActionsDataParam: visibleReportActionsData,
                     lastAction,
+                    currentUserAccountID,
                 });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
@@ -287,6 +289,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                     activePolicyID={activePolicyID}
                     onboardingPurpose={introSelected?.choice}
+                    onboarding={onboarding}
                     isFullscreenVisible={isFullscreenVisible}
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
@@ -321,6 +324,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             onLayoutItem,
             activePolicyID,
             introSelected?.choice,
+            onboarding,
             isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,

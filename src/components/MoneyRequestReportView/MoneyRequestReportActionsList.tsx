@@ -46,11 +46,11 @@ import {
     getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     hasNextActionMadeBySameActor,
-    isActionableWhisperRequiringWritePermission,
     isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
+    isReportActionVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
@@ -58,11 +58,11 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
-import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
-import getInitialNumToRender from '@pages/home/report/getInitialNumReportActionsToRender';
-import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
-import shouldDisplayNewMarkerOnReportAction from '@pages/home/report/shouldDisplayNewMarkerOnReportAction';
-import useReportUnreadMessageScrollTracking from '@pages/home/report/useReportUnreadMessageScrollTracking';
+import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
+import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportActionsToRender';
+import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import shouldDisplayNewMarkerOnReportAction from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import variables from '@styles/variables';
 import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -186,8 +186,21 @@ function MoneyRequestReportActionsList({
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+    const showOfflineModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
+
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[]) => {
+            if (isOffline) {
+                showOfflineModal();
+                return;
+            }
+
             if (!report) {
                 return;
             }
@@ -202,16 +215,8 @@ function MoneyRequestReportActionsList({
                 policyID: policy?.id,
             });
         },
-        [report, policy?.id],
+        [isOffline, report, policy?.id, showOfflineModal],
     );
-
-    const showOfflineModal = useCallback(async () => {
-        await showDecisionModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.offlinePrompt'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    }, [showDecisionModal, translate]);
 
     const showDownloadErrorModal = useCallback(async () => {
         await showDecisionModal({
@@ -224,6 +229,7 @@ function MoneyRequestReportActionsList({
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
         isDeleteModalVisible,
         hideDeleteModal,
     } = useSelectedTransactionsActions({
@@ -251,12 +257,7 @@ function MoneyRequestReportActionsList({
             }
 
             const actionReportID = reportAction.reportID ?? reportID;
-            const isStaticallyVisible = visibleReportActionsData?.[actionReportID]?.[reportAction.reportActionID] ?? true;
-            if (!isStaticallyVisible) {
-                return false;
-            }
-
-            if (!canPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) {
+            if (!isReportActionVisible(reportAction, actionReportID, canPerformWriteAction, visibleReportActionsData)) {
                 return false;
             }
 
@@ -754,10 +755,11 @@ function MoneyRequestReportActionsList({
                         onConfirm={() => {
                             const shouldNavigateBack =
                                 transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
-                            handleDeleteTransactions();
                             if (shouldNavigateBack) {
                                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                                Navigation.goBack(backToRoute);
+                                handleDeleteTransactionsWithNavigation(backToRoute);
+                            } else {
+                                handleDeleteTransactions();
                             }
                         }}
                         onCancel={hideDeleteModal}

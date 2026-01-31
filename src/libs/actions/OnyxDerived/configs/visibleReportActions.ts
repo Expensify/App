@@ -61,7 +61,7 @@ export default createOnyxDerivedValueConfig({
                         if (shouldSkipCachingAction(action)) {
                             continue;
                         }
-                        reportVisibility[actionID] = shouldReportActionBeVisible(action, actionID);
+                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID);
                     }
                 }
             }
@@ -69,10 +69,10 @@ export default createOnyxDerivedValueConfig({
             return result;
         }
 
-        // Only reports changed - recompute actions that depend on report existence
-        if (reportUpdates && !reportActionsUpdates) {
-            const result: VisibleReportActionsDerivedValue = currentValue ? {...currentValue} : {};
+        const result: VisibleReportActionsDerivedValue = currentValue ? {...currentValue} : {};
 
+        // Reports changed - recompute actions that depend on report existence
+        if (reportUpdates) {
             for (const [reportActionsKey, reportActions] of Object.entries(allReportActions)) {
                 if (!reportActions) {
                     continue;
@@ -89,17 +89,22 @@ export default createOnyxDerivedValueConfig({
                     if (doesActionDependOnReportExistence(action)) {
                         if (shouldSkipCachingAction(action)) {
                             delete reportVisibility[actionID];
+                            delete reportVisibility[action.reportActionID];
                             continue;
                         }
-                        reportVisibility[actionID] = shouldReportActionBeVisible(action, actionID);
+                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID);
+                        if (actionID !== action.reportActionID) {
+                            delete reportVisibility[actionID];
+                        }
                     }
                 }
             }
 
-            return result;
+            if (!reportActionsUpdates) {
+                return result;
+            }
         }
 
-        const result: VisibleReportActionsDerivedValue = currentValue ? {...currentValue} : {};
         const reportActionsToProcess = reportActionsUpdates ? Object.keys(reportActionsUpdates) : Object.keys(allReportActions);
 
         for (const reportActionsKey of reportActionsToProcess) {
@@ -114,9 +119,15 @@ export default createOnyxDerivedValueConfig({
             const reportVisibility = getOrCreateReportVisibilityRecord(result, reportID);
 
             const specificUpdates = reportActionsUpdates?.[reportActionsKey];
-            const actionsToProcess = specificUpdates ? Object.entries(specificUpdates) : Object.entries(reportActions);
+            const actionIDsToProcess = specificUpdates ? Object.keys(specificUpdates) : Object.keys(reportActions);
 
-            for (const [actionID, action] of actionsToProcess) {
+            for (const actionID of actionIDsToProcess) {
+                if (specificUpdates && specificUpdates[actionID] === null) {
+                    delete reportVisibility[actionID];
+                    continue;
+                }
+
+                const action = reportActions[actionID];
                 if (!action) {
                     delete reportVisibility[actionID];
                     continue;
@@ -124,10 +135,14 @@ export default createOnyxDerivedValueConfig({
 
                 if (shouldSkipCachingAction(action)) {
                     delete reportVisibility[actionID];
+                    delete reportVisibility[action.reportActionID];
                     continue;
                 }
 
-                reportVisibility[actionID] = shouldReportActionBeVisible(action, actionID);
+                reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID);
+                if (actionID !== action.reportActionID) {
+                    delete reportVisibility[actionID];
+                }
             }
         }
 

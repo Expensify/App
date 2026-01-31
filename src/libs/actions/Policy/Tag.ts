@@ -1,5 +1,5 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
@@ -43,20 +43,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 function isTaskIncomplete(taskReport: OnyxEntry<Report>): boolean {
     return !!taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED);
 }
-
-let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-
-        allPolicyTags = value;
-    },
-});
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
@@ -1289,10 +1275,6 @@ function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => voi
     fileDownload(translate, ApiUtils.getCommandURL({command}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function getPolicyTagsData(policyID: string | undefined) {
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
-
 export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
@@ -1312,7 +1294,6 @@ export {
     setPolicyTagApprover,
     importPolicyTags,
     downloadTagsCSV,
-    getPolicyTagsData,
     downloadMultiLevelTagsCSV,
     cleanPolicyTags,
     setImportedSpreadsheetIsImportingMultiLevelTags,

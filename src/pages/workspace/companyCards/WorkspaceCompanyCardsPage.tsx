@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
 import useAssignCard from '@hooks/useAssignCard';
-import useCardsList from '@hooks/useCardsList';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useDecisionModal from '@hooks/useDecisionModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -30,39 +29,51 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
+    const companyCards = useCompanyCards({policyID});
     const {
         allCardFeeds,
         feedName,
         selectedFeed,
         bankName,
-        onyxMetadata: {allCardFeedsMetadata},
-    } = useCompanyCards({policyID});
-    const [, cardsListMetadata] = useCardsList(feedName);
+        isFeedPending,
+        isFeedAdded,
+        onyxMetadata: {cardListMetadata},
+    } = companyCards;
 
-    const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
-    const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
-    const isFeedPending = !!selectedFeed?.pending;
-    const isFeedAdded = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
     const {showDecisionModal} = useDecisionModal();
+
+    const loadPolicyCompanyCardsPage = useCallback(() => {
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate);
+    }, [domainOrWorkspaceAccountID, policyID, translate]);
+
     const {isOffline} = useNetwork({
-        onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID),
+        onReconnect: loadPolicyCompanyCardsPage,
     });
 
-    useEffect(() => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID);
-    }, [policyID, domainOrWorkspaceAccountID]);
+    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
 
-    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardsListMetadata)));
     useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
+        loadPolicyCompanyCardsPage();
+    }, [policyID, domainOrWorkspaceAccountID, loadPolicyCompanyCardsPage, isOffline]);
+
+    const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending) {
             return;
         }
 
         const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
         openWorkspaceMembersPage(policyID, clientMemberEmails);
-        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName);
-    }, [bankName, isLoading, policyID, isFeedPending, domainOrWorkspaceAccountID, policy?.employeeList]);
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
+    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policy?.employeeList, policyID, translate]);
+
+    useEffect(() => {
+        loadPolicyCompanyCardsFeed();
+    }, [loadPolicyCompanyCardsFeed]);
 
     const showOfflineModal = useCallback(async () => {
         await showDecisionModal({
@@ -88,9 +99,14 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                 addBottomSafeAreaPadding
             >
                 <WorkspaceCompanyCardsTable
-                    policy={policy}
+                    policyID={policyID}
+                    isPolicyLoaded={!!policy}
+                    domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+                    companyCards={companyCards}
                     onAssignCard={assignCard}
                     isAssigningCardDisabled={isAssigningCardDisabled}
+                    onReloadPage={loadPolicyCompanyCardsPage}
+                    onReloadFeed={loadPolicyCompanyCardsFeed}
                 />
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

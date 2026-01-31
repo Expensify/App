@@ -66,10 +66,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
-    canDeleteMoneyRequestReport,
     generateReportID,
     getPolicyExpenseChat,
     getReportOrDraftReport,
@@ -79,7 +77,8 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -108,7 +107,8 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems, currentSearchResults} =
+        useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const allTransactions = useAllTransactions();
@@ -123,6 +123,7 @@ function SearchPage({route}: SearchPageProps) {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`, {canBeMissing: true});
+    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
@@ -163,8 +164,6 @@ function SearchPage({route}: SearchPageProps) {
         'ArrowSplit',
     ] as const);
 
-    // eslint-disable-next-line rulesdir/no-default-id-values
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
     const selectedTransactionReportIDs = useMemo(
         () => [
@@ -197,10 +196,12 @@ function SearchPage({route}: SearchPageProps) {
     const totalFormattedAmount = getTotalFormattedAmount(selectedReports, selectedTransactions, selectedBulkCurrency);
 
     const onlyShowPayElsewhere = useMemo(() => {
-        const selectedPolicy = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`];
+        const firstPolicyID = selectedPolicyIDs.at(0);
+        const selectedPolicy = firstPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`] : undefined;
         return (selectedTransactionReportIDs ?? selectedReportIDs).some((reportID) => {
             const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const chatReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+            const chatReportID = report?.chatReportID;
+            const chatReport = chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
             return (
                 report &&
                 !canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, false) &&
@@ -241,23 +242,32 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
-    // Peggy injects default sortBy/sortOrder at parse time, so queryJSON
-    // can differ from the URL’s raw query. When they diverge, we need to replace the URL
-    useEffect(() => {
-        if (!queryJSON || !route.params.q) {
-            return;
-        }
-        const normalizedQueryString = buildSearchQueryString(queryJSON);
-        if (normalizedQueryString !== route.params.q) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: normalizedQueryString}), {forceReplace: true});
-        }
-    }, [queryJSON, route.params.q]);
-
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
+    const showOfflineModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
+
+    const showDownloadErrorModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
+
     const beginExportWithTemplate = useCallback(
         async (templateName: string, templateType: string, policyID: string | undefined) => {
+            if (isOffline) {
+                showOfflineModal();
+                return;
+            }
+
             // If the user has selected a large number of items, we'll use the queryJSON to search for the reportIDs and transactionIDs necessary for the export
             if (areAllMatchingItemsSelected) {
                 queueExportSearchWithTemplate({
@@ -291,7 +301,7 @@ function SearchPage({route}: SearchPageProps) {
             }
             clearSelectedTransactions(undefined, true);
         },
-        [queryJSON, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs, showConfirmModal, translate, clearSelectedTransactions],
+        [isOffline, areAllMatchingItemsSelected, showConfirmModal, translate, clearSelectedTransactions, queryJSON, selectedTransactionReportIDs, selectedTransactionsKeys, showOfflineModal],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
@@ -299,22 +309,6 @@ function SearchPage({route}: SearchPageProps) {
             .filter((policy): policy is Policy => !!policy?.achAccount?.bankAccountID)
             .map((policy) => policy.id);
     }, [policies]);
-
-    const showOfflineModal = useCallback(async () => {
-        await showDecisionModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.offlinePrompt'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    }, [showDecisionModal, translate]);
-
-    const showDownloadErrorModal = useCallback(async () => {
-        await showDecisionModal({
-            title: translate('common.downloadFailedTitle'),
-            prompt: translate('common.downloadFailedDescription'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    }, [showDecisionModal, translate]);
 
     const handleBasicExport = useCallback(async () => {
         if (isOffline) {
@@ -500,6 +494,7 @@ function SearchPage({route}: SearchPageProps) {
                 if (!itemReportID) {
                     return;
                 }
+                const itemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportID}`];
                 const isExpenseReport = isExpenseReportUtil(itemReportID);
                 const isIOUReport = isIOUReportUtil(itemReportID);
                 const reportType = getReportType(itemReportID);
@@ -544,9 +539,9 @@ function SearchPage({route}: SearchPageProps) {
                     const reportTransactions = Object.values(allTransactions ?? {}).filter(
                         (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
                     );
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReportID, adminPolicy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReportID, adminPolicy, false, reportTransactions, isCustomReportNamesBetaEnabled);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions, isCustomReportNamesBetaEnabled);
                     }
                 }
             }
@@ -606,6 +601,7 @@ function SearchPage({route}: SearchPageProps) {
             personalPolicyID,
             allTransactions,
             isCustomReportNamesBetaEnabled,
+            allReports,
         ],
     );
 
@@ -948,24 +944,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowDeleteOption =
-            !isOffline &&
-            selectedTransactionsKeys.every((id) => {
-                const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                if (!transaction) {
-                    return false;
-                }
-                const parentReportID = transaction.reportID;
-                const parentReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-                const reportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
-                const parentReportAction =
-                    Object.values(reportActions ?? {}).find(
-                        (action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === transaction.transactionID,
-                    ) ?? selectedTransactions[id].reportAction;
-                return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
-            });
-
-        if (shouldShowDeleteOption) {
+        if (shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, isOffline)) {
             options.push({
                 icon: expensifyIcons.Trashcan,
                 text: translate('search.bulkActions.delete'),
@@ -1063,6 +1042,7 @@ function SearchPage({route}: SearchPageProps) {
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
+            draftTransactions,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];
