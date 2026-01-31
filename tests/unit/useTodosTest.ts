@@ -1,8 +1,11 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTodos from '@hooks/useTodos';
 import CONST from '@src/CONST';
+import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import {createTypeMenuSections} from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -217,21 +220,118 @@ describe('useTodos', () => {
             const {result} = renderHook(() => useTodos());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.reportsToSubmit.length).toBe(4);
-            expect(result.current.reportsToApprove.length).toBe(3);
-            expect(result.current.reportsToPay.length).toBe(2);
-            expect(result.current.reportsToExport.length).toBe(1);
+            expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBe(4);
+            expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBe(3);
+            expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY]).toBe(2);
+            expect(result.current.reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT]).toBe(1);
+        });
+    });
 
-            for (const id of SUBMIT_REPORT_IDS) {
-                expect(result.current.reportsToSubmit.map((r) => r.reportID)).toContain(id);
-            }
-            for (const id of APPROVE_REPORT_IDS) {
-                expect(result.current.reportsToApprove.map((r) => r.reportID)).toContain(id);
-            }
-            for (const id of PAY_REPORT_IDS) {
-                expect(result.current.reportsToPay.map((r) => r.reportID)).toContain(id);
-            }
-            expect(result.current.reportsToExport.map((r) => r.reportID)).toContain(EXPORT_REPORT_ID);
+    describe('badgeText for todo menu items', () => {
+        const mockPolicies = {
+            policy1: {
+                id: 'policy1',
+                name: 'Test Policy',
+                owner: CURRENT_USER_EMAIL,
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: CURRENT_USER_EMAIL,
+                exporter: CURRENT_USER_EMAIL,
+                reimburser: CURRENT_USER_EMAIL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                achAccount: {
+                    bankAccountID: 1,
+                    reimburser: CURRENT_USER_EMAIL,
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    accountNumber: '1234567890',
+                    routingNumber: '1234567890',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            },
+        };
+
+        const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+            policy1: [
+                {
+                    id: 'card1',
+                    feed: 'Expensify Card' as const,
+                    fundID: 'fund1',
+                    name: 'Test Card Feed',
+                },
+            ],
+        };
+
+        it('should show correct badgeText for todo reports based on report counts', () => {
+            const reportCounts = {
+                [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 3,
+                [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 2,
+                [CONST.SEARCH.SEARCH_KEYS.PAY]: 1,
+                [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 5,
+            };
+
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const sections = createTypeMenuSections(
+                icons.current,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                {},
+                false,
+                undefined,
+                false,
+                {},
+                reportCounts,
+            );
+
+            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
+            expect(todoSection).toBeDefined();
+
+            const submitItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            const approveItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            const payItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.PAY);
+            const exportItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.EXPORT);
+
+            expect(submitItem?.badgeText).toBe('3');
+            expect(approveItem?.badgeText).toBe('2');
+            expect(payItem?.badgeText).toBe('1');
+            expect(exportItem?.badgeText).toBe('5');
+        });
+
+        it('should show 50+ when todo report count exceeds max limit', () => {
+            const reportCounts = {
+                [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 60,
+                [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 0,
+                [CONST.SEARCH.SEARCH_KEYS.PAY]: 0,
+                [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 0,
+            };
+
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const sections = createTypeMenuSections(
+                icons.current,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                {},
+                false,
+                undefined,
+                false,
+                {},
+                reportCounts,
+            );
+
+            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
+            expect(todoSection).toBeDefined();
+
+            const submitItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            expect(submitItem?.badgeText).toBe('50+');
         });
     });
 });
