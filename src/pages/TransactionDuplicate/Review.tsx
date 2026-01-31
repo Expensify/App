@@ -120,8 +120,8 @@ function TransactionDuplicateReview() {
         getDuplicateTransactionDetails(transactionID);
     }, [transactionID]);
 
-    const threadReportFinishedLoading = reportMetadata?.isLoadingInitialReportActions === false || !reportMetadata;
-    const parentReportFinishedLoading = parentReportMetadata?.isLoadingInitialReportActions === false || !parentReportMetadata;
+    const threadReportFinishedLoading = !!reportMetadata && reportMetadata.isLoadingInitialReportActions === false;
+    const parentReportFinishedLoading = !report?.parentReportID || (!!parentReportMetadata && parentReportMetadata.isLoadingInitialReportActions === false);
 
     const wasTransactionDeleted = !!(route.params.threadReportID && threadReportFinishedLoading && parentReportFinishedLoading && !reportAction?.reportActionID);
 
