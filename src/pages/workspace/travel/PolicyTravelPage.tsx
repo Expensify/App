@@ -19,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getTravelStep} from '@libs/PolicyUtils';
+import {getTravelInvoicingCardSettingsKey, hasTravelInvoicingSettlementAccount} from '@libs/TravelInvoicingUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +49,10 @@ function WorkspaceTravelPage({
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
+    // Get Travel Invoicing card settings to check for settlement account
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID), {canBeMissing: true});
+    const hasSettlementAccount = hasTravelInvoicingSettlementAccount(cardSettings);
+
     const fetchTravelData = useCallback(() => {
         openPolicyTravelPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
@@ -72,11 +77,15 @@ function WorkspaceTravelPage({
     const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
 
     const mainContent = (() => {
+        // TODO: Remove this conditional when Travel Invoicing feature is fully implemented
+        if (isTravelInvoicingEnabled) {
+            if (!hasSettlementAccount) {
+                return <GetStartedTravel policyID={policyID} />;
+            }
+            return <WorkspaceTravelInvoicingSection policyID={policyID} />;
+        }
         switch (step) {
             case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
-                if (isTravelInvoicingEnabled) {
-                    return <WorkspaceTravelInvoicingSection policyID={policyID} />;
-                }
                 return <BookOrManageYourTrip policyID={policyID} />;
             case CONST.TRAVEL.STEPS.REVIEWING_REQUEST:
                 return <ReviewingRequest />;

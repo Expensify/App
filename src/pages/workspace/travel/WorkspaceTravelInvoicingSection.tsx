@@ -185,9 +185,8 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         </Section>
     );
 
-    // If Travel Invoicing is not enabled or no settlement account is configured
-    // show the BookOrManageYourTrip component as fallback
-    if (!isTravelInvoicingEnabled || !hasSettlementAccount) {
+    // If Travel Invoicing beta is not enabled, show the BookOrManageYourTrip component as fallback (before Travel Invoicing feature)
+    if (!isTravelInvoicingEnabled) {
         return <BookOrManageYourTrip policyID={policyID} />;
     }
 
@@ -196,6 +195,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             <Section
                 title={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.title')}
                 subtitle={translate('workspace.moreFeatures.travel.travelInvoicing.travelBookingSection.subtitle')}
+                subtitleStyles={styles.mb6}
                 isCentralPane
                 subtitleMuted
             >
