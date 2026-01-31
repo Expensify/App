@@ -231,4 +231,16 @@ platforms:
                 title: Manage Billing & Subscriptions in Expensify Classic
               - href: How-to-Manage-Subscriptions-and-Billing-in-New-Expensify
                 title: How to manage subscriptions and billing in New Expensify
+          
+          - href: plans-and-pricing
+            title: Plans and Pricing
+            articles:
+              - href: expensify_plan_overview
+                title: Expensify Plans Overview: Collect vs Control
+              - href: expensify_plan_pricing
+                title: Expensify Plan Pricing and Billing: Annual, Pay-Per-Use, and Localized Rates
+              - href: expensify_card_pricing_benefits
+                title: Expensify Card: How Pricing Discounts and Cash Back Work
+              - href: expensify_legacy_pricing
+                title: Expensify Legacy Pricing: Who Qualifies and What It Means
 
