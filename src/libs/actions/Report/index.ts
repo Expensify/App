@@ -1721,7 +1721,13 @@ function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: R
  * Creates an explanation thread for a report action with reasoning
  * Adds a "Please explain this to me." comment from the user
  */
-function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string | undefined, translate: LocalizedTranslate, timezone: Timezone = CONST.DEFAULT_TIME_ZONE) {
+function explain(
+    reportAction: OnyxEntry<ReportAction>,
+    originalReportID: string | undefined,
+    translate: LocalizedTranslate,
+    currentUserAccountID: number,
+    timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
+) {
     if (!originalReportID || !reportAction) {
         return;
     }
@@ -1735,7 +1741,7 @@ function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string
     // Schedule adding the explanation comment on the next animation frame
     // so it runs immediately after navigation completes.
     requestAnimationFrame(() => {
-        addComment(report, report.reportID, [], translate('reportActionContextMenu.explainMessage'), timezone, true);
+        addComment(report, report.reportID, [], translate('reportActionContextMenu.explainMessage'), timezone, currentUserAccountID, true);
     });
 }
 

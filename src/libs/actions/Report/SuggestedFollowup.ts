@@ -31,6 +31,7 @@ function resolveSuggestedFollowup(
     reportAction: OnyxEntry<ReportAction>,
     selectedFollowup: Followup,
     timezoneParam: Timezone,
+    currentUserAccountID: number,
     ancestors: Ancestor[] = [],
 ) {
     const reportID = report?.reportID;
@@ -52,7 +53,7 @@ function resolveSuggestedFollowup(
     });
 
     if (!selectedFollowup.response) {
-        addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup.text, timezoneParam);
+        addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup.text, timezoneParam, currentUserAccountID);
         return;
     }
 
@@ -61,7 +62,7 @@ function resolveSuggestedFollowup(
     const optimisticConciergeReportActionID = rand64();
 
     // Post user's comment immediately
-    addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup.text, timezoneParam, false, false, {
+    addComment(report, notifyReportID ?? reportID, ancestors, selectedFollowup.text, timezoneParam, currentUserAccountID, false, false, {
         optimisticConciergeReportActionID,
         pregeneratedResponse: selectedFollowup.response,
     });
