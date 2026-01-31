@@ -131,7 +131,9 @@ withdrawalId            = "withdrawal-id"i &wordBoundary            { return "wi
 bankAccount             = "bank-account"i &wordBoundary             { return "bankAccount"; }
 reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
 base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
-exportedTo              = "exported-to"i &wordBoundary              { return "exportedto"; }
+exportedTo
+  = "exportedTo"i
+  / "exported-to"i { return "exportedTo"; }
 exchangeRate            = "exchange-rate"i &wordBoundary            { return "exchangeRate"; }
 reimbursableTotal       = "reimbursable-total"i &wordBoundary       { return "reimbursableTotal"; }
 nonReimbursableTotal    = "non-reimbursable-total"i &wordBoundary   { return "nonReimbursableTotal"; }
@@ -207,5 +209,5 @@ validClosingCondition
   / [,] // Case 3: Followed by a comma
 
 wordBoundary
-  = [ \t\n\r\xA0,]  // whitespace or comma
+  = [ \t\n\r\xA0,:=<>!]  // whitespace, comma, or operator (so "exported-to:" is recognized)
   / !.              // or end of input
