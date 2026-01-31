@@ -55,6 +55,10 @@ export default {
         marginHorizontal: 8,
     },
 
+    mh2half: {
+        marginHorizontal: 10,
+    },
+
     mh3: {
         marginHorizontal: 12,
     },
@@ -533,6 +537,10 @@ export default {
 
     pv6: {
         paddingVertical: 24,
+    },
+
+    pv8: {
+        paddingVertical: 32,
     },
 
     pv10: {
