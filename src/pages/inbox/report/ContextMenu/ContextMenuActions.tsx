@@ -1165,9 +1165,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const reportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => {
-                    showDeleteModal(reportID, moneyRequestAction ?? reportAction);
-                });
+                hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));
                 return;
             }
 
