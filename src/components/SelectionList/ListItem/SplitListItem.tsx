@@ -121,7 +121,7 @@ function SplitListItem<TItem extends ListItem>({
                     accessible={splitItem.isEditable}
                     accessibilityLabel={textContentAccessibilityLabel}
                     tabIndex={splitItem.isEditable ? 0 : undefined}
-                    role={splitItem.isEditable ? 'summary' : undefined}
+                    role={splitItem.isEditable ? CONST.ROLE.SUMMARY : undefined}
                 >
                     <View style={[styles.containerWithSpaceBetween, !isBottomVisible && styles.justifyContentCenter]}>
                         <View style={[styles.minHeight5, styles.justifyContentCenter]}>
