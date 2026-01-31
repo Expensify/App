@@ -141,6 +141,8 @@ const userFriendlyColumnList = new Set(
         .map(([, value]) => value),
 );
 
+const exportedToFilterList = ['xero', 'qbo', 'qbd', 'netsuite', 'intacct', 'certinia'];
+
 /**
  * @private
  * Determines if a specific value in the search syntax can/should be highlighted as valid or not
@@ -229,6 +231,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
             return range.value.length > 0;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
+            return exportedToFilterList.includes(range.value.toLowerCase());
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
             return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
