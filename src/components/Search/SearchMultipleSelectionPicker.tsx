@@ -13,6 +13,7 @@ import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 type SearchMultipleSelectionPickerItem = {
     name: string;
     value: string | string[];
+    leftElement?: React.ReactNode;
 };
 
 type SearchMultipleSelectionPickerProps = {
@@ -37,12 +38,16 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
-            .map((item) => ({
-                text: item.name,
-                keyForList: item.name,
-                isSelected: true,
-                value: item.value,
-            }));
+            .map((item) => {
+                const fullItem = items.find((i) => i.value.toString() === item.value.toString());
+                return {
+                    text: item.name,
+                    keyForList: item.name,
+                    isSelected: true,
+                    value: item.value,
+                    leftElement: fullItem?.leftElement,
+                };
+            });
         const remainingItemsSection = items
             .filter(
                 (item) =>
@@ -54,6 +59,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 keyForList: item.name,
                 isSelected: false,
                 value: item.value,
+                leftElement: item.leftElement,
             }));
         const isEmpty = !selectedItemsSection.length && !remainingItemsSection.length;
         return {
@@ -83,7 +89,8 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             if (item.isSelected) {
                 setSelectedItems(selectedItems?.filter((selectedItem) => selectedItem.name !== item.keyForList));
             } else {
-                setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value}]);
+                const fullItem = items.find((i) => i.value.toString() === (item.value ?? '').toString());
+                setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value, leftElement: fullItem?.leftElement}]);
             }
         },
         [selectedItems],
