@@ -162,7 +162,15 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     );
                 }
                 if (report.reportID) {
-                    addAttachmentWithComment(report, report.reportID, ancestors, file, personalDetail.accountID, message, personalDetail.timezone, undefined, undefined);
+                    addAttachmentWithComment({
+                        report,
+                        notifyReportID: report.reportID,
+                        ancestors,
+                        attachments: file,
+                        currentUserAccountID: personalDetail.accountID,
+                        text: message,
+                        timezone: personalDetail.timezone,
+                    });
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);

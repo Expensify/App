@@ -305,6 +305,18 @@ type AddActionsParams = {
     pregeneratedResponseParams?: PregeneratedResponseParams;
 };
 
+type AddAttachmentWithCommentParams = {
+    report: OnyxEntry<Report>;
+    notifyReportID: string;
+    ancestors: Ancestor[];
+    attachments: FileObject | FileObject[];
+    currentUserAccountID: number;
+    text?: string;
+    timezone?: Timezone;
+    shouldPlaySound?: boolean;
+    isInSidePanel?: boolean;
+};
+
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 let conciergeReportIDOnyxConnect: string | undefined;
 let deprecatedCurrentUserAccountID = -1;
@@ -805,17 +817,17 @@ function addActions({report, notifyReportID, ancestors, timezoneParam, currentUs
 }
 
 /** Add an attachment with an optional comment to a report */
-function addAttachmentWithComment(
-    report: OnyxEntry<Report>,
-    notifyReportID: string,
-    ancestors: Ancestor[],
-    attachments: FileObject | FileObject[],
-    currentUserAccountID: number,
+function addAttachmentWithComment({
+    report,
+    notifyReportID,
+    ancestors,
+    attachments,
+    currentUserAccountID,
     text = '',
-    timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
+    timezone = CONST.DEFAULT_TIME_ZONE,
     shouldPlaySound = false,
     isInSidePanel = false,
-) {
+}: AddAttachmentWithCommentParams) {
     if (!report?.reportID) {
         return;
     }

@@ -1353,7 +1353,7 @@ describe('actions/Report', () => {
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file, 1, undefined, undefined, undefined, undefined);
+        Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1});
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1423,7 +1423,7 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file, 1, 'Attachment with comment', undefined, undefined, undefined);
+        Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1, text: 'Attachment with comment'});
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1507,7 +1507,16 @@ describe('actions/Report', () => {
         const fileC = new File(['c'], 'c.txt', {type: 'text/plain'});
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], [fileA, fileB, fileC], 1, 'Hello world', CONST.DEFAULT_TIME_ZONE, shouldPlaySound, undefined);
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            attachments: [fileA, fileB, fileC],
+            currentUserAccountID: 1,
+            text: 'Hello world',
+            timezone: CONST.DEFAULT_TIME_ZONE,
+            shouldPlaySound,
+        });
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
@@ -1541,7 +1550,15 @@ describe('actions/Report', () => {
         const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], [fileA, fileB], 1, undefined, CONST.DEFAULT_TIME_ZONE, shouldPlaySound, undefined);
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            attachments: [fileA, fileB],
+            currentUserAccountID: 1,
+            timezone: CONST.DEFAULT_TIME_ZONE,
+            shouldPlaySound,
+        });
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
@@ -1574,7 +1591,7 @@ describe('actions/Report', () => {
         const file = new File(['a'], 'a.txt', {type: 'text/plain'});
 
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
-        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file, 1, undefined, undefined, undefined, undefined);
+        Report.addAttachmentWithComment({report: REPORT, notifyReportID: REPORT_ID, ancestors: [], attachments: file, currentUserAccountID: 1});
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(0);
