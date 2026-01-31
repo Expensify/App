@@ -281,6 +281,30 @@ type PregeneratedResponseParams = {
     pregeneratedResponse: string;
 };
 
+type AddCommentParams = {
+    report: OnyxEntry<Report>;
+    notifyReportID: string;
+    ancestors: Ancestor[];
+    text: string;
+    timezoneParam: Timezone;
+    currentUserAccountID: number;
+    shouldPlaySound?: boolean;
+    isInSidePanel?: boolean;
+    pregeneratedResponseParams?: PregeneratedResponseParams;
+};
+
+type AddActionsParams = {
+    report: OnyxEntry<Report>;
+    notifyReportID: string;
+    ancestors: Ancestor[];
+    timezoneParam: Timezone;
+    currentUserAccountID: number;
+    text?: string;
+    file?: FileObject;
+    isInSidePanel?: boolean;
+    pregeneratedResponseParams?: PregeneratedResponseParams;
+};
+
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 let conciergeReportIDOnyxConnect: string | undefined;
 let deprecatedCurrentUserAccountID = -1;
@@ -584,17 +608,7 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
  * @param isInSidePanel - Whether the comment is being added from the side panel
  * @param pregeneratedResponseParams - Optional params for pre-generated response (API only, no optimistic action - used when response display is delayed)
  */
-function addActions(
-    report: OnyxEntry<Report>,
-    notifyReportID: string,
-    ancestors: Ancestor[],
-    timezoneParam: Timezone,
-    currentUserAccountID: number,
-    text = '',
-    file?: FileObject,
-    isInSidePanel = false,
-    pregeneratedResponseParams?: PregeneratedResponseParams,
-) {
+function addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text = '', file, isInSidePanel = false, pregeneratedResponseParams}: AddActionsParams) {
     if (!report?.reportID) {
         return;
     }
@@ -815,41 +829,29 @@ function addAttachmentWithComment(
 
     // Single attachment
     if (!Array.isArray(attachments)) {
-        addActions(report, notifyReportID, ancestors, timezone, currentUserAccountID, text, attachments, isInSidePanel);
+        addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments, isInSidePanel});
         handlePlaySound();
         return;
     }
 
     // Multiple attachments - first: combine text + first attachment as a single action
-    addActions(report, notifyReportID, ancestors, timezone, currentUserAccountID, text, attachments?.at(0), isInSidePanel);
+    addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments?.at(0), isInSidePanel});
 
     // Remaining: attachment-only actions (no text duplication)
     for (let i = 1; i < attachments?.length; i += 1) {
-        addActions(report, notifyReportID, ancestors, timezone, currentUserAccountID, '', attachments?.at(i), isInSidePanel);
+        addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text: '', file: attachments?.at(i), isInSidePanel});
     }
 
     // Play sound once
     handlePlaySound();
 }
 
-type AddCommentParams = {
-    report: OnyxEntry<Report>;
-    notifyReportID: string;
-    ancestors: Ancestor[];
-    text: string;
-    timezoneParam: Timezone;
-    currentUserAccountID: number;
-    shouldPlaySound?: boolean;
-    isInSidePanel?: boolean;
-    pregeneratedResponseParams?: PregeneratedResponseParams;
-};
-
 /** Add a single comment to a report */
 function addComment({report, notifyReportID, ancestors, text, timezoneParam, currentUserAccountID, shouldPlaySound, isInSidePanel, pregeneratedResponseParams}: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text, undefined, isInSidePanel, pregeneratedResponseParams);
+    addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text, isInSidePanel, pregeneratedResponseParams});
 }
 
 function reportActionsExist(reportID: string): boolean {
