@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {getExpenseTypeTranslationKey, getOriginalTransactionWithSplitInfo, getTransactionType, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {getExpenseTypeTranslationKey, getOriginalTransactionWithSplitInfo, getTransactionID, getTransactionType, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
@@ -59,6 +59,13 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const personalDetails = usePersonalDetails();
 
+    // Load thread transaction's complete duplicate list for cross-workspace comparison
+    const threadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`];
+    const threadViolations = useTransactionViolations(getTransactionID(threadReport));
+    const [threadDuplicates] = useTransactionsByID(
+        useMemo(() => threadViolations?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [threadViolations]),
+    );
+
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicateIDs = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
@@ -82,8 +89,9 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policyCategories, transactionReport));
-    }, [route.params?.threadReportID, transaction, duplicates, policyCategories, transactionReport]);
+        const allDuplicateTransactions = [...duplicates, ...(threadDuplicates ?? [])];
+        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, allDuplicateTransactions, policyCategories, transactionReport));
+    }, [route.params?.threadReportID, transaction, duplicates, threadDuplicates, policyCategories, transactionReport]);
 
     const transactionPreview = transaction;
 
