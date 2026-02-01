@@ -6354,8 +6354,6 @@ ${amount} para ${merchant} - ${date}`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}) =>
             `eliminó la sub-tasa "${removedSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}) =>
-            `cambió el índice de la tasa ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(previamente "${oldValue}")` : ''}`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}) =>
             `cambió la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}) => {

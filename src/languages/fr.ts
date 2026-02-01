@@ -166,7 +166,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
@@ -6898,9 +6897,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             `a modifié le taux « ${customUnitName} », le sous-taux « ${customUnitRateName} » « ${customUnitSubRateName} » ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `supprimé le taux « ${customUnitName} », le sous-taux « ${customUnitRateName} » « ${removedSubRateName} »`,
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `a modifié l’index du taux ${customUnitName} « ${customUnitRateName} » en « ${newValue} » ${oldValue ? `(auparavant « ${oldValue} »)` : ''}`;
-        },
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = notificationThreshold ? `avec un seuil de notification de « ${notificationThreshold}% »` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {

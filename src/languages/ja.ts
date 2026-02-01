@@ -166,7 +166,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
@@ -6814,9 +6813,6 @@ ${reportName}
             `「${customUnitName}」レート「${customUnitRateName}」のサブレート「${customUnitSubRateName}」の${updatedField}を「${newValue}」に変更しました（以前は「${oldValue}」）`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `「${customUnitName}」レート「${customUnitRateName}」のサブラテ「${removedSubRateName}」を削除しました`,
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `${customUnitName} レート「${customUnitRateName}」のインデックスを「${newValue}」に変更しました ${oldValue ? `（以前の値：「${oldValue}」）` : ''}`;
-        },
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = notificationThreshold ? `通知しきい値「${notificationThreshold}%」付き` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {

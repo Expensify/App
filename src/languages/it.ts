@@ -166,7 +166,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
@@ -6874,9 +6873,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             `ha cambiato la tariffa "${customUnitName}" tariffa "${customUnitRateName}" sotto-tariffa "${customUnitSubRateName}" ${updatedField} in "${newValue}" (precedentemente "${oldValue}")`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `rimosso "${customUnitName}" tariffa "${customUnitRateName}" sottotariffa "${removedSubRateName}"`,
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `ha modificato l’indice della tariffa ${customUnitName} "${customUnitRateName}" in "${newValue}" ${oldValue ? `(in precedenza "${oldValue}")` : ''}`;
-        },
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = notificationThreshold ? `con soglia di notifica pari a "${notificationThreshold}%"` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {

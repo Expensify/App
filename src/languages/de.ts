@@ -166,7 +166,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
@@ -6885,9 +6884,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             `änderte „${customUnitName}“-Satz „${customUnitRateName}“ Untersatz „${customUnitSubRateName}“ ${updatedField} zu „${newValue}“ (zuvor „${oldValue}“)`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `entfernte „${customUnitName}“-Rate „${customUnitRateName}“ Unterrate „${removedSubRateName}“`,
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `den Index des ${customUnitName}-Satzes „${customUnitRateName}“ in „${newValue}“ geändert ${oldValue ? `(zuvor „${oldValue}“)` : ''}`;
-        },
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = notificationThreshold ? `mit Benachrichtigungsschwelle von „${notificationThreshold}%“` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {

@@ -166,7 +166,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
@@ -6856,9 +6855,6 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             `"${customUnitName}"-tarief "${customUnitRateName}" subtarief "${customUnitSubRateName}" ${updatedField} gewijzigd in "${newValue}" (voorheen "${oldValue}")`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `verwijderde "${customUnitName}" tarief "${customUnitRateName}" subtarief "${removedSubRateName}"`,
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `de index van het ${customUnitName}-tarief "${customUnitRateName}" gewijzigd naar "${newValue}" ${oldValue ? `(eerder "${oldValue}")` : ''}`;
-        },
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = notificationThreshold ? `met meldingsdrempel van "${notificationThreshold}%"` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
