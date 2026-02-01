@@ -61,7 +61,6 @@ function SearchFiltersExportedToPage() {
                         src={icon}
                         width={24}
                         height={24}
-                        fill={theme.icon}
                         additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
                     />
                 </View>
