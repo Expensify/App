@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
 import {getReportFieldKey} from '@libs/ReportUtils';
-import {getReportFieldInitialValue, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
+import {getReportFieldInitialValue, getReportFieldTypeTranslationKey, isReportFieldTargetValid} from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {deleteReportFields} from '@userActions/Policy/ReportField';
@@ -30,10 +30,23 @@ type FieldsSettingsPageProps = {
     expectedTarget?: PolicyReportField['target'];
     getListValuesRoute: (policyID: string, reportFieldID: string) => Routes;
     getInitialValueRoute: (policyID: string, reportFieldID: string) => Routes;
+    deleteTitleKey?: 'workspace.reportFields.delete' | 'workspace.invoiceFields.delete';
+    deletePromptKey?: 'workspace.reportFields.deleteConfirmation' | 'workspace.invoiceFields.deleteConfirmation';
     testID: string;
 };
 
-function FieldsSettingsPage({policy, policyID, reportFieldID, featureName, expectedTarget, getListValuesRoute, getInitialValueRoute, testID}: FieldsSettingsPageProps) {
+function FieldsSettingsPage({
+    policy,
+    policyID,
+    reportFieldID,
+    featureName,
+    expectedTarget,
+    getListValuesRoute,
+    getInitialValueRoute,
+    deleteTitleKey = 'workspace.reportFields.delete',
+    deletePromptKey = 'workspace.reportFields.deleteConfirmation',
+    testID,
+}: FieldsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -42,7 +55,7 @@ function FieldsSettingsPage({policy, policyID, reportFieldID, featureName, expec
     const reportFieldKey = getReportFieldKey(reportFieldID);
     const reportField = policy?.fieldList?.[reportFieldKey] ?? null;
 
-    if (!reportField || (expectedTarget && reportField.target !== expectedTarget)) {
+    if (!isReportFieldTargetValid(reportField, expectedTarget)) {
         return <NotFoundPage />;
     }
 
@@ -73,12 +86,12 @@ function FieldsSettingsPage({policy, policyID, reportFieldID, featureName, expec
                     shouldSetModalVisibility={false}
                 />
                 <ConfirmModal
-                    title={translate('workspace.reportFields.delete')}
+                    title={translate(deleteTitleKey)}
                     isVisible={isDeleteModalVisible && !hasAccountingConnections}
                     onConfirm={deleteReportFieldAndHideModal}
                     onCancel={() => setIsDeleteModalVisible(false)}
                     shouldSetModalVisibility={false}
-                    prompt={translate('workspace.reportFields.deleteConfirmation')}
+                    prompt={translate(deletePromptKey)}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger

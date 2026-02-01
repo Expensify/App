@@ -5111,6 +5111,8 @@ ${amount} para ${merchant} - ${date}`,
             importedFromAccountingSoftware: 'Campos de factura importados desde',
             disableInvoiceFields: 'Desactivar campos de factura',
             disableInvoiceFieldsConfirmation: '¿Estás seguro? Los campos de factura se desactivarán en las facturas.',
+            delete: 'Eliminar campo de factura',
+            deleteConfirmation: '¿Seguro que deseas eliminar este campo de factura?',
         },
         tags: {
             tagName: 'Nombre de etiqueta',

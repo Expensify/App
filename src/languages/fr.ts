@@ -5411,6 +5411,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             importedFromAccountingSoftware: 'The invoice fields below are imported from your',
             disableInvoiceFields: 'Disable invoice fields',
             disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
+            delete: 'Delete invoice field',
+            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
         },
         tags: {
             tagName: 'Nom de balise',

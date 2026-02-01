@@ -302,19 +302,44 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
     }
 
     const allReportFields = policy?.fieldList ?? {};
+    const resolveReportFieldKey = (reportFieldIDOrKey: string) => {
+        if (allReportFields[reportFieldIDOrKey]) {
+            return reportFieldIDOrKey;
+        }
 
-    const updatedReportFields = Object.fromEntries(Object.entries(allReportFields).filter(([key]) => !reportFieldsToUpdate.includes(key)));
-    const optimisticReportFields = reportFieldsToUpdate.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
+        const expensifyKey = ReportUtils.getReportFieldKey(reportFieldIDOrKey);
+        if (allReportFields[expensifyKey]) {
+            return expensifyKey;
+        }
+
+        if (reportFieldIDOrKey.startsWith('expensify_')) {
+            const rawKey = reportFieldIDOrKey.slice('expensify_'.length);
+            if (allReportFields[rawKey]) {
+                return rawKey;
+            }
+        }
+
+        return undefined;
+    };
+
+    const resolvedReportFieldKeys = reportFieldsToUpdate.map(resolveReportFieldKey).filter((key): key is string => !!key);
+    if (resolvedReportFieldKeys.length === 0) {
+        Log.warn('No valid report fields to delete', {reportFieldsToUpdate});
+        return;
+    }
+
+    const updatedReportFields = Object.fromEntries(Object.entries(allReportFields).filter(([key]) => !resolvedReportFieldKeys.includes(key)));
+    const optimisticReportFields = resolvedReportFieldKeys.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         return acc;
     }, {});
 
-    const successReportFields = reportFieldsToUpdate.reduce<Record<string, null>>((acc, reportFieldKey) => {
+    const successReportFields = resolvedReportFieldKeys.reduce<Record<string, null>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = null;
         return acc;
     }, {});
 
-    const failureReportFields = reportFieldsToUpdate.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
+    const failureReportFields = resolvedReportFieldKeys.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = {pendingAction: null};
         return acc;
     }, {});
@@ -353,16 +378,20 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         ],
     };
 
-    const fieldsToDelete = reportFieldsToUpdate.map((reportFieldKey) => allReportFields[reportFieldKey]).filter((reportField): reportField is PolicyReportField => !!reportField);
+    const fieldsToDelete = resolvedReportFieldKeys.map((reportFieldKey) => allReportFields[reportFieldKey]).filter((reportField): reportField is PolicyReportField => !!reportField);
     const isInvoiceField = fieldsToDelete.length > 0 && fieldsToDelete.every((reportField) => reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
+    const updatedReportFieldsValues = Object.values(updatedReportFields);
+    const remainingInvoiceFields = updatedReportFieldsValues.filter((reportField) => reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
+    const remainingExpenseFields = updatedReportFieldsValues.filter((reportField) => !reportField.target || reportField.target === CONST.REPORT_FIELD_TARGETS.EXPENSE);
+    const invoiceFieldsPayload = remainingInvoiceFields;
     const parameters: DeletePolicyReportField | DeletePolicyInvoiceField = isInvoiceField
         ? {
               policyID: policy?.id,
-              invoiceFields: JSON.stringify(Object.values(updatedReportFields)),
+              invoiceFields: JSON.stringify(invoiceFieldsPayload),
           }
         : {
               policyID: policy?.id,
-              reportFields: JSON.stringify(Object.values(updatedReportFields)),
+              reportFields: JSON.stringify(remainingExpenseFields),
           };
     const deleteCommand = isInvoiceField ? WRITE_COMMANDS.DELETE_POLICY_INVOICE_FIELD : WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD;
 
