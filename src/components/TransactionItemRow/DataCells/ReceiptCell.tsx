@@ -32,7 +32,11 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
-        source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail ?? receiptURIs.image ?? '');
+
+        // Use the smaller 320px thumbnail for the cell's receipt image
+        source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail320 ?? receiptURIs.image ?? '');
+
+        // Use regular 1024px for the hovered preview thumbanil
         const previewImageURI = Str.isImage(filename) ? receiptURIs.image : receiptURIs.thumbnail;
         previewSource = tryResolveUrlFromApiRoot(previewImageURI ?? '');
     }
