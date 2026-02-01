@@ -639,10 +639,6 @@ function SearchAutocompleteList({
 
                 return filteredIsValues.map((isValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IS, text: isValue}));
             }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO: {
                 const filteredExportedTo = exportedToAutocompleteList
                     .filter((value) => value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(value.toLowerCase()))
@@ -654,6 +650,10 @@ function SearchAutocompleteList({
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {

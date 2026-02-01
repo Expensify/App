@@ -12381,35 +12381,6 @@ function getIntegrationIcon(
     return undefined;
 }
 
-function getConnectionNameForExportedToFilter(value: string): ConnectionName | undefined {
-    const map: Record<string, AllConnectionName> = {
-        xero: CONST.POLICY.CONNECTIONS.NAME.XERO,
-        qbo: CONST.POLICY.CONNECTIONS.NAME.QBO,
-        qbd: CONST.POLICY.CONNECTIONS.NAME.QBD,
-        netsuite: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
-        intacct: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-        certinia: CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
-    };
-    return map[value.toLowerCase()];
-}
-
-function getIntegrationExportIcon(connectionName?: ConnectionName): 'XeroExport' | 'QBOExport' | 'NetSuiteExport' | 'SageIntacctExport' | undefined {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return 'XeroExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO || connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
-        return 'QBOExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return 'NetSuiteExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
-        return 'SageIntacctExport';
-    }
-
-    return undefined;
-}
-
 function canBeExported(report: OnyxEntry<Report>) {
     if (!report?.statusNum) {
         return false;
@@ -13393,9 +13364,7 @@ export {
     getFieldViolation,
     getReportViolations,
     findPolicyExpenseChatByPolicyID,
-    getConnectionNameForExportedToFilter,
     getIntegrationIcon,
-    getIntegrationExportIcon,
     canBeExported,
     isExported,
     hasExportError,
