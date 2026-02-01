@@ -6,6 +6,7 @@ import type {
     LayoutChangeEvent,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    Role,
     ScrollViewProps,
     SectionListData,
     StyleProp,
@@ -13,7 +14,6 @@ import type {
     TextInput,
     TextStyle,
     ViewStyle,
-    Role
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
@@ -125,8 +125,8 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
 
-     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
-     accessibilityRole?: Role;
+    /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
+    accessibilityRole?: Role;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;

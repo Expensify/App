@@ -98,6 +98,7 @@ function BaseListItem<TItem extends ListItem>({
             contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.BASE_LIST_ITEM}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
@@ -117,7 +118,7 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
-                role={accessibilityRole }
+                role={accessibilityRole}
                 accessibilityState={accessibilityState}
                 isNested
                 hoverDimmingValue={1}

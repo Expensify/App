@@ -84,7 +84,8 @@ function BaseListItem<TItem extends ListItem>({
     const defaultAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
     const accessibilityLabel = item.accessibilityLabel ?? defaultAccessibilityLabel;
 
-    const accessibilityState = accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
+    const accessibilityState =
+        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
 
     return (
         <OfflineWithFeedback
