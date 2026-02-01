@@ -3896,6 +3896,7 @@ ${
             clearFilter: 'フィルターをクリア',
             workspaceName: 'ワークスペース名',
             workspaceOwner: 'オーナー',
+            keepMeAsAdmin: '管理者のままにする',
             workspaceType: 'ワークスペースの種類',
             workspaceAvatar: 'ワークスペースのアバター',
             mustBeOnlineToViewMembers: 'このワークスペースのメンバーを表示するには、オンラインである必要があります。',

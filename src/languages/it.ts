@@ -3909,6 +3909,7 @@ ${
             clearFilter: 'Cancella filtro',
             workspaceName: "Nome dell'area di lavoro",
             workspaceOwner: 'Proprietario',
+            keepMeAsAdmin: 'Mantienimi come amministratore',
             workspaceType: 'Tipo di workspace',
             workspaceAvatar: 'Avatar spazio di lavoro',
             mustBeOnlineToViewMembers: 'Devi essere online per visualizzare i membri di questo spazio di lavoro.',

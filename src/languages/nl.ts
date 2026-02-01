@@ -3909,6 +3909,7 @@ ${
             clearFilter: 'Filter wissen',
             workspaceName: 'Werkruimte naam',
             workspaceOwner: 'Eigenaar',
+            keepMeAsAdmin: 'Houd mij als beheerder',
             workspaceType: 'Werkruimte-type',
             workspaceAvatar: 'Werkruimte-avatar',
             mustBeOnlineToViewMembers: 'Je moet online zijn om de leden van deze workspace te bekijken.',

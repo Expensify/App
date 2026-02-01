@@ -3920,6 +3920,7 @@ ${
             clearFilter: 'Filter löschen',
             workspaceName: 'Arbeitsbereichsname',
             workspaceOwner: 'Eigentümer',
+            keepMeAsAdmin: 'Behalte mich als Administrator',
             workspaceType: 'Arbeitsbereichstyp',
             workspaceAvatar: 'Workspace-Avatar',
             mustBeOnlineToViewMembers: 'Sie müssen online sein, um die Mitglieder dieses Arbeitsbereichs anzuzeigen.',
