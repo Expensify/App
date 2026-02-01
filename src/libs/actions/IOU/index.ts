@@ -726,6 +726,7 @@ type CreateTrackExpenseParams = {
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -769,6 +770,8 @@ type GetTrackExpenseInformationParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+                betas: OnyxEntry<OnyxTypes.Beta[]>;
+
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -3807,6 +3810,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         introSelected,
         activePolicyID,
         quickAction,
+        betas
     } = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3976,15 +3980,15 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
             iouReport = buildOptimisticExpenseReport(
-                chatReport.reportID,
-                chatReport.policyID,
+              {chatReportID:  chatReport.reportID,
+                policyID:chatReport.policyID,
                 payeeAccountID,
-                amount,
+                total:amount,
                 currency,
-                amount,
-                undefined,
-                optimisticExpenseReportID,
-                reportTransactions,
+                nonReimbursableTotal:amount,
+                betas,
+              optimisticIOUReportID:  optimisticExpenseReportID,
+                reportTransactions,}
             );
         } else {
             iouReport = {...iouReport};
@@ -6612,6 +6616,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         activePolicyID,
         quickAction,
         recentWaypoints = [],
+        betas
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6745,6 +6750,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             introSelected,
             activePolicyID,
             quickAction,
+            betas,
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
 

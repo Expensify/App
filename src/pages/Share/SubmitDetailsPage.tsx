@@ -166,6 +166,7 @@ function SubmitDetailsPage({
                 introSelected,
                 quickAction,
                 recentWaypoints,
+                betas,
             });
         } else {
             requestMoney({
@@ -201,8 +202,7 @@ function SubmitDetailsPage({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 isSelfTourViewed,
-                betas,
-            });
+                betas,});
         }
     };
 

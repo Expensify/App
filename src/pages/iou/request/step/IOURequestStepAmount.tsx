@@ -283,6 +283,7 @@ function IOURequestStepAmount({
                         activePolicyID,
                         quickAction,
                         recentWaypoints,
+                        betas,
                     });
                     return;
                 }

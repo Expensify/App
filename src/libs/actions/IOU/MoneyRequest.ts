@@ -195,6 +195,7 @@ function createTransaction({
                 activePolicyID,
                 quickAction,
                 recentWaypoints,
+                betas,
             });
         } else {
             requestMoney({
@@ -574,6 +575,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     activePolicyID,
                     quickAction,
                     recentWaypoints,
+                    betas,
                 });
                 return;
             }

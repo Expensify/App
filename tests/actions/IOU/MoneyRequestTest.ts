@@ -721,6 +721,7 @@ describe('MoneyRequest', () => {
             setDistanceRequestData: jest.fn(),
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
+            betas: [CONST.BETAS.ALL],
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {

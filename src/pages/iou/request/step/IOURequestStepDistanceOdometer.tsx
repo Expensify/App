@@ -412,6 +412,7 @@ function IOURequestStepDistanceOdometer({
                         activePolicyID,
                         quickAction,
                         recentWaypoints,
+                        betas
                     });
                     return;
                 }

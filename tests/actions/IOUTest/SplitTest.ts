@@ -1158,6 +1158,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdates();
@@ -1326,6 +1327,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdates();
@@ -1435,6 +1437,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdates();
@@ -1557,6 +1560,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdates();
@@ -1728,6 +1732,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
         });
         await waitForBatchedUpdates();
 
@@ -1887,6 +1892,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
         });
         await waitForBatchedUpdates();
 
@@ -2060,6 +2066,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
         });
         await waitForBatchedUpdates();
 
@@ -2256,6 +2263,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+
         });
 
         await waitForBatchedUpdates();

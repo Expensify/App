@@ -569,6 +569,7 @@ function duplicateExpenseTransaction({
             activePolicyID,
             quickAction,
             recentWaypoints,
+            betas
         };
         return trackExpense(trackExpenseParams);
     }
