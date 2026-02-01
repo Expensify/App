@@ -106,7 +106,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transaction &&
         isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy);
 
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction ? {...transaction, report: currentReport} : transaction, undefined, currentPolicy) ?? {};
+    const transactionDetails: Partial<TransactionDetails> =
+        getTransactionDetails(transaction ? {...transaction, report: expenseReport ?? currentReport} : transaction, undefined, currentPolicy) ?? {};
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
