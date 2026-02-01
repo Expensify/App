@@ -98,6 +98,7 @@ type UpdateSplitTransactionsParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type SplitBillActionsParams = {
@@ -1001,6 +1002,7 @@ function updateSplitTransactions({
     quickAction,
     policyRecentlyUsedCurrencies,
     iouReportNextStep,
+    betas
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -1141,6 +1143,7 @@ function updateSplitTransactions({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            betas,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -1184,6 +1187,7 @@ function updateSplitTransactions({
             quickAction,
             shouldGenerateTransactionThreadReport: !isReverseSplitOperation,
             policyRecentlyUsedCurrencies,
+            betas,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<OnyxKey> = {};

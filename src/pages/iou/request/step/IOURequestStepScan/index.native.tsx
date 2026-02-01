@@ -121,7 +121,7 @@ function IOURequestStepScan({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
@@ -291,6 +291,7 @@ function IOURequestStepScan({
                 isTestTransaction,
                 locationPermissionGranted,
                 isSelfTourViewed,
+                betas,
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- reportNameValuePairs?.private_isArchived is not needed
@@ -325,6 +326,7 @@ function IOURequestStepScan({
             introSelected,
             activePolicyID,
             isSelfTourViewed,
+            betas,
         ],
     );
 

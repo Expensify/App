@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -58,6 +58,7 @@ type CreateTransactionParams = {
     billable?: boolean;
     reimbursable?: boolean;
     isSelfTourViewed: boolean;
+    betas: OnyxEntry<Beta[]>;
 };
 
 type InitialTransactionParams = {
@@ -99,6 +100,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     isSelfTourViewed: boolean;
+    betas: OnyxEntry<Beta[]>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -133,6 +135,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     privateIsArchived?: string;
     gpsCoordinates?: string;
     gpsDistance?: number;
+    betas: OnyxEntry<Beta[]>;
 };
 
 function createTransaction({
@@ -156,6 +159,7 @@ function createTransaction({
     billable,
     reimbursable = true,
     isSelfTourViewed,
+    betas,
 }: CreateTransactionParams) {
     const recentWaypoints = getRecentWaypoints();
 
@@ -195,6 +199,7 @@ function createTransaction({
         } else {
             requestMoney({
                 report,
+                betas,
                 participantParams: {
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,
@@ -273,6 +278,7 @@ function handleMoneyRequestStepScanParticipants({
     isTestTransaction = false,
     locationPermissionGranted = false,
     isSelfTourViewed,
+    betas,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -367,6 +373,7 @@ function handleMoneyRequestStepScanParticipants({
                             billable: false,
                             reimbursable: true,
                             isSelfTourViewed,
+                            betas,
                         });
                     },
                     (errorData) => {
@@ -389,9 +396,10 @@ function handleMoneyRequestStepScanParticipants({
                             files,
                             participant,
                             isSelfTourViewed,
+                            betas,
                         });
                     },
-                );
+                );  
                 return;
             }
             createTransaction({
@@ -411,6 +419,7 @@ function handleMoneyRequestStepScanParticipants({
                 files,
                 participant,
                 isSelfTourViewed,
+                betas,
             });
             return;
         }
@@ -495,6 +504,7 @@ function handleMoneyRequestStepDistanceNavigation({
     privateIsArchived,
     gpsCoordinates,
     gpsDistance,
+    betas,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
@@ -597,6 +607,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 recentWaypoints,
+                betas,
             });
             return;
         }
