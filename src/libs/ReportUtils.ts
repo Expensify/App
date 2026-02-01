@@ -1002,7 +1002,7 @@ type BuildOptimisticExpenseReportParams={
     total: number;
     currency: string;
     betas: OnyxEntry<Beta[]>;
-    nonReimbursableTotal: number;
+    nonReimbursableTotal?: number;
     parentReportActionID?: string;
     optimisticIOUReportID?: string;
     reportTransactions?: Record<string, Transaction>;

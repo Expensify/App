@@ -1013,6 +1013,7 @@ function IOURequestStepConfirmation({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        betas,
                     });
                 }
                 return;
@@ -1043,7 +1044,8 @@ function IOURequestStepConfirmation({
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
                         quickAction,
-                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],   
+                        betas,
                     });
                 }
                 return;
@@ -1184,6 +1186,7 @@ function IOURequestStepConfirmation({
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
             reportID,
+            betas,
         ],
     );
 

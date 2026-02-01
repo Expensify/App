@@ -675,6 +675,7 @@ type CreateSplitsAndOnyxDataParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type TrackExpenseTransactionParams = {
@@ -3604,7 +3605,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport({chatReportID:chatReport.reportID, policyID: chatReport.policyID, payeeAccountID, total:amount, currency,optimisticIOUReportID: optimisticReportID, reportTransactions,betas,nonReimbursableTotal: 0})
+            ? buildOptimisticExpenseReport({chatReportID:chatReport.reportID, policyID: chatReport.policyID, payeeAccountID, total:amount, currency,optimisticIOUReportID: optimisticReportID, reportTransactions,betas})
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
@@ -7027,6 +7028,7 @@ function createSplitsAndOnyxData({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
+    betas
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7318,15 +7320,14 @@ function createSplitsAndOnyxData({
 
             oneOnOneIOUReport = isOwnPolicyExpenseChat
                 ? buildOptimisticExpenseReport(
-                      oneOnOneChatReport.reportID,
-                      oneOnOneChatReport.policyID,
-                      currentUserAccountID,
-                      splitAmount,
+                    {chatReportID:  oneOnOneChatReport.reportID,
+                      policyID:oneOnOneChatReport.policyID,
+                      payeeAccountID:currentUserAccountID,
+                      total:splitAmount,
                       currency,
-                      undefined,
-                      undefined,
-                      optimisticExpenseReportID,
-                      reportTransactions,
+                      optimisticIOUReportID:optimisticExpenseReportID,
+                      reportTransactions,betas}
+
                   )
                 : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         } else if (isOwnPolicyExpenseChat) {
@@ -7637,6 +7638,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            betas
         });
         onyxData = splitOnyxData;
 
