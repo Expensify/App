@@ -745,6 +745,7 @@ const CONST = {
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
+        SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
