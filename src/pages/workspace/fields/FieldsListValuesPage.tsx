@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -44,7 +45,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {OnyxEntry} from 'react-native-onyx';
 
 type ValueListItem = ListItem & {
     /** The value */
@@ -68,16 +68,7 @@ type FieldsListValuesPageProps = {
     testID: string;
 };
 
-function FieldsListValuesPage({
-    policy,
-    policyID,
-    reportFieldID,
-    isInvoicePage,
-    featureName,
-    getValueSettingsRoute,
-    getAddValueRoute,
-    testID,
-}: FieldsListValuesPageProps) {
+function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, featureName, getValueSettingsRoute, getAddValueRoute, testID}: FieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only

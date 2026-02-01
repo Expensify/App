@@ -7,8 +7,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-type InvoiceFieldsEditValuePageProps = WithPolicyAndFullscreenLoadingProps &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE>;
+type InvoiceFieldsEditValuePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE>;
 
 function InvoiceFieldsEditValuePage({
     policy,

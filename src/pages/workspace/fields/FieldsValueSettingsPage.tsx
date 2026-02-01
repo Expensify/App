@@ -1,6 +1,7 @@
 import React, {useMemo, useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -22,7 +23,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 
 type FieldsValueSettingsPageProps = {
     policy: OnyxEntry<Policy>;
@@ -35,16 +35,7 @@ type FieldsValueSettingsPageProps = {
     testID: string;
 };
 
-function FieldsValueSettingsPage({
-    policy,
-    policyID,
-    valueIndex,
-    reportFieldID,
-    isInvoicePage,
-    featureName,
-    getEditValueRoute,
-    testID,
-}: FieldsValueSettingsPageProps) {
+function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, isInvoicePage, featureName, getEditValueRoute, testID}: FieldsValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});

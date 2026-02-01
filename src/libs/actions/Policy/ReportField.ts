@@ -3,19 +3,19 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
-    CreateWorkspaceReportFieldListValueParams,
-    CreateWorkspaceReportFieldParams,
     CreateWorkspaceInvoiceFieldListValueParams,
     CreateWorkspaceInvoiceFieldParams,
-    DeletePolicyReportField,
+    CreateWorkspaceReportFieldListValueParams,
+    CreateWorkspaceReportFieldParams,
     DeletePolicyInvoiceField,
-    EnableWorkspaceReportFieldListValueParams,
+    DeletePolicyReportField,
     EnableWorkspaceInvoiceFieldListValueParams,
+    EnableWorkspaceReportFieldListValueParams,
     OpenPolicyReportFieldsPageParams,
-    RemoveWorkspaceReportFieldListValueParams,
     RemoveWorkspaceInvoiceFieldListValueParams,
-    UpdateWorkspaceReportFieldInitialValueParams,
+    RemoveWorkspaceReportFieldListValueParams,
     UpdateWorkspaceInvoiceFieldInitialValueParams,
+    UpdateWorkspaceReportFieldInitialValueParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -353,9 +353,7 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         ],
     };
 
-    const fieldsToDelete = reportFieldsToUpdate
-        .map((reportFieldKey) => allReportFields[reportFieldKey])
-        .filter((reportField): reportField is PolicyReportField => !!reportField);
+    const fieldsToDelete = reportFieldsToUpdate.map((reportFieldKey) => allReportFields[reportFieldKey]).filter((reportField): reportField is PolicyReportField => !!reportField);
     const isInvoiceField = fieldsToDelete.length > 0 && fieldsToDelete.every((reportField) => reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
     const parameters: DeletePolicyReportField | DeletePolicyInvoiceField = isInvoiceField
         ? {

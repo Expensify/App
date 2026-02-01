@@ -1,6 +1,7 @@
 import React, {useCallback, useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -18,13 +19,12 @@ import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {getReportFieldInitialValue} from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ReportFieldsInitialListValuePicker from '@pages/workspace/reports/InitialListValueSelector/ReportFieldsInitialListValuePicker';
 import {updateReportFieldInitialValue} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {Policy} from '@src/types/onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import ReportFieldsInitialListValuePicker from '@pages/workspace/reports/InitialListValueSelector/ReportFieldsInitialListValuePicker';
 
 type FieldsInitialValuePageProps = {
     policy: OnyxEntry<Policy>;

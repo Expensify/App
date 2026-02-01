@@ -119,8 +119,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
     const isInvoiceReport = isInvoiceReportUtils(report);
     const areFieldsEnabledForReport = isInvoiceReport ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
 
-    const shouldDisplayReportFields =
-        (isPaidGroupPolicyExpenseReport || isInvoiceReport) && !!areFieldsEnabledForReport && (!isOnlyTitleFieldEnabled || !isCombinedReport);
+    const shouldDisplayReportFields = (isPaidGroupPolicyExpenseReport || isInvoiceReport) && !!areFieldsEnabledForReport && (!isOnlyTitleFieldEnabled || !isCombinedReport);
 
     return (
         shouldDisplayReportFields &&

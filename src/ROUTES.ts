@@ -2268,11 +2268,7 @@ const ROUTES = {
     },
     WORKSPACE_CREATE_REPORT_FIELD: {
         route: 'workspaces/:policyID/reports/newReportField',
-        getRoute: (policyID: string) => {
-            const baseRoute = `workspaces/${policyID}/reports/newReportField` as const;
-
-            return baseRoute;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/reports/newReportField` as const,
     },
     WORKSPACE_REPORT_FIELDS_SETTINGS: {
         route: 'workspaces/:policyID/reports/:reportFieldID/edit',

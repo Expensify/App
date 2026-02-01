@@ -4,12 +4,11 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
-import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {Plus} from '@components/Icon/Expensicons';
+import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -22,6 +21,7 @@ import {enablePolicyInvoiceFields} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {openPolicyInvoicesPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -125,9 +125,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
                 />
             </Text>
         ) : (
-            <Text style={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}>
-                {translate('workspace.invoiceFields.subtitle')}
-            </Text>
+            <Text style={[styles.textNormal, styles.colorMuted, styles.mr5, styles.mt1]}>{translate('workspace.invoiceFields.subtitle')}</Text>
         );
 
     const isLoading = !isOffline && policy === undefined;
@@ -153,11 +151,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
 
                         if (!isControlPolicy(policy)) {
                             Navigation.navigate(
-                                ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                    policyID,
-                                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias,
-                                    ROUTES.WORKSPACE_INVOICES.getRoute(policyID),
-                                ),
+                                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)),
                             );
                             return;
                         }
@@ -181,11 +175,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
                                 </View>
                                 {!hasAccountingConnections && (
                                     <MenuItem
-                                        onPress={() =>
-                                            Navigation.navigate(
-                                                ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.getRoute(policyID),
-                                            )
-                                        }
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.getRoute(policyID))}
                                         title={translate('workspace.reportFields.addField')}
                                         icon={Plus}
                                         style={[styles.sectionMenuItemTopDescription]}
@@ -223,7 +213,6 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
                 confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                 cancelText={translate('common.cancel')}
             />
-
         </>
     );
 }

@@ -4193,15 +4193,9 @@ function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = t
     }
 }
 
-function enablePolicyFields(
-    policyID: string,
-    enabled: boolean,
-    command: typeof WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS | typeof WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS,
-) {
+function enablePolicyFields(policyID: string, enabled: boolean, command: typeof WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS | typeof WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS) {
     const enableFieldKey =
-        command === WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS
-            ? CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED
-            : CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED;
+        command === WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS ? CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED : CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [

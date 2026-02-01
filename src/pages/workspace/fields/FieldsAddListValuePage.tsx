@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import {Keyboard} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -21,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {Policy} from '@src/types/onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 
 type FieldsAddListValuePageProps = {
     policy: OnyxEntry<Policy>;

@@ -1,7 +1,8 @@
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
-import type {ValueOf} from 'type-fest';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -19,7 +20,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {deleteReportFields} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 
 type FieldsSettingsPageProps = {
     policy: OnyxEntry<Policy>;
