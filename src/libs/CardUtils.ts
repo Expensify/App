@@ -829,6 +829,7 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
 
 /**
  * Check if the given card is a personal card.
+ * Personal cards have no fundID, fundID === '0', or are CSV imported cards.
  *
  * @param card the card which needs to be checked
  * @returns true if the card is a personal card, false otherwise
@@ -877,6 +878,33 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
             (card) => card?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (card?.encryptedCardNumber === cardNumberToCheck || card?.cardName === cardNumberToCheck),
         );
     });
+}
+
+/**
+ * Generate a random cardID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
+ * There were approximately 24,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly 0.25 billionth of the space for these numbers,
+ * so we live with the 1 in 4 billion chance of a collision with an older ID until we can switch to 64-bit IDs.
+ *
+ */
+function generateCardID(): number {
+    return Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32);
+}
+
+/**
+ * Check if there are any assigned cards that should be displayed in the wallet page.
+ * This includes active Expensify cards, company cards (domain), and personal cards.
+ */
+function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
+    if (!cardList) {
+        return false;
+    }
+
+    return Object.values(cardList).some(
+        (card) =>
+            CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
+            (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+    );
 }
 
 export {
@@ -945,6 +973,8 @@ export {
     COMPANY_CARD_BANK_ICON_NAMES,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
+    generateCardID,
+    hasDisplayableAssignedCards,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};
