@@ -120,22 +120,6 @@ function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
 
 /**
  * @private
- * Converts exportedTo internal ID to the display label expected by the search API in the query string.
- * When building the URL from form values, we must send the display label (e.g. "All Data - Expense Level Export")
- * not the internal template name (e.g. detailed_export), so that the backend returns results.
- */
-function getExportedToQueryValue(value: string): string {
-    if (value === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT) {
-        return CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT;
-    }
-    if (value === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT) {
-        return CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT;
-    }
-    return value;
-}
-
-/**
- * @private
  * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
  */
 function sanitizeSearchValue(str: string) {
@@ -616,12 +600,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, status, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
-
-    // Normalize exportedTo form values (internal IDs) to query values (display labels) so the search API receives the expected format
-    if (Array.isArray(otherFilters.exportedTo) && otherFilters.exportedTo.length > 0) {
-        otherFilters.exportedTo = otherFilters.exportedTo.map(getExportedToQueryValue);
-    }
-
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options?.sortBy ?? CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -880,17 +858,7 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails?.[id]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
-            // Normalize display labels from URL back to internal IDs so the Export to picker can match selected items
-            const formValues = filterValues.map((val) => {
-                if (val === CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT) {
-                    return CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
-                }
-                if (val === CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT) {
-                    return CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT;
-                }
-                return val;
-            });
-            filtersForm[key as typeof filterKey] = formValues;
+            filtersForm[key as typeof filterKey] = filterValues;
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {

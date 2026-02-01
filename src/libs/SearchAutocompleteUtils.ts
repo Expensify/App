@@ -230,7 +230,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
             return range.value.length > 0;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
-            return CONST.SEARCH.PREDEFINED_INTEGRATION_FILTER_VALUES.includes(range.value.toLowerCase());
+            return (CONST.SEARCH.PREDEFINED_INTEGRATION_FILTER_VALUES as readonly string[]).includes(range.value.toLowerCase());
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
             return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
