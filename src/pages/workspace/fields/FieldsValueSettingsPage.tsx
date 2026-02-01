@@ -22,6 +22,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route as Routes} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 type FieldsValueSettingsPageProps = {
@@ -31,7 +32,7 @@ type FieldsValueSettingsPageProps = {
     reportFieldID?: string;
     isInvoicePage: boolean;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
-    getEditValueRoute: (isInvoiceRoute: boolean, policyID: string, valueIndex: number) => string;
+    getEditValueRoute: (isInvoiceRoute: boolean, policyID: string, valueIndex: number) => Routes;
     testID: string;
 };
 

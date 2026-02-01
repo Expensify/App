@@ -43,6 +43,7 @@ import StringUtils from '@libs/StringUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route as Routes} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
@@ -63,8 +64,8 @@ type FieldsListValuesPageProps = {
     reportFieldID?: string;
     isInvoicePage: boolean;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
-    getValueSettingsRoute: (isInvoiceRoute: boolean, policyID: string, valueIndex: number, reportFieldID?: string) => string;
-    getAddValueRoute: (isInvoiceRoute: boolean, policyID: string, reportFieldID?: string) => string;
+    getValueSettingsRoute: (isInvoiceRoute: boolean, policyID: string, valueIndex: number, reportFieldID?: string) => Routes;
+    getAddValueRoute: (isInvoiceRoute: boolean, policyID: string, reportFieldID?: string) => Routes;
     testID: string;
 };
 

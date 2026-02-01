@@ -3882,6 +3882,7 @@ ${
             customFieldHint: 'Fügen Sie benutzerdefinierte Kodierung hinzu, die auf alle Ausgaben dieses Mitglieds angewendet wird.',
             reports: 'Berichte',
             reportFields: 'Berichtsfelder',
+            invoiceFields: 'Rechnungsfelder',
             reportTitle: 'Berichtstitel',
             reportField: 'Berichtsfeld',
             taxes: 'Steuern',
@@ -5395,6 +5396,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             circularReferenceError: 'Dieses Feld kann nicht auf sich selbst verweisen. Bitte aktualisieren.',
             reportFieldInitialValueRequiredError: 'Bitte wählen Sie einen Anfangswert für das Berichtsfeld',
             genericFailureMessage: 'Beim Aktualisieren des Berichtsfelds ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
         },
         tags: {
             tagName: 'Tag-Name',

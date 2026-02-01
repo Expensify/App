@@ -7684,7 +7684,6 @@ const CONST = {
     REPORT_FIELD_TARGETS: {
         EXPENSE: 'expense',
         INVOICE: 'invoice',
-        PAYCHECK: 'paycheck',
     },
 
     NAVIGATION_ACTIONS: {

@@ -19,6 +19,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {deleteReportFields} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
+import type {Route as Routes} from '@src/ROUTES';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 
 type FieldsSettingsPageProps = {
@@ -27,8 +28,8 @@ type FieldsSettingsPageProps = {
     reportFieldID: string;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
     expectedTarget?: PolicyReportField['target'];
-    getListValuesRoute: (policyID: string, reportFieldID: string) => string;
-    getInitialValueRoute: (policyID: string, reportFieldID: string) => string;
+    getListValuesRoute: (policyID: string, reportFieldID: string) => Routes;
+    getInitialValueRoute: (policyID: string, reportFieldID: string) => Routes;
     testID: string;
 };
 

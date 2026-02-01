@@ -13024,14 +13024,14 @@ function shouldHideSingleReportField(reportField: PolicyReportField) {
  */
 function getReportFieldMaps(report: OnyxEntry<Report>, fieldList: Record<string, PolicyReportField>): {fieldValues: Record<string, string>; fieldsByName: Record<string, PolicyReportField>} {
     const fields = getAvailableReportFields(report, Object.values(fieldList ?? {}));
-    const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+    const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] as Record<string, PolicyReportField> | undefined;
     const fieldValues: Record<string, string> = {};
     const fieldsByName: Record<string, PolicyReportField> = {};
 
     for (const field of fields) {
         if (field.name) {
             const fieldKey = getReportFieldKey(field.fieldID);
-            const reportNameValuePairField = reportNameValuePairs?.[fieldKey] as PolicyReportField | undefined;
+            const reportNameValuePairField = reportNameValuePairs?.[fieldKey];
             const key = field.name.toLowerCase();
             fieldValues[key] = reportNameValuePairField?.value ?? field.value ?? field.defaultValue ?? '';
             fieldsByName[key] = reportNameValuePairField ? {...field, value: reportNameValuePairField.value} : field;

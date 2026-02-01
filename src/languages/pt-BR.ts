@@ -3863,6 +3863,7 @@ ${
             customFieldHint: 'Adicionar codificação personalizada que se aplique a todos os gastos deste membro.',
             reports: 'Relatórios',
             reportFields: 'Campos de relatório',
+            invoiceFields: 'Campos de fatura',
             reportTitle: 'Título do relatório',
             reportField: 'Campo de relatório',
             taxes: 'Impostos',
@@ -5362,6 +5363,12 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             circularReferenceError: 'Este campo não pode fazer referência a si mesmo. Atualize-o.',
             reportFieldInitialValueRequiredError: 'Por favor, escolha um valor inicial para o campo de relatório',
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Tente novamente.',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
         },
         tags: {
             tagName: 'Nome da tag',

@@ -3890,6 +3890,7 @@ ${
             customFieldHint: 'Ajouter un codage personnalisé qui s’applique à toutes les dépenses de ce membre.',
             reports: 'Rapports',
             reportFields: 'Champs du rapport',
+            invoiceFields: 'Champs de facture',
             reportTitle: 'Titre du rapport',
             reportField: 'Champ de rapport',
             taxes: 'Taxes',
@@ -5404,6 +5405,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             circularReferenceError: 'Ce champ ne peut pas faire référence à lui-même. Veuillez le mettre à jour.',
             reportFieldInitialValueRequiredError: 'Veuillez choisir une valeur initiale pour le champ de rapport',
             genericFailureMessage: 'Une erreur s’est produite lors de la mise à jour du champ de rapport. Veuillez réessayer.',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
         },
         tags: {
             tagName: 'Nom de balise',

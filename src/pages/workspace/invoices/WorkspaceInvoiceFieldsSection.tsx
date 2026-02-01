@@ -27,12 +27,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyReportField} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type InvoiceFieldListItem = {
     fieldID: string;
     isDisabled: boolean;
     keyForList: string;
-    pendingAction?: PolicyReportField['pendingAction'];
+    pendingAction?: PendingAction;
     rightLabel: string;
     text: string;
 };
