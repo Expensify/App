@@ -11912,6 +11912,7 @@ describe('actions/IOU', () => {
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
             });
 
             expect(result.onyxData).toBeDefined();
@@ -12000,6 +12001,7 @@ describe('actions/IOU', () => {
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
             });
 
             // Then: Verify the result structure and key values
@@ -12132,6 +12134,7 @@ describe('actions/IOU', () => {
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
             });
 
             // Then: Verify the result uses existing chat report
@@ -12218,6 +12221,7 @@ describe('actions/IOU', () => {
                 hasViolations: false,
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
             });
 
             // Then: Verify policy expense chat handling
@@ -12285,6 +12289,7 @@ describe('actions/IOU', () => {
                     policyRecentlyUsedTags,
                 },
                 quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
             });
 
             waitForBatchedUpdates();

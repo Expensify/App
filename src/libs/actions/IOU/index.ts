@@ -502,6 +502,7 @@ type PerDiemExpenseInformation = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -517,6 +518,8 @@ type PerDiemExpenseInformationParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+
 };
 
 type RequestMoneyInformation = {
@@ -3541,6 +3544,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        betas,
     } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -3597,7 +3601,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, undefined, undefined, optimisticReportID, reportTransactions)
+            ? buildOptimisticExpenseReport({chatReportID:chatReport.reportID, policyID: chatReport.policyID, payeeAccountID, total:amount, currency,optimisticIOUReportID: optimisticReportID, reportTransactions,betas,nonReimbursableTotal: 0})
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
@@ -6490,6 +6494,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        betas,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
@@ -6536,6 +6541,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        betas,
     });
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
 

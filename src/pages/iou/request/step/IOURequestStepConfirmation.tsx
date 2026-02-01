@@ -715,6 +715,7 @@ function IOURequestStepConfirmation({
                 hasViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
+                betas,
             });
         },
         [
@@ -731,6 +732,7 @@ function IOURequestStepConfirmation({
             hasViolations,
             policyRecentlyUsedCurrencies,
             quickAction,
+            betas,
         ],
     );
 
