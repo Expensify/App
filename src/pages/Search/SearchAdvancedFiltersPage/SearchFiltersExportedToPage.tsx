@@ -1,6 +1,5 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import Table from '@assets/images/table.svg';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,28 +9,22 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getExportTemplates, updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectionNameForExportedToFilter, getIntegrationIcon} from '@libs/ReportUtils';
+import {getIntegrationIcon} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-
-const PREDEFINED_INTEGRATION_VALUES = [
-    {value: 'xero', displayKey: 'xero' as const},
-    {value: 'qbo', displayKey: 'quickbooksOnline' as const},
-    {value: 'qbd', displayKey: 'quickbooksDesktop' as const},
-    {value: 'netsuite', displayKey: 'netsuite' as const},
-    {value: 'intacct', displayKey: 'intacct' as const},
-    {value: 'certinia', displayKey: 'certinia' as const},
-] as const;
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 function SearchFiltersExportedToPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare']);
+    const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'Table']);
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
@@ -42,9 +35,10 @@ function SearchFiltersExportedToPage() {
 
     const tableIconElement = useMemo(
         () => (
-            <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter, styles.opacitySemiTransparent]}>
+            <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <Icon
-                    src={Table}
+                    src={expensifyIcons.Table}
+                    fill={theme.icon}
                     width={24}
                     height={24}
                 />
@@ -54,39 +48,47 @@ function SearchFiltersExportedToPage() {
     );
 
     const items = useMemo((): SearchMultipleSelectionPickerItem[] => {
-        const integrationItems: SearchMultipleSelectionPickerItem[] = PREDEFINED_INTEGRATION_VALUES.map((item) => {
-            const connectionName = getConnectionNameForExportedToFilter(item.value);
-            const icon = connectionName ? getIntegrationIcon(connectionName, expensifyIcons) : undefined;
-            const leftElement =
-                icon != null ? (
-                    <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        <Icon
-                            src={icon}
-                            width={24}
-                            height={24}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
-                        />
-                    </View>
-                ) : (
-                    tableIconElement
-                );
+        const predefinedConnectionNamesList: ConnectionName[] = [
+            CONST.POLICY.CONNECTIONS.NAME.XERO,
+            CONST.POLICY.CONNECTIONS.NAME.QBO,
+            CONST.POLICY.CONNECTIONS.NAME.QBD,
+            CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
+            CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+            CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
+        ];
+        const predefinedConnectionNamesSet = new Set<string>(predefinedConnectionNamesList);
+
+        const integrationItems: SearchMultipleSelectionPickerItem[] = predefinedConnectionNamesList.map((value) => {
+            const icon = getIntegrationIcon(value, expensifyIcons);
+            const leftElement = icon ? (
+                <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <Icon
+                        src={icon}
+                        width={24}
+                        height={24}
+                        fill={theme.icon}
+                        additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
+                    />
+                </View>
+            ) : (
+                tableIconElement
+            );
             return {
-                name: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[item.displayKey],
-                value: item.value,
+                name: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[value],
+                value,
                 leftElement,
             };
         });
         const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, true);
 
         const otherItems: SearchMultipleSelectionPickerItem[] = exportTemplates
-            .filter((template) => template.templateName && !PREDEFINED_INTEGRATION_VALUES.some((p) => p.value === template.templateName?.toLowerCase()))
+            .filter((template) => template.templateName && !predefinedConnectionNamesSet.has(template.templateName))
             .map((template) => ({
                 name: template.name ?? template.templateName ?? '',
                 value: template.templateName,
                 leftElement: tableIconElement,
             }))
-            .filter((item) => item.name !== '')
-            .sort((a, b) => (a.name as string).localeCompare(b.name as string));
+            .sort((a, b) => a.name.localeCompare(b.name));
 
         return [...integrationItems, ...otherItems];
     }, [integrationsExportTemplates, csvExportLayouts, policy, expensifyIcons, styles, StyleUtils, translate, tableIconElement]);
@@ -96,16 +98,14 @@ function SearchFiltersExportedToPage() {
         if (selectedValues.length === 0) {
             return undefined;
         }
-        const normalizedSet = new Set(selectedValues.map((v) => v.toLowerCase()));
-        return items.filter((item) => normalizedSet.has(item.value as string));
+        const normalizedSet = new Set(selectedValues.map((selectedValue) => selectedValue.toLowerCase()));
+        return items.filter((item) => {
+            const value = typeof item.value === 'string' ? item.value : (item.value[0] ?? '');
+            return normalizedSet.has(value.toLowerCase());
+        });
     }, [searchAdvancedFiltersForm?.exportedTo, items]);
 
-    const onSaveSelection = useMemo(
-        () => (values: string[]) => {
-            updateAdvancedFilters({exportedTo: values});
-        },
-        [],
-    );
+    const onSaveSelection = useCallback((values: string[]) => updateAdvancedFilters({exportedTo: values}), []);
 
     return (
         <ScreenWrapper
