@@ -1,5 +1,5 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -195,6 +195,9 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
     accessibilityState?: AccessibilityState;
 
+    /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
+    accessibilityRole?: Role;
+
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem>;
@@ -314,9 +317,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
-
-    /** Whether to expose this row as a radio option for screen readers (single-choice group). Set by RadioListItem. */
-    shouldUseRadioRole?: boolean;
 };
 
 type SplitListItemType = ListItem &

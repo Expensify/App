@@ -26,6 +26,7 @@ function RadioListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation,
+    accessibilityRole,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
@@ -51,7 +52,7 @@ function RadioListItem<TItem extends ListItem>({
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
-            shouldUseRadioRole
+            accessibilityRole={accessibilityRole}
         >
             <>
                 {!!item.leftElement && item.leftElement}

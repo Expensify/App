@@ -1,5 +1,4 @@
 import React, {useRef} from 'react';
-import type {Role} from 'react-native';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -49,7 +48,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
-    shouldUseRadioRole = false,
+    accessibilityRole = getButtonRole(true),
 }: BaseListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const theme = useTheme();
@@ -85,17 +84,7 @@ function BaseListItem<TItem extends ListItem>({
     const defaultAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
     const accessibilityLabel = item.accessibilityLabel ?? defaultAccessibilityLabel;
 
-    const isRadioOption = shouldUseRadioRole;
-    const isCheckboxOption = canSelectMultiple;
-    let role: Role | undefined;
-    if (isCheckboxOption) {
-        role = CONST.ROLE.CHECKBOX;
-    } else if (isRadioOption) {
-        role = CONST.ROLE.RADIO;
-    } else {
-        role = getButtonRole(true);
-    }
-    const accessibilityState = isRadioOption || isCheckboxOption ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
+    const accessibilityState = accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
 
     return (
         <OfflineWithFeedback
@@ -127,7 +116,7 @@ function BaseListItem<TItem extends ListItem>({
                 interactive={item.isInteractive}
                 accessibilityLabel={accessibilityLabel}
                 accessibilityState={accessibilityState}
-                role={role}
+                role={accessibilityRole}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}

@@ -76,8 +76,8 @@ function MultiSelectListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             isDisabled={isDisabled}
             rightHandSideComponent={checkboxComponent}
-            canSelectMultiple
             onSelectRow={onSelectRow}
+            accessibilityRole={CONST.ROLE.CHECKBOX}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             isMultilineSupported={isMultilineSupported}

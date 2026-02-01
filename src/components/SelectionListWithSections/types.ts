@@ -13,6 +13,7 @@ import type {
     TextInput,
     TextStyle,
     ViewStyle,
+    Role
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
@@ -123,6 +124,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
+
+     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
+     accessibilityRole?: Role;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -619,8 +623,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         testID?: string;
         /** Whether to show the default right hand side checkmark */
         shouldUseDefaultRightHandSideCheckmark?: boolean;
-        /** Whether to expose this row as a radio option for screen readers (single-choice group). Set by RadioListItem. */
-        shouldUseRadioRole?: boolean;
     };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
