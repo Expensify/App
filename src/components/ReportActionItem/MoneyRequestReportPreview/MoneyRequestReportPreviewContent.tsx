@@ -143,7 +143,8 @@ function MoneyRequestReportPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -156,7 +157,7 @@ function MoneyRequestReportPreviewContent({
             hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
         }),
         // When transactions get updated these values may have changed, so that is a case where we also want to recompute them
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [transactions, iouReportID, action],
     );
 
@@ -171,13 +172,14 @@ function MoneyRequestReportPreviewContent({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const getCanIOUBePaid = useCallback(
-        (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, transactions, shouldShowOnlyPayElsewhere),
-        [iouReport, chatReport, policy, transactions],
+        (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, shouldShowOnlyPayElsewhere),
+        [iouReport, chatReport, policy, bankAccountList, transactions],
     );
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
@@ -219,7 +221,6 @@ function MoneyRequestReportPreviewContent({
     const currentReportName = iouReport?.reportID ? reportAttributes?.[iouReport.reportID]?.reportName : undefined;
     const reportPreviewName = useMemo(() => {
         return getMoneyReportPreviewName(action, iouReport, isInvoice, reportAttributes);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [action, iouReport, isInvoice, currentReportName]);
 
@@ -268,7 +269,16 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                     });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, iouReportNextStep, undefined, true, activePolicy, policy);
+                    payMoneyRequest({
+                        paymentType: type,
+                        chatReport,
+                        iouReport,
+                        introSelected,
+                        iouReportCurrentNextStepDeprecated: iouReportNextStep,
+                        currentUserAccountID,
+                        activePolicy,
+                        policy,
+                    });
                 }
             }
         },
@@ -383,6 +393,8 @@ function MoneyRequestReportPreviewContent({
         [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, translate],
     );
 
+    const shouldShowReportStatus = !!reportStatus && !!expenseCount;
+
     const reportStatusColorStyle = useMemo(
         () => getReportStatusColorStyle(theme, iouReport?.stateNum ?? action?.childStateNum, iouReport?.statusNum ?? action?.childStatusNum),
         [action?.childStateNum, action?.childStatusNum, iouReport?.stateNum, iouReport?.statusNum, theme],
@@ -401,7 +413,7 @@ function MoneyRequestReportPreviewContent({
             }),
         );
         // We only want to animate the text when the text changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [previewMessage, previewMessageOpacity]);
 
     useEffect(() => {
@@ -447,7 +459,6 @@ function MoneyRequestReportPreviewContent({
         return {itemVisiblePercentThreshold: 100};
     }, []);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
         if (typeof newIndex === 'number') {
@@ -518,8 +529,14 @@ function MoneyRequestReportPreviewContent({
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
-    }, [iouReportID]);
+        // Small screens navigate to full report view since super wide RHP
+        // is not available on narrow layouts and would break the navigation logic.
+        if (isSmallScreenWidth) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+        } else {
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
+        }
+    }, [iouReportID, isSmallScreenWidth]);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
@@ -527,22 +544,25 @@ function MoneyRequestReportPreviewContent({
         return getReportPreviewAction({
             isReportArchived: isIouReportArchived || isChatReportArchived,
             currentUserAccountID: currentUserDetails.accountID,
-            currentUserEmail: currentUserDetails.email ?? '',
+            currentUserLogin: currentUserDetails.login ?? '',
             report: iouReport,
             policy,
             transactions,
+            bankAccountList,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
             isDEWSubmitPending,
             violationsData: transactionViolations,
+            reportMetadata: iouReportMetadata,
         });
     }, [
+        bankAccountList,
         isIouReportArchived,
         isChatReportArchived,
         currentUserDetails.accountID,
-        currentUserDetails.email,
+        currentUserDetails.login,
         iouReport,
         policy,
         transactions,
@@ -552,6 +572,7 @@ function MoneyRequestReportPreviewContent({
         isSubmittingAnimationRunning,
         transactionViolations,
         isDEWSubmitPending,
+        iouReportMetadata,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
@@ -635,7 +656,7 @@ function MoneyRequestReportPreviewContent({
         ) : null,
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button
-                text={shouldShowAccessPlaceHolder ? translate('common.viewReport') : translate('common.view')}
+                text={translate('common.view')}
                 onPress={() => {
                     openReportFromPreview();
                 }}
@@ -736,9 +757,10 @@ function MoneyRequestReportPreviewContent({
                                                 {showStatusAndSkeleton && shouldShowSkeleton ? (
                                                     <MoneyReportHeaderStatusBarSkeleton />
                                                 ) : (
-                                                    (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) && (
+                                                    (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) &&
+                                                    (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                            {!!reportStatus && !!expenseCount && (
+                                                            {shouldShowReportStatus && (
                                                                 <View
                                                                     style={[
                                                                         styles.reportStatusContainer,

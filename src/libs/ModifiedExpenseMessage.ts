@@ -12,9 +12,10 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
+import {formatList, translateLocal} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
+import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
@@ -71,8 +72,7 @@ function buildMessageFragmentForValue(
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
     const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const isCategoryField = valueName.includes(translateLocal('common.category').toLowerCase());
+    const isCategoryField = valueName.includes(translate('common.category').toLowerCase());
 
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
     const isOldValuePartialMerchant = valueName === translate('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -164,8 +164,10 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName({report: rootParentReport}) : buildReportNameFromParticipantNames({report: rootParentReport});
+    const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
+    const reportName = isPolicyExpenseChat(rootParentReport)
+        ? getPolicyExpenseChatName({report: rootParentReport})
+        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {
@@ -467,6 +469,18 @@ function getForReportAction({
         buildMessageFragmentForValue(translateLocal, oldAttendees, attendees, translateLocal('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
+    const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
+    if (hasPolicyRulesModifiedFields) {
+        const rulePolicyID = reportActionOriginalMessage.policyID;
+        const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
+
+        if (policyRulesModifiedFields && rulePolicyID) {
+            const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(rulePolicyID)}`;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('iou.policyRulesModifiedFields', policyRulesModifiedFields, policyRulesRoute, formatList);
+        }
+    }
+
     const message =
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.changed')}`, changeFragments) +
@@ -711,10 +725,21 @@ function getForReportActionTemp({
         buildMessageFragmentForValue(translate, oldAttendees, attendees, translate('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
+    const hasPolicyRulesModifiedFields = isReportActionOriginalMessageAnObject && 'policyRulesModifiedFields' in reportActionOriginalMessage && 'policyID' in reportActionOriginalMessage;
+    if (hasPolicyRulesModifiedFields) {
+        const {policyRulesModifiedFields, policyID} = reportActionOriginalMessage;
+
+        if (policyRulesModifiedFields && policyID) {
+            const policyRulesRoute = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policyID)}`;
+            return translate('iou.policyRulesModifiedFields', policyRulesModifiedFields, policyRulesRoute, formatList);
+        }
+    }
+
     const message =
         getMessageLine(translate, `\n${translate('iou.changed')}`, changeFragments) +
         getMessageLine(translate, `\n${translate('iou.set')}`, setFragments) +
         getMessageLine(translate, `\n${translate('iou.removed')}`, removalFragments);
+
     if (message === '') {
         return translate('iou.changedTheExpense');
     }

@@ -33,6 +33,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
 import IOURequestStepDistanceManual from './step/IOURequestStepDistanceManual';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
+import IOURequestStepDistanceOdometer from './step/IOURequestStepDistanceOdometer';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 type DistanceRequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
@@ -57,6 +58,7 @@ function DistanceRequestStartPage({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`, {canBeMissing: true});
+    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
@@ -119,6 +121,7 @@ function DistanceRequestStartPage({
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
                 hasOnlyPersonalPolicies,
+                draftTransactions,
             });
         },
         [
@@ -133,6 +136,7 @@ function DistanceRequestStartPage({
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
+            draftTransactions,
         ],
     );
 
@@ -213,6 +217,18 @@ function DistanceRequestStartPage({
                                 {() => (
                                     <TabScreenWithFocusTrapWrapper>
                                         <IOURequestStepDistanceGPS
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
+                        {false && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceOdometer
                                             route={route}
                                             navigation={navigation}
                                         />

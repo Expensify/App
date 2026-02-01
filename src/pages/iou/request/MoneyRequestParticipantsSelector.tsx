@@ -1,5 +1,4 @@
 import reportsSelector from '@selectors/Attributes';
-import {emailSelector} from '@selectors/Session';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
@@ -20,6 +19,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useContactImport from '@hooks/useContactImport';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -52,7 +52,7 @@ import ImportContactButton from './ImportContactButton';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
-    onFinish?: (value?: string) => void;
+    onFinish?: (value?: string, participants?: Participant[]) => void;
 
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
@@ -92,7 +92,7 @@ const sanitizedSelectedParticipant = (option: Option | OptionData, iouType: IOUT
 function MoneyRequestParticipantsSelector({
     participants = CONST.EMPTY_ARRAY,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onFinish = (_value?: string) => {},
+    onFinish = (_value?: string, _participants?: Participant[]) => {},
     onParticipantsAdded,
     iouType,
     action,
@@ -117,7 +117,10 @@ function MoneyRequestParticipantsSelector({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserLogin = currentUserPersonalDetails.login;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -163,10 +166,10 @@ function MoneyRequestParticipantsSelector({
             onParticipantsAdded(newParticipants);
 
             if (!option.isSelfDM) {
-                onFinish();
+                onFinish(undefined, newParticipants);
             }
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [onFinish, onParticipantsAdded, policy, activeAdminWorkspaces],
     );
 
@@ -250,9 +253,8 @@ function MoneyRequestParticipantsSelector({
                 !!availableOptions?.userToInvite,
                 debouncedSearchTerm.trim(),
                 countryCode,
-                participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+                participants.some((participant) => getPersonalDetailSearchTerms(participant, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             availableOptions.personalDetails?.length,
@@ -264,6 +266,7 @@ function MoneyRequestParticipantsSelector({
             debouncedSearchTerm,
             participants,
             countryCode,
+            currentUserAccountID,
         ],
     );
 
@@ -288,6 +291,7 @@ function MoneyRequestParticipantsSelector({
             participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             [],
             [],
+            currentUserAccountID,
             personalDetails,
             true,
             undefined,
@@ -332,6 +336,7 @@ function MoneyRequestParticipantsSelector({
                     status: availableOptions.userToInvite?.status ?? undefined,
                 },
                 loginList,
+                currentUserEmail,
             ) &&
             !isPerDiemRequest
         ) {
@@ -339,7 +344,9 @@ function MoneyRequestParticipantsSelector({
                 title: undefined,
                 data: [availableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant, reportAttributesDerived) : getParticipantsOption(participant, personalDetails);
+                    return isPolicyExpenseChat
+                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
             });
@@ -369,6 +376,8 @@ function MoneyRequestParticipantsSelector({
         isPerDiemRequest,
         showImportContacts,
         inputHelperText,
+        currentUserAccountID,
+        currentUserEmail,
     ]);
 
     /**
@@ -505,7 +514,7 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
-    const footerContentAbovePaginationComponent = useMemo(() => {
+    const importContactsButtonComponent = useMemo(() => {
         const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
         if (!shouldShowImportContactsButton) {
             return null;
@@ -516,10 +525,9 @@ function MoneyRequestParticipantsSelector({
                 icon={icons.UserPlus}
                 onPress={goToSettings}
                 shouldShowRightIcon
-                style={styles.mb3}
             />
         );
-    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, styles.mb3, translate]);
+    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, translate]);
 
     const ClickableImportContactTextComponent = useMemo(() => {
         if (searchTerm.length || isSearchingForReports) {
@@ -581,7 +589,8 @@ function MoneyRequestParticipantsSelector({
                 }
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
-                footerContentAbovePagination={footerContentAbovePaginationComponent}
+                listHeaderContent={importContactsButtonComponent}
+                showSectionTitleWithListHeaderContent
                 headerMessage={header}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}

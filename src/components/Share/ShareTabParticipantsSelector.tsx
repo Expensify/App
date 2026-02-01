@@ -1,5 +1,6 @@
 import type {Ref} from 'react';
 import React from 'react';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {clearMoneyRequest} from '@libs/actions/IOU';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,6 +19,7 @@ type InputFocusRef = {
 };
 
 function ShareTabParticipantsSelectorComponent({detailsPageRouteObject, ref}: ShareTabParticipantsSelectorProps) {
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     return (
         <MoneyRequestParticipantsSelector
             ref={ref}
@@ -31,7 +33,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject, ref}: Sh
                 const accountID = participant?.accountID;
                 if (accountID && !reportID) {
                     saveUnknownUserDetails(participant);
-                    const optimisticReport = getOptimisticChatReport(accountID);
+                    const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
                     reportID = optimisticReport.reportID;
 
                     saveReportDraft(reportID, optimisticReport).then(() => {

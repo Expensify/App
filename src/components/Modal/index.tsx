@@ -22,6 +22,9 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 
     const hideModal = () => {
         onModalHide();
+        if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
+            window.history.back();
+        }
     };
 
     const handlePopStateRef = useRef(() => {
@@ -34,7 +37,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
         handlePopStateRef.current = () => {
             rest.onClose?.();
         };
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rest.onClose]);
 
@@ -83,9 +85,6 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const onModalWillHide = () => {
         setStatusBarColor(previousStatusBarColor);
         rest.onModalWillHide?.();
-        if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
-            window.history.back();
-        }
     };
 
     return (
