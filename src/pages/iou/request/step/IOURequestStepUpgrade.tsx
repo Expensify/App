@@ -160,8 +160,8 @@ function IOURequestStepUpgrade({
 
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
-            policyOwnerEmail: undefined,
-            makeMeAdmin: false,
+            policyOwnerEmail: params.owner || undefined,
+            makeMeAdmin: params.makeMeAdmin,
             policyName: params.name,
             policyID: params.policyID,
             currency: params.currency,

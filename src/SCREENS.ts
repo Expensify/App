@@ -477,7 +477,7 @@ const SCREENS = {
         ROOT: 'ReportChangeWorkspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector'},
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
 
     WORKSPACES_LIST: 'Workspaces_List',

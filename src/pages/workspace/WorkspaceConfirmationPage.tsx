@@ -29,10 +29,10 @@ function WorkspaceConfirmationPage() {
         const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
-            policyOwnerEmail: '',
+            policyOwnerEmail: params.owner,
             policyName: params.name,
             transitionFromOldDot: false,
-            makeMeAdmin: false,
+            makeMeAdmin: params.makeMeAdmin,
             backTo: '',
             policyID,
             currency: params.currency,

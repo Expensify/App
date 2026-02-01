@@ -3952,6 +3952,8 @@ const translations = {
             clearFilter: 'Clear filter',
             workspaceName: 'Workspace name',
             workspaceOwner: 'Owner',
+            keepMeAsAdmin: 'Keep me as an admin',
+            keepMeAsAdminDescription: 'Stay on this workspace as an admin when someone else is the owner',
             workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You need to be online in order to view members of this workspace.',
