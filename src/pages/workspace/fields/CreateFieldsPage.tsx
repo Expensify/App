@@ -24,8 +24,8 @@ import InitialListValueSelector from '@pages/workspace/reports/InitialListValueS
 import TypeSelector from '@pages/workspace/reports/TypeSelector';
 import {createReportField, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
-import type {Route as Routes} from '@src/ROUTES';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 import type {Policy, Report} from '@src/types/onyx';
 
