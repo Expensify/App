@@ -38,16 +38,13 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         const selectedItemsSection = selectedItems
             .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare))
-            .map((item) => {
-                const fullItem = items.find((i) => i.value.toString() === item.value.toString());
-                return {
-                    text: item.name,
-                    keyForList: item.name,
-                    isSelected: true,
-                    value: item.value,
-                    leftElement: fullItem?.leftElement,
-                };
-            });
+            .map((item) => ({
+                text: item.name,
+                keyForList: item.name,
+                isSelected: true,
+                value: item.value,
+                leftElement: item.leftElement,
+            }));
         const remainingItemsSection = items
             .filter(
                 (item) =>
@@ -89,8 +86,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             if (item.isSelected) {
                 setSelectedItems(selectedItems?.filter((selectedItem) => selectedItem.name !== item.keyForList));
             } else {
-                const fullItem = items.find((i) => i.value.toString() === (item.value ?? '').toString());
-                setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value, leftElement: fullItem?.leftElement}]);
+                setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value, leftElement: item.leftElement}]);
             }
         },
         [selectedItems],

@@ -11,22 +11,14 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getExportTemplates, updateAdvancedFilters} from '@libs/actions/Search';
+import {getPredefinedConnectionNamesForSearch, getSearchValueForConnection} from '@libs/AccountingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIntegrationIcon} from '@libs/ReportUtils';
+import {getExportTemplates, updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-
-const CONNECTION_NAME_TO_EXPORTED_TO_SEARCH_VALUE: Record<ConnectionName, string> = {
-    [CONST.POLICY.CONNECTIONS.NAME.XERO]: 'xero',
-    [CONST.POLICY.CONNECTIONS.NAME.QBO]: 'qbo',
-    [CONST.POLICY.CONNECTIONS.NAME.QBD]: 'qbd',
-    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: 'netsuite',
-    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: 'intacct',
-    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: 'certinia',
-};
 
 const EXPORT_OPTION_TO_QUERY_LABEL: Record<string, string> = {
     [CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
@@ -47,8 +39,11 @@ function SearchFiltersExportedToPage() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const policy = policyIDs?.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDs[0]}`] : undefined;
 
-    const tableIconElement = useMemo(
-        () => (
+    const items = useMemo((): SearchMultipleSelectionPickerItem[] => {
+        const predefinedConnectionNamesList = getPredefinedConnectionNamesForSearch();
+        const predefinedConnectionNamesSet = new Set<string>(predefinedConnectionNamesList);
+
+        const defaultExportOptionIcon = (
             <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <Icon
                     src={expensifyIcons.Table}
@@ -57,13 +52,7 @@ function SearchFiltersExportedToPage() {
                     height={24}
                 />
             </View>
-        ),
-        [styles],
-    );
-
-    const items = useMemo((): SearchMultipleSelectionPickerItem[] => {
-        const predefinedConnectionNamesList = Object.keys(CONNECTION_NAME_TO_EXPORTED_TO_SEARCH_VALUE) as ConnectionName[];
-        const predefinedConnectionNamesSet = new Set<string>(predefinedConnectionNamesList);
+        );
 
         const integrationItems: SearchMultipleSelectionPickerItem[] = predefinedConnectionNamesList.map((connectionName) => {
             const icon = getIntegrationIcon(connectionName, expensifyIcons);
@@ -78,31 +67,43 @@ function SearchFiltersExportedToPage() {
                     />
                 </View>
             ) : (
-                tableIconElement
+                defaultExportOptionIcon
             );
             return {
                 name: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
-                value: CONNECTION_NAME_TO_EXPORTED_TO_SEARCH_VALUE[connectionName],
+                value: getSearchValueForConnection(connectionName),
                 leftElement,
             };
         });
         const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, true);
 
-        const otherItems: SearchMultipleSelectionPickerItem[] = exportTemplates
-            .filter((template) => template.templateName && !predefinedConnectionNamesSet.has(template.templateName))
-            .map((template) => {
-                const name = template.name ?? template.templateName ?? '';
-                const value = EXPORT_OPTION_TO_QUERY_LABEL[template.templateName] ?? template.templateName;
-                return {
-                    name,
-                    value,
-                    leftElement: tableIconElement,
-                };
-            })
-            .sort((a, b) => a.name.localeCompare(b.name));
+        const customItems: SearchMultipleSelectionPickerItem[] = [];
+        const standardItems: SearchMultipleSelectionPickerItem[] = [];
 
-        return [...integrationItems, ...otherItems];
-    }, [integrationsExportTemplates, csvExportLayouts, policy, expensifyIcons, styles, StyleUtils, translate, tableIconElement]);
+        exportTemplates.forEach((template) => {
+            if (!template.templateName || predefinedConnectionNamesSet.has(template.templateName)) {
+                return;
+            }
+
+            const name = template.name ?? template.templateName ?? '';
+            const value = EXPORT_OPTION_TO_QUERY_LABEL[template.templateName] ?? template.templateName;
+            const item: SearchMultipleSelectionPickerItem = {
+                name,
+                value,
+                leftElement: defaultExportOptionIcon,
+            };
+
+            if (EXPORT_OPTION_TO_QUERY_LABEL[template.templateName]) {
+                standardItems.push(item);
+            } else {
+                customItems.push(item);
+            }
+        });
+
+        customItems.sort((a, b) => a.name.localeCompare(b.name));
+
+        return [...integrationItems, ...customItems, ...standardItems];
+    }, [integrationsExportTemplates, csvExportLayouts, policy, expensifyIcons, styles, StyleUtils, theme, translate]);
 
     const initiallySelectedItems = useMemo((): SearchMultipleSelectionPickerItem[] | undefined => {
         const selectedValues = searchAdvancedFiltersForm?.exportedTo ?? [];
@@ -127,7 +128,9 @@ function SearchFiltersExportedToPage() {
         >
             <HeaderWithBackButton
                 title={translate('search.exportedTo')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute())}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                }}
             />
             <View style={[styles.flex1]}>
                 <SearchMultipleSelectionPicker
