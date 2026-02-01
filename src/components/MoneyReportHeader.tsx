@@ -581,6 +581,7 @@ function MoneyReportHeader({
                     methodID,
                     paymentMethod,
                     activePolicy,
+                    betas,
                 });
             } else {
                 startAnimation();
@@ -592,7 +593,8 @@ function MoneyReportHeader({
                     iouReportCurrentNextStepDeprecated: nextStep,
                     currentUserAccountID: accountID,
                     activePolicy,
-                    policy,
+                    policy, 
+                    betas,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -626,6 +628,7 @@ function MoneyReportHeader({
             currentSearchKey,
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
+            betas,
         ],
     );
 
@@ -654,7 +657,7 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, true);
+            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, true);
         }
     };
 
