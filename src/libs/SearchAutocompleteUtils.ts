@@ -127,6 +127,7 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 
 const userFriendlyColumnList = new Set(
     Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP)
@@ -154,6 +155,7 @@ function filterOutRangesWithCorrectValue(
     const expenseTypeList = userFriendlyExpenseTypeList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const groupByList = userFriendlyGroupByList;
+    const viewList = userFriendlyViewList;
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
@@ -205,6 +207,8 @@ function filterOutRangesWithCorrectValue(
                 return false;
             }
             return groupByList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
+            return viewList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             return booleanList.includes(range.value);
