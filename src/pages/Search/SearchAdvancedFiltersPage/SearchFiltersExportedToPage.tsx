@@ -19,6 +19,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
+const CONNECTION_NAME_TO_EXPORTED_TO_SEARCH_VALUE: Record<ConnectionName, string> = {
+    [CONST.POLICY.CONNECTIONS.NAME.XERO]: 'xero',
+    [CONST.POLICY.CONNECTIONS.NAME.QBO]: 'qbo',
+    [CONST.POLICY.CONNECTIONS.NAME.QBD]: 'qbd',
+    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: 'netsuite',
+    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: 'intacct',
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: 'certinia',
+};
+
+const EXPORT_OPTION_TO_QUERY_LABEL: Record<string, string> = {
+    [CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
+    [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
+};
+
 function SearchFiltersExportedToPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -48,18 +62,11 @@ function SearchFiltersExportedToPage() {
     );
 
     const items = useMemo((): SearchMultipleSelectionPickerItem[] => {
-        const predefinedConnectionNamesList: ConnectionName[] = [
-            CONST.POLICY.CONNECTIONS.NAME.XERO,
-            CONST.POLICY.CONNECTIONS.NAME.QBO,
-            CONST.POLICY.CONNECTIONS.NAME.QBD,
-            CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
-            CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-            CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
-        ];
+        const predefinedConnectionNamesList = Object.keys(CONNECTION_NAME_TO_EXPORTED_TO_SEARCH_VALUE) as ConnectionName[];
         const predefinedConnectionNamesSet = new Set<string>(predefinedConnectionNamesList);
 
-        const integrationItems: SearchMultipleSelectionPickerItem[] = predefinedConnectionNamesList.map((value) => {
-            const icon = getIntegrationIcon(value, expensifyIcons);
+        const integrationItems: SearchMultipleSelectionPickerItem[] = predefinedConnectionNamesList.map((connectionName) => {
+            const icon = getIntegrationIcon(connectionName, expensifyIcons);
             const leftElement = icon ? (
                 <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
@@ -74,8 +81,8 @@ function SearchFiltersExportedToPage() {
                 tableIconElement
             );
             return {
-                name: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[value],
-                value,
+                name: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
+                value: CONNECTION_NAME_TO_EXPORTED_TO_SEARCH_VALUE[connectionName],
                 leftElement,
             };
         });
@@ -83,11 +90,15 @@ function SearchFiltersExportedToPage() {
 
         const otherItems: SearchMultipleSelectionPickerItem[] = exportTemplates
             .filter((template) => template.templateName && !predefinedConnectionNamesSet.has(template.templateName))
-            .map((template) => ({
-                name: template.name ?? template.templateName ?? '',
-                value: template.templateName,
-                leftElement: tableIconElement,
-            }))
+            .map((template) => {
+                const name = template.name ?? template.templateName ?? '';
+                const value = EXPORT_OPTION_TO_QUERY_LABEL[template.templateName] ?? template.templateName;
+                return {
+                    name,
+                    value,
+                    leftElement: tableIconElement,
+                };
+            })
             .sort((a, b) => a.name.localeCompare(b.name));
 
         return [...integrationItems, ...otherItems];
