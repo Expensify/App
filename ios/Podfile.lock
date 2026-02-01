@@ -2543,7 +2543,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-launch-arguments (4.0.2):
+  - react-native-launch-arguments (4.1.1):
     - React
   - react-native-netinfo (11.4.1):
     - boost
