@@ -1,6 +1,6 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {
     ASTNode,
@@ -1224,11 +1224,9 @@ function getDisplayQueryFiltersForKey({
 
     const shouldTranslateStatus = key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type;
     const statusOptions = shouldTranslateStatus ? getStatusOptions(translate, type) : undefined;
-    const statusOptionMap = statusOptions ? new Map<string, (typeof statusOptions)[number]>(statusOptions.map((option) => [String(option.value), option])) : undefined;
+    const statusOptionMap = statusOptions ? new Map<string, TupleToUnion<typeof statusOptions>>(statusOptions.map((option) => [String(option.value), option])) : undefined;
     const allStatusOptions = shouldTranslateStatus ? getAllStatusOptions(translate) : undefined;
-    const allStatusOptionMap = allStatusOptions
-        ? new Map<string, (typeof allStatusOptions)[number]>(allStatusOptions.map((option) => [String(option.value), option]))
-        : undefined;
+    const allStatusOptionMap = allStatusOptions ? new Map<string, TupleToUnion<typeof allStatusOptions>>(allStatusOptions.map((option) => [String(option.value), option])) : undefined;
 
     return queryFilter.map((filter) => {
         const filterValue = filter.value.toString();
@@ -1305,11 +1303,9 @@ function formatDefaultRawFilterSegment(
 
     const shouldTranslateStatus = rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type;
     const statusOptions = shouldTranslateStatus ? getStatusOptions(translate, type) : undefined;
-    const statusOptionMap = statusOptions ? new Map<string, (typeof statusOptions)[number]>(statusOptions.map((option) => [String(option.value), option])) : undefined;
+    const statusOptionMap = statusOptions ? new Map<string, TupleToUnion<typeof statusOptions>>(statusOptions.map((option) => [String(option.value), option])) : undefined;
     const allStatusOptions = shouldTranslateStatus ? getAllStatusOptions(translate) : undefined;
-    const allStatusOptionMap = allStatusOptions
-        ? new Map<string, (typeof allStatusOptions)[number]>(allStatusOptions.map((option) => [String(option.value), option]))
-        : undefined;
+    const allStatusOptionMap = allStatusOptions ? new Map<string, TupleToUnion<typeof allStatusOptions>>(allStatusOptions.map((option) => [String(option.value), option])) : undefined;
 
     const formattedValues = cleanedValues.map((val) => {
         if (statusOptionMap) {

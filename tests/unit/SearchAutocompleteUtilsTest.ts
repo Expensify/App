@@ -301,7 +301,16 @@ describe('SearchAutocompleteUtils', () => {
                 for (const view of validViews) {
                     const input = `view:${view}`;
 
-                    const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+                    const result = parseForLiveMarkdown(
+                        input,
+                        currentUserName,
+                        mockSubstitutionMap,
+                        mockUserLogins,
+                        mockCurrencyList,
+                        mockCategoryList,
+                        mockTagList,
+                        mockTranslatedStatusSet,
+                    );
 
                     expect(result).toEqual([{start: 5, type: 'mention-user', length: view.length}]);
                 }
@@ -310,7 +319,7 @@ describe('SearchAutocompleteUtils', () => {
             it('does not highlight invalid view values', () => {
                 const input = 'view:invalid';
 
-                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockTranslatedStatusSet);
 
                 expect(result).toEqual([]);
             });
@@ -318,7 +327,7 @@ describe('SearchAutocompleteUtils', () => {
             it('highlights view in complex query with other filters', () => {
                 const input = 'type:expense view:bar category:Travel';
 
-                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockTranslatedStatusSet);
 
                 expect(result).toEqual([
                     {start: 5, type: 'mention-user', length: 7}, // type:expense
@@ -330,7 +339,7 @@ describe('SearchAutocompleteUtils', () => {
             it('does not highlight empty view value', () => {
                 const input = 'view:';
 
-                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockTranslatedStatusSet);
 
                 expect(result).toEqual([]);
             });
@@ -338,7 +347,7 @@ describe('SearchAutocompleteUtils', () => {
             it('highlights view:table in query', () => {
                 const input = 'view:table';
 
-                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockTranslatedStatusSet);
 
                 expect(result).toEqual([{start: 5, type: 'mention-user', length: 5}]);
             });
@@ -346,7 +355,7 @@ describe('SearchAutocompleteUtils', () => {
             it('highlights view:bar in query', () => {
                 const input = 'view:bar';
 
-                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
+                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockTranslatedStatusSet);
 
                 expect(result).toEqual([{start: 5, type: 'mention-user', length: 3}]);
             });
