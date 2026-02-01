@@ -352,9 +352,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
     const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
-    const shouldParseFullTitle = parentReportAction?.actionName !==
-         CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
-    const reportName = shouldParseFullTitle ? Parser.htmlToText(getReportNameFromReportNameUtils(report, reportAttributes)) : getReportNameFromReportNameUtils(report, reportAttributes);
+    const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
+    const rawReportName = getReportNameFromReportNameUtils(reportForHeader, reportAttributes);
+    const reportName = shouldParseFullTitle ? Parser.htmlToText(rawReportName) : rawReportName;
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
@@ -746,6 +746,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     </View>
                     {isPolicyAdmin ? (
                         <PressableWithoutFeedback
+                            sentryLabel="nameSectionExpenseIOU"
                             style={[styles.w100]}
                             disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             role={CONST.ROLE.BUTTON}
