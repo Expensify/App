@@ -86,6 +86,7 @@ function CardSection() {
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
             danger: true,
+            shouldHandleNavigationBack: false,
         });
     };
 
@@ -262,7 +263,7 @@ function CardSection() {
                 />
             )}
 
-            {!!(subscriptionPlan && account?.isEligibleForRefund) && (
+            { (
                 <MenuItem
                     shouldShowRightIcon
                     icon={expensifyIcons.Bill}
