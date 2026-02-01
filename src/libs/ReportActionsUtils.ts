@@ -3766,17 +3766,18 @@ function getUpdatedManualApprovalThresholdMessage(translate: LocalizedTranslate,
 }
 
 function getAddedBudgetMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
-    const {newValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET>) ?? {};
+    const {newValue, categoryName, tagName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET>) ?? {};
+    const entityName = entityType === 'tag' ? tagName : categoryName;
     const value = newValue as PolicyBudgetFrequency;
 
-    if (newValue && value?.frequency && categoryName && entityType) {
+    if (newValue && value?.frequency && entityName && entityType) {
         const sharedAmount = convertAmountToDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const individualAmount = convertAmountToDisplayString(value?.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const frequency = translate(`workspace.common.budgetFrequency.${value.frequency}` as TranslationPaths);
         return translate('workspaceActions.addBudget', {
             frequency,
-            entityName: categoryName,
-            entityType,
+            entityName,
+            entityType: translate(`workspace.common.budgetTypeForNotificationMessage.${entityType}` as TranslationPaths),
             shared: value.shared ? sharedAmount : undefined,
             individual: value.individual ? individualAmount : undefined,
             notificationThreshold: value.notificationThreshold,
@@ -3786,12 +3787,12 @@ function getAddedBudgetMessage(translate: LocalizedTranslate, reportAction: Onyx
 }
 
 function getUpdatedBudgetMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
-    const {newValue, oldValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET>) ?? {};
-
+    const {newValue, oldValue, categoryName, tagName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET>) ?? {};
+    const entityName = entityType === 'tag' ? tagName : categoryName;
     const updated = newValue as PolicyBudgetFrequency | undefined;
     const previous = oldValue as PolicyBudgetFrequency | undefined;
 
-    if (!updated || !previous || !categoryName || !entityType) {
+    if (!updated || !previous || !entityName || !entityType) {
         return getReportActionText(reportAction);
     }
 
@@ -3807,8 +3808,8 @@ function getUpdatedBudgetMessage(translate: LocalizedTranslate, reportAction: On
     const newNotificationThreshold = updated.notificationThreshold;
 
     return translate('workspaceActions.updateBudget', {
-        entityType,
-        entityName: categoryName,
+        entityType: translate(`workspace.common.budgetTypeForNotificationMessage.${entityType}` as TranslationPaths),
+        entityName,
         oldFrequency,
         newFrequency,
         oldIndividual,
@@ -3821,11 +3822,11 @@ function getUpdatedBudgetMessage(translate: LocalizedTranslate, reportAction: On
 }
 
 function getDeletedBudgetMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
-    const {oldValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET>) ?? {};
-
+    const {oldValue, categoryName, entityType, tagName} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET>) ?? {};
+    const entityName = entityType === 'tag' ? tagName : categoryName;
     const previous = oldValue as PolicyBudgetFrequency | undefined;
 
-    if (!previous || !categoryName || !entityType) {
+    if (!previous || !entityName || !entityType) {
         return getReportActionText(reportAction);
     }
 
@@ -3836,8 +3837,8 @@ function getDeletedBudgetMessage(translate: LocalizedTranslate, reportAction: On
     const notificationThreshold = previous.notificationThreshold;
 
     return translate('workspaceActions.deleteBudget', {
-        entityType,
-        entityName: categoryName,
+        entityType: translate(`workspace.common.budgetTypeForNotificationMessage.${entityType}` as TranslationPaths),
+        entityName,
         frequency,
         individual,
         shared,
@@ -3965,7 +3966,7 @@ function getUpdatedIndividualBudgetNotificationMessage(translate: LocalizedTrans
 
     return translate('workspaceActions.updatedIndividualBudgetNotification', {
         budgetAmount,
-        budgetFrequency: translate(`workspace.common.budgetFrequencyUnit.${budgetFrequency}` as TranslationPaths),
+        budgetFrequency: translate(`workspace.common.budgetFrequency.${budgetFrequency}` as TranslationPaths),
         budgetName,
         budgetTypeForNotificationMessage: translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}` as TranslationPaths),
         summaryLink,
@@ -4011,7 +4012,7 @@ function getUpdatedSharedBudgetNotificationMessage(translate: LocalizedTranslate
 
     return translate('workspaceActions.updatedSharedBudgetNotification', {
         budgetAmount,
-        budgetFrequency: translate(`workspace.common.budgetFrequencyUnit.${budgetFrequency}` as TranslationPaths),
+        budgetFrequency: translate(`workspace.common.budgetFrequency.${budgetFrequency}` as TranslationPaths),
         budgetName,
         budgetTypeForNotificationMessage: translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}` as TranslationPaths),
         summaryLink,
