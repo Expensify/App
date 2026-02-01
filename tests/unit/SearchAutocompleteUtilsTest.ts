@@ -1,5 +1,7 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {getAllTranslatedStatusValues} from '@libs/SearchTranslationUtils';
 import createSharedValueMock from '../utils/createSharedValueMock';
 
 describe('SearchAutocompleteUtils', () => {
@@ -18,7 +20,8 @@ describe('SearchAutocompleteUtils', () => {
         const mockCurrencyList = createSharedValueMock(['USD', 'EUR', 'GBP']);
         const mockCategoryList = createSharedValueMock(['Travel', 'Meals', 'Office Supplies']);
         const mockTagList = createSharedValueMock(['Project A', 'Project B', 'Urgent']);
-        const mockTranslatedStatusSet = createSharedValueMock<Set<string>>(new Set());
+        const mockTranslate: LocalizedTranslate = ((path) => String(path)) as LocalizedTranslate;
+        const mockTranslatedStatusSet = createSharedValueMock(getAllTranslatedStatusValues(mockTranslate));
 
         it('should highlight valid filters with correct values', () => {
             const input = 'type:expense from:john@example.com currency:USD';

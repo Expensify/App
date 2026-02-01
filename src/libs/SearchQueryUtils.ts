@@ -429,21 +429,22 @@ function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
     return undefined;
 }
 
-function normalizeStatusValue(value: string, translate: LocaleContextProps['translate'], type: SearchDataTypes): SingularSearchStatus {
-    const statusOptions = getStatusOptions(translate, type);
-    const statusMap = new Map(statusOptions.map((option) => [formatTranslatedValue(option.text), option.value]));
-    const allStatusOptions = getAllStatusOptions(translate);
-    const allStatusMap = new Map(allStatusOptions.map((option) => [formatTranslatedValue(option.text), option.value]));
+function normalizeStatusValue(value: string, statusMap: Map<string, SingularSearchStatus>, allStatusMap: Map<string, SingularSearchStatus>): SingularSearchStatus {
     const normalizedValue = formatTranslatedValue(value.replaceAll('\u2009', ' '));
     return (statusMap.get(normalizedValue) ?? allStatusMap.get(normalizedValue) ?? value) as SingularSearchStatus;
 }
 
 function normalizeStatusValues(status: SearchStatus, translate: LocaleContextProps['translate'], type: SearchDataTypes): SearchStatus {
+    const statusOptions = getStatusOptions(translate, type);
+    const statusMap = new Map(statusOptions.map((option) => [formatTranslatedValue(option.text), option.value]));
+    const allStatusOptions = getAllStatusOptions(translate);
+    const allStatusMap = new Map(allStatusOptions.map((option) => [formatTranslatedValue(option.text), option.value]));
+
     if (Array.isArray(status)) {
-        return status.map((value) => normalizeStatusValue(value, translate, type));
+        return status.map((value) => normalizeStatusValue(value, statusMap, allStatusMap));
     }
 
-    return normalizeStatusValue(status, translate, type);
+    return normalizeStatusValue(status, statusMap, allStatusMap);
 }
 
 function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString, translate?: LocaleContextProps['translate']) {
@@ -1203,16 +1204,20 @@ function getDisplayQueryFiltersForKey({
         }, [] as QueryFilter[]);
     }
 
+    const shouldTranslateStatus = key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type;
+    const statusOptions = shouldTranslateStatus ? getStatusOptions(translate, type) : undefined;
+    const statusOptionMap = statusOptions ? new Map(statusOptions.map((option) => [option.value, option])) : undefined;
+    const allStatusOptions = shouldTranslateStatus ? getAllStatusOptions(translate) : undefined;
+    const allStatusOptionMap = allStatusOptions ? new Map(allStatusOptions.map((option) => [option.value, option])) : undefined;
+
     return queryFilter.map((filter) => {
         const filterValue = filter.value.toString();
-        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type) {
-            const statusOptions = getStatusOptions(translate, type);
-            const statusOption = statusOptions.find((option) => option.value === filterValue);
+        if (statusOptionMap) {
+            const statusOption = statusOptionMap.get(filterValue);
             if (statusOption) {
                 return {operator: filter.operator, value: formatTranslatedValue(statusOption.text)};
             }
-            const allStatusOptions = getAllStatusOptions(translate);
-            const fallbackStatusOption = allStatusOptions.find((option) => option.value === filterValue);
+            const fallbackStatusOption = allStatusOptionMap?.get(filterValue);
             if (fallbackStatusOption) {
                 return {operator: filter.operator, value: formatTranslatedValue(fallbackStatusOption.text)};
             }
@@ -1278,15 +1283,19 @@ function formatDefaultRawFilterSegment(
             break;
     }
 
+    const shouldTranslateStatus = rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type;
+    const statusOptions = shouldTranslateStatus ? getStatusOptions(translate, type) : undefined;
+    const statusOptionMap = statusOptions ? new Map(statusOptions.map((option) => [option.value, option])) : undefined;
+    const allStatusOptions = shouldTranslateStatus ? getAllStatusOptions(translate) : undefined;
+    const allStatusOptionMap = allStatusOptions ? new Map(allStatusOptions.map((option) => [option.value, option])) : undefined;
+
     const formattedValues = cleanedValues.map((val) => {
-        if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type) {
-            const statusOptions = getStatusOptions(translate, type);
-            const statusOption = statusOptions.find((option) => option.value === val);
+        if (statusOptionMap) {
+            const statusOption = statusOptionMap.get(val);
             if (statusOption) {
                 return sanitizeSearchValue(formatTranslatedValue(statusOption.text));
             }
-            const allStatusOptions = getAllStatusOptions(translate);
-            const fallbackStatusOption = allStatusOptions.find((option) => option.value === val);
+            const fallbackStatusOption = allStatusOptionMap?.get(val);
             if (fallbackStatusOption) {
                 return sanitizeSearchValue(formatTranslatedValue(fallbackStatusOption.text));
             }
