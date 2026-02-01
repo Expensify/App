@@ -106,6 +106,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             <TextLink
                 style={linkStyle}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
+                suppressDefaultStyle
             >
                 <TNodeChildrenRenderer tnode={tnode} />
             </TextLink>
