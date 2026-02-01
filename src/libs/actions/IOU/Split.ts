@@ -701,6 +701,7 @@ function completeSplitBill(
     isASAPSubmitBetaEnabled: boolean,
     quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
+        betas: OnyxEntry<OnyxTypes.Beta[]>,
     sessionEmail?: string,
 ) {
     if (!reportAction) {
@@ -839,15 +840,13 @@ function completeSplitBill(
 
             oneOnOneIOUReport = isPolicyExpenseChat
                 ? buildOptimisticExpenseReport(
-                      oneOnOneChatReport?.reportID,
-                      participant.policyID,
-                      sessionAccountID,
-                      splitAmount,
-                      currency ?? '',
-                      undefined,
-                      undefined,
-                      optimisticExpenseReportID,
-                      reportTransactions,
+                    {  chatReportID:oneOnOneChatReport?.reportID,
+                      policyID: participant.policyID,
+                      payeeAccountID: sessionAccountID,
+                      total: splitAmount,
+                      currency: currency ?? '',
+                      optimisticIOUReportID:optimisticExpenseReportID,
+                      reportTransactions,betas}
                   )
                 : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
