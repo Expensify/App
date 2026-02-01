@@ -263,7 +263,7 @@ function CardSection() {
                 />
             )}
 
-            { (
+            {!!(subscriptionPlan && account?.isEligibleForRefund) && (
                 <MenuItem
                     shouldShowRightIcon
                     icon={expensifyIcons.Bill}
