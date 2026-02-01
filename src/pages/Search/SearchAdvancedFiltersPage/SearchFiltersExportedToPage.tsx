@@ -18,7 +18,6 @@ import {getExportTemplates, updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ConnectionName} from '@src/types/onyx/Policy';
 
 const EXPORT_OPTION_TO_QUERY_LABEL: Record<string, string> = {
     [CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
@@ -37,7 +36,7 @@ function SearchFiltersExportedToPage() {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const policy = policyIDs?.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDs[0]}`] : undefined;
+    const policy = policyIDs?.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDs.at(0)}`] : undefined;
 
     const items = useMemo((): SearchMultipleSelectionPickerItem[] => {
         const predefinedConnectionNamesList = getPredefinedConnectionNamesForSearch();
@@ -80,9 +79,9 @@ function SearchFiltersExportedToPage() {
         const customItems: SearchMultipleSelectionPickerItem[] = [];
         const standardItems: SearchMultipleSelectionPickerItem[] = [];
 
-        exportTemplates.forEach((template) => {
+        for (const template of exportTemplates) {
             if (!template.templateName || predefinedConnectionNamesSet.has(template.templateName)) {
-                return;
+                continue;
             }
 
             const name = template.name ?? template.templateName ?? '';
@@ -98,9 +97,9 @@ function SearchFiltersExportedToPage() {
             } else {
                 customItems.push(item);
             }
-        });
+        }
 
-        customItems.sort((a, b) => a.name.localeCompare(b.name));
+        customItems.sort((a, b) => a.name.localeCompare?.(b.name) ?? 0);
 
         return [...integrationItems, ...customItems, ...standardItems];
     }, [integrationsExportTemplates, csvExportLayouts, policy, expensifyIcons, styles, StyleUtils, theme, translate]);
@@ -112,7 +111,7 @@ function SearchFiltersExportedToPage() {
         }
         const normalizedSet = new Set(selectedValues.map((selectedValue) => selectedValue.toLowerCase()));
         return items.filter((item) => {
-            const value = typeof item.value === 'string' ? item.value : (item.value[0] ?? '');
+            const value = typeof item.value === 'string' ? item.value : (item.value.at(0) ?? '');
             return normalizedSet.has(value.toLowerCase());
         });
     }, [searchAdvancedFiltersForm?.exportedTo, items]);
@@ -137,7 +136,7 @@ function SearchFiltersExportedToPage() {
                     items={items}
                     initiallySelectedItems={initiallySelectedItems}
                     onSaveSelection={onSaveSelection}
-                    shouldShowTextInput={true}
+                    shouldShowTextInput
                 />
             </View>
         </ScreenWrapper>
