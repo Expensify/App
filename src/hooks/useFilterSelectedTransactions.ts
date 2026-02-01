@@ -14,10 +14,13 @@ function useFilterSelectedTransactions(transactions: Transaction[]) {
     const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const filteredSelectedTransactionIDs = useMemo(() => selectedTransactionIDs.filter((id) => transactionIDs.includes(id)), [selectedTransactionIDs, transactionIDs]);
     useEffect(() => {
-        if (filteredSelectedTransactionIDs.length !== selectedTransactionIDs.length) {
-            setSelectedTransactions(filteredSelectedTransactionIDs);
+        if (filteredSelectedTransactionIDs.length === selectedTransactionIDs.length) {
+            return;
         }
+        setSelectedTransactions(filteredSelectedTransactionIDs);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredSelectedTransactionIDs]);
 }
+
 
 export default useFilterSelectedTransactions;
