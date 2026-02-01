@@ -18,7 +18,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {deleteReportFields} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 type FieldsSettingsPageProps = {
@@ -26,12 +26,13 @@ type FieldsSettingsPageProps = {
     policyID: string;
     reportFieldID: string;
     featureName: ValueOf<typeof CONST.POLICY.MORE_FEATURES>;
+    expectedTarget?: PolicyReportField['target'];
     getListValuesRoute: (policyID: string, reportFieldID: string) => string;
     getInitialValueRoute: (policyID: string, reportFieldID: string) => string;
     testID: string;
 };
 
-function FieldsSettingsPage({policy, policyID, reportFieldID, featureName, getListValuesRoute, getInitialValueRoute, testID}: FieldsSettingsPageProps) {
+function FieldsSettingsPage({policy, policyID, reportFieldID, featureName, expectedTarget, getListValuesRoute, getInitialValueRoute, testID}: FieldsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -40,7 +41,7 @@ function FieldsSettingsPage({policy, policyID, reportFieldID, featureName, getLi
     const reportFieldKey = getReportFieldKey(reportFieldID);
     const reportField = policy?.fieldList?.[reportFieldKey] ?? null;
 
-    if (!reportField) {
+    if (!reportField || (expectedTarget && reportField.target !== expectedTarget)) {
         return <NotFoundPage />;
     }
 

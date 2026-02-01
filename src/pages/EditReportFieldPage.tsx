@@ -39,10 +39,13 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {backTo, reportID, policyID} = route.params;
     const fieldKey = getReportFieldKey(route.params.fieldID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
-    const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
-    const policyField = policy?.fieldList?.[fieldKey] ?? reportField;
+    const reportFieldFromNVP = reportNameValuePairs?.[fieldKey] ?? reportNameValuePairs?.[route.params.fieldID];
+    const reportField =
+        reportFieldFromNVP ?? report?.fieldList?.[fieldKey] ?? report?.fieldList?.[route.params.fieldID] ?? policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[route.params.fieldID];
+    const policyField = policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[route.params.fieldID] ?? reportField;
     const isDisabled = isReportFieldDisabledForUser(report, reportField, policy) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -54,9 +57,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {translate} = useLocalize();
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
     const isReportFieldsFeatureEnabled =
-        report?.type === CONST.REPORT.TYPE.INVOICE
-            ? policy?.areInvoiceFieldsEnabled ?? policy?.areReportFieldsEnabled
-            : policy?.areReportFieldsEnabled;
+        report?.type === CONST.REPORT.TYPE.INVOICE ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
     const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!isReportFieldsFeatureEnabled) || isReportFieldTitle;
     const hasOtherViolations =
         report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));

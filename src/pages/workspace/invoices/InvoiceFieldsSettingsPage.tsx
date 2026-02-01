@@ -23,6 +23,7 @@ function InvoiceFieldsSettingsPage({
             policyID={policyID}
             reportFieldID={reportFieldID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED}
+            expectedTarget={CONST.REPORT_FIELD_TARGETS.INVOICE}
             getListValuesRoute={(id, fieldID) => ROUTES.WORKSPACE_INVOICE_FIELDS_LIST_VALUES.getRoute(id, fieldID)}
             getInitialValueRoute={(id, fieldID) => ROUTES.WORKSPACE_INVOICE_FIELDS_EDIT_INITIAL_VALUE.getRoute(id, fieldID)}
             testID="InvoiceFieldsSettingsPage"
