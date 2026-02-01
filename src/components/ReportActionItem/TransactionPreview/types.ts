@@ -1,6 +1,6 @@
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -72,9 +72,6 @@ type TransactionPreviewProps = {
 
     /** In case we want to override context menu action */
     contextAction?: OnyxEntry<ReportAction>;
-
-    /** Whether the item should be highlighted */
-    shouldHighlight?: boolean;
 };
 
 type TransactionPreviewContentProps = {
@@ -144,9 +141,6 @@ type TransactionPreviewContentProps = {
 
     /** Is this component used during duplicate review flow */
     isReviewDuplicateTransactionPage?: boolean;
-
-    /** Whether the item should be highlighted */
-    shouldHighlight?: boolean;
 };
 
 export type {TransactionPreviewContentProps, TransactionPreviewProps, TransactionPreviewStyleType};

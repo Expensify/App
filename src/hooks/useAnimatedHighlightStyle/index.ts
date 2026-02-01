@@ -33,9 +33,6 @@ type Props = {
     /** Whether the item should be highlighted */
     shouldHighlight: boolean;
 
-    /** Whether it should return height and border radius styles */
-    shouldApplyOtherStyles?: boolean;
-
     /** The base backgroundColor used for the highlight animation, defaults to theme.appBG
      * @default theme.appBG
      */
@@ -66,7 +63,6 @@ export default function useAnimatedHighlightStyle({
     height,
     highlightColor,
     backgroundColor,
-    shouldApplyOtherStyles = true,
     skipInitialFade = false,
 }: Props) {
     const [startHighlight, setStartHighlight] = useState(false);
@@ -84,8 +80,9 @@ export default function useAnimatedHighlightStyle({
 
         return {
             backgroundColor: interpolateColor(repeatableValue, [0, 1], [backgroundColor ?? theme.appBG, highlightColor ?? theme.border]),
+            height: height ? interpolate(nonRepeatableValue, [0, 1], [0, height]) : 'auto',
             opacity: interpolate(nonRepeatableValue, [0, 1], [0, 1]),
-            ...(shouldApplyOtherStyles && {height: height ? interpolate(nonRepeatableValue, [0, 1], [0, height]) : 'auto', borderRadius}),
+            borderRadius,
         };
     }, [borderRadius, height, backgroundColor, highlightColor, theme.appBG, theme.border]);
 
@@ -97,7 +94,7 @@ export default function useAnimatedHighlightStyle({
         // We only need to add shouldHighlight as a dependency and adding startHighlight as deps will cause a loop because
         // if shouldHighlight stays at true the above early return will not be executed and this useEffect will be run
         // as long as shouldHighlight is true as we set startHighlight to false in the below useEffect.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldHighlight]);
 
     React.useEffect(() => {

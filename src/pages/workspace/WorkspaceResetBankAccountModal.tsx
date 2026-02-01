@@ -72,7 +72,7 @@ function WorkspaceResetBankAccountModal({
                 setIsResettingBankAccount(true);
             }
 
-            resetNonUSDBankAccount(policyID, policy?.achAccount, achData?.bankAccountID);
+            resetNonUSDBankAccount(policyID, policy?.achAccount, achData?.bankAccountID, lastPaymentMethod);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
                 setShouldShowConnectedVerifiedBankAccount(false);

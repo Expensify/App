@@ -1,6 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
-import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
 import type {FlashListProps, FlashListRef, ViewToken} from '@shopify/flash-list';
 import React, {useCallback, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -26,8 +25,14 @@ import type {
     ReportActionListItemType,
     TaskListItemType,
     TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -41,6 +46,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import DateUtils from '@libs/DateUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -100,9 +106,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Columns to show */
     columns: SearchColumnType[];
 
-    /** Whether the screen is focused */
-    isFocused: boolean;
-
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: Array<ViewToken<SearchListItem>>; viewableItems: Array<ViewToken<SearchListItem>>}) => void;
 
@@ -132,6 +135,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
+    /** Whether all transactions have been loaded from snapshots in group-by views */
+    hasLoadedAllTransactions?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -152,6 +158,39 @@ function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: Se
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
         return !!transaction.transactionID;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.CATEGORY) {
+        return (transaction.category ?? '') === ((groupItem as TransactionCategoryGroupListItemType).category ?? '');
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.MERCHANT) {
+        return (transaction.merchant ?? '') === ((groupItem as TransactionMerchantGroupListItemType).merchant ?? '');
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
+        const monthGroup = groupItem as TransactionMonthGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        return DateUtils.isDateStringInMonth(transactionDateString, monthGroup.year, monthGroup.month);
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.WEEK) {
+        const weekGroup = groupItem as TransactionWeekGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        const datePart = transactionDateString.substring(0, 10);
+        const {start: weekStart, end: weekEnd} = DateUtils.getWeekDateRange(weekGroup.week);
+        return datePart >= weekStart && datePart <= weekEnd;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.YEAR) {
+        const yearGroup = groupItem as TransactionYearGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
+        return transactionYear === yearGroup.year;
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.QUARTER) {
+        const quarterGroup = groupItem as TransactionQuarterGroupListItemType;
+        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        const transactionYear = parseInt(transactionDateString.substring(0, 4), 10);
+        const transactionMonth = parseInt(transactionDateString.substring(5, 7), 10);
+        // Calculate which quarter the transaction belongs to (1-4)
+        const transactionQuarter = Math.floor((transactionMonth - 1) / 3) + 1;
+        return transactionYear === quarterGroup.year && transactionQuarter === quarterGroup.quarter;
     }
     return false;
 }
@@ -174,7 +213,6 @@ function SearchList({
     shouldPreventLongPressRow,
     queryJSON,
     columns,
-    isFocused,
     onViewableItemsChanged,
     onLayout,
     shouldAnimate,
@@ -185,6 +223,7 @@ function SearchList({
     onDEWModalOpen,
     isDEWBetaEnabled,
     selectedTransactions,
+    hasLoadedAllTransactions,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -273,7 +312,6 @@ function SearchList({
     });
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
@@ -386,10 +424,10 @@ function SearchList({
 
             return (
                 <Animated.View
-                    exiting={shouldApplyAnimation && isFocused ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+                    exiting={shouldApplyAnimation ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
-                    layout={shouldApplyAnimation && hasItemsBeingRemoved && isFocused ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                    layout={shouldApplyAnimation && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
                 >
                     <ListItem
                         showTooltip
@@ -413,7 +451,6 @@ function SearchList({
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
-                        accountID={accountID}
                         isOffline={isOffline}
                         violations={violations}
                         customCardNames={customCardNames}
@@ -428,7 +465,6 @@ function SearchList({
             groupBy,
             newTransactions,
             shouldAnimate,
-            isFocused,
             data.length,
             itemsWithSelection,
             styles.overflowHidden,
@@ -447,7 +483,6 @@ function SearchList({
             isUserValidated,
             personalDetails,
             userBillingFundID,
-            accountID,
             isOffline,
             violations,
             onDEWModalOpen,
@@ -458,7 +493,7 @@ function SearchList({
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length && hasLoadedAllTransactions;
 
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -468,7 +503,7 @@ function SearchList({
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedItemsWithoutPendingDelete.length}
+                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== flattenedItemsWithoutPendingDelete.length || !hasLoadedAllTransactions)}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
@@ -502,7 +537,6 @@ function SearchList({
                 ref={listRef}
                 columns={columns}
                 scrollToIndex={scrollToIndex}
-                isFocused={isFocused}
                 flattenedItemsLength={flattenedItems.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}

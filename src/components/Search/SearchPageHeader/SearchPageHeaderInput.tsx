@@ -13,7 +13,7 @@ import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubsti
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
-import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
+import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
@@ -26,7 +26,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {setSearchContext} from '@libs/actions/Search';
-import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -62,13 +61,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID, true);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, policies, currentUserAccountID, true);
 
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT, {canBeMissing: true});
     const shouldShowQuery = searchContext?.shouldShowSearchQuery ?? false;
@@ -84,7 +81,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const textInputRef = useRef<AnimatedTextInputRef>(null);
     const hasMountedRef = useRef(false);
     const isFocused = useIsFocused();
-    const {registerSearchPageInput} = useSearchRouterContext();
+    const {registerSearchPageInput} = useSearchRouterActions();
 
     useEffect(() => {
         hasMountedRef.current = true;
@@ -96,7 +93,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             return;
         }
         textInputRef.current.blur();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
 
@@ -116,16 +112,15 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [queryText, shouldShowQuery]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, policies, currentUserAccountID);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID]);
+    }, [allFeeds, nonPersonalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
             return;
         }
         setShowPopupButton(true);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
 
@@ -133,7 +128,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         onSearchRouterFocus?.();
         listRef.current?.updateAndScrollToFocusedIndex(0);
         setShowPopupButton(false);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -403,8 +397,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 ref={listRef}
                                 personalDetails={personalDetails}
                                 reports={reports}
-                                allCards={allCards}
+                                allCards={nonPersonalAndWorkspaceCards}
                                 allFeeds={allFeeds}
+                                textInputRef={textInputRef}
                             />
                         </View>
                     )}
@@ -477,8 +472,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
                                 personalDetails={personalDetails}
                                 reports={reports}
-                                allCards={allCards}
+                                allCards={nonPersonalAndWorkspaceCards}
                                 allFeeds={allFeeds}
+                                textInputRef={textInputRef}
                             />
                         </View>
                     )}

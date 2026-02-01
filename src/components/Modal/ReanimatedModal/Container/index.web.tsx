@@ -53,7 +53,6 @@ function Container({
         () =>
             new Keyframe(getModalOutAnimation(animationOut))
                 .duration(animationOutTiming)
-                // eslint-disable-next-line react-compiler/react-compiler
                 .withCallback(() => onCloseCallbackRef.current())
                 // on web the callbacks are not called when animations are disabled with the reduced motion setting on
                 // we enable the animations to make sure they are called

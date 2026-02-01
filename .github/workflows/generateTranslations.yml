@@ -71,7 +71,7 @@ jobs:
 
       - name: Run generateTranslations for added translations
         if: steps.check-en-changes.outputs.HAS_CHANGES == 'true'
-        run: npx ts-node ./scripts/generateTranslations.ts --verbose --compare-ref=${{ steps.pr-data.outputs.BASE_REF }}
+        run: npx ts-node ./scripts/generateTranslations.ts --verbose --yes --compare-ref=${{ steps.pr-data.outputs.BASE_REF }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           OPENAI_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
@@ -141,6 +141,7 @@ jobs:
           EOF
           )"
           readonly PARROT_FOOTER
+          readonly WORKFLOW_RUN_LINK="[View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
 
           if [ "$PATCH_SIZE" -le "$MAX_COMMENT_SIZE" ]; then
             # Small diff - include in comment
@@ -159,6 +160,8 @@ jobs:
               echo '</details>'
               echo
               echo "$PARROT_FOOTER 😉"
+              echo
+              echo "${WORKFLOW_RUN_LINK}"
             } > "$TEMP_COMMENT_FILE"
           else
             # Large diff - upload as gist and link
@@ -176,6 +179,8 @@ jobs:
               echo "📋 **[View the translation diff here](${GIST_URL})** 📋"
               echo
               echo "$PARROT_FOOTER_WITH_CMD 😉"
+              echo
+              echo "${WORKFLOW_RUN_LINK}"
             } > "$TEMP_COMMENT_FILE"
           fi
 

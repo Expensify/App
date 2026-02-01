@@ -53,18 +53,19 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const didInvite = useRef<boolean>(false);
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
-    const {searchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeRecentReports: false,
+        includeUserToInvite: true,
         excludeLogins: Object.fromEntries(CONST.EXPENSIFY_EMAILS.map((email) => [email, true])),
         shouldInitialize: didScreenTransitionEnd,
         onSingleSelect: (option) => setCurrentlySelectedUser({...option, isSelected: true}),
     });
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const inviteUser = () => {
         if (didInvite.current || !currentlySelectedUser || !currentlySelectedUser.accountID || !currentlySelectedUser.login || !domainName) {
@@ -95,18 +96,38 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                 data: filteredOptions,
             });
         }
+
+        if (availableOptions.userToInvite && currentlySelectedUser?.login !== availableOptions.userToInvite.login) {
+            sections.push({
+                title: undefined,
+                data: [availableOptions.userToInvite],
+            });
+        }
     }
 
     const footerContent = (
         <FormAlertWithSubmitButton
             isDisabled={!currentlySelectedUser}
             isAlertVisible={false}
-            buttonText={translate('domain.admins.invite')}
+            buttonText={translate('common.invite')}
             onSubmit={inviteUser}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
         />
     );
+
+    const headerMessage = () => {
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+
+        const searchedUserPersonalDetails = availableOptions.personalDetails.find(({login}) => login?.toLowerCase() === searchValue);
+        if (!availableOptions.userToInvite && searchedUserPersonalDetails?.accountID && adminIDs?.includes(searchedUserPersonalDetails.accountID)) {
+            return translate('messages.userIsAlreadyAnAdmin', {login: searchValue, name: domainName ?? ''});
+        }
+        return getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    };
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -123,7 +144,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                 />
                 <SelectionList
                     sections={sections}
-                    headerMessage={getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!currentlySelectedUser, searchTerm.trim().toLowerCase(), countryCode, false)}
+                    headerMessage={headerMessage()}
                     ListItem={InviteMemberListItem}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
