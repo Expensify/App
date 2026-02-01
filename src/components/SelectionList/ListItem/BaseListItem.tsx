@@ -70,11 +70,7 @@ function BaseListItem<TItem extends ListItem>({
     };
 
     const rightHandSideComponentRender = () => {
-        if (!rightHandSideComponent) {
-            return null;
-        }
-
-        if (canSelectMultiple && shouldUseDefaultRightHandSideCheckmark) {
+        if (canSelectMultiple || !rightHandSideComponent) {
             return null;
         }
 
@@ -160,6 +156,7 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
+                    accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused &&
