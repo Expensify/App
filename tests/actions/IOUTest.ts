@@ -4883,8 +4883,23 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
-                betas: [CONST.BETAS.ALL],
+                betas: [],
             });
+
+                        await waitForBatchedUpdates();
+
+            // Then the DM lastVisibleActionCreated should be updated to the second IOU action created
+            const iouAction = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        resolve(Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.amount === 200));
+                    },
+                });
+            });
+
+            await waitForBatchedUpdates();
 
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
@@ -8102,7 +8117,7 @@ describe('actions/IOU', () => {
                             policyRecentlyUsedCurrencies: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
-                            betas: [CONST.BETAS.ALL],
+                            betas: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -8300,7 +8315,7 @@ describe('actions/IOU', () => {
                             policyRecentlyUsedCurrencies: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
-                            betas: [CONST.BETAS.ALL],
+                            betas: [],
                         });
                     }
                     return waitForBatchedUpdates();

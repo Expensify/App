@@ -45,6 +45,7 @@ function SearchTransactionsChangeReport() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
@@ -89,7 +90,7 @@ function SearchTransactionsChangeReport() {
     }, [selectedTransactions, selectedTransactionsKeys]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(targetOwnerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(targetOwnerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, betas, false, shouldDismissEmptyReportsConfirmation);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({

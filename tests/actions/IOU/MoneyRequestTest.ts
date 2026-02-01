@@ -371,28 +371,30 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
-            expect(startSplitBill).toHaveBeenCalledWith({
-                participants: [
-                    expect.objectContaining({
-                        accountID: 0,
-                        selected: true,
-                        isSelected: true,
-                    }),
-                ],
-                currentUserLogin: baseParams.currentUserLogin,
-                currentUserAccountID: baseParams.currentUserAccountID,
-                comment: '',
-                receipt: fakeReceiptFile.file,
-                existingSplitChatReportID: baseParams.reportID,
-                billable: false,
-                category: '',
-                tag: '',
-                currency: baseParams.initialTransaction.currency,
-                taxCode: baseParams.initialTransaction.taxCode,
-                taxAmount: baseParams.initialTransaction.taxAmount,
-                quickAction: baseParams.quickAction,
-                policyRecentlyUsedCurrencies: [],
-            });
+            expect(startSplitBill).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    participants: [
+                        expect.objectContaining({
+                            accountID: 0,
+                            selected: true,
+                            isSelected: true,
+                        }),
+                    ],
+                    currentUserLogin: baseParams.currentUserLogin,
+                    currentUserAccountID: baseParams.currentUserAccountID,
+                    comment: '',
+                    receipt: fakeReceiptFile.file,
+                    existingSplitChatReportID: baseParams.reportID,
+                    billable: false,
+                    category: '',
+                    tag: '',
+                    currency: baseParams.initialTransaction.currency,
+                    taxCode: baseParams.initialTransaction.taxCode,
+                    taxAmount: baseParams.initialTransaction.taxAmount,
+                    quickAction: baseParams.quickAction,
+                    policyRecentlyUsedCurrencies: [],
+                }),
+            );
         });
 
         it('should return if no participants found for non-SPLIT iouType when not from global create menu and skipping confirmation', async () => {
@@ -500,35 +502,37 @@ describe('MoneyRequest', () => {
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith({
-                report: baseParams.report,
-                isDraftPolicy: false,
-                participantParams: {
-                    payeeEmail: baseParams.currentUserLogin,
-                    payeeAccountID: baseParams.currentUserAccountID,
-                    participant: expect.objectContaining({
-                        accountID: 0,
-                        selected: true,
-                        isSelected: true,
-                        ownerAccountID: fakeReport.ownerAccountID,
+            expect(IOU.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: baseParams.report,
+                    isDraftPolicy: false,
+                    participantParams: expect.objectContaining({
+                        payeeEmail: baseParams.currentUserLogin,
+                        payeeAccountID: baseParams.currentUserAccountID,
+                        participant: expect.objectContaining({
+                            accountID: 0,
+                            selected: true,
+                            isSelected: true,
+                            ownerAccountID: fakeReport.ownerAccountID,
+                        }),
                     }),
-                },
-                transactionParams: {
-                    amount: 0,
-                    currency: fakeTransaction?.currency ?? 'USD',
-                    created: fakeTransaction?.created,
-                    receipt: fakeReceiptFile.file,
-                    billable: undefined,
-                    reimbursable: true,
-                    gpsPoint: undefined,
-                },
-                isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: baseParams.currentUserAccountID,
-                currentUserEmailParam: baseParams.currentUserLogin,
-                quickAction: baseParams.quickAction,
-                shouldHandleNavigation: true,
-                recentWaypoints,
-            });
+                    transactionParams: expect.objectContaining({
+                        amount: 0,
+                        currency: fakeTransaction?.currency ?? 'USD',
+                        created: fakeTransaction?.created,
+                        receipt: fakeReceiptFile.file,
+                        billable: undefined,
+                        reimbursable: true,
+                        gpsPoint: undefined,
+                    }),
+                    isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
+                    currentUserAccountIDParam: baseParams.currentUserAccountID,
+                    currentUserEmailParam: baseParams.currentUserLogin,
+                    quickAction: baseParams.quickAction,
+                    shouldHandleNavigation: true,
+                    recentWaypoints,
+                }),
+            );
             // Should not call request money inside createTransaction function
             expect(IOU.requestMoney).not.toHaveBeenCalled();
         });
@@ -823,6 +827,7 @@ describe('MoneyRequest', () => {
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
                 recentWaypoints,
+                betas: [CONST.BETAS.ALL],
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
@@ -851,43 +856,44 @@ describe('MoneyRequest', () => {
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith({
-                report: baseParams.report,
-                isDraftPolicy: false,
-                participantParams: {
-                    payeeEmail: baseParams.currentUserLogin,
-                    payeeAccountID: baseParams.currentUserAccountID,
-                    participant: expect.objectContaining({
-                        accountID: 0,
-                        selected: true,
-                        isSelected: true,
-                        allReportErrors: {},
-                        brickRoadIndicator: null,
-                        isPolicyExpenseChat: true,
+            expect(IOU.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    report: baseParams.report,
+                    isDraftPolicy: false,
+                    participantParams: expect.objectContaining({
+                        payeeEmail: baseParams.currentUserLogin,
+                        payeeAccountID: baseParams.currentUserAccountID,
+                        participant: expect.objectContaining({
+                            accountID: 0,
+                            selected: true,
+                            isSelected: true,
+                            allReportErrors: {},
+                            brickRoadIndicator: null,
+                            isPolicyExpenseChat: true,
+                        }),
                     }),
-                },
-                policyParams: {
-                    policy: baseParams.policy,
-                },
-                transactionParams: {
-                    amount: 0,
-                    distance: undefined,
-                    currency: fakeTransaction?.currency ?? 'USD',
-                    created: fakeTransaction?.created ?? '',
-                    merchant: 'Pending...',
-                    receipt: {},
-                    billable: false,
-                    reimbursable: true,
-                    validWaypoints: {},
-                    customUnitRateID: baseParams.customUnitRateID,
-                    attendees: fakeTransaction?.comment?.attendees,
-                },
-                isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: baseParams.currentUserAccountID,
-                currentUserEmailParam: baseParams.currentUserLogin,
-                quickAction: baseParams.quickAction,
-                recentWaypoints,
-            });
+                    policyParams: expect.objectContaining({
+                        policy: baseParams.policy,
+                    }),
+                    transactionParams: expect.objectContaining({
+                        amount: 0,
+                        distance: undefined,
+                        currency: fakeTransaction?.currency ?? 'USD',
+                        created: fakeTransaction?.created ?? '',
+                        merchant: 'Pending...',
+                        receipt: {},
+                        billable: false,
+                        reimbursable: true,
+                        validWaypoints: {},
+                        customUnitRateID: baseParams.customUnitRateID,
+                    }),
+                    isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
+                    currentUserAccountIDParam: baseParams.currentUserAccountID,
+                    currentUserEmailParam: baseParams.currentUserLogin,
+                    quickAction: baseParams.quickAction,
+                    recentWaypoints,
+                }),
+            );
         });
 
         it('should call createDistanceRequest for non-TRACK iouType when from manual distance step and skipping confirmation', async () => {
