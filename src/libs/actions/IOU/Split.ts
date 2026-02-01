@@ -248,7 +248,7 @@ function splitBillAndOpenReport({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
-    betas
+    betas,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -701,7 +701,7 @@ function completeSplitBill(
     isASAPSubmitBetaEnabled: boolean,
     quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
-        betas: OnyxEntry<OnyxTypes.Beta[]>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
     sessionEmail?: string,
 ) {
     if (!reportAction) {
@@ -839,15 +839,16 @@ function completeSplitBill(
             );
 
             oneOnOneIOUReport = isPolicyExpenseChat
-                ? buildOptimisticExpenseReport(
-                    {  chatReportID:oneOnOneChatReport?.reportID,
+                ? buildOptimisticExpenseReport({
+                      chatReportID: oneOnOneChatReport?.reportID,
                       policyID: participant.policyID,
                       payeeAccountID: sessionAccountID,
                       total: splitAmount,
                       currency: currency ?? '',
-                      optimisticIOUReportID:optimisticExpenseReportID,
-                      reportTransactions,betas}
-                  )
+                      optimisticIOUReportID: optimisticExpenseReportID,
+                      reportTransactions,
+                      betas,
+                  })
                 : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
             if (typeof oneOnOneIOUReport?.total === 'number') {
@@ -1006,7 +1007,7 @@ function updateSplitTransactions({
     quickAction,
     policyRecentlyUsedCurrencies,
     iouReportNextStep,
-    betas
+    betas,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);

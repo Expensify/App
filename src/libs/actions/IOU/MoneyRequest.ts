@@ -400,7 +400,7 @@ function handleMoneyRequestStepScanParticipants({
                             betas,
                         });
                     },
-                );  
+                );
                 return;
             }
             createTransaction({

@@ -812,7 +812,15 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     }
 }
 
-function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[], currentUserAccountIDParam: number, betas: OnyxEntry<Beta[]>, hash?: number) {
+function rejectMoneyRequestInBulk(
+    reportID: string,
+    comment: string,
+    policy: OnyxEntry<Policy>,
+    transactionIDs: string[],
+    currentUserAccountIDParam: number,
+    betas: OnyxEntry<Beta[]>,
+    hash?: number,
+) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const successData: RejectMoneyRequestData['successData'] = [];
@@ -899,7 +907,7 @@ function rejectMoneyRequestsOnSearch(
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam,betas, {sharedRejectedToReportID});
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, {sharedRejectedToReportID});
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {

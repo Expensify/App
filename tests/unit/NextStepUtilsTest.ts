@@ -85,6 +85,7 @@ describe('libs/NextStepUtils', () => {
                     'fake-parent-report-action-id-4',
                     policy,
                     '2025-03-31 13:23:11',
+                    [CONST.BETAS.ALL],
                 );
 
                 optimisticNextStep.message = [

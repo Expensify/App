@@ -82,7 +82,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const isPerDiemTransaction = isPerDiemRequest(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const [transactions] = useOptimisticDraftTransactions(transaction);
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const handleGoBack = () => {
         if (isEditing) {
             Navigation.dismissToSuperWideRHP();
@@ -224,7 +224,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
         handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
     };
 

@@ -264,7 +264,7 @@ type BaseTransactionParams = {
     amount: number;
     modifiedAmount?: number;
     currency: string;
-    created: string;        
+    created: string;
     merchant: string;
     comment: string;
     category?: string;
@@ -520,7 +520,6 @@ type PerDiemExpenseInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
-
 };
 
 type RequestMoneyInformation = {
@@ -655,7 +654,7 @@ type CreateDistanceRequestInformation = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
     shouldHandleNavigation?: boolean;
-        betas: OnyxEntry<OnyxTypes.Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -772,8 +771,7 @@ type GetTrackExpenseInformationParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-                betas: OnyxEntry<OnyxTypes.Beta[]>;
-
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -3112,7 +3110,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         quickAction,
         policyRecentlyUsedCurrencies,
         personalDetails,
-        betas
+        betas,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -3212,16 +3210,17 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport({      chatReportID: chatReport.reportID,
-                  policyID:   chatReport.policyID,
+            ? buildOptimisticExpenseReport({
+                  chatReportID: chatReport.reportID,
+                  policyID: chatReport.policyID,
                   payeeAccountID,
                   total: amount,
                   currency,
                   nonReimbursableTotal,
                   optimisticIOUReportID: optimisticReportID,
-                  reportTransactions,betas}
-
-              )
+                  reportTransactions,
+                  betas,
+              })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
@@ -3607,7 +3606,16 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport({chatReportID:chatReport.reportID, policyID: chatReport.policyID, payeeAccountID, total:amount, currency,optimisticIOUReportID: optimisticReportID, reportTransactions,betas})
+            ? buildOptimisticExpenseReport({
+                  chatReportID: chatReport.reportID,
+                  policyID: chatReport.policyID,
+                  payeeAccountID,
+                  total: amount,
+                  currency,
+                  optimisticIOUReportID: optimisticReportID,
+                  reportTransactions,
+                  betas,
+              })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
@@ -3813,7 +3821,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         introSelected,
         activePolicyID,
         quickAction,
-        betas
+        betas,
     } = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3982,17 +3990,17 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
-            iouReport = buildOptimisticExpenseReport(
-              {chatReportID:  chatReport.reportID,
-                policyID:chatReport.policyID,
+            iouReport = buildOptimisticExpenseReport({
+                chatReportID: chatReport.reportID,
+                policyID: chatReport.policyID,
                 payeeAccountID,
-                total:amount,
+                total: amount,
                 currency,
-                nonReimbursableTotal:amount,
+                nonReimbursableTotal: amount,
                 betas,
-              optimisticIOUReportID:  optimisticExpenseReportID,
-                reportTransactions,}
-            );
+                optimisticIOUReportID: optimisticExpenseReportID,
+                reportTransactions,
+            });
         } else {
             iouReport = {...iouReport};
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -6619,7 +6627,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         activePolicyID,
         quickAction,
         recentWaypoints = [],
-        betas
+        betas,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -7030,7 +7038,7 @@ function createSplitsAndOnyxData({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
-    betas
+    betas,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7321,16 +7329,16 @@ function createSplitsAndOnyxData({
             );
 
             oneOnOneIOUReport = isOwnPolicyExpenseChat
-                ? buildOptimisticExpenseReport(
-                    {chatReportID:  oneOnOneChatReport.reportID,
-                      policyID:oneOnOneChatReport.policyID,
-                      payeeAccountID:currentUserAccountID,
-                      total:splitAmount,
+                ? buildOptimisticExpenseReport({
+                      chatReportID: oneOnOneChatReport.reportID,
+                      policyID: oneOnOneChatReport.policyID,
+                      payeeAccountID: currentUserAccountID,
+                      total: splitAmount,
                       currency,
-                      optimisticIOUReportID:optimisticExpenseReportID,
-                      reportTransactions,betas}
-
-                  )
+                      optimisticIOUReportID: optimisticExpenseReportID,
+                      reportTransactions,
+                      betas,
+                  })
                 : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -7565,7 +7573,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         recentWaypoints = [],
         customUnitPolicyID,
         shouldHandleNavigation = true,
-        betas
+        betas,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -7640,7 +7648,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
-            betas
+            betas,
         });
         onyxData = splitOnyxData;
 
@@ -8859,7 +8867,7 @@ function getReportFromHoldRequestsOnyxData({
     recipient,
     policy,
     createdTimestamp,
-   betas,
+    betas,
     isApprovalFlow = false,
 }: {
     chatReport: OnyxTypes.Report;
@@ -8867,7 +8875,7 @@ function getReportFromHoldRequestsOnyxData({
     recipient: Participant;
     policy: OnyxEntry<OnyxTypes.Policy>;
     createdTimestamp?: string;
-    betas: OnyxEntry<OnyxTypes.Beta[]>
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
 }): {
     optimisticHoldReportID: string;
@@ -8897,18 +8905,18 @@ function getReportFromHoldRequestsOnyxData({
     }
 
     const optimisticExpenseReport = isPolicyExpenseChat
-        ? buildOptimisticExpenseReport(
-            {chatReportID:  chatReport.reportID,
+        ? buildOptimisticExpenseReport({
+              chatReportID: chatReport.reportID,
               policyID: chatReport.policyID ?? iouReport?.policyID,
               payeeAccountID: recipient.accountID ?? 1,
-              total:holdAmount,
-            currency:  iouReport?.currency ?? '',
-            nonReimbursableTotal:  holdNonReimbursableAmount,
-              parentReportActionID:newParentReportActionID,
-              betas,reportTransactions,
-              createdTimestamp,}
-
-          )
+              total: holdAmount,
+              currency: iouReport?.currency ?? '',
+              nonReimbursableTotal: holdNonReimbursableAmount,
+              parentReportActionID: newParentReportActionID,
+              betas,
+              reportTransactions,
+              createdTimestamp,
+          })
         : buildOptimisticIOUReport(
               iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
               iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID,
@@ -9207,7 +9215,7 @@ function getPayMoneyRequestParams({
     currentUserEmailParam?: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -9496,7 +9504,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy,betas});
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas});
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
         successData.push(...holdReportOnyxData.successData);
@@ -11867,7 +11875,7 @@ function prepareRejectMoneyRequestData(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
-            betas: OnyxEntry<OnyxTypes.Beta[]>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
     options?: {sharedRejectedToReportID?: string},
     shouldUseBulkAction?: boolean,
 ): RejectMoneyRequestData | undefined {
@@ -12195,16 +12203,17 @@ function prepareRejectMoneyRequestData(
             // Pass transaction for formula computation (e.g., {report:startdate})
             const reportTransactions: Record<string, OnyxTypes.Transaction> = {[transaction.transactionID]: transaction};
 
-            const newExpenseReport = buildOptimisticExpenseReport(
-               { chatReportID:report.chatReportID,
-                policyID:report?.policyID,
-                payeeAccountID:report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                 total: transactionAmount,
-                currency:getCurrency(transaction),
-                nonReimbursableTotal:transactionAmount,
-                parentReportActionID: rejectedToReportID,
-                reportTransactions,betas}
-            );
+            const newExpenseReport = buildOptimisticExpenseReport({
+                chatReportID: report.chatReportID,
+                policyID: report?.policyID,
+                payeeAccountID: report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                total: transactionAmount,
+                currency: getCurrency(transaction),
+                nonReimbursableTotal: transactionAmount,
+                parentReportActionID: rejectedToReportID,
+                reportTransactions,
+                betas,
+            });
             const [, createdActionForExpenseReport, iouAction, ,] = buildOptimisticMoneyRequestEntities({
                 iouReport: newExpenseReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,

@@ -995,7 +995,7 @@ type GetReportStatusParams = {
     translate: LocaleContextProps['translate'];
 };
 
-type BuildOptimisticExpenseReportParams={
+type BuildOptimisticExpenseReportParams = {
     chatReportID: string | undefined;
     policyID: string | undefined;
     payeeAccountID: number;
@@ -1007,7 +1007,7 @@ type BuildOptimisticExpenseReportParams={
     optimisticIOUReportID?: string;
     reportTransactions?: Record<string, Transaction>;
     createdTimestamp?: string;
-}
+};
 
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
 
@@ -1122,12 +1122,6 @@ Onyx.connectWithoutView({
             return acc;
         }, {});
     },
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
 });
 
 let betaConfiguration: OnyxEntry<BetaConfiguration> = {};
@@ -6852,7 +6846,7 @@ function buildOptimisticInvoiceReport(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>,  betas: OnyxEntry<Beta[]>,isEmptyOptimisticReport = false,) {
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, betas: OnyxEntry<Beta[]>, isEmptyOptimisticReport = false) {
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
     if (isASAPSubmitBetaEnabled) {
         return {
@@ -6896,21 +6890,19 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>,  betas: OnyxE
  * @param parentReportActionID – The parent ReportActionID of the PolicyExpenseChat
  * @param optimisticIOUReportID – Optimistic IOU report id
  */
-function buildOptimisticExpenseReport(
-    {
-        chatReportID,
-        policyID,
-        payeeAccountID,
-        total,
-        currency,
-        betas,
-        nonReimbursableTotal = 0,
-        parentReportActionID,
-        optimisticIOUReportID,
-        reportTransactions,
-        createdTimestamp,
-    }: BuildOptimisticExpenseReportParams
-): OptimisticExpenseReport {
+function buildOptimisticExpenseReport({
+    chatReportID,
+    policyID,
+    payeeAccountID,
+    total,
+    currency,
+    betas,
+    nonReimbursableTotal = 0,
+    parentReportActionID,
+    optimisticIOUReportID,
+    reportTransactions,
+    createdTimestamp,
+}: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
@@ -6982,8 +6974,16 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, parentReportActionID: string, policy: OnyxEntry<Policy>, timeOfCreation: string) {
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, allBetas, true);
+function buildOptimisticEmptyReport(
+    reportID: string,
+    accountID: number,
+    parentReport: OnyxEntry<Report>,
+    parentReportActionID: string,
+    policy: OnyxEntry<Policy>,
+    timeOfCreation: string,
+    betas: OnyxEntry<Beta[]>,
+) {
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas, true);
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
         reportName: '',

@@ -495,8 +495,8 @@ function duplicateExpenseTransaction({
     targetPolicyCategories,
     targetReport,
     betas,
-    }: DuplicateExpenseTransactionParams) {
-        if (!transaction) {
+}: DuplicateExpenseTransactionParams) {
+    if (!transaction) {
         return;
     }
 
@@ -569,7 +569,7 @@ function duplicateExpenseTransaction({
             activePolicyID,
             quickAction,
             recentWaypoints,
-            betas
+            betas,
         };
         return trackExpense(trackExpenseParams);
     }

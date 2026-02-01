@@ -304,7 +304,7 @@ function MoneyRequestReportPreviewContent({
 
     const confirmApproval = () => {
         if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-            setIsDEWModalVisible(true); 
+            setIsDEWModalVisible(true);
             return;
         }
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);

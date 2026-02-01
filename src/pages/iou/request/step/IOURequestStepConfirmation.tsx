@@ -160,8 +160,8 @@ function IOURequestStepConfirmation({
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`, {canBeMissing: true});
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});            
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});  
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -803,7 +803,7 @@ function IOURequestStepConfirmation({
                     activePolicyID,
                     quickAction,
                     recentWaypoints,
-                    betas
+                    betas,
                 });
             }
         },
@@ -1044,7 +1044,7 @@ function IOURequestStepConfirmation({
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
                         quickAction,
-                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],   
+                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
                     });
                 }
