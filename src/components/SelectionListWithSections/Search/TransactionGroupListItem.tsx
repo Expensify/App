@@ -229,7 +229,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             onSelectRow(item, transactionPreviewData);
         }
         if (!isExpenseReportType) {
-            if (groupItem.transactionsQueryJSON && !isExpanded) {
+            if (groupItem.transactionsQueryJSON && !isExpanded && transactions.length === 0) {
                 searchTransactions();
             }
             handleToggle();
