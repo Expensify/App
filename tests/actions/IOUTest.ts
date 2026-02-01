@@ -4886,7 +4886,7 @@ describe('actions/IOU', () => {
                 betas: [],
             });
 
-                        await waitForBatchedUpdates();
+            await waitForBatchedUpdates();
 
             // Then the DM lastVisibleActionCreated should be updated to the second IOU action created
             const iouAction = await new Promise<OnyxEntry<ReportAction>>((resolve) => {

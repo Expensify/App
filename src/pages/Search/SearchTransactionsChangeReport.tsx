@@ -90,7 +90,15 @@ function SearchTransactionsChangeReport() {
     }, [selectedTransactions, selectedTransactionsKeys]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(targetOwnerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            targetOwnerPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForMovingExpenses,
+            betas,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
