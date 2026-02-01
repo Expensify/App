@@ -66,7 +66,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
     let participants: Array<Participant | OptionData>;

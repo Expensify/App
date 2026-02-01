@@ -1023,6 +1023,12 @@ getEnvironment().then((env) => {
     environment = env;
 });
 
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
+});
+
 // This cache is used to save parse result of report action html message into text
 // to prevent unnecessary parsing when the report action is not changed/modified.
 // Example case: when we need to get a report name of a thread which is dependent on a report action message.

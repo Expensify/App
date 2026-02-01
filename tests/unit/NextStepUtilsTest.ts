@@ -39,7 +39,14 @@ describe('libs/NextStepUtils', () => {
             icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             message: [],
         };
-        const report = buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
+        const report = buildOptimisticExpenseReport({
+            chatReportID: 'fake-chat-report-id-1',
+            policyID,
+            payeeAccountID: 1,
+            total: -500,
+            currency: CONST.CURRENCY.USD,
+            betas: [CONST.BETAS.ALL],
+        }) as Report;
 
         beforeAll(() => {
             const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
