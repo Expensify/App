@@ -23,6 +23,7 @@ function BaseListItem<TItem extends ListItem>({
     wrapperStyle,
     pressableWrapperStyle,
     containerStyle,
+    errorRowStyles,
     isDisabled = false,
     shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
@@ -90,7 +91,7 @@ function BaseListItem<TItem extends ListItem>({
             onClose={() => onDismissError(item)}
             pendingAction={pendingAction}
             errors={errors}
-            errorRowStyles={styles.ph5}
+            errorRowStyles={errorRowStyles ?? styles.ph5}
             contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback
