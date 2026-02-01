@@ -40,6 +40,9 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
         previewSource = tryResolveUrlFromApiRoot(receiptURIs.thumbnail ?? receiptURIs.image ?? '');
     }
 
+    console.log('Using source', source);
+    console.log('Using preview source', previewSource);
+
     return (
         <View
             style={[
