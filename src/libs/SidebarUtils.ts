@@ -926,10 +926,8 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES)) {
             result.alternateText = getWorkspaceCategoriesUpdatedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS)) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translate('workspaceActions.importTags');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS)) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translate('workspaceActions.deletedAllTags');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST)) {
             result.alternateText = getTagListUpdatedMessage(translate, lastAction) ?? '';

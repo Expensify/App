@@ -3952,12 +3952,12 @@ function getUpdatedIndividualBudgetNotificationMessage(translate: LocalizedTrans
         !budgetName ||
         !budgetTypeForNotificationMessage ||
         !summaryLinkMessage ||
-        !thresholdPercentage ||
-        !totalSpend ||
-        !unsubmittedSpend ||
+        thresholdPercentage === undefined ||
+        totalSpend === undefined ||
+        unsubmittedSpend === undefined ||
         !userEmail ||
-        !awaitingApprovalSpend ||
-        !approvedReimbursedClosedSpend
+        awaitingApprovalSpend === undefined ||
+        approvedReimbursedClosedSpend === undefined
     ) {
         return getReportActionText(reportAction);
     }
@@ -3998,11 +3998,11 @@ function getUpdatedSharedBudgetNotificationMessage(translate: LocalizedTranslate
         !budgetName ||
         !budgetTypeForNotificationMessage ||
         !summaryLinkMessage ||
-        !thresholdPercentage ||
-        !totalSpend ||
-        !unsubmittedSpend ||
-        !awaitingApprovalSpend ||
-        !approvedReimbursedClosedSpend
+        thresholdPercentage === undefined ||
+        totalSpend === undefined ||
+        unsubmittedSpend === undefined ||
+        awaitingApprovalSpend === undefined ||
+        approvedReimbursedClosedSpend === undefined
     ) {
         return getReportActionText(reportAction);
     }
