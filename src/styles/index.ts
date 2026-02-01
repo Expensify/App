@@ -931,19 +931,12 @@ const staticStyles = (theme: ThemeColors) =>
         actionableItemButton: {
             paddingTop: 8,
             paddingBottom: 8,
-            backgroundColor: 'transparent',
-            borderWidth: 1,
-            borderColor: theme.border,
             alignItems: 'flex-start',
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
         actionableItemButtonBackgroundHovered: {
             borderColor: theme.buttonPressedBG,
-        },
-
-        actionableItemButtonHovered: {
-            borderWidth: 1,
         },
 
         hoveredComponentBG: {
@@ -1673,13 +1666,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         floatingCameraButton: {
             position: 'absolute',
-            top: -variables.componentSizeLarge - 16,
-            right: 16,
-            zIndex: 10,
-        },
-
-        floatingCameraButtonAboveFab: {
-            position: 'absolute',
             // floatingActionButton top property value (componentSizeLarge + 16) +
             // + floatingCameraButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
             top: 2 * -variables.componentSizeLarge - 28,
@@ -1695,15 +1681,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         floatingGpsButton: {
-            position: 'absolute',
-            // floatingCameraButton top property value (componentSizeLarge + 16) +
-            // + floatingGpsButton height (componentSizeLarge) + gap (12) = 2 * componentSizeLarge + 28
-            top: 2 * -variables.componentSizeLarge - 28,
-            right: 16,
-            zIndex: 10,
-        },
-
-        floatingGpsButtonAboveFab: {
             position: 'absolute',
             // floatingActionButton top property value (componentSizeLarge + 16) +
             // + floatingCameraButton height (componentSizeLarge) + gap (12) + floatingGpsButton height (componentSizeLarge) + gap (12) = 3 * variables.componentSizeLarge + 40
@@ -6115,10 +6092,8 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
-            marginBottom: shouldUseNarrowLayout ? 20 : 32,
-            marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
+            marginBottom: shouldUseNarrowLayout ? 8 : 12,
             paddingVertical: 12,
-            gap: 24,
         }),
 
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {
@@ -6331,6 +6306,21 @@ const plainStyles = (theme: ThemeColors) =>
                 lineHeight: 20,
                 color,
             }) satisfies TextStyle,
+
+        getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                marginBottom: 20,
+                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
+                marginTop: shouldUseNarrowLayout ? 20 : 32,
+            }) satisfies ViewStyle,
+
+        widgetContainerIconWrapper: {
+            flexGrow: 0,
+            flexShrink: 0,
+            marginRight: 11,
+        },
 
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({

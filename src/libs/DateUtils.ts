@@ -833,6 +833,18 @@ function getFormattedDuration(translateParam: LocaleContextProps['translate'], d
     return `${hours ? `${hours}${translateParam('common.hourAbbreviation')} ` : ''}${minutes}${translateParam('common.minuteAbbreviation')}`;
 }
 
+const TIME_UNIT_PADDING = 2; // Pad time units to 2 digits (e.g., "09" instead of "9")
+
+/**
+ * Formats a countdown timer with hours, minutes, and seconds (e.g., "23h 59m 59s").
+ */
+function formatCountdownTimer(translateParam: LocaleContextProps['translate'], hours: number, minutes: number, seconds: number): string {
+    const paddedMinutes = minutes.toString().padStart(TIME_UNIT_PADDING, '0');
+    const paddedSeconds = seconds.toString().padStart(TIME_UNIT_PADDING, '0');
+
+    return `${hours}${translateParam('common.hourAbbreviation')} ${paddedMinutes}${translateParam('common.minuteAbbreviation')} ${paddedSeconds}${translateParam('common.secondAbbreviation')}`;
+}
+
 function doesDateBelongToAPastYear(date: string): boolean {
     const transactionYear = new Date(date).getFullYear();
     return transactionYear !== new Date().getFullYear();
@@ -1055,6 +1067,7 @@ const DateUtils = {
     isValidDateString,
     getFormattedDurationBetweenDates,
     getFormattedDuration,
+    formatCountdownTimer,
     isFutureDay,
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,

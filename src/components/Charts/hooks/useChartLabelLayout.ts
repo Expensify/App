@@ -19,6 +19,7 @@ type LabelLayoutConfig = {
     data: ChartDataPoint[];
     font: SkFont | null;
     chartWidth: number;
+    barAreaWidth: number;
     containerHeight: number;
 };
 
@@ -32,7 +33,7 @@ function measureTextWidth(text: string, font: SkFont): number {
     return glyphWidths.reduce((sum, w) => sum + w, 0);
 }
 
-function useChartLabelLayout({data, font, chartWidth, containerHeight}: LabelLayoutConfig) {
+function useChartLabelLayout({data, font, chartWidth, barAreaWidth, containerHeight}: LabelLayoutConfig) {
     return useMemo(() => {
         if (!font || chartWidth === 0 || containerHeight === 0 || data.length === 0) {
             return {labelRotation: 0, labelSkipInterval: 1, truncatedLabels: data.map((p) => p.label)};
@@ -120,13 +121,16 @@ function useChartLabelLayout({data, font, chartWidth, containerHeight}: LabelLay
         }
 
         // Calculate skip interval using spec formula:
-        // maxVisibleLabels = floor(chartWidth / (effectiveWidth + MIN_LABEL_GAP))
+        // maxVisibleLabels = floor(barAreaWidth / (effectiveWidth + MIN_LABEL_GAP))
         // skipInterval = ceil(barCount / maxVisibleLabels)
-        let skipInterval = 1;
-        const maxVisibleLabels = Math.floor(chartWidth / (effectiveWidth + LABEL_PADDING));
-        if (maxVisibleLabels > 0 && maxVisibleLabels < data.length) {
-            skipInterval = Math.ceil(data.length / maxVisibleLabels);
-        }
+        // Use barAreaWidth (actual plotting area from chartBounds) rather than chartWidth
+        // (full container) so Y-axis labels and padding don't inflate the count.
+        const labelAreaWidth = barAreaWidth || chartWidth;
+        const maxVisibleLabels = Math.floor(labelAreaWidth / (effectiveWidth + LABEL_PADDING));
+        // When maxVisibleLabels is 0 (area too narrow for even one label) or less than
+        // data.length, compute the interval. data.length is the safe upper bound — show
+        // at most the first label.
+        const skipInterval = maxVisibleLabels >= data.length ? 1 : Math.ceil(data.length / Math.max(1, maxVisibleLabels));
 
         // Convert rotation to negative degrees for Victory chart
         let rotationValue = 0;
@@ -137,7 +141,7 @@ function useChartLabelLayout({data, font, chartWidth, containerHeight}: LabelLay
         }
 
         return {labelRotation: rotationValue, labelSkipInterval: skipInterval, truncatedLabels: finalLabels, maxLabelLength};
-    }, [font, chartWidth, containerHeight, data]);
+    }, [font, chartWidth, barAreaWidth, containerHeight, data]);
 }
 
 export {useChartLabelLayout};
