@@ -55,6 +55,10 @@ export default {
         marginHorizontal: 8,
     },
 
+    mh2half: {
+        marginHorizontal: 10,
+    },
+
     mh3: {
         marginHorizontal: 12,
     },
