@@ -732,6 +732,7 @@ function MoneyRequestReportActionsList({
                                 role="button"
                                 accessibilityState={{checked: isSelectAllChecked}}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL}
                             >
                                 <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>

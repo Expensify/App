@@ -22,5 +22,4 @@ function useFilterSelectedTransactions(transactions: Transaction[]) {
     }, [filteredSelectedTransactionIDs]);
 }
 
-
 export default useFilterSelectedTransactions;
