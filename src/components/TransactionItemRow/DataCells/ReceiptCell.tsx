@@ -27,16 +27,12 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
     const isEReceipt = transactionItem.hasEReceipt && isMissingReceiptSource;
     const isPerDiem = isPerDiemRequest(transactionItem) && isMissingReceiptSource;
     let source = transactionItem?.receipt?.source ?? '';
-    let previewSource = transactionItem?.receipt?.source ?? '';
 
     if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
 
         source = tryResolveUrlFromApiRoot(receiptURIs.thumbnail320 ?? receiptURIs.image ?? '');
-
-        const previewImageURI = Str.isImage(filename) ? receiptURIs.image : receiptURIs.thumbnail320;
-        previewSource = tryResolveUrlFromApiRoot(previewImageURI ?? '');
     }
 
     return (
@@ -70,7 +66,7 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
                 isPerDiemRequest={isPerDiem}
             />
             <ReceiptPreview
-                source={previewSource}
+                source={source}
                 hovered={hovered}
                 isEReceipt={!!isEReceipt}
                 transactionItem={transactionItem}
