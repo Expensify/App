@@ -12210,7 +12210,7 @@ function prepareRejectMoneyRequestData(
                 total: transactionAmount,
                 currency: getCurrency(transaction),
                 nonReimbursableTotal: transactionAmount,
-                parentReportActionID: rejectedToReportID,
+                optimisticIOUReportID: rejectedToReportID,
                 reportTransactions,
                 betas,
             });
