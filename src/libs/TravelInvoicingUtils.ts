@@ -35,6 +35,15 @@ function getTravelLimit(cardSettings: OnyxEntry<ExpensifyCardSettings>): number 
 }
 
 /**
+ * Checks if the workspace has an outstanding Travel Invoicing balance.
+ * Returns true if there is unpaid travel spend, blocking disable.
+ */
+function hasOutstandingTravelBalance(cardSettings: OnyxEntry<ExpensifyCardSettings>): boolean {
+    const currentBalance = cardSettings?.currentBalance ?? 0;
+    return currentBalance > 0;
+}
+
+/**
  * Gets the current spend for Travel Invoicing.
  * This is the sum of all posted Travel Invoicing card transactions.
  * Returns 0 if no settings are available.
@@ -98,6 +107,7 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 export {
     getIsTravelInvoicingEnabled,
     hasTravelInvoicingSettlementAccount,
+    hasOutstandingTravelBalance,
     getTravelLimit,
     getTravelSpend,
     getTravelSettlementAccount,
