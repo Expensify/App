@@ -14,6 +14,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import RHPAccessibilityWrapper from './RHPAccessibilityWrapper';
 
 const loadReportScreen = () => require<ReactComponentModule>('@pages/inbox/ReportScreen').default;
 const loadSidebarScreen = () => require<ReactComponentModule>('@pages/inbox/sidebar/BaseSidebarScreen').default;
@@ -59,26 +60,28 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     };
 
     return (
-        <FreezeWrapper>
-            <Split.Navigator
-                persistentScreens={[SCREENS.INBOX]}
-                sidebarScreen={SCREENS.INBOX}
-                defaultCentralScreen={SCREENS.REPORT}
-                parentRoute={route}
-                screenOptions={splitNavigatorScreenOptions.centralScreen}
-            >
-                <Split.Screen
-                    name={SCREENS.INBOX}
-                    getComponent={loadSidebarScreen}
-                    options={splitNavigatorScreenOptions.sidebarScreen}
-                />
-                <Split.Screen
-                    name={SCREENS.REPORT}
-                    initialParams={reportScreenInitialParams}
-                    getComponent={loadReportScreen}
-                />
-            </Split.Navigator>
-        </FreezeWrapper>
+        <RHPAccessibilityWrapper>
+            <FreezeWrapper>
+                <Split.Navigator
+                    persistentScreens={[SCREENS.INBOX]}
+                    sidebarScreen={SCREENS.INBOX}
+                    defaultCentralScreen={SCREENS.REPORT}
+                    parentRoute={route}
+                    screenOptions={splitNavigatorScreenOptions.centralScreen}
+                >
+                    <Split.Screen
+                        name={SCREENS.INBOX}
+                        getComponent={loadSidebarScreen}
+                        options={splitNavigatorScreenOptions.sidebarScreen}
+                    />
+                    <Split.Screen
+                        name={SCREENS.REPORT}
+                        initialParams={reportScreenInitialParams}
+                        getComponent={loadReportScreen}
+                    />
+                </Split.Navigator>
+            </FreezeWrapper>
+        </RHPAccessibilityWrapper>
     );
 }
 

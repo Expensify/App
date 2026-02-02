@@ -181,7 +181,12 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 )}
                 {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                 {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
-                <Animated.View style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}>
+                <Animated.View
+                    style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                    role="dialog"
+                    aria-modal
+                    accessibilityViewIsModal
+                >
                     <Stack.Navigator
                         screenOptions={screenOptions}
                         screenListeners={screenListeners}
