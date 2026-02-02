@@ -3889,7 +3889,7 @@ function leaveGroupChat(report: Report, shouldClearQuickAction: boolean, current
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(report: Report, currentUserAccountID: number, isWorkspaceMemberLeavingWorkspaceRoom = false, conciergeReportID: string | undefined) {
+function leaveRoom(report: Report, currentUserAccountID: number, conciergeReportID: string | undefined, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const reportID = report.reportID;
     const isChatThread = isChatThreadReportUtils(report);
 
