@@ -75,8 +75,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // 1. Check if there's an error - stop processing
         if (error) {
             if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS) {
-                const noEligibleMethodsOutcome = getOutcomePath(scenarioLowerCase, 'no-eligible-methods');
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(noEligibleMethodsOutcome), {forceReplace: true});
+                const noEligibleMethodsOutcomePath = getOutcomePath(scenarioLowerCase, 'no-eligible-methods');
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(noEligibleMethodsOutcomePath), {forceReplace: true});
             } else {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.failureOutcome), {forceReplace: true});
             }
@@ -127,9 +127,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             }
 
             // Check if soft prompt is needed (device support already verified above)
-            const isSoftPromptRequired = !softPromptApproved;
+            const shouldNavigateToPromptPage = !softPromptApproved;
 
-            if (isSoftPromptRequired) {
+            if (shouldNavigateToPromptPage) {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS), {forceReplace: true});
                 return;
             }
@@ -149,18 +149,18 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 }
 
                 // Call backend to register the public key
-                const registrationResult = await processRegistration({
+                const registrationResponse = await processRegistration({
                     publicKey: result.publicKey,
                     authenticationMethod: result.authenticationMethod,
                     challenge: registrationChallenge.challenge,
                     currentPublicKeyIDs: biometrics.serverKnownCredentialIDs,
                 });
 
-                if (!registrationResult.success) {
+                if (!registrationResponse.success) {
                     dispatch({
                         type: 'SET_ERROR',
                         payload: {
-                            reason: registrationResult.reason,
+                            reason: registrationResponse.reason,
                         },
                     });
                     return;
@@ -219,17 +219,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     }
 
                     // Call backend with signed challenge
-                    const scenarioResult = await processScenario(scenario, {
+                    const scenarioAPIResponse = await processScenario(scenario, {
                         signedChallenge: result.signedChallenge,
                         authenticationMethod: result.authenticationMethod,
                         ...payload,
                     });
 
-                    if (!scenarioResult.success) {
+                    if (!scenarioAPIResponse.success) {
                         dispatch({
                             type: 'SET_ERROR',
                             payload: {
-                                reason: scenarioResult.reason,
+                                reason: scenarioAPIResponse.reason,
                             },
                         });
                         return;

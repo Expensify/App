@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
-import {getHasBiometricsRegistered, useMultifactorAuthentication, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
+import {serverHasRegisteredCredentials, useMultifactorAuthentication, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,7 +24,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const styles = useThemeStyles();
     const {cancel, executeScenario} = useMultifactorAuthentication();
     const {state, dispatch} = useMultifactorAuthenticationState();
-    const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: getHasBiometricsRegistered});
+    const [serverHasCredentials = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: serverHasRegisteredCredentials});
 
     const {animation, title, subtitle} = usePromptContent(route.params.promptType);
 
@@ -54,6 +54,14 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
         return false;
     };
 
+    /**
+     * Executes the MFA scenario when navigated from the test tool menu.
+     * This only runs when the user is already registered with biometrics
+     * and manually triggers a scenario test from the test tool menu.
+     * In this case, the page acts as a "background screen" to show that an action is being taken
+     * (e.g., biometric verification in progress), rather than as a soft prompt asking for approval.
+     * The page is reused but displayed without the confirm button, communicating that the scenario is executing.
+     */
     useEffect(() => {
         const {scenario} = route.params;
 
@@ -85,7 +93,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                     subtitle={subtitle}
                 />
                 <FixedFooter style={[styles.flexColumn, styles.gap3]}>
-                    {!state.softPromptApproved && !state.isRegistrationComplete && !hasBiometricsRegistered ? (
+                    {!state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials ? (
                         <Button
                             success
                             onPress={onConfirm}

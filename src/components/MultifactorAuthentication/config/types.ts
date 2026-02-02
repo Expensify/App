@@ -6,7 +6,7 @@ import type {EmptyObject, KebabCase, Replace, ValueOf} from 'type-fest';
 import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {
-    AllMultifactorAuthenticationFactors,
+    AllMultifactorAuthenticationBaseParameters,
     MultifactorAuthenticationActionParams,
     MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationReason,
@@ -203,22 +203,14 @@ type MultifactorAuthenticationScenarioAdditionalParams<T extends MultifactorAuth
 /**
  * Optional authentication factors with scenario-specific parameters.
  */
-type MultifactorAuthenticationScenarioParams<T extends MultifactorAuthenticationScenario> = Partial<AllMultifactorAuthenticationFactors> &
+type MultifactorAuthenticationScenarioParams<T extends MultifactorAuthenticationScenario> = Partial<AllMultifactorAuthenticationBaseParameters> &
     MultifactorAuthenticationScenarioAdditionalParams<T>;
 
 /**
  * All required authentication factors with scenario-specific parameters.
  */
-type MultifactorAuthenticationProcessScenarioParameters<T extends MultifactorAuthenticationScenario> = AllMultifactorAuthenticationFactors &
+type MultifactorAuthenticationProcessScenarioParameters<T extends MultifactorAuthenticationScenario> = AllMultifactorAuthenticationBaseParameters &
     MultifactorAuthenticationScenarioAdditionalParams<T>;
-
-/**
- * Scenario response with success status indicator.
- */
-type MultifactorAuthenticationScenarioResponseWithSuccess = {
-    httpCode: number | undefined;
-    successful: boolean;
-};
 
 type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATION_PROMPT_UI;
 
@@ -256,7 +248,6 @@ export type {
     MultifactorAuthenticationModal,
     MultifactorAuthenticationOutcomeRecord,
     MultifactorAuthenticationOutcomeMap,
-    MultifactorAuthenticationScenarioResponseWithSuccess,
     MultifactorAuthenticationScenarioResponse,
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParameters,

@@ -1,47 +1,38 @@
 import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {InteractionManager} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
+import {serverHasRegisteredCredentials, useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Account} from '@src/types/onyx';
-
-const LOADING_DELAY_MS = 400;
-
-function getHasBiometricsRegistered(data: OnyxEntry<Account>) {
-    return data?.multifactorAuthenticationPublicKeyIDs && data.multifactorAuthenticationPublicKeyIDs.length > 0;
-}
 
 function MultifactorAuthenticationBiometricsTestPage() {
     const {executeScenario} = useMultifactorAuthentication();
-    const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: getHasBiometricsRegistered});
+    const [serverHasCredentials = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: serverHasRegisteredCredentials});
 
     useEffect(() => {
-        if (hasBiometricsRegistered) {
+        if (serverHasCredentials) {
             return;
         }
 
-        // Show a short loading state so the RHP transition feels smooth, then move to the magic code flow
-        const timeoutId = setTimeout(() => {
-            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
-        }, LOADING_DELAY_MS);
+        // The reason for using it, despite it being deprecated: https://github.com/Expensify/App/pull/79473/files#r2745847379
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST));
 
-        return () => clearTimeout(timeoutId);
         // This should only fire once - on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        if (!hasBiometricsRegistered || Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'))) {
+        if (!serverHasCredentials || Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'))) {
             return;
         }
 
         Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics', CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST));
-    }, [hasBiometricsRegistered]);
+    }, [serverHasCredentials]);
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationBiometricsTestPage.displayName}>

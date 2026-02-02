@@ -178,7 +178,6 @@ function MultifactorAuthenticationValidateCodePage() {
     };
 
     const onGoBackPress = () => {
-        // TODO: We probably do not need to trigger anything as the RHP is closed
         cancel();
         // Close the RHP instead of returning to the invisible biometrics test screen
         Navigation.dismissModal();

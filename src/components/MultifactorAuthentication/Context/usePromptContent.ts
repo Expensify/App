@@ -14,8 +14,13 @@ type PromptContent = {
     subtitle: TranslationPaths | undefined;
 };
 
-function getHasBiometricsRegistered(data: OnyxEntry<Account>) {
-    return data?.multifactorAuthenticationPublicKeyIDs && data.multifactorAuthenticationPublicKeyIDs.length > 0;
+/**
+ * Selector to check if server has any registered credentials for this account.
+ * Note: This checks server state only, not device-local credentials.
+ */
+function serverHasRegisteredCredentials(data: OnyxEntry<Account>) {
+    const credentialIDs = data?.multifactorAuthenticationPublicKeyIDs;
+    return credentialIDs && credentialIDs.length > 0;
 }
 
 /**
@@ -30,11 +35,12 @@ function getHasBiometricsRegistered(data: OnyxEntry<Account>) {
  */
 function usePromptContent(promptType: MultifactorAuthenticationPromptType): PromptContent {
     const {state} = useMultifactorAuthenticationState();
-    const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: getHasBiometricsRegistered});
+    const [serverHasCredentials = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: serverHasRegisteredCredentials});
 
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[promptType];
 
-    const isReturningUser = hasBiometricsRegistered && !state.softPromptApproved;
+    // Returning user: server has credentials, but user hasn't approved soft prompt yet
+    const isReturningUser = serverHasCredentials && !state.softPromptApproved;
 
     let title: TranslationPaths = contentData.title;
     let subtitle: TranslationPaths | undefined = contentData.subtitle;
@@ -55,4 +61,4 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
 }
 
 export default usePromptContent;
-export {getHasBiometricsRegistered};
+export {serverHasRegisteredCredentials};

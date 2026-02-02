@@ -1,8 +1,8 @@
 /**
  * Type definitions for multifactor authentication biometrics operations.
  */
-import type {EmptyObject, ValueOf} from 'type-fest';
-import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
+import type {ValueOf} from 'type-fest';
+import type {AllMultifactorAuthenticationOutcomeType} from '@components/MultifactorAuthentication/config/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
@@ -22,15 +22,6 @@ type OutcomePaths = {
 };
 
 /**
- * Conditional type for including or omitting the step field in partial status.
- */
-type MultifactorAuthenticationPartialStatusConditional<OmitStep> = OmitStep extends false
-    ? {
-          step: MultifactorAuthenticationStep;
-      }
-    : EmptyObject;
-
-/**
  * Represents the reason for a multifactor authentication response from the backend.
  */
 type MultifactorAuthenticationReason = ValueOf<{
@@ -38,10 +29,10 @@ type MultifactorAuthenticationReason = ValueOf<{
 }>;
 
 /**
- * Represents a partial status result of multifactor authentication operations.
- * Contains the operation result value, reason message, and optionally the authentication step state.
+ * Represents a status result of multifactor authentication keystore operation.
+ * Contains the operation result value, reason message and auth type code.
  */
-type MultifactorAuthenticationPartialStatus<T, OmitStep = false> = MultifactorAuthenticationPartialStatusConditional<OmitStep> & {
+type MultifactorAuthenticationKeyStoreStatus<T> = {
     value: T;
 
     reason: MultifactorAuthenticationReason;
@@ -49,42 +40,12 @@ type MultifactorAuthenticationPartialStatus<T, OmitStep = false> = MultifactorAu
     type?: MultifactorAuthenticationMethodCode;
 };
 
-type MultifactorAuthenticationStatus<T, OmitStep = false> = MultifactorAuthenticationPartialStatus<T, OmitStep> & {
-    typeName?: string;
-
-    headerTitle: string;
-
-    title: string;
-
-    description: string;
-
-    scenario: MultifactorAuthenticationScenario | undefined;
-
-    outcomePaths: OutcomePaths;
-};
-
 /**
- * Individual authentication factor types.
+ * Combined type representing all possible authentication base parameters.
  */
-type MultifactorAuthenticationFactor = ValueOf<typeof VALUES.FACTORS>;
-
-/**
- * Combined type representing all possible authentication factors (required and additional).
- */
-type AllMultifactorAuthenticationFactors = {
+type AllMultifactorAuthenticationBaseParameters = {
     signedChallenge: SignedChallenge;
     validateCode?: string | undefined;
-};
-
-/**
- * Represents the state of a step in the multifactor authentication flow.
- */
-type MultifactorAuthenticationStep = {
-    wasRecentStepSuccessful: boolean | undefined;
-
-    requiredFactorForNextStep: MultifactorAuthenticationFactor | undefined;
-
-    isRequestFulfilled: boolean;
 };
 
 /**
@@ -100,8 +61,8 @@ type MultifactorAuthenticationKeyType = ValueOf<typeof VALUES.KEY_ALIASES>;
 /**
  * Parameters for a multifactor authentication action with required authentication factor.
  */
-type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationFactors> = T &
-    Pick<AllMultifactorAuthenticationFactors, R> & {authenticationMethod: MarqetaAuthTypeName};
+type MultifactorAuthenticationActionParams<T extends Record<string, unknown>, R extends keyof AllMultifactorAuthenticationBaseParameters> = T &
+    Pick<AllMultifactorAuthenticationBaseParameters, R> & {authenticationMethod: MarqetaAuthTypeName};
 
 type MultifactorAuthenticationKeyInfo = {
     rawId: Base64URLString;
@@ -127,13 +88,10 @@ type MultifactorKeyStoreOptions<T extends MultifactorAuthenticationKeyType> = T 
 type ChallengeType = ValueOf<typeof VALUES.CHALLENGE_TYPE>;
 
 export type {
-    MultifactorAuthenticationFactor,
-    MultifactorAuthenticationStep,
     MultifactorAuthenticationResponseMap,
     MultifactorAuthenticationKeyType,
-    AllMultifactorAuthenticationFactors,
-    MultifactorAuthenticationStatus,
-    MultifactorAuthenticationPartialStatus,
+    AllMultifactorAuthenticationBaseParameters,
+    MultifactorAuthenticationKeyStoreStatus,
     MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationActionParams,
     MultifactorKeyStoreOptions,

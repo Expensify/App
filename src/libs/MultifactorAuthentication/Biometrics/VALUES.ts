@@ -52,8 +52,6 @@ const REASON = {
         SIGNATURE_INVALID: 'Signature is invalid',
         SIGNATURE_MISSING: 'Signature is missing',
         NO_ACTION_MADE_YET: 'No action has been made yet',
-        FACTORS_ERROR: 'Authentication factors error',
-        FACTORS_VERIFIED: 'Authentication factors verified',
         VALIDATE_CODE_MISSING: 'Validate code is missing',
         NO_ELIGIBLE_METHODS: 'No eligible methods available',
         BAD_REQUEST: 'Bad request',
@@ -165,7 +163,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     EXPO_ERRORS,
 
     /**
-     * Maps authentication factors and Expo errors to appropriate reason messages.
+     * Maps authentication Expo errors to appropriate reason messages.
      */
     EXPO_ERROR_MAPPINGS: {
         [EXPO_ERRORS.SEARCH_STRING.CANCELED]: REASON.EXPO.CANCELED,
@@ -197,10 +195,10 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         AUTHENTICATION: 'authentication',
     },
     /**
-     * Named factors for backwards compatibility and constituency.
-     * These are the essential params for MultifactorAuthentication API calls.
+     * One of these parameters are always present in any MFA request.
+     * Validate code in the registration and signedChallenge in the authentication.
      */
-    FACTORS: {
+    BASE_PARAMETERS: {
         SIGNED_CHALLENGE: 'signedChallenge',
         VALIDATE_CODE: 'validateCode',
     },
