@@ -32,6 +32,7 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -581,7 +582,16 @@ function IOURequestStepConfirmation({
                     if (distance && unit && rate) {
                         // Convert distance to meters
                         const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-                        merchantToUse = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, item.currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
+                        merchantToUse = DistanceRequestUtils.getDistanceMerchant(
+                            true,
+                            distanceInMeters,
+                            unit,
+                            rate,
+                            item.currency ?? CONST.CURRENCY.USD,
+                            translate,
+                            toLocaleDigit,
+                            getCurrencySymbol,
+                        );
                     }
                 }
 
@@ -665,19 +675,21 @@ function IOURequestStepConfirmation({
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
+            isTimeRequest,
             shouldGenerateTransactionThreadReport,
             backToReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
             policyRecentlyUsedCurrencies,
             quickAction,
+            isSelfTourViewed,
             viewTourTaskReport,
             viewTourTaskParentReport,
             isViewTourTaskParentReportArchived,
             hasOutstandingChildTask,
             parentReportAction,
-            isTimeRequest,
-            isSelfTourViewed,
+            translate,
+            toLocaleDigit,
         ],
     );
 
