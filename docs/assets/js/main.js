@@ -75,48 +75,7 @@ function injectFooterCopyright() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
-function closeSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'none';
-
-    // Make the body scrollable again
-    const body = document.body;
-    const scrollY = body.style.top;
-
-    // Reset the position and top styles of the body element
-    body.style.position = '';
-    body.style.top = '';
-
-    // Scroll to the original scroll position
-    window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
-}
-
-function closeSidebarOnClickOutside(event) {
-    const sidebarLayer = document.getElementById('sidebar-layer');
-
-    if (event.target !== sidebarLayer) {
-        return;
-    }
-    closeSidebar();
-}
-
-function openSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'block';
-    document.getElementById('search-input').focus();
-
-    // Make body unscrollable
-    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
-    const body = document.body;
-    body.style.position = 'fixed';
-    body.style.top = `-${yAxis}`;
-
-    // Close the sidebar when clicking sidebar layer (outside the sidebar search)
-    const sidebarLayer = document.getElementById('sidebar-layer');
-    if (sidebarLayer) {
-        sidebarLayer.addEventListener('click', closeSidebarOnClickOutside);
-    }
-}
-
-const SEARCH_API_URL = 'https://expensify.com/api/SearchHelpsite';
+const SEARCH_API_URL = 'https://www.expensify.com.dev/api/SearchHelpsite';
 
 function getTitleFromURL(url) {
     return url.split('/').pop().replace(/-/g, ' ');
@@ -132,13 +91,11 @@ function cloneTemplate(templateId) {
     return document.getElementById(templateId).content.cloneNode(true);
 }
 
-/**
- * Search the help site using the SearchHelpsite API.
- *
- * @param {string} query
- */
-function searchHelpsite(query) {
-    const resultsContainer = document.getElementById('search-results');
+
+// Search page
+
+function searchPageQuery(query) {
+    const resultsContainer = document.getElementById('search-page-results');
     if (!query.trim()) {
         resultsContainer.innerHTML = '';
         return;
@@ -147,38 +104,34 @@ function searchHelpsite(query) {
     resultsContainer.innerHTML = '';
     resultsContainer.appendChild(cloneTemplate('search-loading-template'));
 
-    const isClassic = window.location.pathname.startsWith('/expensify-classic/');
     const formData = new FormData();
     formData.append('command', 'SearchHelpsite');
     formData.append('query', query.trim());
-    if (isClassic) {
-        formData.append('platform', 'expensify-classic');
+
+    const platform = new URLSearchParams(window.location.search).get('platform');
+    if (platform) {
+        formData.append('platform', platform);
     }
 
-    fetch(SEARCH_API_URL, {
-        method: 'POST',
-        body: formData,
-    })
-        .then((response) => response.json())
+    fetch(SEARCH_API_URL, {method: 'POST', body: formData})
+        .then((r) => r.json())
         .then((data) => {
-            const results = (data.searchResults || []).filter((result) => !result.url.includes('/Unlisted/'));
+            const results = (data.searchResults || []).filter((r) => !r.url.includes('/Unlisted/'));
             resultsContainer.innerHTML = '';
-
             if (results.length === 0) {
                 resultsContainer.appendChild(cloneTemplate('search-no-results-template'));
                 return;
             }
-
             results.forEach((result) => {
                 const item = cloneTemplate('search-result-item-template');
                 const link = item.querySelector('.search-result-item');
                 link.href = result.url;
                 link.querySelector('.search-result-title').textContent = getTitleFromURL(result.url);
-                const description = link.querySelector('.search-result-description');
+                const desc = link.querySelector('.search-result-description');
                 if (result.description) {
-                    description.textContent = result.description;
+                    desc.textContent = result.description;
                 } else {
-                    description.remove();
+                    desc.remove();
                 }
                 resultsContainer.appendChild(item);
             });
@@ -189,15 +142,42 @@ function searchHelpsite(query) {
         });
 }
 
-function initSearch() {
-    const searchForm = document.getElementById('search-form');
+function clearSearchPage() {
+    const input = document.getElementById('search-page-input');
+    input.value = '';
+    input.focus();
+}
 
-    if (searchForm) {
-        searchForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            searchHelpsite(document.getElementById('search-input').value);
-        });
+function initSearchPage() {
+    const searchForm = document.getElementById('search-page-form');
+    if (!searchForm) {
+        return;
     }
+
+    const input = document.getElementById('search-page-input');
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('q') || '';
+    const platform = params.get('platform') || '';
+
+    const title = document.getElementById('search-page-title');
+    if (query) {
+        input.value = query;
+        title.textContent = 'Search results';
+        searchPageQuery(query);
+    }
+
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const q = input.value.trim();
+        if (q) {
+            const url = '/search?q=' + encodeURIComponent(q) + (platform ? '&platform=' + encodeURIComponent(platform) : '');
+            history.replaceState(null, '', url);
+            title.textContent = 'Search results';
+            searchPageQuery(q);
+        }
+    });
+
+    document.getElementById('search-page-clear').addEventListener('click', clearSearchPage);
 }
 
 const FIXED_HEADER_HEIGHT = 80;
