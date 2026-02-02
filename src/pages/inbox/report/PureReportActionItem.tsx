@@ -597,6 +597,7 @@ function PureReportActionItem({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionID) {
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+            // eslint-disable-next-line rulesdir/no-default-id-values
             cleanUpMoneyRequest(transactionID, action, reportID ?? '', report, chatReport, undefined, true);
             return;
         }
