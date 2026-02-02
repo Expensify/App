@@ -76,6 +76,7 @@ import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import TiltedCoinExpensify from '@assets/images/product-illustrations/tilted-coin-expensify.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
+import ToddInCarGPS from '@assets/images/product-illustrations/todd-in-car-gps.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
@@ -242,6 +243,7 @@ const Illustrations = {
     TiltedCoinExpensify,
     ToddBehindCloud,
     ToddInCar,
+    ToddInCarGPS,
     ToddWithPhones,
     WorkspaceScene,
 

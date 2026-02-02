@@ -5176,8 +5176,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         gpsWebIllustrationContainer: {
-            width: 286,
-            height: 188,
+            width: 256,
+            height: 144,
         },
 
         emptyStateCardIllustrationContainer: {
