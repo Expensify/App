@@ -60,10 +60,10 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const personalDetails = usePersonalDetails();
 
     // Load thread transaction's complete duplicate list for cross-workspace comparison
-    const threadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`];
+    const threadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(route.params?.threadReportID)}`];
     const threadViolations = useTransactionViolations(getTransactionID(threadReport));
     const [threadDuplicates] = useTransactionsByID(
-        useMemo(() => threadViolations?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [threadViolations]),
+        threadViolations?.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
     );
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
