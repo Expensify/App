@@ -255,7 +255,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      * - Waits for a scenario to be set via executeScenario() before running
      * - Re-evaluates the flow whenever key state fields change (e.g., validateCode entered, challenge received)
      * - Each run of process() checks current state and advances to the next step or completes the flow
-     * */
+     *
+     * TODO: This pattern will likely be refactored to address React rules violations and race condition risks.
+     * See: https://github.com/Expensify/App/issues/81197
+     */
     useEffect(() => {
         // Don't run until a scenario has been initiated
         if (!state.scenario) {
