@@ -2222,7 +2222,7 @@ function getCardSections(
                     } as OnyxTypes.Card,
                     translate,
                 ),
-                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds) ?? '',
+                formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds),
             };
         }
     }

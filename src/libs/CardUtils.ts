@@ -537,9 +537,9 @@ function getFeedNameForDisplay(
     cardFeeds: OnyxCollection<CardFeeds> | undefined,
     customFeedName?: string,
     shouldAddCardsSuffix = true,
-): string | undefined {
+): string {
     if (!feed) {
-        return undefined;
+        return '';
     }
 
     // If cardFeeds is undefined, data hasn't loaded yet - return empty string to avoid showing incorrect state
@@ -555,7 +555,7 @@ function getFeedNameForDisplay(
 
     const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
 
-    return getCustomOrFormattedFeedName(translate, feed, customName, shouldAddCardsSuffix);
+    return getCustomOrFormattedFeedName(translate, feed, customName, shouldAddCardsSuffix) ?? '';
 }
 
 function getPlaidInstitutionIconUrl(feedName?: string) {
