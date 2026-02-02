@@ -13,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -46,7 +47,9 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCleanedTagName(rule.tag)));
     }
     if (rule.comment) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, rule.comment));
+        // Convert HTML comment to markdown for display
+        const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, commentMarkdown));
     }
     if (rule.tax?.field_id_TAX?.value) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
