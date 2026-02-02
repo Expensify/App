@@ -1338,7 +1338,7 @@ function getLastVisibleMessage(
         };
     }
 
-    if (isReportPreviewAction(lastVisibleAction)) {
+    if (isReportPreviewAction(lastVisibleAction) && lastVisibleAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         return {
             lastMessageText: '',
         };

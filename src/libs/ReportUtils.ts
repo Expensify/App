@@ -5134,6 +5134,9 @@ function getReportPreviewMessage(
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
     if (isCopyAction) {
+        if (originalReportAction?.childMoneyRequestCount === 0 && originalReportAction?.childReportName) {
+            return originalReportAction.childReportName;
+        }
         if (report) {
             return computeReportName(report) || (originalReportAction?.childReportName ?? '');
         }
@@ -5145,12 +5148,9 @@ function getReportPreviewMessage(
         // 1. After SignIn, the OpenApp API won't return iouReports if they're settled.
         // 2. The iouReport exists in local storage but hasn't been loaded into the allReports. It will be loaded automatically when the user opens the iouReport.
         // Until we know how to solve this the best, we just display the report action message.
-        // If the report is empty, we display the report name to avoid showing "payer owes 0"
-        if (
-            originalReportAction?.childMoneyRequestCount === 0 &&
-            (originalReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        ) {
-            return originalReportAction?.childReportName ?? '';
+        // If the report is empty and has no expenses, show the report name to avoid "payer owes $0"
+        if (originalReportAction?.childMoneyRequestCount === 0 && originalReportAction?.childReportName) {
+            return originalReportAction.childReportName;
         }
         return reportActionMessage;
     }
