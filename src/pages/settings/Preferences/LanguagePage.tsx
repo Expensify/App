@@ -20,9 +20,9 @@ function LanguagePage() {
     const isOptionSelected = useRef(false);
 
     const locales = useMemo(() => {
-        const orderedLocales = preferredLocale ? [preferredLocale, ...SORTED_LOCALES.filter((locale) => locale !== preferredLocale)] : SORTED_LOCALES;
+        const sortedLocales = preferredLocale ? [preferredLocale, ...SORTED_LOCALES.filter((locale) => locale !== preferredLocale)] : SORTED_LOCALES;
 
-        return orderedLocales.map((locale) => ({
+        return sortedLocales.map((locale) => ({
             value: locale,
             text: LOCALE_TO_LANGUAGE_STRING[locale],
             accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
