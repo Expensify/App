@@ -41,6 +41,7 @@ type SectionItemType = {
     required?: boolean;
     title?: string;
     onPress: () => void;
+    shouldParseTitle?: boolean;
 };
 
 type SectionType = {
@@ -292,6 +293,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     descriptionTranslationKey: 'common.description',
                     title: form?.comment,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID, ruleID)),
+                    shouldParseTitle: true,
                 },
                 {
                     descriptionTranslationKey: 'common.reimbursable',
@@ -350,6 +352,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                         shouldShowRightIcon
                                         title={item.title}
                                         titleStyle={styles.flex1}
+                                        shouldParseTitle={item.shouldParseTitle}
                                     />
                                 ))}
                         </View>
