@@ -91,8 +91,6 @@ function cloneTemplate(templateId) {
     return document.getElementById(templateId).content.cloneNode(true);
 }
 
-
-
 function searchPageQuery(query) {
     const resultsContainer = document.getElementById('search-page-results');
     if (!query.trim()) {
@@ -260,7 +258,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     initSearchPage();
-
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
