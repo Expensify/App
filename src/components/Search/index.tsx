@@ -272,7 +272,7 @@ function Search({
         selector: selectFilteredReportActions,
     });
 
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
@@ -321,6 +321,9 @@ function Search({
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
     const prevValidGroupBy = usePrevious(validGroupBy);
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
+
+    // When grouping by card, we need cardFeeds to display feed names
+    const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
 
     useEffect(() => {
         if (prevValidGroupBy === validGroupBy) {
@@ -397,7 +400,10 @@ function Search({
     const shouldShowLoadingState =
         !shouldUseLiveData &&
         !isOffline &&
-        (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) || (hasErrors && !searchRequestResponseStatusCode));
+        (!isDataLoaded ||
+            (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
+            (hasErrors && !searchRequestResponseStatusCode) ||
+            isCardFeedsLoading);
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
@@ -489,6 +495,7 @@ function Search({
                 translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
+                cardFeeds,
                 allReportMetadata,
             });
             return {...item, transactions: transactions1 as TransactionListItemType[]};
@@ -505,6 +512,7 @@ function Search({
         translate,
         formatPhoneNumber,
         isActionLoadingSet,
+        cardFeeds,
         bankAccountList,
         allReportMetadata,
     ]);
