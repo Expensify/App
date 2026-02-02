@@ -1,9 +1,9 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
 import {BackHandler} from 'react-native';
-import type UseHandleBackButtonCallback from './type';
+import type UseAndroidBackButtonHandlerCallback from './type';
 
-export default function useHandleBackButton(callback: UseHandleBackButtonCallback) {
+export default function useAndroidBackButtonHandler(callback: UseAndroidBackButtonHandlerCallback) {
     useFocusEffect(
         useCallback(() => {
             const backHandler = BackHandler.addEventListener('hardwareBackPress', callback);

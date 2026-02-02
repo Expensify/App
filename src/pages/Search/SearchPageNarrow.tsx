@@ -20,7 +20,7 @@ import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersB
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
-import useHandleBackButton from '@hooks/useHandleBackButton';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -101,7 +101,7 @@ function SearchPageNarrow({
         return true;
     }, [isMobileSelectionModeEnabled, clearSelectedTransactions, topBarOffset, StyleUtils.searchHeaderDefaultOffset]);
 
-    useHandleBackButton(handleBackButtonPress);
+    useAndroidBackButtonHandler(handleBackButtonPress);
 
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
