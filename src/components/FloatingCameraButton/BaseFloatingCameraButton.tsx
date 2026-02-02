@@ -77,6 +77,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
             onPress={onPress}
             role={CONST.ROLE.BUTTON}
             testID="floating-camera-button"
+            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_CAMERA_BUTTON}
         >
             <View
                 style={styles.floatingActionButton}

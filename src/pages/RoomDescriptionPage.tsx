@@ -59,12 +59,11 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     }, [report.reportID, backTo]);
 
     const submitForm = useCallback(() => {
-        const previousValue = report?.description ?? '';
         const newValue = description.trim();
 
-        updateDescription(report.reportID, previousValue, newValue, currentUserAccountID);
+        updateDescription(report, newValue, currentUserAccountID);
         goBack();
-    }, [report.reportID, report.description, description, goBack, currentUserAccountID]);
+    }, [report, description, goBack, currentUserAccountID]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {

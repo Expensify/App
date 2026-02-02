@@ -11,7 +11,6 @@ labels: Daily, Task, Access Change
 - [ ] Add / remove from the following Slack channels via Slack Connect
     - [ ] [#quality](https://expensify.enterprise.slack.com/archives/C05LX9D6E07)
     - [ ] [#convert](https://expensify.enterprise.slack.com/archives/C07HPDRELLD)
-    - [ ] [#retain](https://expensify.enterprise.slack.com/archives/C07NZ8B1VTQ)
     - [ ] [#migrate](https://expensify.enterprise.slack.com/archives/C07NMDKEFMH)
     - [ ] [#expensify-bugs](https://expensify.enterprise.slack.com/archives/C049HHMV9SM)
     - [ ] [#expensify-open-source](https://expensify.enterprise.slack.com/archives/C01GTK53T8Q)

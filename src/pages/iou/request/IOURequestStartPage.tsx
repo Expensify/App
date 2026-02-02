@@ -90,6 +90,7 @@ function IOURequestStartPage({
         selector: transactionDraftValuesSelector,
         canBeMissing: true,
     });
+    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((optimisticTransactions ?? []).length > 1);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const {isOffline} = useNetwork();
@@ -170,9 +171,7 @@ function IOURequestStartPage({
             return;
         }
         setSelectedTab(lastSelectedTab);
-        // We only want to set the selected tab when selectedTab is not set yet, don't want to run this effect again when lastSelectedTab changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoadingSelectedTab, selectedTab]);
+    }, [isLoadingSelectedTab, selectedTab, lastSelectedTab]);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
@@ -198,6 +197,7 @@ function IOURequestStartPage({
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
                 hasOnlyPersonalPolicies,
+                draftTransactions,
             });
         },
         [
@@ -213,6 +213,7 @@ function IOURequestStartPage({
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
+            draftTransactions,
         ],
     );
 
@@ -373,7 +374,6 @@ function IOURequestStartPage({
                                                     />
                                                 ) : (
                                                     <IOURequestStepDestination
-                                                        shouldAutoFocusInput={false}
                                                         openedFromStartPage
                                                         ref={perDiemInputRef}
                                                         explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}

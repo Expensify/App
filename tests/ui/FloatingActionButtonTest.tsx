@@ -102,14 +102,4 @@ describe('FloatingActionButton hover', () => {
 
         expect(animatedContainer).toBeVisible();
     });
-
-    it('should render regular button if LHB is not visible', () => {
-        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
-        renderFAB();
-
-        // Get the container by testID
-        const container = screen.getByTestId('fab-container');
-
-        expect(container).toBeVisible();
-    });
 });

@@ -1,8 +1,17 @@
 import Onyx from 'react-native-onyx';
-import {arePersonalDetailsMissing, createDisplayName, getEffectiveDisplayName, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {
+    arePersonalDetailsMissing,
+    createDisplayName,
+    createPersonalDetailsLookupByAccountID,
+    getAccountIDsByLogins,
+    getEffectiveDisplayName,
+    getPersonalDetailByEmail,
+    getPersonalDetailsOnyxDataForOptimisticUsers,
+} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import {formatPhoneNumber} from '../../utils/TestHelper';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 type PersonalDetailsForDisplayName = Pick<PersonalDetails, 'firstName' | 'lastName'> & {
     firstName?: string | null;
@@ -10,6 +19,14 @@ type PersonalDetailsForDisplayName = Pick<PersonalDetails, 'firstName' | 'lastNa
 };
 
 describe('PersonalDetailsUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
+    afterEach(() => Onyx.clear());
+
     describe('getEffectiveDisplayName', () => {
         test('should return undefined when personalDetail is undefined', () => {
             const result = getEffectiveDisplayName(formatPhoneNumber, undefined);
@@ -448,6 +465,187 @@ describe('PersonalDetailsUtils', () => {
             ['undefined', undefined],
         ] as const)('should return true when %s', (_description, details) => {
             expect(arePersonalDetailsMissing(details as PrivatePersonalDetails)).toBe(true);
+        });
+    });
+
+    describe('getAccountIDsByLogins', () => {
+        const accountID1 = 1;
+        const accountID2 = 2;
+        const accountID3 = 3;
+
+        it('should return account IDs for existing users', async () => {
+            const personalDetails: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                    displayName: 'User One',
+                },
+                [accountID2]: {
+                    accountID: accountID2,
+                    login: 'user2@example.com',
+                    displayName: 'User Two',
+                },
+                [accountID3]: {
+                    accountID: accountID3,
+                    login: 'user3@example.com',
+                    displayName: 'User Three',
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+
+            const result = getAccountIDsByLogins(['user1@example.com', 'user2@example.com']);
+            expect(result).toEqual([accountID1, accountID2]);
+        });
+
+        it('should generate optimistic account IDs for unknown users', async () => {
+            const personalDetails: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                    displayName: 'User One',
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+
+            const result = getAccountIDsByLogins(['user1@example.com', 'unknown@example.com']);
+
+            // First should be 1 (existing), second should be a generated optimistic ID
+            expect(result.at(0)).toBe(accountID1);
+            // Optimistic account IDs are generated - they should be different from real IDs
+            expect(result.at(1)).not.toBe(0);
+            expect(typeof result.at(1)).toBe('number');
+        });
+
+        it('should handle case-insensitive email matching', async () => {
+            const personalDetails: PersonalDetailsList = {
+                [accountID1]: {
+                    accountID: accountID1,
+                    login: 'user1@example.com',
+                    displayName: 'User One',
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+
+            // The cache is built with lowercase keys, so we need to test that the lookup works
+            const result = getAccountIDsByLogins(['USER1@EXAMPLE.COM']);
+            expect(result).toEqual([accountID1]);
+        });
+
+        it('should handle empty array', async () => {
+            const result = getAccountIDsByLogins([]);
+            expect(result).toEqual([]);
+        });
+    });
+
+    describe('getPersonalDetailByEmail', () => {
+        const testAccountID = 1;
+
+        it('should return personal details for an existing email', async () => {
+            const personalDetails: PersonalDetailsList = {
+                [testAccountID]: {
+                    accountID: testAccountID,
+                    login: 'test@example.com',
+                    displayName: 'Test User',
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+
+            const result = getPersonalDetailByEmail('test@example.com');
+            expect(result).toEqual({
+                accountID: testAccountID,
+                login: 'test@example.com',
+                displayName: 'Test User',
+            });
+        });
+
+        it('should return undefined for unknown email', async () => {
+            const personalDetails: PersonalDetailsList = {
+                [testAccountID]: {
+                    accountID: testAccountID,
+                    login: 'test@example.com',
+                    displayName: 'Test User',
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+
+            const result = getPersonalDetailByEmail('unknown@example.com');
+            expect(result).toBeUndefined();
+        });
+
+        it('should handle case-insensitive email lookup', async () => {
+            const personalDetails: PersonalDetailsList = {
+                [testAccountID]: {
+                    accountID: testAccountID,
+                    login: 'Test@Example.com',
+                    displayName: 'Test User',
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+
+            const result = getPersonalDetailByEmail('test@example.com');
+            expect(result).toEqual({
+                accountID: testAccountID,
+                login: 'Test@Example.com',
+                displayName: 'Test User',
+            });
+        });
+    });
+
+    describe('createPersonalDetailsLookupByAccountID', () => {
+        it('should create a lookup map from an array of personal details', () => {
+            const details: PersonalDetails[] = [
+                {accountID: 1, login: 'user1@example.com', displayName: 'User One'},
+                {accountID: 2, login: 'user2@example.com', displayName: 'User Two'},
+                {accountID: 3, login: 'user3@example.com', displayName: 'User Three'},
+            ];
+
+            const result = createPersonalDetailsLookupByAccountID(details);
+
+            expect(result[1]).toEqual({accountID: 1, login: 'user1@example.com', displayName: 'User One'});
+            expect(result[2]).toEqual({accountID: 2, login: 'user2@example.com', displayName: 'User Two'});
+            expect(result[3]).toEqual({accountID: 3, login: 'user3@example.com', displayName: 'User Three'});
+        });
+
+        it('should return an empty object for an empty array', () => {
+            const result = createPersonalDetailsLookupByAccountID([]);
+            expect(result).toEqual({});
+        });
+
+        it('should allow O(1) lookup by accountID', () => {
+            const details: PersonalDetails[] = [{accountID: 100, login: 'test@example.com', displayName: 'Test User'}];
+
+            const map = createPersonalDetailsLookupByAccountID(details);
+
+            // Direct access should work
+            expect(map[100]).toBeDefined();
+            expect(map[100].displayName).toBe('Test User');
+
+            // Non-existent key should be undefined
+            expect(map[999]).toBeUndefined();
+        });
+
+        it('should handle duplicate accountIDs by keeping the last occurrence', () => {
+            const details: PersonalDetails[] = [
+                {accountID: 1, login: 'first@example.com', displayName: 'First'},
+                {accountID: 1, login: 'second@example.com', displayName: 'Second'},
+            ];
+
+            const result = createPersonalDetailsLookupByAccountID(details);
+
+            // The second entry should overwrite the first
+            expect(result[1]).toEqual({accountID: 1, login: 'second@example.com', displayName: 'Second'});
         });
     });
 });

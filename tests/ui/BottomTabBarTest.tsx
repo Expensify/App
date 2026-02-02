@@ -93,7 +93,7 @@ describe('NavigationTabBar', () => {
                         lastMessageText: 'Hello world!',
                     });
 
-                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />);
+                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.INBOX} />);
 
                     expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
@@ -113,7 +113,7 @@ describe('NavigationTabBar', () => {
                         lastMessageText: 'Hello world!',
                     });
 
-                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />);
+                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.INBOX} />);
 
                     expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });

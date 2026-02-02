@@ -10,7 +10,7 @@ function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], p
 
     // Attendees field should show first when both are selected and attendee tracking is enabled
     // Respect feature flag - don't show attendees in title when feature is disabled
-    if (!CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED && isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
+    if (CONST.IS_ATTENDEES_REQUIRED_ENABLED && isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
         enabledFields.push(translate('iou.attendees'));
     }
 
@@ -37,7 +37,7 @@ function getIsMissingAttendeesViolation(
     isAttendeeTrackingEnabled = false,
 ) {
     // Feature flag to quickly disable the attendees required feature
-    if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
+    if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED) {
         return false;
     }
 
@@ -76,10 +76,12 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     userPersonalDetails: CurrentUserPersonalDetails,
     isAttendeeTrackingEnabled: boolean,
     isControlPolicy: boolean,
+    isInvoice = false,
 ): T[] {
     // Feature flag to quickly disable the attendees required feature
     // When disabled, remove any existing missingAttendees violations and don't add new ones
-    if (CONST.IS_ATTENDEES_REQUIRED_FEATURE_DISABLED) {
+    // Never add missingAttendees violation for invoices
+    if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED || isInvoice) {
         return violations.filter((v) => v.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
     }
 

@@ -201,6 +201,7 @@ function ReportActionItemImage({
                             onLoad={onLoad}
                             shouldUseFullHeight={shouldUseFullHeight}
                             onLoadFailure={onLoadFailure}
+                            isMapDistanceRequest={isMapDistanceRequest}
                         />
                     </PressableWithoutFocus>
                 )}

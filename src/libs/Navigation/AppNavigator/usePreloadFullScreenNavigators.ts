@@ -25,7 +25,7 @@ import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavi
 const TIMING_TO_CALL_PRELOAD = 1000;
 
 // Currently the Inbox, Workspaces and Account tabs are preloaded, while Search is not preloaded due to its potential complexity.
-const TABS_TO_PRELOAD = [NAVIGATION_TABS.HOME, NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
+const TABS_TO_PRELOAD = [NAVIGATION_TABS.INBOX, NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
 
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
@@ -61,7 +61,11 @@ function preloadAccountTab(navigation: PlatformStackNavigationProp<AuthScreensPa
 }
 
 function preloadInboxTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
-    navigation.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {screen: SCREENS.HOME});
+    navigation.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {screen: SCREENS.INBOX});
+}
+
+function preloadHomeTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
+    navigation.preload(SCREENS.HOME);
 }
 
 function preloadTab(tabName: string, navigation: PlatformStackNavigationProp<AuthScreensParamList>, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null) {
@@ -75,8 +79,11 @@ function preloadTab(tabName: string, navigation: PlatformStackNavigationProp<Aut
         case NAVIGATION_TABS.SETTINGS:
             preloadAccountTab(navigation, subscriptionPlan);
             return;
-        case NAVIGATION_TABS.HOME:
+        case NAVIGATION_TABS.INBOX:
             preloadInboxTab(navigation);
+            return;
+        case NAVIGATION_TABS.HOME:
+            preloadHomeTab(navigation);
             return;
         default:
             return undefined;

@@ -3,6 +3,7 @@ import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import type {Route} from '@src/ROUTES';
 import getMatchingNewRoute from './getMatchingNewRoute';
+import getRedirectedPath from './getRedirectedPath';
 
 /**
  * @param path - The path to parse
@@ -10,7 +11,8 @@ import getMatchingNewRoute from './getMatchingNewRoute';
  */
 function getStateFromPath(path: Route): PartialState<NavigationState> {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
-    const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
+    const redirectedPath = getRedirectedPath(normalizedPath);
+    const normalizedPathAfterRedirection = getMatchingNewRoute(redirectedPath) ?? redirectedPath;
 
     // This function is used in the linkTo function where we want to use default getStateFromPath function.
     const state = RNGetStateFromPath(normalizedPathAfterRedirection, linkingConfig.config);

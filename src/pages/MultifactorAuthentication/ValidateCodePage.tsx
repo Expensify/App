@@ -148,9 +148,7 @@ function MultifactorAuthenticationValidateCodePage() {
         setFormError({});
 
         // Temporary navigation, expected behavior: trigger submit from the MultifactorAuthenticationContext
-        // 'enable-biometrics' is a type of the MultifactorAuthentication prompt
-        // will be added as a part of scenario config in another PR to make it complacent with CONSISTENCY-2 (docs)
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
+        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS));
     };
 
     const onGoBackPress = () => {

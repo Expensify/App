@@ -29,6 +29,9 @@ type ListItem<K extends string | number = string> = {
     /** Alternate text to display */
     alternateText?: string | null;
 
+    /** Whether to force hide the alternate text even if it exists */
+    shouldHideAlternateText?: boolean;
+
     /** Accessibility label for screen readers */
     accessibilityLabel?: string;
 
