@@ -109,9 +109,9 @@ import {
     isDeletedAction,
     isHoldAction,
     isMoneyRequestAction,
+    isReportActionVisible,
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
-    shouldReportActionBeVisible,
 } from './ReportActionsUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
@@ -454,6 +454,7 @@ type GetSectionsParams = {
     isOffline?: boolean;
     cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
@@ -1850,7 +1851,7 @@ function createAndOpenSearchTransactionThread(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [ReportActionListItemType[], number] {
+function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
 
     const transactions = Object.keys(data)
@@ -1869,11 +1870,13 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
 
     for (const key in data) {
         if (isReportActionEntry(key)) {
+            const reportIDFromKey = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
             const reportActions = Object.values(data[key]);
             n += reportActions.length;
             for (const reportAction of reportActions) {
+                const reportID = reportAction.reportID ?? reportIDFromKey;
                 const from = reportAction.accountID ? (data.personalDetailsList?.[reportAction.accountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
+                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
@@ -1881,7 +1884,8 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
                 const invoiceReceiverPolicy: OnyxTypes.Policy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
                 if (
-                    !shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)) ||
+                    !reportID ||
+                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -2654,10 +2658,11 @@ function getSections({
     isOffline,
     cardFeeds,
     allTransactionViolations,
+    visibleReportActionsData,
     allReportMetadata,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data);
+        return getReportActionsSections(data, visibleReportActionsData);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getTaskSections(data, formatPhoneNumber, archivedReportsIDList);
@@ -3790,6 +3795,11 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
             return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
             return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE];
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE, CONST.SEARCH.DATE_PRESETS.NEVER];
         default:
             return defaultPresets;
     }

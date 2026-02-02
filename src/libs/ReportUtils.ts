@@ -37,6 +37,7 @@ import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
     Beta,
+    BetaConfiguration,
     IntroSelected,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -59,6 +60,7 @@ import type {
     Transaction,
     TransactionViolation,
     TransactionViolations,
+    VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -266,6 +268,7 @@ import {
     isRenamedAction,
     isReopenedAction,
     isReportActionAttachment,
+    isReportActionVisible,
     isReportPreviewAction,
     isRetractedAction,
     isReversedTransaction,
@@ -280,7 +283,6 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
-    shouldReportActionBeVisible,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -1112,6 +1114,12 @@ let allBetas: OnyxEntry<Beta[]>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.BETAS,
     callback: (value) => (allBetas = value),
+});
+
+let betaConfiguration: OnyxEntry<BetaConfiguration> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETA_CONFIGURATION,
+    callback: (value) => (betaConfiguration = value ?? {}),
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -7075,7 +7083,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report) ?? report?.reportName ?? '';
+    const reportName = Parser.htmlToText(getReportName(report) ?? report?.reportName ?? '');
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return translate('iou.movedTransactionTo', {
@@ -7097,7 +7105,7 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(fromReport) ?? fromReport?.reportName ?? '';
+    const reportName = Parser.htmlToText(getReportName(fromReport) ?? fromReport?.reportName ?? '');
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 
@@ -9198,14 +9206,23 @@ function isReportNotFound(report: OnyxEntry<Report>): boolean {
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
-function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined, isReportArchived: boolean | undefined): boolean {
+function shouldHideReport(
+    report: OnyxEntry<Report>,
+    currentReportId: string | undefined,
+    isReportArchived: boolean | undefined,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+): boolean {
     const currentReport = getReportOrDraftReport(currentReportId);
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
-    const isChildReportHasComment = Object.values(reportActions ?? {})?.some(
-        (reportAction) =>
-            (reportAction?.childVisibleActionCount ?? 0) > 0 && shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction(report, isReportArchived)),
-    );
+    const reportID = report?.reportID;
+    const isChildReportHasComment =
+        !!reportID &&
+        Object.values(reportActions ?? {})?.some(
+            (reportAction) =>
+                (reportAction?.childVisibleActionCount ?? 0) > 0 &&
+                isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData),
+        );
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
@@ -10233,7 +10250,13 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: boolean, canUserPerformWrite: boolean | undefined, isOffline: boolean) {
+function navigateToLinkedReportAction(
+    ancestor: Ancestor,
+    isInNarrowPaneModal: boolean,
+    canUserPerformWrite: boolean | undefined,
+    isOffline: boolean,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+) {
     if (isInNarrowPaneModal) {
         Navigation.navigate(
             ROUTES.SEARCH_REPORT.getRoute({
@@ -10248,7 +10271,8 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
     // Pop the thread report screen before navigating to the chat report.
     Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
 
-    const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWrite);
+    const reportID = ancestor.report.reportID;
+    const isVisibleAction = !!reportID && isReportActionVisible(ancestor.reportAction, reportID, canUserPerformWrite, visibleReportActionsData);
 
     if (isVisibleAction && !isOffline) {
         // Pop the chat report screen before navigating to the linked report action.
@@ -11605,8 +11629,8 @@ function prepareOnboardingOnyxData({
 
     // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
-    // When posting to admins room in non-production environments, we skip tasks in favor of backend-generated followups.
-    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && environment !== CONST.ENVIRONMENT.PRODUCTION;
+    // When posting to admins room and the user is in the suggestedFollowups beta, we skip tasks in favor of backend-generated followups.
+    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, allBetas, betaConfiguration);
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
@@ -12395,23 +12419,6 @@ function getIntegrationIcon(connectionName?: ConnectionName, expensifyIcons?: Re
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
         return expensifyIcons?.QBDSquare;
-    }
-
-    return undefined;
-}
-
-function getIntegrationExportIcon(connectionName?: ConnectionName): 'XeroExport' | 'QBOExport' | 'NetSuiteExport' | 'SageIntacctExport' | undefined {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return 'XeroExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO || connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
-        return 'QBOExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return 'NetSuiteExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
-        return 'SageIntacctExport';
     }
 
     return undefined;
@@ -13402,7 +13409,6 @@ export {
     getReportViolations,
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
-    getIntegrationExportIcon,
     canBeExported,
     isExported,
     hasExportError,
