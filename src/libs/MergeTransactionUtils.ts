@@ -14,7 +14,6 @@ import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
 import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
-import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     getAmount,
@@ -126,7 +125,9 @@ function isEmptyMergeValue(value: unknown) {
  * @param field - The merge field key to get the value for
  * @returns The value of the specified field from the transaction
  */
-function getMergeFieldValue(transactionDetails: TransactionDetails | undefined, transaction: OnyxEntry<Transaction>, field: MergeFieldKey) {
+function getMergeFieldValue(transaction: OnyxEntry<Transaction>, field: MergeFieldKey) {
+    const transactionDetails = getTransactionDetails(transaction, undefined, undefined, true, true);
+    console.log('got amount', transactionDetails?.amount);
     if (!transactionDetails || !transaction) {
         return '';
     }
@@ -206,12 +207,9 @@ function getMergeableDataAndConflictFields(
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
-    const targetTransactionDetails = getTransactionDetails(targetTransaction);
-    const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
-
     for (const field of getMergeFields(targetTransaction)) {
-        const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
-        const sourceValue = getMergeFieldValue(sourceTransactionDetails, sourceTransaction, field);
+        const targetValue = getMergeFieldValue(targetTransaction, field);
+        const sourceValue = getMergeFieldValue(sourceTransaction, field);
 
         const isTargetValueEmpty = isEmptyMergeValue(targetValue);
         const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
@@ -450,7 +448,7 @@ function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<
  * @returns The formatted display string for the field value
  */
 function getDisplayValue(field: MergeFieldKey, transaction: Transaction, translate: LocaleContextProps['translate'], reports?: Array<OnyxEntry<Report>>): string {
-    const fieldValue = getMergeFieldValue(getTransactionDetails(transaction), transaction, field);
+    const fieldValue = getMergeFieldValue(transaction, field);
 
     if (isEmptyMergeValue(fieldValue) || fieldValue === undefined) {
         return '';
@@ -555,8 +553,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(
     }
 
     if (field === 'merchant' && isDistanceRequest(transaction)) {
-        const transactionDetails = getTransactionDetails(transaction);
-        updatedValues.amount = getMergeFieldValue(transactionDetails, transaction, 'amount') as number;
+        updatedValues.amount = getMergeFieldValue(transaction, 'amount') as number;
         updatedValues.currency = getCurrency(transaction);
         updatedValues.customUnit = transaction?.comment?.customUnit;
         updatedValues.iouRequestType = transaction?.iouRequestType;

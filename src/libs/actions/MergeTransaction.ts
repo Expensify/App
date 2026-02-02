@@ -17,7 +17,7 @@ import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTrans
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -211,14 +211,13 @@ function getOnyxTargetTransactionData({
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Compare mergeTransaction with targetTransaction and remove fields with same values
-    const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const filteredTransactionChanges = Object.fromEntries(
         Object.entries(mergeTransaction).filter(([key, mergeValue]) => {
             if (!(MERGE_FIELDS as readonly string[]).includes(key)) {
                 return false;
             }
 
-            const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, key as MergeFieldKey);
+            const targetValue = getMergeFieldValue(targetTransaction, key as MergeFieldKey);
 
             return !deepEqual(mergeValue, targetValue);
         }),

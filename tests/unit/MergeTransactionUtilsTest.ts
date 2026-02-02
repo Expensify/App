@@ -13,7 +13,6 @@ import {
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
@@ -94,11 +93,10 @@ describe('MergeTransactionUtils', () => {
     describe('getMergeFieldValue', () => {
         it('should return empty string when transaction is undefined', () => {
             // Given an undefined transaction
-            const transactionDetails = undefined;
             const transaction = undefined;
 
             // When we try to get a merge field value
-            const result = getMergeFieldValue(transactionDetails, transaction, 'merchant');
+            const result = getMergeFieldValue(transaction, 'merchant');
 
             // Then it should return an empty string because the transaction is undefined
             expect(result).toBe('');
@@ -113,7 +111,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get the merchant field value
-            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'merchant');
+            const result = getMergeFieldValue(transaction, 'merchant');
 
             // Then it should return the merchant value from the transaction
             expect(result).toBe('Test Merchant');
@@ -127,7 +125,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get the category field value
-            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'category');
+            const result = getMergeFieldValue(transaction, 'category');
 
             // Then it should return the category value from the transaction
             expect(result).toBe('Food');
@@ -142,7 +140,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get the amount field value
-            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'amount');
+            const result = getMergeFieldValue(transaction, 'amount');
 
             // Then it should return the amount as positive because it's an unreported expense
             expect(result).toBe(1000);
@@ -153,7 +151,7 @@ describe('MergeTransactionUtils', () => {
             const transaction = {...createRandomTransaction(0), merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, modifiedMerchant: ''};
 
             // When we get the merchant field value
-            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'merchant');
+            const result = getMergeFieldValue(transaction, 'merchant');
 
             // Then it should return an empty string because the merchant is missing
             expect(result).toBe('');
