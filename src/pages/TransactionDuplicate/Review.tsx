@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +38,7 @@ function TransactionDuplicateReview() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
+    const {isOffline} = useNetwork();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.threadReportID}`, {canBeMissing: true});
@@ -120,10 +122,14 @@ function TransactionDuplicateReview() {
         getDuplicateTransactionDetails(transactionID);
     }, [transactionID]);
 
-    const threadReportFinishedLoading = !!reportMetadata && reportMetadata.isLoadingInitialReportActions === false;
-    const parentReportFinishedLoading = !report?.parentReportID || (!!parentReportMetadata && parentReportMetadata.isLoadingInitialReportActions === false);
+    const threadReportFinishedLoading = !!reportMetadata && (reportMetadata.isLoadingInitialReportActions === false || isOffline);
+    const parentReportFinishedLoading = !report?.parentReportID || (!!parentReportMetadata && (parentReportMetadata.isLoadingInitialReportActions === false || isOffline));
 
-    const wasTransactionDeleted = !!(route.params.threadReportID && threadReportFinishedLoading && parentReportFinishedLoading && !reportAction?.reportActionID);
+    const wasTransactionDeleted = !!(
+        route.params.threadReportID &&
+        threadReportFinishedLoading &&
+        (!report?.reportID || (parentReportFinishedLoading && !reportAction?.reportActionID))
+    );
 
     const isLoadingPage = (!report?.reportID && !threadReportFinishedLoading) || (!reportAction?.reportActionID && !wasTransactionDeleted);
 
