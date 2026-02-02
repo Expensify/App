@@ -2251,6 +2251,7 @@ function getRestrictedLogins(
 /**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function getValidOptions(
     options: OptionList,
     policiesCollection: OnyxCollection<Policy>,
@@ -2684,6 +2685,7 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
  * Build the options for the Workspace Member Invite view
  * This method will be removed. See https://github.com/Expensify/App/issues/66615 for more information.
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
