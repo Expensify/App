@@ -1426,7 +1426,13 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
             newDistanceUnit = distanceRate.unit;
         }
         if (shouldUpdateQuantity && !!distanceRate?.unit) {
-            newQuantity = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transactionDistanceUnit), distanceRate.unit);
+            const newQuantityInMeters = getDistanceInMeters(transaction, transactionDistanceUnit);
+
+            // getDistanceInMeters returns 0 only if there was not enough input to get the correct
+            // distance in meters or if the current transaction distance is 0
+            if (newQuantityInMeters !== 0) {
+                newQuantity = DistanceRequestUtils.convertDistanceUnit(newQuantityInMeters, distanceRate.unit);
+            }
         }
     }
 
