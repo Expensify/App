@@ -800,6 +800,8 @@ const ONYXKEYS = {
         WORKSPACE_COMPANY_CARD_FEED_NAME_DRAFT: 'workspaceCompanyCardFeedNameDraft',
         EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM: 'editCompanyCardName',
         EDIT_WORKSPACE_COMPANY_CARD_NAME_DRAFT_FORM: 'editCompanyCardNameDraft',
+        IMPORT_TRANSACTIONS_FORM: 'importTransactionsForm',
+        IMPORT_TRANSACTIONS_FORM_DRAFT: 'importTransactionsFormDraft',
         EDIT_PERSONAL_CARD_NAME_FORM: 'editPersonalCardName',
         EDIT_PERSONAL_CARD_NAME_FORM_DRAFT: 'editPersonalCardNameDraft',
         WORKSPACE_REPORT_FIELDS_FORM: 'workspaceReportFieldForm',
@@ -997,6 +999,7 @@ const ONYXKEYS = {
         REPORT_ATTRIBUTES: 'reportAttributes',
         REPORT_TRANSACTIONS_AND_VIOLATIONS: 'reportTransactionsAndViolations',
         OUTSTANDING_REPORTS_BY_POLICY_ID: 'outstandingReportsByPolicyID',
+        VISIBLE_REPORT_ACTIONS: 'visibleReportActions',
         NON_PERSONAL_AND_WORKSPACE_CARD_LIST: 'nonPersonalAndWorkspaceCardList',
         CARD_FEED_ERRORS: 'cardFeedErrors',
     },
@@ -1018,6 +1021,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME]: FormTypes.WorkspaceTaxCustomName;
     [ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME]: FormTypes.WorkspaceCompanyCardFeedName;
     [ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM]: FormTypes.WorkspaceCompanyCardEditName;
+    [ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM]: FormTypes.ImportTransactionsForm;
     [ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM]: FormTypes.EditPersonalCardNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM]: FormTypes.WorkspaceReportFieldForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM]: FormTypes.WorkspaceCategoryDescriptionHintForm;
@@ -1413,6 +1417,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: OnyxTypes.ReportAttributesDerivedValue;
     [ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
     [ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID]: OnyxTypes.OutstandingReportsByPolicyIDDerivedValue;
+    [ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS]: OnyxTypes.VisibleReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: OnyxTypes.NonPersonalAndWorkspaceCardListDerivedValue;
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
 };

@@ -1393,7 +1393,7 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     const selectedColumns = [queryJSON.columns ?? []].flat();
     const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
+    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !queryJSON.groupBy && !hasCustomColumns;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
