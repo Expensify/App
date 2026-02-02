@@ -5634,6 +5634,7 @@ function getReportActionMessage({
  * Use ReportNameUtils.computeReportName for full name generation.
  * For reading a stored name only, use ReportNameUtils.getReportName.
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReportName(
     report: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
@@ -5645,6 +5646,7 @@ function getReportName(
     isReportArchived?: boolean,
     reports?: Report[],
     policies?: Policy[],
+    conciergeReportID: string | undefined = conciergeReportIDOnyxConnect,
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
@@ -6110,7 +6112,7 @@ function getReportName(
         });
     }
 
-    if (isConciergeChatReport(report)) {
+    if (isConciergeChatReport(report, conciergeReportID)) {
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 
