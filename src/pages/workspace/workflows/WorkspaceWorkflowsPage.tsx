@@ -1,5 +1,6 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
@@ -139,13 +140,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
+    useFocusEffect(
+        useCallback(() => {
             fetchData();
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        }, [fetchData]),
+    );
 
     const confirmDisableApprovals = useCallback(() => {
         setIsDisableApprovalsConfirmModalOpen(false);
