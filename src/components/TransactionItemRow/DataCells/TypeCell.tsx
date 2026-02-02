@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-const getTypeIcon = (icons: Record<'Car' | 'CreditCard' | 'Cash' | 'Clock', IconAsset>, type?: string) => {
+const getTypeIcon = (icons: Record<'Car' | 'CreditCard' | 'Cash' | 'Clock' | 'CalendarSolid', IconAsset>, type?: string) => {
     switch (type) {
         case CONST.SEARCH.TRANSACTION_TYPE.CARD:
             return icons.CreditCard;
@@ -22,6 +22,8 @@ const getTypeIcon = (icons: Record<'Car' | 'CreditCard' | 'Cash' | 'Clock', Icon
             return icons.Car;
         case CONST.SEARCH.TRANSACTION_TYPE.TIME:
             return icons.Clock;
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
+            return icons.CalendarSolid;
         case CONST.SEARCH.TRANSACTION_TYPE.CASH:
         default:
             return icons.Cash;
@@ -48,7 +50,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const {translate} = useLocalize();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Car', 'CreditCard', 'CreditCardHourglass', 'Cash', 'Clock']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Car', 'CreditCard', 'CreditCardHourglass', 'Cash', 'Clock', 'CalendarSolid']);
     const type = getTransactionType(transactionItem, cardList);
     const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
     const typeIcon = isPendingExpensifyCardTransaction ? expensifyIcons.CreditCardHourglass : getTypeIcon(expensifyIcons, type);
