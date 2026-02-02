@@ -1276,8 +1276,8 @@ function processReport(
     report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number,
+    reports: OnyxCollection<Report>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    reports?: OnyxCollection<Report>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
@@ -1310,7 +1310,7 @@ function processReport(
 function createOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number,
-    reports?: OnyxCollection<Report>,
+    reports: OnyxCollection<Report>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ) {
@@ -1321,7 +1321,7 @@ function createOptionList(
 
     if (reports) {
         for (const report of Object.values(reports)) {
-            const {reportMapEntry, reportOption} = processReport(report, personalDetails, currentUserAccountID, reportAttributesDerived, reports, visibleReportActionsData);
+            const {reportMapEntry, reportOption} = processReport(report, personalDetails, currentUserAccountID, reports, reportAttributesDerived, visibleReportActionsData);
 
             if (reportMapEntry) {
                 const [accountID, reportValue] = reportMapEntry;
@@ -1437,7 +1437,7 @@ function createFilteredOptionList(
     // Step 5: Process the limited set of reports (performance optimization)
     const reportOptions: Array<SearchOption<Report>> = [];
     for (const report of limitedReports) {
-        const {reportMapEntry, reportOption} = processReport(report, personalDetails, currentUserAccountID, reportAttributesDerived, reports, visibleReportActionsData);
+        const {reportMapEntry, reportOption} = processReport(report, personalDetails, currentUserAccountID, reports, reportAttributesDerived, visibleReportActionsData);
 
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -1464,7 +1464,6 @@ function createFilteredOptionList(
     const personalDetailsOptions = includeP2P
         ? Object.values(personalDetails ?? {}).map((personalDetail) => {
               const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-              const mappedReport = reportMapForAccountIDs[accountID];
 
               return {
                   item: personalDetail,
@@ -1493,10 +1492,10 @@ function createOptionFromReport(
     report: Report,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number,
+    reports: OnyxCollection<Report>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     config?: PreviewConfig,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    reports?: OnyxCollection<Report>,
 ) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 

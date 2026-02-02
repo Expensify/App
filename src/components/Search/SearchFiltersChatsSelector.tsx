@@ -73,10 +73,10 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
                     {...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id},
                     personalDetails,
                     currentUserAccountID,
+                    reports,
                     reportAttributesDerived,
                     undefined,
                     visibleReportActionsData,
-                    reports,
                 ),
             );
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
