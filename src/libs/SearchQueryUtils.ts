@@ -1262,7 +1262,7 @@ function buildUserReadableQueryString({
     PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
     reports: OnyxCollection<OnyxTypes.Report>;
     taxRates: Record<string, string[]>;
-    cardList: OnyxTypes.CardList;
+    cardList: OnyxTypes.CardList | undefined;
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
     policies: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
