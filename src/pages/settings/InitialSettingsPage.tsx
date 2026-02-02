@@ -24,7 +24,6 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -189,7 +188,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const confirmModalTitle = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.title') : translate('common.areYouSure');
     const confirmModalPrompt = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
     const confirmModalConfirmText = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
-    const {isProduction} = useEnvironment();
 
     const showSignOutModal = () => {
         return showConfirmModal({
@@ -246,16 +244,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
             badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
         },
-        ...(!isProduction
-            ? [
-                  {
-                      translationKey: 'expenseRulesPage.title' as const,
-                      icon: icons.Bolt,
-                      screenName: SCREENS.SETTINGS.RULES.ROOT,
-                      action: () => Navigation.navigate(ROUTES.SETTINGS_RULES),
-                  },
-              ]
-            : []),
+        {
+            translationKey: 'expenseRulesPage.title',
+            icon: icons.Bolt,
+            screenName: SCREENS.SETTINGS.RULES.ROOT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_RULES),
+        },
         {
             translationKey: 'common.preferences',
             icon: icons.Gear,
@@ -430,7 +424,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             iconStyles={item.iconStyles}
                             badgeText={item.badgeText}
                             badgeStyle={item.badgeStyle}
-                            sentryLabel={item.screenName}
                             fallbackIcon={item.fallbackIcon}
                             brickRoadIndicator={item.brickRoadIndicator}
                             shouldStackHorizontally={item.shouldStackHorizontally}
