@@ -935,6 +935,10 @@ button {
         }
     }
     h2 {
+        font-family: 'Expensify New Kansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+        font-weight: 500;
+        font-size: 22px;
+        line-height: 28px;
         padding-bottom: 24px;
     }
     p {
@@ -942,6 +946,139 @@ button {
     }
     .cards-group {
         padding-bottom: 32px;
+    }
+    h3.title {
+        font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+        font-weight: 700;
+        font-style: normal;
+        font-size: 1em;
+    }
+
+    &-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding-bottom: 48px;
+
+        &__content {
+            flex: 1;
+        }
+
+        &__illustration {
+            display: none;
+
+            @include breakpoint($breakpoint-tablet) {
+                display: block;
+            }
+
+            img {
+                width: 280px;
+                height: auto;
+            }
+        }
+    }
+
+    &-search {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        max-width: 537px;
+
+        .search-input-wrapper {
+            flex: 1;
+        }
+
+        .search-button {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+        }
+    }
+
+    &-search-clear {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        padding: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+
+        .base-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.5;
+        }
+    }
+
+    &-results-container {
+        margin-top: 48px;
+
+        .search-loading,
+        .search-no-results,
+        .search-error {
+            padding: 0;
+        }
+
+        .search-result-item {
+            padding-left: 20px;
+            padding-right: 20px;
+            margin-left: -20px;
+            margin-right: -20px;
+        }
+    }
+
+
+    .search-page-form {
+        max-width: none;
+    }
+
+    .getting-started-cards {
+        @include breakpoint($breakpoint-desktop) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    .topic-card {
+        @extend .card;
+        flex-direction: column;
+        cursor: default;
+
+        &:hover {
+            background-color: var(--color-highlightBG);
+        }
+
+        .icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+        }
+
+        h3.title {
+            padding: 0;
+            margin: 0 0 8px 0;
+        }
+    }
+
+    .topic-links {
+        list-style: none;
+        margin: 0 !important;
+        padding: 0 !important;
+
+        li {
+            padding: 0;
+            margin: 0;
+        }
+
+        a {
+            color: var(--color-link);
+            font-weight: normal;
+            font-size: 15px;
+            line-height: 28px;
+        }
     }
 }
 
