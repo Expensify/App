@@ -4,6 +4,7 @@ import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -68,8 +69,14 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
 
     const amountOfUnions = stepNames.length - 1;
 
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+
     return (
-        <View style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}>
+        <View
+            style={[styles.interactiveStepHeaderContainer, containerWidthStyle]}
+            focusable
+            accessibilityLabel={translate('stepCounter', {step: currentStep + 1, total: stepNames.length})}
+        >
             {stepNames.map((stepName, index) => {
                 const isCompletedStep = currentStep > index;
                 const isLockedStep = currentStep < index;
@@ -101,9 +108,8 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                             ]}
                             disabled={isLockedStep || !onStepSelected}
                             onPress={moveToStep}
-                            accessible
-                            accessibilityLabel={translate('stepCounter', {step: index + 1, total: stepNames.length})}
-                            aria-current={currentStep === index ? 'step' : undefined}
+                            accessible={false}
+                            aria-hidden={!isWeb}
                             role={CONST.ROLE.BUTTON}
                         >
                             {isCompletedStep ? (
