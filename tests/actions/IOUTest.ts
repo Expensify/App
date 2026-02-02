@@ -10186,7 +10186,8 @@ describe('actions/IOU', () => {
                 transactionID,
                 reportID: iouReportID,
                 transactionThreadReportID,
-                amount: 1000,
+                // Expense reports store amounts with the opposite sign of what the UI displays.
+                amount: -1000,
                 currency: CONST.CURRENCY.USD,
             };
             const transactions = {
