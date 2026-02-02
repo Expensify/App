@@ -86,7 +86,6 @@ function PlanTypeSelector({errorText = '', value: planType, onInputChange = () =
                 shouldShowRightIcon
                 title={getPlanTypeDisplayText()}
                 description={label ?? translate('workspace.common.planType')}
-                descriptionTextStyle={styles.textNormalThemeText}
                 onPress={showPickerModal}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}

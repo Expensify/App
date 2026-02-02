@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
-import {clearDraftValues} from '@libs/actions/FormActions';
+import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -65,8 +65,6 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-
-    // Get account data first to check if user is approved accountant
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isApprovedAccountant = !!account?.isApprovedAccountant;
 
@@ -115,7 +113,6 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
-    // Check if user is a member of any Control workspaces to determine default plan type
     const isMemberOfControlWorkspace = useMemo(() => {
         if (!policies) {
             return false;
@@ -129,7 +126,6 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const userOwner = draftValues?.owner ?? defaultOwner;
     const ownerDisplayName = userOwner;
 
-    // State for "Keep me as an admin" toggle
     const [makeMeAdmin, setMakeMeAdmin] = useState(true);
     const currentUserEmail = session?.email ?? '';
     const isOwnerDifferentFromCurrentUser = userOwner !== currentUserEmail && currentUserEmail !== '';
@@ -241,42 +237,46 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                             />
                         </View>
                         {isApprovedAccountant && (
-                            <View style={[styles.mhn5]}>
-                                <InputWrapper
-                                    InputComponent={PlanTypeSelector}
-                                    inputID={INPUT_IDS.PLAN_TYPE}
-                                    label={translate('workspace.common.planType')}
-                                    defaultValue={userPlanType}
-                                />
-                            </View>
-                        )}
-                        {isApprovedAccountant && (
-                            <View style={[styles.mhn5]}>
-                                <InputWrapper
-                                    InputComponent={MenuItemWithTopDescription}
-                                    inputID={INPUT_IDS.OWNER}
-                                    description={translate('workspace.common.workspaceOwner')}
-                                    title={ownerDisplayName}
-                                    interactive
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION_OWNER_SELECTOR.route as never)}
-                                    value={userOwner}
-                                />
-                            </View>
-                        )}
-                        {isApprovedAccountant && isOwnerDifferentFromCurrentUser && (
-                            <View style={[styles.mhn5]}>
-                                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph5, styles.pv3]}>
-                                    <View style={styles.flex1}>
-                                        <Text style={[styles.textNormal]}>{translate('workspace.common.keepMeAsAdmin')}</Text>
-                                    </View>
-                                    <Switch
-                                        accessibilityLabel={translate('workspace.common.keepMeAsAdmin')}
-                                        isOn={makeMeAdmin}
-                                        onToggle={setMakeMeAdmin}
+                            <>
+                                <View style={[styles.mhn5]}>
+                                    <InputWrapper
+                                        InputComponent={PlanTypeSelector}
+                                        inputID={INPUT_IDS.PLAN_TYPE}
+                                        label={translate('workspace.common.planType')}
+                                        defaultValue={userPlanType}
                                     />
                                 </View>
-                            </View>
+
+                                <View style={[styles.mhn5]}>
+                                    <InputWrapper
+                                        InputComponent={MenuItemWithTopDescription}
+                                        inputID={INPUT_IDS.OWNER}
+                                        description={translate('workspace.common.workspaceOwner')}
+                                        title={ownerDisplayName}
+                                        interactive
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION_OWNER_SELECTOR.route as never);
+                                        }}
+                                        value={userOwner}
+                                    />
+                                </View>
+
+                                {isOwnerDifferentFromCurrentUser && (
+                                    <View style={[styles.mhn5]}>
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph5, styles.pv3]}>
+                                            <View style={styles.flex1}>
+                                                <Text style={[styles.textNormal]}>{translate('workspace.common.keepMeAsAdmin')}</Text>
+                                            </View>
+                                            <Switch
+                                                accessibilityLabel={translate('workspace.common.keepMeAsAdmin')}
+                                                isOn={makeMeAdmin}
+                                                onToggle={setMakeMeAdmin}
+                                            />
+                                        </View>
+                                    </View>
+                                )}
+                            </>
                         )}
                     </View>
                 </FormProvider>
