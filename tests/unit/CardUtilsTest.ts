@@ -682,10 +682,10 @@ describe('CardUtils', () => {
             expect(feedName).toBe('Chase cards');
         });
 
-        it('Should return undefined if feed is undefined', () => {
+        it('Should return empty string if feed is undefined', () => {
             const feed = undefined;
             const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
-            expect(feedName).toBe(undefined);
+            expect(feedName).toBe('');
         });
 
         it('Should return formatted name without "cards" suffix when shouldAddCardsSuffix is false', () => {
