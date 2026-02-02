@@ -13,7 +13,7 @@ import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -55,7 +55,6 @@ function KYCWall({
     source,
     shouldShowPersonalBankAccountOption = false,
     ref,
-    currency,
 }: KYCWallProps) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
@@ -64,7 +63,6 @@ function KYCWall({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
 
     const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -124,10 +122,10 @@ function KYCWall({
         setPositionAddPaymentMenu(position);
     }, [getAnchorPosition]);
 
-    const canLinkExistingBusinessBankAccount = getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true).length > 0;
-
     const selectPaymentMethod = useCallback(
         (paymentMethod?: PaymentMethod, policy?: Policy) => {
+            const canLinkExistingBusinessBankAccount = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
+
             if (paymentMethod) {
                 onSelectPaymentMethod(paymentMethod);
             }
@@ -181,11 +179,7 @@ function KYCWall({
                     return;
                 }
 
-                // If user has a setup in progress for we redirect to the flow where setup can be finished
-                // Setup is in progress in 2 cases:
-                // - account already present on policy is partially setup
-                // - account is being connected 'on the spot' while trying to pay for an expense (it won't be linked to policy yet but will appear as reimbursementAccount)
-                if (policy !== undefined && (isBankAccountPartiallySetup(policy?.achAccount?.state) || isBankAccountPartiallySetup(reimbursementAccount?.achData?.state))) {
+                if (policy?.id !== undefined && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id)) {
                     navigateToBankAccountRoute(policy.id);
                     return;
                 }
@@ -201,22 +195,21 @@ function KYCWall({
             }
         },
         [
+            bankAccountList,
             onSelectPaymentMethod,
             iouReport,
             addDebitCardRoute,
-            reimbursementAccount?.achData?.state,
-            canLinkExistingBusinessBankAccount,
             addBankAccountRoute,
             chatReport,
             policies,
-            introSelected,
-            formatPhoneNumber,
-            lastPaymentMethod,
             reportPreviewAction,
             currentUserEmail,
             employeeEmail,
+            introSelected,
+            formatPhoneNumber,
             reportTransactions,
             isCustomReportNamesBetaEnabled,
+            lastPaymentMethod,
         ],
     );
 
