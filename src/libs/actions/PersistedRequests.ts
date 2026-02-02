@@ -184,6 +184,8 @@ function rollbackOngoingRequest() {
 
     // Clear the ongoingRequest
     ongoingRequest = null;
+
+    Log.info('[TERMINATE] Rollback of the ongoing request');
 }
 
 function getAll(): Request[] {

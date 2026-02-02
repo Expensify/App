@@ -1878,6 +1878,7 @@ const CONST = {
         THROTTLED: 'throttled',
         UNKNOWN_ERROR: 'Unknown error',
         REQUEST_CANCELLED: 'AbortError',
+        REQUEST_ABORTED: 'Aborted',
         FAILED_TO_FETCH: 'Failed to fetch',
         ENSURE_BUG_BOT: 'ENSURE_BUGBOT',
         PUSHER_ERROR: 'PusherError',

@@ -9,10 +9,12 @@ import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Performance from '@libs/Performance';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
@@ -236,8 +238,11 @@ function saveCurrentPathBeforeBackground() {
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
-        Log.info('Flushing logs as app is going inactive', true, {}, true);
+        Log.info('[TERMINATE] Flushing logs as app is going inactive', true, {}, true);
         saveCurrentPathBeforeBackground();
+        Log.info('[TERMINATE] Queue before cancellation', false, {commands: SequentialQueue.getAllPersistedRequests().map((request) => request.command)});
+        HttpUtils.cancelPendingRequests();
+        Log.info('[TERMINATE] Queue after cancellation', false, {commands: SequentialQueue.getAllPersistedRequests().map((request) => request.command)});
     }
     appState = nextAppState;
 });
