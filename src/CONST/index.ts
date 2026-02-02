@@ -8207,6 +8207,9 @@ const CONST = {
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
         },
+        REPORT_DETAILS: {
+            WORKSPACE_LINK: 'ReportDetails-WorkspaceLink',
+        },
     },
 
     DOMAIN: {

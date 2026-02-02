@@ -751,6 +751,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={chatRoomSubtitle}
                             accessible
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.WORKSPACE_LINK}
                             onPress={() => {
                                 let policyID = report?.policyID;
 
