@@ -6,6 +6,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import saveLastRoute from '@libs/saveLastRoute';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnfidoError, OnfidoProps} from './types';
@@ -75,13 +76,15 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                                     [
                                         {
                                             text: translate('common.cancel'),
-                                            onPress: () => onUserExit(),
+                                            onPress: () => onUserExit(true),
                                         },
                                         {
                                             text: translate('common.settings'),
                                             onPress: () => {
-                                                onUserExit();
+                                                onUserExit(false);
                                                 Linking.openSettings();
+                                                // Save last route before so navigation can be restored.
+                                                saveLastRoute();
                                             },
                                         },
                                     ],
