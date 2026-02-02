@@ -126,7 +126,7 @@ function ExpenseRulesPage() {
         if (!expenseRule) {
             return;
         }
-        // Convert HTML comment back to markdown for editing
+
         const commentMarkdown = expenseRule.comment ? Parser.htmlToMarkdown(expenseRule.comment) : undefined;
         setDraftRule({
             ...expenseRule,
