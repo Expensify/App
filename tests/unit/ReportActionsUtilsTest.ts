@@ -62,6 +62,10 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getSortedReportActions', () => {
+        beforeEach(() => {
+            ReportActionsUtils.clearSortedReportActionsCache();
+        });
+
         const cases = [
             [
                 [

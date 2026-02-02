@@ -41,7 +41,7 @@ import {
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getChangedApproverActionMessage, getDynamicExternalWorkflowRoutedMessage} from '@libs/ReportActionsUtils';
+import {clearSortedReportActionsCache, getChangedApproverActionMessage, getDynamicExternalWorkflowRoutedMessage} from '@libs/ReportActionsUtils';
 import {
     canCreateTaskInReport,
     canUserPerformWriteAction,
@@ -3188,6 +3188,10 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
+        beforeEach(() => {
+            clearSortedReportActionsCache();
+        });
+
         describe('getReportPreviewMessage', () => {
             it('should format report preview message correctly for non-policy expense chat with IOU action', async () => {
                 const iouReport: Report = {
@@ -3259,21 +3263,23 @@ describe('OptionsListUtils', () => {
                 },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`, report2);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
+            await waitForBatchedUpdates();
             const lastMessage = getLastMessageTextForReport({
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                lastAction: movedTransactionAction,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
-                const report: Report = createRandomReport(0, undefined);
+                const report: Report = {...createRandomReport(10, undefined), reportID: 'submitted-harvesting'};
                 const submittedAction: ReportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -3283,9 +3289,10 @@ describe('OptionsListUtils', () => {
                         harvesting: true,
                     },
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [submittedAction.reportActionID]: submittedAction,
                 });
+                await waitForBatchedUpdates();
                 const lastMessage = getLastMessageTextForReport({
                     translate: translateLocal,
                     report,
@@ -3293,13 +3300,14 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastAction: submittedAction,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
         });
         describe('APPROVED action', () => {
             it('should return automatic approved message if approved automatically', async () => {
-                const report: Report = createRandomReport(0, undefined);
+                const report: Report = {...createRandomReport(11, undefined), reportID: 'approved-auto'};
                 const approvedAction: ReportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
@@ -3309,9 +3317,10 @@ describe('OptionsListUtils', () => {
                         automaticAction: true,
                     },
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [approvedAction.reportActionID]: approvedAction,
                 });
+                await waitForBatchedUpdates();
                 const lastMessage = getLastMessageTextForReport({
                     translate: translateLocal,
                     report,
@@ -3319,13 +3328,14 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastAction: approvedAction,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
         });
         describe('FORWARDED action', () => {
             it('should return automatic forwarded message if forwarded automatically', async () => {
-                const report: Report = createRandomReport(0, undefined);
+                const report: Report = {...createRandomReport(12, undefined), reportID: 'forwarded-auto'};
                 const forwardedAction: ReportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
@@ -3335,9 +3345,10 @@ describe('OptionsListUtils', () => {
                         automaticAction: true,
                     },
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
+                await waitForBatchedUpdates();
                 const lastMessage = getLastMessageTextForReport({
                     translate: translateLocal,
                     report,
@@ -3345,22 +3356,24 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastAction: forwardedAction,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
         });
         describe('POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE action', () => {
             it('should return forced corporate upgrade message', async () => {
-                const report: Report = createRandomReport(0, undefined);
+                const report: Report = {...createRandomReport(13, undefined), reportID: 'corporate-force-upgrade'};
                 const corporateForceUpgradeAction: ReportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE,
                     message: [{type: 'COMMENT', text: ''}],
                     originalMessage: {},
                 };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
                 });
+                await waitForBatchedUpdates();
                 const lastMessage = getLastMessageTextForReport({
                     translate: translateLocal,
                     report,
@@ -3368,73 +3381,80 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastAction: corporateForceUpgradeAction,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
         });
         it('TAKE_CONTROL action', async () => {
-            const report: Report = createRandomReport(0, undefined);
+            const report: Report = {...createRandomReport(14, undefined), reportID: 'take-control'};
             const takeControlAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [takeControlAction.reportActionID]: takeControlAction,
             });
+            await waitForBatchedUpdates();
             const lastMessage = getLastMessageTextForReport({
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                lastAction: takeControlAction,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
         it('REROUTE action', async () => {
-            const report: Report = createRandomReport(0, undefined);
+            const report: Report = {...createRandomReport(15, undefined), reportID: 'reroute'};
             const rerouteAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [rerouteAction.reportActionID]: rerouteAction,
             });
+            await waitForBatchedUpdates();
             const lastMessage = getLastMessageTextForReport({
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                lastAction: rerouteAction,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
         it('MOVED action', async () => {
-            const report: Report = createRandomReport(0, undefined);
+            const report: Report = {...createRandomReport(16, undefined), reportID: 'moved-action'};
             const movedAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [movedAction.reportActionID]: movedAction,
             });
+            await waitForBatchedUpdates();
             const lastMessage = getLastMessageTextForReport({
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                lastAction: movedAction,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
         it('DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', async () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED as the last action
-            const report: Report = createRandomReport(0, undefined);
+            const report: Report = {...createRandomReport(17, undefined), reportID: 'dew-routed'};
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
                 reportActionID: '1',
                 created: '',
@@ -3442,9 +3462,10 @@ describe('OptionsListUtils', () => {
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {to: 'example@gmail.com'},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [action.reportActionID]: action,
             });
+            await waitForBatchedUpdates();
 
             // When getting the last message text for the report
             const lastMessage = getLastMessageTextForReport({
@@ -3453,6 +3474,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                lastAction: action,
             });
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
@@ -3520,9 +3542,10 @@ describe('OptionsListUtils', () => {
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [submittedAction.reportActionID]: submittedAction,
                 });
+                await waitForBatchedUpdates();
                 const lastMessage = getLastMessageTextForReport({
                     translate: translateLocal,
                     report,
@@ -3532,6 +3555,7 @@ describe('OptionsListUtils', () => {
                     reportMetadata,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastAction: submittedAction,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
@@ -3555,9 +3579,10 @@ describe('OptionsListUtils', () => {
                 };
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
+                await waitForBatchedUpdates();
                 const lastMessage = getLastMessageTextForReport({
                     translate: translateLocal,
                     report,
@@ -3565,6 +3590,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastAction: dewSubmitFailedAction,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
             });
@@ -3585,9 +3611,10 @@ describe('OptionsListUtils', () => {
                 };
 
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
                 });
+                await waitForBatchedUpdates();
                 const lastMessage = getLastMessageTextForReport({
                     translate: translateLocal,
                     report,
@@ -3595,6 +3622,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    lastAction: dewSubmitFailedAction,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });

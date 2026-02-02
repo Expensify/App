@@ -620,6 +620,15 @@ function isTransactionThread(parentReportAction: OnyxInputOrEntry<ReportAction>)
 }
 
 /**
+ * Clears the sorted report actions caches. Exposed for tests to avoid cross-test cache pollution
+ * when different tests use the same reportActionIDs with different metadata (created, actionName).
+ */
+function clearSortedReportActionsCache(): void {
+    sortedReportActionsCacheAscending.clear();
+    sortedReportActionsCacheDescending.clear();
+}
+
+/**
  * Generates a cache key based on reportActionIDs (sorted for consistency).
  * This allows us to cache sorted results even when we receive new array references.
  */
@@ -4021,6 +4030,7 @@ function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
 }
 
 export {
+    clearSortedReportActionsCache,
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
     formatLastMessageText,
