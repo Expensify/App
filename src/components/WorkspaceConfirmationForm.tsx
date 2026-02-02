@@ -1,5 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ScrollView as RNScrollView, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
