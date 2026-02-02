@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {defaultExpensifyCardSelector, filterCardsHiddenFromSearch} from '@selectors/Card';
-import {translateLocal} from 'tests/utils/TestHelper';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Card, CardList} from '@src/types/onyx';
 import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} from '../../utils/collections/card';
+import {translateLocal} from '../../utils/TestHelper';
 
 describe('filterCardsHiddenFromSearch', () => {
     it('returns empty object when cardList is undefined or empty', () => {
