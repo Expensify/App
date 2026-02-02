@@ -314,7 +314,7 @@ describe('actions/Domain', () => {
             member: {[email]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         });
 
-        clearDomainMemberError(domainAccountID, accountID, email, '',);
+        clearDomainMemberError(domainAccountID, accountID, email, '');
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
