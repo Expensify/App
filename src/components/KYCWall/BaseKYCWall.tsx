@@ -147,7 +147,7 @@ function KYCWall({
                                 if (adminPolicy?.achAccount) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
+                                Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
                             });
                         } else {
                             const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, true, reportTransactions, isCustomReportNamesBetaEnabled);
@@ -159,7 +159,7 @@ function KYCWall({
                                     if (adminPolicy?.achAccount) {
                                         return;
                                     }
-                                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
+                                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
                                 });
                             }
                         }
@@ -177,7 +177,7 @@ function KYCWall({
                     }
 
                     // Navigate to the bank account set up flow for this specific policy
-                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID));
+                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID}));
                     return;
                 }
 

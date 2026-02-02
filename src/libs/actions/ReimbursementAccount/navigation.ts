@@ -19,7 +19,7 @@ function goToWithdrawalAccountSetupStep(stepID: BankAccountStep) {
  * @param [backTo] - An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
  */
 function navigateToBankAccountRoute(policyID: string | undefined, backTo?: string, navigationOptions?: LinkToOptions) {
-    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, '', backTo), navigationOptions);
+    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}), navigationOptions);
 }
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute};
