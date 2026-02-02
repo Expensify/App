@@ -1,12 +1,12 @@
 import {useIsFocused} from '@react-navigation/core';
 import {createPoliciesSelector} from '@selectors/Policy';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
@@ -22,7 +22,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isMerchantMissing, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -38,11 +38,9 @@ import {createDraftWorkspace} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -81,25 +79,16 @@ function IOURequestStepParticipants({
     const isFocused = useIsFocused();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
-    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const transactions = useMemo(() => {
-        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
-        return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, optimisticTransactions]);
+    const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID);
-    const selectedParticipants = useRef<Participant[]>(participants);
-
     // We can assume that shouldAutoReport is true as the initial value is not used. shouldAutoReport is only used after the selectedReportID changes in addParticipant where we'd update shouldAutoReport too
     const shouldAutoReport = useRef(true);
     const numberOfParticipants = useRef(participants?.length ?? 0);
@@ -236,7 +225,6 @@ function IOURequestStepParticipants({
         (val: Participant[]) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
-            selectedParticipants.current = val;
             const firstParticipant = val.at(0);
 
             if (firstParticipant?.isSelfDM && !isSplitRequest) {
@@ -371,9 +359,6 @@ function IOURequestStepParticipants({
                 return;
             }
 
-            const firstParticipant = selectedParticipants.current?.at(0);
-            const isMerchantRequired = !!firstParticipant?.isPolicyExpenseChat && isMerchantMissing(initialTransaction) && iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-
             const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                 action,
                 iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
@@ -384,18 +369,9 @@ function IOURequestStepParticipants({
                 action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
             );
 
-            let route: Route = iouConfirmationPageRoute;
-
-            if (isCategorizing) {
-                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute);
-            } else {
-                route = ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
-                    action,
-                    iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
-                    initialTransactionID,
-                    newReportID,
-                );
-            }
+            const route = isCategorizing
+                ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
+                : iouConfirmationPageRoute;
 
             Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
             waitForKeyboardDismiss(() => {
@@ -403,15 +379,11 @@ function IOURequestStepParticipants({
                 // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
                 // More information can be found here: https://github.com/Expensify/App/issues/73728
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    if (backTo && !isMerchantRequired) {
+                    if (backTo) {
                         // We don't want to compare params because we just changed the participants.
                         Navigation.goBack(route, {compareParams: false});
                     } else {
-                        // If the merchant step is required and the backTo parameter is set, we need to go back the the confirmation screen first and then navigate to the merchant page with forceReplace to remove this screen from the stack
-                        if (isMerchantRequired && backTo) {
-                            Navigation.goBack();
-                        }
-                        Navigation.navigate(route, {forceReplace: isMerchantRequired && !!backTo});
+                        Navigation.navigate(route);
                     }
                 });
             });
@@ -421,15 +393,14 @@ function IOURequestStepParticipants({
             participants,
             iouType,
             initialTransaction,
-            iouRequestType,
             initialTransactionID,
+            reportID,
             waitForKeyboardDismiss,
             transactions,
             isMovingTransactionFromTrackExpense,
             allPolicies,
             policyForMovingExpenses,
             introSelected,
-            reportID,
             backTo,
         ],
     );
@@ -470,8 +441,13 @@ function IOURequestStepParticipants({
             }
             return initialTransaction?.comment?.customUnit?.quantity === 0;
         }
+
+        if (iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+            return false;
+        }
+
         return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
-    }, [initialTransaction]);
+    }, [initialTransaction, iouRequestType]);
 
     return (
         <StepScreenWrapper
