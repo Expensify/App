@@ -133,7 +133,10 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
 
                         return (
                             <View key={rule.ruleID}>
-                                <OfflineWithFeedback pendingAction={rule.pendingAction} errors={rule.errors}>
+                                <OfflineWithFeedback
+                                    pendingAction={rule.pendingAction}
+                                    errors={rule.errors}
+                                >
                                     <MenuItemWithTopDescription
                                         description={matchDescription}
                                         title={ruleDescription}

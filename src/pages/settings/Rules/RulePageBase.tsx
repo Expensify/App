@@ -13,7 +13,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDraftRule, setNameValuePair, updateDraftRule} from '@libs/actions/User';
+import {clearDraftRule, saveExpenseRule, updateDraftRule} from '@libs/actions/User';
 import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -122,20 +122,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
         setIsSaving(true);
 
         const newRule = extractRuleFromForm(form, selectedTaxRate);
-        let newRules;
-        if (hash) {
-            let isUpdated = false;
-            newRules = expenseRules.map((rule) => {
-                if (!isUpdated && getKeyForRule(rule) === hash) {
-                    isUpdated = true;
-                    return newRule;
-                }
-                return rule;
-            });
-        } else {
-            newRules = [...expenseRules, newRule];
-        }
-        setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, newRules, expenseRules);
+        saveExpenseRule(expenseRules, newRule, hash, getKeyForRule);
 
         Navigation.goBack();
     };

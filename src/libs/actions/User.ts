@@ -1670,19 +1670,11 @@ function updateIsVerifiedValidateActionCode(isVerifiedValidateActionCode: boolea
     });
 }
 
-/**
- * Deletes expense rules with proper offline support.
- * Marks rules as pending delete optimistically, then removes them on success.
- * @param expenseRules - The current list of expense rules
- * @param ruleKeysToDelete - Array of rule keys to delete (from getKeyForRule)
- * @param getKeyForRule - Function to get the key for a rule
- */
 function deleteExpenseRules(expenseRules: ExpenseRule[], ruleKeysToDelete: string[], getKeyForRule: (rule: ExpenseRule) => string) {
     if (ruleKeysToDelete.length === 0) {
         return;
     }
 
-    // Create optimistic data: mark rules for deletion with pendingAction
     const optimisticRules = expenseRules.map((rule) => {
         if (ruleKeysToDelete.includes(getKeyForRule(rule))) {
             return {...rule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
@@ -1690,16 +1682,100 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], ruleKeysToDelete: strin
         return rule;
     });
 
-    // Create success data: remove the deleted rules entirely
     const successRules = expenseRules.filter((rule) => !ruleKeysToDelete.includes(getKeyForRule(rule)));
 
-    // Create failure data: restore original rules (remove pendingAction)
     const failureRules = expenseRules.map((rule) => {
         if (ruleKeysToDelete.includes(getKeyForRule(rule))) {
             return {...rule, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
         }
         return rule;
     });
+
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_EXPENSE_RULES,
+        value: JSON.stringify(successRules),
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: optimisticRules,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: successRules,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: failureRules,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, existingRuleKey: string | undefined, getKeyForRule: (rule: ExpenseRule) => string) {
+    const isEditing = !!existingRuleKey;
+    const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    const ruleWithPendingAction: ExpenseRule = {
+        ...newRule,
+        pendingAction,
+    };
+
+    const ruleForSuccess: ExpenseRule = {
+        ...newRule,
+        pendingAction: null,
+        errors: undefined,
+    };
+
+    let optimisticRules: ExpenseRule[];
+    let successRules: ExpenseRule[];
+    let failureRules: ExpenseRule[];
+
+    if (isEditing) {
+        let isUpdated = false;
+        optimisticRules = expenseRules.map((rule) => {
+            if (!isUpdated && getKeyForRule(rule) === existingRuleKey) {
+                isUpdated = true;
+                return ruleWithPendingAction;
+            }
+            return rule;
+        });
+
+        isUpdated = false;
+        successRules = expenseRules.map((rule) => {
+            if (!isUpdated && getKeyForRule(rule) === existingRuleKey) {
+                isUpdated = true;
+                return ruleForSuccess;
+            }
+            return rule;
+        });
+
+        failureRules = expenseRules.map((rule) => {
+            if (getKeyForRule(rule) === existingRuleKey) {
+                return {...rule, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
+            }
+            return rule;
+        });
+    } else {
+        optimisticRules = [...expenseRules, ruleWithPendingAction];
+        successRules = [...expenseRules, ruleForSuccess];
+        failureRules = expenseRules;
+    }
 
     const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1807,6 +1883,7 @@ export {
     setDraftRule,
     updateDraftRule,
     clearDraftRule,
+    saveExpenseRule,
     deleteExpenseRules,
     setDraftMerchantRule,
     updateDraftMerchantRule,
