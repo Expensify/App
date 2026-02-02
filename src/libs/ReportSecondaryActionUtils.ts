@@ -27,6 +27,7 @@ import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportAction,
+    hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isPayAction,
 } from './ReportActionsUtils';
@@ -260,11 +261,17 @@ function isApproveAction(
     report: Report,
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
+    reportMetadata: OnyxEntry<ReportMetadata>,
     policy?: Policy,
 ): boolean {
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
         return false;
     }
 
@@ -328,6 +335,11 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     const isManager = report.managerID === currentUserAccountID;
 
     if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing) {
+        return false;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (isDEWPolicy && !isAdmin) {
         return false;
     }
 
@@ -864,7 +876,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
-    if (isApproveAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
+    if (isApproveAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, reportMetadata, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 
