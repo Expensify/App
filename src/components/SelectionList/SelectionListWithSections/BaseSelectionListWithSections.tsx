@@ -80,7 +80,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
-    const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
+    const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
 
     const setHasKeyBeenPressed = () => {
         if (hasKeyBeenPressed.current) {
@@ -90,11 +90,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     };
 
     const scrollToIndex = (index: number) => {
-        if (index < 0 || index >= flattenedData.length) {
+        if (index < 0 || index >= flattenedData.length || !listRef.current) {
             return;
         }
         const item = flattenedData.at(index);
-        if (!listRef.current || !item || getItemType(item) === CONST.SECTION_LIST_ITEM_TYPE.HEADER) {
+        if (!item) {
             return;
         }
         try {
@@ -208,6 +208,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
+        firstFocusableIndex,
     });
 
     const textInputComponent = () => {
