@@ -100,7 +100,27 @@ function ReportActionsView({
         },
         [getTransactionThreadReportActions],
     );
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
+    const [transactionThreadReportOnyxValue] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
+    
+    // Create a lightweight memoized version of transactionThreadReportOnyxValue
+    const transactionThreadReport = useMemo(() => {
+        if (!transactionThreadReportOnyxValue) {
+            return transactionThreadReportOnyxValue;
+        }
+        return {
+            reportID: transactionThreadReportOnyxValue.reportID,
+            parentReportActionID: transactionThreadReportOnyxValue.parentReportActionID,
+            lastVisibleActionCreated: transactionThreadReportOnyxValue.lastVisibleActionCreated,
+            parentReportID: transactionThreadReportOnyxValue.parentReportID,
+        } as OnyxEntry<OnyxTypes.Report>;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        transactionThreadReportOnyxValue?.reportID,
+        transactionThreadReportOnyxValue?.parentReportActionID,
+        transactionThreadReportOnyxValue?.lastVisibleActionCreated,
+        transactionThreadReportOnyxValue?.parentReportID,
+    ]);
+    
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);

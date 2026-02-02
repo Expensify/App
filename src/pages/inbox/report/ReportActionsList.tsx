@@ -68,6 +68,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import { deepEqual } from 'fast-equals';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
@@ -177,9 +178,18 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, { canBeMissing: false });
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, { canBeMissing: true });
+    const policiesRef = useRef(policies);
+    // Stabilize policies - only update ref when content actually changes
+    const stablePolicies = useMemo(() => {
+        if (!deepEqual(policiesRef.current, policies)) {
+            policiesRef.current = policies;
+        }
+        return policiesRef.current;
+    }, [policies]);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const transactionsArray = useMemo(() => Object.values(transactions ?? {}), [transactions]);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -692,7 +702,7 @@ function ReportActionsList({
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
-                    policies={policies}
+                    policies={stablePolicies}
                     reportAction={reportAction}
                     reportActions={sortedReportActions}
                     parentReportAction={parentReportAction}
@@ -711,7 +721,7 @@ function ReportActionsList({
                     shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                    transactions={Object.values(transactions ?? {})}
+                    transactions={transactionsArray}
                     userWalletTierName={userWalletTierName}
                     isUserValidated={isUserValidated}
                     personalDetails={personalDetailsList}
@@ -732,7 +742,7 @@ function ReportActionsList({
             draftMessage,
             emojiReactions,
             allReports,
-            policies,
+            stablePolicies,
             sortedReportActions,
             parentReportAction,
             parentReportActionForTransactionThread,
@@ -745,7 +755,7 @@ function ReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             shouldUseThreadDividerLine,
-            transactions,
+            transactionsArray,
             userWalletTierName,
             isUserValidated,
             personalDetailsList,
@@ -754,6 +764,7 @@ function ReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
+            transactions
         ],
     );
 
@@ -812,6 +823,12 @@ function ReportActionsList({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }, [shouldShowSkeleton]);
 
+    const contentContainerStyle = useMemo(() => [styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined], [shouldFocusToTopOnMount, styles.chatContentScrollView, styles.justifyContentEnd]);
+
+    const onContentSizeChange = useCallback(() => {
+        trackVerticalScrolling(undefined);
+    }, [trackVerticalScrolling]);
+
     const renderTopReportActions = useCallback(() => {
         const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
         return (
@@ -860,7 +877,7 @@ function ReportActionsList({
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
+                    contentContainerStyle={contentContainerStyle}
                     shouldHideContent={shouldScrollToEndAfterLayout}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
                     showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
@@ -878,12 +895,11 @@ function ReportActionsList({
                     onViewableItemsChanged={onViewableItemsChanged}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
+                    windowSize={15}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                     initialScrollKey={reportActionID}
-                    onContentSizeChange={() => {
-                        trackVerticalScrolling(undefined);
-                    }}
+                    onContentSizeChange={onContentSizeChange}
                 />
             </View>
         </>
