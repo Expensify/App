@@ -61,13 +61,13 @@ import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionRepo
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import getReceiptImageRestrictedStyle from './MoneyRequestConfirmationListFooter/getReceiptImageRestrictedStyle';
+import getReceiptContainerPaddingStyle from './MoneyRequestConfirmationListFooter/receiptContainerPaddingStyle';
 import PDFThumbnail from './PDFThumbnail';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
-import getReceiptContainerPaddingStyle from './MoneyRequestConfirmationListFooter/receiptContainerPaddingStyle';
-import getReceiptImageRestrictedStyle from './MoneyRequestConfirmationListFooter/getReceiptImageRestrictedStyle';
 import Text from './Text';
 
 type MoneyRequestConfirmationListFooterProps = {
@@ -1191,7 +1191,12 @@ function MoneyRequestConfirmationListFooter({
             )}
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
                 <View
-                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, shouldRestrictHeight && {flexShrink: 1, minHeight: 180}, getReceiptContainerPaddingStyle(shouldRestrictHeight, styles.pt10), shouldRestrictHeight && styles.mh5]}
+                    style={[
+                        !hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3,
+                        shouldRestrictHeight && {flexShrink: 1, minHeight: 180},
+                        getReceiptContainerPaddingStyle(shouldRestrictHeight, styles.pt10),
+                        shouldRestrictHeight && styles.mh5,
+                    ]}
                 >
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
