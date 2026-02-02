@@ -13252,11 +13252,8 @@ function removeUnchangedBulkEditFields(
     for (const field of changeKeys) {
         const nextValue = transactionChanges[field];
         const currentValue = currentDetails[field as keyof TransactionDetails];
-        const shouldNormalizeString = typeof currentValue === 'string' || typeof nextValue === 'string';
-        const normalizedCurrentValue = shouldNormalizeString ? (currentValue ?? '') : currentValue;
-        const normalizedNextValue = shouldNormalizeString ? (nextValue ?? '') : nextValue;
 
-        if (normalizedNextValue !== normalizedCurrentValue) {
+        if (nextValue !== currentValue) {
             filteredChanges = {
                 ...filteredChanges,
                 [field]: nextValue,
