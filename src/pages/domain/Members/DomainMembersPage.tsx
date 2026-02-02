@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAddMemberError} from '@libs/actions/Domain';
+import {clearDomainMemberError} from '@libs/actions/Domain';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -68,7 +68,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 if (!defaultSecurityGroupID) {
                     return;
                 }
-                clearAddMemberError(domainAccountID, item.accountID, item.login, defaultSecurityGroupID);
+                clearDomainMemberError(domainAccountID, item.accountID, item.login, item.pendingAction, defaultSecurityGroupID);
             }}
         />
     );

@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {addMemberToDomain, clearAddMemberError, clearDomainErrors, clearDomainMemberError, closeUserAccount, createDomain, resetCreateDomainForm, resetDomain} from '@libs/actions/Domain';
+import {addMemberToDomain, clearDomainErrors, clearDomainMemberError, closeUserAccount, createDomain, resetCreateDomainForm, resetDomain} from '@libs/actions/Domain';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -202,7 +202,7 @@ describe('actions/Domain', () => {
             } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         );
 
-        clearAddMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID);
+        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID);
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -228,9 +228,20 @@ describe('actions/Domain', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainName = 'test.com';
+            const accountID = 456;
             const targetEmail = 'user@test.com';
+            const securityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1` as const;
 
-            closeUserAccount(domainAccountID, domainName, targetEmail);
+            const securityGroupsData: UserSecurityGroupData = {
+                key: securityGroupKey,
+                securityGroup: {
+                    shared: {
+                        [accountID]: 'read',
+                    },
+                },
+            };
+
+            closeUserAccount(domainAccountID, domainName, accountID, targetEmail, securityGroupsData);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
@@ -254,6 +265,11 @@ describe('actions/Domain', () => {
                             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                             value: {memberErrors: {[targetEmail]: expect.any(Object)}},
                         }),
+                        // This restores the user to the security group if the API call fails
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            value: {[securityGroupKey]: {shared: {[accountID]: 'read'}}},
+                        }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
                             value: {members: {[targetEmail]: null}},
@@ -269,9 +285,10 @@ describe('actions/Domain', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainName = 'test.com';
+            const accountID = 456;
             const targetEmail = 'user@test.com';
 
-            closeUserAccount(domainAccountID, domainName, targetEmail, true);
+            closeUserAccount(domainAccountID, domainName, accountID, targetEmail, null, true);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_DOMAIN_MEMBER, {domain: domainName, targetEmail, overrideProcessingReports: true}, expect.any(Object));
 
