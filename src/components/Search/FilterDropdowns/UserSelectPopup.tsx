@@ -96,23 +96,25 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     }, [selectedOptions]);
 
     const optionsList = useMemo(() => {
-        return memoizedGetValidOptions({
-            options: {
+        return memoizedGetValidOptions(
+            {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
-            policies: allPolicies,
+            allPolicies,
             draftComments,
             nvpDismissedProductTraining,
             loginList,
             currentUserAccountID,
             currentUserEmail,
             reports,
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeCurrentUser: true,
-            personalDetails,
+            {
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                includeCurrentUser: true,
+                personalDetails,
+            },
             countryCode,
-        });
+        );
     }, [
         options.reports,
         options.personalDetails,

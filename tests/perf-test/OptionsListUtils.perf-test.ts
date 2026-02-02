@@ -145,34 +145,34 @@ describe('OptionsListUtils', () => {
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({
-            options: {reports: options.reports, personalDetails: options.personalDetails},
-            policies: allPolicies,
-            draftComments: {},
+        const formattedOptions = getValidOptions(
+            {reports: options.reports, personalDetails: options.personalDetails},
+            allPolicies,
+            {},
             nvpDismissedProductTraining,
             loginList,
-            currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
-            currentUserEmail: MOCK_CURRENT_USER_EMAIL,
-            reports: {},
-            ...ValidOptionsConfig,
-        });
+            MOCK_CURRENT_USER_ACCOUNT_ID,
+            MOCK_CURRENT_USER_EMAIL,
+            {},
+            ValidOptionsConfig,
+        );
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, {});
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({
-            options: {reports: options.reports, personalDetails: options.personalDetails},
-            policies: allPolicies,
-            draftComments: {},
+        const formattedOptions = getValidOptions(
+            {reports: options.reports, personalDetails: options.personalDetails},
+            allPolicies,
+            {},
             nvpDismissedProductTraining,
             loginList,
-            currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
-            currentUserEmail: MOCK_CURRENT_USER_EMAIL,
-            reports: {},
-            ...ValidOptionsConfig,
-        });
+            MOCK_CURRENT_USER_ACCOUNT_ID,
+            MOCK_CURRENT_USER_EMAIL,
+            {},
+            ValidOptionsConfig,
+        );
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, {});
         });
@@ -182,28 +182,30 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getValidOptions({
-                options: {reports: options.reports, personalDetails: options.personalDetails},
-                policies: allPolicies,
-                draftComments: {},
+            getValidOptions(
+                {reports: options.reports, personalDetails: options.personalDetails},
+                allPolicies,
+                {},
                 nvpDismissedProductTraining,
                 loginList,
-                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
-                reports: {},
-                betas: mockedBetas,
-                includeMultipleParticipantReports: true,
-                showChatPreviewLine: true,
-                forcePolicyNamePreview: true,
-                includeThreads: true,
-                includeMoneyRequests: true,
-                includeTasks: true,
-                excludeLogins: {},
-                includeOwnedWorkspaceChats: true,
-                includeSelfDM: true,
-                searchString: '',
-                includeUserToInvite: false,
-            }),
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                MOCK_CURRENT_USER_EMAIL,
+                {},
+                {
+                    betas: mockedBetas,
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins: {},
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: '',
+                    includeUserToInvite: false,
+                },
+            ),
         );
     });
 
@@ -211,18 +213,18 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getMemberInviteOptions({
-                personalDetails: options.personalDetails,
+            getMemberInviteOptions(
+                options.personalDetails,
                 nvpDismissedProductTraining,
                 loginList,
-                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
-                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
-                reports: {},
-                betas: mockedBetas,
-                excludeLogins: {},
-                includeSelectedOptions: false,
-                countryCode: COUNTRY_CODE,
-            }),
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                MOCK_CURRENT_USER_EMAIL,
+                {},
+                mockedBetas,
+                {},
+                false,
+                COUNTRY_CODE,
+            ),
         );
     });
 

@@ -97,16 +97,16 @@ function RoomInvitePage({
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions({
-            personalDetails: options.personalDetails,
+        const inviteOptions = getMemberInviteOptions(
+            options.personalDetails,
             nvpDismissedProductTraining,
             loginList,
             currentUserAccountID,
             currentUserEmail,
             reports,
-            betas: betas ?? [],
-            excludeLogins: excludedUsers,
-        });
+            betas ?? [],
+            excludedUsers,
+        );
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, MemberForList> = {};
         for (const detail of inviteOptions.personalDetails) {
