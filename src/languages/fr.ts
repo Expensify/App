@@ -2329,6 +2329,7 @@ ${amount} pour ${merchant} - ${date}`,
             expensesFromSubtitle: 'Tous les membres de l’espace de travail appartiennent déjà à un flux d’approbation existant.',
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
         },
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `dépenses de ${members}, et l’approbateur est ${approvers}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'La fréquence d’envoi n’a pas pu être modifiée. Veuillez réessayer ou contacter l’assistance.',
