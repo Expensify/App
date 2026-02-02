@@ -769,15 +769,15 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Abilita una verifica rapida e sicura utilizzando il tuo viso o impronta digitale. Nessuna password o codice necessario.',
         },
         revoke: {
-            revoke: 'Revoca',
             title: 'Riconoscimento facciale/impronta digitale & passkey',
             explanation:
-                'La verifica con volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo',
-            confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo',
+                'La verifica tramite volto/impronta digitale o passkey è abilitata su uno o più dispositivi. La revoca dell’accesso richiederà un codice magico per la prossima verifica su qualsiasi dispositivo.',
+            confirmationPrompt: 'Sei sicuro? Ti servirà un codice magico per la prossima verifica su qualsiasi dispositivo.',
             cta: 'Revoca accesso',
             noDevices: 'Non hai alcun dispositivo registrato per la verifica con volto/impronta digitale o passkey. Se ne registri uno, potrai revocare tale accesso da qui.',
             dismiss: 'Ho capito',
             error: 'Richiesta non riuscita. Riprova più tardi.',
+            remove: 'Rimuovi',
         },
     },
     validateCodeModal: {
@@ -1055,6 +1055,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Conferma i dettagli qui sotto per i ${count} nuovi membri dello spazio di lavoro che verranno aggiunti come parte di questo caricamento. I membri esistenti non riceveranno aggiornamenti del ruolo né messaggi di invito.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transazioni sono state importate.` : '1 transazione è stata importata.',
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -2318,6 +2320,7 @@ ${amount} per ${merchant} - ${date}`,
             expensesFromSubtitle: 'Tutti i membri dello spazio di lavoro appartengono già a un flusso di approvazione esistente.',
             approverSubtitle: 'Tutti gli approvatori appartengono a un workflow esistente.',
         },
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `spese da ${members} e l’approvatore è ${approvers}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "Impossibile modificare la frequenza di invio. Riprova o contatta l'assistenza.",
@@ -4948,6 +4951,15 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Scegli una nuova data di inizio per le transazioni. Sincronizzeremo tutte le transazioni da quella data in poi, escludendo quelle già importate.',
             unassignCardFailedError: 'Rimozione della carta non riuscita.',
+            importTransactions: {
+                title: 'Importa transazioni da file',
+                description: 'Regola le impostazioni per il tuo file che verranno applicate all’importazione.',
+                cardDisplayName: 'Nome visualizzato carta',
+                currency: 'Valuta',
+                transactionsAreReimbursable: 'Le transazioni sono rimborsabili',
+                flipAmountSign: 'Inverti segno importo',
+                importButton: 'Importa transazioni',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed delle carte',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7068,6 +7080,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
         },
         topSpenders: 'Maggiori spenditori',
+        view: {label: 'Visualizza', table: 'Tabella', bar: 'Bar'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
@@ -7217,7 +7230,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 addedConnection: ({connectionName}: ConnectionNameParams) => `connesso a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'ha lasciato la chat',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `La connessione ${feedName} non funziona. Per ripristinare le importazioni delle carte, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>`,
+                    `La connessione ${feedName} non funziona. Per ripristinare le importazioni delle carte, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al tuo conto bancario aziendale è interrotta. <a href='${walletRoute}'>Ricollega il tuo conto bancario ${maskedAccountNumber}</a> per continuare a usare le tue carte Expensify.`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8279,6 +8292,8 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             cta: 'Richiesta',
             offer50off: {title: 'Ottieni il 50% di sconto sul tuo primo anno!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} rimanenti`},
             offer25off: {title: 'Ottieni il 25% di sconto sul tuo primo anno!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'giorno' : 'giorni'} rimanenti`},
+            addShippingAddress: {title: 'Abbiamo bisogno del tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Expensify Card.', cta: 'Aggiungi indirizzo'},
+            activateCard: {title: 'Attiva la tua Expensify Card', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
         },
     },
 };
