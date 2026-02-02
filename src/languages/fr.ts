@@ -1143,7 +1143,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: 'Supprimer la répartition',
         splitExpenseCannotBeEditedModalTitle: 'Cette dépense ne peut pas être modifiée',
         splitExpenseCannotBeEditedModalDescription: 'Les dépenses approuvées ou payées ne peuvent pas être modifiées',
-        splitExpenseDistanceErrorModalDescription: 'Veuillez corriger l’erreur du taux de distance et réessayer.',
+        splitExpenseRateErrorModalDescription: 'Veuillez corriger l’erreur du taux de distance et réessayer.',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Payer ${name ?? 'quelqu’un'}`,
         expense: 'Dépense',
         categorize: 'Catégoriser',

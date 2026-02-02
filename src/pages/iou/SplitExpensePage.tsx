@@ -165,7 +165,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (hasDistanceRateError) {
             showConfirmModal({
                 title: translate('iou.splitExpense'),
-                prompt: translate('iou.splitExpenseDistanceErrorModalDescription'),
+                prompt: translate('iou.splitExpenseRateErrorModalDescription'),
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
             });
