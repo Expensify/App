@@ -1,10 +1,11 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import Animated, {Keyframe} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 function Backdrop({
@@ -13,32 +14,22 @@ function Backdrop({
     onBackdropPress,
     animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
     animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
+    backdropOpacity = variables.overlayOpacity,
 }: BackdropProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const Entering = useMemo(() => {
-        const FadeIn = new Keyframe(getModalInAnimation('fadeIn'));
-        return FadeIn.duration(animationInTiming);
-    }, [animationInTiming]);
+    const Entering = new Keyframe(getModalInAnimation('fadeIn')).duration(animationInTiming);
+    const Exiting = new Keyframe(getModalOutAnimation('fadeOut')).duration(animationOutTiming);
 
-    const Exiting = useMemo(() => {
-        const FadeOut = new Keyframe(getModalOutAnimation('fadeOut'));
-
-        return FadeOut.duration(animationOutTiming);
-    }, [animationOutTiming]);
-
-    const BackdropOverlay = useMemo(
-        () => (
-            <Animated.View
-                entering={Entering}
-                exiting={Exiting}
-                style={[styles.modalBackdrop, style]}
-            >
-                {!!customBackdrop && customBackdrop}
-            </Animated.View>
-        ),
-        [Entering, Exiting, customBackdrop, style, styles.modalBackdrop],
+    const BackdropOverlay = (
+        <Animated.View
+            entering={Entering}
+            exiting={Exiting}
+            style={[styles.modalBackdrop, {opacity: backdropOpacity}, style]}
+        >
+            {!!customBackdrop && customBackdrop}
+        </Animated.View>
     );
 
     if (!customBackdrop) {
