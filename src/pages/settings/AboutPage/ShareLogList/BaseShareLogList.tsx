@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,12 +20,7 @@ import type {Report} from '@src/types/onyx';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {BaseShareLogListProps} from './types';
 
-type SearchOptionDataWithListKey = SearchOptionData & {keyForList: string};
-type Sections = Array<Section<SearchOptionDataWithListKey>>;
-
-function toSearchOptionDataWithKey(searchOption: SearchOptionData): SearchOptionDataWithListKey {
-    return {...searchOption, keyForList: searchOption.reportID};
-}
+type Sections = Array<Section<SearchOptionData>>;
 
 function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const {isOffline} = useNetwork();
@@ -44,7 +39,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         if (availableOptions.recentReports.length > 0) {
             sections.push({
                 title: translate('common.recents'),
-                data: availableOptions.recentReports.map(toSearchOptionDataWithKey),
+                data: availableOptions.recentReports,
                 sectionIndex: 0,
             });
         }
@@ -52,7 +47,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         if (availableOptions.personalDetails.length > 0) {
             sections.push({
                 title: translate('common.contacts'),
-                data: availableOptions.personalDetails.map(toSearchOptionDataWithKey),
+                data: availableOptions.personalDetails,
                 sectionIndex: 1,
             });
         }
@@ -60,7 +55,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         if (availableOptions.userToInvite) {
             sections.push({
                 title: undefined,
-                data: [availableOptions.userToInvite].map(toSearchOptionDataWithKey),
+                data: [availableOptions.userToInvite],
                 sectionIndex: 2,
             });
         }
@@ -110,7 +105,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                         title={translate('initialSettingsPage.debugConsole.shareLog')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE.getRoute())}
                     />
-                    <SelectionList
+                    <SelectionListWithSections
                         ListItem={UserListItem}
                         sections={sections}
                         onSelectRow={attachLogToReport}

@@ -323,7 +323,10 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (isOptionInList) {
             newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
         } else {
-            newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
+            newSelectedOptions = [
+                ...selectedOptions,
+                {...option, isSelected: true, selected: true, reportID: option.reportID, keyForList: String(option.accountID ?? option.reportID ?? option.login ?? option.displayName ?? '')},
+            ];
             selectionListRef?.current?.scrollToIndex(0, true);
         }
 
