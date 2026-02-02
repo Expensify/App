@@ -180,6 +180,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         KeyboardUtils.dismiss();
                     }}
                     accessible={false}
+                    sentryLabel="ShareDetailsPage-DismissKeyboard"
                 >
                     <HeaderWithBackButton
                         title={translate('share.shareToExpensify')}
@@ -225,6 +226,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                             KeyboardUtils.dismiss();
                         }}
                         accessible={false}
+                        sentryLabel="ShareDetailsPage-DismissKeyboardAttachment"
                     >
                         {shouldShowAttachment && (
                             <>
