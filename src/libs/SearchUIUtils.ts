@@ -196,6 +196,20 @@ type GetReportSectionsParams = {
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
 };
 
+type GetTransactionSectionsParams = {
+    data: OnyxTypes.SearchResults['data'];
+    currentSearch: SearchKey;
+    currentAccountID: number;
+    currentUserEmail: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    isActionLoadingSet: ReadonlySet<string> | undefined;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
+    allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
+    reportActions?: Record<string, OnyxTypes.ReportAction[]>;
+    queryJSON?: SearchQueryJSON;
+    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
+};
+
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
@@ -1434,21 +1448,19 @@ function getToFieldValueForTransaction(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-// eslint-disable-next-line @typescript-eslint/max-params
-function getTransactionsSections(
-    data: OnyxTypes.SearchResults['data'],
-    currentSearch: SearchKey,
-    currentAccountID: number,
-    currentUserEmail: string,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    isActionLoadingSet: ReadonlySet<string> | undefined,
-    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
-    allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>,
-    translate: LocalizedTranslate,
-    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
-    queryJSON?: SearchQueryJSON,
-    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
-): [TransactionListItemType[], number] {
+function getTransactionsSections({
+    data,
+    currentSearch,
+    currentAccountID,
+    currentUserEmail,
+    formatPhoneNumber,
+    isActionLoadingSet,
+    bankAccountList,
+    allReportMetadata,
+    reportActions = {},
+    queryJSON,
+    cardFeeds,
+}: GetTransactionSectionsParams): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
@@ -2707,7 +2719,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(
+    return getTransactionsSections({
         data,
         currentSearch,
         currentAccountID,
@@ -2716,11 +2728,10 @@ function getSections({
         isActionLoadingSet,
         bankAccountList,
         allReportMetadata,
-        translate,
         reportActions,
         queryJSON,
         cardFeeds,
-    );
+    });
 }
 
 /**
