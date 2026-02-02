@@ -394,6 +394,19 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    useEffect(() => {
+        return () => {
+            if (keyboardListenerRef.current) {
+                keyboardListenerRef.current.remove();
+                keyboardListenerRef.current = null;
+            }
+            if (scrollTimeoutRef.current) {
+                clearTimeout(scrollTimeoutRef.current);
+                scrollTimeoutRef.current = null;
+            }
+        };
+    }, []);
+
     // The function scrolls to the focused input to prevent keyboard occlusion.
     // It ensures the entire list item is visible, not just the input field.
     // Added specifically for SplitExpensePage
@@ -430,8 +443,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     clearTimeout(scrollTimeoutRef.current);
                     scrollTimeoutRef.current = null;
                 }
-                // Add small delay after keyboard is shown for layout to settle
-                scrollTimeoutRef.current = setTimeout(performScroll, 100);
+                performScroll();
             });
 
             // Fallback timeout in case keyboard event doesn't fire (e.g., keyboard already open)
