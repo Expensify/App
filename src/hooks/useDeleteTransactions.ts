@@ -1,6 +1,8 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {deleteMoneyRequest, getIOUActionForTransactions, getIOURequestPolicyID, initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU';
+import {deleteMoneyRequest, getIOURequestPolicyID, initSplitExpenseItemData} from '@libs/actions/IOU';
+import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
+import {updateSplitTransactions} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
@@ -34,6 +36,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -112,6 +116,19 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     allPolicyRecentlyUsedCategories?.[
                         `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(getIOURequestPolicyID(originalTransaction, report))}`
                     ] ?? [];
+
+                const hasEditableSplitExpensesLeft = childTransactions.some((childTransaction) => {
+                    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
+                    return (currentReport?.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED;
+                });
+
+                if (!hasEditableSplitExpensesLeft) {
+                    nonSplitTransactions.push(...splitTransactionsByOriginalTransactionID[transactionID]);
+                    continue;
+                }
+
+                const remainingSplitExpenses = childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction));
+
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
@@ -119,7 +136,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionData: {
                         reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                         originalTransactionID: transactionID,
-                        splitExpenses: childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction)),
+                        splitExpenses: remainingSplitExpenses,
                     },
                     searchContext: {
                         currentSearchHash: currentSearchHash ?? 0,
@@ -133,6 +150,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     currentUserPersonalDetails,
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    quickAction,
+                    iouReportNextStep,
                 });
             }
 
@@ -157,6 +176,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionIDsPendingDeletion: deletedTransactionIDs,
                     selectedTransactionIDs: transactionIDs,
                     hash: currentSearchHash,
+                    allTransactionViolationsParam: transactionViolations,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
@@ -167,19 +188,21 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             return Array.from(deletedTransactionThreadReportIDs);
         },
         [
-            reportActions,
-            allTransactions,
-            allReports,
-            report,
-            allReportNameValuePairs,
             allPolicyRecentlyUsedCategories,
-            policyCategories,
-            policy,
+            allReportNameValuePairs,
+            allReports,
+            allTransactions,
             archivedReportsIdSet,
-            isBetaEnabled,
             currentUserPersonalDetails,
-            transactionViolations,
+            iouReportNextStep,
+            isBetaEnabled,
+            policy,
+            policyCategories,
             policyRecentlyUsedCurrencies,
+            quickAction,
+            report,
+            reportActions,
+            transactionViolations,
         ],
     );
 

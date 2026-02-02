@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {buildNextStepNew, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
+import {buildNextStepNew, buildOptimisticNextStepForDynamicExternalWorkflowSubmitError, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -162,7 +162,7 @@ describe('libs/NextStepUtils', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for userSubmitter to add expense(s).
+                // Waiting for userSubmitter to submit expense(s).
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -175,7 +175,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'add',
+                        text: 'submit',
                     },
                     {
                         text: ' %expenses.',
@@ -1041,6 +1041,27 @@ describe('libs/NextStepUtils', () => {
                 message: [
                     {
                         text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('buildOptimisticNextStepForDynamicExternalWorkflowSubmitError', () => {
+        test('should return alert next step with error message when DEW submit fails', () => {
+            // Given a scenario where Dynamic External Workflow submission has failed
+
+            // When buildOptimisticNextStepForDynamicExternalWorkflowSubmitError is called
+            const result = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError();
+
+            // Then it should return an alert-type next step with the appropriate error message and dot indicator icon
+            expect(result).toEqual({
+                type: 'alert',
+                icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+                message: [
+                    {
+                        text: "This report can't be submitted. Please review the comments to resolve.",
+                        type: 'alert-text',
                     },
                 ],
             });

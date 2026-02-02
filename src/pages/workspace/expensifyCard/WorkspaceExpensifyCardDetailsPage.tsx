@@ -5,7 +5,7 @@ import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar, Hourglass} from '@components/Icon/Expensicons';
+import {Hourglass} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -53,7 +53,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -144,7 +144,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     <MenuItem
                         label={translate('workspace.card.issueNewCard.cardholder')}
                         title={displayName}
-                        icon={cardholder?.avatar ?? FallbackAvatar}
+                        icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         description={Str.removeSMSDomain(cardholder?.login ?? '')}
                         interactive={false}

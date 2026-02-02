@@ -33,8 +33,8 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             engagementChoice: undefined,
             currency: params.currency,
             file: params.avatarFile as File,
-            introSelectedParam: introSelected,
-            activePolicyIDParam: activePolicyID,
+            introSelected,
+            activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
         });
