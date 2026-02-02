@@ -20,7 +20,7 @@ function PreTrialBillingBanner() {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
 
     const navigateToChat = () => {
-        const reportUsedForOnboarding = getChatUsedForOnboarding(onboarding);
+        const reportUsedForOnboarding = getChatUsedForOnboarding(onboarding, conciergeReportID);
 
         if (!reportUsedForOnboarding) {
             navigateToConciergeChat(conciergeReportID, false);
