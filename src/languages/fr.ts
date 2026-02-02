@@ -1030,6 +1030,8 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
         importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} catégories ont été ajoutées.` : '1 catégorie a été ajoutée.'),
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transactions ont été ajoutées.` : '1 transaction a été ajoutée.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Aucun membre n’a été ajouté ou mis à jour.';
@@ -4851,6 +4853,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             selectCards: 'Sélectionner des cartes',
             addNewCard: {
                 other: 'Autre',
+                fileImport: 'Importer des transactions depuis un fichier',
+                createFileFeedHelpText: `<muted-text>Veuillez suivre ce <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guide d’aide</a> pour importer les dépenses de votre carte d’entreprise !</muted-text>`,
+                companyCardLayoutName: 'Nom de la disposition de carte entreprise',
+                useAdvancedFields: 'Utiliser les champs avancés (non recommandé)',
                 cardProviders: {
                     gl1025: 'Cartes d’entreprise American Express',
                     cdf: 'Cartes commerciales Mastercard',
@@ -4930,6 +4936,25 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     prompt: 'Nous avons remarqué que vous n’avez pas terminé l’ajout de vos cartes. Si vous avez rencontré un problème, faites-le-nous savoir afin que nous puissions vous aider à tout remettre sur les rails.',
                     confirmText: 'Signaler un problème',
                     cancelText: 'Ignorer',
+                },
+                csvColumns: {
+                    cardNumber: 'Numéro de carte',
+                    postedDate: 'Date',
+                    merchant: 'Commerçant',
+                    amount: 'Montant',
+                    currency: 'Devise',
+                    ignore: 'Ignorer',
+                    originalTransactionDate: 'Date de transaction d’origine',
+                    originalAmount: 'Montant d’origine',
+                    originalCurrency: 'Devise d’origine',
+                    comment: 'Commentaire',
+                    category: 'Catégorie',
+                    tag: 'Étiquette',
+                    uniqueID: 'Identifiant unique',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `Veuillez attribuer une colonne à chacun des attributs : ${missingColumns}.`,
+                    duplicateColumns: (duplicateColumn: string) => `Oups ! Vous avez associé un seul champ (« ${duplicateColumn} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
                 },
             },
             statementCloseDate: {

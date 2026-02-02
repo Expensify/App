@@ -12,6 +12,7 @@ export type {ImportTransactionsForm} from './ImportTransactionsForm';
 export type {IntroSchoolPrincipalForm} from './IntroSchoolPrincipalForm';
 export type {IssueNewExpensifyCardForm} from './IssueNewExpensifyCardForm';
 export type {AddNewCardFeedForm} from './AddNewCardFeedForm';
+export type {CompanyCardLayoutNameForm} from './CompanyCardLayoutNameForm';
 export type {EditExpensifyCardNameForm} from './EditExpensifyCardNameForm';
 export type {EditPersonalCardNameForm} from './EditPersonalCardNameForm';
 export type {LegalNameForm} from './LegalNameForm';

@@ -239,6 +239,15 @@ type AddNewCardFeedData = {
     /** Feed name from Plaid connection */
     plaidConnectedFeedName?: string;
 
+    /** Name of the CSV layout template */
+    companyCardLayoutName?: string;
+
+    /** Identifier for the CSV layout template */
+    layoutType?: string;
+
+    /** Whether to use advanced fields in the CSV layout */
+    useAdvancedFields?: boolean;
+
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
 };
