@@ -1,9 +1,8 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -11,27 +10,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import memoize from '@libs/memoize';
-import type {Option} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-function getSelectedOptionData(option: Option) {
-    return {...option, reportID: `${option.reportID}`, selected: true};
-}
-
-const optionsMatch = (opt1: Option, opt2: Option) => {
-    // Below is just a boolean expression.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return (opt1.accountID && opt1.accountID === opt2?.accountID) || (opt1.reportID && opt1.reportID === opt2?.reportID);
-};
-
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'UserSelectPopup.getValidOptions'});
 
 type UserSelectPopupProps = {
     /** The currently selected users */
@@ -55,21 +41,13 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {options} = useOptionsList();
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const initialSelectedOptions = useMemo(() => {
         return value.reduce<OptionData[]>((acc, id) => {
             const participant = personalDetails?.[id];
@@ -77,77 +55,42 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                 return acc;
             }
 
-            const optionData = getSelectedOptionData(participant);
+            const optionData = {
+                ...getParticipantsOption(participant, personalDetails),
+                isSelected: true,
+            };
+
             if (optionData) {
-                acc.push(optionData);
+                acc.push(optionData as OptionData);
             }
 
             return acc;
         }, []);
     }, [value, personalDetails]);
 
-    const [selectedOptions, setSelectedOptions] = useState<Option[]>(initialSelectedOptions);
-
-    const cleanSearchTerm = searchTerm.trim().toLowerCase();
-
-    const selectedAccountIDs = useMemo(() => {
-        return new Set(selectedOptions.map((option) => option.accountID).filter(Boolean));
-    }, [selectedOptions]);
-
-    const optionsList = useMemo(() => {
-        return memoizedGetValidOptions(
-            {
-                reports: options.reports,
-                personalDetails: options.personalDetails,
-            },
-            allPolicies,
-            draftComments,
-            nvpDismissedProductTraining,
-            loginList,
-            currentUserAccountID,
-            currentUserEmail,
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeCurrentUser: true,
-                personalDetails,
-            },
-            countryCode,
-        );
-    }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails, currentUserAccountID, currentUserEmail]);
-
-    const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(
-            optionsList,
-            cleanSearchTerm,
-            countryCode,
-            loginList,
-            currentUserEmail,
-
-            currentUserAccountID,
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-                canInviteUser: false,
-            },
-        );
-    }, [optionsList, cleanSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} =
+        useSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            initialSelected: initialSelectedOptions,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            includeUserToInvite: false,
+            includeCurrentUser: true,
+        });
 
     const listData = useMemo(() => {
-        const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
+        const personalDetailsList = availableOptions.personalDetails.map((participant) => ({
             ...participant,
-            isSelected: selectedAccountIDs.has(participant.accountID),
             keyForList: String(participant.accountID),
         }));
-
-        const recentReportsList = filteredOptions.recentReports.map((report) => ({
+        const recentReports = availableOptions.recentReports.map((report) => ({
             ...report,
-            isSelected: selectedAccountIDs.has(report.accountID),
             keyForList: String(report.reportID),
         }));
+        const combinedOptions = [...selectedOptionsForDisplay, ...personalDetailsList, ...recentReports];
 
-        const combined = [...personalDetailList, ...recentReportsList];
-
-        combined.sort((a, b) => {
+        combinedOptions.sort((a, b) => {
             // selected items first
             if (a.isSelected && !b.isSelected) {
                 return -1;
@@ -166,8 +109,12 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             return 0;
         });
 
-        return combined;
-    }, [filteredOptions, currentUserAccountID, selectedAccountIDs]);
+        const combinedOptionsWithKeyForList = combinedOptions.map((option) => ({
+            ...option,
+            keyForList: option.keyForList ?? option.login ?? '',
+        }));
+        return combinedOptionsWithKeyForList;
+    }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, currentUserAccountID]);
 
     const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
@@ -175,13 +122,11 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     }, [listData, translate]);
 
     const selectUser = useCallback(
-        (option: Option) => {
-            const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
-
-            setSelectedOptions((prev) => (isSelected ? prev.filter((selected) => !optionsMatch(selected, option)) : [...prev, getSelectedOptionData(option)]));
+        (option: OptionData) => {
+            toggleSelection(option);
             selectionListRef?.current?.scrollToIndex(0);
         },
-        [selectedOptions],
+        [toggleSelection],
     );
 
     const applyChanges = useCallback(() => {
@@ -196,7 +141,15 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     }, [closeOverlay, onChange]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const totalOptionsCount = optionsList.personalDetails.length + optionsList.recentReports.length;
+    const [totalOptionsCount, setTotalOptionsCount] = useState(() => selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
+
+    useEffect(() => {
+        if (debouncedSearchTerm.length !== 0) {
+            return;
+        }
+        setTotalOptionsCount(selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
+    }, [debouncedSearchTerm.length, selectedOptionsForDisplay.length, availableOptions.personalDetails.length, availableOptions.recentReports.length]);
+
     const shouldShowSearchInput = isSearchable ?? totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const textInputOptions = useMemo(
@@ -210,7 +163,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                       disableAutoFocus: !shouldFocusInputOnScreenFocus,
                   }
                 : undefined,
-        [searchTerm, translate, headerMessage, shouldFocusInputOnScreenFocus, shouldShowSearchInput],
+        [shouldShowSearchInput, searchTerm, translate, setSearchTerm, headerMessage, shouldFocusInputOnScreenFocus],
     );
 
     return (
@@ -224,6 +177,8 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
                 style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
                 onSelectRow={selectUser}
                 isLoadingNewOptions={isLoadingNewOptions}
+                showLoadingPlaceholder={!areOptionsInitialized}
+                onEndReached={onListEndReached}
             />
 
             <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>
