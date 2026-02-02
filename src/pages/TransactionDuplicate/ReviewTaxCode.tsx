@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -23,6 +24,7 @@ import ReviewFields from './ReviewFields';
 function ReviewTaxRate() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.TAX_CODE>>();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyList();
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID ?? route.params.threadReportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
@@ -63,9 +65,10 @@ function ReviewTaxRate() {
     const getTaxAmount = useCallback(
         (taxID: string) => {
             const taxPercentage = getTaxValue(policy, transaction, taxID);
-            return convertToBackendAmount(calculateTaxAmount(taxPercentage ?? '', getAmount(transaction), transaction?.currency ?? ''));
+            const decimals = getCurrencyDecimals(transaction?.currency);
+            return convertToBackendAmount(calculateTaxAmount(taxPercentage ?? '', getAmount(transaction), decimals));
         },
-        [policy, transaction],
+        [policy, transaction, getCurrencyDecimals],
     );
 
     const setTaxCode = useCallback(

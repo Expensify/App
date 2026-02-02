@@ -167,7 +167,7 @@ describe('ReportActionsUtils', () => {
                 ],
             };
 
-            expect(isValidPerDiemExpenseAmount(customUnit, CONST.CURRENCY.USD)).toBe(true);
+            expect(isValidPerDiemExpenseAmount(customUnit, CONST.CURRENCY.USD, 2)).toBe(true);
         });
 
         it('should return false when when per diem amount exceeds AMOUNT_MAX_LENGTH', () => {
@@ -177,7 +177,7 @@ describe('ReportActionsUtils', () => {
                 ],
             };
 
-            expect(isValidPerDiemExpenseAmount(customUnit, CONST.CURRENCY.USD)).toBe(false);
+            expect(isValidPerDiemExpenseAmount(customUnit, CONST.CURRENCY.USD, 2)).toBe(false);
         });
 
         it('should return true when per diem expense has negative rate', () => {
@@ -185,7 +185,7 @@ describe('ReportActionsUtils', () => {
                 subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: -1500}],
             };
 
-            expect(isValidPerDiemExpenseAmount(customUnit, CONST.CURRENCY.USD)).toBe(true);
+            expect(isValidPerDiemExpenseAmount(customUnit, CONST.CURRENCY.USD, 2)).toBe(true);
         });
     });
 });

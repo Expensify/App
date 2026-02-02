@@ -38,7 +38,7 @@ import type {
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertAmountToDisplayString, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString, convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -3479,10 +3479,9 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     return `${locationName}, ${formattedTime}`;
 }
 
-function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, iouCurrencyCode?: string) {
+function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, iouCurrencyCode: string | undefined, decimals: number) {
     const perDiemAmountInCents = computePerDiemExpenseAmount(customUnit);
     const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, iouCurrencyCode);
-    const decimals = getCurrencyDecimals(iouCurrencyCode);
     return validateAmount(perDiemAmountString, decimals, undefined, true);
 }
 

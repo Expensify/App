@@ -490,27 +490,27 @@ describe('TransactionUtils', () => {
 
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
-            const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 'USD');
+            const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 2);
             expect(result).toBe(0);
         });
 
         it('returns 0 for empty percentage', () => {
-            const result = TransactionUtils.calculateTaxAmount('', 10000, 'USD');
+            const result = TransactionUtils.calculateTaxAmount('', 10000, 2);
             expect(result).toBe(0);
         });
 
         it('returns 0 for zero percentage', () => {
-            const result = TransactionUtils.calculateTaxAmount('0%', 10000, 'USD');
+            const result = TransactionUtils.calculateTaxAmount('0%', 10000, 2);
             expect(result).toBe(0);
         });
 
         it('returns 0 for zero amount', () => {
-            const result = TransactionUtils.calculateTaxAmount('10%', 0, 'USD');
+            const result = TransactionUtils.calculateTaxAmount('10%', 0, 2);
             expect(result).toBe(0);
         });
 
         it('returns correct tax amount for valid percentage and amount', () => {
-            const result = TransactionUtils.calculateTaxAmount('10%', 10000, 'USD');
+            const result = TransactionUtils.calculateTaxAmount('10%', 10000, 2);
             expect(result).toBe(9.09);
         });
     });

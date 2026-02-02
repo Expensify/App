@@ -34,7 +34,7 @@ import {
 } from '@libs/actions/IOU';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
-import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateGPSDistance} from '@libs/GPSDraftDetailsUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
@@ -289,7 +289,7 @@ function MoneyRequestConfirmationList({
     });
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const {getCurrencySymbol} = useCurrencyList();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyList();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
@@ -571,10 +571,8 @@ function MoneyRequestConfirmationList({
     const taxPercentage =
         getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ??
         (isMovingTransactionFromTrackExpense ? getTaxValue(policyForMovingExpenses, transaction, transaction?.taxCode ?? defaultTaxCode) : '');
-    const taxAmount =
-        isMovingTransactionFromTrackExpense && transaction?.taxAmount
-            ? Math.abs(transaction?.taxAmount ?? 0)
-            : calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
+    const taxDecimals = getCurrencyDecimals(transaction?.currency ?? CONST.CURRENCY.USD);
+    const taxAmount = isMovingTransactionFromTrackExpense && transaction?.taxAmount ? Math.abs(transaction?.taxAmount ?? 0) : calculateTaxAmount(taxPercentage, taxableAmount, taxDecimals);
 
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
@@ -1022,13 +1020,13 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (isTimeRequest && !isValidTimeExpenseAmount(iouAmount, iouCurrencyCode)) {
+                if (isTimeRequest && !isValidTimeExpenseAmount(iouAmount, iouCurrencyCode, decimals)) {
                     setFormError('iou.timeTracking.amountTooLargeError');
                     return;
                 }
 
                 if (isPerDiemRequest) {
-                    if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, iouCurrencyCode)) {
+                    if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, iouCurrencyCode, decimals)) {
                         setFormError('iou.error.invalidQuantity');
                         return;
                     }
@@ -1097,6 +1095,7 @@ function MoneyRequestConfirmationList({
             iouAttendees,
             currentUserPersonalDetails,
             isTimeRequest,
+            getCurrencyDecimals,
         ],
     );
 
