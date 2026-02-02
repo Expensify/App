@@ -8,6 +8,7 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheet, PolicyEmployeeList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {Connections, NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -109,7 +110,7 @@ describe('actions/PolicyMember', () => {
             Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
             // When a user's role is set as admin on a policy
-            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
+            Member.updateWorkspaceMembersRole(fakePolicy, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -152,7 +153,7 @@ describe('actions/PolicyMember', () => {
             });
             await waitForBatchedUpdates();
             // When an admin is demoted from their admin role to a user role
-            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
+            Member.updateWorkspaceMembersRole(fakePolicy, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -278,14 +279,15 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const defaultApprover = 'approver@gmail.com';
             const newUserEmail = 'user@gmail.com';
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 approver: defaultApprover,
-            });
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             mockFetch?.pause?.();
-            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[newUserEmail]: 1234}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -293,9 +295,9 @@ describe('actions/PolicyMember', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     waitForCollectionCallback: false,
-                    callback: (policy) => {
+                    callback: (policyResult) => {
                         Onyx.disconnect(connection);
-                        const newEmployee = policy?.employeeList?.[newUserEmail];
+                        const newEmployee = policyResult?.employeeList?.[newUserEmail];
                         expect(newEmployee).not.toBeUndefined();
                         expect(newEmployee?.email).toBe(newUserEmail);
                         expect(newEmployee?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -320,11 +322,12 @@ describe('actions/PolicyMember', () => {
             const auditorEmail = 'auditor@example.com';
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 approver: defaultApprover,
-            });
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
                 ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 policyID,
@@ -332,15 +335,19 @@ describe('actions/PolicyMember', () => {
                     [ownerAccountID]: {notificationPreference: 'always'},
                 },
             });
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [auditorAccountID]: {login: auditorEmail},
+            });
 
             // When adding a new admin, auditor, and user members
-            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber);
-            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.AUDITOR, TestHelper.formatPhoneNumber);
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
+            mockFetch?.pause?.();
+            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.ADMIN, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.AUDITOR, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
-            // Then only the admin and auditor should be added to the #admins room
+            // Then only the admin and auditor should be added to the #admins room optimistically
             const adminRoom = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
@@ -353,6 +360,20 @@ describe('actions/PolicyMember', () => {
             expect(adminRoom?.participants?.[adminAccountID]).toBeTruthy();
             expect(adminRoom?.participants?.[auditorAccountID]).toBeTruthy();
             expect(adminRoom?.participants?.[userAccountID]).toBeUndefined();
+
+            // and removed if the account is optimistic
+            await mockFetch?.resume?.();
+            const adminRoomSuccess = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(adminRoomSuccess?.participants?.[adminAccountID]).toBeUndefined();
+            expect(adminRoomSuccess?.participants?.[auditorAccountID]).toBeTruthy();
         });
 
         it('should unarchive existing workspace expense chat and expense report when adding back a member', async () => {
@@ -362,6 +383,7 @@ describe('actions/PolicyMember', () => {
             const expenseReportID = '2';
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
+            const policy = createRandomPolicy(Number(policyID));
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
                 ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -384,7 +406,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding the user to the workspace
-            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policy, [], CONST.POLICY.ROLE.USER, TestHelper.formatPhoneNumber);
 
             await waitForBatchedUpdates();
 
@@ -431,7 +453,7 @@ describe('actions/PolicyMember', () => {
                 [auditorAccountID]: {login: auditorEmail},
                 [userAccountID]: {login: userEmail},
             });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 approver: defaultApprover,
                 employeeList: {
@@ -440,7 +462,7 @@ describe('actions/PolicyMember', () => {
                     [auditorEmail]: {role: CONST.POLICY.ROLE.AUDITOR},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
                 },
-            });
+            };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
                 ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 policyID,
@@ -459,7 +481,7 @@ describe('actions/PolicyMember', () => {
                 [auditorEmail]: auditorAccountID,
                 [userEmail]: userAccountID,
             };
-            Member.removeMembers(policyID, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
+            Member.removeMembers(policy, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
 
             await waitForBatchedUpdates();
 
@@ -494,6 +516,86 @@ describe('actions/PolicyMember', () => {
             expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
         });
 
+        it('Change preferred accounting exporter to owner if the members include current preferred exporter', async () => {
+            // Given a policy
+            const policyID = '1';
+            const defaultApprover = 'approver@gmail.com';
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const adminAccountID = 1234;
+            const adminEmail = 'admin@example.com';
+            const auditorAccountID = 1235;
+            const auditorEmail = 'auditor@example.com';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [adminAccountID]: {login: adminEmail},
+                [auditorAccountID]: {login: auditorEmail},
+                [userAccountID]: {login: userEmail},
+            });
+            const policy: PolicyType = {
+                ...createRandomPolicy(Number(policyID)),
+                approver: defaultApprover,
+                owner: ownerEmail,
+                ownerAccountID,
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [auditorEmail]: {role: CONST.POLICY.ROLE.AUDITOR},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        accountID: '123456',
+                        options: {
+                            data: {} as NetSuiteConnectionData,
+                            config: {
+                                exporter: adminEmail,
+                            } as NetSuiteConnectionConfig,
+                        },
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    } as NetSuiteConnection,
+                } as Connections,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // When removing an admin, auditor, and user members
+            mockFetch?.pause?.();
+            const memberEmailsToAccountIDs = {
+                [adminEmail]: adminAccountID,
+                [auditorEmail]: auditorAccountID,
+                [userEmail]: userAccountID,
+            };
+            Member.removeMembers(policy, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
+
+            await waitForBatchedUpdates();
+
+            const policyConnectionPreferredExporter = await new Promise<string | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policyResult) => {
+                        Onyx.disconnect(connection);
+                        resolve(policyResult?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.options?.config?.exporter);
+                    },
+                });
+            });
+
+            // Then the preferred exporter is the workspace owner
+            expect(policyConnectionPreferredExporter).toBe(ownerEmail);
+
+            await mockFetch?.resume?.();
+        });
+
         it('should archive the member expense chat and expense report', async () => {
             // Given a workspace expense chat and expense report
             const policyID = '1';
@@ -501,6 +603,14 @@ describe('actions/PolicyMember', () => {
             const expenseReportID = '2';
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
+            const ownerEmail = 'owner@gmail.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
                 ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
@@ -518,7 +628,7 @@ describe('actions/PolicyMember', () => {
 
             // When removing a member from the workspace
             mockFetch?.pause?.();
-            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+            Member.removeMembers(policy, [userEmail], {[userEmail]: userAccountID});
 
             await waitForBatchedUpdates();
 
@@ -547,7 +657,7 @@ describe('actions/PolicyMember', () => {
 
         it('should preserve pendingAction DELETE when member removal fails', async () => {
             // Given a workspace with a member
-            const policyID = 'ABCD12345';
+            const policyID = '123';
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
             const ownerEmail = 'owner@gmail.com';
@@ -555,23 +665,25 @@ describe('actions/PolicyMember', () => {
             await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [userAccountID]: {login: userEmail},
             });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 owner: ownerEmail,
                 employeeList: {
                     [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
                 },
-            });
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
             // When removing a member and the request fails
             mockFetch?.fail?.();
-            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+            Member.removeMembers(policy, [userEmail], {[userEmail]: userAccountID});
 
             await waitForBatchedUpdates();
 
             // Then the member should have pendingAction DELETE and errors
-            const policy = await new Promise<OnyxEntry<PolicyType>>((resolve, reject) => {
+            const policyResult = await new Promise<OnyxEntry<PolicyType>>((resolve, reject) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (policyData) => {
@@ -585,7 +697,7 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
-            const failedMember = policy?.employeeList?.[userEmail];
+            const failedMember = policyResult?.employeeList?.[userEmail];
             expect(failedMember?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             expect(failedMember?.errors).toBeTruthy();
             expect(Object.keys(failedMember?.errors ?? {}).length).toBeGreaterThan(0);
@@ -593,7 +705,7 @@ describe('actions/PolicyMember', () => {
 
         // For more details on what a detached member is, see https://github.com/Expensify/App/issues/75514#issuecomment-3568453686
         it('should remove "detached" members', async () => {
-            const policyID = 'ABCD123456';
+            const policyID = '23456';
             const ownerEmail = 'owner@gmail.com';
             const userEmail = 'user@gmail.com';
             const detachedUserEmail = 'detacheduser@gmail.com';
@@ -605,25 +717,27 @@ describe('actions/PolicyMember', () => {
                 [userAccountID]: {login: userEmail},
             });
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
                     [detachedUserEmail]: {role: CONST.POLICY.ROLE.USER},
                 },
-            });
+            };
 
-            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            Member.removeMembers(policy, [userEmail], {[userEmail]: userAccountID});
 
             await waitForBatchedUpdates();
 
             const employeeList = await new Promise<PolicyEmployeeList | undefined>((resolve) => {
                 const connection = Onyx.connectWithoutView({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (policy) => {
+                    callback: (policyResult) => {
                         Onyx.disconnect(connection);
-                        resolve(policy?.employeeList);
+                        resolve(policyResult?.employeeList);
                     },
                 });
             });
@@ -638,12 +752,10 @@ describe('actions/PolicyMember', () => {
         it('should show a "single member added message" when a new member is added', async () => {
             // Given a workspace
             const policyID = '1';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                ...createRandomPolicy(Number(policyID)),
-            });
+            const policy = createRandomPolicy(Number(policyID));
 
             // When importing 1 new member to the workspace
-            Member.importPolicyMembers(policyID, [{email: 'user@gmail.com', role: 'user'}]);
+            Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: 'user'}]);
 
             await waitForBatchedUpdates();
 
@@ -665,12 +777,10 @@ describe('actions/PolicyMember', () => {
         it('should show a "multiple members added message" when multiple new members are added', async () => {
             // Given a workspace
             const policyID = '1';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                ...createRandomPolicy(Number(policyID)),
-            });
+            const policy = createRandomPolicy(Number(policyID));
 
             // When importing multiple new members to the workspace
-            Member.importPolicyMembers(policyID, [
+            Member.importPolicyMembers(policy, [
                 {email: 'user@gmail.com', role: 'user'},
                 {email: 'user2@gmail.com', role: 'user'},
             ]);
@@ -697,17 +807,17 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [userEmail]: {
                         role: userRole,
                     },
                 },
-            });
+            };
 
             // When importing 1 existing member to the workspace with the same role
-            Member.importPolicyMembers(policyID, [{email: userEmail, role: userRole}]);
+            Member.importPolicyMembers(policy, [{email: userEmail, role: userRole}]);
 
             await waitForBatchedUpdates();
 
@@ -731,17 +841,17 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [userEmail]: {
                         role: userRole,
                     },
                 },
-            });
+            };
 
             // When importing 1 existing member with a different role
-            Member.importPolicyMembers(policyID, [{email: userEmail, role: 'admin'}]);
+            Member.importPolicyMembers(policy, [{email: userEmail, role: 'admin'}]);
 
             await waitForBatchedUpdates();
 
@@ -767,7 +877,7 @@ describe('actions/PolicyMember', () => {
             const userRole = 'user';
             const userEmail2 = 'user2@gmail.com';
             const userRole2 = 'user';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [userEmail]: {
@@ -777,10 +887,10 @@ describe('actions/PolicyMember', () => {
                         role: userRole2,
                     },
                 },
-            });
+            };
 
             // When importing multiple existing members with a different role
-            Member.importPolicyMembers(policyID, [
+            Member.importPolicyMembers(policy, [
                 {email: userEmail, role: 'admin'},
                 {email: userEmail2, role: 'admin'},
             ]);
@@ -807,17 +917,17 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [userEmail]: {
                         role: userRole,
                     },
                 },
-            });
+            };
 
             // When importing 1 new member and 1 existing member with a different role
-            Member.importPolicyMembers(policyID, [
+            Member.importPolicyMembers(policy, [
                 {email: 'new_user@gmail.com', role: 'user'},
                 {email: userEmail, role: 'admin'},
             ]);
@@ -846,7 +956,7 @@ describe('actions/PolicyMember', () => {
             const userRole = 'user';
             const userEmail2 = 'user2@gmail.com';
             const userRole2 = 'user';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 employeeList: {
                     [userEmail]: {
@@ -856,10 +966,10 @@ describe('actions/PolicyMember', () => {
                         role: userRole2,
                     },
                 },
-            });
+            };
 
             // When importing multiple new members and multiple existing members with a different role
-            Member.importPolicyMembers(policyID, [
+            Member.importPolicyMembers(policy, [
                 {email: 'new_user@gmail.com', role: 'user'},
                 {email: 'new_user2@gmail.com', role: 'user'},
                 {email: userEmail, role: 'admin'},

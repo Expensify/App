@@ -1,8 +1,9 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
-import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
+import type {BankAccountList, Policy, Report, ReportMetadata, Transaction, TransactionViolation} from '@src/types/onyx';
+import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
+import {hasPendingDEWApprove} from './ReportActionsUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -19,8 +20,7 @@ import {
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {getSession} from './SessionUtils';
-import {hasSmartScanFailedViolation, isPending, isScanning} from './TransactionUtils';
+import {hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -47,7 +47,7 @@ function canSubmit(
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
-    if (transactions?.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+    if (transactions?.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
         return false;
     }
 
@@ -60,7 +60,7 @@ function canSubmit(
     return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
-function canApprove(report: Report, currentUserAccountID: number, policy?: Policy, transactions?: Transaction[]) {
+function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -77,6 +77,11 @@ function canApprove(report: Report, currentUserAccountID: number, policy?: Polic
         return false;
     }
 
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
+        return false;
+    }
+
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report);
 
@@ -87,12 +92,20 @@ function canApprove(report: Report, currentUserAccountID: number, policy?: Polic
     return isExpense && isProcessing && !!isApprovalEnabled && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
-function canPay(report: Report, isReportArchived: boolean, currentUserAccountID: number, policy?: Policy, invoiceReceiverPolicy?: Policy) {
+function canPay(
+    report: Report,
+    isReportArchived: boolean,
+    currentUserAccountID: number,
+    currentUserLogin: string,
+    bankAccountList: OnyxEntry<BankAccountList>,
+    policy?: Policy,
+    invoiceReceiverPolicy?: Policy,
+) {
     if (isReportArchived) {
         return false;
     }
 
-    const isReportPayer = isPayer(getSession(), report, false, policy);
+    const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
@@ -136,9 +149,9 @@ function canPay(report: Report, isReportArchived: boolean, currentUserAccountID:
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, policy?: Policy) {
+function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
     const isExpense = isExpenseReport(report);
-    const isExporter = policy ? isPreferredExporter(policy) : false;
+    const isExporter = policy ? isPreferredExporter(policy, currentUserLogin) : false;
     const isReimbursed = isSettled(report);
     const isClosed = isClosedReport(report);
     const isApproved = isReportApproved({report});
@@ -166,18 +179,37 @@ function canExport(report: Report, policy?: Policy) {
     return isApproved || isReimbursed || isClosed;
 }
 
-function getReportPreviewAction(
-    isReportArchived: boolean,
-    currentUserAccountID: number,
-    report: Report | undefined,
-    policy: Policy | undefined,
-    transactions: Transaction[],
-    invoiceReceiverPolicy?: Policy,
-    isPaidAnimationRunning?: boolean,
-    isApprovedAnimationRunning?: boolean,
-    isSubmittingAnimationRunning?: boolean,
-    violationsData?: {currentUserEmail?: string; violations?: OnyxCollection<TransactionViolation[]>},
-): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
+function getReportPreviewAction({
+    isReportArchived,
+    currentUserAccountID,
+    currentUserLogin,
+    report,
+    policy,
+    transactions,
+    bankAccountList,
+    invoiceReceiverPolicy,
+    isPaidAnimationRunning,
+    isApprovedAnimationRunning,
+    isSubmittingAnimationRunning,
+    isDEWSubmitPending,
+    violationsData,
+    reportMetadata,
+}: {
+    isReportArchived: boolean;
+    currentUserAccountID: number;
+    currentUserLogin: string;
+    report: Report | undefined;
+    policy: Policy | undefined;
+    transactions: Transaction[];
+    bankAccountList: OnyxEntry<BankAccountList>;
+    invoiceReceiverPolicy?: Policy;
+    isPaidAnimationRunning?: boolean;
+    isApprovedAnimationRunning?: boolean;
+    isSubmittingAnimationRunning?: boolean;
+    isDEWSubmitPending?: boolean;
+    violationsData?: OnyxCollection<TransactionViolation[]>;
+    reportMetadata: OnyxEntry<ReportMetadata>;
+}): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
@@ -195,16 +227,20 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, violationsData?.currentUserEmail ?? '', violationsData?.violations, policy, transactions)) {
+    if (isDEWSubmitPending && isOpenReport(report)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
+    }
+
+    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (canApprove(report, currentUserAccountID, policy, transactions)) {
+    if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, isReportArchived, currentUserAccountID, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, policy)) {
+    if (canExport(report, currentUserLogin, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

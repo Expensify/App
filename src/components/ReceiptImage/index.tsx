@@ -20,8 +20,6 @@ import shouldUseAspectRatioForEReceipts from './shouldUseAspectRatioForEReceipts
 // It is used to avoid updating the image width in a loop.
 const MIN_UPDATE_WIDTH_DIFF = 1000;
 
-type Style = {height: number; borderRadius: number; margin: number};
-
 type ReceiptImageProps = (
     | {
           /** Transaction ID of the transaction the receipt belongs to */
@@ -77,9 +75,6 @@ type ReceiptImageProps = (
     /** Whether the receipt image requires an authToken */
     isAuthTokenRequired?: boolean;
 
-    /** Any additional styles to apply */
-    style?: Style;
-
     /** The file extension of the receipt file */
     fileExtension?: string;
 
@@ -126,6 +121,9 @@ type ReceiptImageProps = (
 
     /** Callback to be called when the image fails to load */
     onLoadFailure?: () => void;
+
+    /** Whether the receipt is a map distance request */
+    isMapDistanceRequest?: boolean;
 };
 
 function ReceiptImage({
@@ -136,7 +134,6 @@ function ReceiptImage({
     isEReceipt = false,
     source,
     isAuthTokenRequired,
-    style,
     fileExtension,
     iconSize,
     loadingIconSize,
@@ -154,6 +151,7 @@ function ReceiptImage({
     thumbnailContainerStyles,
     onLoad,
     onLoadFailure,
+    isMapDistanceRequest,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
     const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
@@ -193,9 +191,9 @@ function ReceiptImage({
     }
 
     if (isThumbnail || (isEReceipt && isPerDiemRequest)) {
-        const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
+        const props = isThumbnail && {fileExtension, isReceiptThumbnail: true};
         return (
-            <View style={style ?? [styles.w100, styles.h100]}>
+            <View style={[styles.w100, styles.h100]}>
                 <EReceiptThumbnail
                     transactionID={transactionID}
                     iconSize={iconSize}
@@ -235,7 +233,7 @@ function ReceiptImage({
                 lastUpdateWidthTimestampRef.current = e.timeStamp;
             }}
             source={typeof source === 'string' ? {uri: source} : source}
-            style={styles.flex1}
+            style={isMapDistanceRequest && styles.flex1}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}

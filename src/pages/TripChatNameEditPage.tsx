@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -34,35 +34,29 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     const reportID = report?.reportID;
     const currentChatName = getReportName(report);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
-            const errors: Errors = {};
-            const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
-            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-            const nameLength = [...name.trim()].length;
-            if (nameLength > CONST.REPORT_NAME_LIMIT) {
-                errors.newChatName = translate('common.error.characterLimitExceedCounter', {length: nameLength, limit: CONST.REPORT_NAME_LIMIT});
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
+        const errors: Errors = {};
+        const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
+        // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
+        const nameLength = [...name.trim()].length;
+        if (nameLength > CONST.REPORT_NAME_LIMIT) {
+            errors.newChatName = translate('common.error.characterLimitExceedCounter', nameLength, CONST.REPORT_NAME_LIMIT);
+        }
 
-            if (StringUtils.isEmptyString(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
-                errors.newChatName = translate('common.error.fieldRequired');
-            }
+        if (StringUtils.isEmptyString(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
+            errors.newChatName = translate('common.error.fieldRequired');
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const editName = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
-            if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                updateChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.TRIP_ROOM);
-            }
+    const editName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
+        if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
+            updateChatName(reportID, report.reportName, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.TRIP_ROOM);
+        }
 
-            return Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
-        },
-        [reportID, currentChatName],
-    );
+        return Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
+    };
 
     return (
         <ScreenWrapper

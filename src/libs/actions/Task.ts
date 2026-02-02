@@ -128,7 +128,11 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     // We're only setting onyx data for the task report here because it's possible for the parent report to not exist yet (if you're assigning a task to someone you haven't chatted with before)
     // So we don't want to set the parent report data until we've successfully created that chat report
     // FOR TASK REPORT
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
@@ -157,7 +161,9 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     ];
 
     // FOR TASK REPORT
-    const successData: OnyxUpdate[] = [
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
@@ -187,7 +193,9 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     ];
 
     // FOR TASK REPORT
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
@@ -322,7 +330,12 @@ function buildTaskData(
     hasOutstandingChildTaskInParentReport: boolean,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
-) {
+): {
+    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    parameters: CompleteTaskParams;
+} {
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
@@ -433,7 +446,7 @@ function completeTask(
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
     reportIDFromAction?: string,
-): OnyxData {
+): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
     if (!taskReportID) {
@@ -654,7 +667,7 @@ function editTaskAssignee(
     };
     const successReport: NullishDeep<OnyxTypes.Report> = {pendingFields: {...(assigneeAccountID && {managerID: null})}};
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
@@ -667,7 +680,9 @@ function editTaskAssignee(
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
@@ -680,7 +695,7 @@ function editTaskAssignee(
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
@@ -981,6 +996,7 @@ function getShareDestination(
         OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails),
         isMultipleParticipant,
         localeCompare,
+        LocalePhoneNumber.formatPhoneNumber,
     );
 
     let subtitle = '';
@@ -1073,7 +1089,7 @@ function deleteTask(
     const optimisticReportActions = parentReportAction?.reportActionID ? {[parentReportAction?.reportActionID]: optimisticReportAction} : {};
 
     const optimisticLastReportData = optimisticReportLastData(parentReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), optimisticReportActions as ReportActions, canUserPerformWriteAction);
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
@@ -1284,7 +1300,7 @@ function getFinishOnboardingTaskOnyxData(
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
     parentReportAction: OnyxEntry<ReportAction> | undefined,
-): OnyxData {
+): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     if (taskReport && canActionTask(taskReport, parentReportAction, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {

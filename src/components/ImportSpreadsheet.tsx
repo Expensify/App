@@ -5,6 +5,7 @@ import type {TupleToUnion} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
@@ -14,6 +15,7 @@ import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import Button from './Button';
@@ -38,6 +40,7 @@ type ImportSpreadsheetProps = {
 };
 
 function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpreadsheetProps) {
+    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['SpreadsheetComputer']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,7 +70,9 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
 
     const validateFile = (file: FileObject) => {
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-        if (!CONST.ALLOWED_SPREADSHEET_EXTENSIONS.includes(fileExtension.toLowerCase() as TupleToUnion<typeof CONST.ALLOWED_SPREADSHEET_EXTENSIONS>)) {
+        const allowedExtensions: readonly string[] = isImportingMultiLevelTags ? CONST.MULTILEVEL_TAG_ALLOWED_SPREADSHEET_EXTENSIONS : CONST.ALLOWED_SPREADSHEET_EXTENSIONS;
+
+        if (!allowedExtensions.includes(fileExtension.toLowerCase())) {
             showUploadFileError('attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
             return false;
         }
@@ -104,20 +109,33 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                             .then((data) => {
                                 return data.text();
                             })
-                            .then((text) => XLSX.read(text, {type: 'string'}));
+                            .then((text) => XLSX.read(text, {type: 'string', raw: true}));
                     }
                     return fetch(fileURI)
                         .then((data) => {
                             return data.arrayBuffer();
                         })
-                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'}));
+                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true}));
                 };
                 readWorkbook()
                     .then((workbook) => {
                         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
-                        const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
-                        setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false)
+                        // Use raw: true to preserve original string values from CSV (especially dates)
+                        const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false, raw: true}) as string[][] | unknown[][];
+                        const formattedSpreadsheetData = data.map((row) =>
+                            row.map((cell) => {
+                                if (cell == null) {
+                                    return '';
+                                }
+                                // Handle primitives (string, number, boolean) directly
+                                if (typeof cell === 'string' || typeof cell === 'number' || typeof cell === 'boolean') {
+                                    return String(cell);
+                                }
+                                // For objects (Date, arrays, etc.), serialize to JSON
+                                return JSON.stringify(cell);
+                            }),
+                        );
+                        setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false, importedSpreadsheet?.importTransactionSettings)
                             .then(() => {
                                 Navigation.navigate(goTo);
                             })
@@ -163,7 +181,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             </View>
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react-compiler/react-compiler, react/jsx-props-no-spreading
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{isImportingMultiLevelTags ? translate('spreadsheet.import') : translate('spreadsheet.upload')}</Text>
@@ -198,7 +216,6 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
             shouldEnableKeyboardAvoidingView={false}
             testID="ImportSpreadsheet"
             shouldEnableMaxHeight={canUseTouchScreen()}
-            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>

@@ -293,76 +293,12 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  desktop:
-    name: Build and deploy Desktop
-    needs: prep
-    runs-on: macos-14-large
-    steps:
-      - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-        with:
-          IS_DESKTOP_BUILD: true
-
-        # v6.0.0
-      - name: Setup Python for node-gyp
-        id: setup-python
-        uses: actions/setup-python@18566f86b301499665bd3eb1a2247e0849c64fa5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-          cache-dependency-path: desktop/requirements.txt
-
-      - name: Ensure setuptools for node-gyp
-        run: pip install --upgrade -r desktop/requirements.txt
-
-      - name: Load Desktop credentials from 1Password
-        id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
-        with:
-          export-env: false
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DESKTOP_CERTIFICATE_BASE64: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_LINK"
-          DESKTOP_CERTIFICATE_PASSWORD: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_KEY_PASSWORD"
-
-      - name: Build desktop app
-        run: ${{ github.ref == 'refs/heads/production' && 'npm run desktop-build' || 'npm run desktop-build-staging' }}
-        env:
-          CSC_LINK: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_BASE64 }}
-          CSC_KEY_PASSWORD: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
-          S3_BUCKET: ${{ github.ref == 'refs/heads/production' && vars.PRODUCTION_S3_BUCKET || vars.STAGING_S3_BUCKET }}
-
-      - name: Upload desktop sourcemaps artifact
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: desktop-sourcemaps-artifact
-          path: ./desktop/dist/www/merged-source-map.js.map
-
-      - name: Upload desktop build artifact
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: desktop-build-artifact
-          path: ./desktop-build/NewExpensify.dmg
-
   ios:
     name: Build and deploy iOS HybridApp
     needs: prep
     runs-on: macos-15-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
       SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout
@@ -391,8 +327,8 @@ jobs:
         run: bundle install
 
       - name: Cache Pod dependencies
-        # v4
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         id: pods-cache
         with:
           path: Mobile-Expensify/iOS/Pods
@@ -625,7 +561,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [android, desktop, ios, web]
+    needs: [android, ios, web]
     steps:
       - name: Checkout
         # v4
@@ -641,7 +577,7 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [android, desktop, ios, web]
+    needs: [android, ios, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
@@ -650,7 +586,6 @@ jobs:
           isAtLeastOnePlatformDeployed="false"
           if [ "${{ needs.iOS.result }}" == "success" ] || \
             [ "${{ needs.android.result }}" == "success" ] || \
-            [ "${{ needs.desktop.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
           fi
@@ -663,7 +598,6 @@ jobs:
           isAllPlatformsDeployed="false"
           if [ "${{ needs.iOS.result }}" == "success" ] && \
             [ "${{ needs.android.result }}" == "success" ] && \
-            [ "${{ needs.desktop.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
           fi
@@ -711,10 +645,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Rename web and desktop sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
+      - name: Rename web sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
         continue-on-error: true
         run: |
-          mv ./desktop-sourcemaps-artifact/merged-source-map.js.map ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map
           mv ./web-sourcemaps-artifact/merged-source-map.js.map ./web-sourcemaps-artifact/web-merged-source-map.js.map
 
       - name: Upload artifacts to GitHub Release
@@ -725,8 +658,6 @@ jobs:
             ./android-build-artifact/Expensify-release.aab#android.aab
             ./android-apk-artifact/Expensify.apk#android.apk
             ./android-sourcemap-artifact/index.android.bundle.map#android-sourcemap.js.map
-            ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-sourcemap.js.map
-            ./desktop-build-artifact/NewExpensify.dmg#desktop.dmg
             ./ios-build-artifact/Expensify.ipa#ios.ipa
             ./ios-sourcemap-artifact/main.jsbundle.map#ios-sourcemap.js.map
             ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap.js.map
@@ -786,7 +717,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createRelease]
+    needs: [prep, android, ios, web, checkDeploymentSuccess, createRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         # v3
@@ -843,7 +774,7 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createRelease]
+    needs: [prep, android, ios, web, checkDeploymentSuccess, createRelease]
     secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
@@ -851,4 +782,3 @@ jobs:
       android: ${{ needs.android.result }}
       ios: ${{ needs.ios.result }}
       web: ${{ needs.web.result }}
-      desktop: ${{ needs.desktop.result }}

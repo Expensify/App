@@ -13,11 +13,11 @@ type TravelDotLinkWebviewProps = StackScreenProps<TravelNavigatorParamList, type
 
 function TravelDotLinkWebview({route}: TravelDotLinkWebviewProps) {
     const {translate} = useLocalize();
-    const {token, isTestAccount} = route.params;
+    const {token, isTestAccount, redirectUrl} = route.params;
     const webViewRef = useRef<WebView>(null);
     const styles = useThemeStyles();
 
-    const url = buildTravelDotURL(token, isTestAccount === 'true');
+    const url = buildTravelDotURL(token, isTestAccount === 'true', redirectUrl);
 
     return (
         <ScreenWrapper

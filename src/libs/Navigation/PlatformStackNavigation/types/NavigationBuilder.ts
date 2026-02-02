@@ -19,7 +19,7 @@ type PlatformNavigationBuilderOptions<
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
     RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = DefaultNavigatorOptions<ParamList, string | undefined, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap, NavigationListBase<ParamList>> &
+> = DefaultNavigatorOptions<ParamList, string | undefined, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap, NavigationListBase<ParamList>, keyof ParamList> &
     RouterOptions & {
         persistentScreens?: Array<Extract<keyof ParamList, string>>;
         defaultCentralScreen?: Extract<keyof ParamList, string>;

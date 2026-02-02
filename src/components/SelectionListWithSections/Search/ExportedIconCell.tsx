@@ -3,38 +3,21 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, isExportedToIntegrationAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 type ExportedIconCellProps = {
-    reportID?: string;
-    hash?: number;
+    reportActions?: ReportAction[];
 };
 
-function ExportedIconCell({reportID, hash}: ExportedIconCellProps) {
+function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    // We need to subscribe directly to the snapshot to get the report actions because this can be rendered in either a group
-    // list (which has a separate hash than the current top-level search query) or in the top-level search query.
-    // This selector is specific to this edge-case (and thus is not in the selectors folder) and should be used in other places where the snapshot needs to be accessed
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
-    const reportActions = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
-        canBeMissing: true,
-        selector: (snapshot) => {
-            return Object.entries(snapshot?.data ?? {})
-                .filter(([key]) => key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)
-                .map(([, value]) => Object.values(value ?? {}) as ReportAction[])
-                .flat();
-        },
-    });
-
-    const actions = Object.values(reportActions[0] ?? {});
+    const actions = reportActions ?? [];
     const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
 
     let isExportedToCsv = false;
@@ -53,7 +36,10 @@ function ExportedIconCell({reportID, hash}: ExportedIconCellProps) {
         }
 
         if (isExportedToIntegrationAction(action)) {
-            const label = getOriginalMessage(action)?.label;
+            const message = getOriginalMessage(action);
+            const label = message?.label;
+            const type = message?.type;
+            isExportedToCsv = isExportedToCsv || type === CONST.EXPORT_TEMPLATE;
             isExportedToXero = isExportedToXero || label === CONST.EXPORT_LABELS.XERO;
             isExportedToNetsuite = isExportedToNetsuite || label === CONST.EXPORT_LABELS.NETSUITE;
             isExportedToQuickbooksOnline = isExportedToQuickbooksOnline || label === CONST.EXPORT_LABELS.QBO;

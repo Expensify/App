@@ -94,6 +94,8 @@ const lightTheme = {
     tooltipSupportingText: colors.productDark800,
     tooltipPrimaryText: colors.productDark900,
     trialBannerBackgroundColor: colors.green100,
+    widgetIconBG: colors.green100,
+    widgetIconFill: colors.green500,
     skeletonLHNIn: colors.productLight400,
     skeletonLHNOut: colors.productLight600,
     QRLogo: colors.green400,
@@ -116,6 +118,10 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
+        [SCREENS.INBOX]: {
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
         [SCREENS.REPORT]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
@@ -133,6 +139,10 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.WALLET.ROOT]: {
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.SETTINGS.RULES.ROOT]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },

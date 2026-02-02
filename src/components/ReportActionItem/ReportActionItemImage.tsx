@@ -13,6 +13,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isFetchingWaypointsFromServer, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -102,7 +103,6 @@ function ReportActionItemImage({
     isSingleImage = true,
     readonly = false,
     shouldMapHaveBorderRadius,
-    isFromReviewDuplicates = false,
     mergeTransactionID,
     onPress,
     shouldUseFullHeight,
@@ -185,10 +185,9 @@ function ReportActionItemImage({
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.TRANSACTION_RECEIPT.getRoute(
-                                    transactionThreadReport?.reportID ?? report?.reportID ?? reportProp?.reportID,
+                                    transactionThreadReport?.reportID ?? report?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
                                     transaction?.transactionID,
                                     readonly,
-                                    isFromReviewDuplicates,
                                     mergeTransactionID,
                                 ),
                             )
@@ -202,6 +201,7 @@ function ReportActionItemImage({
                             onLoad={onLoad}
                             shouldUseFullHeight={shouldUseFullHeight}
                             onLoadFailure={onLoadFailure}
+                            isMapDistanceRequest={isMapDistanceRequest}
                         />
                     </PressableWithoutFocus>
                 )}

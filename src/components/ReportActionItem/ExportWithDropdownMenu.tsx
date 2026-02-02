@@ -87,7 +87,7 @@ function ExportWithDropdownMenu({
         }
         return options;
         // We do not include exportMethods not to re-render the component when the preferred export method changes
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canBeExported, iconToDisplay, connectionName, report?.policyID, translate]);
 
     const handleExport = useCallback(

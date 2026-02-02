@@ -7,11 +7,12 @@ import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobile} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
 import type {BasePickerProps} from './types';
@@ -39,6 +40,7 @@ function BasePicker<TPickerValue>({
     additionalPickerEvents = () => {},
     ref,
 }: BasePickerProps<TPickerValue>) {
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -62,7 +64,7 @@ function BasePicker<TPickerValue>({
             onInputChange(item.value, 0);
         }
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items]);
 
     const context = useScrollContext();
@@ -97,12 +99,12 @@ function BasePicker<TPickerValue>({
         return () => (
             <Icon
                 fill={theme.icon}
-                src={Expensicons.DownArrow}
+                src={icons.DownArrow}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
-    }, [icon, size, styles, theme.icon]);
+    }, [icon, size, styles, theme.icon, icons.DownArrow]);
 
     useImperativeHandle(ref, () => ({
         /**
@@ -158,6 +160,9 @@ function BasePicker<TPickerValue>({
 
     const hasError = !!errorText;
 
+    // Disable Tab focus on mobile to prevent soft keyboard navigation jumping to picker (#25759)
+    const pickerTabIndex = isMobile() ? -1 : 0;
+
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
             <View>
@@ -206,7 +211,7 @@ function BasePicker<TPickerValue>({
                     }}
                     pickerProps={{
                         ref: picker,
-                        tabIndex: -1,
+                        tabIndex: pickerTabIndex,
                         onFocus: enableHighlight,
                         onBlur: () => {
                             disableHighlight();

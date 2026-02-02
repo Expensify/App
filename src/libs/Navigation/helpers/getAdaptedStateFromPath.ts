@@ -15,6 +15,7 @@ import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
+import getRedirectedPath from './getRedirectedPath';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
@@ -43,6 +44,23 @@ function isRouteWithReportID(route: NavigationPartialRoute): route is Route<stri
     return route.params !== undefined && 'reportID' in route.params && typeof route.params.reportID === 'string';
 }
 
+/**
+ * Get the appropriate screen name for RHP_TO_SEARCH lookup.
+ * Split tabs (amount, percentage, date) are nested routes within SPLIT_EXPENSE/SPLIT_EXPENSE_SEARCH.
+ * When a split tab route is accessed from search context (path contains '/search'),
+ * we use SPLIT_EXPENSE_SEARCH for the mapping lookup instead of the tab name.
+ */
+function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
+    const splitTabNames = Object.values(CONST.TAB.SPLIT) as string[];
+    const isSplitTabRoute = splitTabNames.includes(route.name);
+
+    if (isSplitTabRoute && route.path?.includes('/search')) {
+        return SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH;
+    }
+
+    return route.name;
+}
+
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
@@ -69,11 +87,11 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         // If not, get the matching full screen route for the back to state.
         return getMatchingFullScreenRoute(focusedStateForBackToRoute);
     }
-
-    if (RHP_TO_SEARCH[route.name]) {
-        const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[route.name]);
+    const routeNameForLookup = getSearchScreenNameForRoute(route);
+    if (RHP_TO_SEARCH[routeNameForLookup]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_SEARCH[routeNameForLookup]);
         const searchRoute = {
-            name: RHP_TO_SEARCH[route.name],
+            name: RHP_TO_SEARCH[routeNameForLookup],
             params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
         };
         return {
@@ -163,7 +181,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
 
         return getInitialSplitNavigatorState(
             {
-                name: SCREENS.HOME,
+                name: SCREENS.INBOX,
             },
             {
                 name: SCREENS.REPORT,
@@ -219,8 +237,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             }
         }
 
-        const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);
-
         // The onboarding flow consists of several screens. If we open any of the screens, the previous screens from that flow should be in the state.
         if (onboardingNavigator?.state) {
             const adaptedOnboardingNavigator = {
@@ -228,8 +244,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 state: getOnboardingAdaptedState(onboardingNavigator.state),
             };
 
-            return getRoutesWithIndex([defaultFullScreenRoute, adaptedOnboardingNavigator]);
+            return getRoutesWithIndex([{name: SCREENS.HOME}, adaptedOnboardingNavigator]);
         }
+
+        const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);
 
         // If not, add the default full screen route.
         return getRoutesWithIndex([defaultFullScreenRoute, ...state.routes]);
@@ -252,7 +270,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
  */
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
-
+    normalizedPath = getRedirectedPath(normalizedPath);
     normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.

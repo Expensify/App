@@ -1,10 +1,19 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {translate} from '@libs/Localize';
-import {computeReportName, getGroupChatName, getPolicyExpenseChatName, getReportName as getSimpleReportName} from '@libs/ReportNameUtils';
+import {
+    buildReportNameFromParticipantNames,
+    computeReportName as computeReportNameOriginal,
+    getGroupChatName,
+    getInvoicePayerName,
+    getInvoicesChatName,
+    getPolicyExpenseChatName,
+    getReportName as getSimpleReportName,
+} from '@libs/ReportNameUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import {createAdminRoom, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber} from '../utils/TestHelper';
@@ -12,6 +21,16 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ReportNameUtils', () => {
     const currentUserAccountID = 5;
+    const computeReportName = (
+        report?: Report,
+        reports?: OnyxCollection<Report>,
+        policies?: OnyxCollection<Policy>,
+        transactions?: OnyxCollection<Transaction>,
+        allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+        personalDetailsList?: PersonalDetailsList,
+        reportActions?: OnyxCollection<ReportActions>,
+        currentUserID = currentUserAccountID,
+    ) => computeReportNameOriginal(report, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserID);
     const participantsPersonalDetails: PersonalDetailsList = [
         {
             accountID: 1,
@@ -74,7 +93,16 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('Ragnar Lothbrok');
         });
 
@@ -84,7 +112,16 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('floki@vikings.net');
         });
 
@@ -94,7 +131,16 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('(833) 240-3627');
         });
 
@@ -106,7 +152,16 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
     });
@@ -114,7 +169,16 @@ describe('ReportNameUtils', () => {
     describe('computeReportName - Admin room', () => {
         test('Active admin room', () => {
             const report = createAdminRoom(10);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('#admins');
         });
 
@@ -132,6 +196,7 @@ describe('ReportNameUtils', () => {
                 reportNameValuePairs,
                 participantsPersonalDetails,
                 emptyCollections.reportActions,
+                currentUserAccountID,
             );
             expect(nameEn).toBe('#admins (archived)');
 
@@ -144,6 +209,7 @@ describe('ReportNameUtils', () => {
                 reportNameValuePairs,
                 participantsPersonalDetails,
                 emptyCollections.reportActions,
+                currentUserAccountID,
             );
             expect(nameEs).toBe('#admins (archivado)');
 
@@ -159,7 +225,16 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe("Ragnar Lothbrok's expenses");
         });
     });
@@ -172,7 +247,16 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('Lagertha Lothbrok (you)');
         });
     });
@@ -185,7 +269,16 @@ describe('ReportNameUtils', () => {
                 reportName: htmlTaskTitle,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('heading with link');
         });
     });
@@ -218,7 +311,16 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.submitted', {memo: 'via workflow'});
-            const name = computeReportName(thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection);
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
             expect(name).toBe(expected);
         });
 
@@ -246,7 +348,16 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.rejectedThisReport');
-            const name = computeReportName(thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection);
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
             expect(name).toBe(expected);
         });
     });
@@ -315,8 +426,79 @@ describe('ReportNameUtils', () => {
                 reportNameValuePairs,
                 participantsPersonalDetails,
                 emptyCollections.reportActions,
+                currentUserAccountID,
             );
             expect(name).toBe('Ragnar Lothbrok (archived) ');
+        });
+    });
+
+    describe('buildReportNameFromParticipantNames', () => {
+        test('Excludes current user and uses short names for multiple participants', () => {
+            const report = {
+                ...createRegularChat(1000, [currentUserAccountID, 1, 2]),
+            };
+
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID});
+            expect(name).toBe('Ragnar, floki@vikings.net');
+        });
+
+        test('Uses full name when only one participant remains after filtering current user', () => {
+            const report = {
+                ...createRegularChat(1001, [currentUserAccountID, 1]),
+            };
+
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID});
+            expect(name).toBe('Ragnar Lothbrok');
+        });
+    });
+
+    describe('Invoice naming helpers', () => {
+        test('Invoice room uses policy name when current user is receiver', () => {
+            const receiverPolicy = {name: 'Personal Workspace'} as unknown as Policy;
+            const report: Report = {
+                reportID: 'invoice-chat-1',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: currentUserAccountID},
+                policyName: 'Personal Workspace',
+            };
+
+            const name = getInvoicesChatName({
+                report,
+                receiverPolicy,
+                personalDetails: participantsPersonalDetails,
+                currentUserAccountID,
+            });
+
+            expect(name).toBe('Personal Workspace');
+        });
+
+        test('Invoice room displays receiver name for other individuals', () => {
+            const receiverPolicy = {name: 'Vendor Workspace'} as unknown as Policy;
+            const report: Report = {
+                reportID: 'invoice-chat-2',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+                policyName: 'Vendor Workspace',
+            };
+
+            const name = getInvoicesChatName({
+                report,
+                receiverPolicy,
+                personalDetails: participantsPersonalDetails,
+                currentUserAccountID,
+            });
+
+            const normalizedName = name?.replaceAll('\u00A0', ' ');
+            expect(normalizedName).toBe('Ragnar Lothbrok');
+        });
+
+        test('Invoice payer name falls back to provided personal details', () => {
+            const report: Report = {
+                reportID: 'invoice-chat-3',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+            };
+            const name = getInvoicePayerName(report, undefined, null);
+
+            const normalizedName = name?.replaceAll('\u00A0', ' ');
+            expect(normalizedName).toBe('Ragnar Lothbrok');
         });
     });
 

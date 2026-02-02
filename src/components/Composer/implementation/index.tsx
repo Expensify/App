@@ -82,7 +82,7 @@ function Composer({
             return;
         }
         setSelection(selectionProp);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectionProp]);
 
     /**
@@ -251,9 +251,8 @@ function Composer({
         if (!textInput.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler
         textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     const isActive = useIsFocused();

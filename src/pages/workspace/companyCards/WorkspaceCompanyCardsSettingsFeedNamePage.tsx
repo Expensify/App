@@ -46,7 +46,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const feedName = selectedFeed ? getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
+    const feedName = selectedFeed ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed ? companyFeeds[selectedFeed] : undefined);
 
     const validate = useCallback(
@@ -57,10 +57,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
             if (!isRequiredFulfilled(value)) {
                 errors.name = translate('workspace.moreFeatures.companyCards.error.feedNameRequired');
             } else if (value.length > CONST.NAME.MAX_LENGTH) {
-                errors.name = translate('common.error.characterLimitExceedCounter', {
-                    length: value.length,
-                    limit: CONST.NAME.MAX_LENGTH,
-                });
+                errors.name = translate('common.error.characterLimitExceedCounter', value.length, CONST.NAME.MAX_LENGTH);
             }
 
             return errors;

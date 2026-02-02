@@ -4,8 +4,9 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
-import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
-import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {initSplitExpense} from '@libs/actions/IOU';
+import {unholdRequest} from '@libs/actions/IOU/Hold';
+import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -30,25 +31,29 @@ jest.mock('@libs/actions/Search', () => ({
 
 jest.mock('@libs/actions/IOU', () => ({
     initSplitExpense: jest.fn(),
+}));
+
+jest.mock('@libs/actions/IOU/Hold', () => ({
     unholdRequest: jest.fn(),
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
-    setupMergeTransactionData: jest.fn(),
+    setupMergeTransactionDataAndNavigate: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Report', () => ({
     exportReportToCSV: jest.fn(),
-    getCurrentUserAccountID: jest.fn(() => 1),
     getCurrentUserEmail: jest.fn(() => 'test@example.com'),
 }));
 
 const mockTranslate = jest.fn((key: string) => key);
+const mockLocalCompare = jest.fn((a: string, b: string) => a && b);
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
         translate: mockTranslate,
+        localeCompare: mockLocalCompare,
     }),
 }));
 
@@ -99,6 +104,16 @@ jest.mock('@hooks/useNetworkWithOfflineStatus', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         isOffline: mockIsOffline,
+    })),
+}));
+const CURRENT_USER_ACCOUNT_ID = 1;
+const CURRENT_USER_LOGIN = 'test@example.com';
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => ({
+        login: CURRENT_USER_LOGIN,
+        accountID: CURRENT_USER_ACCOUNT_ID,
     })),
 }));
 
@@ -516,7 +531,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123');
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -567,18 +582,34 @@ describe('useSelectedTransactionsActions', () => {
 
     it('should show split option when transaction can be split', async () => {
         const transactionID = '123';
-        const report = createRandomReport(1, undefined);
-        report.type = CONST.REPORT.TYPE.EXPENSE;
-        const policy = createRandomPolicy(1);
+        const report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const policy = {
+            ...createRandomPolicy(1),
+            isPolicyExpenseChatEnabled: true,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {
+                [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
+        };
         const reportActions: ReportAction[] = [];
-        const transaction = createRandomTransaction(1);
-        transaction.transactionID = transactionID;
+        const transaction = {
+            ...createRandomTransaction(1),
+            transactionID,
+            amount: 1000,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+        };
 
         mockSelectedTransactionIDs.push(transactionID);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
 
-        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isSplitAction').mockReturnValue(true);
         jest.spyOn(require('@libs/TransactionUtils'), 'getOriginalTransactionWithSplitInfo').mockReturnValue({
             isBillSplit: false,
             isExpenseSplit: false,
@@ -612,17 +643,22 @@ describe('useSelectedTransactionsActions', () => {
         const transactionID = '123';
         const report = createRandomReport(1, undefined);
         report.type = CONST.REPORT.TYPE.EXPENSE;
+        report.statusNum = 0;
+        report.stateNum = 0;
         const policy = createRandomPolicy(1);
         const reportActions: ReportAction[] = [];
         const transaction = createRandomTransaction(1);
         transaction.transactionID = transactionID;
+        transaction.managedCard = false;
+        transaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
 
         mockSelectedTransactionIDs.push(transactionID);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
-        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeAction').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeActionForSelectedTransactions').mockReturnValue(true);
 
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({
                 report,
@@ -630,6 +666,7 @@ describe('useSelectedTransactionsActions', () => {
                 allTransactionsLength: 1,
                 policy,
                 beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: false,
             }),
         );
 
@@ -643,7 +680,6 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionData).toHaveBeenCalledWith(transactionID, {targetTransactionID: transactionID});
-        expect(Navigation.navigate).toHaveBeenCalled();
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false);
     });
 });

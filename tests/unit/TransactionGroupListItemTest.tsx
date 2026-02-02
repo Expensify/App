@@ -22,12 +22,12 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSections: jest.fn(() => []),
     isCorrectSearchUserName: jest.fn(() => true),
     getTableMinWidth: jest.fn(() => 0),
+    getSuggestedSearches: jest.fn(() => ({})),
 }));
 
 const mockTransaction: TransactionListItemType = {
     accountID: 1,
     amount: 0,
-    canDelete: true,
     category: '',
     groupAmount: 1284,
     groupCurrency: 'USD',
