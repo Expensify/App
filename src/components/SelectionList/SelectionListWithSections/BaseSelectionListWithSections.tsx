@@ -140,8 +140,14 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         if (!isScreenFocused) {
             return;
         }
-        if (canSelectMultiple && shouldShowTextInput) {
-            textInputOptions?.onChangeText?.('');
+        if (canSelectMultiple) {
+            if (sections.length > 1 && !isItemSelected(item)) {
+                scrollToIndex(0);
+            }
+
+            if (shouldShowTextInput) {
+                textInputOptions?.onChangeText?.('');
+            }
         }
         if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
             setFocusedIndex(indexToFocus);
