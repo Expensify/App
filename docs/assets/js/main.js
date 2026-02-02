@@ -297,9 +297,6 @@ window.addEventListener('DOMContentLoaded', () => {
         const scrollingElement = e.target.scrollingElement;
         const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
         lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
-
-        // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
-        document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
 });
 
