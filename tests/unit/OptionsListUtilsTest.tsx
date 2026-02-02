@@ -3214,7 +3214,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
             await waitForBatchedUpdates();
 
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, undefined, undefined, undefined, reports);
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, 1, undefined, undefined, undefined, reports);
 
             expect(result.reportID).toBe(reportID);
             expect(typeof result.text).toBe('string');
@@ -3233,7 +3233,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             // Should not throw when reports is undefined
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, undefined, undefined, undefined);
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, 1, undefined, undefined, undefined);
 
             expect(result.reportID).toBe(report.reportID);
         });
@@ -5035,6 +5035,7 @@ describe('OptionsListUtils', () => {
 
             // Test that the function works without crashing when chatReport is passed
             const result = getLastMessageTextForReport({
+                translate: jest.fn().mockReturnValue(''),
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
@@ -5052,6 +5053,7 @@ describe('OptionsListUtils', () => {
             };
 
             const result = getLastMessageTextForReport({
+                translate: jest.fn().mockReturnValue(''),
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
