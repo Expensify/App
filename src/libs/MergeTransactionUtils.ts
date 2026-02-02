@@ -13,7 +13,7 @@ import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
-import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
+import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isExpenseReport, isIOUReport} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     getAmount,
@@ -127,7 +127,6 @@ function isEmptyMergeValue(value: unknown) {
  */
 function getMergeFieldValue(transaction: OnyxEntry<Transaction>, field: MergeFieldKey) {
     const transactionDetails = getTransactionDetails(transaction, undefined, undefined, true, true);
-    console.log('got amount', transactionDetails?.amount);
     if (!transactionDetails || !transaction) {
         return '';
     }
@@ -457,7 +456,9 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
         return fieldValue ? translate('common.yes') : translate('common.no');
     }
     if (field === 'amount') {
-        return convertToDisplayString(Number(fieldValue), getCurrency(transaction));
+        const report = reports?.find((r) => r?.reportID === transaction?.reportID);
+        const amount = getAmount(transaction, isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+        return convertToDisplayString(amount, getCurrency(transaction));
     }
     if (field === 'description') {
         return StringUtils.lineBreaksToSpaces(Parser.htmlToText(SafeString(fieldValue)));
