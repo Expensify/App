@@ -4,6 +4,7 @@ import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/Multifacto
 import {getOutcomePath, getOutcomePaths} from '@components/MultifactorAuthentication/config/outcomePaths';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import type {OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
@@ -36,6 +37,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const biometrics = useNativeBiometrics();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     /**
      * Internal process function that runs after each step.
@@ -57,8 +59,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             isFlowComplete,
         } = state;
 
-        // 0. Check if flow is already complete or scenario not set - do nothing
-        if (isFlowComplete || !scenario) {
+        // 0. Check if flow is already complete, user is offline or scenario not set - do nothing
+        if (isFlowComplete || !scenario || isOffline) {
             return;
         }
 
@@ -245,7 +247,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // 6. All steps completed - success
         Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome), {forceReplace: true});
         dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
-    }, [biometrics, dispatch, state, translate]);
+    }, [biometrics, dispatch, isOffline, state, translate]);
 
     /**
      * Drives the MFA state machine forward whenever relevant state changes occur.

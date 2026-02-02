@@ -10,10 +10,12 @@ import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthe
 import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
+import Navigation from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -25,6 +27,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {cancel, executeScenario} = useMultifactorAuthentication();
     const {state, dispatch} = useMultifactorAuthenticationState();
     const [serverHasCredentials = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: serverHasRegisteredCredentials});
+    const {isOffline} = useNetwork();
 
     const {animation, title, subtitle} = usePromptContent(route.params.promptType);
 
@@ -35,7 +38,11 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     };
 
     const showConfirmModal = () => {
-        setConfirmModalVisibility(true);
+        if (isOffline) {
+            Navigation.closeRHPFlow();
+        } else {
+            setConfirmModalVisibility(true);
+        }
     };
 
     const hideConfirmModal = () => {
