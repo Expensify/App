@@ -61,4 +61,6 @@ function OpacityView({
     );
 }
 
-export default OpacityView;
+OpacityView.displayName = 'OpacityView';
+
+export default React.memo(OpacityView);

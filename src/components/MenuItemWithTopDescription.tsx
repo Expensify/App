@@ -29,4 +29,4 @@ function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, ...pro
     );
 }
 
-export default MenuItemWithTopDescription;
+export default React.memo(MenuItemWithTopDescription);

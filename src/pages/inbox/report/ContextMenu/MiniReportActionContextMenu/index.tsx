@@ -22,4 +22,4 @@ function MiniReportActionContextMenu({displayAsGroup = false, ...rest}: MiniRepo
     );
 }
 
-export default MiniReportActionContextMenu;
+export default React.memo(MiniReportActionContextMenu);
