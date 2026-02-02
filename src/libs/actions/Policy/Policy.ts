@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -4571,7 +4572,7 @@ const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'm
     maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
 };
 
-function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = true, policyData?: PolicyData) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
@@ -4621,6 +4622,16 @@ function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = tr
             },
         ],
     };
+    if (policyData) {
+        ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, {
+            areRulesEnabled: enabled,
+            preventSelfApproval: false,
+            ...(!enabled ? DISABLED_MAX_EXPENSE_VALUES : {}),
+            pendingFields: {
+                areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        });
+    }
 
     if (enabled && isControlPolicy(policy) && policy?.outputCurrency === CONST.CURRENCY.USD) {
         const eReceiptsOnyxData = getWorkspaceEReceiptsEnabledOnyxData(policyID, enabled);
