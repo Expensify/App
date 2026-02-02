@@ -8209,6 +8209,9 @@ const CONST = {
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
         },
+        BASE_LIST_ITEM: {
+            OPTION: 'BaseListItem-Option',
+        },
     },
 
     DOMAIN: {

@@ -95,6 +95,7 @@ function BaseListItem<TItem extends ListItem>({
             <PressableWithFeedback
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
+                sentryLabel={CONST.SENTRY_LABEL.BASE_LIST_ITEM.OPTION}
                 accessibilityState={{selected: item.isSelected}}
                 aria-selected={item.isSelected}
                 ref={pressableRef}
