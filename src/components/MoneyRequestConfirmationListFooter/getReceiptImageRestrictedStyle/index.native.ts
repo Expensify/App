@@ -5,11 +5,12 @@ const getReceiptImageRestrictedStyle: GetReceiptImageRestrictedStyle = (maxWidth
     const fullWidthLimit = availableWidth / variables.receiptPreviewMaxHeight;
     const isTall = aspectRatio && aspectRatio <= fullWidthLimit;
 
-    const cappedRatio = aspectRatio ? Math.min(aspectRatio, 16/9) : 16/9;
+    const cappedRatio = aspectRatio ? Math.min(aspectRatio, 16 / 9) : 16 / 9;
 
     return {
         width: '100%',
         maxWidth,
+        minHeight: 180,
         maxHeight: variables.receiptPreviewMaxHeight,
         aspectRatio: isTall ? undefined : cappedRatio,
         height: isTall ? variables.receiptPreviewMaxHeight : 'auto',

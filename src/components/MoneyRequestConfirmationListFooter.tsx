@@ -309,7 +309,7 @@ function MoneyRequestConfirmationListFooter({
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {getCurrencySymbol} = useCurrencyList();
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -1075,13 +1075,12 @@ function MoneyRequestConfirmationListFooter({
                             // AuthToken is required when retrieving the image from the server
                             // but we don't need it to load the blob:// or file:// image when starting an expense/split
                             // So if we have a thumbnail, it means we're retrieving the image from the server
-                            isAuthTokenRequired={shouldRequireAuthToken}
+                            isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
                             fileExtension={fileExtension}
                             shouldUseThumbnailImage
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             onLoad={handleReceiptLoad}
                             resizeMode={receiptResizeMode}
-                            style={shouldRestrictHeight ? receiptHeightStyle : receiptSizeStyle}
                         />
                     </PressableWithoutFocus>
                 )}
@@ -1192,7 +1191,7 @@ function MoneyRequestConfirmationListFooter({
             )}
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
                 <View
-                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, shouldRestrictHeight && {flexShrink: 1}, getReceiptContainerPaddingStyle(shouldRestrictHeight, styles.pt10), shouldRestrictHeight && styles.mh5]}
+                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, shouldRestrictHeight && {flexShrink: 1, minHeight: 180}, getReceiptContainerPaddingStyle(shouldRestrictHeight, styles.pt10), shouldRestrictHeight && styles.mh5]}
                 >
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent

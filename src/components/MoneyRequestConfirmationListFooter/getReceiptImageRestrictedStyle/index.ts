@@ -5,6 +5,7 @@ const getReceiptImageRestrictedStyle: GetReceiptImageRestrictedStyle = (maxWidth
 
     return {
         maxWidth,
+        minHeight: 180,
         flexShrink: 1,
         alignSelf: 'center',
         width: '100%',
