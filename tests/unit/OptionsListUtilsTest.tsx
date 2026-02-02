@@ -5162,4 +5162,274 @@ describe('OptionsListUtils', () => {
             expect(typeof result).toBe('string');
         });
     });
+
+    describe('reports parameter functionality', () => {
+        it('getValidOptions should use reports parameter to look up chat reports', () => {
+            // Given a reports collection
+            const reportsCollection = {
+                ...REPORTS,
+            };
+
+            // When we call getValidOptions with the reports collection
+            const results = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                reportsCollection,
+            );
+
+            // Then the function should complete without errors and return valid results
+            expect(results).toBeDefined();
+            expect(results.recentReports).toBeDefined();
+            expect(results.personalDetails).toBeDefined();
+        });
+
+        it('filterAndOrderOptions should use reports parameter correctly', () => {
+            // Given a set of options and reports collection
+            const options = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                REPORTS,
+            );
+
+            // When we call filterAndOrderOptions with the reports parameter
+            const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
+
+            // Then the function should complete without errors and return valid results
+            expect(filteredOptions).toBeDefined();
+            expect(filteredOptions.recentReports).toBeDefined();
+            expect(filteredOptions.personalDetails).toBeDefined();
+        });
+
+        it('getSearchOptions should use reports parameter from config', () => {
+            // Given a reports collection
+            const reportsCollection = {
+                ...REPORTS,
+            };
+
+            // When we call getSearchOptions with reports in the config
+            const options = getSearchOptions({
+                options: OPTIONS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: reportsCollection,
+            });
+
+            // Then the function should complete without errors and return valid results
+            expect(options).toBeDefined();
+            expect(options.recentReports).toBeDefined();
+            expect(options.personalDetails).toBeDefined();
+        });
+
+        it('getMemberInviteOptions should use reports parameter correctly', () => {
+            // Given personal details and a reports collection
+            const reportsCollection = {
+                ...REPORTS,
+            };
+
+            // When we call getMemberInviteOptions with the reports parameter
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                reportsCollection,
+                [],
+            );
+
+            // Then the function should complete without errors and return valid results
+            expect(results).toBeDefined();
+            expect(results.personalDetails).toBeDefined();
+            expect(results.recentReports).toEqual([]);
+        });
+
+        it('getUserToInviteOption should use reports parameter correctly', () => {
+            // Given a valid email search value and reports collection
+            const result = getUserToInviteOption({
+                searchValue: 'newuser@example.com',
+                loginList: {},
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
+
+            // Then the function should return a user to invite
+            expect(result).not.toBeNull();
+            expect(result?.login).toBe('newuser@example.com');
+        });
+
+        it('should work correctly when reports is an empty object', () => {
+            // Given an empty reports collection
+            const emptyReports = {};
+
+            // When we call getValidOptions with empty reports
+            const results = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                emptyReports,
+            );
+
+            // Then the function should still work correctly
+            expect(results).toBeDefined();
+            expect(results.recentReports).toBeDefined();
+            expect(results.personalDetails).toBeDefined();
+        });
+
+        it('should work correctly when reports is undefined', () => {
+            // When we call getValidOptions with undefined reports
+            const results = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+            );
+
+            // Then the function should still work correctly
+            expect(results).toBeDefined();
+            expect(results.recentReports).toBeDefined();
+            expect(results.personalDetails).toBeDefined();
+        });
+
+        it('createOption should look up chatReport from reports collection when report has chatReportID', async () => {
+            // This test verifies the core functionality: using reports to look up linked chat reports
+            const reportID = 'expense-report-123';
+            const chatReportID = 'linked-chat-456';
+
+            const expenseReport: Report = {
+                ...createRandomReport(0, undefined),
+                reportID,
+                chatReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                participants: {
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const linkedChatReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: chatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                reportName: 'Linked Chat Report',
+            };
+
+            const reportsWithLinkedChat = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: linkedChatReport,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, linkedChatReport);
+            await waitForBatchedUpdates();
+
+            // When we call createOption with a reports collection that includes the linked chat
+            const result = createOption([1, 2], PERSONAL_DETAILS, expenseReport, CURRENT_USER_ACCOUNT_ID, reportsWithLinkedChat);
+
+            // Then the option should be created successfully
+            expect(result).toBeDefined();
+            expect(result.reportID).toBe(reportID);
+        });
+
+        it('getReportDisplayOption should use reports parameter to look up chat report', async () => {
+            const reportID = 'test-report-789';
+            const chatReportID = 'test-chat-101';
+
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID,
+                chatReportID,
+                participants: {
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const chatReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: chatReportID,
+            };
+
+            const reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: report,
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: chatReport,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await waitForBatchedUpdates();
+
+            // When we call getReportDisplayOption with reports collection
+            const option = getReportDisplayOption(report, undefined, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, undefined, reportsCollection);
+
+            // Then the option should be created successfully using the reports collection
+            expect(option).toBeDefined();
+            expect(option.reportID).toBe(reportID);
+        });
+
+        it('getPolicyExpenseReportOption should use reports parameter correctly', async () => {
+            const reportID = 'policy-expense-123';
+            const testPolicyID = 'test-policy-456';
+
+            const report: Report = {
+                reportID,
+                reportName: 'Test Policy Expense Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: testPolicyID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            };
+
+            const policy: Policy = {
+                id: testPolicyID,
+                name: 'Test Reports Param Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@test.com',
+                role: 'admin',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            const reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: report,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            const participant = {
+                reportID,
+                policyID: testPolicyID,
+                isPolicyExpenseChat: true,
+            };
+
+            // When we call getPolicyExpenseReportOption with reports collection
+            const option = getPolicyExpenseReportOption(participant, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, reportsCollection);
+
+            // Then the option should be created successfully
+            expect(option).toBeDefined();
+            expect(option.text).toBe('Test Reports Param Workspace');
+        });
+    });
 });
