@@ -42,9 +42,12 @@ type RuleTextBaseProps<TFormID extends OnyxFormKey> = {
 
     /** Optional hash for rule not found validation */
     hash?: string;
+
+    /** The type of the input */
+    type?: 'markdown' | 'default';
 };
 
-function RuleTextBase<TFormID extends OnyxFormKey>({fieldID, hintKey, isRequired, titleKey, labelKey, testID, characterLimit, formID, onSave, onBack, hash}: RuleTextBaseProps<TFormID>) {
+function RuleTextBase<TFormID extends OnyxFormKey>({fieldID, hintKey, isRequired, titleKey, labelKey, testID, characterLimit, formID, onSave, onBack, hash, type = 'default'}: RuleTextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -69,6 +72,7 @@ function RuleTextBase<TFormID extends OnyxFormKey>({fieldID, hintKey, isRequired
                     onSubmit={onSave}
                     title={translate(titleKey)}
                     characterLimit={characterLimit}
+                    type={type}
                 />
             </ScreenWrapper>
         </RuleNotFoundPageWrapper>

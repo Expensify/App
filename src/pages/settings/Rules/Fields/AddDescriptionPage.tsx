@@ -34,6 +34,7 @@ function AddDescriptionPage({route}: AddDescriptionPageProps) {
             onSave={onSave}
             onBack={goBack}
             hash={hash}
+            type="markdown"
         />
     );
 }

@@ -21,9 +21,10 @@ type TextBaseProps<TFormID extends OnyxFormKey> = {
     characterLimit?: number;
     formID: TFormID;
     onSubmit: (values: FormOnyxValues<TFormID>) => void;
+    type?: 'markdown' | 'default';
 };
 
-function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title, label, onSubmit, formID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: TextBaseProps<TFormID>) {
+function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title, label, onSubmit, formID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES, type = 'default'}: TextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const [form] = useOnyx(formID, {canBeMissing: true});
     const styles = useThemeStyles();
@@ -74,6 +75,7 @@ function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title
                     accessibilityLabel={title}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
+                    type={type}
                 />
             </View>
         </FormProvider>
