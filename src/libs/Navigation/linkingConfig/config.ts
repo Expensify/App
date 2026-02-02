@@ -157,9 +157,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: {
-                    path: ROUTES.SEARCH_ROUTER,
                     screens: {
-                        [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: '',
+                        [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
