@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {ScrollView as RNScrollView, View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -67,8 +67,9 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const scrollViewRef = useRef<RNScrollView>(null);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const isApprovedAccountant = !!account?.isApprovedAccountant;
+    const isApprovedAccountant = !!account?.isApprovedAccountant || true;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
@@ -161,8 +162,15 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                 onBackButtonPress={onBackButtonPress}
             />
             <ScrollView
+                ref={scrollViewRef}
                 contentContainerStyle={styles.flexGrow1}
                 keyboardShouldPersistTaps="always"
+                onContentSizeChange={() => {
+                    if (!isApprovedAccountant) {
+                        return;
+                    }
+                    scrollViewRef.current?.scrollToEnd({animated: true});
+                }}
             >
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
@@ -207,6 +215,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     }}
                     enabledWhenOffline
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    shouldScrollToEnd={isApprovedAccountant}
                 >
                     <View style={styles.mb4}>
                         {!isLoadingOnyxValue(metadata) && (
