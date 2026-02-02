@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
@@ -132,15 +133,17 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
 
                         return (
                             <View key={rule.ruleID}>
-                                <MenuItemWithTopDescription
-                                    description={matchDescription}
-                                    title={ruleDescription}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
-                                    titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
-                                />
+                                <OfflineWithFeedback pendingAction={rule.pendingAction} errors={rule.errors}>
+                                    <MenuItemWithTopDescription
+                                        description={matchDescription}
+                                        title={ruleDescription}
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                        descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
+                                        titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
+                                    />
+                                </OfflineWithFeedback>
                             </View>
                         );
                     })}
