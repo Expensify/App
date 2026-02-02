@@ -122,6 +122,7 @@ export default function useTodos() {
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: false});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -156,11 +157,12 @@ export default function useTodos() {
             const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
             const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
             const reportTransactions = transactionsByReportID[report.reportID] ?? [];
+            const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
 
-            if (isSubmitAction(report, reportTransactions, policy, reportNameValuePair)) {
+            if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID)) {
                 reportsToSubmit.push(report);
             }
-            if (isApproveAction(report, reportTransactions, currentUserAccountID, policy)) {
+            if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
                 reportsToApprove.push(report);
             }
             if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
@@ -172,7 +174,7 @@ export default function useTodos() {
         }
 
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
-    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, currentUserAccountID, login, bankAccountList]);
+    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, currentUserAccountID, login, bankAccountList, allReportMetadata]);
 
     const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID} = todos;
 
