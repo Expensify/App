@@ -633,6 +633,7 @@ const translations = {
         exchangeRate: 'Exchange rate',
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
+        locked: 'Locked',
         month: 'Month',
         week: 'Week',
         year: 'Year',
