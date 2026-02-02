@@ -408,6 +408,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     accessibilityLabels: {
         selectAllFeatures: 'Seleccionar todas las características',
+        selectAllItems: 'Seleccionar todos los elementos',
+        selectAllTransactions: 'Seleccionar todos los gastos',
     },
     connectionComplete: {
         title: 'Conexión completa',

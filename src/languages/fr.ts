@@ -8285,7 +8285,11 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
     },
-    accessibilityLabels: {selectAllFeatures: 'Sélectionner toutes les fonctionnalités'},
+    accessibilityLabels: {
+        selectAllFeatures: 'Sélectionner toutes les fonctionnalités',
+        selectAllTransactions: 'Sélectionner toutes les transactions',
+        selectAllItems: 'Sélectionner tous les éléments',
+    },
     homePage: {
         forYou: 'Pour vous',
         announcements: 'Annonces',

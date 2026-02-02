@@ -8265,7 +8265,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         },
         fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
     },
-    accessibilityLabels: {selectAllFeatures: 'Seleziona tutte le funzionalità'},
+    accessibilityLabels: {selectAllFeatures: 'Seleziona tutte le funzionalità', selectAllTransactions: 'Seleziona tutte le transazioni', selectAllItems: 'Seleziona tutti gli elementi'},
     homePage: {
         forYou: 'Per te',
         announcements: 'Annunci',

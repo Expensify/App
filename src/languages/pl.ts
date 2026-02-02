@@ -8225,7 +8225,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
         },
         fabGpsTripExplained: 'Przejdź do ekranu GPS (przycisk akcji)',
     },
-    accessibilityLabels: {selectAllFeatures: 'Zaznacz wszystkie funkcje'},
+    accessibilityLabels: {selectAllFeatures: 'Zaznacz wszystkie funkcje', selectAllTransactions: 'Zaznacz wszystkie transakcje', selectAllItems: 'Zaznacz wszystkie pozycje'},
     homePage: {
         forYou: 'Dla Ciebie',
         announcements: 'Ogłoszenia',

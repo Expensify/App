@@ -649,6 +649,8 @@ const translations = {
     },
     accessibilityLabels: {
         selectAllFeatures: 'Select all features',
+        selectAllTransactions: 'Select all transactions',
+        selectAllItems: 'Select all items',
     },
     location: {
         useCurrent: 'Use current location',

@@ -7998,7 +7998,7 @@ ${reportName}
         locationServicesRequiredModal: {title: '需要访问位置信息', confirm: '打开设置', prompt: '请在设备设置中允许位置访问，以开始 GPS 距离跟踪。'},
         fabGpsTripExplained: '前往 GPS 屏幕（悬浮操作）',
     },
-    accessibilityLabels: {selectAllFeatures: '选择所有功能'},
+    accessibilityLabels: {selectAllFeatures: '选择所有功能', selectAllTransactions: '选择所有交易', selectAllItems: '全选所有项目'},
     homePage: {
         forYou: '为你',
         announcements: '公告',

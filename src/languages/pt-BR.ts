@@ -8235,7 +8235,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         },
         fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
     },
-    accessibilityLabels: {selectAllFeatures: 'Selecionar todos os recursos'},
+    accessibilityLabels: {selectAllFeatures: 'Selecionar todos os recursos', selectAllTransactions: 'Selecionar todas as transações', selectAllItems: 'Selecionar todos os itens'},
     homePage: {
         forYou: 'Para você',
         announcements: 'Anúncios',

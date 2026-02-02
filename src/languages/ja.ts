@@ -8177,7 +8177,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         },
         fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
     },
-    accessibilityLabels: {selectAllFeatures: 'すべての機能を選択'},
+    accessibilityLabels: {selectAllFeatures: 'すべての機能を選択', selectAllTransactions: 'すべての取引を選択', selectAllItems: 'すべての項目を選択'},
     homePage: {
         forYou: 'あなた向け',
         announcements: 'お知らせ',

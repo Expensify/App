@@ -8279,7 +8279,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         },
         fabGpsTripExplained: 'Zur GPS-Ansicht wechseln (Schnellaktion)',
     },
-    accessibilityLabels: {selectAllFeatures: 'Alle Funktionen auswählen'},
+    accessibilityLabels: {selectAllFeatures: 'Alle Funktionen auswählen', selectAllTransactions: 'Alle Transaktionen auswählen', selectAllItems: 'Alle Elemente auswählen'},
     homePage: {
         forYou: 'Für dich',
         announcements: 'Ankündigungen',

@@ -8241,7 +8241,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         },
         fabGpsTripExplained: 'Ga naar GPS-scherm (Zwevende actie)',
     },
-    accessibilityLabels: {selectAllFeatures: 'Alle functies selecteren'},
+    accessibilityLabels: {selectAllFeatures: 'Alle functies selecteren', selectAllTransactions: 'Alle transacties selecteren', selectAllItems: 'Selecteer alle items'},
     homePage: {
         forYou: 'Voor jou',
         announcements: 'Aankondigingen',
