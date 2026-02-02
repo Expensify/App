@@ -9,7 +9,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useAncestors from '@hooks/useAncestors';
-import resolveSuggestedFollowup from '@libs/actions/Report/SuggestedFollowup';
+import {CONCIERGE_RESPONSE_DELAY_MS, resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -490,6 +490,7 @@ describe('actions/Report', () => {
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                     shouldShow: true,
                     created: DateUtils.getDBTime(Date.now() - 3),
+                    reportID: REPORT_ID,
                 };
 
                 const optimisticReportActions: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
@@ -3738,7 +3739,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(report, undefined, reportAction, 'test question', CONST.DEFAULT_TIME_ZONE);
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'test question'}, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // The report action should remain unchanged (no followup-list to resolve)
@@ -3766,7 +3767,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            resolveSuggestedFollowup(report, undefined, reportAction, 'How do I set up QuickBooks?', CONST.DEFAULT_TIME_ZONE);
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?'}, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             // Verify the followup-list was marked as selected
@@ -3776,6 +3777,52 @@ describe('actions/Report', () => {
 
             // Verify addComment was called (which triggers ADD_COMMENT API call)
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+        });
+
+        it('should optimistically resolve followups and post comment with pre-generated response when response is provided', async () => {
+            const reportAction = {
+                reportActionID: REPORT_ACTION_ID,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                message: [
+                    {
+                        html: '<p>Here is help</p><followup-list><followup><followup-text>How do I set up QuickBooks?</followup-text><followup-response>To set up QuickBooks, go to Settings...</followup-response></followup></followup-list>',
+                        text: 'Here is help',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    },
+                ],
+            } as OnyxTypes.ReportAction;
+
+            // Set up initial Onyx state with real timers
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [REPORT_ACTION_ID]: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            resolveSuggestedFollowup(report, undefined, reportAction, {text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings...'}, CONST.DEFAULT_TIME_ZONE);
+            await waitForBatchedUpdates();
+
+            // Verify the followup-list was marked as selected
+            let reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
+            const updatedHtml = (reportActions?.[REPORT_ACTION_ID]?.message as Message[])?.at(0)?.html;
+            expect(updatedHtml).toContain('<followup-list selected>');
+
+            // Verify addComment was called (which triggers ADD_COMMENT API call)
+            // With pre-generated response, the API call should include the optimistic Concierge response params
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 1);
+
+            // Wait for the delayed Concierge response (1500ms delay in SuggestedFollowup.ts)
+            await new Promise((resolve) => {
+                setTimeout(resolve, CONCIERGE_RESPONSE_DELAY_MS + 100);
+            });
+            await waitForBatchedUpdates();
+
+            // Verify an optimistic Concierge report action was created
+            reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
+            const allReportActions = Object.values(reportActions ?? {});
+            const conciergeActions = allReportActions.filter((action) => action?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE);
+            // Should have 2 Concierge actions: the original one and the optimistic response
+            expect(conciergeActions.length).toBe(2);
         });
     });
 });

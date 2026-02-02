@@ -309,6 +309,15 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         },
     ];
 
+    const previewMatches = () => {
+        if (!form?.merchantToMatch?.trim()) {
+            setShouldShowError(true);
+            return;
+        }
+
+        Navigation.navigate(ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID, ruleID));
+    };
+
     if (ruleID && !existingRule && !isDeleting) {
         return <NotFoundPage />;
     }
@@ -364,6 +373,12 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                     onToggle={setShouldUpdateMatchingTransactions}
                                 />
                             </View>
+                            <Button
+                                text={translate('workspace.rules.merchantRules.previewMatches')}
+                                onPress={previewMatches}
+                                style={[styles.mb4]}
+                                large
+                            />
                             {isEditing && (
                                 <Button
                                     text={translate('workspace.rules.merchantRules.deleteRule')}
