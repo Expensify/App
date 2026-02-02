@@ -75,7 +75,7 @@ function injectFooterCopyright() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
-const SEARCH_API_URL = 'https://www.expensify.com.dev/api/SearchHelpsite';
+const SEARCH_API_URL = 'https://www.expensify.com/api/SearchHelpsite';
 
 function getTitleFromURL(url) {
     return url.split('/').pop().replace(/-/g, ' ');
