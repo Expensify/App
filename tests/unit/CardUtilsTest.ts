@@ -53,6 +53,9 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock
 function translateMock<TPath extends TranslationPaths>(path: TPath, ...phraseParameters: TranslationParameters<TPath>): string {
+    if (path === 'workspace.companyCards.feedName') {
+        return `${String(phraseParameters[0])} cards`;
+    }
     return path;
 }
 
