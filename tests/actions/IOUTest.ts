@@ -10454,6 +10454,7 @@ describe('actions/IOU', () => {
                             category: 'Food',
                             tags: ['lunch'],
                             created: DateUtils.getDBTime(),
+                            isManuallyEdited: true, // Lock the existing split so new split gets remaining amount
                         },
                     ],
                     attendees: [],
@@ -10473,7 +10474,7 @@ describe('actions/IOU', () => {
 
             const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
             expect(splitExpenses).toHaveLength(2);
-            expect(splitExpenses?.[1].amount).toBe(0);
+            expect(splitExpenses?.[1].amount).toBe(50); // New split gets remaining 50 from total 100 - 50 locked
             expect(splitExpenses?.[1].description).toBe('Test comment');
             expect(splitExpenses?.[1].category).toBe('Food');
             expect(splitExpenses?.[1].tags).toEqual(['lunch']);
@@ -10515,6 +10516,7 @@ describe('actions/IOU', () => {
                             tags: ['lunch'],
                             created: DateUtils.getDBTime(),
                             reimbursable: false, // Existing split - not reimbursable
+                            isManuallyEdited: true, // Lock the existing split so new split gets remaining amount
                         },
                     ],
                     attendees: [],
@@ -10539,7 +10541,7 @@ describe('actions/IOU', () => {
 
             // Verify: The new split should have reimbursable: false (not counted as out-of-pocket)
             expect(splitExpenses?.[1].reimbursable).toBe(false);
-            expect(splitExpenses?.[1].amount).toBe(0);
+            expect(splitExpenses?.[1].amount).toBe(50); // New split gets remaining 50 from total 100 - 50 locked
             expect(splitExpenses?.[1].description).toBe('Card transaction');
             expect(splitExpenses?.[1].category).toBe('Food');
             expect(splitExpenses?.[1].tags).toEqual(['lunch']);
