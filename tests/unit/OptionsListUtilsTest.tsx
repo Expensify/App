@@ -5240,15 +5240,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getMemberInviteOptions with the reports parameter
-            const results = getMemberInviteOptions(
-                OPTIONS.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                reportsCollection,
-                [],
-            );
+            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, reportsCollection, []);
 
             // Then the function should complete without errors and return valid results
             expect(results).toBeDefined();
