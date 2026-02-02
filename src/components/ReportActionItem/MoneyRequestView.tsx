@@ -61,6 +61,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
+    getParsedComment,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isExpenseReport,
@@ -581,7 +582,9 @@ function MoneyRequestView({
     const distanceCopyValue = !canEditDistance ? distanceToDisplay : undefined;
     const distanceRateCopyValue = !canEditDistanceRate ? rateToDisplay : undefined;
     const amountCopyValue = !canEditAmount ? amountTitle : undefined;
-    const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
+    const rawDescription = updatedTransactionDescription ?? transactionDescription;
+    // Parse description to HTML if it's not already HTML (e.g., when applied by a merchant rule as plain text)
+    const descriptionHTML = rawDescription && !rawDescription.includes('<') ? getParsedComment(rawDescription) : rawDescription;
     const descriptionCopyValue = !canEdit && descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
     const dateCopyValue = !canEditDate ? transactionDate : undefined;
