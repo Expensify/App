@@ -8,10 +8,10 @@ const todosReportCountsSelector = (todos: OnyxEntry<TodosDerivedValue>) => {
     }
 
     return {
-        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: todos.reportsToSubmit?.length ?? 0,
-        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: todos.reportsToApprove?.length ?? 0,
-        [CONST.SEARCH.SEARCH_KEYS.PAY]: todos.reportsToPay?.length ?? 0,
-        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: todos.reportsToExport?.length ?? 0,
+        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: todos.reportsToSubmit.length ?? 0,
+        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: todos.reportsToApprove.length ?? 0,
+        [CONST.SEARCH.SEARCH_KEYS.PAY]: todos.reportsToPay.length ?? 0,
+        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: todos.reportsToExport.length ?? 0,
     };
 };
 
