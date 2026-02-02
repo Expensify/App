@@ -178,7 +178,6 @@ describe('IOURequestStepScan', () => {
         transaction1.receipt = {source: 'file://first-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
         const transaction2 = createRandomTransaction(2);
-        transaction2.reportID = REPORT_ID;
         transaction2.transactionID = TRANSACTION_ID_2;
         transaction2.receipt = {source: 'file://second-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
