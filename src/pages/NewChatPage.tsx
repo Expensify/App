@@ -183,6 +183,7 @@ function useOptions() {
             return;
         }
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedOptions((prevSelectedOptions) => {
             if (
                 prevSelectedOptions.length === draftSelectedOptions.length &&
@@ -413,6 +414,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                     accessibilityLabel={item.text ?? ''}
                     accessibilityState={{checked: item.isSelected}}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
+                    sentryLabel="NewChatPage-ToggleOption"
                 >
                     <SelectCircle
                         isChecked={item.isSelected}
