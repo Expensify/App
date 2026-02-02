@@ -3438,21 +3438,21 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
+function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, conciergeReportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.popToSidebar();
     } else {
         Navigation.goBack();
     }
-    navigateToConciergeChat(conciergeReportIDOnyxConnect, false);
+    navigateToConciergeChat(conciergeReportID, false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
 }
 
-function clearCreateChatError(report: OnyxEntry<Report>) {
+function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: string | undefined) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
@@ -3460,7 +3460,7 @@ function clearCreateChatError(report: OnyxEntry<Report>) {
         return;
     }
 
-    navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true);
+    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, true);
 }
 
 /**

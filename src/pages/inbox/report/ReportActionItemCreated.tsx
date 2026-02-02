@@ -30,6 +30,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     if (!isChatReport(report)) {
         return null;
@@ -42,7 +43,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => clearCreateChatError(report)}
+            onClose={() => clearCreateChatError(report, conciergeReportID)}
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />

@@ -258,13 +258,14 @@ describe('actions/Report', () => {
     it('clearCreateChatError should not delete the report if it is not optimistic report', () => {
         const REPORT: OnyxTypes.Report = {...createRandomReport(1, undefined), errorFields: {createChat: {error: 'error'}}};
         const REPORT_METADATA: OnyxTypes.ReportMetadata = {isOptimisticReport: false};
+        const CONCIERGE_REPORT_ID = '123456';
 
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`, REPORT);
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, REPORT_METADATA);
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -3465,6 +3466,99 @@ describe('actions/Report', () => {
 
             // Should use the provided ID, not the Onyx ID
             expect(mockNavigation.navigate).toHaveBeenCalledWith(expect.stringContaining(providedConciergeReportID), undefined);
+        });
+    });
+
+    describe('navigateToConciergeChatAndDeleteReport', () => {
+        const CONCIERGE_REPORT_ID = '123456';
+        const REPORT_ID = '789';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const mockNavigation: {navigate: jest.Mock; dismissModalWithReport: jest.Mock; goBack: jest.Mock; popToSidebar: jest.Mock} = jest.requireMock('@libs/Navigation/Navigation');
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            mockNavigation.navigate.mockClear();
+            mockNavigation.goBack.mockClear();
+            mockNavigation.popToSidebar.mockClear();
+            await Onyx.clear();
+            return waitForBatchedUpdates();
+        });
+
+        it('should navigate to concierge chat and delete report with valid conciergeReportID', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            const testReport = createRandomReport(Number(REPORT_ID), undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.goBack).toHaveBeenCalled();
+            expect(mockNavigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should pop to sidebar when shouldPopToTop is true', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            const testReport = createRandomReport(Number(REPORT_ID), undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, true);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.popToSidebar).toHaveBeenCalled();
+            expect(mockNavigation.goBack).not.toHaveBeenCalled();
+        });
+
+        it('should handle undefined reportID gracefully', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            expect(() => {
+                Report.navigateToConciergeChatAndDeleteReport(undefined, CONCIERGE_REPORT_ID);
+            }).not.toThrow();
+        });
+
+        it('should handle undefined conciergeReportID by using fallback navigation', async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await waitForBatchedUpdates();
+
+            expect(() => {
+                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, undefined);
+            }).not.toThrow();
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.goBack).toHaveBeenCalled();
+        });
+
+        it('should delete child reports when shouldDeleteChildReports is true', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            const testReport = createRandomReport(Number(REPORT_ID), undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, false, true);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.goBack).toHaveBeenCalled();
+        });
+
+        it('should work with all parameters provided', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            const testReport = createRandomReport(Number(REPORT_ID), undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, true, true);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.popToSidebar).toHaveBeenCalled();
+            expect(mockNavigation.navigate).toHaveBeenCalled();
         });
     });
 
