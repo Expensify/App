@@ -35,7 +35,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        navigateToBankAccountRoute(policyID);
+        navigateToBankAccountRoute({policyID});
     };
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
@@ -54,7 +54,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (isBankAccountPartiallySetup(accountData?.state)) {
-                navigateToBankAccountRoute(route.params.policyID);
+                navigateToBankAccountRoute({policyID: route.params.policyID});
             } else {
                 Navigation.closeRHPFlow();
             }

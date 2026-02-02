@@ -186,7 +186,7 @@ function KYCWall({
                 // - account already present on policy is partially setup
                 // - account is being connected 'on the spot' while trying to pay for an expense (it won't be linked to policy yet but will appear as reimbursementAccount)
                 if (policy !== undefined && (isBankAccountPartiallySetup(policy?.achAccount?.state) || isBankAccountPartiallySetup(reimbursementAccount?.achData?.state))) {
-                    navigateToBankAccountRoute(policy.id);
+                    navigateToBankAccountRoute({policyID: policy.id});
                     return;
                 }
 

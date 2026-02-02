@@ -371,7 +371,7 @@ function SettlementButton({
                     icon: icons.Bank,
                     onSelected: () => {
                         if (payAsBusiness) {
-                            navigateToBankAccountRoute(getPolicyID());
+                            navigateToBankAccountRoute({policyID: getPolicyID()});
                         } else {
                             Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
                         }
