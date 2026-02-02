@@ -586,10 +586,10 @@ function peg$parse(input, options) {
   var peg$f79 = function() { return "groupCategory"; };
   var peg$f80 = function() { return "groupTag"; };
   var peg$f81 = function() { return "groupMerchant"; };
-  var peg$f82 = function() { return "groupmonth"; };
-  var peg$f83 = function() { return "groupweek"; };
-  var peg$f84 = function() { return "groupyear"; };
-  var peg$f85 = function() { return "groupquarter"; };
+  var peg$f82 = function() { return "groupMonth"; };
+  var peg$f83 = function() { return "groupWeek"; };
+  var peg$f84 = function() { return "groupYear"; };
+  var peg$f85 = function() { return "groupQuarter"; };
   var peg$f86 = function() { return "eq"; };
   var peg$f87 = function() { return "neq"; };
   var peg$f88 = function() { return "gte"; };
@@ -4493,11 +4493,11 @@ function peg$parse(input, options) {
 
   
   const GROUP_BY_DEFAULT_SORT = {
-    from: "groupFrom",
-    card: "groupCard",
-    "withdrawal-id": "groupWithdrawn",
+    from: "from",
+    card: "card",
+    "withdrawal-id": "withdrawn",
     category: "groupCategory",
-    tag: "groupTag",
+    tag: "tag",
     merchant: "groupMerchant",
     month: "groupmonth",
     week: "groupweek",

@@ -29,11 +29,11 @@
 // per-parser initializer (code executed before every parse)
 {  
   const GROUP_BY_DEFAULT_SORT = {
-    from: "groupFrom",
-    card: "groupCard",
-    "withdrawal-id": "groupWithdrawn",
+    from: "from",
+    card: "card",
+    "withdrawal-id": "withdrawn",
     category: "groupCategory",
-    tag: "groupTag",
+    tag: "tag",
     merchant: "groupMerchant",
     month: "groupmonth",
     week: "groupweek",

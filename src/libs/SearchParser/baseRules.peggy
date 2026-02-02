@@ -146,10 +146,10 @@ groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "gr
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
-groupMonth              = "group-month"i &wordBoundary              { return "groupmonth"; }
-groupWeek               = "group-week"i &wordBoundary               { return "groupweek"; }
-groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
-groupQuarter            = "group-quarter"i &wordBoundary            { return "groupquarter"; }
+groupMonth              = "group-month"i &wordBoundary              { return "groupMonth"; }
+groupWeek               = "group-week"i &wordBoundary               { return "groupWeek"; }
+groupYear               = "group-year"i &wordBoundary               { return "groupYear"; }
+groupQuarter            = "group-quarter"i &wordBoundary            { return "groupQuarter"; }
 
 
 operator "operator"
