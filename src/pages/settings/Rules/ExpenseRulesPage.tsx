@@ -26,7 +26,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {clearDraftRule, setDraftRule, setNameValuePair} from '@libs/actions/User';
+import {clearDraftRule, deleteExpenseRules, setDraftRule} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -80,6 +80,8 @@ function ExpenseRulesPage() {
             alternateText: changes,
             shouldHideAlternateText: !shouldUseNarrowLayout,
             keyForList: getKeyForList(rule, index),
+            pendingAction: rule.pendingAction,
+            errors: rule.errors,
             rightElement: !shouldUseNarrowLayout && (
                 <View style={[styles.flex1]}>
                     <Text
@@ -142,8 +144,8 @@ function ExpenseRulesPage() {
 
     const handleDeleteRules = () => {
         if (selectedRules.length > 0) {
-            const rulesToDelete = expenseRules.filter((rule, index) => !selectedRules.includes(getKeyForList(rule, index)));
-            setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, rulesToDelete, expenseRules);
+            const ruleKeysToDelete = selectedRules.map((keyForList) => keyForList.substring(0, keyForList.indexOf('-')));
+            deleteExpenseRules(expenseRules, ruleKeysToDelete, getKeyForRule);
         }
         setDeleteConfirmModalVisible(false);
         setSelectedRules([]);

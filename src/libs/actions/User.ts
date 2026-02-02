@@ -49,7 +49,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {OnyxServerUpdate, OnyxUpdatesFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -1670,6 +1670,73 @@ function updateIsVerifiedValidateActionCode(isVerifiedValidateActionCode: boolea
     });
 }
 
+/**
+ * Deletes expense rules with proper offline support.
+ * Marks rules as pending delete optimistically, then removes them on success.
+ * @param expenseRules - The current list of expense rules
+ * @param ruleKeysToDelete - Array of rule keys to delete (from getKeyForRule)
+ * @param getKeyForRule - Function to get the key for a rule
+ */
+function deleteExpenseRules(expenseRules: ExpenseRule[], ruleKeysToDelete: string[], getKeyForRule: (rule: ExpenseRule) => string) {
+    if (ruleKeysToDelete.length === 0) {
+        return;
+    }
+
+    // Create optimistic data: mark rules for deletion with pendingAction
+    const optimisticRules = expenseRules.map((rule) => {
+        if (ruleKeysToDelete.includes(getKeyForRule(rule))) {
+            return {...rule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        }
+        return rule;
+    });
+
+    // Create success data: remove the deleted rules entirely
+    const successRules = expenseRules.filter((rule) => !ruleKeysToDelete.includes(getKeyForRule(rule)));
+
+    // Create failure data: restore original rules (remove pendingAction)
+    const failureRules = expenseRules.map((rule) => {
+        if (ruleKeysToDelete.includes(getKeyForRule(rule))) {
+            return {...rule, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
+        }
+        return rule;
+    });
+
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_EXPENSE_RULES,
+        value: JSON.stringify(successRules),
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: optimisticRules,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: successRules,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_EXPENSE_RULES,
+            value: failureRules,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 function setDraftRule(ruleData: Partial<ExpenseRuleForm>) {
     Onyx.set(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, ruleData);
 }
@@ -1740,6 +1807,7 @@ export {
     setDraftRule,
     updateDraftRule,
     clearDraftRule,
+    deleteExpenseRules,
     setDraftMerchantRule,
     updateDraftMerchantRule,
     clearDraftMerchantRule,
