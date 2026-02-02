@@ -455,7 +455,8 @@ const ViolationsUtils = {
             isControlPolicy;
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
-        const shouldShowMissingComment = !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy;
+        const shouldShowMissingComment =
+            !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
         const attendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees ?? [];
         const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present

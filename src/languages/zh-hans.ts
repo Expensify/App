@@ -764,14 +764,14 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: '使用您的脸部或指纹启用快速安全验证。无需密码或代码。',
         },
         revoke: {
-            revoke: '撤销',
             title: '面部识别/指纹识别与通行密钥',
-            explanation: '在一台或多台设备上已启用面部 / 指纹或通行密钥验证。撤销访问权限后，下次在任何设备上进行验证时都需要使用魔法验证码',
-            confirmationPrompt: '你确定吗？在任何设备上进行下一步验证时，你都需要一个魔法代码',
+            explanation: '一个或多个设备已启用面容 / 指纹或通行密钥验证。撤销访问后，下次在任何设备上进行验证时都需要输入魔术代码。',
+            confirmationPrompt: '你确定吗？接下来在任何设备上进行验证时，你都需要使用魔法验证码。',
             cta: '撤销访问权限',
             noDevices: '您尚未注册任何用于人脸/指纹或通行密钥验证的设备。如果您注册了设备，您将可以在此撤销其访问权限。',
             dismiss: '明白了',
             error: '请求失败。请稍后重试。',
+            remove: '移除',
         },
     },
     validateCodeModal: {
@@ -1039,6 +1039,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: `请确认以下将通过本次上传添加的新工作区成员的详细信息。现有成员不会收到任何角色更新或邀请消息。`,
             other: (count: number) => `请确认以下有关将在此次上传中添加的 ${count} 位新的工作区成员的详细信息。现有成员不会收到任何角色更新或邀请消息。`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已导入 ${transactions} 笔交易。` : '已导入 1 笔交易。'),
     },
     receipt: {
         upload: '上传收据',
@@ -2279,6 +2280,7 @@ ${amount}，商户：${merchant} - ${date}`,
             expensesFromSubtitle: '所有工作区成员已属于现有的审批流程。',
             approverSubtitle: '所有审批人都属于一个现有的工作流程。',
         },
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `来自${members}的费用，审批人是${approvers}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '无法更改提交频率。请重试或联系支持。',
@@ -2422,7 +2424,7 @@ ${amount}，商户：${merchant} - ${date}`,
             title: '添加规则',
             expenseContains: '如果报销包含：',
             applyUpdates: '然后应用这些更新：',
-            merchantHint: '输入 * 以创建适用于所有商家的规则',
+            merchantHint: '输入 . 以创建适用于所有商家的规则',
             addToReport: '添加到名为',
             createReport: '如有必要则创建报表',
             applyToExistingExpenses: '应用到现有匹配报销',
@@ -4840,6 +4842,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: '选择一个新的交易起始日期。我们将从该日期起同步所有交易，但不包括已经导入的交易。',
             unassignCardFailedError: '卡片取消分配失败。',
+            importTransactions: {
+                title: '从文件导入交易',
+                description: '请调整文件的设置，这些设置将在导入时应用。',
+                cardDisplayName: '卡片显示名称',
+                currency: '货币',
+                transactionsAreReimbursable: '交易可报销',
+                flipAmountSign: '翻转金额符号',
+                importButton: '导入交易',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片信息流',
                 workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时出错。请重试或联系您的管理员。',
@@ -6886,6 +6897,7 @@ ${reportName}
             allMatchingItemsSelected: '已选择所有匹配的项目',
         },
         topSpenders: '最高支出者',
+        view: {label: '查看', table: '表格', bar: '栏'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',
             [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
@@ -7029,7 +7041,7 @@ ${reportName}
                 addedConnection: ({connectionName}: ConnectionNameParams) => `已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: '已离开聊天',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>`,
+                    `${feedName} 连接已中断。要恢复卡片导入，请<a href='${workspaceCompanyCardRoute}'>登录到您的银行</a>。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您的企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用您的 Expensify 卡。`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8008,6 +8020,8 @@ ${reportName}
             cta: '报销申请',
             offer50off: {title: '首年立享五折优惠！', subtitle: ({formattedTime}: {formattedTime: string}) => `剩余 ${formattedTime}`},
             offer25off: {title: '首次年度订阅立享 25% 折扣！', subtitle: ({days}: {days: number}) => `剩余 ${days} ${days === 1 ? '天' : '天'}`},
+            addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify Card。', cta: '添加地址'},
+            activateCard: {title: '激活您的 Expensify Card', subtitle: '验证您的卡片并开始消费。', cta: '激活'},
         },
     },
 };

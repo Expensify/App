@@ -124,6 +124,17 @@ Basically, a bad problem statement (ie, a reverse solution statement) is written
 ### Posting Ideas
 Additionally, if you want to discuss an idea with the open source community without having a P/S statement yet, you can post it in #expensify-open-source with the prefix `IDEA:`. All ideas to build the future of Expensify are always welcome! i.e.: "`IDEA:` I don't have a P/S for this yet, but just kicking the idea around... what if we [insert crazy idea]?".
 
+## Working on Sentry Issues
+If you have access to Sentry and are investigating an error, please **assign yourself to the Sentry issue** before starting your investigation. This helps prevent duplicate efforts where multiple contributors spend time investigating the same error independently.
+
+When working on Sentry issues:
+1. **Assign yourself** in Sentry when you start investigating an issue
+2. **Link a GitHub issue** - find or create a GitHub issue for the error, then link it in Sentry using their issue tracking integration
+3. **Document your findings** in the linked GitHub issue
+4. **Update the Sentry issue status** when the fix is merged (mark as resolved with the version number if applicable)
+
+This helps future investigators understand the history and current status of errors, potentially saving hours of duplicate work.
+
 ## Working on Expensify Jobs
 *Reminder: For technical guidance, please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 

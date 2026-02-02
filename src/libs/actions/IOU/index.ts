@@ -156,8 +156,10 @@ import {
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
+    isDeprecatedGroupDM,
     isDraftReport,
     isExpenseReport,
+    isGroupChat,
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportReportUtils,
     isInvoiceRoom,
@@ -3135,6 +3137,26 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     let isNewChatReport = false;
     let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
 
+    // If the participant is not a policy expense chat, we need to ensure the chatReport matches the participant.
+    // This can happen when submit frequency is disabled and the user selects a different participant on the confirm page.
+    // We verify that the chatReport participants match the expected participants. If it's a workspace chat or
+    // the participants don't match, we'll find/create the correct 1:1 DM chat report.
+    // We also check if the chatReport itself is a Policy Expense Chat to avoid incorrectly validating Policy Expense Chats.
+    // We also skip validation for self-DM reports since they use accountID 0 for the participant (representing the report itself).
+    // We also skip validation for group chats and deprecated group DMs since they can have more than 2 participants.
+    if (chatReport && !isPolicyExpenseChat && !isPolicyExpenseChatReportUtil(chatReport) && !isSelfDM(chatReport) && !isGroupChat(chatReport) && !isDeprecatedGroupDM(chatReport)) {
+        const parentChatReportParticipants = Object.keys(chatReport.participants ?? {}).map(Number);
+        const expectedParticipants = [payerAccountID, payeeAccountID].sort();
+        const sortedParentChatReportParticipants = parentChatReportParticipants.sort();
+
+        const participantsMatch =
+            expectedParticipants.length === sortedParentChatReportParticipants.length && expectedParticipants.every((id, index) => id === sortedParentChatReportParticipants.at(index));
+
+        if (!participantsMatch) {
+            chatReport = null;
+        }
+    }
+
     // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
     // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
     if (!chatReport && isPolicyExpenseChat) {
@@ -4946,6 +4968,7 @@ function updateMoneyRequestDate({
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
 }
 
@@ -5093,6 +5116,7 @@ function updateMoneyRequestMerchant({
         });
     }
     const {params, onyxData} = data;
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
 }
 
@@ -5195,6 +5219,7 @@ function updateMoneyRequestTag({
         isASAPSubmitBetaEnabled,
         iouReportNextStep: parentReportNextStep,
     });
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
 
@@ -5241,6 +5266,7 @@ function updateMoneyRequestTaxAmount({
         iouReportNextStep: parentReportNextStep,
     });
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
 }
 
 type UpdateMoneyRequestTaxRateParams = {
@@ -5295,6 +5321,7 @@ function updateMoneyRequestTaxRate({
     });
 
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
 }
 
 type UpdateMoneyRequestDistanceParams = {
@@ -5466,6 +5493,7 @@ function updateMoneyRequestCategory({
         hash,
         iouReportNextStep: parentReportNextStep,
     });
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
 
@@ -5520,6 +5548,7 @@ function updateMoneyRequestDescription({
     }
     const {params, onyxData} = data;
     params.description = parsedComment;
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
@@ -5593,6 +5622,7 @@ function updateMoneyRequestDistanceRate({
     // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
     const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
 }
 
 const getConvertTrackedExpenseInformation = (
@@ -6110,13 +6140,13 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     failureData?.push(...(convertTrackedExpenseInformation.failureData ?? []));
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
-    if (!policyEmployeeList?.[accountantEmail]) {
+    if (policyParams.policy && !policyEmployeeList?.[accountantEmail]) {
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, false, false));
         const {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
             failureData: addAccountantToWorkspaceFailureData,
-        } = buildAddMembersToWorkspaceOnyxData({[accountantEmail]: accountantAccountID}, policyID, policyMemberAccountIDs, CONST.POLICY.ROLE.ADMIN, formatPhoneNumber);
+        } = buildAddMembersToWorkspaceOnyxData({[accountantEmail]: accountantAccountID}, policyParams.policy, policyMemberAccountIDs, CONST.POLICY.ROLE.ADMIN, formatPhoneNumber);
         optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         successData?.push(...addAccountantToWorkspaceSuccessData);
         failureData?.push(...addAccountantToWorkspaceFailureData);
@@ -6125,7 +6155,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
             failureData: addAccountantToWorkspaceFailureData,
-        } = buildUpdateWorkspaceMembersRoleOnyxData(policyID, [accountantEmail], [accountantAccountID], CONST.POLICY.ROLE.ADMIN);
+        } = buildUpdateWorkspaceMembersRoleOnyxData(policyParams?.policy, [accountantEmail], [accountantAccountID], CONST.POLICY.ROLE.ADMIN);
         optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         successData?.push(...addAccountantToWorkspaceSuccessData);
         failureData?.push(...addAccountantToWorkspaceFailureData);
@@ -7834,6 +7864,7 @@ function updateMoneyRequestAmountAndCurrency({
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
@@ -12659,7 +12690,7 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
 
 function initSplitExpenseItemData(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
-    {amount, transactionID, reportID, created}: {amount?: number; transactionID?: string; reportID?: string; created?: string} = {},
+    {amount, transactionID, reportID, created, isManuallyEdited}: {amount?: number; transactionID?: string; reportID?: string; created?: string; isManuallyEdited?: boolean} = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
     const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
@@ -12675,6 +12706,7 @@ function initSplitExpenseItemData(
         statusNum: currentReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         reimbursable: transactionDetails?.reimbursable,
+        isManuallyEdited: isManuallyEdited ?? false,
     };
 }
 
@@ -12694,7 +12726,8 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     if (isExpenseSplit) {
         const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
-        const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
+        // Mark existing child transactions as manually edited (locked) since we're editing existing splits
+        const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction, {isManuallyEdited: true}));
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,
             transactionParams: {
@@ -12722,9 +12755,18 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     const transactionDetails = getTransactionDetails(transaction);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
+    // New splits start as unedited (isManuallyEdited: false) so they participate in auto-redistribution
     const splitExpenses = [
-        initSplitExpenseItemData(transaction, {amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false), transactionID: NumberUtils.rand64()}),
-        initSplitExpenseItemData(transaction, {amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true), transactionID: NumberUtils.rand64()}),
+        initSplitExpenseItemData(transaction, {
+            amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
+            transactionID: NumberUtils.rand64(),
+            isManuallyEdited: false,
+        }),
+        initSplitExpenseItemData(transaction, {
+            amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
+            transactionID: NumberUtils.rand64(),
+            isManuallyEdited: false,
+        }),
     ];
 
     const draftTransaction = buildOptimisticTransaction({
@@ -12788,22 +12830,54 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
 
 /**
  * Append a new split expense entry to the draft transaction's splitExpenses array
+ * and auto-redistribute amounts among all unedited splits.
  */
 function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
     if (!transaction || !draftTransaction) {
         return;
     }
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
+    const newTransactionID = NumberUtils.rand64();
+    const newSplit = initSplitExpenseItemData(transaction, {
+        amount: 0,
+        transactionID: newTransactionID,
+        reportID: draftTransaction?.reportID,
+        isManuallyEdited: false,
+    });
+
+    const existingSplits = draftTransaction.comment?.splitExpenses ?? [];
+    const updatedSplitExpenses = [...existingSplits, newSplit];
+
+    // Get total amount and currency for redistribution
+    const total = getAmount(draftTransaction, undefined, undefined, true, true);
+    const currency = getCurrency(draftTransaction);
+    const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
+
+    // Calculate sum of manually edited splits
+    const editedSum = updatedSplitExpenses.filter((split) => split.isManuallyEdited).reduce((sum, split) => sum + split.amount, 0);
+
+    // Find all unedited splits (including the new one)
+    const uneditedSplits = updatedSplitExpenses.filter((split) => !split.isManuallyEdited);
+    const uneditedCount = uneditedSplits.length;
+
+    // Redistribute remaining amount among unedited splits
+    const remaining = total - editedSum;
+    const lastUneditedIndex = uneditedCount - 1;
+    let uneditedIndex = 0;
+
+    const redistributedSplitExpenses = updatedSplitExpenses.map((split) => {
+        if (split.isManuallyEdited) {
+            return split;
+        }
+        const isLast = uneditedIndex === lastUneditedIndex;
+        const newAmount = calculateIOUAmount(lastUneditedIndex, remaining, currency, isLast, true);
+        uneditedIndex += 1;
+        return {...split, amount: newAmount};
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
         comment: {
-            splitExpenses: [
-                ...(draftTransaction.comment?.splitExpenses ?? []),
-                initSplitExpenseItemData(transaction, {
-                    amount: 0,
-                    transactionID: NumberUtils.rand64(),
-                    reportID: draftTransaction?.reportID,
-                }),
-            ],
+            splitExpenses: redistributedSplitExpenses,
             splitsStartDate: null,
             splitsEndDate: null,
         },
@@ -12842,6 +12916,8 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => ({
         ...splitExpense,
         amount: calculateIOUAmount(splitCount - 1, total, currency, index === lastIndex, true),
+        // Reset isManuallyEdited since user explicitly requested even distribution
+        isManuallyEdited: false,
     }));
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -12956,19 +13032,57 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
         return;
     }
 
-    const updatedSplitExpenses = draftTransaction.comment?.splitExpenses?.map((splitExpense) => {
+    const splitExpenses = draftTransaction.comment?.splitExpenses ?? [];
+    const originalTransactionID = draftTransaction.comment?.originalTransactionID;
+    const total = getAmount(draftTransaction, undefined, undefined, true, true);
+    const currency = getCurrency(draftTransaction);
+
+    // Mark the edited split and update its amount
+    const splitWithUpdatedAmount = splitExpenses.map((splitExpense) => {
         if (splitExpense.transactionID === currentItemTransactionID) {
             return {
                 ...splitExpense,
                 amount,
+                isManuallyEdited: true,
             };
         }
         return splitExpense;
     });
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${draftTransaction?.comment?.originalTransactionID}`, {
+    // Find unedited splits (excluding the one being edited)
+    const uneditedSplits = splitWithUpdatedAmount.filter((split) => !split.isManuallyEdited);
+
+    // If no unedited splits remain, just save the updated amounts without redistribution
+    if (uneditedSplits.length === 0) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
+            comment: {
+                splitExpenses: splitWithUpdatedAmount,
+            },
+        });
+        return;
+    }
+
+    // Sum amounts of manually edited splits (the updated split is already marked as edited)
+    const editedSum = splitWithUpdatedAmount.filter((split) => split.isManuallyEdited).reduce((sum, split) => sum + split.amount, 0);
+
+    // Redistribute remaining amount among unedited splits
+    const remaining = total - editedSum;
+    const lastUneditedIndex = uneditedSplits.length - 1;
+    let uneditedIndex = 0;
+
+    const redistributedSplitExpenses = splitWithUpdatedAmount.map((split) => {
+        if (split.isManuallyEdited) {
+            return split;
+        }
+        const isLast = uneditedIndex === lastUneditedIndex;
+        const newAmount = calculateIOUAmount(lastUneditedIndex, remaining, currency, isLast, true);
+        uneditedIndex += 1;
+        return {...split, amount: newAmount};
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
         comment: {
-            splitExpenses: updatedSplitExpenses,
+            splitExpenses: redistributedSplitExpenses,
         },
     });
 }
