@@ -38,7 +38,6 @@ import {
 } from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import {
-    buildInviteToRoomOnyxData,
     buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticCreatedReportAction,
     buildOptimisticExpenseReport,
@@ -47,7 +46,6 @@ import {
     buildOptimisticMovedTransactionAction,
     buildOptimisticReportPreview,
     buildOptimisticSelfDMReport,
-    buildOptimisticTransaction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
@@ -64,6 +62,7 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
+    buildOptimisticTransaction,
     getAmount,
     getClearedPendingFields,
     getCurrency,
@@ -83,7 +82,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
 import {buildPolicyData} from '@userActions/Policy/Policy';
-import {notifyNewAction} from '@userActions/Report';
+import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
 import {sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftTransactions} from '@userActions/TransactionEdit';
 import type {IOUAction} from '@src/CONST';
@@ -98,7 +97,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {BasePolicyParams, CreateTrackExpenseParams, GpsPoint, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '.';
+import type {BasePolicyParams, GpsPoint, ReplaceReceipt, RequestMoneyInformation, RequestMoneyParticipantParams, StartSplitBilActionParams} from '.';
 import {
     buildMinimalTransactionForFormula,
     deleteMoneyRequest,
@@ -213,6 +212,26 @@ type TrackExpenseAccountantParams = {
     accountant?: Accountant;
 };
 
+type CreateTrackExpenseParams = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    isDraftPolicy: boolean;
+    action?: IOUAction;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: BasePolicyParams;
+    transactionParams: TrackExpenseTransactionParams;
+    accountantParams?: TrackExpenseAccountantParams;
+    isRetry?: boolean;
+    shouldPlaySound?: boolean;
+    shouldHandleNavigation?: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID: string | undefined;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+};
+
 type GetTrackExpenseInformationTransactionParams = {
     comment: string;
     amount: number;
@@ -269,6 +288,7 @@ type DeleteTrackExpenseParams = {
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
+    currentUserAccountID: number;
 };
 
 type BuildOnyxDataForTrackExpenseParams = {

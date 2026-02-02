@@ -8,14 +8,14 @@ import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import type {LHNOptionsListProps} from '@components/LHNOptionsList/types';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {getFakeReport} from '../../utils/LHNTestUtils';
 
 // Mock the context menu
-jest.mock('@pages/home/report/ContextMenu/ReportActionContextMenu', () => ({
+jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
     showContextMenu: jest.fn(),
 }));
 
@@ -210,11 +210,17 @@ describe('LHNOptionsList', () => {
                 await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [submittedAction.reportActionID]: submittedAction,
-                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
                     pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+                });
+
+                await Onyx.merge(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+                    [reportID]: {
+                        [submittedAction.reportActionID]: true,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [submittedAction.reportActionID]: submittedAction,
                 });
             });
 
@@ -261,11 +267,17 @@ describe('LHNOptionsList', () => {
                 await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [commentAction.reportActionID]: commentAction,
-                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
                     pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+                });
+
+                await Onyx.merge(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+                    [reportID]: {
+                        [commentAction.reportActionID]: true,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [commentAction.reportActionID]: commentAction,
                 });
             });
 
