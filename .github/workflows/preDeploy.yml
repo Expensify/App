@@ -58,7 +58,12 @@ jobs:
 
       - name: Check if merged pull request should trigger a deploy
         id: shouldDeploy
-        run: echo "SHOULD_DEPLOY=${{ (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && github.actor != 'OSBotify') }}" >> "$GITHUB_OUTPUT"
+        run: |
+          if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
+            echo "SHOULD_DEPLOY=${{ (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && github.actor != 'OSBotify') }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "SHOULD_DEPLOY=false" >> "$GITHUB_OUTPUT"
+          fi
 
   skipDeploy:
     runs-on: ubuntu-latest
