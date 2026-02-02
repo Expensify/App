@@ -153,7 +153,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                             style={styles.textHeadlineH1}
                             accessibilityRole="header"
                         >
-                            {translate('onboarding.purpose.title')}{' '}
+                            {translate('onboarding.purpose.title')}
                         </Text>
                     </View>
                     <MenuItemList
