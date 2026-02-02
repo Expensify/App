@@ -550,7 +550,7 @@ function getFeedNameForDisplay(
 
     const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
 
-    return getCustomOrFormattedFeedName(feed, customName, shouldAddCardsSuffix);
+    return getCustomOrFormattedFeedName(translate, feed, customName, shouldAddCardsSuffix);
 }
 
 function getPlaidInstitutionIconUrl(feedName?: string) {
