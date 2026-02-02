@@ -137,6 +137,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                reports: {},
             }),
         );
     });
@@ -152,10 +153,11 @@ describe('OptionsListUtils', () => {
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
+            {},
             ValidOptionsConfig,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, {});
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -168,10 +170,11 @@ describe('OptionsListUtils', () => {
             loginList,
             MOCK_CURRENT_USER_ACCOUNT_ID,
             MOCK_CURRENT_USER_EMAIL,
+            {},
             ValidOptionsConfig,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID);
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, {});
         });
     });
 
@@ -187,6 +190,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
+                {},
                 {
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
@@ -215,6 +219,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 MOCK_CURRENT_USER_EMAIL,
+                {},
                 mockedBetas,
                 {},
                 false,

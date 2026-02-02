@@ -66,6 +66,7 @@ function ShareTab({ref}: ShareTabProps) {
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
 
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
@@ -85,6 +86,7 @@ function ShareTab({ref}: ShareTabProps) {
             visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
+            reports,
         });
     }, [
         areOptionsInitialized,
@@ -97,6 +99,7 @@ function ShareTab({ref}: ShareTabProps) {
         loginList,
         visibleReportActionsData,
         currentUserAccountID,
+        reports,
         currentUserEmail,
     ]);
 

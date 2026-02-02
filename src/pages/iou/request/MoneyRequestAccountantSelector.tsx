@@ -67,6 +67,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -92,6 +93,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            reports,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -122,6 +124,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
+        reports,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -134,12 +137,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, reports, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, reports]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -163,6 +166,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             true,
             undefined,
             reportAttributesDerived,
+            reports,
         );
         newSections.push(formatResults.section);
 
@@ -191,7 +195,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reports, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
@@ -221,6 +225,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         countryCode,
         currentUserAccountID,
         currentUserEmail,
+        reports,
     ]);
 
     const selectAccountant = useCallback(

@@ -124,6 +124,7 @@ function MoneyRequestParticipantsSelector({
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -296,6 +297,7 @@ function MoneyRequestParticipantsSelector({
             true,
             undefined,
             reportAttributesDerived,
+            reports,
         );
 
         newSections.push(formatResults.section);
@@ -345,7 +347,7 @@ function MoneyRequestParticipantsSelector({
                 data: [availableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reports, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,

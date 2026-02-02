@@ -100,6 +100,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
+            reports,
         });
     }, [
         areOptionsInitialized,
@@ -112,14 +113,15 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         visibleReportActionsData,
         currentUserAccountID,
         currentUserEmail,
+        reports,
     ]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, reports, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, currentUserAccountID, currentUserEmail]);
+    }, [defaultOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, currentUserAccountID, currentUserEmail, reports]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -137,6 +139,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             false,
             undefined,
             reportAttributesDerived,
+            reports,
         );
 
         newSections.push(formattedResults.section);

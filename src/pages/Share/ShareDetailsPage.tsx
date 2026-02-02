@@ -55,6 +55,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const personalDetail = useCurrentUserPersonalDetails();
     const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
@@ -68,8 +69,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const ancestors = useAncestors(report);
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, personalDetail.accountID, personalDetails, privateIsArchived, reportAttributesDerived),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, personalDetail.accountID],
+        () => getReportDisplayOption(report, unknownUserDetails, personalDetail.accountID, personalDetails, privateIsArchived, reports, reportAttributesDerived),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, personalDetail.accountID, reports],
     );
 
     const shouldShowAttachment = !isTextShared;

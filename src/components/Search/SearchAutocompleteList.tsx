@@ -226,6 +226,7 @@ function SearchAutocompleteList({
             visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
+            reports,
         });
     }, [
         areOptionsInitialized,
@@ -239,6 +240,7 @@ function SearchAutocompleteList({
         visibleReportActionsData,
         currentUserAccountID,
         currentUserEmail,
+        reports,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -453,6 +455,7 @@ function SearchAutocompleteList({
                     visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
+                    reports,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
@@ -487,6 +490,7 @@ function SearchAutocompleteList({
                     visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
+                    reports,
                 }).recentReports.filter((chat) => {
                     if (!chat.text) {
                         return false;

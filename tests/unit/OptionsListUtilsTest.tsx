@@ -660,6 +660,7 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
 
             // Then all personal details (including those that have reports) should be returned
@@ -687,6 +688,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
 
             // Then the current user should be included in personalDetails
@@ -716,6 +718,7 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
 
             // Then the current user should not be included in personalDetails
@@ -1808,9 +1811,10 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
             // When we pass the returned options to filterAndOrderOptions with an empty search value
-            const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
             // Then all options should be returned
             expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(14);
@@ -1828,9 +1832,10 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS, {
                 sortByReportTypeInSearch: true,
             });
 
@@ -1857,9 +1862,10 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1879,9 +1885,10 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1903,9 +1910,10 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS, {
                 sortByReportTypeInSearch: true,
             });
 
@@ -1927,9 +1935,10 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1948,9 +1957,10 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1971,9 +1981,10 @@ describe('OptionsListUtils', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
             // Then only two reports should be returned
             expect(filterOptions.recentReports.length).toBe(2);
@@ -1992,9 +2003,10 @@ describe('OptionsListUtils', () => {
                 loginList,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
             });
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
             // Then only three reports should be returned
             expect(filteredOptions.recentReports.length).toBe(3);
