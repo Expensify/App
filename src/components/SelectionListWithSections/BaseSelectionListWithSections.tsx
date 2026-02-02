@@ -604,7 +604,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
             // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]} accessibilityRole="header">
+                <Text
+                    style={[styles.ph5, styles.textLabelSupporting]}
+                    accessibilityRole="header"
+                >
                     {section.title}
                 </Text>
             </View>
@@ -629,6 +632,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                                 onPress={selectAllRow}
                                 accessibilityLabel={translate('workspace.people.selectAll')}
+                                sentryLabel="SelectionList-SelectAll"
                                 role="button"
                                 accessibilityState={{checked: flattenedSections.allSelected}}
                                 disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
