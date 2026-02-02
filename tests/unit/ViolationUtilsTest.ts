@@ -362,6 +362,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should add category specific violations', () => {
+            policy.areRulesEnabled = true;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([categoryOverLimitViolation, categoryReceiptRequiredViolation, categoryMissingCommentViolation, ...transactionViolations]));
         });
