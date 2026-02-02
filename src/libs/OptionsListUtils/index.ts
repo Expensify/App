@@ -89,11 +89,11 @@ import {
     isRenamedAction,
     isReportActionVisible,
     isReportPreviewAction,
-    isWhisperAction,
-    shouldReportActionBeVisible,
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
+    isWhisperAction,
+    shouldReportActionBeVisible,
     withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
@@ -289,8 +289,7 @@ function invalidateCacheForReport(reportID: string) {
         lastVisibleReportActions[reportID] = reportActionForDisplay;
 
         const lastActorAccountID = report?.lastActorAccountID;
-        let lastActorDetails: Partial<PersonalDetails> | null =
-            lastActorAccountID && allPersonalDetails?.[lastActorAccountID] ? allPersonalDetails[lastActorAccountID] : null;
+        let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID && allPersonalDetails?.[lastActorAccountID] ? allPersonalDetails[lastActorAccountID] : null;
 
         if (!lastActorDetails && reportActionForDisplay) {
             const lastActorDisplayName = reportActionForDisplay.person?.[0]?.text;

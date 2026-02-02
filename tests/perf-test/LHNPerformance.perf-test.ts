@@ -1,12 +1,12 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getLastMessageTextForReport} from '@libs/OptionsListUtils';
+import {getOriginalMessage, getSortedReportActions, getSortedReportActionsForDisplay, isInviteOrRemovedAction, shouldReportActionBeVisibleAsLastAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
-import {getSortedReportActions, getSortedReportActionsForDisplay, shouldReportActionBeVisibleAsLastAction, getOriginalMessage, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {PersonalDetails, Report, ReportActions, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -44,7 +44,7 @@ const createReportsWithActions = (count: number) => {
 
         const isArchived = i % 10 === 0;
         const reportTypeMod = i % 4;
-        let reportType = CONST.REPORT.TYPE.CHAT;
+        let reportType: Report['type'] = CONST.REPORT.TYPE.CHAT;
         if (reportTypeMod === 0) {
             reportType = CONST.REPORT.TYPE.IOU;
         } else if (reportTypeMod === 1) {
@@ -256,16 +256,15 @@ describe('LHN Performance Baseline', () => {
                     const actionsArray = getSortedReportActions(Object.values(itemReportActions));
 
                     const reportActionsForDisplay = actionsArray.filter(
-                        (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteActionForLastAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        (reportAction) =>
+                            shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteActionForLastAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
                     );
                     const lastAction = reportActionsForDisplay.at(-1);
 
                     let lastActionReport: OnyxEntry<Report> | undefined;
                     if (lastAction && isInviteOrRemovedAction(lastAction)) {
                         const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
-                        lastActionReport = lastActionOriginalMessage?.reportID
-                            ? reports[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage.reportID}`]
-                            : undefined;
+                        lastActionReport = lastActionOriginalMessage?.reportID ? reports[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage.reportID}`] : undefined;
                     }
 
                     expect([lastMessageTextFromReport, lastAction, lastActionReport]).toBeDefined();
@@ -354,29 +353,25 @@ describe('LHN Performance Baseline', () => {
         });
     });
 
-    test(
-        '[LHN Performance] Scaling test - 2000 reports',
-        async () => {
-            const dataSet = createReportsWithActions(2000);
-            await Onyx.multiSet({
-                ...dataSet.reports,
-                ...dataSet.reportActions,
-                ...dataSet.reportNameValuePairs,
-            } as Parameters<typeof Onyx.multiSet>[0]);
-            await waitForBatchedUpdates();
+    test('[LHN Performance] Scaling test - 2000 reports', async () => {
+        const dataSet = createReportsWithActions(2000);
+        await Onyx.multiSet({
+            ...dataSet.reports,
+            ...dataSet.reportActions,
+            ...dataSet.reportNameValuePairs,
+        } as Parameters<typeof Onyx.multiSet>[0]);
+        await waitForBatchedUpdates();
 
-            await measureFunction(() => {
-                for (const reportKey of Object.keys(dataSet.reports)) {
-                    const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
-                    const actions = dataSet.reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-                    if (actions) {
-                        getSortedReportActionsForDisplay(actions, true);
-                    }
+        await measureFunction(() => {
+            for (const reportKey of Object.keys(dataSet.reports)) {
+                const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                const actions = dataSet.reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+                if (actions) {
+                    getSortedReportActionsForDisplay(actions, true);
                 }
-            });
-        },
-        600000,
-    );
+            }
+        });
+    }, 600000);
 
     test('[LHN Performance] Cache usage verification - allSortedReportActions cache', async () => {
         await waitForBatchedUpdates();

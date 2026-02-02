@@ -27,7 +27,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getCachedLastMessageText, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import {
     getLastVisibleAction,
     getOneTransactionThreadReportID,
@@ -36,6 +35,7 @@ import {
     isInviteOrRemovedAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -217,9 +217,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemReportNameValuePairs = reportNameValuePairsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const chatReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${item.chatReportID}`];
             const itemReportActions = reportActionsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemOneTransactionThreadReport = reportsRef.current?.[
-                `${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(item, chatReport, itemReportActions, isOfflineRef.current)}`
-            ];
+            const itemOneTransactionThreadReport =
+                reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(item, chatReport, itemReportActions, isOfflineRef.current)}`];
             const itemParentReportActions = reportActionsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`];
             const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
             const itemReportAttributes = reportAttributes?.[reportID];
@@ -266,8 +265,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
             const shouldAlwaysRecalculateMessage = isReportArchived || isReportPreviewAction(lastAction);
-            const baseMessage = shouldAlwaysRecalculateMessage ? undefined :
-                item.lastMessageText;
+            const baseMessage = shouldAlwaysRecalculateMessage ? undefined : item.lastMessageText;
             const lastMessageTextFromReport =
                 baseMessage ??
                 getCachedLastMessageText(reportID, () =>
@@ -308,7 +306,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     personalDetails={personalDetailsRef.current ?? {}}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
-                    lastMessageTextFromReport={lastMessageTextFromReport}
+                    lastMessageTextFromReport={lastMessageTextFromReport ?? ''}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     hasDraftComment={hasDraftComment}

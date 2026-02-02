@@ -1,4 +1,4 @@
- import Onyx from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import {getSortedReportActions} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
