@@ -2768,7 +2768,7 @@ type TestDriveDemoNavigatorParamList = {
 };
 
 type SharedScreensParamList = {
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
+    [SCREENS.HOME]: undefined;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
         email?: string;
         accountID?: number;
