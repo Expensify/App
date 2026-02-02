@@ -48,13 +48,11 @@
             </div>
         </div>
 
-        <!-- Sidebar Search sections -->
-        {% include sidebar-search.html id="sidebar-layer" %}
         {% include search-result-item.html %}
 
         <!-- LHN content (Main navigation tree or Article TOC) -->
         <div id="lhn-content">
-            {% if page.url == "/" or page.url contains "/hubs/" %}
+            {% if page.url == "/" or page.url contains "/search" or page.url contains "/hubs/" %}
                 {% include lhn-template.html %}
             {% else %}
                 <div id="back-button" class="icon-with-link">
