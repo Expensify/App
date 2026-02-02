@@ -870,7 +870,7 @@ function getLastMessageTextForReport({
         return lastVisibleMessage?.lastMessageText ?? '';
     }
 
-    return lastMessageTextFromReport ?? report?.lastMessageText ?? '';
+    return lastMessageTextFromReport || report?.lastMessageText || '';
 }
 
 /**
