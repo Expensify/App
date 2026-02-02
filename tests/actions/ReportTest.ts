@@ -112,6 +112,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isActiveRoute: jest.fn(() => false),
     getTopmostReportId: jest.fn(() => undefined),
     goBack: jest.fn(),
+    popToSidebar: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(() => ({routes: []})),
         isReady: jest.fn(() => true),
