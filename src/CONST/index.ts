@@ -8199,6 +8199,14 @@ const CONST = {
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
         },
+        ACCOUNT: {
+            PROFILE: 'Account-Profile',
+            WALLET: 'Account-Wallet',
+            RULES: 'Account-Rules',
+            PREFERENCES: 'Account-Preferences',
+            SECURITY: 'Account-Security',
+            SUBSCRIPTION: 'Account-Subscription',
+        },
     },
 
     DOMAIN: {
