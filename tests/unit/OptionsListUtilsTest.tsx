@@ -3320,6 +3320,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                chatReport: undefined,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
@@ -3345,6 +3346,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    chatReport: undefined,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
@@ -3371,6 +3373,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    chatReport: undefined,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
@@ -3397,6 +3400,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    chatReport: undefined,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
@@ -3420,6 +3424,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    chatReport: undefined,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
@@ -3441,6 +3446,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                chatReport: undefined,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
@@ -3461,6 +3467,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                chatReport: undefined,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
@@ -3481,6 +3488,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                chatReport: undefined,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
@@ -3505,6 +3513,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                chatReport: undefined,
             });
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
@@ -3532,6 +3541,7 @@ describe('OptionsListUtils', () => {
                 isReportArchived: false,
                 visibleReportActionsDataParam: {},
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                chatReport: undefined,
             });
             expect(result).toBe(expectedVisibleText);
         });
@@ -3584,6 +3594,7 @@ describe('OptionsListUtils', () => {
                     reportMetadata,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    chatReport: undefined,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
@@ -3617,6 +3628,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    chatReport: undefined,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
             });
@@ -3647,6 +3659,7 @@ describe('OptionsListUtils', () => {
                     isReportArchived: false,
                     visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    chatReport: undefined,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
