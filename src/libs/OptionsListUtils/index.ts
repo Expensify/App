@@ -656,38 +656,44 @@ function getLastMessageTextForReport({
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
-        const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
-        const iouReportID = iouReport?.reportID;
-        const reportCache = iouReportID ? visibleReportActionsDataParam?.[iouReportID] : undefined;
-        const visibleReportActionsForIOUReport = reportCache && Object.keys(reportCache).length > 0 ? visibleReportActionsDataParam : undefined;
-        const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] : undefined;
-        const lastIOUMoneyReportAction =
-            iouReportID && iouReportActions
-                ? iouReportActions.find(
-                      (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                          isReportActionVisible(reportAction, iouReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsForIOUReport) &&
-                          reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                          isMoneyRequestAction(reportAction),
-                  )
-                : undefined;
-
-        if (reportUtilsIsPolicyExpenseChat(report) && iouReport?.reportID) {
-            const reportName = computeReportName(iouReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);
-            lastMessageTextFromReport = formatReportLastMessageText(reportName);
-        } else if (!lastIOUMoneyReportAction && iouReport?.reportID) {
-            const reportName = computeReportName(iouReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);
-            lastMessageTextFromReport = formatReportLastMessageText(reportName);
+        // If the report preview action is being deleted, don't show the stale message
+        // Instead, show an empty string which will trigger proper recalculation or show default message
+        if (lastReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            lastMessageTextFromReport = '';
         } else {
-            const reportPreviewMessage = getReportPreviewMessage(
-                iouReport?.reportID ? iouReport : null,
-                lastIOUMoneyReportAction ?? lastReportAction,
-                true,
-                reportUtilsIsChatReport(report),
-                null,
-                true,
-                lastReportAction,
-            );
-            lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
+            const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
+            const iouReportID = iouReport?.reportID;
+            const reportCache = iouReportID ? visibleReportActionsDataParam?.[iouReportID] : undefined;
+            const visibleReportActionsForIOUReport = reportCache && Object.keys(reportCache).length > 0 ? visibleReportActionsDataParam : undefined;
+            const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] : undefined;
+            const lastIOUMoneyReportAction =
+                iouReportID && iouReportActions
+                    ? iouReportActions.find(
+                          (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                              isReportActionVisible(reportAction, iouReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsForIOUReport) &&
+                              reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                              isMoneyRequestAction(reportAction),
+                      )
+                    : undefined;
+
+            if (reportUtilsIsPolicyExpenseChat(report) && iouReport?.reportID) {
+                const reportName = computeReportName(iouReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);
+                lastMessageTextFromReport = formatReportLastMessageText(reportName);
+            } else if (!lastIOUMoneyReportAction && iouReport?.reportID) {
+                const reportName = computeReportName(iouReport, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID);
+                lastMessageTextFromReport = formatReportLastMessageText(reportName);
+            } else {
+                const reportPreviewMessage = getReportPreviewMessage(
+                    iouReport?.reportID ? iouReport : null,
+                    lastIOUMoneyReportAction ?? lastReportAction,
+                    true,
+                    reportUtilsIsChatReport(report),
+                    null,
+                    true,
+                    lastReportAction,
+                );
+                lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
+            }
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
@@ -863,7 +869,7 @@ function getLastMessageTextForReport({
         return lastVisibleMessage?.lastMessageText ?? '';
     }
 
-    return lastMessageTextFromReport || (report?.lastMessageText ?? '');
+    return lastMessageTextFromReport ?? report?.lastMessageText ?? '';
 }
 
 /**

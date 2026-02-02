@@ -236,7 +236,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
-            const shouldAlwaysRecalculateMessage = isReportArchived || isReportPreviewAction(lastAction);
+            const isCreatedWithStaleCache = lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!item.lastMessageText;
+            const shouldAlwaysRecalculateMessage = isReportArchived || isReportPreviewAction(lastAction) || isCreatedWithStaleCache;
             const lastMessageTextFromReport =
                 (shouldAlwaysRecalculateMessage ? undefined : item.lastMessageText) ??
                 getLastMessageTextForReport({
@@ -352,6 +353,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isOffline,
             isScreenFocused,
             isReportsSplitNavigatorLast,
+            visibleReportActionsData,
         ],
         [
             reportActions,
@@ -369,6 +371,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isOffline,
             isScreenFocused,
             isReportsSplitNavigatorLast,
+            visibleReportActionsData,
         ],
     );
 

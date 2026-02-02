@@ -1338,6 +1338,12 @@ function getLastVisibleMessage(
         };
     }
 
+    if (isReportPreviewAction(lastVisibleAction)) {
+        return {
+            lastMessageText: '',
+        };
+    }
+
     let messageText = getReportActionMessageText(lastVisibleAction) ?? '';
     if (messageText) {
         messageText = formatLastMessageText(messageText);

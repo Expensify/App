@@ -5146,7 +5146,13 @@ function getReportPreviewMessage(
         // 2. The iouReport exists in local storage but hasn't been loaded into the allReports. It will be loaded automatically when the user opens the iouReport.
         // Until we know how to solve this the best, we just display the report action message.
         // If the report is empty, we display the report name to avoid showing "payer owes 0"
-        return !!originalReportAction?.childReportName && originalReportAction?.childMoneyRequestCount === 0 ? originalReportAction?.childReportName : reportActionMessage;
+        if (
+            originalReportAction?.childMoneyRequestCount === 0 &&
+            (originalReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        ) {
+            return originalReportAction?.childReportName ?? '';
+        }
+        return reportActionMessage;
     }
 
     const allReportTransactions = getReportTransactions(report.reportID);

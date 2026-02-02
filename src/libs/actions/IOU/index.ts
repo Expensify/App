@@ -8432,6 +8432,16 @@ function deleteMoneyRequest({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {[reportPreviewAction.reportActionID]: updatedReportPreviewAction},
         });
+
+        if (shouldDeleteIOUReport && chatReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+                value: {
+                    lastMessageText: '',
+                },
+            });
+        }
     }
 
     if (chatReport && updatedIOUReport && !shouldDeleteIOUReport && updatedReportPreviewAction?.childMoneyRequestCount === 0) {
