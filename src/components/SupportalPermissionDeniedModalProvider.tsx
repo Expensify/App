@@ -1,12 +1,14 @@
-import React, {useCallback, useMemo} from 'react';
+import type React from 'react';
+import {useCallback, useEffect, useMemo} from 'react';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearSupportalPermissionDenied} from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ConfirmModal from './ConfirmModal';
 
 function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChildren) {
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [payload] = useOnyx(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, {canBeMissing: true});
     const isVisible = !!payload;
 
@@ -18,20 +20,23 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
         clearSupportalPermissionDenied();
     }, []);
 
-    return (
-        <>
-            {children}
-            <ConfirmModal
-                isVisible={isVisible}
-                onConfirm={close}
-                onCancel={close}
-                title={title}
-                prompt={prompt}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
-        </>
-    );
+    useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        showConfirmModal({
+            title,
+            prompt,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        }).then(() => {
+            close();
+        });
+    }, [isVisible, title, prompt, close, showConfirmModal, translate]);
+
+    return children;
 }
+
+SupportalPermissionDeniedModalProvider.displayName = 'SupportalPermissionDeniedModalProvider';
 
 export default SupportalPermissionDeniedModalProvider;
