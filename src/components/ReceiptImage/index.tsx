@@ -1,5 +1,5 @@
 import React, {useRef, useState} from 'react';
-import type {ImageResizeMode, StyleProp, ViewStyle} from 'react-native';
+import type {ImageResizeMode, ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import type {IconSize} from '@components/EReceiptThumbnail';
@@ -127,6 +127,9 @@ type ReceiptImageProps = (
 
     /** Whether the receipt is a map distance request */
     isMapDistanceRequest?: boolean;
+
+    /** Any additional styles to apply */
+    style?: StyleProp<ViewStyle & ImageStyle>;
 };
 
 function ReceiptImage({
@@ -156,6 +159,7 @@ function ReceiptImage({
     onLoadFailure,
     resizeMode,
     isMapDistanceRequest,
+    style,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
     const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
@@ -197,7 +201,7 @@ function ReceiptImage({
     if (isThumbnail || (isEReceipt && isPerDiemRequest)) {
         const props = isThumbnail && {fileExtension, isReceiptThumbnail: true};
         return (
-            <View style={[styles.w100, styles.h100]}>
+            <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
                     transactionID={transactionID}
                     iconSize={iconSize}
@@ -212,7 +216,7 @@ function ReceiptImage({
         return (
             <ThumbnailImage
                 previewSourceURL={source ?? ''}
-                style={[styles.w100, styles.h100, thumbnailContainerStyles]}
+                style={[styles.w100, styles.h100, style, thumbnailContainerStyles]}
                 isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
                 loadingIconSize={loadingIconSize}
@@ -224,6 +228,7 @@ function ReceiptImage({
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
                 onLoad={onLoad}
                 onLoadFailure={onLoadFailure}
+                resizeMode={resizeMode}
             />
         );
     }
@@ -237,7 +242,7 @@ function ReceiptImage({
                 lastUpdateWidthTimestampRef.current = e.timeStamp;
             }}
             source={typeof source === 'string' ? {uri: source} : source}
-            style={isMapDistanceRequest && styles.flex1}
+            style={[style, isMapDistanceRequest && styles.flex1, styles.overflowHidden]}
             isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}

@@ -67,6 +67,7 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
 import getReceiptContainerPaddingStyle from './MoneyRequestConfirmationListFooter/receiptContainerPaddingStyle';
+import getReceiptImageRestrictedStyle from './MoneyRequestConfirmationListFooter/getReceiptImageRestrictedStyle';
 import Text from './Text';
 
 type MoneyRequestConfirmationListFooterProps = {
@@ -994,6 +995,7 @@ function MoneyRequestConfirmationListFooter({
         return badges;
     }, [firstDay, lastDay, translate, tripDays, icons]);
 
+    const {windowWidth} = useWindowDimensions();
     const shouldRestrictHeight = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
     const [receiptAspectRatio, setReceiptAspectRatio] = useState<number | null>(null);
 
@@ -1012,23 +1014,14 @@ function MoneyRequestConfirmationListFooter({
     let receiptResizeMode: ImageResizeMode | undefined;
     const horizontalMargin = typeof styles.moneyRequestImage.marginHorizontal === 'number' ? styles.moneyRequestImage.marginHorizontal : 0;
     if (shouldRestrictHeight) {
-        receiptHeightStyle = {
-            aspectRatio: 16 / 9,
-            maxWidth: variables.receiptPreviewMaxWidth,
-            flexShrink: 1,
-            alignSelf: 'center',
-            width: '100%',
-            marginHorizontal: 0,
-        };
-
-        if (receiptAspectRatio && receiptAspectRatio > 16 / 9) {
-            receiptResizeMode = 'contain';
-        }
+        const availableWidth = windowWidth - horizontalMargin * 2;
+        receiptHeightStyle = getReceiptImageRestrictedStyle(variables.receiptPreviewMaxWidth, availableWidth, receiptAspectRatio);
+        receiptResizeMode = 'cover';
     }
 
     const receiptThumbnailContent = useMemo(() => {
         return (
-            <View style={[styles.moneyRequestImage, receiptSizeStyle, receiptHeightStyle]}>
+            <View style={[styles.moneyRequestImage, shouldRestrictHeight ? receiptHeightStyle : receiptSizeStyle]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
                         onPress={() => {
@@ -1046,12 +1039,12 @@ function MoneyRequestConfirmationListFooter({
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabled={!shouldDisplayReceipt}
                         disabledStyle={styles.cursorDefault}
-                        style={styles.h100}
+                        style={shouldRestrictHeight ? receiptHeightStyle : styles.h100}
                     >
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
-                            style={styles.h100}
+                            style={shouldRestrictHeight ? receiptHeightStyle : styles.h100}
                             onLoadError={onPDFLoadError}
                             onPassword={onPDFPassword}
                         />
@@ -1073,7 +1066,7 @@ function MoneyRequestConfirmationListFooter({
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabledStyle={styles.cursorDefault}
-                        style={[styles.h100, styles.flex1]}
+                        style={shouldRestrictHeight ? [receiptHeightStyle, styles.flex1] : [styles.h100, styles.flex1]}
                     >
                         <ReceiptImage
                             isThumbnail={isThumbnail}
@@ -1088,6 +1081,7 @@ function MoneyRequestConfirmationListFooter({
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             onLoad={handleReceiptLoad}
                             resizeMode={receiptResizeMode}
+                            style={shouldRestrictHeight ? receiptHeightStyle : receiptSizeStyle}
                         />
                     </PressableWithoutFocus>
                 )}
@@ -1198,7 +1192,7 @@ function MoneyRequestConfirmationListFooter({
             )}
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
                 <View
-                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, shouldRestrictHeight ? {flexShrink: 1} : undefined, styles.overflowHidden, getReceiptContainerPaddingStyle(shouldRestrictHeight, styles.pt10), shouldRestrictHeight && styles.mh5]}
+                    style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, shouldRestrictHeight && {flexShrink: 1}, getReceiptContainerPaddingStyle(shouldRestrictHeight, styles.pt10), shouldRestrictHeight && styles.mh5]}
                 >
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
@@ -1211,7 +1205,7 @@ function MoneyRequestConfirmationListFooter({
 
                                       Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                                   }}
-                                  style={[styles.expenseViewImageSmall, !shouldRestrictHeight && styles.receiptPreviewAspectRatio]}
+                                  style={shouldRestrictHeight ? receiptHeightStyle : [styles.expenseViewImageSmall, styles.receiptPreviewAspectRatio]}
                               />
                           )}
                 </View>
