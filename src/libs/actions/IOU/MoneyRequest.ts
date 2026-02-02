@@ -25,6 +25,7 @@ import type {GpsPoint} from './index';
 import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
+    getRecentWaypoints,
     requestMoney,
     resetSplitShares,
     setCustomUnitRateID,
@@ -57,6 +58,7 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
+    isSelfTourViewed: boolean;
 };
 
 type InitialTransactionParams = {
@@ -98,6 +100,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
+    isSelfTourViewed: boolean;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -155,7 +158,10 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
+    isSelfTourViewed,
 }: CreateTransactionParams) {
+    const recentWaypoints = getRecentWaypoints();
+
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -187,6 +193,7 @@ function createTransaction({
                 introSelected,
                 activePolicyID,
                 quickAction,
+                recentWaypoints,
             });
         } else {
             requestMoney({
@@ -217,6 +224,7 @@ function createTransaction({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                isSelfTourViewed,
             });
         }
     }
@@ -233,7 +241,9 @@ function getMoneyRequestParticipantOptions(
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, privateIsArchived, policy, personalDetails, reportAttributesDerived);
+        return participantAccountID
+            ? getParticipantsOption(participant, personalDetails)
+            : getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, reportAttributesDerived);
     });
 }
 
@@ -266,6 +276,7 @@ function handleMoneyRequestStepScanParticipants({
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
+    isSelfTourViewed,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -273,7 +284,7 @@ function handleMoneyRequestStepScanParticipants({
     }
 
     if (isTestTransaction) {
-        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID) ?? {};
         let reportIDParam = managerMcTestParticipant.reportID;
         if (!managerMcTestParticipant.reportID && report?.reportID) {
             reportIDParam = generateReportID();
@@ -364,6 +375,7 @@ function handleMoneyRequestStepScanParticipants({
                             policyParams,
                             billable: false,
                             reimbursable: defaultReimbursable,
+                            isSelfTourViewed,
                         });
                     },
                     (errorData) => {
@@ -386,6 +398,7 @@ function handleMoneyRequestStepScanParticipants({
                             files,
                             participant,
                             reimbursable: defaultReimbursable,
+                            isSelfTourViewed,
                         });
                     },
                 );
@@ -408,6 +421,7 @@ function handleMoneyRequestStepScanParticipants({
                 files,
                 participant,
                 reimbursable: defaultReimbursable,
+                isSelfTourViewed,
             });
             return;
         }
@@ -496,6 +510,7 @@ function handleMoneyRequestStepDistanceNavigation({
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
+    const recentWaypoints = getRecentWaypoints();
 
     if (transaction?.splitShares && !isManualDistance) {
         resetSplitShares(transaction);
@@ -566,6 +581,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
+                    recentWaypoints,
                 });
                 return;
             }
@@ -597,6 +613,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                recentWaypoints,
             });
             return;
         }
