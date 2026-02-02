@@ -4,7 +4,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSubmitReport} from '@userActions/IOU';
+import {canApproveIOU, canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -12,7 +12,7 @@ import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportMetadata, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -484,7 +484,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '')).toBe(true);
+        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
     });
 
     test('Return true if report can be submitted after being reopened', async () => {
@@ -548,7 +548,7 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '')).toBe(true);
+        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
     });
 
     test('Return false if report can not be submitted', async () => {
@@ -567,7 +567,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false, '')).toBe(false);
+        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -592,7 +592,7 @@ describe('canSubmitReport', () => {
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current, '')).toBe(false);
+        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
     });
 });
 
@@ -611,7 +611,7 @@ describe('Check valid amount for IOU/Expense request', () => {
     });
 
     test('Expense amount should be negative', () => {
-        const expenseReport = ReportUtils.buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', allBetas: [CONST.BETAS.ALL]});
+        const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
         const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {
                 amount: 100,
@@ -684,5 +684,108 @@ describe('navigateToConfirmationPage', () => {
         IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.TRACK, transactionID, reportID, undefined, false);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, reportID, undefined));
+    });
+});
+
+describe('canApproveIOU', () => {
+    const REPORT_ID = '1';
+    const CURRENT_USER_EMAIL = 'test@email.com';
+
+    beforeEach(async () => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: CURRENT_USER_EMAIL});
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+    });
+
+    it('should return true for DEW policy report without pending approval', async () => {
+        // Given a submitted expense report on a DEW policy without any pending approval action
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = {
+            type: CONST.POLICY.TYPE.TEAM,
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+
+        const reportMetadata: ReportMetadata = {};
+
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            transactionID: '123',
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        } as unknown as Transaction;
+
+        // When checking if approve action is available
+        // Then it should return true because DEW approval is not in progress
+        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(true);
+    });
+
+    it('should return false for DEW policy report with pending approval', async () => {
+        // Given a submitted expense report on a DEW policy with a pending approval action
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            managerID: currentUserAccountID,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = {
+            type: CONST.POLICY.TYPE.TEAM,
+            approver: CURRENT_USER_EMAIL,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+        } as unknown as Policy;
+
+        const reportMetadata: ReportMetadata = {
+            pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+        };
+
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            transactionID: '123',
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+        } as unknown as Transaction;
+
+        // When checking if approve action is available while DEW approval is pending
+        // Then it should return false because DEW is already processing an approval
+        expect(canApproveIOU(report, policy, reportMetadata, [transaction])).toBe(false);
+    });
+
+    it('should return false for non-expense report', async () => {
+        // Given a non-expense report
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            ownerAccountID: currentUserAccountID,
+        } as unknown as Report;
+
+        const policy = {
+            type: CONST.POLICY.TYPE.TEAM,
+            approver: CURRENT_USER_EMAIL,
+        } as unknown as Policy;
+
+        const reportMetadata: ReportMetadata = {};
+
+        // Then canApproveIOU should return false
+        expect(canApproveIOU(report, policy, reportMetadata)).toBe(false);
     });
 });
