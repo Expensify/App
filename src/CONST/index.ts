@@ -8076,6 +8076,7 @@ const CONST = {
         },
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
+            USER_SELECTION_CHECKBOX: 'Search-UserSelectionCheckbox',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
