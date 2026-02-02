@@ -124,7 +124,7 @@ type UserSecurityGroupData = {
      * The security group data.
      */
     securityGroup: Partial<DomainSecurityGroup>;
-};
+} | undefined;
 
 export {type SamlMetadata, type DomainSecurityGroup, type UserSecurityGroupData, type SecurityGroupKey};
 

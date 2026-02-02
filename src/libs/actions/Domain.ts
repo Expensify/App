@@ -1,24 +1,17 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type { OnyxUpdate } from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {
-    AddAdminToDomainParams,
-    AddMemberToDomainParams,
-    DeleteDomainMemberParams,
-    DeleteDomainParams,
-    RemoveDomainAdminParams,
-    SetTechnicalContactEmailParams,
-    ToggleConsolidatedDomainBillingParams,
-} from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {generateAccountID} from '@libs/UserUtils';
+import type { AddAdminToDomainParams, AddMemberToDomainParams, DeleteDomainMemberParams, DeleteDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams } from '@libs/API/parameters';
+import { READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
+import { getMicroSecondOnyxErrorWithTranslationKey } from '@libs/ErrorUtils';
+import { generateAccountID } from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, DomainSecurityGroup, SecurityGroupsData} from '@src/types/onyx';
+import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
-import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
-import {ScimTokenState} from './ScimToken/ScimTokenUtils';
+import type { ScimTokenWithState } from './ScimToken/ScimTokenUtils';
+import { ScimTokenState } from './ScimToken/ScimTokenUtils';
+
 
 /**
  * Fetches a validation code that the user is supposed to put in the domain's DNS records to verify it
