@@ -43,6 +43,7 @@ function WorkspaceConfirmationPage() {
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             shouldCreateControlPolicy: isSubscriptionTypeOfInvoicing(privateSubscription?.type),
+            type: params.planType,
         });
     };
     const currentUrl = getCurrentUrl();

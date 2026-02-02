@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
-import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -33,11 +33,13 @@ import Switch from './Switch';
 import Text from './Text';
 import TextInput from './TextInput';
 
+type PolicyType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
+
 type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
     currency: string;
-    planType: string;
-    owner: string;
+    planType?: PolicyType;
+    owner?: string;
     makeMeAdmin: boolean;
     avatarFile: File | CustomRNImageManipulatorResult | undefined;
     policyID: string;
@@ -196,8 +198,8 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         onSubmit({
                             name: val[INPUT_IDS.NAME],
                             currency: val[INPUT_IDS.CURRENCY],
-                            planType: isApprovedAccountant ? val[INPUT_IDS.PLAN_TYPE] : defaultPlanType,
-                            owner: isApprovedAccountant ? val[INPUT_IDS.OWNER] : defaultOwner,
+                            planType: isApprovedAccountant ? (val[INPUT_IDS.PLAN_TYPE] as PolicyType) : undefined,
+                            owner: isApprovedAccountant ? val[INPUT_IDS.OWNER] : '',
                             makeMeAdmin: isApprovedAccountant && isOwnerDifferentFromCurrentUser ? makeMeAdmin : false,
                             avatarFile,
                             policyID,
