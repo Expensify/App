@@ -5,7 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 type ReportCounts = {
@@ -33,10 +33,10 @@ export default function useReportCounts(): ReportCounts {
     const {login = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const reportCounts = useMemo(() => {
-        const reportsToSubmit: Report[] = [];
-        const reportsToApprove: Report[] = [];
-        const reportsToPay: Report[] = [];
-        const reportsToExport: Report[] = [];
+        let submitCount = 0;
+        let approveCount = 0;
+        let payCount = 0;
+        let exportCount = 0;
         const transactionsByReportID: Record<string, Transaction[]> = {};
 
         const reports = allReports ? Object.values(allReports) : [];
@@ -59,7 +59,7 @@ export default function useReportCounts(): ReportCounts {
             }
         }
 
-        // Categorize reports into to-do categories
+        // Count reports by to-do category
         for (const report of reports) {
             if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
                 continue;
@@ -71,24 +71,24 @@ export default function useReportCounts(): ReportCounts {
             const reportTransactions = transactionsByReportID[report.reportID] ?? [];
 
             if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID)) {
-                reportsToSubmit.push(report);
+                submitCount++;
             }
             if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
-                reportsToApprove.push(report);
+                approveCount++;
             }
             if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
-                reportsToPay.push(report);
+                payCount++;
             }
             if (isExportAction(report, login, policy, reportActions)) {
-                reportsToExport.push(report);
+                exportCount++;
             }
         }
 
         return {
-            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: reportsToSubmit.length,
-            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: reportsToApprove.length,
-            [CONST.SEARCH.SEARCH_KEYS.PAY]: reportsToPay.length,
-            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: reportsToExport.length,
+            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: submitCount,
+            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: approveCount,
+            [CONST.SEARCH.SEARCH_KEYS.PAY]: payCount,
+            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: exportCount,
         };
     }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportMetadata, allReportActions, currentUserAccountID, login, bankAccountList]);
 

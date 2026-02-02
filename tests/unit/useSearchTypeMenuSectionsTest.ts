@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
@@ -20,14 +21,16 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () => jest.fn(() => ({openCreateReportConfirmation: jest.fn(), CreateReportConfirmationModal: null})));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false)})));
-jest.mock('@hooks/useReportCounts', () =>
-    jest.fn(() => ({
-        submit: 0,
-        approve: 0,
-        pay: 0,
-        export: 0,
-    })),
-);
+jest.mock('@hooks/useReportCounts', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const CONST_MOCK = require('@src/CONST').default;
+    return jest.fn(() => ({
+        [CONST_MOCK.SEARCH.SEARCH_KEYS.SUBMIT]: 0,
+        [CONST_MOCK.SEARCH.SEARCH_KEYS.APPROVE]: 0,
+        [CONST_MOCK.SEARCH.SEARCH_KEYS.PAY]: 0,
+        [CONST_MOCK.SEARCH.SEARCH_KEYS.EXPORT]: 0,
+    }));
+});
 
 const onyxData: Record<string, unknown> = {};
 
@@ -81,8 +84,8 @@ describe('useSearchTypeMenuSections', () => {
         const {result} = renderHook(() => useSearchTypeMenuSections());
 
         expect(result.current.shouldShowSuggestedSearchSkeleton).toBe(true);
-        expect(result.current.getTypeMenuSections).toBeDefined();
-        expect(typeof result.current.getTypeMenuSections).toBe('function');
+        expect(result.current.typeMenuSections).toBeDefined();
+        expect(Array.isArray(result.current.typeMenuSections)).toBe(true);
     });
 
     it('shows suggested search skeleton when policies are missing exporter', () => {

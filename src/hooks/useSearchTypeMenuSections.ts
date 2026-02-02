@@ -42,16 +42,6 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     accountID: session?.accountID,
 });
 
-/**
- * Selector to determine if suggested search data is ready to display
- * Returns true if at least one policy has both employeeList and exporter defined
- */
-const isSuggestedSearchDataReadySelector = (policies: OnyxCollection<Policy>): boolean => {
-    const policiesList = Object.values(policies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
-
-    return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
-};
-
 const useSearchTypeMenuSections = () => {
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: defaultExpensifyCardSelector});
 
@@ -63,8 +53,11 @@ const useSearchTypeMenuSections = () => {
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
-    const [isSuggestedSearchDataReady] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isSuggestedSearchDataReadySelector, canBeMissing: true});
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
+    const isSuggestedSearchDataReady = useMemo(() => {
+        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
+        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
+    }, [allPolicies]);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -128,10 +121,8 @@ const useSearchTypeMenuSections = () => {
         ],
     );
 
-    const getTypeMenuSections = useCallback(() => typeMenuSections, [typeMenuSections]);
-
     return {
-        getTypeMenuSections,
+        typeMenuSections,
         CreateReportConfirmationModal,
         shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
     };

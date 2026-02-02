@@ -42,6 +42,7 @@ describe('useReportCounts', () => {
         onyxData[ONYXKEYS.COLLECTION.REPORT] = {};
         onyxData[ONYXKEYS.COLLECTION.POLICY] = {};
         onyxData[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] = {};
+        onyxData[ONYXKEYS.COLLECTION.REPORT_METADATA] = {};
         onyxData[ONYXKEYS.COLLECTION.TRANSACTION] = {};
         onyxData[ONYXKEYS.COLLECTION.REPORT_ACTIONS] = {};
         onyxData[ONYXKEYS.BANK_ACCOUNT_LIST] = {};
