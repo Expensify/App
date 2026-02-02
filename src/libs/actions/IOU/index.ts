@@ -5621,6 +5621,7 @@ const getConvertTrackedExpenseInformation = (
     transactionID: string | undefined,
     actionableWhisperReportActionID: string | undefined,
     moneyRequestReportID: string | undefined,
+    moneyRequestPreviewReportActionID: string | undefined,
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string | undefined,
@@ -5656,26 +5657,48 @@ const getConvertTrackedExpenseInformation = (
     successData?.push(...deleteSuccessData);
     failureData?.push(...deleteFailureData);
 
+    const resolvedTransactionThreadReportID = transactionThreadReportID ?? linkedTrackedExpenseReportAction.childReportID;
+    const transactionThreadReport = resolvedTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${resolvedTransactionThreadReportID}`] ?? null : null;
+
+    if (resolvedTransactionThreadReportID && moneyRequestReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${resolvedTransactionThreadReportID}`,
+            value: {
+                parentReportID: moneyRequestReportID,
+                ...(moneyRequestPreviewReportActionID ? {parentReportActionID: moneyRequestPreviewReportActionID} : {}),
+            },
+        });
+
+        if (transactionThreadReport) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${resolvedTransactionThreadReportID}`,
+                value: transactionThreadReport,
+            });
+        }
+    }
+
     // Build modified expense report action with the transaction changes
-    const modifiedExpenseReportAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, linkedTrackedExpenseReportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
+    const modifiedExpenseReportAction = buildOptimisticMovedTransactionAction(resolvedTransactionThreadReportID, linkedTrackedExpenseReportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
 
     optimisticData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${resolvedTransactionThreadReportID}`,
         value: {
             [modifiedExpenseReportAction.reportActionID]: modifiedExpenseReportAction,
         },
     });
     successData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${resolvedTransactionThreadReportID}`,
         value: {
             [modifiedExpenseReportAction.reportActionID]: {pendingAction: null},
         },
     });
     failureData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${resolvedTransactionThreadReportID}`,
         value: {
             [modifiedExpenseReportAction.reportActionID]: {
                 ...modifiedExpenseReportAction,
