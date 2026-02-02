@@ -115,7 +115,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         return <FullScreenLoadingIndicator />;
     }
 
-    console.log(mergedTransactionData);
     return (
         <ScreenWrapper
             testID="ConfirmationPage"
