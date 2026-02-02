@@ -1,8 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
-import SelectableListItem from '@components/SelectionListWithSections/SelectableListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import getMatchScore from '@libs/getMatchScore';
@@ -15,7 +14,6 @@ function CurrencySelectionList({
     onSelect,
     didScreenTransitionEnd = true,
     selectedCurrencies = [],
-    canSelectMultiple = false,
     recentlyUsedCurrencies,
     excludedCurrencies = [],
     ...restProps
@@ -102,17 +100,16 @@ function CurrencySelectionList({
     };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
             sections={sections}
-            ListItem={canSelectMultiple ? SelectableListItem : RadioListItem}
+            ListItem={RadioListItem}
             onSelectRow={onSelect}
             textInputOptions={textInputOptions}
             shouldShowTextInput={!!searchInputLabel}
             shouldSingleExecuteRowSelect
             initiallyFocusedItemKey={initiallySelectedCurrencyCode}
-            canSelectMultiple={canSelectMultiple}
             showLoadingPlaceholder={!didScreenTransitionEnd}
         />
     );
