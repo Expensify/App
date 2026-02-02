@@ -32,7 +32,6 @@ import {
     getReportAction,
     getReportActionHtml,
     getReportActionText,
-    getTrackExpenseActionableWhisper,
     isActionableTrackExpense,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
@@ -45,7 +44,6 @@ import {
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedTransactionAction,
     buildOptimisticReportPreview,
-    buildOptimisticSelfDMReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
@@ -57,7 +55,6 @@ import {
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isSelfDM,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
-    shouldEnableNegative,
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
