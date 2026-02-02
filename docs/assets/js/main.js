@@ -253,17 +253,6 @@ handleBreakpointChange();
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopyright();
 
-    // Handle open & close the sidebar
-    const buttonOpenSidebar = document.getElementById('toggle-search-open');
-    if (buttonOpenSidebar) {
-        buttonOpenSidebar.addEventListener('click', openSidebar);
-    }
-
-    const buttonCloseSidebar = document.getElementById('toggle-search-close');
-    if (buttonCloseSidebar) {
-        buttonCloseSidebar.addEventListener('click', closeSidebar);
-    }
-
     if (window.tocbot) {
         window.tocbot.init({
             ...tocbotOptions,
@@ -271,7 +260,8 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    initSearch();
+    initSearchPage();
+
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
