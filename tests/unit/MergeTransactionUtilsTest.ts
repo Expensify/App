@@ -142,8 +142,8 @@ describe('MergeTransactionUtils', () => {
             // When we get the amount field value
             const result = getMergeFieldValue(transaction, 'amount');
 
-            // Then it should return the amount as positive because it's an unreported expense
-            expect(result).toBe(1000);
+            // Then it should return the amount as negative
+            expect(result).toBe(-1000);
         });
 
         it('should return empty string when merchant is missing', () => {
@@ -976,7 +976,7 @@ describe('MergeTransactionUtils', () => {
             const transaction = {
                 ...createRandomDistanceRequestTransaction(0),
                 currency: CONST.CURRENCY.USD,
-                amount: 2500,
+                amount: -2500,
                 receipt: {receiptID: 123, source: 'receipt.jpg'},
                 comment: {
                     customUnit: {
