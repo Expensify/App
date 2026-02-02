@@ -92,7 +92,6 @@ function cloneTemplate(templateId) {
 }
 
 
-// Search page
 
 function searchPageQuery(query) {
     const resultsContainer = document.getElementById('search-page-results');
