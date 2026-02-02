@@ -696,6 +696,7 @@ function IOURequestStepScan({
                                     accessibilityLabel={translate('receipt.flash')}
                                     disabled={!isTorchAvailable}
                                     onPress={toggleFlashlight}
+                                    sentryLabel={translate('receipt.flash')}
                                 >
                                     <Icon
                                         height={16}
@@ -729,6 +730,7 @@ function IOURequestStepScan({
                                     onPicked: (data) => validateFiles(data),
                                 });
                             }}
+                            sentryLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                         >
                             <Icon
                                 height={32}
@@ -744,6 +746,7 @@ function IOURequestStepScan({
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
+                    sentryLabel={translate('receipt.shutter')}
                 >
                     <Icon
                         src={lazyIllustrations.Shutter}
@@ -758,6 +761,7 @@ function IOURequestStepScan({
                         accessibilityLabel={translate('receipt.multiScan')}
                         style={styles.alignItemsEnd}
                         onPress={toggleMultiScan}
+                        sentryLabel={translate('receipt.multiScan')}
                     >
                         <Icon
                             height={32}
@@ -773,6 +777,7 @@ function IOURequestStepScan({
                         style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                         onPress={toggleFlashlight}
                         disabled={!isTorchAvailable}
+                        sentryLabel={translate('receipt.flash')}
                     >
                         <Icon
                             height={32}
