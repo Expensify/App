@@ -65,18 +65,28 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
+
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
             const reportObj = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
             const reportPolicyTags = reportObj?.policyID ? policyTags?.[reportObj.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
             const report = getSelectedOptionData(
-                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportPolicyTags, currentUserAccountID, reportAttributesDerived),
+                createOptionFromReport(
+                    {...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id},
+                    personalDetails,
+                    reportPolicyTags,
+                    currentUserAccountID,
+                    reportAttributesDerived,
+                    undefined,
+                    visibleReportActionsData,
+                ),
             );
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, reportPolicyTags, isReportArchived, currentUserAccountID, {});
+            const alternateText = getAlternateText(report, {}, reportPolicyTags, isReportArchived, currentUserAccountID, {}, visibleReportActionsData);
             return {...report, alternateText};
         });
-    }, [selectedReportIDs, reports, policyTags, personalDetails, currentUserAccountID, reportAttributesDerived, archivedReportsIdSet]);
+    }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs, currentUserAccountID, visibleReportActionsData, policyTags]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
@@ -90,11 +100,24 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             isUsedInChatFinder: false,
             countryCode,
             loginList,
+            visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
             policyTags,
         });
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, currentUserAccountID, currentUserEmail, policyTags]);
+    }, [
+        areOptionsInitialized,
+        isScreenTransitionEnd,
+        options,
+        draftComments,
+        nvpDismissedProductTraining,
+        countryCode,
+        loginList,
+        visibleReportActionsData,
+        currentUserAccountID,
+        currentUserEmail,
+        policyTags,
+    ]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {

@@ -197,6 +197,7 @@ function SearchAutocompleteList({
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -224,6 +225,7 @@ function SearchAutocompleteList({
             policyTags,
             shouldUnreadBeBold: true,
             loginList,
+            visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
         });
@@ -237,6 +239,7 @@ function SearchAutocompleteList({
         countryCode,
         policyTags,
         loginList,
+        visibleReportActionsData,
         currentUserAccountID,
         currentUserEmail,
     ]);
@@ -451,6 +454,7 @@ function SearchAutocompleteList({
                     loginList,
                     shouldShowGBR: true,
                     policyTags,
+                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
@@ -485,6 +489,7 @@ function SearchAutocompleteList({
                     loginList,
                     shouldShowGBR: true,
                     policyTags,
+                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 }).recentReports.filter((chat) => {
@@ -674,6 +679,7 @@ function SearchAutocompleteList({
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
+        visibleReportActionsData,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
