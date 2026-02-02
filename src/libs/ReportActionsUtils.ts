@@ -3032,8 +3032,8 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     if (customUnitRateName && updatedField === 'taxClaimablePercentage' && typeof newValue === 'number' && customUnitRateName) {
         return translate('workspaceActions.updatedCustomUnitTaxClaimablePercentage', {
             customUnitRateName,
-            newValue: parseFloat(parseFloat(newValue?.toString() ?? '0').toFixed(2)),
-            oldValue: typeof oldValue === 'number' ? parseFloat(parseFloat(oldValue?.toString() ?? '0').toFixed(2)) : undefined,
+            newValue: parseFloat(newValue.toFixed(2)),
+            oldValue: typeof oldValue === 'number' ? parseFloat(oldValue.toFixed(2)) : undefined,
         });
     }
 
