@@ -1,9 +1,10 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
@@ -357,6 +358,26 @@ function navigateToConfirmationPage(
     }
 }
 
+function calculateDefaultReimbursable({
+    iouType,
+    policy,
+    policyForMovingExpenses,
+    participant,
+    transactionReportID,
+}: {
+    iouType: ValueOf<typeof CONST.IOU.TYPE>;
+    policy?: OnyxEntry<Policy>;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
+    participant?: Participant;
+    transactionReportID?: string;
+}): boolean {
+    const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
+    const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
+    return (isPolicyExpenseChat && isPaidGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -372,4 +393,5 @@ export {
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
     navigateToConfirmationPage,
+    calculateDefaultReimbursable,
 };

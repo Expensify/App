@@ -1,11 +1,10 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -342,11 +341,13 @@ function handleMoneyRequestStepScanParticipants({
             if (!participant) {
                 return;
             }
-            const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-            const isUnreported = initialTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
-            const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
-            const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
+            const defaultReimbursable = calculateDefaultReimbursable({
+                iouType,
+                policy,
+                policyForMovingExpenses,
+                participant,
+                transactionReportID: initialTransaction?.reportID,
+            });
             if (locationPermissionGranted) {
                 getCurrentPosition(
                     (successData) => {
@@ -543,11 +544,15 @@ function handleMoneyRequestStepDistanceNavigation({
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
             setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
             const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-            const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const participant = participants.at(0);
             const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
-            const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
-            const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
+            const defaultReimbursable = calculateDefaultReimbursable({
+                iouType,
+                policy,
+                policyForMovingExpenses,
+                participant,
+                transactionReportID: transaction?.reportID,
+            });
 
             if (isCreatingTrackExpense && participant) {
                 trackExpense({
