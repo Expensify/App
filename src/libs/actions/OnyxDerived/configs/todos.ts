@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
-const createTodos = ({
+const createTodosReportsAndTransactions = ({
     allReports,
     allTransactions,
     allPolicies,
@@ -42,11 +42,7 @@ const createTodos = ({
             if (!transaction?.reportID) {
                 continue;
             }
-
-            if (!transactionsByReportID[transaction.reportID]) {
-                transactionsByReportID[transaction.reportID] = [];
-            }
-            transactionsByReportID[transaction.reportID].push(transaction);
+            (transactionsByReportID[transaction.reportID] ??= []).push(transaction);
         }
     }
 
@@ -93,7 +89,7 @@ export default createOnyxDerivedValueConfig({
         const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const login = session?.email ?? '';
 
-        const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID} = createTodos({
+        const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID} = createTodosReportsAndTransactions({
             allReports,
             allTransactions,
             allPolicies,
