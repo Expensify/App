@@ -1,4 +1,4 @@
-import {filterPersonalCards} from '@selectors/Card';
+import {filterOutPersonalCards} from '@selectors/Card';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useCurrencyList from '@hooks/useCurrencyList';
@@ -45,7 +45,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     const {getCurrencySymbol} = useCurrencyList();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark']);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
