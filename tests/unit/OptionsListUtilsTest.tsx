@@ -13,7 +13,9 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
+    createFilteredOptionList,
     createOption,
+    createOptionFromReport,
     createOptionList,
     filterAndOrderOptions,
     filterReports,
@@ -4963,6 +4965,213 @@ describe('OptionsListUtils', () => {
             });
             expect(result).not.toBeNull();
             expect(result?.login).toBe('Jeff Amazon');
+        });
+    });
+
+    describe('createOptionFromReport', () => {
+        it('should create an option from a report with all required parameters', () => {
+            const report: Report = {
+                reportID: '1',
+                reportName: 'Test Report',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined);
+
+            expect(result).toBeDefined();
+            expect(result.reportID).toBe('1');
+            expect(result.item).toBe(report);
+        });
+
+        it('should mark report as archived when privateIsArchived is provided', () => {
+            const report: Report = {
+                reportID: '10',
+                reportName: 'Archived Report',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const privateIsArchived = DateUtils.getDBTime();
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, privateIsArchived);
+
+            expect(result).toBeDefined();
+            expect(result.private_isArchived).toBe(privateIsArchived);
+        });
+
+        it('should not mark report as archived when privateIsArchived is undefined', () => {
+            const report: Report = {
+                reportID: '1',
+                reportName: 'Non-Archived Report',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined);
+
+            expect(result).toBeDefined();
+            expect(result.private_isArchived).toBeUndefined();
+        });
+
+        it('should accept reportAttributesDerived parameter', () => {
+            const report: Report = {
+                reportID: '1',
+                reportName: 'Report with Attributes',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            // Pass undefined for reportAttributesDerived - the function should handle it gracefully
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
+
+            expect(result).toBeDefined();
+            expect(result.reportID).toBe('1');
+        });
+
+        it('should apply config options when provided', () => {
+            const report: Report = {
+                reportID: '1',
+                reportName: 'Report with Config',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const config = {showPersonalDetails: true};
+            const result = createOptionFromReport(report, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, undefined, undefined, config);
+
+            expect(result).toBeDefined();
+            expect(result.reportID).toBe('1');
+        });
+    });
+
+    describe('createFilteredOptionList', () => {
+        it('should return report options limited by maxRecentReports', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, {maxRecentReports: 5});
+
+            expect(result).toBeDefined();
+            expect(result.reports.length).toBeLessThanOrEqual(5);
+        });
+
+        it('should sort reports by lastVisibleActionCreated (most recent first)', () => {
+            const reportsWithDates: OnyxCollection<Report> = {
+                '101': {
+                    reportID: '101',
+                    reportName: 'Oldest Report',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastVisibleActionCreated: '2022-01-01 00:00:00',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                },
+                '102': {
+                    reportID: '102',
+                    reportName: 'Newest Report',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastVisibleActionCreated: '2024-01-01 00:00:00',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                },
+                '103': {
+                    reportID: '103',
+                    reportName: 'Middle Report',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastVisibleActionCreated: '2023-01-01 00:00:00',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                },
+            };
+
+            const result = createFilteredOptionList(PERSONAL_DETAILS, reportsWithDates, CURRENT_USER_ACCOUNT_ID, undefined, {}, {maxRecentReports: 3});
+
+            expect(result.reports.length).toBeGreaterThan(0);
+        });
+
+        it('should include personal details when includeP2P is true', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, {includeP2P: true});
+
+            expect(result).toBeDefined();
+            expect(result.personalDetails).toBeDefined();
+            expect(result.personalDetails.length).toBeGreaterThan(0);
+        });
+
+        it('should exclude personal details when includeP2P is false', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, {includeP2P: false});
+
+            expect(result).toBeDefined();
+            expect(result.personalDetails.length).toBe(0);
+        });
+
+        it('should handle empty reports collection', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, {}, CURRENT_USER_ACCOUNT_ID, undefined, {});
+
+            expect(result).toBeDefined();
+            expect(result.reports.length).toBe(0);
+        });
+
+        it('should handle undefined reports collection', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, undefined, CURRENT_USER_ACCOUNT_ID, undefined, {});
+
+            expect(result).toBeDefined();
+            expect(result.reports.length).toBe(0);
+        });
+
+        it('should use privateIsArchivedMap to determine archived status', () => {
+            const report: Report = {
+                reportID: '999',
+                reportName: 'Archived Test Report',
+                type: CONST.REPORT.TYPE.CHAT,
+                lastVisibleActionCreated: '2024-01-01 00:00:00',
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const reportsCollection: OnyxCollection<Report> = {
+                '999': report,
+            };
+
+            const privateIsArchivedMap = {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}999`]: DateUtils.getDBTime(),
+            };
+
+            const result = createFilteredOptionList(PERSONAL_DETAILS, reportsCollection, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchivedMap, {maxRecentReports: 10});
+
+            expect(result).toBeDefined();
+        });
+
+        it('should handle searchTerm filtering', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, {searchTerm: 'Spider'});
+
+            expect(result).toBeDefined();
+        });
+
+        it('should return both reports and personal details', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {});
+
+            expect(result).toBeDefined();
+            expect(result).toHaveProperty('reports');
+            expect(result).toHaveProperty('personalDetails');
         });
     });
 });

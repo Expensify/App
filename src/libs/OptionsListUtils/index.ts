@@ -148,6 +148,7 @@ import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {PrivateIsArchivedMap} from '@src/selectors/ReportNameValuePairs';
 import type {
     Beta,
     DismissedProductTraining,
@@ -1379,6 +1380,7 @@ function createFilteredOptionList(
     reports: OnyxCollection<Report>,
     currentUserAccountID: number,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    privateIsArchivedMap: PrivateIsArchivedMap,
     options: {
         maxRecentReports?: number;
         includeP2P?: boolean;
@@ -1463,16 +1465,18 @@ function createFilteredOptionList(
         ? Object.values(personalDetails ?? {}).map((personalDetail) => {
               const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
+              const report = reportMapForAccountIDs[accountID];
+              const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
               return {
                   item: personalDetail,
                   ...createOption(
                       [accountID],
                       personalDetails,
-                      reportMapForAccountIDs[accountID],
+                      report,
                       currentUserAccountID,
                       {showPersonalDetails: true},
                       reportAttributesDerived,
-                      undefined,
+                      privateIsArchived,
                       visibleReportActionsData,
                   ),
               };
@@ -1489,6 +1493,7 @@ function createOptionFromReport(
     report: Report,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number,
+    privateIsArchived: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     config?: PreviewConfig,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1497,7 +1502,7 @@ function createOptionFromReport(
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, currentUserAccountID, config, reportAttributesDerived, undefined, visibleReportActionsData),
+        ...createOption(accountIDs, personalDetails, report, currentUserAccountID, config, reportAttributesDerived, privateIsArchived, visibleReportActionsData),
     };
 }
 
