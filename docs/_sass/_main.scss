@@ -222,6 +222,7 @@ button {
     position: fixed;
     background-color: var(--color-highlightBG);
     box-sizing: border-box;
+    z-index: 1;
     border-right-color: var(--color-borders);
     border-right-width: 1px;
     border-style: solid;
