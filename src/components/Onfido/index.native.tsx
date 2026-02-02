@@ -1,10 +1,11 @@
 import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, OnfidoNFCOptions, Onfido as OnfidoSDK, OnfidoTheme} from '@onfido/react-native-sdk';
 import React, {useEffect} from 'react';
-import {Alert, Linking, NativeModules} from 'react-native';
+import {Alert, NativeModules} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
+import goToSettings from '@libs/goToSettings';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -81,7 +82,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                                             text: translate('common.settings'),
                                             onPress: () => {
                                                 onUserExit();
-                                                Linking.openSettings();
+                                                goToSettings();
                                             },
                                         },
                                     ],

@@ -86,6 +86,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         animationTypeForReplace: 'push',
     },
+    [SCREENS.MISSING_PERSONAL_DETAILS]: {
+        animationTypeForReplace: 'push',
+    },
 
     [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: {
         animationTypeForReplace: 'push',
