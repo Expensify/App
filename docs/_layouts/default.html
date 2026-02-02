@@ -52,6 +52,17 @@
 
         <!-- LHN content (Main navigation tree or Article TOC) -->
         <div id="lhn-content">
+            {% unless page.url == "/" or page.url contains "/search" %}
+                <form class="lhn-search-form" action="/search">
+                    {% if page.url contains "expensify-classic" %}
+                        <input type="hidden" name="platform" value="expensify-classic" />
+                    {% endif %}
+                    <label class="search-input-wrapper lhn-search-input-wrapper" for="lhn-search-input">
+                        <input type="text" id="lhn-search-input" name="q" class="search-input" required autocomplete="off" />
+                        <span class="search-label">Search for something...</span>
+                    </label>
+                </form>
+            {% endunless %}
             {% if page.url contains "/search" %}
                 <div id="back-button" class="icon-with-link">
                     <img src="/assets/images/back-left.svg" class="base-icon"></img>
