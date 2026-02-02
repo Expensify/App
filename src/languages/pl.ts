@@ -769,16 +769,16 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł ani kodów.',
         },
         revoke: {
-            revoke: 'Unieważnij',
             title: 'Rozpoznawanie twarzy/odcisk palca i klucze dostępu',
             explanation:
-                'Weryfikacja za pomocą twarzy/odcisku palca lub klucza dostępu (passkey) jest włączona na jednym lub większej liczbie urządzeń. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod',
-            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do następnej weryfikacji na dowolnym urządzeniu',
+                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub więcej urządzeniach. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na dowolnym urządzeniu wymagany będzie magiczny kod.',
+            confirmationPrompt: 'Czy na pewno? Będziesz potrzebować magicznego kodu do kolejnej weryfikacji na dowolnym urządzeniu.',
             cta: 'Cofnij dostęp',
             noDevices:
                 'Nie masz żadnych urządzeń zarejestrowanych do weryfikacji twarzą, odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp w tym miejscu.',
             dismiss: 'Rozumiem',
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
+            remove: 'Usuń',
         },
     },
     validateCodeModal: {
@@ -1056,6 +1056,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Potwierdź poniższe szczegóły dla ${count} nowych członków przestrzeni roboczej, którzy zostaną dodani w ramach tego przesyłania. Istniejący członkowie nie otrzymają żadnych aktualizacji ról ani wiadomości z zaproszeniem.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `Zaimportowano ${transactions} transakcji.` : 'Zaimportowano 1 transakcję.'),
     },
     receipt: {
         upload: 'Prześlij paragon',
@@ -2313,6 +2314,7 @@ ${amount} dla ${merchant} - ${date}`,
             expensesFromSubtitle: 'Wszyscy członkowie przestrzeni roboczej należą już do istniejącego obiegu zatwierdzania.',
             approverSubtitle: 'Wszyscy zatwierdzający należą do istniejącego przepływu pracy.',
         },
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `wydatki od ${members}, a zatwierdzającym jest ${approvers}`, //_/\__/_/  \_,_/\__/\__/\_,_/
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -4934,6 +4936,15 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: 'Wybierz nową datę początkową transakcji. Zsynchronizujemy wszystkie transakcje od tej daty, z wyłączeniem tych, które już zostały zaimportowane.',
             unassignCardFailedError: 'Nie udało się odłączyć karty.',
+            importTransactions: {
+                title: 'Importuj transakcje z pliku',
+                description: 'Dostosuj ustawienia dla swojego pliku, które zostaną zastosowane podczas importu.',
+                cardDisplayName: 'Wyświetlana nazwa karty',
+                currency: 'Waluta',
+                transactionsAreReimbursable: 'Transakcje podlegają zwrotowi',
+                flipAmountSign: 'Odwróć znak kwoty',
+                importButton: 'Importuj transakcje',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Nie można było wczytać kanałów kart',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się z administratorem.',
@@ -7039,6 +7050,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             allMatchingItemsSelected: 'Wybrano wszystkie pasujące elementy',
         },
         topSpenders: 'Najwięksi wydający',
+        view: {label: 'Zobacz', table: 'Tabela', bar: 'Pasek'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Karty',
@@ -7188,7 +7200,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 addedConnection: ({connectionName}: ConnectionNameParams) => `połączono z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'opuścił czat',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `Połączenie ${feedName} jest przerwane. Aby przywrócić importy kart, <a href='${workspaceCompanyCardRoute}'>zaloguj się do swojego banku</a>`,
+                    `Połączenie ${feedName} jest przerwane. Aby przywrócić importy kart, <a href='${workspaceCompanyCardRoute}'>zaloguj się do swojego banku</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `połączenie Plaid z Twoim firmowym kontem bankowym jest przerwane. <a href='${walletRoute}'>Połącz ponownie swoje konto bankowe ${maskedAccountNumber}</a>, aby nadal korzystać z kart Expensify.`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8240,6 +8252,8 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             cta: 'Roszczenie',
             offer50off: {title: 'Uzyskaj 50% zniżki na pierwszy rok!', subtitle: ({formattedTime}: {formattedTime: string}) => `Pozostało: ${formattedTime}`},
             offer25off: {title: 'Uzyskaj 25% zniżki na pierwszy rok!', subtitle: ({days}: {days: number}) => `Pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}`},
+            addShippingAddress: {title: 'Potrzebujemy Twojego adresu do wysyłki', subtitle: 'Podaj adres, na który mamy wysłać Twoją kartę Expensify.', cta: 'Dodaj adres'},
+            activateCard: {title: 'Aktywuj swoją kartę Expensify', subtitle: 'Zweryfikuj swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
         },
     },
 };
