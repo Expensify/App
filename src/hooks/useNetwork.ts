@@ -21,25 +21,29 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
 
     // Extract values with proper defaults
     const isOffline = network?.isOffline ?? false;
+    const shouldForceOffline = network?.shouldForceOffline ?? false;
+    const shouldFailAllRequests = network?.shouldFailAllRequests ?? false;
     const networkStatus = network?.networkStatus;
     const lastOfflineAt = network?.lastOfflineAt;
 
-    const prevOfflineStatusRef = useRef(isOffline);
+    const isOfflineEffective = isOffline || shouldForceOffline || shouldFailAllRequests;
+
+    const prevOfflineStatusRef = useRef(isOfflineEffective);
     useEffect(() => {
         // If we were offline before and now we are not offline then we just reconnected
-        const didReconnect = prevOfflineStatusRef.current && !isOffline;
+        const didReconnect = prevOfflineStatusRef.current && !isOfflineEffective;
         if (!didReconnect) {
             return;
         }
 
         callback.current();
-    }, [isOffline]);
+    }, [isOfflineEffective]);
 
     useEffect(() => {
         // Used to store previous prop values to compare on next render
-        prevOfflineStatusRef.current = isOffline;
-    }, [isOffline]);
+        prevOfflineStatusRef.current = isOfflineEffective;
+    }, [isOfflineEffective]);
 
     // If the network status is undefined, we don't treat it as offline. Otherwise, we utilize the isOffline prop.
-    return {isOffline: networkStatus === CONST.NETWORK.NETWORK_STATUS.UNKNOWN ? false : isOffline, lastOfflineAt};
+    return {isOffline: networkStatus === CONST.NETWORK.NETWORK_STATUS.UNKNOWN ? false : isOfflineEffective, lastOfflineAt};
 }

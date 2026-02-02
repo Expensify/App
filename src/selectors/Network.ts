@@ -11,6 +11,9 @@ const networkStatusSelector = (networkData: OnyxEntry<Network>) => {
         isOffline: networkData.isOffline,
         networkStatus: networkData.networkStatus,
         lastOfflineAt: networkData.lastOfflineAt,
+        // test tools / overrides
+        shouldForceOffline: networkData.shouldForceOffline,
+        shouldFailAllRequests: networkData.shouldFailAllRequests,
     };
 };
 
