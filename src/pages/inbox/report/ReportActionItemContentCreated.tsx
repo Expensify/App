@@ -178,6 +178,7 @@ function ReportActionItemContentCreated({
                             pendingAction={action?.pendingAction}
                             shouldShowTotal={transaction ? transactionCurrency !== report?.currency : false}
                             shouldHideThreadDividerLine={false}
+                            shouldShowAnimatedBackground={false}
                         />
                         <ShowContextMenuContext.Provider value={contextMenuValue}>
                             <View>
@@ -186,7 +187,7 @@ function ReportActionItemContentCreated({
                                     transactionThreadReport={transactionThreadReport}
                                     parentReportID={transactionThreadReport?.parentReportID}
                                     expensePolicy={policy}
-                                    shouldShowAnimatedBackground={false}
+                                    shouldShowAnimatedBackground={true}
                                 />
                                 {renderThreadDivider}
                             </View>

@@ -62,9 +62,20 @@ type MoneyReportViewProps = {
     shouldHideThreadDividerLine: boolean;
 
     pendingAction?: PendingAction;
+
+    /** Whether we should display the animated banner above the component */
+    shouldShowAnimatedBackground?: boolean;
 };
 
-function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTotal = true, shouldHideThreadDividerLine, pendingAction}: MoneyReportViewProps) {
+function MoneyReportView({
+    report,
+    policy,
+    isCombinedReport = false,
+    shouldShowTotal = true,
+    shouldHideThreadDividerLine,
+    pendingAction,
+    shouldShowAnimatedBackground = true,
+}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -131,7 +142,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     return (
         <>
             <View style={[styles.pRelative]}>
-                <AnimatedEmptyStateBackground />
+                {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
                         {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
