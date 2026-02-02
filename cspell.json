@@ -875,8 +875,6 @@
         "web/snippets/gib.js",
         "tests/unit/hooks/useLetterAvatars.test.tsx"
     ],
-    "ignoreRegExpList": [
-        "@assets/.*"
-    ],
+    "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true
 }
