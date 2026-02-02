@@ -420,7 +420,8 @@ function MoneyRequestConfirmationListFooter({
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
-    const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE; // time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
+    // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
+    const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
 
     const contextMenuContextValue = useMemo(
         () => ({

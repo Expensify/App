@@ -326,7 +326,7 @@ function MoneyRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
-    const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
+    const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -846,8 +846,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                shouldShowRightIcon: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
             }));
             options.push({
                 title: translate('common.to'),
@@ -864,7 +864,7 @@ function MoneyRequestConfirmationList({
         getSplitSectionHeader,
         splitParticipants,
         selectedParticipants,
-        isCreateExpenseFlow,
+        isFromGlobalCreateAndCanEditParticipant,
         isTestReceipt,
         isRestrictedToPreferredPolicy,
         isTypeInvoice,
@@ -945,7 +945,7 @@ function MoneyRequestConfirmationList({
      * Navigate to the participant step
      */
     const navigateToParticipantPage = () => {
-        if (!isCreateExpenseFlow) {
+        if (!isFromGlobalCreateAndCanEditParticipant) {
             return;
         }
 

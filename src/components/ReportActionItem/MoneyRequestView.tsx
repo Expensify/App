@@ -53,7 +53,6 @@ import {
     hasDependentTags as hasDependentTagsPolicyUtils,
     isPolicyAccessible,
     isTaxTrackingEnabled,
-    isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
@@ -110,6 +109,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasEnabledTimeTrackingPolicySelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -153,7 +153,6 @@ const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => 
         }),
     );
 };
-const anyTimeTrackingPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => Object.entries(policies ?? {}).some(([, policy]) => isTimeTrackingEnabled(policy));
 
 function MoneyRequestView({
     allReports,
@@ -215,8 +214,8 @@ function MoneyRequestView({
     });
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
 
-    const [doesAnyPolicyWithTimeTrackingEnabledExist] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: anyTimeTrackingPoliciesSelector,
+    const [hasEnabledTimeTrackingPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: hasEnabledTimeTrackingPolicySelector,
         canBeMissing: true,
     });
 
@@ -368,7 +367,7 @@ function MoneyRequestView({
 
     const shouldRestrictEditingReportDueToFeatureDisabled =
         (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy) && !(isExpenseUnreported && !!perDiemOriginalPolicy)) ||
-        (isTimeRequest && !canSubmitTimeExpenseFromWorkspace(policy) && !(isExpenseUnreported && doesAnyPolicyWithTimeTrackingEnabledExist));
+        (isTimeRequest && !canSubmitTimeExpenseFromWorkspace(policy) && !(isExpenseUnreported && hasEnabledTimeTrackingPolicy));
 
     const canEditReport =
         isEditable &&

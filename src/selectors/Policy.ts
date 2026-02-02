@@ -1,5 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getOwnedPaidPolicies, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getOwnedPaidPolicies, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
@@ -68,6 +68,8 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
         units: policy.units,
     };
 
+const hasEnabledTimeTrackingPolicySelector = (policies: OnyxCollection<Policy>) => Object.entries(policies ?? {}).some(([, policy]) => isTimeTrackingEnabled(policy));
+
 export {
     activePolicySelector,
     createPoliciesSelector,
@@ -76,4 +78,5 @@ export {
     activeAdminPoliciesSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
+    hasEnabledTimeTrackingPolicySelector,
 };

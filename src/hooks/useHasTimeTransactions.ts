@@ -1,19 +1,13 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import {isTimeRequest} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasTimeTransactionsSelector} from '@src/selectors/Transaction';
 import type {Transaction} from '@src/types/onyx';
 import useOnyx from './useOnyx';
-
-const hasTimeTransactionsSelector = (transactions: OnyxCollection<Transaction>, transactionIDs: string[]) =>
-    transactionIDs.some((transactionID) => {
-        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        return transaction && isTimeRequest(transaction);
-    });
 
 function useHasTimeTransactions(transactionIDs: string[]) {
     const selector = (transactions: OnyxCollection<Transaction>) => hasTimeTransactionsSelector(transactions, transactionIDs);
 
-    const [hasTimeTransactions] = useOnyx(
+    const [hasTimeTransactions = false] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector,
@@ -22,7 +16,7 @@ function useHasTimeTransactions(transactionIDs: string[]) {
         [selector],
     );
 
-    return hasTimeTransactions ?? false;
+    return hasTimeTransactions;
 }
 
 export default useHasTimeTransactions;
