@@ -650,6 +650,9 @@ const ONYXKEYS = {
     /** Keeps track of whether the "Confirm Navigate to Expensify Classic" modal is opened */
     IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN: 'IsOpenConfirmNavigateExpensifyClassicModalOpen',
 
+    /** The transaction IDs to be highlighted when opening the Expenses search route page */
+    TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE: 'transactionIdsHighlightOnSearchRoute',
+
     /** Collection Keys */
     COLLECTION: {
         DOMAIN: 'domain_',
@@ -1411,6 +1414,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
+    [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
 };
 
 type OnyxDerivedValuesMapping = {
