@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, DomainSecurityGroup} from '@src/types/onyx';
+import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -202,7 +202,7 @@ describe('actions/Domain', () => {
             } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         );
 
-        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID);
+        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID, 'add');
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -288,7 +288,7 @@ describe('actions/Domain', () => {
             const accountID = 456;
             const targetEmail = 'user@test.com';
 
-            closeUserAccount(domainAccountID, domainName, accountID, targetEmail, null, true);
+            closeUserAccount(domainAccountID, domainName, accountID, targetEmail, undefined, true);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_DOMAIN_MEMBER, {domain: domainName, targetEmail, overrideProcessingReports: true}, expect.any(Object));
 
@@ -311,10 +311,10 @@ describe('actions/Domain', () => {
         });
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const, {
-            members: {[email]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            member: {[email]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
         });
 
-        clearDomainMemberError(domainAccountID, accountID, email);
+        clearDomainMemberError(domainAccountID, accountID, email, '',);
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -329,7 +329,7 @@ describe('actions/Domain', () => {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             waitForCollectionCallback: false,
             callback: (pendingActions) => {
-                expect(pendingActions?.members?.[email]).toBeFalsy();
+                expect(pendingActions?.member?.[email]).toBeFalsy();
             },
         });
     });

@@ -68,7 +68,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 if (!defaultSecurityGroupID) {
                     return;
                 }
-                clearDomainMemberError(domainAccountID, item.accountID, item.login, item.pendingAction, defaultSecurityGroupID);
+                clearDomainMemberError(domainAccountID, item.accountID, item.login, defaultSecurityGroupID, item.pendingAction);
             }}
         />
     );
