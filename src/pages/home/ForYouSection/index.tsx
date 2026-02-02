@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {accountIDSelector} from '@src/selectors/Session';
-import todosReportCountsSelector from '@src/selectors/Todo';
+import todosReportCountsSelector from '@src/selectors/Todos';
 import EmptyState from './EmptyState';
 
 function ForYouSection() {
