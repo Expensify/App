@@ -116,6 +116,8 @@ describe('OnyxDerived', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'es');
 
+            await waitForBatchedUpdates();
+
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             expect(derivedReportAttributes).toMatchObject({
