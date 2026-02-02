@@ -705,6 +705,14 @@ function isValidInputLength(inputValue: string, byteLength: number) {
 }
 
 /**
+ * Checks if a string contains HTML-like tags in the format <...>.
+ * Individual < or > characters are allowed.
+ */
+function containsHTMLTags(value: string): boolean {
+    return /<[^>]+>/g.test(value);
+}
+
+/**
  * Validates the given value as a U.S. Employer Identification Number (EIN).
  * Format: XX-XXXXXXX
  * @param ein - The EIN to validate.
@@ -816,4 +824,5 @@ export {
     isValidRegistrationNumber,
     isValidInputLength,
     isValidTaxIDEINNumber,
+    containsHTMLTags,
 };

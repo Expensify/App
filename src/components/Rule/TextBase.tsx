@@ -21,9 +21,10 @@ type TextBaseProps<TFormID extends OnyxFormKey> = {
     characterLimit?: number;
     formID: TFormID;
     onSubmit: (values: FormOnyxValues<TFormID>) => void;
+    customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 };
 
-function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title, label, onSubmit, formID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: TextBaseProps<TFormID>) {
+function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title, label, onSubmit, formID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES, customValidate}: TextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const [form] = useOnyx(formID, {canBeMissing: true});
     const styles = useThemeStyles();
@@ -32,7 +33,7 @@ function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title
     const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = (values: FormOnyxValues<TFormID>) => {
-        const errors: FormInputErrors<TFormID> = {};
+        let errors: FormInputErrors<TFormID> = {};
         const fieldValue = values[fieldID as keyof FormOnyxValues<TFormID>] ?? '';
 
         if (typeof fieldValue !== 'string') {
@@ -49,6 +50,11 @@ function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title
             if (!isValid) {
                 (errors as Record<string, string>)[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, characterLimit);
             }
+        }
+
+        if (customValidate) {
+            const customErrors = customValidate(values);
+            errors = {...errors, ...customErrors};
         }
 
         return errors;
