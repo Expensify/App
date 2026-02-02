@@ -599,7 +599,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, groupBy, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, status, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options?.sortBy ?? CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -613,6 +613,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (groupBy) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+    }
+
+    // View is only valid when groupBy is set
+    if (view && groupBy) {
+        const sanitizedView = sanitizeSearchValue(view);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW}:${sanitizedView}`);
     }
 
     if (status && typeof status === 'string') {
@@ -1015,6 +1021,11 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.groupBy) {
         filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
+
+        // View is only allowed when groupBy is set
+        if (queryJSON.view) {
+            filtersForm[FILTER_KEYS.VIEW] = queryJSON.view;
+        }
     }
 
     if (queryJSON.columns) {
@@ -1385,7 +1396,7 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     const selectedColumns = [queryJSON.columns ?? []].flat();
     const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
+    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !queryJSON.groupBy && !hasCustomColumns;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
