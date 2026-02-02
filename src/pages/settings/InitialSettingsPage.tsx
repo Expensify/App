@@ -472,6 +472,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             accessibilityLabel={emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : translate('statusPage.status')}
                             accessibilityRole="button"
                             accessible
+                            sentryLabel={CONST.SENTRY_LABEL.ACCOUNT.STATUS_PICKER}
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
                         >
                             <View style={styles.primaryMediumIcon}>
