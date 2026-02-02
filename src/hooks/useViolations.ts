@@ -42,6 +42,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     prohibitedExpense: () => 'receipt',
     receiptNotSmartScanned: () => 'receipt',
     receiptRequired: () => 'receipt',
+    itemizedReceiptRequired: () => 'receipt',
     customRules: (violation) => {
         if (!violation?.data?.field) {
             return 'receipt';

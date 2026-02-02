@@ -5,7 +5,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './actions/Transaction';
+import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -34,6 +34,7 @@ import {
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
+    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -44,6 +45,7 @@ import {
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
+import {filterReceiptViolations} from './Violations/ViolationsUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -79,16 +81,18 @@ const getReviewNavigationRoute = (
     policyCategories: OnyxTypes.PolicyCategories | undefined,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
 ) => {
-    // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
+    // Use set method to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
-    abandonReviewDuplicateTransactions();
     const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transactionReport, transaction?.transactionID, policyCategories);
-    setReviewDuplicatesKey({
-        ...comparisonResult.keep,
-        duplicates: duplicates.map((duplicate) => duplicate?.transactionID).filter(Boolean) as string[],
-        transactionID: transaction?.transactionID,
-        reportID: transaction?.reportID,
-    });
+    setReviewDuplicatesKey(
+        {
+            ...comparisonResult.keep,
+            duplicates: duplicates.map((duplicate) => duplicate?.transactionID).filter(Boolean) as string[],
+            transactionID: transaction?.transactionID,
+            reportID: transaction?.reportID,
+        },
+        true,
+    );
 
     if (comparisonResult.change.merchant) {
         return ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo);
@@ -139,7 +143,10 @@ function getViolationTranslatePath(
     isTransactionOnHold: boolean,
     shouldShowOnlyViolations: boolean,
 ): TranslationPathOrText {
-    const filteredViolations = violations.filter((violation) => {
+    // Filter out receiptRequired when itemizedReceiptRequired exists (itemized supersedes regular receipt)
+    const receiptFilteredViolations = filterReceiptViolations(violations);
+
+    const filteredViolations = receiptFilteredViolations.filter((violation) => {
         if (shouldShowOnlyViolations) {
             return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
         }
@@ -255,8 +262,11 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
+        const amountMissing = isAmountMissing(transaction);
         const merchantMissing = isMerchantMissing(transaction);
-        if (merchantMissing) {
+        if (amountMissing && merchantMissing) {
+            RBRMessage = {translationPath: 'violations.reviewRequired'};
+        } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
@@ -267,9 +277,9 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (RBRMessage === undefined && hasDynamicExternalWorkflow(policy)) {
-        const dewFailedAction = getMostRecentActiveDEWSubmitFailedAction(reportActions);
-        if (dewFailedAction && isDynamicExternalWorkflowSubmitFailedAction(dewFailedAction)) {
-            const originalMessage = getOriginalMessage(dewFailedAction);
+        const dewSubmitFailedAction = getMostRecentActiveDEWSubmitFailedAction(reportActions);
+        if (dewSubmitFailedAction && isDynamicExternalWorkflowSubmitFailedAction(dewSubmitFailedAction)) {
+            const originalMessage = getOriginalMessage(dewSubmitFailedAction);
             const dewErrorMessage = originalMessage?.message;
             RBRMessage = dewErrorMessage ? {text: dewErrorMessage} : {translationPath: 'iou.error.other'};
         }

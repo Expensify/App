@@ -4,6 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {SearchTextFilterKeys} from '@components/Search/types';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -18,9 +19,10 @@ type SearchFiltersTextBaseProps = {
     title: string;
     characterLimit?: number;
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => void;
+    description?: string;
 };
 
-function TextFilterBase({filterKey, title, onSubmit, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: SearchFiltersTextBaseProps) {
+function TextFilterBase({filterKey, title, onSubmit, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES, description}: SearchFiltersTextBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -51,6 +53,7 @@ function TextFilterBase({filterKey, title, onSubmit, characterLimit = CONST.MERC
             enabledWhenOffline
             shouldHideFixErrorsAlert
         >
+            {!!description && <Text style={styles.mb6}>{description}</Text>}
             <View style={styles.mb5}>
                 <InputWrapper
                     InputComponent={TextInput}
