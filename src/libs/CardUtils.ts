@@ -538,12 +538,8 @@ function getFeedNameForDisplay(
     customFeedName?: string,
     shouldAddCardsSuffix = true,
 ): string {
-    if (!feed) {
-        return '';
-    }
-
-    // If cardFeeds is undefined, data hasn't loaded yet - return empty string to avoid showing incorrect state
-    if (cardFeeds === undefined) {
+    // If feed is undefined or cardFeeds is not available, return empty string to avoid showing incorrect state
+    if (!feed || !cardFeeds) {
         return '';
     }
 
