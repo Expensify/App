@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, domainNameSelector, selectSecurityGroupsForAccount} from '@selectors/Domain';
+import {adminAccountIDsSelector, domainNameSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import Button from '@components/Button';
@@ -40,9 +40,9 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         selector: adminAccountIDsSelector,
     });
 
-    const [securityGroupsData] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: selectSecurityGroupsForAccount(accountID),
+        selector: selectSecurityGroupForAccount(accountID),
     });
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -57,12 +57,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
-    if (isLoadingOnyxValue(domainMetadata)) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
-    }
-
     const handleCloseAccount = async () => {
-        if (!securityGroupsData || shouldForceCloseAccount === undefined) {
+        if (!userSecurityGroup || shouldForceCloseAccount === undefined) {
             return;
         }
 
@@ -79,7 +75,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             setShouldForceCloseAccount(undefined);
             return;
         }
-        closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, securityGroupsData, shouldForceCloseAccount);
+        closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, userSecurityGroup, shouldForceCloseAccount);
         setShouldForceCloseAccount(undefined);
         Navigation.dismissModal();
     };
@@ -103,6 +99,11 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             style={styles.mb5}
         />
     );
+
+    if (isLoadingOnyxValue(domainMetadata)) {
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+    }
+
     return (
         <>
             <BaseDomainMemberDetailsComponent

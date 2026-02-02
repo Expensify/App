@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
 import type {SecurityGroupKey, SecurityGroupsData} from '@src/types/onyx/Domain';
+import {UserSecurityGroupData} from '@src/types/onyx/Domain';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
@@ -108,15 +109,13 @@ function isSecurityGroupEntry(entry: [string, unknown]): entry is [SecurityGroup
  * @param accountID - The account ID to filter by
  * @returns A function that takes a domain and returns the filtered keys and security group data
  */
-function selectSecurityGroupsForAccount(accountID: number) {
-    return (domain: Domain | undefined): SecurityGroupsData => {
+function selectSecurityGroupForAccount(accountID: number) {
+    return (domain: Domain | undefined): UserSecurityGroupData => {
         if (!domain) {
-            return {keys: [], securityGroups: {}};
+            return undefined;
         }
 
         const accountIDStr = String(accountID);
-        const keys: SecurityGroupKey[] = [];
-        const securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
 
         for (const entry of Object.entries(domain)) {
             if (!isSecurityGroupEntry(entry)) {
@@ -126,12 +125,14 @@ function selectSecurityGroupsForAccount(accountID: number) {
             const [key, group] = entry;
 
             if (group.shared && accountIDStr in group.shared) {
-                keys.push(key);
-                securityGroups[key] = group;
+                return {
+                    key,
+                    securityGroup: group,
+                };
             }
         }
 
-        return {keys, securityGroups};
+        return undefined;
     };
 }
 
@@ -153,7 +154,7 @@ export {
     adminPendingActionSelector,
     technicalContactSettingsSelector,
     defaultSecurityGroupIDSelector,
-    selectSecurityGroupsForAccount,
+    selectSecurityGroupForAccount,
     memberPendingActionSelector,
     isSecurityGroupEntry,
 };

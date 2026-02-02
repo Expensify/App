@@ -941,28 +941,22 @@ function clearAddMemberError(domainAccountID: number, accountID: number, email: 
 }
 
 /** Sends a request to remove a user from a domain and close their account */
-function closeUserAccount(domainAccountID: number, domain: string, accountID: number, targetEmail: string, securityGroupsData: SecurityGroupsData, overrideProcessingReports = false) {
+/** Sends a request to remove a user from a domain and close their account */
+function closeUserAccount(domainAccountID: number, domain: string, accountID: number, targetEmail: string, securityGroupsData: UserSecurityGroupData, overrideProcessingReports = false) {
     const optimisticValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
     const failureValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
-    for (const groupID of securityGroupsData.keys) {
-        optimisticValue[groupID] = {
-            shared: {
-                [accountID]: null,
-            },
-        };
+
+    if (securityGroupsData) {
+        const groupID = securityGroupsData.key;
+
         failureValue[groupID] = {
             shared: {
-                [accountID]: securityGroupsData.securityGroups?.[groupID]?.shared?.[accountID] ?? null,
+                [accountID]: 'read',
             },
         };
     }
 
     const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: optimisticValue,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,

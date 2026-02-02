@@ -6,7 +6,7 @@ import {
     domainSettingsPrimaryContactSelector,
     isSecurityGroupEntry,
     memberAccountIDsSelector,
-    selectSecurityGroupsForAccount,
+    selectSecurityGroupForAccount,
     technicalContactSettingsSelector,
 } from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -300,21 +300,20 @@ describe('domainSelectors', () => {
         });
     });
 
-    describe('selectSecurityGroupsForAccount', () => {
-        it('Should return empty arrays when domain has no security groups', () => {
+    describe('selectSecurityGroupForAccount', () => {
+        it('Should return undefined when domain has no security groups', () => {
             const domain = {
                 validated: true,
                 accountID: 1,
                 email: 'test@example.com',
             } as Domain;
 
-            const result = selectSecurityGroupsForAccount(123)(domain);
+            const result = selectSecurityGroupForAccount(123)(domain);
 
-            expect(result.keys).toEqual([]);
-            expect(result.securityGroups).toEqual({});
+            expect(result).toBeUndefined();
         });
 
-        it('Should return empty arrays when account is not in any security group', () => {
+        it('Should return undefined when account is not in any security group', () => {
             const securityGroup = {
                 enableRestrictedPrimaryLogin: false,
                 enableRestrictedPolicyCreation: false,
@@ -335,17 +334,18 @@ describe('domainSelectors', () => {
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: securityGroup,
             } as unknown as Domain;
 
-            const result = selectSecurityGroupsForAccount(123)(domain);
+            const result = selectSecurityGroupForAccount(123)(domain);
 
-            expect(result.keys).toHaveLength(0);
-            expect(result.securityGroups).toEqual({});
+            expect(result).toBeUndefined();
         });
 
-        it('Should return multiple security groups when account belongs to several', () => {
+        it('Should return the security group data when account belongs to a group', () => {
             /* eslint-disable @typescript-eslint/naming-convention */
             const group1 = {shared: {'123': 'read', '456': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
-            const group2 = {shared: {'123': 'read', '789': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
-            const group3 = {shared: {'999': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
+            const group2 = {shared: {'789': 'read'}, enableRestrictedPrimaryLogin: true, enableRestrictedPolicyCreation: true} as DomainSecurityGroup;
+
+            const key1 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`;
+            const key2 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`;
 
             const domain: Domain = {
                 validated: true,
@@ -353,19 +353,16 @@ describe('domainSelectors', () => {
                 email: 'test@example.com',
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 domain_defaultSecurityGroupID: '1',
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: group1,
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: group2,
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}3`]: group3,
+                [key1]: group1,
+                [key2]: group2,
             } as unknown as Domain;
 
-            const result = selectSecurityGroupsForAccount(123)(domain);
+            const result = selectSecurityGroupForAccount(123)(domain);
 
-            expect(result.keys).toHaveLength(2);
-            expect(result.keys).toContain(`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`);
-            expect(result.keys).toContain(`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`);
-            expect(result.securityGroups[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]).toEqual(group1);
-            expect(result.securityGroups[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]).toEqual(group2);
-            expect(result.securityGroups[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}3`]).toBeUndefined();
+            expect(result).toEqual({
+                key: key1,
+                securityGroup: group1,
+            });
         });
     });
 

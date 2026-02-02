@@ -112,18 +112,20 @@ type DomainSecurityGroup = SecurityGroup & {
 type SecurityGroupKey = `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}`;
 
 /**
- * Combination of security group keys and security groups that are shared with the domain.
+ * Combination of security group key and security groups that the user belongs to.
  */
-type SecurityGroupsData = {
+type UserSecurityGroupData = {
     /**
-     * IDs of the security groups that are shared with the domain.
+     * The ID (key) of the security group the user belongs to.
      */
-    keys: SecurityGroupKey[];
+    key: SecurityGroupKey;
+
     /**
-     * Security groups that are shared with the domain.
+     * The security group data.
      */
-    securityGroups: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>;
+    securityGroup: Partial<DomainSecurityGroup>;
 };
-export {type SamlMetadata, type DomainSecurityGroup, type SecurityGroupsData, type SecurityGroupKey};
+
+export {type SamlMetadata, type DomainSecurityGroup, type UserSecurityGroupData, type SecurityGroupKey};
 
 export default Domain;
