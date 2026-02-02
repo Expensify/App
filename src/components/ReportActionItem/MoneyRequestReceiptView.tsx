@@ -33,6 +33,7 @@ import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isManualDistanceRequest,
     isScanning,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
@@ -266,6 +267,8 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
+    const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
+
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
             <ReceiptAuditMessages notes={receiptImageViolations} />
@@ -303,6 +306,7 @@ function MoneyRequestReceiptView({
                         isThumbnail={!canEditReceipt}
                         isInMoneyRequestView
                         style={receiptStyle}
+                        isDisplayedInWideRHP={isDisplayedInWideRHP}
                     />
                 </OfflineWithFeedback>
             )}
@@ -331,7 +335,14 @@ function MoneyRequestReceiptView({
                     contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
-                        <View style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}>
+                        <View
+                            style={[
+                                styles.getMoneyRequestViewImage(showBorderlessLoading),
+                                receiptStyle,
+                                showBorderlessLoading && styles.flex1,
+                                fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
+                            ]}
+                        >
                             <ReportActionItemImage
                                 shouldUseThumbnailImage={!fillSpace}
                                 shouldUseFullHeight={fillSpace}

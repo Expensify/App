@@ -36,7 +36,7 @@ function ConciergePage() {
                     navigateToConciergeChat(conciergeReportID, true, () => !isUnmounted.current);
                 });
             } else {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             }
         }, [session, isLoadingReportData, conciergeReportID]),
     );
