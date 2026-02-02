@@ -15,7 +15,7 @@ const findMessageInSource = (source: ParseHTTPSource[keyof ParseHTTPSource], mes
     }
 
     const sourceEntries = Object.entries(source) as Entries<typeof source>;
-    const [, value] = sourceEntries.find(([, predefinedMessage]) => predefinedMessage === message) ?? [];
+    const [, value] = sourceEntries.find(([, predefinedMessage]) => message.endsWith(predefinedMessage)) ?? [];
     return value ?? VALUES.REASON.BACKEND.UNKNOWN_RESPONSE;
 };
 
