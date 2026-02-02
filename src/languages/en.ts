@@ -2488,7 +2488,7 @@ const translations = {
             title: 'Add rule',
             expenseContains: 'If expense contains:',
             applyUpdates: 'Then apply these updates:',
-            merchantHint: 'Type * to create a rule that applies to all merchants',
+            merchantHint: 'Type . to create a rule that applies to all merchants',
             addToReport: 'Add to a report named',
             createReport: 'Create report if necessary',
             applyToExistingExpenses: 'Apply to existing matching expenses',
