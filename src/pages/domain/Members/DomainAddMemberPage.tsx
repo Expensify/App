@@ -32,6 +32,8 @@ function DomainEmailInput({onInputChange, ref, ...rest}: BaseTextInputProps) {
         <TextInput
             ref={ref}
             onChangeText={(value: string) => {
+                // Replace `@` to block this character in the input
+                // https://github.com/Expensify/App/pull/80090#issuecomment-3819449517
                 onInputChange?.(value.replaceAll('@', ''));
             }}
             // eslint-disable-next-line react/jsx-props-no-spreading
