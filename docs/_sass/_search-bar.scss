@@ -5,6 +5,11 @@
 .search-icon {
     margin: auto 0px;
     margin-left: auto;
+    display: none;
+
+    @media only screen and (max-width: $breakpoint-tablet) {
+        display: block;
+    }
 }
 
 .search-input-wrapper {
