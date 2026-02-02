@@ -45,6 +45,7 @@ import {
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
+import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations} from './Violations/ViolationsUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
@@ -432,11 +433,7 @@ function createTransactionPreviewConditionals({
  - the expense is not a distance expense with a pending route and amount = 0 - in this case,
    the merchant says: "Route pending...", which is already shown in the amount field;
 */
-    const shouldShowMerchant =
-        !!requestMerchant &&
-        requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
-        requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
-        !(isFetchingWaypoints && !requestAmount);
+    const shouldShowMerchant = !isInvalidMerchantValue(requestMerchant) && !(isFetchingWaypoints && !requestAmount);
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning(transaction);
 
     return {

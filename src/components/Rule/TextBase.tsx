@@ -8,7 +8,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
+import {isInvalidMerchantValue, isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 
@@ -49,8 +49,7 @@ function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title
             if (!isValid) {
                 (errors as Record<string, string>)[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, characterLimit);
             } else if (fieldID === CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT || fieldID === CONST.MERCHANT_RULES.FIELDS.MERCHANT) {
-                const isInvalidMerchant = trimmedValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || trimmedValue === CONST.TRANSACTION.DEFAULT_MERCHANT;
-                if (isInvalidMerchant) {
+                if (isInvalidMerchantValue(trimmedValue)) {
                     (errors as Record<string, string>)[fieldID] = translate('iou.error.invalidMerchant');
                 }
             }
