@@ -6,7 +6,6 @@ import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
-import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import {
     doesCardFeedExist,
     filterInactiveCards,
@@ -50,14 +49,6 @@ import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock
-function translateMock<TPath extends TranslationPaths>(path: TPath, ...phraseParameters: TranslationParameters<TPath>): string {
-    if (path === 'workspace.companyCards.feedName') {
-        return `${String(phraseParameters[0])} cards`;
-    }
-    return path;
-}
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
@@ -654,43 +645,43 @@ describe('CardUtils', () => {
 
         it('Should return "Deleted Feed" if feed does not exist', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
-            const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_2: cardFeedsCollection.FAKE_ID_2});
-            expect(feedName).toBe('workspace.companyCards.deletedFeed');
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_2: cardFeedsCollection.FAKE_ID_2});
+            expect(feedName).toBe('Deleted feed');
         });
 
         it('Should return empty string when cardFeeds is undefined (loading state)', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
-            const feedName = getFeedNameForDisplay(translateMock, feed, undefined);
+            const feedName = getFeedNameForDisplay(translateLocal, feed, undefined);
             expect(feedName).toBe('');
         });
 
         it('Should return custom name if provided via parameter', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
-            const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, customFeedName);
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, customFeedName);
             expect(feedName).toBe(customFeedName);
         });
 
         it('Should return custom name from cardFeeds if no parameter provided', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
-            const feedName = getFeedNameForDisplay(translateMock, feed, cardFeedsCollection);
+            const feedName = getFeedNameForDisplay(translateLocal, feed, cardFeedsCollection);
             expect(feedName).toBe(customFeedName);
         });
 
         it('Should return formatted feed name if no custom name exists', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
-            const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
             expect(feedName).toBe('Chase cards');
         });
 
         it('Should return empty string if feed is undefined', () => {
             const feed = undefined;
-            const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1});
             expect(feedName).toBe('');
         });
 
         it('Should return formatted name without "cards" suffix when shouldAddCardsSuffix is false', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
-            const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, undefined, false);
+            const feedName = getFeedNameForDisplay(translateLocal, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, undefined, false);
             expect(feedName).toBe('Chase');
         });
     });

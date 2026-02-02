@@ -2449,7 +2449,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 53;
+            const expectedPropertyCount = 54;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
