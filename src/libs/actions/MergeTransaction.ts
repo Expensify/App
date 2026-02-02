@@ -316,17 +316,13 @@ function mergeTransactionRequest({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
 }: MergeTransactionRequestParams) {
-    // For both unreported expenses and expense reports, negate the display amount when storing
-    // This preserves the user's chosen sign while following the storage convention
-    const finalAmount = -mergeTransaction.amount;
-
     // Call the merge transaction action
     const params = {
         transactionID: mergeTransaction.targetTransactionID,
         transactionIDList: [mergeTransaction.sourceTransactionID],
         created: mergeTransaction.created,
         merchant: mergeTransaction.merchant,
-        amount: finalAmount,
+        amount: mergeTransaction.amount,
         currency: mergeTransaction.currency,
         category: mergeTransaction.category,
         comment: JSON.stringify({
