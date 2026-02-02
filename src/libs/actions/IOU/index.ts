@@ -1416,14 +1416,17 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
             ? DistanceRequestUtils.getRate({transaction, useTransactionDistanceUnit: false, policy})
             : DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
 
-        const shouldUpdateDistanceUnit = !!transaction.comment?.customUnit?.distanceUnit && !!distanceRate?.unit;
-        const shouldUpdateQuantity = transaction.comment?.customUnit?.quantity !== null && transaction.comment?.customUnit?.quantity !== undefined;
+        const transactionDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
+        const transactionQuantity = transaction.comment?.customUnit?.quantity;
+
+        const shouldUpdateDistanceUnit = !!transactionDistanceUnit && !!distanceRate?.unit;
+        const shouldUpdateQuantity = transactionQuantity !== null && transactionQuantity !== undefined;
 
         if (shouldUpdateDistanceUnit) {
             newDistanceUnit = distanceRate.unit;
         }
         if (shouldUpdateQuantity && !!distanceRate?.unit) {
-            newQuantity = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit), distanceRate.unit);
+            newQuantity = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transactionDistanceUnit), distanceRate.unit);
         }
     }
 
