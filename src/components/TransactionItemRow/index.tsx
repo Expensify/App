@@ -82,6 +82,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** formatted "merchant" value used for displaying and sorting on Reports page */
     formattedMerchant?: string;
 
+    /** Whether the card feed has been deleted */
+    isCardFeedDeleted?: boolean;
+
     /** information about whether to show merchant, that is provided on Reports page */
     shouldShowMerchant?: boolean;
 
@@ -252,6 +255,9 @@ function TransactionItemRow({
     const exchangeRateMessage = getExchangeRate(transactionItem);
 
     const cardName = useMemo(() => {
+        if (transactionItem.isCardFeedDeleted) {
+            return translate('workspace.companyCards.deletedFeed');
+        }
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
         }
@@ -260,7 +266,7 @@ function TransactionItemRow({
             return customCardNames[cardID];
         }
         return transactionItem.cardName;
-    }, [transactionItem.cardID, transactionItem.cardName, customCardNames]);
+    }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
 
     const columnComponent = useMemo(
         () => ({

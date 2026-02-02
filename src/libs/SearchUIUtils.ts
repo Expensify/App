@@ -84,7 +84,7 @@ import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {getCardDescription, getFeedNameForDisplay} from './CardUtils';
+import {doesCardFeedExist, getCardDescription, getFeedNameForDisplay} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -1434,6 +1434,7 @@ function getToFieldValueForTransaction(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function getTransactionsSections(
     data: OnyxTypes.SearchResults['data'],
     currentSearch: SearchKey,
@@ -1443,8 +1444,10 @@ function getTransactionsSections(
     isActionLoadingSet: ReadonlySet<string> | undefined,
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>,
+    translate: LocalizedTranslate,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     queryJSON?: SearchQueryJSON,
+    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
@@ -1500,6 +1503,8 @@ function getTransactionsSections(
             const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
+            // Check if the card feed has been deleted. If cardFeeds is still loading (undefined), return undefined to avoid showing incorrect state.
+            const isCardFeedDeleted = cardFeeds === undefined ? undefined : !doesCardFeedExist(transactionItem.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
@@ -1527,6 +1532,7 @@ function getTransactionsSections(
                 formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
+                isCardFeedDeleted,
                 date,
                 submitted,
                 approved,
@@ -2710,8 +2716,10 @@ function getSections({
         isActionLoadingSet,
         bankAccountList,
         allReportMetadata,
+        translate,
         reportActions,
         queryJSON,
+        cardFeeds,
     );
 }
 

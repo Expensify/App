@@ -297,6 +297,9 @@ type TransactionListItemType = ListItem &
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
 
+        /** Whether the card feed has been deleted */
+        isCardFeedDeleted?: boolean;
+
         /** The original amount of the transaction */
         originalAmount?: number;
 

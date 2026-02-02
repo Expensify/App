@@ -115,6 +115,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -133,6 +134,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             bankAccountList,
             isActionLoadingSet,
             allReportMetadata,
+            cardFeeds,
         }) as [TransactionListItemType[], number];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -150,6 +152,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         isActionLoadingSet,
         bankAccountList,
         allReportMetadata,
+        cardFeeds,
     ]);
 
     const selectedItemsLength = useMemo(() => {
