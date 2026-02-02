@@ -6206,8 +6206,16 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
         return '';
     }
 
-    const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => shouldShowPolicy(policy, false, currentUserEmail));
-    if (filteredPolicies.length < 2) {
+    let policyCount = 0;
+    for (const policy of Object.values(allPolicies ?? {})) {
+        if (shouldShowPolicy(policy, false, currentUserEmail)) {
+            policyCount++;
+            if (policyCount >= 2) {
+                break;
+            }
+        }
+    }
+    if (policyCount < 2) {
         return '';
     }
 
