@@ -114,9 +114,9 @@ function searchPageQuery(query) {
     }
 
     fetch(SEARCH_API_URL, {method: 'POST', body: formData})
-        .then((r) => r.json())
+        .then((response) => response.json())
         .then((data) => {
-            const results = (data.searchResults || []).filter((r) => !r.url.includes('/Unlisted/'));
+            const results = (data.searchResults || []).filter((result) => !result.url.includes('/Unlisted/'));
             resultsContainer.innerHTML = '';
             if (results.length === 0) {
                 resultsContainer.appendChild(cloneTemplate('search-no-results-template'));
@@ -127,11 +127,11 @@ function searchPageQuery(query) {
                 const link = item.querySelector('.search-result-item');
                 link.href = result.url;
                 link.querySelector('.search-result-title').textContent = getTitleFromURL(result.url);
-                const desc = link.querySelector('.search-result-description');
+                const description = link.querySelector('.search-result-description');
                 if (result.description) {
-                    desc.textContent = result.description;
+                    description.textContent = result.description;
                 } else {
-                    desc.remove();
+                    description.remove();
                 }
                 resultsContainer.appendChild(item);
             });
