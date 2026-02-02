@@ -125,11 +125,7 @@ function TransactionDuplicateReview() {
     const threadReportFinishedLoading = !!reportMetadata && (reportMetadata.isLoadingInitialReportActions === false || isOffline);
     const parentReportFinishedLoading = !report?.parentReportID || (!!parentReportMetadata && (parentReportMetadata.isLoadingInitialReportActions === false || isOffline));
 
-    const wasTransactionDeleted = !!(
-        route.params.threadReportID &&
-        threadReportFinishedLoading &&
-        (!report?.reportID || (parentReportFinishedLoading && !reportAction?.reportActionID))
-    );
+    const wasTransactionDeleted = !!(route.params.threadReportID && threadReportFinishedLoading && (!report?.reportID || (parentReportFinishedLoading && !reportAction?.reportActionID)));
 
     const isLoadingPage = (!report?.reportID && !threadReportFinishedLoading) || (!reportAction?.reportActionID && !wasTransactionDeleted);
 

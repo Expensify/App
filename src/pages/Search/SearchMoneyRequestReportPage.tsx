@@ -252,13 +252,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     ]);
 
     const wereAllTransactionsDeleted = useMemo(
-        () =>
-            !!(
-                report?.reportID &&
-                (reportMetadata?.isLoadingInitialReportActions === false || isOffline) &&
-                visibleTransactions?.length === 0 &&
-                !snapshotTransaction
-            ),
+        () => !!(report?.reportID && (reportMetadata?.isLoadingInitialReportActions === false || isOffline) && visibleTransactions?.length === 0 && !snapshotTransaction),
         [report?.reportID, reportMetadata?.isLoadingInitialReportActions, isOffline, visibleTransactions?.length, snapshotTransaction],
     );
 
