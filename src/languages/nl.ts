@@ -1025,7 +1025,18 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oeps! Je hebt één veld ("${fieldName}") aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
         emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import succesvol',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `Er zijn ${categories} categorieën toegevoegd.` : '1 categorie is toegevoegd.'),
+importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+    if (!added && !updated) {
+        return 'Er zijn geen categorieën toegevoegd of bijgewerkt.';
+    }
+    if (added && updated) {
+        return `${added} categorie${added === 1 ? '' : 'ën'} toegevoegd, ${updated} categorie${updated === 1 ? '' : 'ën'} bijgewerkt.`;
+    }
+    if (added) {
+        return added === 1 ? '1 categorie is toegevoegd.' : `${added} categorieën zijn toegevoegd.`;
+    }
+    return updated === 1 ? '1 categorie is bijgewerkt.' : `${updated} categorieën zijn bijgewerkt.`;
+},
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Er zijn geen leden toegevoegd of bijgewerkt.';

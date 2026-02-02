@@ -1011,7 +1011,18 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `哎呀！您已将单个字段（“${fieldName}”）映射到了多个列。请检查后重试。`,
         emptyMappedField: (fieldName: string) => `哎呀！字段（“${fieldName}”）包含一个或多个空值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `已添加 ${categories} 个类别。` : '已添加 1 个类别。'),
+importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+    if (!added && !updated) {
+        return '未添加或更新任何类别。';
+    }
+    if (added && updated) {
+        return `已添加 ${added} 个类别，已更新 ${updated} 个类别。`;
+    }
+    if (added) {
+        return added === 1 ? '已添加 1 个类别。' : `已添加 ${added} 个类别。`;
+    }
+    return updated === 1 ? '已更新 1 个类别。' : `已更新 ${updated} 个类别。`;
+},
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return '尚未添加或更新任何成员。';

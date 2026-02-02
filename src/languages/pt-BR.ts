@@ -1024,7 +1024,18 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Opa! Você associou um único campo ("${fieldName}") a várias colunas. Revise e tente novamente.`,
         emptyMappedField: (fieldName: string) => `Opa! O campo ("${fieldName}") contém um ou mais valores vazios. Verifique e tente novamente.`,
         importSuccessfulTitle: 'Importação bem-sucedida',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categorias foram adicionadas.` : '1 categoria foi adicionada.'),
+importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+    if (!added && !updated) {
+        return 'Nenhuma categoria foi adicionada ou atualizada.';
+    }
+    if (added && updated) {
+        return `${added} categoria${added === 1 ? '' : 's'} adicionada${added === 1 ? '' : 's'}, ${updated} categoria${updated === 1 ? '' : 's'} atualizada${updated === 1 ? '' : 's'}.`;
+    }
+    if (added) {
+        return added === 1 ? '1 categoria foi adicionada.' : `${added} categorias foram adicionadas.`;
+    }
+    return updated === 1 ? '1 categoria foi atualizada.' : `${updated} categorias foram atualizadas.`;
+},
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Nenhum membro foi adicionado ou atualizado.';

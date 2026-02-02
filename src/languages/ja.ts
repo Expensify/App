@@ -1024,7 +1024,18 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）が複数の列に割り当てられています。内容を確認して、もう一度お試しください。`,
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に 1 つ以上の空の値が含まれています。確認して、もう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories}件のカテゴリーが追加されました。` : 'カテゴリを1件追加しました。'),
+importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+    if (!added && !updated) {
+        return 'カテゴリは追加または更新されていません。';
+    }
+    if (added && updated) {
+        return `${added}件のカテゴリを追加、${updated}件のカテゴリを更新しました。`;
+    }
+    if (added) {
+        return added === 1 ? 'カテゴリを1件追加しました。' : `${added}件のカテゴリを追加しました。`;
+    }
+    return updated === 1 ? 'カテゴリを1件更新しました。' : `${updated}件のカテゴリを更新しました。`;
+},
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'メンバーは追加または更新されていません。';

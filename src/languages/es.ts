@@ -810,7 +810,18 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores vacíos. Por favor, revísalo e inténtalo de nuevo.`,
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
-        importCategoriesSuccessfulDescription: ({categories}) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+    if (!added && !updated) {
+        return 'No se han añadido ni actualizado categorías.';
+    }
+    if (added && updated) {
+        return `Se añadieron ${added} categoría${added === 1 ? '' : 's'} y se actualizaron ${updated} categoría${updated === 1 ? '' : 's'}.`;
+    }
+    if (added) {
+        return added === 1 ? 'Se añadió 1 categoría.' : `Se añadieron ${added} categorías.`;
+    }
+    return updated === 1 ? 'Se actualizó 1 categoría.' : `Se actualizaron ${updated} categorías.`;
+},
         importMembersSuccessfulDescription: ({added, updated}) => {
             if (!added && !updated) {
                 return 'No se han añadido ni actualizado miembros.';

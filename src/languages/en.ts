@@ -1064,7 +1064,21 @@ const translations = {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         emptyMappedField: (fieldName: string) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
         importSuccessfulTitle: 'Import successful',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+importCategoriesSuccessfulDescription: ({added, updated}) => {
+    if (!added && !updated) {
+        return 'No categories have been added or updated.';
+    }
+
+    if (added && updated) {
+        return `${added} categor${added === 1 ? 'y' : 'ies'} added, ${updated} categor${updated === 1 ? 'y' : 'ies'} updated.`;
+    }
+
+    if (added) {
+        return added === 1 ? '1 category has been added.' : `${added} categories have been added.`;
+    }
+
+    return updated === 1 ? '1 category has been updated.' : `${updated} categories have been updated.`;
+},
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'No members have been added or updated.';

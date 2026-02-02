@@ -301,7 +301,7 @@ function buildOptimisticMccGroup() {
     return mccGroupData;
 }
 
-function updateImportSpreadsheetData(categoriesLength: number) {
+function updateImportSpreadsheetData({added, updated}: {added: number; updated: number}) {
     const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
@@ -313,13 +313,13 @@ function updateImportSpreadsheetData(categoriesLength: number) {
                         titleKey: 'spreadsheet.importSuccessfulTitle',
                         promptKey: 'spreadsheet.importCategoriesSuccessfulDescription',
                         promptKeyParams: {
-                            categories: categoriesLength,
+                            added,
+                            updated,
                         },
                     },
                 },
             },
         ],
-
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -337,6 +337,7 @@ function updateImportSpreadsheetData(categoriesLength: number) {
 
     return onyxData;
 }
+
 
 function openPolicyCategoriesPage(policyID: string) {
     if (!policyID) {
@@ -849,25 +850,50 @@ function createPolicyCategory({
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
-function importPolicyCategories(policyID: string, categories: PolicyCategory[]) {
-    const uniqueCategories = categories.reduce<Record<string, PolicyCategory>>((acc, category) => {
-        if (!category.name) {
+function importPolicyCategories(
+    policyID: string,
+    categories: PolicyCategory[],
+    existingCategories?: PolicyCategories,
+) {
+    const {added, updated} = categories.reduce(
+        (acc, category) => {
+            if (!category.name) {
+                return acc;
+            }
+
+            const existing = existingCategories?.[category.name];
+
+            if (!existing) {
+                acc.added++;
+            } else if (
+                existing.enabled !== category.enabled ||
+                (existing['GL Code'] ?? '') !== (category['GL Code'] ?? '')
+            ) {
+                acc.updated++;
+            }
+
             return acc;
-        }
-        acc[category.name] = category;
-        return acc;
-    }, {});
-    const categoriesLength = Object.keys(uniqueCategories).length;
-    const onyxData = updateImportSpreadsheetData(categoriesLength);
+        },
+        {added: 0, updated: 0},
+    );
+
+    const onyxData = updateImportSpreadsheetData({added, updated});
 
     const parameters = {
         policyID,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        categories: JSON.stringify([...categories.map((category) => ({name: category.name, enabled: category.enabled, 'GL Code': String(category['GL Code'])}))]),
+        categories: JSON.stringify(
+            categories.map((category) => ({
+                name: category.name,
+                enabled: category.enabled,
+                'GL Code': String(category['GL Code']),
+            })),
+        ),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters, onyxData);
 }
+
 
 function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}) {
     const policy = policyData.policy;
@@ -1814,4 +1840,5 @@ export {
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
+    updateImportSpreadsheetData
 };

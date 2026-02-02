@@ -1027,7 +1027,18 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
         emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfen Sie es und versuchen Sie es erneut.`,
         importSuccessfulTitle: 'Import erfolgreich',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} Kategorien wurden hinzugefügt.` : '1 Kategorie wurde hinzugefügt.'),
+importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+    if (!added && !updated) {
+        return 'Es wurden keine Kategorien hinzugefügt oder aktualisiert.';
+    }
+    if (added && updated) {
+        return `${added} Kategorie${added === 1 ? '' : 'n'} hinzugefügt, ${updated} Kategorie${updated === 1 ? '' : 'n'} aktualisiert.`;
+    }
+    if (added) {
+        return added === 1 ? '1 Kategorie wurde hinzugefügt.' : `${added} Kategorien wurden hinzugefügt.`;
+    }
+    return updated === 1 ? '1 Kategorie wurde aktualisiert.' : `${updated} Kategorien wurden aktualisiert.`;
+},
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Es wurden keine Mitglieder hinzugefügt oder aktualisiert.';
