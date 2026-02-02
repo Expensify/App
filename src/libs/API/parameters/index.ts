@@ -1,4 +1,5 @@
 export type {default as GetTransactionsForMergingParams} from './GetTransactionsForMergingParams';
+export type {default as ImportCSVTransactionsParams} from './ImportCSVTransactionsParams';
 export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTagsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
@@ -35,6 +36,7 @@ export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyT
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
 export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams';
+export type {default as DeletePersonalCardParams} from './DeletePersonalCardParams';
 export type {default as TogglePolicyUberAutoInvitePageParams} from './TogglePolicyUberAutoInvitePageParams';
 export type {default as DismissReferralBannerParams} from './DismissReferralBannerParams';
 export type {default as ExpandURLPreviewParams} from './ExpandURLPreviewParams';
@@ -377,6 +379,7 @@ export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadshe
 export type {default as UpdateXeroGenericTypeParams} from './UpdateXeroGenericTypeParams';
 export type {default as UpdateCardSettlementFrequencyParams} from './UpdateCardSettlementFrequencyParams';
 export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSettlementAccountParams';
+export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTravelInvoicingSettlementAccountParams';
 export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
 export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
 export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';
@@ -384,10 +387,11 @@ export type {default as OpenPolicyCompanyCardsFeedParams} from './OpenPolicyComp
 export type {default as OpenPolicyAddCardFeedPageParams} from './OpenPolicyAddCardFeedPageParams';
 export type {default as SetFeedStatementPeriodEndDayParams} from './SetFeedStatementPeriodEndDayParams';
 export type {default as AssignCompanyCardParams} from './AssignCompanyCardParams';
-export type {default as UnassignCompanyCard} from './UnassignCompanyCard';
-export type {default as UpdateCompanyCard} from './UpdateCompanyCard';
+export type {default as UnassignCardParams} from './UnassignCardParams';
+export type {default as SyncCardParams} from './SyncCardParams';
 export type {default as UpdateCompanyCardNameParams} from './UpdateCompanyCardNameParams';
 export type {default as UpdateCardTransactionStartDateParams} from './UpdateCardTransactionStartDateParams';
+export type {default as SetPersonalCardReimbursableParams} from './SetPersonalCardReimbursableParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
 export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';

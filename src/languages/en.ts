@@ -561,6 +561,7 @@ const translations = {
         address: 'Address',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: 'Skip',
         chatWithAccountManager: (accountManagerDisplayName: string) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
@@ -634,6 +635,8 @@ const translations = {
         nonReimbursableTotal: 'Non-reimbursable total',
         month: 'Month',
         week: 'Week',
+        year: 'Year',
+        quarter: 'Quarter',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -753,10 +756,10 @@ const translations = {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
         },
         revoke: {
-            revoke: 'Revoke',
+            remove: 'Remove',
             title: 'Face/fingerprint & passkeys',
-            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device',
-            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device",
+            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device.',
+            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device.",
             cta: 'Revoke access',
             noDevices: "You don't have any devices registered for face/fingerprint or passkey verification. If you register any, you will be able to revoke that access here.",
             dismiss: 'Got it',
@@ -991,6 +994,28 @@ const translations = {
     },
     homePage: {
         forYou: 'For you',
+        timeSensitiveSection: {
+            title: 'Time sensitive',
+            cta: 'Claim',
+            offer50off: {
+                title: 'Get 50% off your first year!',
+                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} remaining`,
+            },
+            offer25off: {
+                title: 'Get 25% off your first year!',
+                subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
+            },
+            addShippingAddress: {
+                title: 'We need your shipping address',
+                subtitle: 'Provide an address to receive your Expensify Card.',
+                cta: 'Add address',
+            },
+            activateCard: {
+                title: 'Activate your Expensify Card',
+                subtitle: 'Validate your card and start spending.',
+                cta: 'Activate',
+            },
+        },
         announcements: 'Announcements',
         discoverSection: {
             title: 'Discover',
@@ -1058,6 +1083,8 @@ const translations = {
         importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `${tags} tags have been added.` : '1 tag has been added.'),
         importMultiLevelTagsSuccessfulDescription: 'Multi-level tags have been added.',
         importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `${rates} per diem rates have been added.` : '1 per diem rate has been added.'),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transactions have been imported.` : '1 transaction has been imported.',
         importFailedTitle: 'Import failed',
         importFailedDescription: 'Please ensure all fields are filled out correctly and try again. If the problem persists, please reach out to Concierge.',
         importDescription: 'Choose which fields to map from your spreadsheet by clicking the dropdown next to each imported column below.',
@@ -2162,6 +2189,9 @@ const translations = {
         setDefaultSuccess: 'Default payment method set!',
         deleteAccount: 'Delete account',
         deleteConfirmation: 'Are you sure you want to delete this account?',
+        deleteCard: 'Delete card',
+        deleteCardConfirmation:
+            'All unsubmitted card transactions, including those on open reports, will be removed. Are you sure you want to delete this card? You cannot undo this action.',
         error: {
             notOwnerOfBankAccount: 'An error occurred while setting this bank account as your default payment method',
             invalidBankAccount: 'This bank account is temporarily suspended',
@@ -2180,7 +2210,7 @@ const translations = {
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
         assignedCards: 'Assigned cards',
-        assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
+        assignedCardsDescription: 'Transactions from these cards sync automatically.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
@@ -2234,6 +2264,8 @@ const translations = {
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',
         cardLocked: "Your card is temporarily locked while our team reviews your company's account.",
+        markTransactionsAsReimbursable: 'Mark transactions as reimbursable',
+        markTransactionsDescription: 'When enabled, transactions imported from this card are marked as reimbursable by default.',
         csvCardDescription: 'CSV Import',
         cardDetails: {
             cardNumber: 'Virtual card number',
@@ -2268,6 +2300,7 @@ const translations = {
         submissionFrequencyDateOfMonth: 'Date of month',
         disableApprovalPromptDescription: 'Disabling approvals will erase all existing approval workflows.',
         addApprovalsTitle: 'Approvals',
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver is ${approvers}`,
         addApprovalButton: 'Add approval workflow',
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
@@ -2468,7 +2501,7 @@ const translations = {
             title: 'Add rule',
             expenseContains: 'If expense contains:',
             applyUpdates: 'Then apply these updates:',
-            merchantHint: 'Type * to create a rule that applies to all merchants',
+            merchantHint: 'Type . to create a rule that applies to all merchants',
             addToReport: 'Add to a report named',
             createReport: 'Create report if necessary',
             applyToExistingExpenses: 'Apply to existing matching expenses',
@@ -4901,6 +4934,15 @@ const translations = {
             assignCardFailedError: 'Card assignment failed.',
             unassignCardFailedError: 'Card unassignment failed.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            importTransactions: {
+                title: 'Import transactions from file',
+                description: 'Please adjust the settings for your file that will be applied on import.',
+                cardDisplayName: 'Card display name',
+                currency: 'Currency',
+                transactionsAreReimbursable: 'Transactions are reimbursable',
+                flipAmountSign: 'Flip amount sign',
+                importButton: 'Import transactions',
+            },
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -6900,6 +6942,7 @@ const translations = {
             keyword: 'Keyword',
             keywords: 'Keywords',
             limit: 'Limit',
+            limitDescription: 'Set a limit for the results of your search.',
             currency: 'Currency',
             completed: 'Completed',
             amount: {
@@ -6938,6 +6981,8 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Month',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -6954,6 +6999,23 @@ const translations = {
         },
         has: 'Has',
         groupBy: 'Group by',
+        view: {
+            label: 'View',
+            table: 'Table',
+            bar: 'Bar',
+        },
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'From',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Cards',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exports',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categories',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Merchants',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Months',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Weeks',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
+        },
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
             accessPlaceHolder: 'Open for details',
@@ -7090,7 +7152,7 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
                     `there was a problem syncing with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Please fix the issue in <a href="${workspaceAccountingLink}">workspace settings</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>`,
+                    `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,

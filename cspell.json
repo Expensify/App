@@ -820,6 +820,8 @@
         "Wooo",
         "Splittable",
         "pgrep",
+        "skia",
+        "canvaskit",
         "Invoicify"
     ],
     "ignorePaths": [

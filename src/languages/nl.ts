@@ -567,6 +567,7 @@ const translations: TranslationDeepObject<typeof en> = {
         address: 'Adres',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
+        secondAbbreviation: 's',
         skip: 'Overslaan',
         chatWithAccountManager: (accountManagerDisplayName: string) => `Iets specifieks nodig? Chat met je accountmanager, ${accountManagerDisplayName}.`,
         chatNow: 'Nu chatten',
@@ -643,6 +644,8 @@ const translations: TranslationDeepObject<typeof en> = {
         month: 'Maand',
         home: 'Start',
         week: 'Week',
+        year: 'Jaar',
+        quarter: 'Kwartaal',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -766,15 +769,15 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
         },
         revoke: {
-            revoke: 'Intrekken',
             title: 'Gezicht/vingerafdruk en passkeys',
             explanation:
-                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op één of meer apparaten. Toegang intrekken vereist een magische code voor de volgende verificatie op elk apparaat',
-            confirmationPrompt: 'Weet je het zeker? Je hebt een magische code nodig voor de volgende verificatie op elk apparaat',
+                'Gezichts-/vingerafdruk- of passkeys-verificatie is ingeschakeld op een of meer apparaten. Het intrekken van toegang vereist een magische code voor de volgende verificatie op elk apparaat.',
+            confirmationPrompt: 'Weet je het zeker? Je hebt een geheime code nodig voor de volgende verificatie op elk apparaat.',
             cta: 'Toegang intrekken',
             noDevices: 'Je hebt geen apparaten geregistreerd voor gezichts-/vingerafdruk- of passkey-verificatie. Als je er een registreert, kun je die toegang hier intrekken.',
             dismiss: 'Begrepen',
             error: 'Aanvraag mislukt. Probeer het later opnieuw.',
+            remove: 'Verwijderen',
         },
     },
     validateCodeModal: {
@@ -1052,6 +1055,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bevestig hieronder de details voor de ${count} nieuwe werkruimteleden die als onderdeel van deze upload zullen worden toegevoegd. Bestaande leden ontvangen geen rolupdates of uitnodigingsberichten.`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transacties zijn geïmporteerd.` : '1 transactie is geïmporteerd.',
     },
     receipt: {
         upload: 'Bon uploaden',
@@ -2154,7 +2159,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addBankAccountToSendAndReceive: 'Voeg een bankrekening toe om betalingen te doen of te ontvangen.',
         addDebitOrCreditCard: 'Debit- of kredietkaart toevoegen',
         assignedCards: 'Toegewezen kaarten',
-        assignedCardsDescription: 'Dit zijn kaarten die door een workspacebeheerder zijn toegewezen om de uitgaven van het bedrijf te beheren.',
+        assignedCardsDescription: 'Transacties van deze kaarten worden automatisch gesynchroniseerd.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: 'We beoordelen je gegevens. Kom over een paar minuten terug!',
         walletActivationFailed: 'Helaas kan je wallet op dit moment niet worden ingeschakeld. Chat alsjeblieft met Concierge voor verdere hulp.',
@@ -2181,6 +2186,9 @@ const translations: TranslationDeepObject<typeof en> = {
             `${admin} verliest de toegang tot deze zakelijke bankrekening. We zullen alle betalingen die in behandeling zijn nog steeds voltooien.`,
         reachOutForHelp: 'Deze wordt gebruikt met de Expensify Card. <concierge-link>Neem contact op met Concierge</concierge-link> als u de deling ongedaan wilt maken.',
         unshareErrorModalTitle: 'Deling bankrekening kan niet ongedaan worden gemaakt',
+        deleteCard: 'Kaart verwijderen',
+        deleteCardConfirmation:
+            'Alle niet-ingediende kaarttransacties, inclusief die in openstaande rapporten, worden verwijderd. Weet je zeker dat je deze kaart wilt verwijderen? Je kunt deze actie niet ongedaan maken.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2211,6 +2219,8 @@ const translations: TranslationDeepObject<typeof en> = {
         suspiciousBannerTitle: 'Verdachte transactie',
         suspiciousBannerDescription: 'We hebben verdachte transacties op uw kaart opgemerkt. Tik hieronder om ze te bekijken.',
         cardLocked: 'Je kaart is tijdelijk geblokkeerd terwijl ons team het account van je bedrijf controleert.',
+        markTransactionsAsReimbursable: 'Transacties markeren als vergoedbaar',
+        markTransactionsDescription: 'Indien ingeschakeld, worden transacties die van deze kaart zijn geïmporteerd standaard als terugbetaalbaar gemarkeerd.',
         cardDetails: {
             cardNumber: 'Virtueel kaartnummer',
             expiration: 'Vervaldatum',
@@ -2309,6 +2319,7 @@ ${amount} voor ${merchant} - ${date}`,
             expensesFromSubtitle: 'Alle werkruimteleden behoren al tot een bestaande goedkeuringsworkflow.',
             approverSubtitle: 'Alle fiatteurs behoren tot een bestaande workflow.',
         },
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `uitgaven van ${members}, en de fiatteur is ${approvers}`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Indien frequentie van indienen niet kon worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
@@ -2457,7 +2468,7 @@ ${amount} voor ${merchant} - ${date}`,
             title: 'Regel toevoegen',
             expenseContains: 'Als de uitgave bevat:',
             applyUpdates: 'Breng vervolgens deze updates aan:',
-            merchantHint: 'Typ * om een regel te maken die voor alle leveranciers geldt',
+            merchantHint: 'Typ . om een regel te maken die voor alle leveranciers geldt',
             addToReport: 'Toevoegen aan een rapport met de naam',
             createReport: 'Maak rapport indien nodig',
             applyToExistingExpenses: 'Toepassen op bestaande overeenkomende onkosten',
@@ -4937,6 +4948,15 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             editStartDateDescription:
                 'Kies een nieuwe startdatum voor transacties. We synchroniseren alle transacties vanaf die datum, met uitzondering van de transacties die we al hebben geïmporteerd.',
             unassignCardFailedError: 'Kaartontkoppeling mislukt.',
+            importTransactions: {
+                title: 'Transacties importeren uit bestand',
+                description: 'Pas de instellingen voor je bestand aan die bij het importeren worden toegepast.',
+                cardDisplayName: 'Kaartweergavenaam',
+                currency: 'Valuta',
+                transactionsAreReimbursable: 'Transacties zijn terugbetaalbaar',
+                flipAmountSign: 'Teken van bedrag omdraaien',
+                importButton: 'Transacties importeren',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kan kaartfeeds niet laden',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -6962,6 +6982,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             keyword: 'Trefwoord',
             keywords: 'Trefwoorden',
             limit: 'Limiet',
+            limitDescription: 'Stel een limiet in voor de resultaten van je zoekopdracht.',
             currency: 'Valuta',
             completed: 'Voltooid',
             amount: {
@@ -7000,6 +7021,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Maand',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
+                [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaar',
+                [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartaal',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -7040,6 +7063,19 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
         topSpenders: 'Grootste uitgaven',
+        view: {label: 'Bekijken', table: 'Tabel', bar: 'Bar'},
+        chartTitles: {
+            [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
+            [CONST.SEARCH.GROUP_BY.CARD]: 'Kaarten',
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exporten',
+            [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorieën',
+            [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Handelaars',
+            [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.MONTH]: 'Maanden',
+            [CONST.SEARCH.GROUP_BY.WEEK]: 'Weken',
+            [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaren',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
+        },
     },
     genericErrorPage: {
         title: 'O jee, er is iets misgegaan!',
@@ -7177,7 +7213,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 addedConnection: ({connectionName}: ConnectionNameParams) => `verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'heeft de chat verlaten',
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `De ${feedName}-verbinding is verbroken. Om kaartimporten te herstellen, <a href='${workspaceCompanyCardRoute}'>log in bij uw bank</a>`,
+                    `De ${feedName}-verbinding is verbroken. Om kaartimporten te herstellen, <a href='${workspaceCompanyCardRoute}'>log in bij uw bank</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met uw zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind uw bankrekening ${maskedAccountNumber} opnieuw</a> om uw Expensify-kaarten te kunnen blijven gebruiken.`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
@@ -8226,6 +8262,14 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
                 allCaughtUp: 'Je bent helemaal bij',
                 upcomingTodos: 'Aankomende taken verschijnen hier.',
             },
+        },
+        timeSensitiveSection: {
+            title: 'Tijdgevoelig',
+            cta: 'Declaratie',
+            offer50off: {title: 'Krijg 50% korting op je eerste jaar!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} resterend`},
+            offer25off: {title: 'Krijg 25% korting op je eerste jaar!', subtitle: ({days}: {days: number}) => `Nog ${days} ${days === 1 ? 'dag' : 'dagen'} resterend`},
+            addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Voer een adres in om je Expensify Card te ontvangen.', cta: 'Adres toevoegen'},
+            activateCard: {title: 'Activeer je Expensify Card', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
         },
     },
 };
