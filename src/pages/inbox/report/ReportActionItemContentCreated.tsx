@@ -187,7 +187,7 @@ function ReportActionItemContentCreated({
                                     transactionThreadReport={transactionThreadReport}
                                     parentReportID={transactionThreadReport?.parentReportID}
                                     expensePolicy={policy}
-                                    shouldShowAnimatedBackground={true}
+                                    shouldShowAnimatedBackground
                                 />
                                 {renderThreadDivider}
                             </View>
