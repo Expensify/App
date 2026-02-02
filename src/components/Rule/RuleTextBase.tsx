@@ -47,7 +47,20 @@ type RuleTextBaseProps<TFormID extends OnyxFormKey> = {
     customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 };
 
-function RuleTextBase<TFormID extends OnyxFormKey>({fieldID, hintKey, isRequired, titleKey, labelKey, testID, characterLimit, formID, onSave, onBack, hash, customValidate}: RuleTextBaseProps<TFormID>) {
+function RuleTextBase<TFormID extends OnyxFormKey>({
+    fieldID,
+    hintKey,
+    isRequired,
+    titleKey,
+    labelKey,
+    testID,
+    characterLimit,
+    formID,
+    onSave,
+    onBack,
+    hash,
+    customValidate,
+}: RuleTextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 

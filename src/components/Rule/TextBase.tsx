@@ -24,7 +24,17 @@ type TextBaseProps<TFormID extends OnyxFormKey> = {
     customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 };
 
-function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title, label, onSubmit, formID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES, customValidate}: TextBaseProps<TFormID>) {
+function TextBase<TFormID extends OnyxFormKey>({
+    fieldID,
+    hint,
+    isRequired,
+    title,
+    label,
+    onSubmit,
+    formID,
+    characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
+    customValidate,
+}: TextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const [form] = useOnyx(formID, {canBeMissing: true});
     const styles = useThemeStyles();
