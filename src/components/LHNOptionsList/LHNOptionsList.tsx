@@ -26,14 +26,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {getCachedLastMessageText, getCachedReportActionsForDisplay, getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
+import {getCachedLastMessageText, getLastMessageTextForReport} from '@libs/OptionsListUtils';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import {
     getLastVisibleAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportActionActorAccountID,
     isInviteOrRemovedAction,
-    isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
@@ -234,16 +234,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemInvoiceReceiverPolicy = policyRef.current?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
-            const transactionID = isMoneyRequestAction(itemParentReportAction)
-                ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
-                : CONST.DEFAULT_NUMBER_ID;
-            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment =
                 !!draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] &&
                 !draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]?.match(CONST.REGEX.EMPTY_COMMENT);
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
-            const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
+            const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
             const lastAction = getLastVisibleAction(
                 reportID,
                 canUserPerformWrite,
@@ -251,12 +247,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 itemReportActions ? {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: itemReportActions} : undefined,
                 visibleReportActionsData,
             );
-
-            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, visibleReportActionsData, lastAction);
-            const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
-
-            const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
-            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 
             const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, item) ?? item.lastActorAccountID;
             let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID && personalDetails?.[lastActorAccountID] ? personalDetails[lastActorAccountID] : null;

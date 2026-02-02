@@ -17,7 +17,7 @@ import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {MaxHeap} from '@libs/MaxHeap';
 import {MinHeap} from '@libs/MinHeap';
-import {getForReportAction, getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -89,6 +89,8 @@ import {
     isRenamedAction,
     isReportActionVisible,
     isReportPreviewAction,
+    isWhisperAction,
+    shouldReportActionBeVisible,
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
@@ -231,6 +233,14 @@ Onyx.connect({
 });
 
 let allReportNameValuePairsOnyxConnect: OnyxCollection<ReportNameValuePairs>;
+
+const lastReportActions: ReportActions = {};
+const allSortedReportActions: Record<string, ReportAction[]> = {};
+let allReportActions: OnyxCollection<ReportActions>;
+const lastVisibleReportActions: ReportActions = {};
+const filteredReportActionsCache: Record<string, ReportAction[]> = {};
+const lastMessageTextCache: Record<string, string> = {};
+
 /**
  * Invalidates and recomputes cache entries for a specific report.
  * This is called when report actions, metadata, or archived status changes.
@@ -258,7 +268,7 @@ function invalidateCacheForReport(reportID: string) {
         }
         allSortedReportActions[reportID] = sortedReportActions;
 
-        const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+        const reportNameValuePairs = allReportNameValuePairsOnyxConnect?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
         const isReportArchived = !!reportNameValuePairs?.private_isArchived;
         const isWriteActionAllowed = canUserPerformWriteAction(report, isReportArchived);
 
@@ -294,7 +304,6 @@ function invalidateCacheForReport(reportID: string) {
     }
 }
 
-let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
@@ -316,6 +325,8 @@ Onyx.connect({
     },
 });
 
+// Stored for collection callback ordering; may be read by other code in this module
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let allReportMetadata: OnyxCollection<ReportMetadata>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
@@ -338,12 +349,6 @@ Onyx.connect({
     },
 });
 
-const lastReportActions: ReportActions = {};
-const allSortedReportActions: Record<string, ReportAction[]> = {};
-let allReportActions: OnyxCollection<ReportActions>;
-const lastVisibleReportActions: ReportActions = {};
-const filteredReportActionsCache: Record<string, ReportAction[]> = {};
-const lastMessageTextCache: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,

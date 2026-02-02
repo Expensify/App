@@ -3,13 +3,12 @@ import {measureFunction} from 'reassure';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
-import {getSortedReportActions, getSortedReportActionsForDisplay, shouldReportActionBeVisibleAsLastAction, getOriginalMessage, isMoneyRequestAction, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
+import {getSortedReportActions, getSortedReportActionsForDisplay, shouldReportActionBeVisibleAsLastAction, getOriginalMessage, isInviteOrRemovedAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {PersonalDetails, Report, ReportAction, ReportActions, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
+import type {PersonalDetails, Report, ReportActions, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
 import type Policy from '@src/types/onyx/Policy';
-import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -45,8 +44,12 @@ const createReportsWithActions = (count: number) => {
 
         const isArchived = i % 10 === 0;
         const reportTypeMod = i % 4;
-        const reportType =
-            reportTypeMod === 0 ? CONST.REPORT.TYPE.IOU : reportTypeMod === 1 ? CONST.REPORT.TYPE.EXPENSE : CONST.REPORT.TYPE.CHAT;
+        let reportType = CONST.REPORT.TYPE.CHAT;
+        if (reportTypeMod === 0) {
+            reportType = CONST.REPORT.TYPE.IOU;
+        } else if (reportTypeMod === 1) {
+            reportType = CONST.REPORT.TYPE.EXPENSE;
+        }
 
         reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
             ...report,
@@ -57,7 +60,7 @@ const createReportsWithActions = (count: number) => {
             private_isArchived: isArchived ? 'true' : 'false',
         };
 
-        const lastActorAccountID = report.lastActorAccountID || i;
+        const lastActorAccountID = report.lastActorAccountID ?? i;
         personalDetails[String(lastActorAccountID)] = createPersonalDetails(lastActorAccountID);
 
         if (i % 5 === 0) {
@@ -93,7 +96,7 @@ describe('LHN Performance Baseline', () => {
             ...policies,
             ...reportMetadata,
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
-        } as any);
+        } as Parameters<typeof Onyx.multiSet>[0]);
     });
 
     afterAll(() => {
@@ -107,8 +110,6 @@ describe('LHN Performance Baseline', () => {
             for (const reportKey of Object.keys(reports)) {
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
                 const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-                const nvp = reportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-                const isReportArchived = !!nvp?.private_isArchived;
 
                 if (actions) {
                     const canUserPerformWrite = true;
@@ -147,9 +148,9 @@ describe('LHN Performance Baseline', () => {
                     const sortedActions = getSortedReportActions(actionsArray, true);
                     const canUserPerformWrite = true;
 
-                    sortedActions.forEach((action) => {
+                    for (const action of sortedActions) {
                         shouldReportActionBeVisibleAsLastAction(action, canUserPerformWrite);
-                    });
+                    }
                 }
             }
         });
@@ -267,9 +268,7 @@ describe('LHN Performance Baseline', () => {
                             : undefined;
                     }
 
-                    void lastMessageTextFromReport;
-                    void lastAction;
-                    void lastActionReport;
+                    expect([lastMessageTextFromReport, lastAction, lastActionReport]).toBeDefined();
                 }
             }
         });
@@ -281,7 +280,7 @@ describe('LHN Performance Baseline', () => {
             ...smallDataSet.reports,
             ...smallDataSet.reportActions,
             ...smallDataSet.reportNameValuePairs,
-        } as any);
+        } as Parameters<typeof Onyx.multiSet>[0]);
         await waitForBatchedUpdates();
 
         await measureFunction(() => {
@@ -301,7 +300,7 @@ describe('LHN Performance Baseline', () => {
             ...largeDataSet.reports,
             ...largeDataSet.reportActions,
             ...largeDataSet.reportNameValuePairs,
-        } as any);
+        } as Parameters<typeof Onyx.multiSet>[0]);
         await waitForBatchedUpdates();
 
         await measureFunction(() => {
@@ -321,7 +320,7 @@ describe('LHN Performance Baseline', () => {
             ...dataSet.reports,
             ...dataSet.reportActions,
             ...dataSet.reportNameValuePairs,
-        } as any);
+        } as Parameters<typeof Onyx.multiSet>[0]);
         await waitForBatchedUpdates();
 
         await measureFunction(() => {
@@ -341,7 +340,7 @@ describe('LHN Performance Baseline', () => {
             ...dataSet.reports,
             ...dataSet.reportActions,
             ...dataSet.reportNameValuePairs,
-        } as any);
+        } as Parameters<typeof Onyx.multiSet>[0]);
         await waitForBatchedUpdates();
 
         await measureFunction(() => {
@@ -363,7 +362,7 @@ describe('LHN Performance Baseline', () => {
                 ...dataSet.reports,
                 ...dataSet.reportActions,
                 ...dataSet.reportNameValuePairs,
-            } as any);
+            } as Parameters<typeof Onyx.multiSet>[0]);
             await waitForBatchedUpdates();
 
             await measureFunction(() => {
@@ -381,7 +380,9 @@ describe('LHN Performance Baseline', () => {
 
     test('[LHN Performance] Cache usage verification - allSortedReportActions cache', async () => {
         await waitForBatchedUpdates();
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => {
+            setTimeout(resolve, 100);
+        });
 
         await measureFunction(() => {
             for (const reportKey of Object.keys(reports)) {

@@ -5,7 +5,6 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import SidebarUtils from '@libs/SidebarUtils';
-import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
@@ -24,7 +23,6 @@ function OptionRowLHNData({
     oneTransactionThreadReport,
     reportNameValuePairs,
     personalDetails = {},
-    preferredLocale = CONST.LOCALES.DEFAULT,
     policy,
     invoiceReceiverPolicy,
     parentReportAction,

@@ -643,7 +643,10 @@ function evictOldestCacheEntries(cache: Map<string, SortedReportActionsCacheEntr
 
     const entriesToRemove = cache.size - SORTED_REPORT_ACTIONS_CACHE_MAX_SIZE;
     for (let i = 0; i < entriesToRemove; i++) {
-        cache.delete(entries[i][0]);
+        const entry = entries.at(i);
+        if (entry !== undefined) {
+            cache.delete(entry[0]);
+        }
     }
 }
 
