@@ -179,6 +179,7 @@ function useSearchSelectorBase({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -214,6 +215,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     countryCode,
                     loginList,
+                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 });
@@ -314,6 +316,7 @@ function useSearchSelectorBase({
         areOptionsInitialized,
         searchContext,
         optionsWithContacts,
+        allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         betas,
@@ -329,10 +332,10 @@ function useSearchSelectorBase({
         getValidOptionsConfig,
         includeSelfDM,
         selectedOptions,
+        visibleReportActionsData,
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
-        allPolicies,
     ]);
 
     const isOptionSelected = useMemo(() => {

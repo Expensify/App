@@ -36,11 +36,13 @@ import type {
     SearchMemberGroup,
     SearchMerchantGroup,
     SearchMonthGroup,
+    SearchQuarterGroup,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
+    SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -531,6 +533,22 @@ type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
         /** Final and formatted "week" value used for displaying */
         formattedWeek: string;
+    };
+
+type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
+        /** Final and formatted "year" value used for displaying */
+        formattedYear: string;
+
+        /** Key used for sorting */
+        sortKey: number;
+    };
+
+type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.QUARTER} & SearchQuarterGroup & {
+        /** Final and formatted "quarter" value used for displaying */
+        formattedQuarter: string;
+
+        /** Sort key for sorting */
+        sortKey: number;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -1181,6 +1199,8 @@ export type {
     TransactionMerchantGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionWeekGroupListItemType,
+    TransactionYearGroupListItemType,
+    TransactionQuarterGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,
