@@ -291,6 +291,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         translate,
         currentUserAccountID,
         currentUserEmail,
+        reports,
     ]);
 
     const optionLength = useMemo(() => {

@@ -380,6 +380,7 @@ function MoneyRequestParticipantsSelector({
         inputHelperText,
         currentUserAccountID,
         currentUserEmail,
+        reports,
     ]);
 
     /**
