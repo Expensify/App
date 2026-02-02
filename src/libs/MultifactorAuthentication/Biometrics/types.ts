@@ -16,6 +16,12 @@ type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
 
 type MarqetaAuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['MQ_VALUE'];
 
+type AuthTypeInfo = {
+    code: MultifactorAuthenticationMethodCode;
+    name: AuthTypeName;
+    mqValue: MarqetaAuthTypeName;
+};
+
 type OutcomePaths = {
     successOutcome: AllMultifactorAuthenticationOutcomeType;
     failureOutcome: AllMultifactorAuthenticationOutcomeType;
@@ -101,4 +107,5 @@ export type {
     MarqetaAuthTypeName,
     OutcomePaths,
     AuthTypeName,
+    AuthTypeInfo,
 };

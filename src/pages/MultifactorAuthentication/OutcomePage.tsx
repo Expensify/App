@@ -11,8 +11,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import type {AuthTypeName, MarqetaAuthTypeName} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
@@ -21,10 +19,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
 
 type MultifactorAuthenticationOutcomePageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME>;
-
-function convertMQAuthenticationMethodToDisplayName(MQValue: MarqetaAuthTypeName | undefined): AuthTypeName {
-    return Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({MQ_VALUE: value}) => value === MQValue)?.NAME ?? SECURE_STORE_VALUES.AUTH_TYPE.UNKNOWN.NAME;
-}
 
 type MultifactorAuthenticationLocalize = LocaleContextProps & {
     translate: <TPath extends TranslationPaths>(path: TPath, params: MultifactorAuthenticationTranslationParams) => string;
@@ -45,8 +39,8 @@ function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthentication
     // Get text values from outcome config and translate them
     const headerTitle = translate(data.headerTitle);
     const title = translate(data.title);
-    const authType = convertMQAuthenticationMethodToDisplayName(state.authenticationMethod);
-    const description = translate(data.description, {authType, registered: false});
+
+    const description = translate(data.description, {authType: state.authenticationMethod?.name, registered: false});
 
     const CustomDescription = data?.customDescription;
     const CustomSubtitle = CustomDescription ? <CustomDescription /> : undefined;

@@ -153,7 +153,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 // Call backend to register the public key
                 const registrationResponse = await processRegistration({
                     publicKey: result.publicKey,
-                    authenticationMethod: result.authenticationMethod,
+                    authenticationMethod: result.authenticationMethod.mqValue,
                     challenge: registrationChallenge.challenge,
                     currentPublicKeyIDs: biometrics.serverKnownCredentialIDs,
                 });
@@ -223,7 +223,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     // Call backend with signed challenge
                     const scenarioAPIResponse = await processScenario(scenario, {
                         signedChallenge: result.signedChallenge,
-                        authenticationMethod: result.authenticationMethod,
+                        authenticationMethod: result.authenticationMethod.mqValue,
                         ...payload,
                     });
 

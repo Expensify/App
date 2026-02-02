@@ -9,7 +9,7 @@ import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorA
 import type {AuthenticationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import type {MarqetaAuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,7 +27,7 @@ type RegisterParams = {
 type BaseRegisterResult = {
     privateKey: string;
     publicKey: string;
-    authenticationMethod: MarqetaAuthTypeName;
+    authenticationMethod: AuthTypeInfo;
 };
 
 type RegisterResult =
@@ -49,7 +49,7 @@ type AuthorizeResultSuccess = {
     success: true;
     reason: MultifactorAuthenticationReason;
     signedChallenge: SignedChallenge;
-    authenticationMethod: MarqetaAuthTypeName;
+    authenticationMethod: AuthTypeInfo;
 };
 
 type AuthorizeResultFailure = {
@@ -174,9 +174,17 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
 
         // Store private key
         const privateKeyResult = await PrivateKeyStore.set(accountID, privateKey, {nativePromptTitle});
-        const marqetaAuthType = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === privateKeyResult.type)?.MQ_VALUE;
+        const authTypeEntry = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === privateKeyResult.type);
 
-        if (!privateKeyResult.value || marqetaAuthType === undefined) {
+        const authType = authTypeEntry
+            ? {
+                  code: authTypeEntry.CODE,
+                  name: authTypeEntry.NAME,
+                  mqValue: authTypeEntry.MQ_VALUE,
+              }
+            : undefined;
+
+        if (!privateKeyResult.value || authType === undefined) {
             onResult({
                 success: false,
                 reason: privateKeyResult.reason,
@@ -201,7 +209,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_PAIR_GENERATED,
             privateKey,
             publicKey,
-            authenticationMethod: marqetaAuthType,
+            authenticationMethod: authType,
         });
     };
 
@@ -240,9 +248,17 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         // Sign the challenge
         const signedChallenge = signTokenED25519(challenge, privateKeyData.value, publicKey);
         const authenticationMethodCode = privateKeyData.type;
-        const marqetaAuthType = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === authenticationMethodCode)?.MQ_VALUE;
+        const authTypeEntry = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === authenticationMethodCode);
 
-        if (!marqetaAuthType) {
+        const authType = authTypeEntry
+            ? {
+                  code: authTypeEntry.CODE,
+                  name: authTypeEntry.NAME,
+                  mqValue: authTypeEntry.MQ_VALUE,
+              }
+            : undefined;
+
+        if (!authType) {
             onResult({
                 success: false,
                 reason: VALUES.REASON.GENERIC.BAD_REQUEST,
@@ -255,7 +271,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
             success: true,
             reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
             signedChallenge,
-            authenticationMethod: marqetaAuthType,
+            authenticationMethod: authType,
         });
     };
 

@@ -2,7 +2,7 @@ import React, {createContext, useContext, useMemo, useReducer} from 'react';
 import type {ReactNode} from 'react';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
-import type {MarqetaAuthTypeName, MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {AuthTypeInfo, MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 
 type ErrorState = {
@@ -48,7 +48,7 @@ type MultifactorAuthenticationState = {
     isFlowComplete: boolean;
 
     /** Authentication method used (e.g., 'BIOMETRIC_FACE', 'BIOMETRIC_FINGERPRINT') */
-    authenticationMethod: MarqetaAuthTypeName | undefined;
+    authenticationMethod: AuthTypeInfo | undefined;
 };
 
 type MultifactorAuthenticationStateContextValue = {
@@ -91,7 +91,7 @@ type Action =
     | {type: 'SET_REGISTRATION_COMPLETE'; payload: boolean}
     | {type: 'SET_AUTHORIZATION_COMPLETE'; payload: boolean}
     | {type: 'SET_FLOW_COMPLETE'; payload: boolean}
-    | {type: 'SET_AUTHENTICATION_METHOD'; payload: MarqetaAuthTypeName | undefined}
+    | {type: 'SET_AUTHENTICATION_METHOD'; payload: AuthTypeInfo | undefined}
     | {type: 'INIT'; payload: InitPayload}
     | {type: 'RESET'};
 
