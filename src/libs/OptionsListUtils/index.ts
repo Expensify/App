@@ -671,7 +671,7 @@ function getLastMessageTextForReport({
                 iouReportID && iouReportActions
                     ? iouReportActions.find(
                           (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                              isReportActionVisible(reportAction, iouReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsForIOUReport) &&
+                              isReportActionVisible(reportAction, iouReportID, canUserPerformWrite, visibleReportActionsForIOUReport) &&
                               reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                               isMoneyRequestAction(reportAction),
                       )
