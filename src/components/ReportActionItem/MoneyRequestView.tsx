@@ -452,36 +452,33 @@ function MoneyRequestView({
         !getPendingFieldAction('amount') &&
         !pendingAction;
 
-    const saveBillable = (newBillable: boolean) => {
-        // If the value hasn't changed, don't request to save changes on the server and just close the modal
-        if (newBillable === getBillable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
-            return;
-        }
-        updateMoneyRequestBillable({
-            transactionID: transaction.transactionID,
-            transactionThreadReport,
-            parentReport,
-            value: newBillable,
-            policy,
-            policyTagList,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            parentReportNextStep,
-        });
-    };
+    const descriptionWrapperStyle = useMemo(() => [styles.pv2, styles.taskDescriptionMenuItem], [styles.pv2, styles.taskDescriptionMenuItem]);
+    const merchantWrapperStyle = useMemo(() => [styles.taskDescriptionMenuItem], [styles.taskDescriptionMenuItem]);
 
-    const saveReimbursable = (newReimbursable: boolean) => {
-        // If the value hasn't changed, don't request to save changes on the server and just close the modal
-        if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
-            return;
-        }
-        updateMoneyRequestReimbursable({
-            transactionID: transaction.transactionID,
+    const saveBillable = useCallback(
+        (newBillable: boolean) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newBillable === getBillable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
+                return;
+            }
+            updateMoneyRequestBillable({
+                transactionID: transaction.transactionID,
+                transactionThreadReport,
+                parentReport,
+                value: newBillable,
+                policy,
+                policyTagList,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+            });
+        },
+        [
+            transaction,
             transactionThreadReport,
             parentReport,
-            value: newReimbursable,
             policy,
             policyTagList,
             policyCategories,
@@ -489,8 +486,204 @@ function MoneyRequestView({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
-        });
-    };
+        ],
+    );
+
+    const saveReimbursable = useCallback(
+        (newReimbursable: boolean) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !transactionThreadReport?.reportID) {
+                return;
+            }
+            updateMoneyRequestReimbursable({
+                transactionID: transaction.transactionID,
+                transactionThreadReport,
+                parentReport,
+                value: newReimbursable,
+                policy,
+                policyTagList,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                parentReportNextStep,
+            });
+        },
+        [
+            transaction,
+            transactionThreadReport,
+            parentReport,
+            policy,
+            policyTagList,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            parentReportNextStep,
+        ],
+    );
+
+    const handleDistancePress = useCallback(() => {
+        if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+            return;
+        }
+
+        if (isExpenseSplit && isSplitAvailable) {
+            initSplitExpense(allTransactions, allReports, transaction);
+            return;
+        }
+
+        if (isOdometerDistanceRequest) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID));
+            return;
+        }
+
+        if (isManualDistanceRequest) {
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID, getReportRHPActiveRoute()),
+            );
+            return;
+        }
+
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID, getReportRHPActiveRoute()),
+        );
+    }, [transactionThreadReport?.reportID, isExpenseSplit, isSplitAvailable, isOdometerDistanceRequest, isManualDistanceRequest, iouType, transaction, allTransactions, allReports, getReportRHPActiveRoute]);
+
+    const handleDistanceRatePress = useCallback(() => {
+        if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+            return;
+        }
+
+        if (isExpenseSplit && isSplitAvailable) {
+            initSplitExpense(allTransactions, allReports, transaction);
+            return;
+        }
+
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID, getReportRHPActiveRoute()),
+        );
+    }, [transactionThreadReport?.reportID, isExpenseSplit, isSplitAvailable, iouType, transaction, allTransactions, allReports, getReportRHPActiveRoute]);
+
+    const handleAmountPress = useCallback(() => {
+        if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+            return;
+        }
+
+        if (isExpenseSplit && isSplitAvailable) {
+            initSplitExpense(allTransactions, allReports, transaction);
+            return;
+        }
+
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID, '', '', getReportRHPActiveRoute()),
+        );
+    }, [transactionThreadReport?.reportID, isExpenseSplit, isSplitAvailable, iouType, transaction, allTransactions, allReports, getReportRHPActiveRoute]);
+
+    const handleDescriptionPress = useCallback(() => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, getReportRHPActiveRoute()));
+    }, [transaction?.transactionID, iouType, transactionThreadReport?.reportID, getReportRHPActiveRoute]);
+
+    const handleMerchantPress = useCallback(() => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, getReportRHPActiveRoute()));
+    }, [transaction?.transactionID, transactionThreadReport?.reportID, iouType, getReportRHPActiveRoute]);
+
+    const handleDatePress = useCallback(() => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, getReportRHPActiveRoute()));
+    }, [transaction?.transactionID, transactionThreadReport?.reportID, iouType, getReportRHPActiveRoute]);
+
+    const handleCategoryPress = useCallback(() => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+        if (shouldNavigateToUpgradePath && transactionThreadReport?.reportID) {
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    action: CONST.IOU.ACTION.EDIT,
+                    iouType,
+                    transactionID: transaction.transactionID,
+                    reportID: transactionThreadReport?.reportID,
+                    upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                }),
+            );
+        } else if (!policy && shouldSelectPolicy) {
+            Navigation.navigate(
+                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, Navigation.getActiveRoute()),
+                ),
+            );
+        } else {
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, Navigation.getActiveRoute()),
+            );
+        }
+    }, [transaction?.transactionID, transactionThreadReport?.reportID, shouldNavigateToUpgradePath, iouType, policy, shouldSelectPolicy]);
+
+    const handleTaxRatePress = useCallback(() => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, getReportRHPActiveRoute()),
+        );
+    }, [transaction?.transactionID, transactionThreadReport?.reportID, iouType, getReportRHPActiveRoute]);
+
+    const handleTaxAmountPress = useCallback(() => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, getReportRHPActiveRoute()),
+        );
+    }, [transaction?.transactionID, transactionThreadReport?.reportID, iouType, getReportRHPActiveRoute]);
+
+    const handleAttendeesPress = useCallback(() => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID));
+    }, [transaction?.transactionID, transactionThreadReport?.reportID, iouType]);
+
+    const handleReportPress = useCallback(() => {
+        if (!canEditReport || !transactionThreadReport?.reportID || !transaction?.transactionID) {
+            return;
+        }
+        if (shouldNavigateToUpgradePath) {
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                    iouType,
+                    action: CONST.IOU.ACTION.EDIT,
+                    transactionID: transaction?.transactionID,
+                    reportID: transactionThreadReport.reportID,
+                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                }),
+            );
+            return;
+        }
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, transactionThreadReport.reportID, getReportRHPActiveRoute() || lastVisitedPath),
+        );
+    }, [transaction?.transactionID, transactionThreadReport?.reportID, canEditReport, shouldNavigateToUpgradePath, iouType, getReportRHPActiveRoute, lastVisitedPath]);
+
+    const handleViewTripDetailsPress = useCallback(() => {
+        if (!transaction?.transactionID) {
+            return;
+        }
+        const reservations = transaction.receipt?.reservationList?.length ?? 0;
+        if (reservations > 1) {
+            Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(transactionThreadReport?.reportID, transaction.transactionID, getReportRHPActiveRoute()));
+        }
+        Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(transactionThreadReport?.reportID, transaction.transactionID, '0', 0, getReportRHPActiveRoute()));
+    }, [transaction?.transactionID, transaction?.receipt?.reservationList, transactionThreadReport?.reportID, getReportRHPActiveRoute]);
 
     if (isManagedCardTransaction) {
         if (transactionPostedDate) {
@@ -603,46 +796,7 @@ function MoneyRequestView({
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
                     titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                            return;
-                        }
-
-                        if (isExpenseSplit && isSplitAvailable) {
-                            initSplitExpense(allTransactions, allReports, transaction);
-                            return;
-                        }
-
-                        if (isOdometerDistanceRequest) {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
-                            );
-                            return;
-                        }
-
-                        if (isManualDistanceRequest) {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction.transactionID,
-                                    transactionThreadReport.reportID,
-                                    getReportRHPActiveRoute(),
-                                ),
-                            );
-                            return;
-                        }
-
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
-                                CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                transaction.transactionID,
-                                transactionThreadReport.reportID,
-                                getReportRHPActiveRoute(),
-                            ),
-                        );
-                    }}
+                    onPress={handleDistancePress}
                     brickRoadIndicator={getErrorForField('waypoints') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('waypoints')}
                     copyValue={distanceCopyValue}
@@ -656,26 +810,7 @@ function MoneyRequestView({
                     interactive={canEditDistanceRate}
                     shouldShowRightIcon={canEditDistanceRate}
                     titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                            return;
-                        }
-
-                        if (isExpenseSplit && isSplitAvailable) {
-                            initSplitExpense(allTransactions, allReports, transaction);
-                            return;
-                        }
-
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
-                                CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                transaction.transactionID,
-                                transactionThreadReport.reportID,
-                                getReportRHPActiveRoute(),
-                            ),
-                        );
-                    }}
+                    onPress={handleDistanceRatePress}
                     brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('customUnitRateID')}
                     copyValue={distanceRateCopyValue}
@@ -705,6 +840,29 @@ function MoneyRequestView({
 
     const previousTagLength = getLengthOfTag(previousTag ?? '');
     const currentTagLength = getLengthOfTag(currentTransactionTag ?? '');
+
+    // Memoize tag handlers to prevent recreation on every render
+    const tagHandlers = useMemo(() => {
+        const handlers: Record<string, () => void> = {};
+        for (const {orderWeight} of policyTagLists) {
+            handlers[orderWeight] = () => {
+                if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
+                    return;
+                }
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                        CONST.IOU.ACTION.EDIT,
+                        iouType,
+                        orderWeight,
+                        transaction.transactionID,
+                        transactionThreadReport.reportID,
+                        getReportRHPActiveRoute(),
+                    ),
+                );
+            };
+        }
+        return handlers;
+    }, [policyTagLists, transaction?.transactionID, transactionThreadReport?.reportID, iouType, getReportRHPActiveRoute]);
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
@@ -766,21 +924,7 @@ function MoneyRequestView({
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                            return;
-                        }
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                orderWeight,
-                                transaction.transactionID,
-                                transactionThreadReport.reportID,
-                                getReportRHPActiveRoute(),
-                            ),
-                        );
-                    }}
+                    onPress={tagHandlers[orderWeight]}
                     brickRoadIndicator={tagError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={tagError}
                     shouldShowBasicTitle
@@ -846,28 +990,7 @@ function MoneyRequestView({
                         titleStyle={styles.textHeadlineH2}
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
-                        onPress={() => {
-                            if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                                return;
-                            }
-
-                            if (isExpenseSplit && isSplitAvailable) {
-                                initSplitExpense(allTransactions, allReports, transaction);
-                                return;
-                            }
-
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction.transactionID,
-                                    transactionThreadReport.reportID,
-                                    '',
-                                    '',
-                                    getReportRHPActiveRoute(),
-                                ),
-                            );
-                        }}
+                        onPress={handleAmountPress}
                         brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('amount')}
                         copyValue={amountCopyValue}
@@ -882,18 +1005,8 @@ function MoneyRequestView({
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
-                        onPress={() => {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction.transactionID,
-                                    transactionThreadReport?.reportID,
-                                    getReportRHPActiveRoute(),
-                                ),
-                            );
-                        }}
-                        wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                        onPress={handleDescriptionPress}
+                        wrapperStyle={descriptionWrapperStyle}
                         brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('comment')}
                         numberOfLinesTitle={0}
@@ -911,18 +1024,8 @@ function MoneyRequestView({
                             interactive={canEditMerchant}
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction.transactionID,
-                                        transactionThreadReport?.reportID,
-                                        getReportRHPActiveRoute(),
-                                    ),
-                                );
-                            }}
-                            wrapperStyle={[styles.taskDescriptionMenuItem]}
+                            onPress={handleMerchantPress}
+                            wrapperStyle={merchantWrapperStyle}
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
                             numberOfLinesTitle={0}
@@ -938,17 +1041,7 @@ function MoneyRequestView({
                         interactive={canEditDate}
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
-                        onPress={() => {
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(
-                                    CONST.IOU.ACTION.EDIT,
-                                    iouType,
-                                    transaction.transactionID,
-                                    transactionThreadReport?.reportID,
-                                    getReportRHPActiveRoute(),
-                                ),
-                            );
-                        }}
+                        onPress={handleDatePress}
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('date')}
                         copyValue={dateCopyValue}
@@ -964,41 +1057,7 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (shouldNavigateToUpgradePath && transactionThreadReport) {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                            action: CONST.IOU.ACTION.EDIT,
-                                            iouType,
-                                            transactionID: transaction.transactionID,
-                                            reportID: transactionThreadReport?.reportID,
-                                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                                        }),
-                                    );
-                                } else if (!policy && shouldSelectPolicy) {
-                                    Navigation.navigate(
-                                        ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                                CONST.IOU.ACTION.EDIT,
-                                                iouType,
-                                                transaction.transactionID,
-                                                transactionThreadReport?.reportID,
-                                                Navigation.getActiveRoute(),
-                                            ),
-                                        ),
-                                    );
-                                } else {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            iouType,
-                                            transaction.transactionID,
-                                            transactionThreadReport?.reportID,
-                                            Navigation.getActiveRoute(),
-                                        ),
-                                    );
-                                }
-                            }}
+                            onPress={handleCategoryPress}
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}
                             copyValue={categoryCopyValue}
@@ -1027,17 +1086,7 @@ function MoneyRequestView({
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction.transactionID,
-                                        transactionThreadReport?.reportID,
-                                        getReportRHPActiveRoute(),
-                                    ),
-                                );
-                            }}
+                            onPress={handleTaxRatePress}
                             brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('tax')}
                             copyValue={taxRateCopyValue}
@@ -1053,17 +1102,7 @@ function MoneyRequestView({
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
                             titleStyle={styles.flex1}
-                            onPress={() => {
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction.transactionID,
-                                        transactionThreadReport?.reportID,
-                                        getReportRHPActiveRoute(),
-                                    ),
-                                );
-                            }}
+                            onPress={handleTaxAmountPress}
                             copyValue={taxAmountCopyValue}
                             copyable={!!taxAmountCopyValue}
                         />
@@ -1081,9 +1120,7 @@ function MoneyRequestView({
                             }`}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID));
-                            }}
+                            onPress={handleAttendeesPress}
                             brickRoadIndicator={getErrorForField('attendees') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('attendees')}
                             interactive={canEdit}
@@ -1144,32 +1181,7 @@ function MoneyRequestView({
                             description={translate('common.report')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (!canEditReport || !transactionThreadReport) {
-                                    return;
-                                }
-                                if (shouldNavigateToUpgradePath) {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                            iouType,
-                                            action: CONST.IOU.ACTION.EDIT,
-                                            transactionID: transaction?.transactionID,
-                                            reportID: transactionThreadReport?.reportID,
-                                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                        }),
-                                    );
-                                    return;
-                                }
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        iouType,
-                                        transaction?.transactionID,
-                                        transactionThreadReport?.reportID,
-                                        getReportRHPActiveRoute() || lastVisitedPath,
-                                    ),
-                                );
-                            }}
+                            onPress={handleReportPress}
                             interactive={canEditReport}
                             shouldRenderAsHTML
                             copyValue={reportCopyValue}
@@ -1182,13 +1194,7 @@ function MoneyRequestView({
                     <MenuItem
                         title={translate('travel.viewTripDetails')}
                         icon={icons.Suitcase}
-                        onPress={() => {
-                            const reservations = transaction?.receipt?.reservationList?.length ?? 0;
-                            if (reservations > 1) {
-                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(transactionThreadReport?.reportID, transaction.transactionID, getReportRHPActiveRoute()));
-                            }
-                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(transactionThreadReport?.reportID, transaction.transactionID, '0', 0, getReportRHPActiveRoute()));
-                        }}
+                        onPress={handleViewTripDetailsPress}
                     />
                 )}
 
