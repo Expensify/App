@@ -30,6 +30,7 @@ import {clearDraftRule, setDraftRule, setNameValuePair} from '@libs/actions/User
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -125,8 +126,11 @@ function ExpenseRulesPage() {
         if (!expenseRule) {
             return;
         }
+        // Convert HTML comment back to markdown for editing
+        const commentMarkdown = expenseRule.comment ? Parser.htmlToMarkdown(expenseRule.comment) : undefined;
         setDraftRule({
             ...expenseRule,
+            comment: commentMarkdown,
             tax: expenseRule.tax?.field_id_TAX ? expenseRule.tax.field_id_TAX.externalID : undefined,
         });
         Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash));
