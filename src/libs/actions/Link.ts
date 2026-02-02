@@ -19,6 +19,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONFIG from '@src/CONFIG';
@@ -27,6 +28,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Account, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
@@ -187,23 +189,6 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
-/**
- * Normalizes a route by replacing route path variables with a generic placeholder(:id). For example /report/12345 becomes /report/:id
- */
-function getNormalizedRoute(route: string) {
-    const routeWithoutParams = route.split('?').at(0) ?? '';
-    const segments = routeWithoutParams.split('/').filter((segment) => segment !== '');
-    const normalizedSegments = segments.map((segment) => {
-        // Check if segment is a number, UUID, or likely a dynamic ID and return :id for that
-        if (/^[\d]+$/.test(segment) || /^[a-f0-9-]{20,}$/i.test(segment) || /^[A-Z0-9]{8,}$/i.test(segment)) {
-            return ':id';
-        }
-        return segment;
-    });
-
-    return normalizedSegments.join('/');
-}
-
 function openLink(href: string, environmentURL: string, isAttachment = false) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
@@ -215,10 +200,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen) {
-        const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
-        const currentRoute = Navigation.getActiveRoute();
-        const willOpenSameRoute = getNormalizedRoute(currentRoute) === getNormalizedRoute(internalNewExpensifyPath);
-        shouldCloseRHP = !willOpenInRHP || !willOpenSameRoute;
+        shouldCloseRHP = !willRouteNavigateToRHP(internalNewExpensifyPath as Route);
     }
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
@@ -272,11 +254,19 @@ function openReportFromDeepLink(
     const reportID = getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
+        // Start span for public room API call
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
+        });
+
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
         openReport(reportID, '', [], undefined, '0', true);
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
             doneCheckingPublicRoom();
         }
     } else {
@@ -340,6 +330,10 @@ function openReportFromDeepLink(
                             }
 
                             if (shouldSkipDeepLinkNavigation(route)) {
+                                return;
+                            }
+
+                            if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
                                 return;
                             }
 
