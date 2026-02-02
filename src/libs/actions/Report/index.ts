@@ -1263,6 +1263,7 @@ function openReport(
                 [iouReportActionID]: {
                     ...optimisticIOUAction,
                     childReportID: reportID,
+                    isOptimisticAction: true,
                 },
             },
         });

@@ -768,14 +768,15 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: '顔または指紋を使用して、パスワードやコード不要の迅速かつ安全な認証を有効にしてください。',
         },
         revoke: {
-            revoke: '取り消す',
             title: '顔／指紋 & パスキー',
-            explanation: '1 台以上のデバイスで顔 / 指紋またはパスキー認証が有効になっています。アクセスを取り消すと、今後どのデバイスでも次回の認証時にマジックコードが必要になります',
-            confirmationPrompt: '本当に実行しますか？次回、どのデバイスで確認する場合でも、マジックコードが必要になります',
+            explanation:
+                '1 台以上のデバイスで顔認証／指紋認証またはパスキー認証が有効になっています。アクセスを取り消すと、今後どのデバイスでも次回の認証時にマジックコードが必要になります。',
+            confirmationPrompt: '本当によろしいですか？今後、どのデバイスで認証する場合もマジックコードが必要になります。',
             cta: 'アクセスを取り消す',
             noDevices: '顔認証 / 指紋認証 またはパスキー認証用に登録されているデバイスがありません。  \nいずれかを登録すると、ここでそのアクセスを取り消せるようになります。',
             dismiss: '了解',
             error: 'リクエストに失敗しました。後でもう一度お試しください。',
+            remove: '削除',
         },
     },
     validateCodeModal: {
@@ -1053,6 +1054,8 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `このアップロードで追加される新しいワークスペースメンバー${count}人分の詳細を、以下で確認してください。既存のメンバーには、ロールの更新や招待メッセージは送信されません。`,
         }),
+        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions}件の取引がインポートされました。` : '1件の取引がインポートされました。',
     },
     receipt: {
         upload: '領収書をアップロード',
@@ -2307,6 +2310,7 @@ ${merchant} への ${amount}（${date}）`,
             expensesFromSubtitle: 'すべてのワークスペースメンバーは、すでに既存の承認ワークフローに属しています。',
             approverSubtitle: 'すべての承認者は既存のワークフローに属しています。',
         },
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `${members} からの経費で、承認者は ${approvers} です`,
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '送信頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
@@ -2454,7 +2458,7 @@ ${merchant} への ${amount}（${date}）`,
             title: 'ルールを追加',
             expenseContains: '経費に以下が含まれる場合:',
             applyUpdates: '次に、これらの更新を適用します。',
-            merchantHint: 'すべての加盟店に適用されるルールを作成するには * を入力してください',
+            merchantHint: 'すべての加盟店に適用されるルールを作成するには . を入力してください',
             addToReport: '「…という名前のレポートに追加」',
             createReport: '必要に応じてレポートを作成',
             applyToExistingExpenses: '既存の一致する経費に適用',
@@ -4919,6 +4923,15 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
             editStartDateDescription: '新しい取引の開始日を選択してください。その日以降のすべての取引を、すでに取り込んだものを除いて同期します。',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
+            importTransactions: {
+                title: 'ファイルから取引をインポート',
+                description: 'インポート時に適用されるファイルの設定を調整してください。',
+                cardDisplayName: 'カード表示名',
+                currency: '通貨',
+                transactionsAreReimbursable: '取扱明細は精算対象です',
+                flipAmountSign: '金額の符号を反転',
+                importButton: '取引をインポート',
+            },
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースのカードフィードを読み込む際にエラーが発生しました。もう一度お試しいただくか、管理者に連絡してください。',
@@ -8191,6 +8204,8 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             cta: '申請',
             offer50off: {title: '初年度が50％オフ！', subtitle: ({formattedTime}: {formattedTime: string}) => `残り${formattedTime}`},
             offer25off: {title: '初年度が25％オフ！', subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日'}`},
+            addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify Card を受け取る住所を入力してください。', cta: '住所を追加'},
+            activateCard: {title: 'Expensify Card を有効化', subtitle: 'カードを認証して、すぐに支出を始めましょう。', cta: '有効化'},
         },
     },
 };
