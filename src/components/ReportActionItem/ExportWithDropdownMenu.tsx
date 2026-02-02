@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {StyleSheet} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -90,19 +90,16 @@ function ExportWithDropdownMenu({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canBeExported, iconToDisplay, connectionName, report?.policyID, translate]);
 
-    const handleExport = useCallback(
-        (exportType: ReportExportType) => {
-            if (!reportID) {
-                return;
-            }
-            if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                exportToIntegration(reportID, connectionName);
-            } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported(reportID, connectionName);
-            }
-        },
-        [connectionName, reportID],
-    );
+    const handleExport = (exportType: ReportExportType) => {
+        if (!reportID) {
+            return;
+        }
+        if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+            exportToIntegration(reportID, connectionName);
+        } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+            markAsManuallyExported(reportID, connectionName);
+        }
+    };
 
     const savePreferredExportMethod = (value: ReportExportType) => {
         if (!report?.policyID) {
