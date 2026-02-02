@@ -13350,7 +13350,7 @@ function updateMultipleMoneyRequests(
 
         transactionChanges = removeUnchangedBulkEditFields(transactionChanges, transaction, baseIouReport, policy);
 
-        const updates: Record<string, string | number> = {};
+        const updates: Record<string, string | number | boolean> = {};
         if (transactionChanges.merchant) {
             updates.merchant = transactionChanges.merchant;
         }
@@ -13375,17 +13375,11 @@ function updateMultipleMoneyRequests(
         if (transactionChanges.amount) {
             updates.amount = transactionChanges.amount;
         }
-        if (transactionChanges.billable !== undefined || transactionChanges.reimbursable !== undefined) {
-            const billable = transactionChanges.billable;
-            const reimbursable = transactionChanges.reimbursable;
-
-            if (billable && reimbursable) {
-                updates.state = CONST.TRANSACTION.STATE_NUM.REIMBURSABLE_BILLABLE;
-            } else if (billable) {
-                updates.state = CONST.TRANSACTION.STATE_NUM.BILLABLE;
-            } else if (reimbursable) {
-                updates.state = CONST.TRANSACTION.STATE_NUM.REIMBURSABLE;
-            }
+        if (transactionChanges.billable) {
+            updates.billable = transactionChanges.billable;
+        }
+        if (transactionChanges.reimbursable) {
+            updates.reimbursable = transactionChanges.reimbursable;
         }
 
         // Skip if no updates

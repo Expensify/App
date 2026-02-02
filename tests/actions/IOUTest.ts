@@ -10211,6 +10211,59 @@ describe('actions/IOU', () => {
             canEditFieldSpy.mockRestore();
         });
 
+        it('sends billable and reimbursable updates for bulk edit', () => {
+            const transactionID = 'transaction-7';
+            const transactionThreadReportID = 'thread-7';
+            const iouReportID = 'iou-7';
+            const policy = createRandomPolicy(7, CONST.POLICY.TYPE.TEAM);
+
+            const transactionThread: Report = {
+                ...createRandomReport(7, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID: iouReportID,
+                policyID: policy.id,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(8, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`]: transactionThread,
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(7),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: 1000,
+                billable: false,
+                reimbursable: true,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests([transactionID], {billable: true, reimbursable: false}, policy, reports, transactions, {});
+
+            const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
+            const updates = JSON.parse(params.updates) as {billable: boolean; reimbursable: boolean};
+            expect(updates.billable).toBe(true);
+            expect(updates.reimbursable).toBe(false);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
         it('keeps invoice amount updates positive', () => {
             const transactionID = 'transaction-2';
             const transactionThreadReportID = 'thread-2';

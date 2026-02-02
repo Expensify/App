@@ -1833,11 +1833,6 @@ const CONST = {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
         },
-        STATE_NUM: {
-            REIMBURSABLE: 3,
-            BILLABLE: 4,
-            REIMBURSABLE_BILLABLE: 5,
-        },
     },
     TIME_TRACKING: {
         UNIT: {
