@@ -15,15 +15,15 @@ import type IOURequestStepDistanceGPSProps from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
-    const {asset: ToddInCarGPS} = useMemoizedLazyAsset(() => loadIllustration('ToddInCarGPS'));
+    const {asset: ToddInCar} = useMemoizedLazyAsset(() => loadIllustration('ToddInCar'));
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
         <View style={[styles.ph5, styles.pv10, styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
-            <View style={[styles.gpsWebIllustrationContainer]}>
+            <View style={[styles.toddInCarIllustrationContainer]}>
                 <ImageSVG
-                    src={ToddInCarGPS}
+                    src={ToddInCar}
                     contentFit="contain"
                 />
             </View>

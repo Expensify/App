@@ -5170,12 +5170,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 220,
         },
 
-        uberConfirmationIllustrationContainer: {
-            width: 260,
-            height: 172,
-        },
-
-        gpsWebIllustrationContainer: {
+        toddInCarIllustrationContainer: {
             width: 256,
             height: 144,
         },
