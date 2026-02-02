@@ -3774,8 +3774,8 @@ function getAddedBudgetMessage(translate: LocalizedTranslate, reportAction: Onyx
     const value = newValue as PolicyBudgetFrequency;
 
     if (newValue && value?.frequency && entityName && (entityType === 'category' || entityType === 'tag')) {
-        const sharedAmount = convertAmountToDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
-        const individualAmount = convertAmountToDisplayString(value?.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+        const sharedAmount = convertAmountToDisplayString(value.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+        const individualAmount = convertAmountToDisplayString(value.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const frequency = translate(`workspace.common.budgetFrequency.${value.frequency}`);
         return translate('workspaceActions.addBudget', {
             frequency,

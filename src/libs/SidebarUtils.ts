@@ -930,9 +930,9 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS)) {
             result.alternateText = translate('workspaceActions.deletedAllTags');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST)) {
-            result.alternateText = getTagListUpdatedMessage(translate, lastAction) ?? '';
+            result.alternateText = getTagListUpdatedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED)) {
-            result.alternateText = getTagListUpdatedRequiredMessage(translate, lastAction) ?? '';
+            result.alternateText = getTagListUpdatedRequiredMessage(translate, lastAction);
         } else if (
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX) ||
