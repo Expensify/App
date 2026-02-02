@@ -26,13 +26,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {getCachedLastMessageText, getLastMessageTextForReport} from '@libs/OptionsListUtils';
+import {getCachedLastMessageText, getCachedReportActionsForDisplay, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {
     getLastVisibleAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportActionActorAccountID,
     isInviteOrRemovedAction,
+    isReportActionVisibleAsLastAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
@@ -239,13 +240,20 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
             const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
-            const lastAction = getLastVisibleAction(
-                reportID,
-                canUserPerformWrite,
-                {},
-                itemReportActions ? {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: itemReportActions} : undefined,
-                visibleReportActionsData,
-            );
+            const cachedActionsForDisplay = getCachedReportActionsForDisplay(reportID);
+            const visibleFromCache =
+                cachedActionsForDisplay.length > 0
+                    ? cachedActionsForDisplay.filter((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, reportID))
+                    : [];
+            const lastAction =
+                visibleFromCache.at(0) ??
+                getLastVisibleAction(
+                    reportID,
+                    canUserPerformWrite,
+                    {},
+                    itemReportActions ? {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: itemReportActions} : undefined,
+                    visibleReportActionsData,
+                );
 
             const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, item) ?? item.lastActorAccountID;
             let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID && personalDetails?.[lastActorAccountID] ? personalDetails[lastActorAccountID] : null;
