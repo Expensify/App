@@ -1,4 +1,0 @@
-diff --git a/node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.m b/node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.mm
-similarity index 100%
-rename from node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.m
-rename to node_modules/react-native-device-info/ios/RNDeviceInfo/RNDeviceInfo.mm

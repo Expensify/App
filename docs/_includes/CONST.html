@@ -1,7 +1,0 @@
-{% if jekyll.environment == "production" %}
-    {% assign MAIN_SITE_URL = "https://new.expensify.com" %}
-{% else %}
-    {% assign MAIN_SITE_URL = "https://dev.new.expensify.com:8082" %}
-{% endif %}
-
-{% capture CONCIERGE_CHAT_URL %}{{MAIN_SITE_URL}}/concierge{% endcapture %}

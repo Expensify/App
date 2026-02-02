@@ -1,6 +1,0 @@
-framework module FPCallCapability {
-  umbrella header "FPCallCapability.h"
-  export *
-
-  module * { export * }
-}

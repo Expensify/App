@@ -1,4 +1,0 @@
-<resources>
-    <attr name="windowSplashScreenAnimatedIcon" format="reference" />
-    <attr name="windowSplashScreenBackground" format="color" />
-</resources>
