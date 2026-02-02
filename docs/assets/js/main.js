@@ -168,12 +168,12 @@ function initSearchPage() {
 
     searchForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const q = input.value.trim();
-        if (q) {
-            const url = '/search?q=' + encodeURIComponent(q) + (platform ? '&platform=' + encodeURIComponent(platform) : '');
+        const query = input.value.trim();
+        if (query) {
+            const url = '/search?q=' + encodeURIComponent(query) + (platform ? '&platform=' + encodeURIComponent(platform) : '');
             history.replaceState(null, '', url);
             title.textContent = 'Search results';
-            searchPageQuery(q);
+            searchPageQuery(query);
         }
     });
 
