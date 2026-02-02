@@ -210,7 +210,15 @@ function useSearchSelectorBase({
                     reports,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, reports, {
+                return getValidOptions({
+                    options: optionsWithContacts,
+                    policies: allPolicies,
+                    draftComments,
+                    nvpDismissedProductTraining,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    reports,
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -223,7 +231,15 @@ function useSearchSelectorBase({
                     personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, reports, {
+                return getValidOptions({
+                    options: optionsWithContacts,
+                    policies: allPolicies,
+                    draftComments,
+                    nvpDismissedProductTraining,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    reports,
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
@@ -234,33 +250,39 @@ function useSearchSelectorBase({
                     personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
-                return getValidOptions(
-                    optionsWithContacts,
-                    allPolicies,
+                return getValidOptions({
+                    options: optionsWithContacts,
+                    policies: allPolicies,
                     draftComments,
                     nvpDismissedProductTraining,
                     loginList,
                     currentUserAccountID,
                     currentUserEmail,
                     reports,
-                    {
-                        betas,
-                        includeMultipleParticipantReports: true,
-                        includeP2P: true,
-                        forcePolicyNamePreview: true,
-                        includeOwnedWorkspaceChats: true,
-                        includeSelfDM: true,
-                        includeThreads: true,
-                        includeReadOnly: false,
-                        searchString: computedSearchTerm,
-                        maxElements: maxResults,
-                        includeUserToInvite,
-                        personalDetails,
-                    },
+                    betas,
+                    includeMultipleParticipantReports: true,
+                    includeP2P: true,
+                    forcePolicyNamePreview: true,
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    includeThreads: true,
+                    includeReadOnly: false,
+                    searchString: computedSearchTerm,
+                    maxElements: maxResults,
+                    includeUserToInvite,
+                    personalDetails,
                     countryCode,
-                );
+                });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, reports, {
+                return getValidOptions({
+                    options: optionsWithContacts,
+                    policies: allPolicies,
+                    draftComments,
+                    nvpDismissedProductTraining,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    reports,
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,
@@ -279,7 +301,15 @@ function useSearchSelectorBase({
                     personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, reports, {
+                return getValidOptions({
+                    options: optionsWithContacts,
+                    policies: allPolicies,
+                    draftComments,
+                    nvpDismissedProductTraining,
+                    loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
+                    reports,
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,

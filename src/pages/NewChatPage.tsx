@@ -95,26 +95,24 @@ function useOptions() {
     const reports = listOptions?.reports ?? [];
     const personalDetails = listOptions?.personalDetails ?? [];
 
-    const defaultOptions = getValidOptions(
-        {
+    const defaultOptions = getValidOptions({
+        options: {
             reports,
             personalDetails: personalDetails.concat(contacts),
         },
-        allPolicies,
+        policies: allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         loginList,
         currentUserAccountID,
         currentUserEmail,
-        allReports,
-        {
-            betas: betas ?? [],
-            includeSelfDM: true,
-            shouldAlwaysIncludeDM: true,
-            personalDetails: allPersonalDetails,
-        },
+        reports: allReports,
+        betas: betas ?? [],
+        includeSelfDM: true,
+        shouldAlwaysIncludeDM: true,
+        personalDetails: allPersonalDetails,
         countryCode,
-    );
+    });
 
     const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
 

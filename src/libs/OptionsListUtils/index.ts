@@ -172,8 +172,10 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {
     FilterUserToInviteConfig,
+    GetMemberInviteOptionsParams,
     GetOptionsConfig,
     GetUserToInviteConfig,
+    GetValidOptionsParams,
     GetValidReportsConfig,
     IsValidReportsConfig,
     MemberForList,
@@ -2251,36 +2253,34 @@ function getRestrictedLogins(
 /**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
-function getValidOptions(
-    options: OptionList,
-    policiesCollection: OnyxCollection<Policy>,
-    draftComments: OnyxCollection<string> | undefined,
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
-    loginList: OnyxEntry<Login>,
-    currentUserAccountID: number,
-    currentUserEmail: string,
-    reports: OnyxCollection<Report>,
-    {
-        excludeLogins = {},
-        includeSelectedOptions = false,
-        includeRecentReports = true,
-        recentAttendees,
-        selectedOptions = [],
-        shouldSeparateSelfDMChat = false,
-        shouldSeparateWorkspaceChat = false,
-        excludeHiddenThreads = false,
-        canShowManagerMcTest = false,
-        searchString,
-        maxElements,
-        includeUserToInvite = false,
-        maxRecentReportElements = undefined,
-        shouldAcceptName = false,
-        personalDetails,
-        ...config
-    }: GetOptionsConfig = {},
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-): Options {
+function getValidOptions({
+    options,
+    policies: policiesCollection,
+    draftComments,
+    nvpDismissedProductTraining,
+    loginList,
+    currentUserAccountID,
+    currentUserEmail,
+    reports,
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
+    visibleReportActionsData = {},
+    excludeLogins = {},
+    includeSelectedOptions = false,
+    includeRecentReports = true,
+    recentAttendees,
+    selectedOptions = [],
+    shouldSeparateSelfDMChat = false,
+    shouldSeparateWorkspaceChat = false,
+    excludeHiddenThreads = false,
+    canShowManagerMcTest = false,
+    searchString,
+    maxElements,
+    includeUserToInvite = false,
+    maxRecentReportElements = undefined,
+    shouldAcceptName = false,
+    personalDetails,
+    ...config
+}: GetValidOptionsParams): Options {
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
     // Gather shared configs:
@@ -2556,39 +2556,37 @@ function getSearchOptions({
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
-    const optionList = getValidOptions(
+    const optionList = getValidOptions({
         options,
-        allPolicies,
+        policies: allPolicies,
         draftComments,
         nvpDismissedProductTraining,
         loginList,
         currentUserAccountID,
         currentUserEmail,
         reports,
-        {
-            betas,
-            includeRecentReports,
-            includeMultipleParticipantReports: true,
-            showChatPreviewLine: isUsedInChatFinder,
-            includeP2P: true,
-            includeOwnedWorkspaceChats: true,
-            includeThreads: true,
-            includeMoneyRequests: true,
-            includeTasks: true,
-            includeReadOnly,
-            includeSelfDM: true,
-            shouldBoldTitleByDefault: !isUsedInChatFinder,
-            excludeHiddenThreads: true,
-            maxElements: maxResults,
-            includeCurrentUser,
-            searchString: searchQuery,
-            includeUserToInvite,
-            shouldShowGBR,
-            shouldUnreadBeBold,
-        },
+        betas,
+        includeRecentReports,
+        includeMultipleParticipantReports: true,
+        showChatPreviewLine: isUsedInChatFinder,
+        includeP2P: true,
+        includeOwnedWorkspaceChats: true,
+        includeThreads: true,
+        includeMoneyRequests: true,
+        includeTasks: true,
+        includeReadOnly,
+        includeSelfDM: true,
+        shouldBoldTitleByDefault: !isUsedInChatFinder,
+        excludeHiddenThreads: true,
+        maxElements: maxResults,
+        includeCurrentUser,
+        searchString: searchQuery,
+        includeUserToInvite,
+        shouldShowGBR,
+        shouldUnreadBeBold,
         countryCode,
         visibleReportActionsData,
-    );
+    });
 
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2683,40 +2681,36 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
  * Build the options for the Workspace Member Invite view
  * This method will be removed. See https://github.com/Expensify/App/issues/66615 for more information.
  */
-function getMemberInviteOptions(
-    personalDetails: Array<SearchOption<PersonalDetails>>,
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
-    loginList: OnyxEntry<Login>,
-    currentUserAccountID: number,
-    currentUserEmail: string,
-    reports: OnyxCollection<Report>,
-    betas: Beta[] = [],
-    excludeLogins: Record<string, boolean> = {},
+function getMemberInviteOptions({
+    personalDetails,
+    nvpDismissedProductTraining,
+    loginList,
+    currentUserAccountID,
+    currentUserEmail,
+    reports,
+    betas = [],
+    excludeLogins = {},
     includeSelectedOptions = false,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-): Options {
-    return getValidOptions(
-        {personalDetails, reports: []},
-        undefined,
-        undefined,
+    countryCode = CONST.DEFAULT_COUNTRY_CODE,
+    visibleReportActionsData = {},
+}: GetMemberInviteOptionsParams): Options {
+    return getValidOptions({
+        options: {personalDetails, reports: []},
         nvpDismissedProductTraining,
         loginList,
         currentUserAccountID,
         currentUserEmail,
         reports,
-        {
-            betas,
-            includeP2P: true,
-            excludeLogins,
-            includeSelectedOptions,
-            includeRecentReports: false,
-            searchString: '',
-            maxElements: undefined,
-        },
+        betas,
+        includeP2P: true,
+        excludeLogins,
+        includeSelectedOptions,
+        includeRecentReports: false,
+        searchString: '',
+        maxElements: undefined,
         countryCode,
         visibleReportActionsData,
-    );
+    });
 }
 
 /**

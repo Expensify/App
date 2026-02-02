@@ -96,42 +96,43 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     }, [selectedOptions]);
 
     const optionsList = useMemo(() => {
-        return memoizedGetValidOptions(
-            {
+        return memoizedGetValidOptions({
+            options: {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
-            allPolicies,
+            policies: allPolicies,
             draftComments,
             nvpDismissedProductTraining,
             loginList,
             currentUserAccountID,
             currentUserEmail,
             reports,
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeCurrentUser: true,
-                personalDetails,
-            },
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeCurrentUser: true,
+            personalDetails,
             countryCode,
-        );
-    }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails, currentUserAccountID, currentUserEmail, reports]);
+        });
+    }, [
+        options.reports,
+        options.personalDetails,
+        allPolicies,
+        draftComments,
+        nvpDismissedProductTraining,
+        loginList,
+        countryCode,
+        personalDetails,
+        currentUserAccountID,
+        currentUserEmail,
+        reports,
+    ]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(
-            optionsList,
-            cleanSearchTerm,
-            countryCode,
-            loginList,
-            currentUserEmail,
-            currentUserAccountID,
-            reports,
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-                canInviteUser: false,
-            },
-        );
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, reports, {
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            canInviteUser: false,
+        });
     }, [optionsList, cleanSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, reports]);
 
     const listData = useMemo(() => {

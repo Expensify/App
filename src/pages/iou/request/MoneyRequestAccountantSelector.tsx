@@ -82,26 +82,24 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             getEmptyOptions();
         }
 
-        const optionList = memoizedGetValidOptions(
-            {
+        const optionList = memoizedGetValidOptions({
+            options: {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
-            allPolicies,
+            policies: allPolicies,
             draftComments,
             nvpDismissedProductTraining,
             loginList,
             currentUserAccountID,
             currentUserEmail,
             reports,
-            {
-                betas,
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                action,
-                personalDetails,
-            },
+            betas,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            action,
+            personalDetails,
             countryCode,
-        );
+        });
 
         const orderedOptions = orderOptions(optionList);
 

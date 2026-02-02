@@ -67,25 +67,23 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return defaultListOptions;
         }
 
-        return memoizedGetValidOptions(
-            {
+        return memoizedGetValidOptions({
+            options: {
                 reports: options.reports,
                 personalDetails: options.personalDetails,
             },
-            allPolicies,
+            policies: allPolicies,
             draftComments,
             nvpDismissedProductTraining,
             loginList,
             currentUserAccountID,
             currentUserEmail,
             reports,
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeCurrentUser: true,
-                personalDetails,
-            },
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeCurrentUser: true,
+            personalDetails,
             countryCode,
-        );
+        });
     }, [
         areOptionsInitialized,
         options.reports,

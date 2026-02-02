@@ -2,7 +2,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type CONST from '@src/CONST';
+import type {Beta, DismissedProductTraining, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -276,10 +278,39 @@ type OrderReportOptionsConfig = {
 
 type ReportAndPersonalDetailOptions = Pick<Options, 'recentReports' | 'personalDetails' | 'workspaceChats'>;
 
+type GetValidOptionsParams = {
+    options: OptionList;
+    policies?: OnyxCollection<Policy>;
+    draftComments?: OnyxCollection<string>;
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
+    loginList: OnyxEntry<Login>;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    reports: OnyxCollection<Report>;
+    countryCode?: number;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+} & GetOptionsConfig;
+
+type GetMemberInviteOptionsParams = {
+    personalDetails: Array<SearchOption<PersonalDetails>>;
+    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
+    loginList: OnyxEntry<Login>;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    reports: OnyxCollection<Report>;
+    betas?: Beta[];
+    excludeLogins?: Record<string, boolean>;
+    includeSelectedOptions?: boolean;
+    countryCode?: number;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+};
+
 export type {
     FilterUserToInviteConfig,
+    GetMemberInviteOptionsParams,
     GetOptionsConfig,
     GetUserToInviteConfig,
+    GetValidOptionsParams,
     GetValidOptionsSharedConfig,
     GetValidReportsConfig,
     MemberForList,

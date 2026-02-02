@@ -57,7 +57,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {DismissedProductTraining, PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
@@ -734,19 +734,19 @@ describe('OptionsListUtils', () => {
         it('should sort options alphabetically and preserves reportID for personal details with existing reports', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions()
-            let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions(
-                {
+            let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions({
+                options: {
                     reports: OPTIONS.reports,
                     personalDetails: OPTIONS.personalDetails,
                 },
-                allPolicies,
-                {},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call orderOptions()
             results = orderOptions(results);
 
@@ -777,16 +777,16 @@ describe('OptionsListUtils', () => {
 
         it('should sort personal details options alphabetically when only personal details are provided', () => {
             // Given a set of personalDetails and an empty reports array
-            let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions(
-                {personalDetails: OPTIONS.personalDetails, reports: []},
-                allPolicies,
-                {},
+            let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions({
+                options: {personalDetails: OPTIONS.personalDetails, reports: []},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call orderOptions()
             results = orderOptions(results);
 
@@ -813,7 +813,16 @@ describe('OptionsListUtils', () => {
         it('should return empty options when no reports or personal details are provided', () => {
             // Given empty arrays of reports and personalDetails
             // When we call getValidOptions()
-            const results = getValidOptions({reports: [], personalDetails: []}, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, REPORTS);
+            const results = getValidOptions({
+                options: {reports: [], personalDetails: []},
+                policies: allPolicies,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
 
             // Then the result should be empty
             expect(results.personalDetails).toEqual([]);
@@ -827,16 +836,16 @@ describe('OptionsListUtils', () => {
         it('should include Concierge by default in results', () => {
             // Given a set of reports and personalDetails that includes Concierge
             // When we call getValidOptions()
-            const results = getValidOptions(
-                {reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
 
             // Then the result should include all personalDetails except the currently logged in user
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
@@ -847,22 +856,20 @@ describe('OptionsListUtils', () => {
         it('should exclude Concierge when excludedLogins is specified', () => {
             // Given a set of reports and personalDetails that includes Concierge and a config object that excludes Concierge
             // When we call getValidOptions()
-            const results = getValidOptions(
-                {
+            const results = getValidOptions({
+                options: {
                     reports: OPTIONS_WITH_CONCIERGE.reports,
                     personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
                 },
-                allPolicies,
-                {},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
+            });
 
             // Then the result should include all personalDetails except the currently logged in user and Concierge
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
@@ -873,19 +880,17 @@ describe('OptionsListUtils', () => {
         it('should exclude Chronos when excludedLogins is specified', () => {
             // Given a set of reports and personalDetails that includes Chronos and a config object that excludes Chronos
             // When we call getValidOptions()
-            const results = getValidOptions(
-                {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
+            });
 
             // Then the result should include all personalDetails except the currently logged in user and Chronos
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
@@ -896,22 +901,20 @@ describe('OptionsListUtils', () => {
         it('should exclude Receipts option from results when excludedLogins is specified', () => {
             // Given a set of reports and personalDetails that includes receipts and a config object that excludes receipts
             // When we call getValidOptions()
-            const results = getValidOptions(
-                {
+            const results = getValidOptions({
+                options: {
                     reports: OPTIONS_WITH_RECEIPTS.reports,
                     personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
                 },
-                allPolicies,
-                {},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
+            });
 
             // Then the result should include all personalDetails except the currently logged in user and receipts
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
@@ -922,26 +925,23 @@ describe('OptionsListUtils', () => {
         it('should include Manager McTest in results by default', () => {
             // Given a set of reports and personalDetails that includes Manager McTest
             // When we call getValidOptions()
-            const result = getValidOptions(
-                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                allPolicies,
-                {},
-                {
-                    // @ts-expect-error Mocked for testing
+            const result = getValidOptions({
+                options: {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
+                nvpDismissedProductTraining: {
                     [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH]: {
                         timestamp: DateUtils.getDBTime(new Date().valueOf()),
                     },
-                },
+                } as OnyxEntry<DismissedProductTraining>,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    includeP2P: true,
-                    canShowManagerMcTest: true,
-                    betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                includeP2P: true,
+                canShowManagerMcTest: true,
+                betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+            });
 
             // Then the result should include all personalDetails except the currently logged in user
             expect(result.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 1);
@@ -952,21 +952,19 @@ describe('OptionsListUtils', () => {
         it('should exclude Manager McTest from results if flag is set to false', () => {
             // Given a set of reports and personalDetails that includes Manager McTest and a config object that excludes Manager McTest
             // When we call getValidOptions()
-            const result = getValidOptions(
-                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                allPolicies,
-                {},
+            const result = getValidOptions({
+                options: {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    includeP2P: true,
-                    canShowManagerMcTest: false,
-                    betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                includeP2P: true,
+                canShowManagerMcTest: false,
+                betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+            });
 
             // Then the result should include all personalDetails except the currently logged in user and Manager McTest
             expect(result.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 2);
@@ -986,21 +984,19 @@ describe('OptionsListUtils', () => {
                 )
                 .then(() => {
                     // When we call getValidOptions()
-                    const optionsWhenUserAlreadySubmittedExpense = getValidOptions(
-                        {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                        allPolicies,
-                        {},
+                    const optionsWhenUserAlreadySubmittedExpense = getValidOptions({
+                        options: {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                        policies: allPolicies,
+                        draftComments: {},
                         nvpDismissedProductTraining,
                         loginList,
-                        CURRENT_USER_ACCOUNT_ID,
-                        CURRENT_USER_EMAIL,
-                        REPORTS,
-                        {
-                            includeP2P: true,
-                            canShowManagerMcTest: true,
-                            betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
-                        },
-                    );
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                        currentUserEmail: CURRENT_USER_EMAIL,
+                        reports: REPORTS,
+                        includeP2P: true,
+                        canShowManagerMcTest: true,
+                        betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+                    });
 
                     // Then the result should include all personalDetails except the currently logged in user and Manager McTest
                     expect(optionsWhenUserAlreadySubmittedExpense.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 2);
@@ -1044,19 +1040,17 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
             };
             // When we call getValidOptions with includeMultipleParticipantReports set to true
-            const results = getValidOptions(
-                {reports: [adminRoom], personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: [adminRoom], personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    includeMultipleParticipantReports: true,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                includeMultipleParticipantReports: true,
+            });
             const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
 
             // Then the result should include the admin room
@@ -1099,20 +1093,18 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
-            const results = getValidOptions(
-                {reports: [workspaceChat], personalDetails: []},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: [workspaceChat], personalDetails: []},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    includeMultipleParticipantReports: true,
-                    showRBR: true,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                includeMultipleParticipantReports: true,
+                showRBR: true,
+            });
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
         });
 
@@ -1152,20 +1144,18 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
-            const results = getValidOptions(
-                {reports: [workspaceChat], personalDetails: []},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: [workspaceChat], personalDetails: []},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    includeMultipleParticipantReports: true,
-                    showRBR: false,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                includeMultipleParticipantReports: true,
+                showRBR: false,
+            });
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
         });
 
@@ -1209,21 +1199,19 @@ describe('OptionsListUtils', () => {
                 isBold: false,
             };
 
-            const results = getValidOptions(
-                {reports: [inputOption], personalDetails: []},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: [inputOption], personalDetails: []},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    includeRecentReports: true,
-                    shouldUnreadBeBold: true,
-                    includeMultipleParticipantReports: true,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                includeRecentReports: true,
+                shouldUnreadBeBold: true,
+                includeMultipleParticipantReports: true,
+            });
 
             expect(results.recentReports.at(0)?.isBold).toBe(true);
             expect(results.recentReports.at(0)?.isUnread).toBe(true);
@@ -1245,19 +1233,17 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call getValidOptions with personalDetails parameter
-            const results = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                {},
-                {},
+            const results = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: {},
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    personalDetails: customPersonalDetails,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                personalDetails: customPersonalDetails,
+            });
 
             // Then the function should complete without errors and return valid results
             // The personalDetails param is used internally by prepareReportOptionsForDisplay for workspace chats
@@ -1270,7 +1256,15 @@ describe('OptionsListUtils', () => {
         it('should include all reports by default', () => {
             // Given a set of reports and personalDetails that includes workspace rooms
             // When we call getValidOptions()
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, allPolicies, {}, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, REPORTS, {
+            const results = getValidOptions({
+                options: OPTIONS_WITH_WORKSPACE_ROOM,
+                policies: allPolicies,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1287,16 +1281,16 @@ describe('OptionsListUtils', () => {
         it('should exclude users with recent reports from personalDetails', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with no search value
-            const results = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             const reportLogins = new Set(results.recentReports.map((reportOption) => reportOption.login));
             const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.has(personalDetailOption.login));
 
@@ -1309,19 +1303,17 @@ describe('OptionsListUtils', () => {
         it('should exclude selected options', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with excludeLogins param
-            const results = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    excludeLogins: {'peterparker@expensify.com': true},
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                excludeLogins: {'peterparker@expensify.com': true},
+            });
 
             // Then the option should not appear anywhere in either list
             expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
@@ -1331,16 +1323,16 @@ describe('OptionsListUtils', () => {
         it('should include Concierge in the results by default', () => {
             // Given a set of report and personalDetails that include Concierge
             // When we call getValidOptions()
-            const results = getValidOptions(
-                {reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
 
             // Then the result should include all personalDetails except the currently logged in user
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
@@ -1351,22 +1343,20 @@ describe('OptionsListUtils', () => {
         it('should exclude Concierge from the results when it is specified in excludedLogins', () => {
             // Given a set of reports and personalDetails that includes Concierge
             // When we call getValidOptions with excludeLogins param
-            const results = getValidOptions(
-                {
+            const results = getValidOptions({
+                options: {
                     reports: OPTIONS_WITH_CONCIERGE.reports,
                     personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
                 },
-                undefined,
-                {},
+                policies: undefined,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
+            });
 
             // Then the result should include all personalDetails except the currently logged in user and Concierge
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
@@ -1378,19 +1368,17 @@ describe('OptionsListUtils', () => {
         it('should exclude Chronos from the results when it is specified in excludedLogins', () => {
             // given a set of reports and personalDetails that includes Chronos
             // When we call getValidOptions() with excludeLogins param
-            const results = getValidOptions(
-                {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
+            });
 
             // Then the result should include all personalDetails except the currently logged in user and Chronos
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
@@ -1402,22 +1390,20 @@ describe('OptionsListUtils', () => {
         it('should exclude Receipts from the results when it is specified in excludedLogins', () => {
             // Given a set of reports and personalDetails that includes receipts
             // When we call getValidOptions() with excludeLogins param
-            const results = getValidOptions(
-                {
+            const results = getValidOptions({
+                options: {
                     reports: OPTIONS_WITH_RECEIPTS.reports,
                     personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
                 },
-                undefined,
-                {},
+                policies: undefined,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
+            });
 
             // Then the result should include all personalDetails except the currently logged in user and receipts
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
@@ -1430,19 +1416,17 @@ describe('OptionsListUtils', () => {
             // Given a set of reports and personalDetails with multiple reports
             // When we call getValidOptions with maxRecentReportElements set to 2
             const maxRecentReports = 2;
-            const results = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    maxRecentReportElements: maxRecentReports,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                maxRecentReportElements: maxRecentReports,
+            });
 
             // Then the recent reports should be limited to the specified number
             expect(results.recentReports.length).toBeLessThanOrEqual(maxRecentReports);
@@ -1451,29 +1435,27 @@ describe('OptionsListUtils', () => {
         it('should show all reports when maxRecentReportElements is not specified', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions without maxRecentReportElements
-            const resultsWithoutLimit = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const resultsWithoutLimit = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
-            const resultsWithLimit = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
+            const resultsWithLimit = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    maxRecentReportElements: 2,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                maxRecentReportElements: 2,
+            });
 
             // Then the results without limit should have more or equal reports
             expect(resultsWithoutLimit.recentReports.length).toBeGreaterThanOrEqual(resultsWithLimit.recentReports.length);
@@ -1482,29 +1464,27 @@ describe('OptionsListUtils', () => {
         it('should not affect personalDetails count when maxRecentReportElements is specified', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with and without maxRecentReportElements
-            const resultsWithoutLimit = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const resultsWithoutLimit = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
-            const resultsWithLimit = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
+            const resultsWithLimit = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    maxRecentReportElements: 2,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                maxRecentReportElements: 2,
+            });
 
             // Then personalDetails should remain the same regardless of maxRecentReportElements
             expect(resultsWithLimit.personalDetails.length).toBe(resultsWithoutLimit.personalDetails.length);
@@ -1515,20 +1495,18 @@ describe('OptionsListUtils', () => {
             // When we call getValidOptions with both maxElements and maxRecentReportElements
             const maxRecentReports = 3;
             const maxTotalElements = 10;
-            const results = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    maxElements: maxTotalElements,
-                    maxRecentReportElements: maxRecentReports,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                maxElements: maxTotalElements,
+                maxRecentReportElements: maxRecentReports,
+            });
 
             // Then recent reports should be limited by maxRecentReportElements
             expect(results.recentReports.length).toBeLessThanOrEqual(maxRecentReports);
@@ -1550,30 +1528,28 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getValidOptions for share destination with an empty search value
-            const results = getValidOptions(
-                {reports: filteredReports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: filteredReports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    betas: [],
-                    includeMultipleParticipantReports: true,
-                    showChatPreviewLine: true,
-                    forcePolicyNamePreview: true,
-                    includeThreads: true,
-                    includeMoneyRequests: true,
-                    includeTasks: true,
-                    excludeLogins: {},
-                    includeOwnedWorkspaceChats: true,
-                    includeSelfDM: true,
-                    searchString: '',
-                    includeUserToInvite: false,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                betas: [],
+                includeMultipleParticipantReports: true,
+                showChatPreviewLine: true,
+                forcePolicyNamePreview: true,
+                includeThreads: true,
+                includeMoneyRequests: true,
+                includeTasks: true,
+                excludeLogins: {},
+                includeOwnedWorkspaceChats: true,
+                includeSelfDM: true,
+                searchString: '',
+                includeUserToInvite: false,
+            });
 
             // Then all the recent reports should be returned except the archived rooms and the hidden thread
             expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 2);
@@ -1592,30 +1568,28 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getValidOptions for share destination with an empty search value
-            const results = getValidOptions(
-                {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const results = getValidOptions({
+                options: {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    betas: [],
-                    includeMultipleParticipantReports: true,
-                    showChatPreviewLine: true,
-                    forcePolicyNamePreview: true,
-                    includeThreads: true,
-                    includeMoneyRequests: true,
-                    includeTasks: true,
-                    excludeLogins: {},
-                    includeOwnedWorkspaceChats: true,
-                    includeSelfDM: true,
-                    searchString: '',
-                    includeUserToInvite: false,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                betas: [],
+                includeMultipleParticipantReports: true,
+                showChatPreviewLine: true,
+                forcePolicyNamePreview: true,
+                includeThreads: true,
+                includeMoneyRequests: true,
+                includeTasks: true,
+                excludeLogins: {},
+                includeOwnedWorkspaceChats: true,
+                includeSelfDM: true,
+                searchString: '',
+                includeUserToInvite: false,
+            });
 
             // Then all recent reports should be returned except the archived rooms and the hidden thread
             expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 2);
@@ -1626,7 +1600,15 @@ describe('OptionsListUtils', () => {
         it('should sort personal details alphabetically and return expected structure', () => {
             // Given a set of personalDetails
             // When we call getMemberInviteOptions
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, REPORTS, []);
+            const results = getMemberInviteOptions({
+                personalDetails: OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                betas: [],
+            });
 
             // Then personal details should be sorted alphabetically
             expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
@@ -1642,10 +1624,19 @@ describe('OptionsListUtils', () => {
 
         it('should exclude logins when excludeLogins is provided', () => {
             // Given a set of personalDetails and excludeLogins
-            const excludeLogins = {'reedrichards@expensify.com': true};
+            const excludeLoginsMap = {'reedrichards@expensify.com': true};
 
             // When we call getMemberInviteOptions with excludeLogins
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, REPORTS, [], excludeLogins);
+            const results = getMemberInviteOptions({
+                personalDetails: OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                betas: [],
+                excludeLogins: excludeLoginsMap,
+            });
 
             // Then the excluded login should not be in the results
             const excludedUser = results.personalDetails.find((detail) => detail.login === 'reedrichards@expensify.com');
@@ -2066,19 +2057,17 @@ describe('OptionsListUtils', () => {
         it('should not return any results if the search value is on an excluded logins list', () => {
             const searchText = 'admin@expensify.com';
             // Given a set of options with excluded logins list
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            });
             // When we call filterAndOrderOptions with a search value and excluded logins list
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS, {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -2163,7 +2152,15 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options if search value does not match any personal details (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, REPORTS, []);
+            const options = getMemberInviteOptions({
+                personalDetails: OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                betas: [],
+            });
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2173,7 +2170,15 @@ describe('OptionsListUtils', () => {
 
         it('should return one personal detail if search value matches an email (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, REPORTS, []);
+            const options = getMemberInviteOptions({
+                personalDetails: OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                betas: [],
+            });
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2193,30 +2198,28 @@ describe('OptionsListUtils', () => {
                 return filtered;
             }, []);
             // When we call getValidOptions for share destination with the filteredReports
-            const options = getValidOptions(
-                {reports: filteredReports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: filteredReports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    betas: [],
-                    includeMultipleParticipantReports: true,
-                    showChatPreviewLine: true,
-                    forcePolicyNamePreview: true,
-                    includeThreads: true,
-                    includeMoneyRequests: true,
-                    includeTasks: true,
-                    excludeLogins: {},
-                    includeOwnedWorkspaceChats: true,
-                    includeSelfDM: true,
-                    searchString: '',
-                    includeUserToInvite: false,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                betas: [],
+                includeMultipleParticipantReports: true,
+                showChatPreviewLine: true,
+                forcePolicyNamePreview: true,
+                includeThreads: true,
+                includeMoneyRequests: true,
+                includeTasks: true,
+                excludeLogins: {},
+                includeOwnedWorkspaceChats: true,
+                includeSelfDM: true,
+                searchString: '',
+                includeUserToInvite: false,
+            });
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'mutants', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2236,30 +2239,28 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getValidOptions for share destination with the filteredReports
-            const options = getValidOptions(
-                {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    betas: [],
-                    includeMultipleParticipantReports: true,
-                    showChatPreviewLine: true,
-                    forcePolicyNamePreview: true,
-                    includeThreads: true,
-                    includeMoneyRequests: true,
-                    includeTasks: true,
-                    excludeLogins: {},
-                    includeOwnedWorkspaceChats: true,
-                    includeSelfDM: true,
-                    searchString: '',
-                    includeUserToInvite: false,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                betas: [],
+                includeMultipleParticipantReports: true,
+                showChatPreviewLine: true,
+                forcePolicyNamePreview: true,
+                includeThreads: true,
+                includeMoneyRequests: true,
+                includeTasks: true,
+                excludeLogins: {},
+                includeOwnedWorkspaceChats: true,
+                includeSelfDM: true,
+                searchString: '',
+                includeUserToInvite: false,
+            });
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
             const filteredOptions = filterAndOrderOptions(options, 'Avengers Room', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2279,22 +2280,21 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getValidOptions for share destination with the filteredReports
-            const options = getValidOptions(
-                {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    betas: [],
-                    includeMultipleParticipantReports: true,
-                    showChatPreviewLine: true,
-                    forcePolicyNamePreview: true,
-                    includeThreads: true,
-                    includeMoneyRequests: true,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                betas: [],
+                includeMultipleParticipantReports: true,
+                showChatPreviewLine: true,
+                forcePolicyNamePreview: true,
+                includeThreads: true,
+                includeMoneyRequests: true,
                     includeTasks: true,
                     excludeLogins: {},
                     includeOwnedWorkspaceChats: true,
@@ -2312,16 +2312,16 @@ describe('OptionsListUtils', () => {
 
         it('should show the option from personal details when searching for personal detail with no existing report', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
             const filteredOptions = filterAndOrderOptions(options, 'hulk', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2335,16 +2335,16 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2357,16 +2357,16 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options but should return an user to invite if no matching options exist and the search value is a potential email', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2379,16 +2379,16 @@ describe('OptionsListUtils', () => {
 
         it('should return user to invite when search term has a period with options for it that do not contain the period', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2400,16 +2400,16 @@ describe('OptionsListUtils', () => {
 
         it('should return user which has displayName with accent mark when search value without accent mark', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value without accent mark
             const filteredOptions = filterAndOrderOptions(options, 'Timothee', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2419,16 +2419,16 @@ describe('OptionsListUtils', () => {
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '5005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2443,16 +2443,16 @@ describe('OptionsListUtils', () => {
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with country code added', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '+15005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2467,16 +2467,16 @@ describe('OptionsListUtils', () => {
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with special characters added', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
             const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2491,16 +2491,16 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options or user to invite if contact number contains alphabet characters', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
             const filteredOptions = filterAndOrderOptions(options, '998243aaaa', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2513,16 +2513,16 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options if search value does not match any personal details', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS);
 
@@ -2532,16 +2532,16 @@ describe('OptionsListUtils', () => {
 
         it('should return one recent report and no personal details if a search value provides an email', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS, {
                 sortByReportTypeInSearch: true,
@@ -2557,16 +2557,16 @@ describe('OptionsListUtils', () => {
 
         it('should return all matching reports and personal details', () => {
             // Given a set of options
-            const options = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
-                allPolicies,
-                {},
+            const options = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                policies: allPolicies,
+                draftComments: {},
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
             const filteredOptions = filterAndOrderOptions(options, '.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, REPORTS, {
                 maxRecentReportsToShow: 5,
@@ -4101,7 +4101,16 @@ describe('OptionsListUtils', () => {
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
 
             // Test that getValidOptions accepts policies collection as second parameter
-            const results = getValidOptions({reports: [], personalDetails: []}, policies, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, REPORTS);
+            const results = getValidOptions({
+                options: {reports: [], personalDetails: []},
+                policies,
+                draftComments: undefined,
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -4109,8 +4118,16 @@ describe('OptionsListUtils', () => {
         });
 
         it('should work with undefined policies', () => {
-            const options = {reports: [], personalDetails: []};
-            const results = getValidOptions(options, undefined, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, REPORTS);
+            const results = getValidOptions({
+                options: {reports: [], personalDetails: []},
+                policies: undefined,
+                draftComments: undefined,
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -4118,8 +4135,16 @@ describe('OptionsListUtils', () => {
         });
 
         it('should work with empty policies collection', () => {
-            const options = {reports: [], personalDetails: []};
-            const results = getValidOptions(options, {}, undefined, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, REPORTS);
+            const results = getValidOptions({
+                options: {reports: [], personalDetails: []},
+                policies: {},
+                draftComments: undefined,
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+            });
 
             expect(results).toBeDefined();
             expect(results.recentReports).toBeDefined();
@@ -4143,20 +4168,18 @@ describe('OptionsListUtils', () => {
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`]: policy};
 
             // Verify function works with policies parameter
-            const results = getValidOptions(
-                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+            const results = getValidOptions({
+                options: {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 policies,
-                undefined,
+                draftComments: undefined,
                 nvpDismissedProductTraining,
                 loginList,
-                CURRENT_USER_ACCOUNT_ID,
-                CURRENT_USER_EMAIL,
-                REPORTS,
-                {
-                    betas: [],
-                    includeRecentReports: true,
-                },
-            );
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                reports: REPORTS,
+                betas: [],
+                includeRecentReports: true,
+            });
 
             expect(results.recentReports).toBeDefined();
             expect(Array.isArray(results.recentReports)).toBe(true);
