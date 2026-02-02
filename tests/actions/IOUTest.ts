@@ -8907,34 +8907,34 @@ describe('actions/IOU', () => {
             });
         });
 
-        // it('should call notifyNewAction after updating the money request category', async () => {
-        //     const transactionID = '100';
-        //     const transactionThreadReport = {reportID: '3'} as Report;
-        //     const fakePolicy: Policy = {
-        //         ...createRandomPolicy(22),
-        //         taxRates: CONST.DEFAULT_TAX,
-        //         rules: {},
-        //     };
-        //     await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount: 100, transactionID});
-        //     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, transactionThreadReport);
+        it('should call notifyNewAction after updating the money request category', async () => {
+            const transactionID = '100';
+            const transactionThreadReport = {reportID: '3'} as Report;
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(22),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount: 100, transactionID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, transactionThreadReport);
 
-        //     updateMoneyRequestCategory({
-        //         transactionID,
-        //         transactionThreadReport,
-        //         parentReport: undefined,
-        //         category: 'Advertising',
-        //         policy: fakePolicy,
-        //         policyTagList: undefined,
-        //         policyCategories: undefined,
-        //         policyRecentlyUsedCategories: [],
-        //         currentUserAccountIDParam: 123,
-        //         currentUserEmailParam: 'existing@example.com',
-        //         isASAPSubmitBetaEnabled: false,
-        //         parentReportNextStep: undefined,
-        //     });
+            updateMoneyRequestCategory({
+                transactionID,
+                transactionThreadReport,
+                parentReport: undefined,
+                category: 'Advertising',
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                policyRecentlyUsedCategories: [],
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
 
-        //     expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        // });
+            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('setDraftSplitTransaction', () => {
