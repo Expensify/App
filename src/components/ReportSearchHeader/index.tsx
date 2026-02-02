@@ -9,6 +9,10 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
+    const statusContainerStyle = useMemo(() => {
+        return [isLargeScreenWidth ? styles.mt1 : styles.mt0Half, report?.shouldShowStatusAsPending && styles.offlineFeedbackPending];
+    }, [isLargeScreenWidth, styles.mt1, styles.mt0Half, report?.shouldShowStatusAsPending, styles.offlineFeedbackPending]);
+
     const middleContent = useMemo(() => {
         return (
             <AvatarWithDisplayName
@@ -21,10 +25,21 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 avatarBorderColor={avatarBorderColor}
                 customDisplayNameStyle={styles.fontWeightNormal}
                 parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
-                parentNavigationStatusContainerStyles={isLargeScreenWidth ? styles.mt1 : styles.mt0Half}
+                parentNavigationStatusContainerStyles={statusContainerStyle}
             />
         );
-    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1, isLargeScreenWidth, styles.textMicro, styles.mt0Half]);
+    }, [
+        report,
+        transactions,
+        avatarBorderColor,
+        styles.fontWeightNormal,
+        styles.textLineHeightNormal,
+        styles.minHeight4,
+        styles.mt1,
+        isLargeScreenWidth,
+        styles.textMicro,
+        statusContainerStyle,
+    ]);
 
     return (
         <View
