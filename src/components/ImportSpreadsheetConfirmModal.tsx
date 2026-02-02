@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -24,20 +24,10 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
     const {showConfirmModal} = useConfirmModal();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
-    const [titleText, setTitleText] = useState('');
-    const [promptText, setPromptText] = useState('');
-
-    useEffect(() => {
-        if (!isVisible || !spreadsheet?.importFinalModal) {
-            return;
-        }
-        const title = spreadsheet.importFinalModal.titleKey ? translate(spreadsheet.importFinalModal.titleKey) : '';
-        const prompt = spreadsheet.importFinalModal.promptKey
-            ? translate(spreadsheet.importFinalModal.promptKey, spreadsheet.importFinalModal.promptKeyParams as TranslationParameters<typeof spreadsheet.importFinalModal.promptKey>[0])
-            : '';
-        setTitleText(title);
-        setPromptText(prompt);
-    }, [isVisible, spreadsheet, translate]);
+    const titleText = spreadsheet?.importFinalModal?.titleKey ? translate(spreadsheet.importFinalModal.titleKey) : '';
+    const promptText = spreadsheet?.importFinalModal?.promptKey
+        ? translate(spreadsheet.importFinalModal.promptKey, spreadsheet.importFinalModal.promptKeyParams as TranslationParameters<typeof spreadsheet.importFinalModal.promptKey>[0])
+        : '';
 
     useEffect(() => {
         if (!isVisible || !titleText || !promptText) {
