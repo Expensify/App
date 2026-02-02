@@ -114,17 +114,19 @@ type SecurityGroupKey = `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${st
 /**
  * Combination of security group key and security groups that the user belongs to.
  */
-type UserSecurityGroupData = {
-    /**
-     * The ID (key) of the security group the user belongs to.
-     */
-    key: SecurityGroupKey;
+type UserSecurityGroupData =
+    | {
+          /**
+           * The ID (key) of the security group the user belongs to.
+           */
+          key: SecurityGroupKey;
 
-    /**
-     * The security group data.
-     */
-    securityGroup: Partial<DomainSecurityGroup>;
-} | undefined;
+          /**
+           * The security group data.
+           */
+          securityGroup: Partial<DomainSecurityGroup>;
+      }
+    | undefined;
 
 export {type SamlMetadata, type DomainSecurityGroup, type UserSecurityGroupData, type SecurityGroupKey};
 

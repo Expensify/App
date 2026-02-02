@@ -2,10 +2,8 @@ import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
-import type {SecurityGroupKey, SecurityGroupsData} from '@src/types/onyx/Domain';
-import {UserSecurityGroupData} from '@src/types/onyx/Domain';
+import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
 
