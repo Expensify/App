@@ -13375,10 +13375,10 @@ function updateMultipleMoneyRequests(
         if (transactionChanges.amount) {
             updates.amount = transactionChanges.amount;
         }
-        if (transactionChanges.billable) {
+        if (transactionChanges.billable !== undefined) {
             updates.billable = transactionChanges.billable;
         }
-        if (transactionChanges.reimbursable) {
+        if (transactionChanges.reimbursable !== undefined) {
             updates.reimbursable = transactionChanges.reimbursable;
         }
 
