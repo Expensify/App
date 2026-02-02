@@ -192,6 +192,7 @@ function Footer({navigateFocus}: FooterProps) {
                                                             accessible
                                                             accessibilityRole={CONST.ROLE.LINK}
                                                             accessibilityLabel={translate(translationPath)}
+                                                            sentryLabel={translationPath}
                                                             onPress={() => {
                                                                 if (onPress) {
                                                                     onPress({} as GestureResponderEvent);
