@@ -282,7 +282,7 @@ button {
         padding: 24px;
 
         @include breakpoint($breakpoint-tablet) {
-            padding: 44px;
+            padding: 44px 44px 40px 44px;
         }
 
         #header-button {
