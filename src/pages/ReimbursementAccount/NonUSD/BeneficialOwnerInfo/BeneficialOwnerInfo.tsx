@@ -96,6 +96,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
             return;
         }
 
+        // We need to check value of local isSubmittingRef because on initial render reimbursementAccount?.isSuccess is still true after submitting the previous step
         if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
             isSubmittingRef.current = false;
             onSubmit();

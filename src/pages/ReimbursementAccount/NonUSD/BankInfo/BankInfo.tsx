@@ -68,6 +68,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
             return;
         }
 
+        // We need to check value of local isSubmittingRef because on initial render reimbursementAccount?.isSuccess is still true after submitting the previous step
         if (reimbursementAccount?.isSuccess === true && isSubmittingRef.current) {
             isSubmittingRef.current = false;
             onSubmit();
