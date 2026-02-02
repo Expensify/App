@@ -46,6 +46,7 @@ The goal of this document is to:
 |------|----------------------|
 | **PR Author** | Owns the correctness, quality, and testing of their changes. Must demonstrate a clear understanding of what was changed and why. |
 | **C+ Reviewer** | Acts as the final safety net. Validates proper testing, catches edge cases, and ensures code quality standards are met. |
+| **Internal Engineer (CME)** | Internal authority to ensure code is secure, compliant, not malicious, and not propagating bad code patterns. |
 
 ### What This Means in Practice
 
@@ -105,6 +106,8 @@ All PR titles should follow a consistent format to improve clarity, searchabilit
 - Helps reviewers understand the author's thought process
 - Creates a paper trail for decision-making
 
+> **The best explanations will explain why the change is being done, not just what is changing.**
+
 ### Minimum Requirements
 
 Even a single sentence is acceptable:
@@ -128,7 +131,7 @@ A PR is considered **ready for review** when:
 
 | Requirement | Description |
 |------------|-------------|
-| ✅ Manual tests documented | Clear, step-by-step testing instructions |
+| ✅ Manual and QA tests documented | Clear, step-by-step testing instructions |
 | ✅ CI passing | All automated tests and lint checks pass |
 | ✅ No `[WIP]` or `[HOLD]` in title | Title indicates the PR is ready for final review |
 | ✅ Screenshots/videos provided | Visual proof for all required platforms |
@@ -142,6 +145,7 @@ Before requesting review, the Author must:
 3. Provide comprehensive manual test steps
 4. Ensure unit tests cover the changed logic
 5. Verify CI is green (tests, lint, type checks)
+6. Address all AI reviewer comments (e.g. Codex Review) – respond with 👍/👎 and provide explanations where applicable
 
 ---
 
@@ -175,7 +179,7 @@ Merge conflicts that arise **after** marking a PR ready are acceptable and can b
 |------|-------------|
 | **Primary Verification** | Confirm the fix/feature works as intended (happy path) |
 | **Basic Regression Testing** | Verify existing flows still work |
-| **Unit Test Coverage** | Add tests to prevent future regressions |
+| **Unit Test Coverage** | Add tests for both positive and negative flows (e.g., test when a parameter exists AND when it doesn't, test when a boolean is true AND false) |
 | **All Platform Testing** | Test on Web, iOS, Android, and mWeb |
 | **Document Test Steps** | Provide clear reproduction and verification steps |
 
@@ -250,7 +254,9 @@ Different types of PRs carry different risks and require tailored focus areas.
 | **Minor lint issues** | Note in review, let Author fix in final pass |
 | **Merge conflicts** | Review logic/code, Author resolves conflicts after |
 | **Unrelated failing workflows** | Continue review if failure is clearly not from this PR |
-| **Pre-existing console errors** | Report in Slack `#expensify-bugs`, don't block PR |
+| **Pre-existing console errors** | C+ Reviewers: Report in Slack `#expensify-bugs`, don't block PR |
+
+> **Tip**: If a reviewer's comment starts with **"NAB"** (Not A Blocker), the author knows it's their decision whether or not to make the suggested change.
 
 ### The Goal
 
@@ -275,7 +281,9 @@ Consider splitting a PR when:
 - The author cannot confidently explain every change
 - Testing becomes unwieldy or impossible to cover comprehensively
 - Multiple unrelated changes are bundled together
-- The diff is difficult to review in one sitting (rule of thumb: 400+ lines of logic)
+- The diff is difficult to review in one sitting (rule of thumb: **400+ lines of logic** / **20+ files changed**)
+
+> **Note**: When evaluating file count, focus on files with **extensive logic changes**. Translation files, type definitions, and similar auto-generated or boilerplate changes can be excluded from this count.
 
 ### Benefits of Smaller PRs
 
