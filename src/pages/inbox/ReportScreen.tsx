@@ -8,7 +8,7 @@ import type {FlatList, ViewStyle} from 'react-native';
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -182,7 +182,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<OnyxTypes.Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
@@ -355,7 +354,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     // wrapping in useMemo to stabilize children re-rendering
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,  {allowStaleData: true, canBeMissing: false});
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
     const isTransactionThreadView = isReportTransactionThread(report);
