@@ -913,6 +913,7 @@ function MoneyRequestConfirmationList({
         isReadOnly,
         isMovingTransactionFromTrackExpense,
         getCurrencySymbol,
+        isManualDistanceRequest,
     ]);
 
     // Auto select the category if there is only one enabled category and it is required
