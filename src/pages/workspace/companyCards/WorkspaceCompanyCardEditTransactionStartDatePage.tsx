@@ -111,7 +111,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
                     title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), {compareParams: false})}
                 />
-                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
+                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.editStartDateDescription')}</Text>
                 <View style={styles.flex1}>
                     <SelectionList
                         ListItem={SingleSelectListItem}

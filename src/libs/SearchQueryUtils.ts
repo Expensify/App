@@ -53,6 +53,7 @@ type FilterKeys = keyof typeof CONST.SEARCH.SYNTAX_FILTER_KEYS;
 // This map contains chars that match each operator
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
+    [CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS]: '*:' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN]: '<' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]: '<=' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN]: '>' as const,
@@ -439,6 +440,11 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
             result.policyID = [result.policyID];
         }
 
+        // Default groupBy to category when a chart view is specified without an explicit groupBy
+        if (result.view !== CONST.SEARCH.VIEW.TABLE && !result.groupBy) {
+            result.groupBy = CONST.SEARCH.GROUP_BY.CATEGORY;
+        }
+
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
         if (result.limit !== undefined) {
             const num = Number(result.limit);
@@ -471,7 +477,16 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
 
+    // Check if view was explicitly set by the user (exists in rawFilterList or differs from default)
+    const wasViewExplicitlySet =
+        (queryJSON?.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false) || (queryJSON?.view && queryJSON.view !== defaultQueryJSON?.view);
+
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
+        // Skip view if it wasn't explicitly set by the user
+        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && !wasViewExplicitlySet) {
+            continue;
+        }
+
         const existingFieldValue = queryJSON?.[key];
         const queryFieldValue = existingFieldValue ?? defaultQueryJSON?.[key];
 
@@ -582,7 +597,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, groupBy, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, status, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options?.sortBy ?? CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -596,6 +611,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (groupBy) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+    }
+
+    // View is only valid when groupBy is set
+    if (view && groupBy) {
+        const sanitizedView = sanitizeSearchValue(view);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW}:${sanitizedView}`);
     }
 
     if (status && typeof status === 'string') {
@@ -735,7 +756,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     const limitValue = limit ?? options?.limit;
-    if (limitValue !== undefined) {
+    if (limitValue) {
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${limitValue}`);
     }
 
@@ -766,7 +787,7 @@ function buildFilterFormValuesFromQuery(
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    cardList: OnyxTypes.CardList,
+    cardList: OnyxTypes.CardList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
 ) {
@@ -812,7 +833,7 @@ function buildFilterFormValuesFromQuery(
             );
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList[card]);
+            filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList?.[card]);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
             filtersForm[key as typeof filterKey] = filterValues.filter((feed) => feed);
@@ -995,6 +1016,11 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.groupBy) {
         filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
+
+        // View is only allowed when groupBy is set
+        if (queryJSON.view) {
+            filtersForm[FILTER_KEYS.VIEW] = queryJSON.view;
+        }
     }
 
     if (queryJSON.columns) {
@@ -1040,7 +1066,7 @@ function getFilterDisplayValue(
     filterValue: string,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
-    cardList: OnyxTypes.CardList,
+    cardList: OnyxTypes.CardList | undefined,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
@@ -1090,7 +1116,7 @@ function getDisplayQueryFiltersForKey(
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
-    cardList: OnyxTypes.CardList,
+    cardList: OnyxTypes.CardList | undefined,
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
@@ -1399,7 +1425,7 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     const selectedColumns = [queryJSON.columns ?? []].flat();
     const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
+    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !queryJSON.groupBy && !hasCustomColumns;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {

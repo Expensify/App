@@ -2,6 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Card} from '.';
+import type {CardList} from './Card';
 import type {CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
 import type Report from './Report';
@@ -73,6 +74,11 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
+ * The derived value for visible report actions.
+ */
+type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
+
+/**
  * The errors of a card.
  */
 type CardErrors = {
@@ -117,7 +123,7 @@ type CardFeedErrorState = {
     /**
      * Whether some workspace has errors.
      */
-    // hasWorkspaceErrors: boolean;
+    hasWorkspaceErrors: boolean;
 
     /**
      * Whether some feed connection is broken.
@@ -137,6 +143,10 @@ type FeedErrors = CardFeedErrorState & {
      * The errors of all cards for a specific feed within a workspace/domain.
      */
     cardErrors: Record<string, CardErrors>;
+    /**
+     * The errors of the workspace/domain.
+     */
+    workspaceErrors?: Errors;
 };
 
 /**
@@ -199,6 +209,11 @@ type CardFeedErrors = {
  */
 type CardFeedErrorsDerivedValue = CardFeedErrors;
 
+/**
+ * The derived value for merged non-personal and workspace card feeds.
+ */
+type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
+
 export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
@@ -206,6 +221,8 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
+    VisibleReportActionsDerivedValue,
+    NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     AllCardFeedErrorsMap,
     CardFeedErrorsObject,
