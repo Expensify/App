@@ -129,7 +129,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     const {translate} = useLocalize();
 
     const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs, canBeMissing: true});
-    const serverKnownCredentialIDs = multifactorAuthenticationPublicKeyIDs ?? [];
+    const serverKnownCredentialIDs = useMemo(() => multifactorAuthenticationPublicKeyIDs ?? [], [multifactorAuthenticationPublicKeyIDs]);
     const serverHasAnyCredentials = serverKnownCredentialIDs.length > 0;
 
     /**

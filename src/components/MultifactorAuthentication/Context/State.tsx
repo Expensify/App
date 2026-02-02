@@ -2,8 +2,8 @@ import React, {createContext, useContext, useMemo, useReducer} from 'react';
 import type {ReactNode} from 'react';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
-import CONST from '@src/CONST';
 import type {MarqetaAuthTypeName, MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
+import CONST from '@src/CONST';
 
 type ErrorState = {
     reason: MultifactorAuthenticationReason;
@@ -95,6 +95,18 @@ type Action =
     | {type: 'INIT'; payload: InitPayload}
     | {type: 'RESET'};
 
+/**
+ * Reducer function that manages the multifactor authentication state machine.
+ * Handles all state transitions based on dispatched actions, including:
+ * - Error handling (fatal errors and continuable errors like invalid codes)
+ * - Challenge management (registration and authorization)
+ * - Flow progression tracking
+ * - Scenario and payload management
+ *
+ * @param state - The current state
+ * @param action - The action to process with type-specific payload
+ * @returns The new state after applying the action
+ */
 function stateReducer(state: MultifactorAuthenticationState, action: Action): MultifactorAuthenticationState {
     switch (action.type) {
         case 'SET_ERROR': {
@@ -152,6 +164,16 @@ type MultifactorAuthenticationStateProviderProps = {
     children: ReactNode;
 };
 
+/**
+ * Provider component that manages the global multifactor authentication state.
+ * Uses a reducer pattern to handle complex state transitions and provides
+ * the state and dispatch function to all consuming components.
+ * Must be placed high in the component tree to wrap all MFA-related screens.
+ *
+ * @param props - Component props
+ * @param props.children - Child components that will have access to MFA state
+ * @returns The provider component wrapping children
+ */
 function MultifactorAuthenticationStateProvider({children}: MultifactorAuthenticationStateProviderProps) {
     const [state, dispatch] = useReducer(stateReducer, DEFAULT_STATE);
 
@@ -166,6 +188,20 @@ function MultifactorAuthenticationStateProvider({children}: MultifactorAuthentic
     return <MultifactorAuthenticationStateContext.Provider value={contextValue}>{children}</MultifactorAuthenticationStateContext.Provider>;
 }
 
+/**
+ * Hook to access the multifactor authentication state and dispatch function.
+ * Provides access to the current state and a dispatch function for triggering state updates.
+ * Must be called within a MultifactorAuthenticationStateProvider tree.
+ *
+ * @returns Object containing:
+ *   - state: The current MultifactorAuthenticationState
+ *   - dispatch: Function to dispatch actions and update state
+ * @throws {Error} If used outside of MultifactorAuthenticationStateProvider
+ *
+ * @example
+ * const {state, dispatch} = useMultifactorAuthenticationState();
+ * dispatch({type: 'SET_VALIDATE_CODE', payload: '123456'});
+ */
 function useMultifactorAuthenticationState(): MultifactorAuthenticationStateContextValue {
     const context = useContext(MultifactorAuthenticationStateContext);
 

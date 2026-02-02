@@ -31,9 +31,6 @@ type FormError = {
     inputCode?: TranslationPaths;
 };
 
-// Reasons that this page can handle
-const HANDLED_REASONS = new Set<string>([VALUES.REASON.BACKEND.INVALID_VALIDATE_CODE]);
-
 function MultifactorAuthenticationValidateCodePage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();

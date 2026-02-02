@@ -247,8 +247,15 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
     }, [biometrics, dispatch, state, translate]);
 
-    // Run process on every relevant state change, but only after executeScenario has been called
+    /**
+     * Drives the MFA state machine forward whenever relevant state changes occur.
+     * This effect acts as the "engine" that progresses through the authentication flow:
+     * - Waits for a scenario to be set via executeScenario() before running
+     * - Re-evaluates the flow whenever key state fields change (e.g., validateCode entered, challenge received)
+     * - Each run of process() checks current state and advances to the next step or completes the flow
+     * */
     useEffect(() => {
+        // Don't run until a scenario has been initiated
         if (!state.scenario) {
             return;
         }
@@ -259,17 +266,36 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // Instead, we list only the specific state fields that should trigger a re-run of the MFA flow.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
+        // Error states - need to handle failures and navigate to outcome screens
         state.error,
+        // Core flow state - which scenario is active
         state.scenario,
+        // User interactions - soft prompt approval triggers biometric registration
         state.softPromptApproved,
+        // Magic code entry - required before registration challenge can be requested
         state.validateCode,
+        // Challenge responses from backend - trigger next steps in registration/authorization
         state.registrationChallenge,
         state.authorizationChallenge,
+        // Completion flags - determine whether to continue or finish the flow
         state.isRegistrationComplete,
         state.isAuthorizationComplete,
         state.isFlowComplete,
     ]);
 
+    /**
+     * Initiates a multifactor authentication scenario.
+     * Dispatches the initial state setup with the specified scenario and optional parameters.
+     * The flow will automatically progress through registration (if needed) and authorization steps.
+     *
+     * @template T - The type of the multifactor authentication scenario
+     * @param scenario - The MFA scenario to process
+     * @param {ExecuteScenarioParams<T>} [params] - Optional parameters including:
+     *   - successOutcome: Navigation route for successful authentication (overrides default)
+     *   - failureOutcome: Navigation route for failed authentication (overrides default)
+     *   - Additional payload data to pass through the authentication flow
+     * @returns {Promise<void>} A promise that resolves when the scenario has been initialized
+     */
     const executeScenario = useCallback(
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
             const {successOutcome, failureOutcome, ...payload} = params ?? {};
