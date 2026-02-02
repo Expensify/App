@@ -1034,6 +1034,8 @@ button {
 
     .search-page-form {
         max-width: none;
+        box-sizing: border-box;
+        width: 100%;
     }
 
     .getting-started-cards {
