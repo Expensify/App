@@ -2,6 +2,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import type {ComponentType, ReactNode} from 'react';
+import Onyx from 'react-native-onyx';
 import type {TText} from 'react-native-render-html';
 import MentionUserRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionUserRenderer';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -10,6 +11,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
 import {translateLocal} from '../utils/TestHelper';
@@ -135,6 +137,12 @@ function buildTNode({accountID, data}: {accountID?: string; data?: string}): TTe
 }
 
 describe('MentionUserRenderer', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
     beforeEach(() => {
         mockPersonalDetails = {};
         IntlStore.load(CONST.LOCALES.DEFAULT);
