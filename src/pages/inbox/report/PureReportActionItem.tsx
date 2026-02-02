@@ -17,7 +17,7 @@ import Icon from '@components/Icon';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -609,7 +609,7 @@ function PureReportActionItem({
             shouldShowCancelButton: true,
             danger: true,
         });
-        if (result.action === ModalActions.CONFIRM) {
+        if (result.action === ConfirmModalActions.CONFIRM) {
             dismissError();
         }
     }, [showConfirmModal, translate, dismissError]);

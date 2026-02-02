@@ -11,7 +11,7 @@ import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -207,7 +207,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
         // When offline, warn the user that any actions they took while offline will be lost if they sign out
         const result = await showSignOutModal();
-        if (result.action !== ModalActions.CONFIRM) {
+        if (result.action !== ConfirmModalActions.CONFIRM) {
             return;
         }
         if (isTrackingGPS) {

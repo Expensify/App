@@ -11,7 +11,7 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import {Plus} from '@components/Icon/Expensicons';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -196,7 +196,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             textInputRef.current.focus();
         }
 
-        if (action === ModalActions.CONFIRM) {
+        if (action === ConfirmModalActions.CONFIRM) {
             removeUsers();
         }
     };

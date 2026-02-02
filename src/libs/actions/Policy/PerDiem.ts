@@ -174,7 +174,7 @@ function importPerDiemRates(policyID: string, customUnitID: string, rates: Rate[
     API.write(WRITE_COMMANDS.IMPORT_PER_DIEM_RATES, parameters, onyxData);
 }
 
-function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void | Promise<void>, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_PER_DIEM_CSV, {
         policyID,
     });

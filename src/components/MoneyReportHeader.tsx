@@ -8,6 +8,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -137,7 +138,6 @@ import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
-import DecisionModal from './DecisionModal';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -148,7 +148,7 @@ import {KYCWallContext} from './KYCWall/KYCWallContext';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
 import Modal from './Modal';
-import {ModalActions} from './Modal/Global/ModalContext';
+import {ConfirmModalActions} from './Modal/Global/ConfirmModalWrapper';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
@@ -321,7 +321,7 @@ function MoneyReportHeader({
     }, [isExported, reportActions]);
 
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
-    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
+    const {showDecisionModal} = useDecisionModal();
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const currentTransaction = transactions.at(0);
@@ -402,7 +402,6 @@ function MoneyReportHeader({
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
-    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
@@ -441,7 +440,7 @@ function MoneyReportHeader({
             }
 
             showExportProgressModal().then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
+                if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
                 clearSelectedTransactions(undefined, true);
@@ -458,6 +457,22 @@ function MoneyReportHeader({
         [isOffline, moneyRequestReport, showExportProgressModal, clearSelectedTransactions],
     );
 
+    const showOfflineModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
+
+    const showDownloadErrorModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
+
     const isOnSearch = route.name.toLowerCase().startsWith('search');
     const {
         options: originalSelectedTransactionsOptions,
@@ -468,8 +483,8 @@ function MoneyReportHeader({
         reportActions,
         allTransactionsLength: transactions.length,
         session,
-        onExportFailed: () => setIsDownloadErrorModalVisible(true),
-        onExportOffline: () => setOfflineModalVisible(true),
+        onExportFailed: showDownloadErrorModal,
+        onExportOffline: showOfflineModal,
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
         isOnSearch,
@@ -637,7 +652,7 @@ function MoneyReportHeader({
             shouldShowCancelButton: false,
         });
 
-        if (result.action === ModalActions.CONFIRM) {
+        if (result.action === ConfirmModalActions.CONFIRM) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);
         }
     };
@@ -902,13 +917,13 @@ function MoneyReportHeader({
                         return;
                     }
                     if (isOffline) {
-                        setOfflineModalVisible(true);
+                        showOfflineModal();
                         return;
                     }
                     exportReportToCSV(
                         {reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs},
                         () => {
-                            setDownloadErrorModalVisible(true);
+                            showDownloadErrorModal();
                         },
                         translate,
                     );
@@ -1282,7 +1297,7 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    if (result.action !== ModalActions.CONFIRM) {
+                    if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
                     unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
@@ -1306,7 +1321,7 @@ function MoneyReportHeader({
                     danger: true,
                 });
 
-                if (result.action !== ModalActions.CONFIRM || !chatReport) {
+                if (result.action !== ConfirmModalActions.CONFIRM || !chatReport) {
                     return;
                 }
                 cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations);
@@ -1456,7 +1471,7 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    if (result.action !== ModalActions.CONFIRM) {
+                    if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
                     if (transactionThreadReportID) {
@@ -1492,7 +1507,7 @@ function MoneyReportHeader({
                     cancelText: translate('common.cancel'),
                     danger: true,
                 });
-                if (result.action !== ModalActions.CONFIRM) {
+                if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
@@ -1530,7 +1545,7 @@ function MoneyReportHeader({
                         danger: true,
                     });
 
-                    if (result.action !== ModalActions.CONFIRM) {
+                    if (result.action !== ConfirmModalActions.CONFIRM) {
                         return;
                     }
                     reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
@@ -1619,24 +1634,23 @@ function MoneyReportHeader({
         };
     }, []);
 
-    const showDeleteModal = useCallback(() => {
-        showConfirmModal({
+    const showDeleteModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
             title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
             prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
-                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                handleDeleteTransactionsWithNavigation(backToRoute);
-            } else {
-                handleDeleteTransactions();
-            }
         });
+        if (action !== ConfirmModalActions.CONFIRM) {
+            return;
+        }
+        if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
+            const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+            handleDeleteTransactionsWithNavigation(backToRoute);
+        } else {
+            handleDeleteTransactions();
+        }
     }, [
         showConfirmModal,
         translate,
@@ -1648,11 +1662,11 @@ function MoneyReportHeader({
         chatReport?.reportID,
     ]);
 
-    const showExportAgainModal = useCallback(() => {
+    const showExportAgainModal = useCallback(async () => {
         if (!connectedIntegration) {
             return;
         }
-        showConfirmModal({
+        const {action} = await showConfirmModal({
             title: translate('workspace.exportAgainModal.title'),
             prompt: translate('workspace.exportAgainModal.description', {
                 connectionName: connectedIntegration ?? connectedIntegrationFallback,
@@ -1660,13 +1674,12 @@ function MoneyReportHeader({
             }),
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                setExportModalStatus(null);
-                return;
-            }
-            confirmExport();
         });
+        if (action !== ConfirmModalActions.CONFIRM) {
+            setExportModalStatus(null);
+            return;
+        }
+        confirmExport();
     }, [showConfirmModal, translate, connectedIntegration, connectedIntegrationFallback, moneyRequestReport?.reportName, confirmExport]);
 
     useEffect(() => {
@@ -1854,24 +1867,6 @@ function MoneyReportHeader({
                     transactionCount={transactionIDs?.length ?? 0}
                 />
             )}
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={downloadErrorModalVisible}
-                onClose={() => setDownloadErrorModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadErrorModalVisible}
-                onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
             <ConfirmModal
                 title={translate('common.duplicateExpense')}
                 isVisible={duplicateDistanceErrorModalVisible}
@@ -1893,15 +1888,6 @@ function MoneyReportHeader({
                     onConfirm={dismissModalAndUpdateUseHold}
                 />
             )}
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={offlineModalVisible}
-                onClose={() => setOfflineModalVisible(false)}
-            />
             <Modal
                 onClose={() => {
                     setIsPDFModalVisible(false);

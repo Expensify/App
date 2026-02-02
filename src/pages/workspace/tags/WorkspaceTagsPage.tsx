@@ -5,7 +5,6 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
@@ -22,6 +21,7 @@ import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -85,7 +85,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
-    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const {showDecisionModal} = useDecisionModal();
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
@@ -220,6 +220,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const glCodeContainerStyle = useMemo(() => [styles.flex1], [styles.flex1]);
     const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
     const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
+
+    const showDownloadFailureModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
 
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
@@ -487,22 +495,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     }
                     close(() => {
                         if (isMultiLevelTags) {
-                            downloadMultiLevelTagsCSV(
-                                policyID,
-                                () => {
-                                    setIsDownloadFailureModalVisible(true);
-                                },
-                                hasDependentTags,
-                                translate,
-                            );
+                            downloadMultiLevelTagsCSV(policyID, showDownloadFailureModal, hasDependentTags, translate);
                         } else {
-                            downloadTagsCSV(
-                                policyID,
-                                () => {
-                                    setIsDownloadFailureModalVisible(true);
-                                },
-                                translate,
-                            );
+                            downloadTagsCSV(policyID, showDownloadFailureModal, translate);
                         }
                     });
                 },
@@ -511,7 +506,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToTagsSettings, hasAccountingConnections, hasVisibleTags, navigateToImportSpreadsheet, isOffline, isMultiLevelTags, policyID, hasDependentTags, expensifyIcons]);
+    }, [
+        translate,
+        navigateToTagsSettings,
+        hasAccountingConnections,
+        hasVisibleTags,
+        navigateToImportSpreadsheet,
+        isOffline,
+        isMultiLevelTags,
+        policyID,
+        hasDependentTags,
+        expensifyIcons,
+        showDownloadFailureModal,
+    ]);
 
     const getHeaderButtons = () => {
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
@@ -833,15 +840,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 shouldShowCancelButton={false}
                 onCancel={() => setIsOfflineModalVisible(false)}
                 shouldHandleNavigationBack
-            />
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadFailureModalVisible}
-                onClose={() => setIsDownloadFailureModalVisible(false)}
             />
             <ConfirmModal
                 isVisible={isDeleteTagsConfirmModalVisible}

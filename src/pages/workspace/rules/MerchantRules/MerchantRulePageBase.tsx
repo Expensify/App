@@ -5,7 +5,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
@@ -215,7 +215,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                 confirmText: translate('workspace.rules.merchantRules.saveAnyway'),
                 cancelText: translate('common.cancel'),
             }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
+                if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
                 saveRule();
@@ -238,7 +238,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             cancelText: translate('common.cancel'),
             danger: true,
         }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             setIsDeleting(true);

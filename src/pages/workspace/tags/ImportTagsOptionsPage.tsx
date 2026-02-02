@@ -2,17 +2,16 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
-import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useDecisionModal from '@hooks/useDecisionModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import {cleanPolicyTags, downloadMultiLevelTagsCSV, downloadTagsCSV, setImportedSpreadsheetIsImportingMultiLevelTags} from '@libs/actions/Policy/Tag';
@@ -42,9 +41,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const backTo = route.params.backTo;
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const isQuickSettingsFlow = !!backTo;
     const {translate} = useLocalize();
@@ -53,7 +49,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MultiTag', 'Tag']);
 
     const [isOverridingMultiTag, setIsOverridingMultiTag] = useState(false);
-    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const {showDecisionModal} = useDecisionModal();
     const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
@@ -69,6 +65,14 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         const singleLevelTags = policyTagLists.at(0)?.tags ?? {};
         return Object.values(singleLevelTags).some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [isMultiLevelTags, policyTagLists]);
+
+    const showDownloadFailureModal = useCallback(async () => {
+        await showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    }, [showDecisionModal, translate]);
 
     const startMultiLevelTagImportFlow = useCallback(() => {
         setImportedSpreadsheetIsImportingMultiLevelTags(true);
@@ -108,26 +112,9 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 <TextLink
                     onPress={() => {
                         if (isMultiLevelTags) {
-                            downloadMultiLevelTagsCSV(
-                                policyID,
-                                () => {
-                                    close(() => {
-                                        setIsDownloadFailureModalVisible(true);
-                                    });
-                                },
-                                hasDependentTags,
-                                translate,
-                            );
+                            downloadMultiLevelTagsCSV(policyID, () => close(showDownloadFailureModal), hasDependentTags, translate);
                         } else {
-                            downloadTagsCSV(
-                                policyID,
-                                () => {
-                                    close(() => {
-                                        setIsDownloadFailureModalVisible(true);
-                                    });
-                                },
-                                translate,
-                            );
+                            downloadTagsCSV(policyID, () => close(showDownloadFailureModal), translate);
                         }
                     }}
                 >
@@ -145,26 +132,9 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
             <TextLink
                 onPress={() => {
                     if (isMultiLevelTags) {
-                        downloadMultiLevelTagsCSV(
-                            policyID,
-                            () => {
-                                close(() => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
-                            },
-                            hasDependentTags,
-                            translate,
-                        );
+                        downloadMultiLevelTagsCSV(policyID, () => close(showDownloadFailureModal), hasDependentTags, translate);
                     } else {
-                        downloadTagsCSV(
-                            policyID,
-                            () => {
-                                close(() => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
-                            },
-                            translate,
-                        );
+                        downloadTagsCSV(policyID, () => close(showDownloadFailureModal), translate);
                     }
                 }}
             >
@@ -229,15 +199,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadFailureModalVisible}
-                onClose={() => setIsDownloadFailureModalVisible(false)}
-            />
             <ConfirmModal
                 isVisible={isSwitchSingleToMultipleLevelTagWarningModalVisible}
                 onConfirm={() => {

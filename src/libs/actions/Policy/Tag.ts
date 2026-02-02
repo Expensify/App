@@ -1245,7 +1245,7 @@ function setPolicyTagApprover(policy: OnyxEntry<Policy>, tag: string, approver: 
     API.write(WRITE_COMMANDS.SET_POLICY_TAG_APPROVER, parameters, onyxData);
 }
 
-function downloadTagsCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+function downloadTagsCSV(policyID: string, onDownloadFailed: () => void | Promise<void>, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_TAGS_CSV, {
         policyID,
     });
@@ -1259,7 +1259,7 @@ function downloadTagsCSV(policyID: string, onDownloadFailed: () => void, transla
     fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_TAGS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => void, hasDependentTags: boolean, translate: LocalizedTranslate) {
+function downloadMultiLevelTagsCSV(policyID: string, onDownloadFailed: () => void | Promise<void>, hasDependentTags: boolean, translate: LocalizedTranslate) {
     const command = hasDependentTags ? WRITE_COMMANDS.EXPORT_MULTI_LEVEL_DEPENDENT_TAGS_CSV : WRITE_COMMANDS.EXPORT_MULTI_LEVEL_INDEPENDENT_TAGS_CSV;
 
     const finalParameters = enhanceParameters(command, {

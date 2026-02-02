@@ -12,7 +12,7 @@ import type {EmptyStateButton, HeaderMedia, MediaTypes} from '@components/EmptyS
 import type {FeatureListItem} from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
@@ -245,7 +245,7 @@ function EmptySearchViewContent({
             confirmText: translate('exitSurvey.goToExpensifyClassic'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ConfirmModalActions.CONFIRM) {
                 return;
             }
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);

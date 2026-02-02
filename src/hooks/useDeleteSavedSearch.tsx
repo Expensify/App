@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,7 +22,7 @@ export default function useDeleteSavedSearch() {
                 cancelText: translate('common.cancel'),
                 danger: true,
             }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
+                if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
                 deleteSavedSearch(hash);

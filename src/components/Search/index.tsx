@@ -7,7 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -295,7 +295,7 @@ function Search({
                 confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
                 shouldShowCancelButton: false,
             }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
+                if (result.action !== ConfirmModalActions.CONFIRM) {
                     return;
                 }
                 openOldDotLink(CONST.OLDDOT_URLS.INBOX);

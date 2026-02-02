@@ -64,8 +64,8 @@ function useSelectedTransactionsActions({
     reportActions: ReportAction[];
     allTransactionsLength: number;
     session?: Session;
-    onExportFailed?: () => void;
-    onExportOffline?: () => void;
+    onExportFailed?: () => void | Promise<void>;
+    onExportOffline?: () => void | Promise<void>;
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     isOnSearch?: boolean;

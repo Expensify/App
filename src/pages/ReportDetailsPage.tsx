@@ -12,7 +12,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -342,7 +342,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             danger: true,
             shouldHandleNavigationBack: false,
         });
-        if (action !== ModalActions.CONFIRM) {
+        if (action !== ConfirmModalActions.CONFIRM) {
             return;
         }
         leaveChat();
@@ -997,7 +997,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             danger: true,
             shouldEnableNewFocusManagement: true,
         });
-        if (action !== ModalActions.CONFIRM) {
+        if (action !== ConfirmModalActions.CONFIRM) {
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => {

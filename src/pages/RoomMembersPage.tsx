@@ -8,7 +8,7 @@ import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonW
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import {Plus} from '@components/Icon/Expensicons';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {ConfirmModalActions} from '@components/Modal/Global/ConfirmModalWrapper';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
@@ -169,7 +169,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             cancelText: translate('common.cancel'),
             danger: true,
         });
-        if (action !== ModalActions.CONFIRM) {
+        if (action !== ConfirmModalActions.CONFIRM) {
             return;
         }
         removeUsers();
