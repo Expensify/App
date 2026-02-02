@@ -6974,7 +6974,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
                 optimisticReportID,
                 optimisticReportActionID,
-                policyID: isDistanceRequest ? undefined : policy?.id,
+                // Tracked expenses in the CREATE flow are unreported and not tied to a policy
+                policyID: undefined,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 reimbursable,
