@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {ValueOf} from 'type-fest';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -42,6 +43,9 @@ type DomainItem = {
 
     /** Current errors for domain */
     errors?: Errors;
+
+    /** The type of brick road indicator to show */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
 
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
@@ -89,6 +93,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                         badgeText={isAdmin && !isValidated ? translate('domain.notVerified') : undefined}
                         isHovered={hovered}
                         menuItems={threeDotsMenuItems}
+                        brickRoadIndicator={item.brickRoadIndicator}
                     />
                 )}
             </PressableWithoutFeedback>

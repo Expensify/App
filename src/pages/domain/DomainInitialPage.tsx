@@ -20,11 +20,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {openDomainInitialPage} from '@libs/actions/Domain';
+import {hasDomainAdminsErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,6 +60,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
     const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: false});
 
     const domainMenuItems: DomainMenuItem[] = [
         {
@@ -66,6 +68,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             icon: icons.UserShield,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID)))),
             screenName: SCREENS.DOMAIN.ADMINS,
+            brickRoadIndicator: hasDomainAdminsErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             translationKey: 'domain.saml',

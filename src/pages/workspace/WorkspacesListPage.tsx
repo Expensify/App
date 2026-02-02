@@ -47,6 +47,7 @@ import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, reque
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
+import {hasDomainErrors} from '@libs/DomainUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
@@ -664,6 +665,7 @@ function WorkspacesListPage() {
                 return domainItems;
             }
             const isAdmin = !!adminAccess?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domain.accountID}`];
+            const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
             domainItems.push({
                 listItemType: 'domain',
                 accountID: domain.accountID,
@@ -672,7 +674,8 @@ function WorkspacesListPage() {
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
-                errors: allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`]?.errors,
+                errors: domainErrors?.errors,
+                brickRoadIndicator: hasDomainErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
 
             return domainItems;
