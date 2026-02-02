@@ -41,6 +41,7 @@ type SectionType = {
               required?: boolean;
               title?: string;
               onPress: () => void;
+              shouldParseTitle?: boolean;
           }
         | undefined
     >;
@@ -185,6 +186,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     descriptionTranslationKey: 'common.description',
                     title: form?.comment,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION, hash),
+                    shouldParseTitle: true,
                 },
                 {
                     descriptionTranslationKey: 'common.reimbursable',
@@ -235,6 +237,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                                         shouldShowRightIcon
                                         title={item.title}
                                         titleStyle={styles.flex1}
+                                        shouldParseTitle={item.shouldParseTitle}
                                     />
                                 );
                             })}
