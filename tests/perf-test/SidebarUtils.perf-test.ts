@@ -91,6 +91,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 1,
+                chatReport: undefined,
             }),
         );
     });
