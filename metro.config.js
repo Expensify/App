@@ -1,3 +1,4 @@
+const {getDefaultConfig: getExpoDefaultConfig} = require('expo/metro-config');
 const {getDefaultConfig: getReactNativeDefaultConfig} = require('@react-native/metro-config');
 
 const {mergeConfig} = require('@react-native/metro-config');
@@ -12,6 +13,7 @@ const envPath = process.env.ENVFILE ? (path.isAbsolute(process.env.ENVFILE) ? pr
 require('dotenv').config({path: envPath});
 
 const defaultConfig = getReactNativeDefaultConfig(__dirname);
+const expoConfig = getExpoDefaultConfig(__dirname);
 
 const isE2ETesting = process.env.E2E_TESTING === 'true';
 const e2eSourceExts = ['e2e.js', 'e2e.ts', 'e2e.tsx'];
@@ -35,7 +37,6 @@ const config = {
     transformer: {
         getTransformOptions: async () => ({
             transform: {
-                experimentalImportSupport: true,
                 inlineRequires: true,
             },
         }),
@@ -47,6 +48,6 @@ const config = {
         : {},
 };
 
-const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, config));
+const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
 
 module.exports = isDev ? mergedConfig : withSentryConfig(mergedConfig);
