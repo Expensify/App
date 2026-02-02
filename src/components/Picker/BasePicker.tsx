@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobile} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
 import type {BasePickerProps} from './types';
@@ -161,6 +162,9 @@ function BasePicker<TPickerValue>({
 
     const hasError = !!errorText;
 
+    // Disable Tab focus on mobile to prevent soft keyboard navigation jumping to picker (#25759)
+    const pickerTabIndex = isMobile() ? -1 : 0;
+
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
             <View>
@@ -211,8 +215,8 @@ function BasePicker<TPickerValue>({
                         role: CONST.ROLE.COMBOBOX,
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         'aria-label': label ?? translate('languagePage.language'),
-                        tabIndex: isDisabled ? -1 : 0,
                         ref: picker,
+                        tabIndex: pickerTabIndex,
                         onFocus: enableHighlight,
                         onBlur: () => {
                             disableHighlight();
