@@ -426,7 +426,7 @@ function MoneyRequestView({
     let rateToDisplay = isCustomUnitOutOfPolicy
         ? translate('common.rateOutOfPolicy')
         : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
-    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount?.toString() || '';
     if (isTransactionScanning) {

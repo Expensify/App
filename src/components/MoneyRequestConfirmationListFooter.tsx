@@ -515,7 +515,7 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.distance')}
                     shouldShowRightIcon={!isReadOnly && !isGPSDistanceRequest}
-                    title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
+                    title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest)}
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
