@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {isCard, isCardHiddenFromSearch, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
@@ -39,8 +40,8 @@ const filterPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 /**
  * Selects the Expensify Card feed from the card list and returns the first one.
  */
-const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
-    const cards = getCardFeedsForDisplay({}, allCards);
+const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>, translate: LocalizedTranslate) => {
+    const cards = getCardFeedsForDisplay({}, allCards, translate);
     return Object.values(cards)?.at(0);
 };
 
