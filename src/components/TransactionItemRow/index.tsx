@@ -784,6 +784,7 @@ function TransactionItemRow({
                             style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
+                            sentryLabel="TransactionItemRow-ArrowRight"
                         >
                             <Icon
                                 src={expensicons.ArrowRight}
