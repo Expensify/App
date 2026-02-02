@@ -8172,6 +8172,9 @@ const CONST = {
             VIEW_BUTTON: 'ReportPreview-ViewButton',
             ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
         },
+        REQUEST_CONFIRMATION_LIST: {
+            RESET_SPLIT_SHARES: 'RequestConfirmationList-ResetSplitShares',
+        },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
         },
