@@ -44,7 +44,9 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
         canBeMissing: true,
     });
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
+    const connectionLink = transaction?.cardID ? `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(transaction.cardID)}` : undefined;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const transactionThreadId = reportActions ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID)?.childReportID : undefined;
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`, {
         canBeMissing: true,
@@ -58,6 +60,8 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
         Object.values(transactionThreadActions ?? {}),
         policyTags,
         companyCardPageURL,
+        connectionLink,
+        cardList,
     );
 
     return (

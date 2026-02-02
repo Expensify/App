@@ -22,6 +22,7 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2131,6 +2132,11 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Wystąpił błąd podczas dodawania Twojej karty. Spróbuj ponownie.',
             password: 'Wprowadź swoje hasło do Expensify',
         },
+    },
+    personalCard: {
+        brokenConnection: 'Połączenie z Twoją kartą jest zerwane',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `Połączenie z Twoją kartą ${cardName} jest zerwane. <a href="${connectionLink}">Zaloguj się do swojego banku</a>, aby naprawić kartę.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7497,7 +7503,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Wymagana weryfikacja',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem';
             }
@@ -7508,6 +7514,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Poproś ${member}, aby oznaczył jako gotówkę lub poczekaj 7 dni i spróbuj ponownie` : 'Oczekiwanie na połączenie z transakcją z karty.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_PERSONAL_CARD_CONNECTION) {
+                return isAdmin
+                    ? `Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z kartą. Oznacz jako gotówkę, aby zignorować, lub <a href="${connectionLink}">napraw kartę</a>, aby dopasować ją do paragonu.`
+                    : 'Nie można automatycznie dopasować paragonu z powodu uszkodzonego połączenia karty.';
             }
             return '';
         },

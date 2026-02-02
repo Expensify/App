@@ -1122,6 +1122,17 @@ type OriginalMessageCard = {
 };
 
 /**
+ * Model of PERSONAL_CARD_CONNECTION_BROKEN action
+ */
+type OriginalPersonalCard = {
+    /** The id of the user the card was assigned to */
+    assigneeAccountID: number;
+
+    /** The id of the card */
+    cardID: number;
+};
+
+/**
  * Model of INTEGRATIONS_MESSAGE report action
  */
 type OriginalMessageIntegrationMessage = {
@@ -1269,6 +1280,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;

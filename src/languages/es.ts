@@ -4,7 +4,14 @@ import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
-import type {CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, RoutedDueToDEWParams, SplitDateRangeParams, ViolationsRterParams} from './params';
+import type {
+    ConciergeBrokenCardConnectionParams,
+    CreatedReportForUnapprovedTransactionsParams,
+    PaidElsewhereParams,
+    RoutedDueToDEWParams,
+    SplitDateRangeParams,
+    ViolationsRterParams,
+} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -1909,6 +1916,12 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Se ha producido un error al añadir tu tarjeta. Por favor, vuelva a intentarlo.',
             password: 'Por favor, introduce tu contraseña de Expensify',
         },
+    },
+    personalCard: {
+        brokenConnection: 'La conexión de tu tarjeta está rota',
+        fixCard: 'Reparar tarjeta',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `La conexión de tu tarjeta ${cardName} está interrumpida. <a href="${connectionLink}">Inicia sesión en tu banco</a> para reparar la tarjeta.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7690,7 +7703,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         customRules: ({message}) => message,
         reviewRequired: 'Revisión requerida',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
             }
@@ -7703,6 +7716,11 @@ ${amount} para ${merchant} - ${date}`,
                 return isAdmin
                     ? `Pide a ${member} que marque la transacción como efectivo o espera 7 días e inténtalo de nuevo`
                     : 'Esperando a adjuntar automáticamente la transacción de tarjeta de crédito';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_PERSONAL_CARD_CONNECTION) {
+                return isAdmin
+                    ? `No se puede vincular automáticamente el recibo debido a una conexión de tarjeta defectuosa. Márquelo como efectivo para ignorarlo o <a href="${connectionLink}">arregle la tarjeta</a> para que coincida con el recibo.`
+                    : 'No se puede hacer coincidir automáticamente el recibo debido a una conexión de tarjeta rota.';
             }
             return '';
         },

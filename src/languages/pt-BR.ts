@@ -22,6 +22,7 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2130,6 +2131,11 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Ocorreu um erro ao adicionar seu cartão. Tente novamente.',
             password: 'Insira sua senha do Expensify',
         },
+    },
+    personalCard: {
+        brokenConnection: 'A conexão do seu cartão está interrompida',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `A conexão do seu cartão ${cardName} está interrompida. <a href="${connectionLink}">Faça login no seu banco</a> para corrigir o cartão.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7499,7 +7505,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisão necessária',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Não é possível corresponder o recibo automaticamente devido a uma conexão bancária com problemas';
             }
@@ -7510,6 +7516,11 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Peça para ${member} marcar como dinheiro em espécie ou aguarde 7 dias e tente novamente` : 'Aguardando combinação com a transação do cartão.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_PERSONAL_CARD_CONNECTION) {
+                return isAdmin
+                    ? `Não foi possível associar o recibo automaticamente devido a uma falha na conexão do cartão. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para que a correspondência com o recibo seja feita.`
+                    : 'Não foi possível associar o recibo automaticamente devido a uma falha na conexão do cartão.';
             }
             return '';
         },

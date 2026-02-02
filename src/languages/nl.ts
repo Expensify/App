@@ -22,6 +22,7 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2133,6 +2134,11 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Er is een fout opgetreden bij het toevoegen van je kaart. Probeer het opnieuw.',
             password: 'Voer uw Expensify-wachtwoord in',
         },
+    },
+    personalCard: {
+        brokenConnection: 'De verbinding met uw netwerkkaart is verbroken.',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `De verbinding met uw kaart ${cardName} is verbroken. <a href="${connectionLink}">Log in bij uw bank</a> om de kaart te herstellen.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7510,7 +7516,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Beoordeling vereist',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Kan bon niet automatisch koppelen vanwege verbroken bankverbinding';
             }
@@ -7521,6 +7527,11 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Vraag ${member} om het als contant te markeren of wacht 7 dagen en probeer het opnieuw` : 'In afwachting van samenvoeging met kaarttransactie.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_PERSONAL_CARD_CONNECTION) {
+                return isAdmin
+                    ? `Automatische koppeling van bon mislukt vanwege verbroken kaartverbinding. Markeer als contant om te negeren, of <a href="${connectionLink}">corrigeer de kaart</a> zodat deze overeenkomt met de bon.`
+                    : 'Bon kan niet automatisch worden gekoppeld vanwege een onderbroken kaartverbinding.';
             }
             return '';
         },

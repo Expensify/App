@@ -22,6 +22,7 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2135,6 +2136,11 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: "Si è verificato un errore durante l'aggiunta della tua carta. Riprova.",
             password: 'Inserisci la tua password Expensify',
         },
+    },
+    personalCard: {
+        brokenConnection: 'La connessione della tua scheda è interrotta',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `La connessione alla tua carta ${cardName} è interrotta. <a href="${connectionLink}">Accedi alla tua banca</a> per riparare la carta.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7528,7 +7534,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisione richiesta',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Impossibile abbinare automaticamente la ricevuta a causa di una connessione bancaria interrotta';
             }
@@ -7539,6 +7545,11 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Chiedi a ${member} di contrassegnarlo come contante oppure attendi 7 giorni e riprova` : 'In attesa dell’unione con la transazione della carta.';
+            }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_PERSONAL_CARD_CONNECTION) {
+                return isAdmin
+                    ? `Impossibile associare automaticamente la ricevuta a causa di una connessione interrotta con la carta. Contrassegna come contanti per ignorare o <a href="${connectionLink}">correggi la carta</a> per farla corrispondere alla ricevuta.`
+                    : 'Impossibile abbinare automaticamente la ricevuta a causa di una connessione interrotta con la carta.';
             }
             return '';
         },
