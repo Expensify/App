@@ -542,6 +542,11 @@ function getFeedNameForDisplay(
         return undefined;
     }
 
+    // If cardFeeds is undefined, data hasn't loaded yet - return empty string to avoid showing incorrect state
+    if (cardFeeds === undefined) {
+        return '';
+    }
+
     const feedExists = doesCardFeedExist(feed, cardFeeds);
 
     if (!feedExists) {

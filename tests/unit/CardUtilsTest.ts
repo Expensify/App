@@ -655,6 +655,12 @@ describe('CardUtils', () => {
             expect(feedName).toBe('workspace.companyCards.deletedFeed');
         });
 
+        it('Should return empty string when cardFeeds is undefined (loading state)', () => {
+            const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE;
+            const feedName = getFeedNameForDisplay(translateMock, feed, undefined);
+            expect(feedName).toBe('');
+        });
+
         it('Should return custom name if provided via parameter', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const feedName = getFeedNameForDisplay(translateMock, feed, {FAKE_ID_1: cardFeedsCollection.FAKE_ID_1}, customFeedName);
