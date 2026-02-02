@@ -2781,7 +2781,7 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
                 if (value === CONST.DISABLED_MAX_EXPENSE_VALUE) {
                     return translate('workspace.rules.categoryRules.requireReceiptsOverList.never');
                 }
-                if (!value) {
+                if (value === 0 || value === undefined) {
                     return translate('workspace.rules.categoryRules.requireReceiptsOverList.always');
                 }
                 return translate('workspace.rules.categoryRules.requireReceiptsOverList.default', formatAmount());
@@ -3146,7 +3146,10 @@ function getWorkspaceReportFieldDeleteMessage(translate: LocalizedTranslate, act
     const {fieldType, fieldName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (fieldType && fieldName) {
-        return translate('workspaceActions.deleteReportField', translate(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(), fieldName);
+        return translate('workspaceActions.deleteReportField', {
+            fieldType: translate(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(),
+            fieldName,
+        });
     }
 
     return getReportActionText(action);
@@ -3160,8 +3163,8 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
 
     if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE && oldValueTranslationKey && newValueTranslationKey) {
         return translate('workspaceActions.updateApprovalMode', {
-            newValue: translate(`workspaceApprovalModes.${newValueTranslationKey}` as TranslationPaths),
-            oldValue: translate(`workspaceApprovalModes.${oldValueTranslationKey}` as TranslationPaths),
+            newValue: translate(`workspaceApprovalModes.${newValueTranslationKey}`),
+            oldValue: translate(`workspaceApprovalModes.${oldValueTranslationKey}`),
             fieldName: updatedField,
         });
     }
@@ -3770,14 +3773,14 @@ function getAddedBudgetMessage(translate: LocalizedTranslate, reportAction: Onyx
     const entityName = entityType === 'tag' ? tagName : categoryName;
     const value = newValue as PolicyBudgetFrequency;
 
-    if (newValue && value?.frequency && entityName && entityType) {
+    if (newValue && value?.frequency && entityName && (entityType === 'category' || entityType === 'tag')) {
         const sharedAmount = convertAmountToDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
         const individualAmount = convertAmountToDisplayString(value?.individual, policy?.outputCurrency ?? CONST.CURRENCY.USD);
-        const frequency = translate(`workspace.common.budgetFrequency.${value.frequency}` as TranslationPaths);
+        const frequency = translate(`workspace.common.budgetFrequency.${value.frequency}`);
         return translate('workspaceActions.addBudget', {
             frequency,
             entityName,
-            entityType: translate(`workspace.common.budgetTypeForNotificationMessage.${entityType}` as TranslationPaths),
+            entityType: translate(`workspace.common.budgetTypeForNotificationMessage.${entityType}`),
             shared: value.shared ? sharedAmount : undefined,
             individual: value.individual ? individualAmount : undefined,
             notificationThreshold: value.notificationThreshold,
@@ -3792,14 +3795,14 @@ function getUpdatedBudgetMessage(translate: LocalizedTranslate, reportAction: On
     const updated = newValue as PolicyBudgetFrequency | undefined;
     const previous = oldValue as PolicyBudgetFrequency | undefined;
 
-    if (!updated || !previous || !entityName || !entityType) {
+    if (!updated || !previous || !entityName || (entityType !== 'category' && entityType !== 'tag')) {
         return getReportActionText(reportAction);
     }
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const oldFrequency = translate(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths);
-    const newFrequency = translate(`workspace.common.budgetFrequency.${updated.frequency}` as TranslationPaths);
+    const oldFrequency = translate(`workspace.common.budgetFrequency.${previous.frequency}`);
+    const newFrequency = translate(`workspace.common.budgetFrequency.${updated.frequency}`);
     const oldIndividual = convertAmountToDisplayString(previous.individual ?? 0, currency);
     const newIndividual = convertAmountToDisplayString(updated.individual ?? 0, currency);
     const oldShared = convertAmountToDisplayString(previous.shared ?? 0, currency);
@@ -3808,7 +3811,7 @@ function getUpdatedBudgetMessage(translate: LocalizedTranslate, reportAction: On
     const newNotificationThreshold = updated.notificationThreshold;
 
     return translate('workspaceActions.updateBudget', {
-        entityType: translate(`workspace.common.budgetTypeForNotificationMessage.${entityType}` as TranslationPaths),
+        entityType: translate(`workspace.common.budgetTypeForNotificationMessage.${entityType}`),
         entityName,
         oldFrequency,
         newFrequency,
@@ -3826,18 +3829,18 @@ function getDeletedBudgetMessage(translate: LocalizedTranslate, reportAction: On
     const entityName = entityType === 'tag' ? tagName : categoryName;
     const previous = oldValue as PolicyBudgetFrequency | undefined;
 
-    if (!previous || !entityName || !entityType) {
+    if (!previous || !entityName || (entityType !== 'category' && entityType !== 'tag')) {
         return getReportActionText(reportAction);
     }
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const frequency = previous.frequency ? translate(`workspace.common.budgetFrequency.${previous.frequency}` as TranslationPaths) : undefined;
+    const frequency = previous.frequency ? translate(`workspace.common.budgetFrequency.${previous.frequency}`) : undefined;
     const individual = typeof previous.individual === 'number' ? convertAmountToDisplayString(previous.individual, currency) : undefined;
     const shared = typeof previous.shared === 'number' ? convertAmountToDisplayString(previous.shared, currency) : undefined;
     const notificationThreshold = previous.notificationThreshold;
 
     return translate('workspaceActions.deleteBudget', {
-        entityType: translate(`workspace.common.budgetTypeForNotificationMessage.${entityType}` as TranslationPaths),
+        entityType: translate(`workspace.common.budgetTypeForNotificationMessage.${entityType}`),
         entityName,
         frequency,
         individual,
@@ -3885,7 +3888,7 @@ function getUpdatedProhibitedExpensesMessage(translate: LocalizedTranslate, repo
     }
 
     const wasAdded = newProhibitedExpenses?.[changedKey];
-    const prohibitedExpense = translate(`workspace.rules.individualExpenseRules.${changedKey}` as TranslationPaths).toLowerCase();
+    const prohibitedExpense = translate(`workspace.rules.individualExpenseRules.${changedKey}`).toLowerCase();
     return translate(wasAdded ? 'workspaceActions.addedProhibitedExpense' : 'workspaceActions.removedProhibitedExpense', {prohibitedExpense});
 }
 
@@ -3951,7 +3954,7 @@ function getUpdatedIndividualBudgetNotificationMessage(translate: LocalizedTrans
         !budgetAmount ||
         !budgetFrequency ||
         !budgetName ||
-        !budgetTypeForNotificationMessage ||
+        !(budgetTypeForNotificationMessage === 'category' || budgetTypeForNotificationMessage === 'tag') ||
         !summaryLinkMessage ||
         thresholdPercentage === undefined ||
         totalSpend === undefined ||
@@ -3968,7 +3971,7 @@ function getUpdatedIndividualBudgetNotificationMessage(translate: LocalizedTrans
         budgetAmount,
         budgetFrequency: translate(`workspace.common.budgetFrequency.${budgetFrequency}` as TranslationPaths),
         budgetName,
-        budgetTypeForNotificationMessage: translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}` as TranslationPaths),
+        budgetTypeForNotificationMessage: translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}`),
         summaryLink,
         thresholdPercentage,
         totalSpend,
@@ -3997,7 +4000,7 @@ function getUpdatedSharedBudgetNotificationMessage(translate: LocalizedTranslate
         !budgetAmount ||
         !budgetFrequency ||
         !budgetName ||
-        !budgetTypeForNotificationMessage ||
+        !(budgetTypeForNotificationMessage === 'category' || budgetTypeForNotificationMessage === 'tag') ||
         !summaryLinkMessage ||
         thresholdPercentage === undefined ||
         totalSpend === undefined ||
@@ -4014,7 +4017,7 @@ function getUpdatedSharedBudgetNotificationMessage(translate: LocalizedTranslate
         budgetAmount,
         budgetFrequency: translate(`workspace.common.budgetFrequency.${budgetFrequency}` as TranslationPaths),
         budgetName,
-        budgetTypeForNotificationMessage: translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}` as TranslationPaths),
+        budgetTypeForNotificationMessage: translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}`),
         summaryLink,
         thresholdPercentage,
         totalSpend,
