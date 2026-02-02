@@ -1,9 +1,8 @@
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
-import type {ValueOf} from 'type-fest';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
@@ -128,12 +127,19 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const userFriendlyStatusList = Object.values({
     ...CONST.SEARCH.STATUS.EXPENSE,
     ...CONST.SEARCH.STATUS.INVOICE,
     ...CONST.SEARCH.STATUS.TRIP,
     ...CONST.SEARCH.STATUS.TASK,
 }).map((value) => getUserFriendlyValue(value));
+
+const userFriendlyColumnList = new Set(
+    Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP)
+        .filter(([key]) => Object.values(CONST.SEARCH.TABLE_COLUMNS).includes(key as SearchColumnType))
+        .map(([, value]) => value),
+);
 
 /**
  * @private
@@ -155,6 +161,7 @@ function filterOutRangesWithCorrectValue(
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const statusList = userFriendlyStatusList;
     const groupByList = userFriendlyGroupByList;
+    const viewList = userFriendlyViewList;
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
@@ -203,6 +210,8 @@ function filterOutRangesWithCorrectValue(
                 return false;
             }
             return groupByList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
+            return viewList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             return booleanList.includes(range.value);
@@ -229,9 +238,13 @@ function filterOutRangesWithCorrectValue(
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,2})?$/.test(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS).includes(range.value as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS>);
+            return userFriendlyColumnList.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT: {
+            const num = Number(range.value);
+            return Number.isInteger(num) && num > 0;
+        }
         default:
             return false;
     }

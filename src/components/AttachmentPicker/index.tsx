@@ -75,7 +75,6 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
 
                     // Cleanup after selecting a file to start from a fresh state
                     if (fileInput.current) {
-                        // eslint-disable-next-line react-compiler/react-compiler
                         fileInput.current.value = '';
                     }
                 }}
@@ -108,7 +107,6 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                 accept={acceptedFileTypes ? getAcceptableFileTypesFromAList(acceptedFileTypes) : getAcceptableFileTypes(type)}
                 multiple={allowMultiple}
             />
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
                     if (isPickingRef.current) {

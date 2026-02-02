@@ -25,6 +25,7 @@ afterEach(() => {
 
 describe('useSearchHighlightAndScroll', () => {
     const baseProps: UseSearchHighlightAndScroll = {
+        shouldUseLiveData: false,
         searchResults: {
             data: {
                 personalDetailsList: {},
@@ -53,6 +54,7 @@ describe('useSearchHighlightAndScroll', () => {
             hash: 123,
             recentSearchHash: 456,
             similarSearchHash: 789,
+            view: 'table',
         },
         searchKey: undefined,
         shouldCalculateTotals: false,

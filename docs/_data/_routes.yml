@@ -113,11 +113,21 @@ platforms:
         title: Workspaces
         icon: /assets/images/shield.svg
         description: Configure rules, settings, and limits for your company’s spending.
+
+      - href: insights
+        title: Insights
+        icon: /assets/images/monitor.svg
+        description: Get insight into company expenses to track spend patterns and stay informed. 
       
       - href: reports-and-expenses
         title: Reports & Expenses
         icon: /assets/images/envelope-receipt.svg
         description: Learn more about expense tracking and submission.
+      
+      - href: domains
+        title: Domains
+        icon: /assets/images/domains.svg
+        description: Claim and verify your company’s domain to access additional management and security features.
 
       - href: wallet-and-payments
         title: Wallet & Payments

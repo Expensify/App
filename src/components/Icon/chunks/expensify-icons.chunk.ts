@@ -20,6 +20,7 @@ import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
+import Basket from '@assets/images/basket.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
@@ -156,6 +157,7 @@ import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import MultiTag from '@assets/images/multi-tag.svg';
+import Fingerprint from '@assets/images/multifactorAuthentication/fingerprint.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
@@ -215,6 +217,7 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
+import TreasureChestGreenWithSparkle from '@assets/images/treasure-chest-green-with-sparkle.svg';
 import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
@@ -224,6 +227,7 @@ import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
 import UserMinus from '@assets/images/user-minus.svg';
 import UserPlus from '@assets/images/user-plus.svg';
+import UserShield from '@assets/images/user-shield.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import VideoSlash from '@assets/images/video-slash.svg';
@@ -253,6 +257,7 @@ const Expensicons = {
     AttachmentNotFound,
     BackArrow,
     Bank,
+    Basket,
     CircularArrowBackwards,
     Bill,
     BillComSquare,
@@ -316,6 +321,7 @@ const Expensicons = {
     FlagLevelOne,
     FlagLevelTwo,
     FlagLevelThree,
+    Fingerprint,
     Fullscreen,
     Folder,
     Tag,
@@ -471,6 +477,8 @@ const Expensicons = {
     XeroExport,
     ArrowCircleClockwise,
     LuggageWithLines,
+    TreasureChestGreenWithSparkle,
+    UserShield,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

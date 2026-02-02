@@ -23,7 +23,7 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
-import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from '@userActions/Policy/Tag';
+import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {removeDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -34,7 +34,7 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getReceiptError, getSearchOnyxUpdate, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from '.';
+import {getAllPersonalDetails, getPolicyTags, getReceiptError, getSearchOnyxUpdate, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from '.';
 import type {BasePolicyParams} from '.';
 
 type SendInvoiceInformation = {
@@ -49,7 +49,18 @@ type SendInvoiceInformation = {
     createdIOUReportActionID: string;
     createdReportActionIDForThread: string | undefined;
     reportActionID: string;
-    onyxData: OnyxData;
+    onyxData: OnyxData<
+        | typeof ONYXKEYS.COLLECTION.REPORT
+        | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+        | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
+        | typeof ONYXKEYS.RECENTLY_USED_CURRENCIES
+        | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
+        | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        | typeof ONYXKEYS.COLLECTION.POLICY
+        | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    >;
 };
 
 type SendInvoiceOptions = {
@@ -57,6 +68,7 @@ type SendInvoiceOptions = {
     currentUserAccountID: number;
     policyRecentlyUsedCurrencies: string[];
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>;
+    invoiceChatReportID?: string;
     receiptFile?: Receipt;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
@@ -96,13 +108,49 @@ type BuildOnyxDataForInvoiceParams = {
     participant?: Participant;
 };
 
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getPolicyTagsData` from this file https://github.com/Expensify/App/issues/80048
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
+function getPolicyTagsData(policyID: string | undefined) {
+    const allPolicyTags = getPolicyTags();
+    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+}
+
 /** Builds the Onyx data for an invoice */
-function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+function buildOnyxDataForInvoice(
+    invoiceParams: BuildOnyxDataForInvoiceParams,
+): OnyxData<
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+    | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
+    | typeof ONYXKEYS.RECENTLY_USED_CURRENCIES
+    | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
+    | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+    | typeof ONYXKEYS.COLLECTION.POLICY
+    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+> {
     const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant} = invoiceParams;
     const transaction = transactionParams.transaction;
 
     const clearedPendingFields = Object.fromEntries(Object.keys(transactionParams.transaction.pendingFields ?? {}).map((key) => [key, null]));
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES
+            | typeof ONYXKEYS.RECENTLY_USED_CURRENCIES
+            | typeof ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report?.reportID}`,
@@ -175,7 +223,17 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         });
     }
 
-    const successData: OnyxUpdate[] = [];
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+        >
+    > = [];
 
     if (chat.report) {
         optimisticData.push({
@@ -494,7 +552,7 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         }
     }
 
-    return [optimisticData, successData, failureData];
+    return {optimisticData, successData, failureData};
 }
 
 /**
@@ -522,6 +580,7 @@ function getSendInvoiceInformation({
     currentUserAccountID,
     policyRecentlyUsedCurrencies,
     invoiceChatReport,
+    invoiceChatReportID,
     receiptFile,
     policy,
     policyTagList,
@@ -548,6 +607,7 @@ function getSendInvoiceInformation({
     if (!chatReport) {
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
+            optimisticReportID: invoiceChatReportID,
             participantList: [receiverAccountID, currentUserAccountID],
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             policyID: senderWorkspaceID,
@@ -585,6 +645,8 @@ function getSendInvoiceInformation({
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
+        // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80048
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         policyTags: getPolicyTagsData(optimisticInvoiceReport.policyID),
         policyRecentlyUsedTags,
         transactionTags: tag,
@@ -622,7 +684,7 @@ function getSendInvoiceInformation({
         });
 
     // STEP 6: Build Onyx Data
-    const [optimisticData, successData, failureData] = buildOnyxDataForInvoice({
+    const onyxData = buildOnyxDataForInvoice({
         chat: {report: chatReport, createdAction: optimisticCreatedActionForChat, reportPreviewAction, isNewReport: isNewChatReport},
         iou: {createdAction: optimisticCreatedActionForIOUReport, action: iouAction, report: optimisticInvoiceReport},
         transactionParams: {
@@ -654,11 +716,7 @@ function getSendInvoiceInformation({
         reportPreviewReportActionID: reportPreviewAction.reportActionID,
         transactionID: optimisticTransaction.transactionID,
         transactionThreadReportID: optimisticTransactionThread.reportID,
-        onyxData: {
-            optimisticData,
-            successData,
-            failureData,
-        },
+        onyxData,
     };
 }
 
@@ -671,6 +729,7 @@ function sendInvoice({
     policy,
     policyTagList,
     policyCategories,
+    invoiceChatReportID,
     companyName,
     companyWebsite,
     policyRecentlyUsedCategories,
@@ -698,6 +757,7 @@ function sendInvoice({
         transaction,
         currentUserAccountID,
         policyRecentlyUsedCurrencies,
+        invoiceChatReportID,
         invoiceChatReport,
         receiptFile,
         policy,

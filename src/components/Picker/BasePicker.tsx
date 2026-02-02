@@ -12,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobile} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
 import type {BasePickerProps} from './types';
@@ -63,7 +64,7 @@ function BasePicker<TPickerValue>({
             onInputChange(item.value, 0);
         }
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items]);
 
     const context = useScrollContext();
@@ -159,6 +160,9 @@ function BasePicker<TPickerValue>({
 
     const hasError = !!errorText;
 
+    // Disable Tab focus on mobile to prevent soft keyboard navigation jumping to picker (#25759)
+    const pickerTabIndex = isMobile() ? -1 : 0;
+
     if (isDisabled && shouldShowOnlyTextWhenDisabled) {
         return (
             <View>
@@ -207,7 +211,7 @@ function BasePicker<TPickerValue>({
                     }}
                     pickerProps={{
                         ref: picker,
-                        tabIndex: -1,
+                        tabIndex: pickerTabIndex,
                         onFocus: enableHighlight,
                         onBlur: () => {
                             disableHighlight();
