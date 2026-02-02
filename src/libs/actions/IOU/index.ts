@@ -5658,7 +5658,7 @@ const getConvertTrackedExpenseInformation = (
     failureData?.push(...deleteFailureData);
 
     const resolvedTransactionThreadReportID = transactionThreadReportID ?? linkedTrackedExpenseReportAction.childReportID;
-    const transactionThreadReport = resolvedTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${resolvedTransactionThreadReportID}`] ?? null : null;
+    const transactionThreadReport = resolvedTransactionThreadReportID ? (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${resolvedTransactionThreadReportID}`] ?? null) : null;
 
     if (resolvedTransactionThreadReportID && moneyRequestReportID) {
         optimisticData.push({
