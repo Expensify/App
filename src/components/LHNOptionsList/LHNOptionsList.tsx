@@ -29,10 +29,11 @@ import Log from '@libs/Log';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {
-    getLastVisibleAction,
+    getLastVisibleActionIncludingTransactionThread,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportActionActorAccountID,
+    isActionOfType,
     isInviteOrRemovedAction,
     isMoneyRequestAction,
     isReportPreviewAction,
@@ -205,12 +206,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
             const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
-            const lastAction = getLastVisibleAction(
+
+            const lastAction = getLastVisibleActionIncludingTransactionThread(
                 reportID,
                 canUserPerformWrite,
-                {},
-                itemReportActions ? {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: itemReportActions} : undefined,
+                reportActions,
                 visibleReportActionsData,
+                itemOneTransactionThreadReport?.reportID,
             );
 
             const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, visibleReportActionsData, lastAction);
@@ -236,7 +238,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
-            const shouldAlwaysRecalculateMessage = isReportArchived || isReportPreviewAction(lastAction);
+            const isCreatedWithStaleCache = lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!item.lastMessageText;
+            const isApprovedAction = isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.APPROVED);
+            const shouldAlwaysRecalculateMessage = isReportArchived || isReportPreviewAction(lastAction) || isCreatedWithStaleCache || isApprovedAction;
             const lastMessageTextFromReport =
                 (shouldAlwaysRecalculateMessage ? undefined : item.lastMessageText) ??
                 getLastMessageTextForReport({
