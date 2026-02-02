@@ -134,51 +134,6 @@ getEnvironmentURL().then((url: string) => (environmentURL = url));
 let oldDotEnvironmentURL: string;
 getOldDotEnvironmentURL().then((url: string) => (oldDotEnvironmentURL = url));
 
-const functionCallStats = {
-    getSortedReportActionsForDisplay: {count: 0, lastLogTime: 0},
-    getSortedReportActions: {count: 0, lastLogTime: 0},
-    shouldReportActionBeVisibleAsLastAction: {count: 0, lastLogTime: 0},
-};
-
-const sortedReportActionsCacheStats = {
-    hits: 0,
-    misses: 0,
-    lastLogTime: 0,
-};
-
-const LOG_INTERVAL_MS = 5000;
-
-function logFunctionStats(functionName: keyof typeof functionCallStats) {
-    const stats = functionCallStats[functionName];
-    stats.count += 1;
-    const now = Date.now();
-    
-    if (now - stats.lastLogTime >= LOG_INTERVAL_MS) {
-        Log.info(`[LHN DEBUG] ${functionName} calls`, false, {
-            totalCalls: stats.count,
-            callsPerSecond: (stats.count / ((now - stats.lastLogTime) / 1000)).toFixed(2),
-        });
-        stats.count = 0;
-        stats.lastLogTime = now;
-    }
-}
-
-function logSortedReportActionsCacheStats() {
-    const now = Date.now();
-    if (now - sortedReportActionsCacheStats.lastLogTime >= LOG_INTERVAL_MS) {
-        const total = sortedReportActionsCacheStats.hits + sortedReportActionsCacheStats.misses;
-        const hitRate = total > 0 ? ((sortedReportActionsCacheStats.hits / total) * 100).toFixed(1) : '0.0';
-        Log.info('[LHN DEBUG] sortedReportActionsCache', false, {
-            hits: sortedReportActionsCacheStats.hits,
-            misses: sortedReportActionsCacheStats.misses,
-            hitRate: `${hitRate}%`,
-        });
-        sortedReportActionsCacheStats.hits = 0;
-        sortedReportActionsCacheStats.misses = 0;
-        sortedReportActionsCacheStats.lastLogTime = now;
-    }
-}
-
 type SortedReportActionsCacheEntry = {
     sortedActions: ReportAction[];
     lastAccessed: number;
@@ -668,8 +623,6 @@ function evictOldestCacheEntries(cache: Map<string, SortedReportActionsCacheEntr
  *
  */
 function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false): ReportAction[] {
-    logFunctionStats('getSortedReportActions');
-    logSortedReportActionsCacheStats();
     if (!Array.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
@@ -684,12 +637,9 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     const cachedEntry = cache.get(cacheKey);
 
     if (cachedEntry) {
-        sortedReportActionsCacheStats.hits += 1;
         cachedEntry.lastAccessed = Date.now();
         return [...cachedEntry.sortedActions];
     }
-
-    sortedReportActionsCacheStats.misses += 1;
 
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
@@ -1239,7 +1189,6 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
 function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<ReportAction>, canUserPerformWriteAction?: boolean): boolean {
-    logFunctionStats('shouldReportActionBeVisibleAsLastAction');
     if (!reportAction) {
         return false;
     }
@@ -1460,7 +1409,6 @@ function getSortedReportActionsForDisplay(
     shouldIncludeInvisibleActions = false,
     preFilteredActions?: ReportAction[],
 ): ReportAction[] {
-    logFunctionStats('getSortedReportActionsForDisplay');
     if (!reportActions) {
         return [];
     }

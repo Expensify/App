@@ -15,7 +15,6 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhon
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
-import Log from '@libs/Log';
 import {MaxHeap} from '@libs/MaxHeap';
 import {MinHeap} from '@libs/MinHeap';
 import {getForReportAction, getMovedReportID} from '@libs/ModifiedExpenseMessage';
@@ -336,46 +335,12 @@ Onyx.connect({
     },
 });
 
-const functionCallStats = {
-    getLastMessageTextForReport: {count: 0, lastLogTime: 0},
-    getSortedReportActionsForDisplay: {count: 0, lastLogTime: 0},
-    getSortedReportActions: {count: 0, lastLogTime: 0},
-    shouldReportActionBeVisibleAsLastAction: {count: 0, lastLogTime: 0},
-};
-
-const LOG_INTERVAL_MS = 5000;
-
-function logFunctionStats(functionName: keyof typeof functionCallStats) {
-    const stats = functionCallStats[functionName];
-    stats.count += 1;
-    const now = Date.now();
-
-    if (now - stats.lastLogTime >= LOG_INTERVAL_MS) {
-        Log.info(`[LHN DEBUG] ${functionName} calls`, false, {
-            totalCalls: stats.count,
-            callsPerSecond: (stats.count / ((now - stats.lastLogTime) / 1000)).toFixed(2),
-        });
-        stats.count = 0;
-        stats.lastLogTime = now;
-    }
-}
-
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 let allReportActions: OnyxCollection<ReportActions>;
 const lastVisibleReportActions: ReportActions = {};
 const filteredReportActionsCache: Record<string, ReportAction[]> = {};
 const lastMessageTextCache: Record<string, string> = {};
-const filteredReportActionsCacheStats = {
-    hits: 0,
-    misses: 0,
-    lastLogTime: 0,
-};
-const lastMessageTextCacheStats = {
-    hits: 0,
-    misses: 0,
-    lastLogTime: 0,
-};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -507,28 +472,7 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, perso
 }
 
 function getCachedReportActionsForDisplay(reportID: string): ReportAction[] {
-    const now = Date.now();
-    const cached = filteredReportActionsCache[reportID];
-    if (cached) {
-        filteredReportActionsCacheStats.hits += 1;
-    } else {
-        filteredReportActionsCacheStats.misses += 1;
-    }
-
-    if (now - filteredReportActionsCacheStats.lastLogTime >= LOG_INTERVAL_MS) {
-        const total = filteredReportActionsCacheStats.hits + filteredReportActionsCacheStats.misses || 1;
-        const hitRate = (filteredReportActionsCacheStats.hits / total) * 100;
-        Log.info('[LHN DEBUG] filteredReportActionsCache', false, {
-            hits: filteredReportActionsCacheStats.hits,
-            misses: filteredReportActionsCacheStats.misses,
-            hitRate: `${hitRate.toFixed(1)}%`,
-        });
-        filteredReportActionsCacheStats.hits = 0;
-        filteredReportActionsCacheStats.misses = 0;
-        filteredReportActionsCacheStats.lastLogTime = now;
-    }
-
-    return cached ?? [];
+    return filteredReportActionsCache[reportID] ?? [];
 }
 
 /**
@@ -540,33 +484,11 @@ function getCachedReportActionsForDisplay(reportID: string): ReportAction[] {
  * @returns Cached message text, or undefined if cache miss and no computeFn provided
  */
 function getCachedLastMessageText(reportID: string, computeFn?: () => string): string | undefined {
-    const now = Date.now();
     let cached = lastMessageTextCache[reportID];
-
-    if (cached) {
-        lastMessageTextCacheStats.hits += 1;
-    } else {
-        lastMessageTextCacheStats.misses += 1;
-        // Lazy computation on cache miss if computeFn provided
-        if (computeFn) {
-            cached = computeFn();
-            lastMessageTextCache[reportID] = cached;
-        }
+    if (!cached && computeFn) {
+        cached = computeFn();
+        lastMessageTextCache[reportID] = cached;
     }
-
-    if (now - lastMessageTextCacheStats.lastLogTime >= LOG_INTERVAL_MS) {
-        const total = lastMessageTextCacheStats.hits + lastMessageTextCacheStats.misses || 1;
-        const hitRate = (lastMessageTextCacheStats.hits / total) * 100;
-        Log.info('[LHN DEBUG] lastMessageTextCache', false, {
-            hits: lastMessageTextCacheStats.hits,
-            misses: lastMessageTextCacheStats.misses,
-            hitRate: `${hitRate.toFixed(1)}%`,
-        });
-        lastMessageTextCacheStats.hits = 0;
-        lastMessageTextCacheStats.misses = 0;
-        lastMessageTextCacheStats.lastLogTime = now;
-    }
-
     return cached;
 }
 
@@ -849,7 +771,6 @@ function getLastMessageTextForReport({
     reportMetadata?: OnyxEntry<ReportMetadata>;
     currentUserAccountID: number;
 }): string {
-    logFunctionStats('getLastMessageTextForReport');
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID);

@@ -25,19 +25,14 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
-import Log from '@libs/Log';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getCachedLastMessageText, getCachedReportActionsForDisplay, getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
-    getSortedReportActions,
-    getSortedReportActionsForDisplay,
     isInviteOrRemovedAction,
     isMoneyRequestAction,
-    shouldReportActionBeVisibleAsLastAction,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -52,11 +47,6 @@ import useEmptyLHNIllustration from './useEmptyLHNIllustration';
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
-    const componentRenderCount = useRef(0);
-    const renderItemCountByReportID = useRef<Record<string, number>>({});
-    const previousExtraDataRef = useRef<string>('');
-
-    componentRenderCount.current += 1;
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashListRef<Report>>(null);
@@ -90,19 +80,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
     const emptyLHNIllustration = useEmptyLHNIllustration();
-
-    const renderStatsRef = useRef({
-        renderItemCallCount: 0,
-        getSortedReportActionsForDisplayTime: 0,
-        getLastMessageTextForReportTime: 0,
-        getSortedReportActionsTime: 0,
-        shouldReportActionBeVisibleAsLastActionTime: 0,
-        shouldReportActionBeVisibleAsLastActionCallCount: 0,
-        totalRenderItemTime: 0,
-    });
-
-    const previousDataLength = usePrevious(data.length);
-    const hasLoggedInitialStats = useRef(false);
 
     const reportsRef = useRef(reports);
     const reportActionsRef = useRef(reportActions);
@@ -149,72 +126,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     useEffect(() => {
         isOfflineRef.current = isOffline;
     }, [isOffline]);
-
-    useEffect(() => {
-        const totalReports = Object.keys(reports ?? {}).length;
-        const totalReportActions = Object.keys(reportActions ?? {}).length;
-        const reportsInLHN = data.length;
-
-        if (reportsInLHN > 0 && !hasLoggedInitialStats.current) {
-            hasLoggedInitialStats.current = true;
-
-            Log.info('[LHN DEBUG] LHN loaded', false, {
-                reportsInLHN,
-                totalReports,
-                totalReportActions,
-                optionMode,
-            });
-        }
-    }, [data.length, reports, reportActions, optionMode]);
-
-    useEffect(() => {
-        if (renderStatsRef.current.renderItemCallCount === 0) {
-            return;
-        }
-
-        const stats = renderStatsRef.current;
-        const callCount = stats.renderItemCallCount;
-        const avgRenderItemTime = stats.totalRenderItemTime / callCount;
-        const avgGetSortedTime = stats.getSortedReportActionsForDisplayTime / callCount;
-        const avgGetLastMessageTime = stats.getLastMessageTextForReportTime / callCount;
-        const avgGetSortedActionsTime = stats.getSortedReportActionsTime / callCount;
-        const avgVisibilityCheckTime = stats.shouldReportActionBeVisibleAsLastActionTime / (stats.shouldReportActionBeVisibleAsLastActionCallCount || 1);
-
-        const redundantRenders = Object.entries(renderItemCountByReportID.current).filter(([, count]) => count > 1);
-        const maxRenderCount = Math.max(...Object.values(renderItemCountByReportID.current), 0);
-        const topRedundantRenders = redundantRenders
-            .sort(([, a], [, b]) => b - a)
-            .slice(0, 5)
-            .map(([reportID, count]) => ({reportID: reportID.substring(0, 8), count}));
-
-        Log.info('[LHN DEBUG] Render Performance Summary', false, {
-            componentRenderCount: componentRenderCount.current,
-            renderItemCallCount: callCount,
-            avgRenderItemTime: `${avgRenderItemTime.toFixed(2)}ms`,
-            avgGetSortedReportActionsForDisplay: `${avgGetSortedTime.toFixed(2)}ms`,
-            avgGetLastMessageTextForReport: `${avgGetLastMessageTime.toFixed(2)}ms`,
-            avgGetSortedReportActions: `${avgGetSortedActionsTime.toFixed(2)}ms`,
-            avgShouldReportActionBeVisibleAsLastAction: `${avgVisibilityCheckTime.toFixed(2)}ms`,
-            visibilityCheckCallCount: stats.shouldReportActionBeVisibleAsLastActionCallCount,
-            totalTime: `${stats.totalRenderItemTime.toFixed(2)}ms`,
-            reportsInLHN: data.length,
-            redundantRendersCount: redundantRenders.length,
-            maxRenderCount,
-            topRedundantRenders,
-        });
-
-        renderItemCountByReportID.current = {};
-
-        renderStatsRef.current = {
-            renderItemCallCount: 0,
-            getSortedReportActionsForDisplayTime: 0,
-            getLastMessageTextForReportTime: 0,
-            getSortedReportActionsTime: 0,
-            shouldReportActionBeVisibleAsLastActionTime: 0,
-            shouldReportActionBeVisibleAsLastActionCallCount: 0,
-            totalRenderItemTime: 0,
-        };
-    }, [data.length, previousDataLength]);
 
     const firstReportIDWithGBRorRBR = useMemo(() => {
         const firstReportWithGBRorRBR = data.find((report) => {
@@ -297,9 +208,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const renderItem = useCallback(
         ({item, index}: RenderItemProps): ReactElement => {
-            // const renderStartTime = performance.now();
             const reportID = item.reportID;
-            // renderItemCountByReportID.current[reportID] = (renderItemCountByReportID.current[reportID] || 0) + 1;
             const itemParentReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const chatReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${item.chatReportID}`];
@@ -329,14 +238,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
 
-            // const getSortedStartTime = performance.now();
             const sortedReportActionsForDisplay = getCachedReportActionsForDisplay(reportID);
-            // const getSortedEndTime = performance.now();
-            // const getSortedDuration = getSortedEndTime - getSortedStartTime;
-
-            // renderStatsRef.current.getSortedReportActionsForDisplayTime += getSortedDuration;
-            // renderStatsRef.current.renderItemCallCount += 1;
-
             const lastReportAction = sortedReportActionsForDisplay.at(0);
 
             const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
@@ -357,7 +259,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const movedToReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
             const itemReportMetadata = reportMetadataRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
-            // const getLastMessageStartTime = performance.now();
             const lastMessageTextFromReport = getCachedLastMessageText(reportID, () =>
                 getLastMessageTextForReport({
                     translate,
@@ -372,15 +273,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     currentUserAccountID,
                 }),
             );
-            // const getLastMessageEndTime = performance.now();
-            // const getLastMessageDuration = getLastMessageEndTime - getLastMessageStartTime;
-
-            // renderStatsRef.current.getLastMessageTextForReportTime += getLastMessageDuration;
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
             let lastAction: ReportAction | undefined;
-            // const getSortedActionsDuration = 0;
             if (!itemReportActions || !item) {
                 lastAction = undefined;
             } else {
@@ -392,26 +288,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
                 lastActionReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
             }
-
-            // const renderEndTime = performance.now();
-            // const renderDuration = renderEndTime - renderStartTime;
-            // renderStatsRef.current.totalRenderItemTime += renderDuration;
-
-            // const renderCount = renderItemCountByReportID.current[reportID];
-            // if (renderDuration > 5 || renderStatsRef.current.renderItemCallCount <= 5 || renderCount > 1) {
-            //     const actionCount = Object.keys(itemReportActions ?? {}).length;
-            //     Log.info('[LHN DEBUG] renderItem Performance', false, {
-            //         reportID,
-            //         index,
-            //         renderCount,
-            //         renderDuration: `${renderDuration.toFixed(2)}ms`,
-            //         getSortedReportActionsForDisplay: `${getSortedDuration.toFixed(2)}ms`,
-            //         getLastMessageTextForReport: `${getLastMessageDuration.toFixed(2)}ms`,
-            //         getSortedReportActions: `${getSortedActionsDuration.toFixed(2)}ms`,
-            //         actionCount,
-            //         isArchived: isReportArchived,
-            //     });
-            // }
 
             return (
                 <OptionRowLHNData
@@ -472,79 +348,36 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => {
-            const extraDataValues = [
-                Object.keys(reportActions ?? {}).length,
-                Object.keys(reports ?? {}).length,
-                Object.keys(reportAttributes ?? {}).length,
-                Object.keys(reportNameValuePairs ?? {}).length,
-                Object.keys(transactionViolations ?? {}).length,
-                Object.keys(policy ?? {}).length,
-                Object.keys(personalDetails ?? {}).length,
-                data.length,
-                Object.keys(draftComments ?? {}).length,
-                optionMode,
-                preferredLocale,
-                Object.keys(transactions ?? {}).length,
-                isOffline,
-                isScreenFocused,
-                isReportsSplitNavigatorLast,
-            ];
-
-            const extraDataKeys = [
-                'reportActions.count',
-                'reports.count',
-                'reportAttributes.count',
-                'reportNameValuePairs.count',
-                'transactionViolations.count',
-                'policy.count',
-                'personalDetails.count',
-                'data.length',
-                'draftComments.count',
-                'optionMode',
-                'preferredLocale',
-                'transactions.count',
-                'isOffline',
-                'isScreenFocused',
-                'isReportsSplitNavigatorLast',
-            ];
-
-            const extraDataString = JSON.stringify(extraDataValues);
-
-            if (previousExtraDataRef.current && previousExtraDataRef.current !== extraDataString) {
-                const previousValues = JSON.parse(previousExtraDataRef.current);
-                const changedKeys = extraDataKeys.filter((_, index) => previousValues[index] !== extraDataValues[index]);
-                const changes = changedKeys.map((key) => {
-                    const keyIndex = extraDataKeys.indexOf(key);
-                    return {
-                        key,
-                        from: previousValues[keyIndex],
-                        to: extraDataValues[keyIndex],
-                    };
-                });
-
-                Log.info('[LHN DEBUG] extraData changed', false, {
-                    componentRenderCount: componentRenderCount.current,
-                    changes,
-                });
-            }
-
-            previousExtraDataRef.current = extraDataString;
-            return extraDataValues;
-        },
-        [
-            reportActions,
-            reports,
-            reportAttributes,
-            reportNameValuePairs,
-            transactionViolations,
-            policy,
-            personalDetails,
+        () => [
+            Object.keys(reportActions ?? {}).length,
+            Object.keys(reports ?? {}).length,
+            Object.keys(reportAttributes ?? {}).length,
+            Object.keys(reportNameValuePairs ?? {}).length,
+            Object.keys(transactionViolations ?? {}).length,
+            Object.keys(policy ?? {}).length,
+            Object.keys(personalDetails ?? {}).length,
             data.length,
-            draftComments,
+            Object.keys(draftComments ?? {}).length,
             optionMode,
             preferredLocale,
-            transactions,
+            Object.keys(transactions ?? {}).length,
+            isOffline,
+            isScreenFocused,
+            isReportsSplitNavigatorLast,
+        ],
+        [
+            Object.keys(reportActions ?? {}).length,
+            Object.keys(reports ?? {}).length,
+            Object.keys(reportAttributes ?? {}).length,
+            Object.keys(reportNameValuePairs ?? {}).length,
+            Object.keys(transactionViolations ?? {}).length,
+            Object.keys(policy ?? {}).length,
+            Object.keys(personalDetails ?? {}).length,
+            data.length,
+            Object.keys(draftComments ?? {}).length,
+            optionMode,
+            preferredLocale,
+            Object.keys(transactions ?? {}).length,
             isOffline,
             isScreenFocused,
             isReportsSplitNavigatorLast,
@@ -597,20 +430,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             flashListRef.current.scrollToOffset({offset});
         });
     }, [getScrollOffset, route, isWeb]);
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (shouldShowEmptyLHN) {
-            Log.info('Woohoo! All caught up. Was rendered', false, {
-                reportsCount: Object.keys(reports ?? {}).length,
-                reportActionsCount: Object.keys(reportActions ?? {}).length,
-                policyCount: Object.keys(policy ?? {}).length,
-                personalDetailsCount: Object.keys(personalDetails ?? {}).length,
-                route,
-                reportsIDsFromUseReportsCount: data.length,
-            });
-        }
-    }, [data.length, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
