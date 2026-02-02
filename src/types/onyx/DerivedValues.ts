@@ -74,6 +74,11 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
+ * The derived value for visible report actions.
+ */
+type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
+
+/**
  * The errors of a card.
  */
 type CardErrors = {
@@ -118,7 +123,7 @@ type CardFeedErrorState = {
     /**
      * Whether some workspace has errors.
      */
-    // hasWorkspaceErrors: boolean;
+    hasWorkspaceErrors: boolean;
 
     /**
      * Whether some feed connection is broken.
@@ -138,6 +143,10 @@ type FeedErrors = CardFeedErrorState & {
      * The errors of all cards for a specific feed within a workspace/domain.
      */
     cardErrors: Record<string, CardErrors>;
+    /**
+     * The errors of the workspace/domain.
+     */
+    workspaceErrors?: Errors;
 };
 
 /**
@@ -212,6 +221,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
+    VisibleReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     AllCardFeedErrorsMap,

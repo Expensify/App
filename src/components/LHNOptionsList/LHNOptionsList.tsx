@@ -28,16 +28,19 @@ import getPlatform from '@libs/getPlatform';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getCachedLastMessageText, getCachedReportActionsForDisplay, getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {
+    getLastVisibleAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReportActionActorAccountID,
     isInviteOrRemovedAction,
     isMoneyRequestAction,
+    isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
@@ -68,6 +71,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
@@ -229,59 +233,71 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             const itemInvoiceReceiverPolicy = policyRef.current?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
 
-            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item);
-            const itemIouReportReportActions = iouReportIDOfLastAction ? reportActionsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
-
-            const itemPolicy = policyRef.current?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
-            const hasDraftCommentEntry = draftCommentsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
-            const hasDraftComment = !!hasDraftCommentEntry && !hasDraftCommentEntry.match(CONST.REGEX.EMPTY_COMMENT);
+            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
+            const transactionID = isMoneyRequestAction(itemParentReportAction)
+                ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
+                : CONST.DEFAULT_NUMBER_ID;
+            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const hasDraftComment =
+                !!draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] &&
+                !draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]?.match(CONST.REGEX.EMPTY_COMMENT);
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
+            const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
+            const lastAction = getLastVisibleAction(
+                reportID,
+                canUserPerformWrite,
+                {},
+                itemReportActions ? {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: itemReportActions} : undefined,
+                visibleReportActionsData,
+            );
 
-            const sortedReportActionsForDisplay = getCachedReportActionsForDisplay(reportID);
-            const lastReportAction = sortedReportActionsForDisplay.at(0);
+            const iouReportIDOfLastAction = getIOUReportIDOfLastAction(item, visibleReportActionsData, lastAction);
+            const itemIouReportReportActions = iouReportIDOfLastAction ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`] : undefined;
 
-            const lastReportActionTransactionID = isMoneyRequestAction(lastReportAction)
-                ? (getOriginalMessage(lastReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
-                : CONST.DEFAULT_NUMBER_ID;
-            let lastActorDetails: Partial<PersonalDetails> | null =
-                item?.lastActorAccountID && personalDetailsRef.current?.[item.lastActorAccountID] ? personalDetailsRef.current[item.lastActorAccountID] : null;
-            if (!lastActorDetails && lastReportAction) {
-                const lastActorDisplayName = lastReportAction.person?.[0]?.text;
+            const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
+
+            const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, item) ?? item.lastActorAccountID;
+            let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID && personalDetails?.[lastActorAccountID] ? personalDetails[lastActorAccountID] : null;
+
+            if (!lastActorDetails && lastAction) {
+                const lastActorDisplayName = lastAction?.person?.[0]?.text;
                 lastActorDetails = lastActorDisplayName
                     ? {
                           displayName: lastActorDisplayName,
-                          accountID: item?.lastActorAccountID,
+                          accountID: lastActorAccountID,
                       }
                     : null;
             }
-            const movedFromReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
-            const movedToReport = reportsRef.current?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-            const itemReportMetadata = reportMetadataRef.current?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
 
-            const lastMessageTextFromReport = getCachedLastMessageText(reportID, () =>
-                getLastMessageTextForReport({
-                    translate,
-                    report: item,
-                    lastActorDetails,
-                    movedFromReport,
-                    movedToReport,
-                    policy: itemPolicy,
-                    isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
-                    policyForMovingExpensesID,
-                    reportMetadata: itemReportMetadata,
-                    currentUserAccountID,
-                }),
-            );
+            const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
+            const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`];
+            const itemReportMetadata = reportMetadataCollection?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
+
+            const shouldAlwaysRecalculateMessage = isReportArchived || isReportPreviewAction(lastAction);
+            const baseMessage = shouldAlwaysRecalculateMessage ? undefined :
+                item.lastMessageText;
+            const lastMessageTextFromReport =
+                baseMessage ??
+                getCachedLastMessageText(reportID, () =>
+                    getLastMessageTextForReport({
+                        translate,
+                        report: item,
+                        lastActorDetails,
+                        movedFromReport,
+                        movedToReport,
+                        policy: itemPolicy,
+                        isReportArchived, // już jako boolean
+                        policyForMovingExpensesID,
+                        reportMetadata: itemReportMetadata,
+                        visibleReportActionsDataParam: visibleReportActionsData,
+                        lastAction,
+                        currentUserAccountID,
+                    }),
+                );
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
-
-            let lastAction: ReportAction | undefined;
-            if (!itemReportActions || !item) {
-                lastAction = undefined;
-            } else {
-                lastAction = sortedReportActionsForDisplay.at(-1);
-            }
 
             let lastActionReport: OnyxEntry<Report> | undefined;
             if (isInviteOrRemovedAction(lastAction)) {
@@ -343,6 +359,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isScreenFocused,
             localeCompare,
             translate,
+            visibleReportActionsData,
             currentUserAccountID,
         ],
     );

@@ -2,10 +2,12 @@ import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -41,6 +43,7 @@ function OptionRowLHNData({
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const optionItemRef = useRef<OptionData | undefined>(undefined);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     // Check the report errors equality to avoid re-rendering when there are no changes
     const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
@@ -68,6 +71,7 @@ function OptionRowLHNData({
             movedFromReport,
             movedToReport,
             currentUserAccountID,
+            visibleReportActionsData,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -100,6 +104,7 @@ function OptionRowLHNData({
         movedFromReport,
         movedToReport,
         currentUserAccountID,
+        visibleReportActionsData,
     ]);
 
     return (
