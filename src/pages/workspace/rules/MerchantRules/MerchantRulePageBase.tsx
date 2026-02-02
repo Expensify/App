@@ -315,7 +315,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             return;
         }
 
-        Navigation.navigate(ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID));
+        Navigation.navigate(ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID, ruleID));
     };
 
     if (ruleID && !existingRule && !isDeleting) {
