@@ -44,7 +44,6 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
         addChange('category', getDecodedCategoryName(rule.category));
     }
     if (rule.comment) {
-        // Convert HTML comment to markdown for display
         const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
         addChange('comment', commentMarkdown);
     }

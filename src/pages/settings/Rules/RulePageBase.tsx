@@ -184,7 +184,6 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     : undefined,
                 {
                     descriptionTranslationKey: 'common.description',
-                    // Convert markdown to HTML for display
                     title: form?.comment ? Parser.replace(form.comment) : undefined,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION, hash),
                     shouldRenderAsHTML: true,

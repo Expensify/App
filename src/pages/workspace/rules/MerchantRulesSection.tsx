@@ -47,7 +47,6 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCleanedTagName(rule.tag)));
     }
     if (rule.comment) {
-        // Convert HTML comment to markdown for display
         const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, commentMarkdown));
     }

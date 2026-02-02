@@ -294,7 +294,6 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     : undefined,
                 {
                     descriptionTranslationKey: 'common.description',
-                    // Convert markdown to HTML for display
                     title: form?.comment ? Parser.replace(form.comment) : undefined,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID, ruleID)),
                     shouldRenderAsHTML: true,
