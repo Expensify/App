@@ -65,7 +65,7 @@ const webpack = {
 };
 
 const metro = {
-    presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: true}]],
+    presets: [require('@react-native/babel-preset')],
     plugins: [
         ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
 
@@ -176,14 +176,6 @@ module.exports = (api) => {
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
-
-    const isJest = runningIn === 'babel-jest';
-    if (isJest) {
-        return {
-            ...metro,
-            presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: false}]],
-        };
-    }
 
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };

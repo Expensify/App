@@ -175,6 +175,8 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Used to locate the component in the tests */
     testID?: string;
 
+    /** Whether to handle navigation back */
+    shouldHandleNavigationBack?: boolean;
     /** Badge style to be shown near the right end. */
     badgeStyle?: StyleProp<ViewStyle>;
 };
@@ -295,6 +297,7 @@ function BasePopoverMenu({
     shouldAvoidSafariException = false,
     shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
     testID,
+    shouldHandleNavigationBack = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -430,7 +433,14 @@ function BasePopoverMenu({
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}>{headerText}</Text>;
+        return (
+            <Text
+                key="header-text"
+                style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
+            >
+                {headerText}
+            </Text>
+        );
     };
 
     useKeyboardShortcut(
@@ -589,6 +599,7 @@ function BasePopoverMenu({
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
         >
             <FocusTrapForModal
                 active={isVisible}

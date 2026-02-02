@@ -5,7 +5,6 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type {Comment} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 /** Model of the selected transaction */
@@ -67,15 +66,6 @@ type SelectedTransactionInfo = {
     /** Account ID of the report owner */
     ownerAccountID?: number;
 
-    /** The transaction ID */
-    transactionID?: string;
-
-    /** Whether the transaction is linked to a managed card */
-    managedCard?: boolean;
-
-    /** The comment object on the transaction */
-    comment?: Comment;
-
     reportAction?: ReportAction;
 
     report?: Report;
@@ -125,6 +115,8 @@ type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | In
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
+// LineChart and PieChart are not implemented so we exclude them here to prevent TypeScript errors in `SearchChartView.tsx`.
+type ChartView = Exclude<SearchView, 'table' | 'line' | 'pie'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
@@ -139,7 +131,10 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>;
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>;
 
 type SearchContextData = {
     currentSearchHash: number;
@@ -235,8 +230,10 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
@@ -345,6 +342,7 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SearchView,
+    ChartView,
     SingularSearchStatus,
     SearchDatePreset,
     SearchWithdrawalType,

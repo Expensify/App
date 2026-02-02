@@ -55,10 +55,12 @@ const includeModules = [
     'react-native-view-shot',
     '@react-native/assets',
     'expo',
-    'expo-av',
+    'expo-audio',
     'expo-video',
     'expo-image-manipulator',
     'expo-modules-core',
+    'victory-native',
+    '@shopify/react-native-skia',
 ].join('|');
 
 const environmentToLogoSuffixMap: Record<string, string> = {
@@ -158,6 +160,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
 
                     // Group‑IB web SDK injection file
                     {from: 'web/snippets/gib.js', to: 'gib.js'},
+
+                    // CanvasKit WASM files for @shopify/react-native-skia web support (uses full version)
+                    {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm'},
                 ],
             }),
             new webpack.EnvironmentPlugin({JEST_WORKER_ID: ''}),
@@ -236,7 +241,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                      * You can remove something from this list if it doesn't use "react-native" as an import and it doesn't
                      * use JSX/JS that needs to be transformed by babel.
                      */
-                    exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`)],
+                    exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|\\.native\\.(js|jsx|ts|tsx)$`)],
                 },
                 // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
                 // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
@@ -307,6 +312,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 lodash: 'lodash-es',
                 'react-native-config': 'react-web-config',
                 'react-native$': 'react-native-web',
+                // Use victory-native source files instead of pre-compiled dist (which uses CommonJS exports)
+                'victory-native': path.resolve(dirname, '../../node_modules/victory-native/src/index.ts'),
+                // Required for @shopify/react-native-skia web support
+                'react-native/Libraries/Image/AssetRegistry': false,
                 // Module alias for web
                 // https://webpack.js.org/configuration/resolve/#resolvealias
                 '@assets': path.resolve(dirname, '../../assets'),
@@ -330,6 +339,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             fallback: {
                 'process/browser': require.resolve('process/browser'),
                 crypto: false,
+                fs: false,
+                path: false,
             },
         },
 
