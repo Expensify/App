@@ -420,6 +420,8 @@ function MoneyRequestConfirmationListFooter({
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
+    const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
 
     const contextMenuContextValue = useMemo(
         () => ({
@@ -455,12 +457,12 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
-                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !isTimeRequest}
+                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && (!isTimeRequest || !shouldShowTimeRequestFields)}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    interactive={!isReadOnly && !isTimeRequest}
+                    interactive={!isReadOnly && (!isTimeRequest || !shouldShowTimeRequestFields)}
                     onPress={() => {
-                        if (isDistanceRequest || isTimeRequest || !transactionID) {
+                        if (isDistanceRequest || (isTimeRequest && shouldShowTimeRequestFields) || !transactionID) {
                             return;
                         }
 
@@ -624,7 +626,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                 />
             ),
-            shouldShow: isTimeRequest,
+            shouldShow: shouldShowTimeRequestFields,
         },
         {
             item: (
@@ -645,7 +647,7 @@ function MoneyRequestConfirmationListFooter({
                     interactive={!isReadOnly}
                 />
             ),
-            shouldShow: isTimeRequest,
+            shouldShow: shouldShowTimeRequestFields,
         },
         {
             item: (
