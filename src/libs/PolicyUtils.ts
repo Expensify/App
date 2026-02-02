@@ -245,7 +245,7 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
                 formatMemberForList({
                     text: personalDetails.displayName,
                     alternateText: personalDetails.login,
-                    keyForList: personalDetails.login,
+                    keyForList: personalDetails.login ?? String(personalDetails.accountID),
                     accountID: personalDetails.accountID,
                     login: personalDetails.login,
                     pendingAction: personalDetails.pendingAction,

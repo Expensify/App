@@ -694,7 +694,7 @@ function getOptionData({
         isUnread: null,
         isUnreadWithMention: null,
         hasDraftComment: false,
-        keyForList: undefined,
+        keyForList: '',
         searchText: undefined,
         isPinned: false,
         hasOutstandingChildRequest: false,
