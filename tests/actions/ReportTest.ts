@@ -108,9 +108,12 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     getActiveRoute: jest.fn().mockReturnValue(''),
     dismissModalWithReport: jest.fn(),
+    dismissModal: jest.fn(),
+    dismissToSuperWideRHP: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isActiveRoute: jest.fn(() => false),
     getTopmostReportId: jest.fn(() => undefined),
+    getTopmostSuperWideRHPReportID: jest.fn(() => undefined),
     goBack: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(() => ({routes: []})),
@@ -3823,6 +3826,290 @@ describe('actions/Report', () => {
             const conciergeActions = allReportActions.filter((action) => action?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE);
             // Should have 2 Concierge actions: the original one and the optimistic response
             expect(conciergeActions.length).toBe(2);
+        });
+    });
+
+    describe('leaveGroupChat', () => {
+        const GROUP_CHAT_REPORT_ID = '1001';
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        const CONCIERGE_REPORT_ID = '999';
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should call LEAVE_GROUP_CHAT API with correct parameters', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const groupChatReport = {
+                ...createRandomReport(Number(GROUP_CHAT_REPORT_ID), CONST.REPORT.CHAT_TYPE.GROUP),
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`, groupChatReport);
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.leaveGroupChat(groupChatReport, false, CURRENT_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_GROUP_CHAT, 1);
+        });
+
+        it('should remove report from Onyx on success', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const groupChatReport = {
+                ...createRandomReport(Number(GROUP_CHAT_REPORT_ID), CONST.REPORT.CHAT_TYPE.GROUP),
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`, groupChatReport);
+            await waitForBatchedUpdates();
+
+            Report.leaveGroupChat(groupChatReport, false, CURRENT_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            // After success, the report should be removed from Onyx (set to null)
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}` as const);
+            expect(updatedReport).toBeFalsy();
+        });
+
+        it('should clear quick action when shouldClearQuickAction is true', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const groupChatReport = {
+                ...createRandomReport(Number(GROUP_CHAT_REPORT_ID), CONST.REPORT.CHAT_TYPE.GROUP),
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`, groupChatReport);
+            await Onyx.merge(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {
+                action: CONST.QUICK_ACTIONS.SEND_MONEY,
+                chatReportID: GROUP_CHAT_REPORT_ID,
+            });
+            await waitForBatchedUpdates();
+
+            Report.leaveGroupChat(groupChatReport, true, CURRENT_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+            // Onyx returns undefined when a key is set to null
+            expect(quickAction).toBeFalsy();
+        });
+
+        it('should not clear quick action when shouldClearQuickAction is false', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const groupChatReport = {
+                ...createRandomReport(Number(GROUP_CHAT_REPORT_ID), CONST.REPORT.CHAT_TYPE.GROUP),
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const quickActionValue = {
+                action: CONST.QUICK_ACTIONS.SEND_MONEY,
+                chatReportID: 'other-report-id',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`, groupChatReport);
+            await Onyx.merge(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, quickActionValue);
+            await waitForBatchedUpdates();
+
+            Report.leaveGroupChat(groupChatReport, false, CURRENT_USER_ACCOUNT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+            expect(quickAction).not.toBeNull();
+        });
+
+        it('should work with undefined conciergeReportID', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const groupChatReport = {
+                ...createRandomReport(Number(GROUP_CHAT_REPORT_ID), CONST.REPORT.CHAT_TYPE.GROUP),
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${GROUP_CHAT_REPORT_ID}`, groupChatReport);
+            await waitForBatchedUpdates();
+
+            // Should not throw an error with undefined conciergeReportID
+            expect(() => {
+                Report.leaveGroupChat(groupChatReport, false, CURRENT_USER_ACCOUNT_ID, undefined);
+            }).not.toThrow();
+
+            await waitForBatchedUpdates();
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_GROUP_CHAT, 1);
+        });
+    });
+
+    describe('leaveRoom', () => {
+        const ROOM_REPORT_ID = '2001';
+        const PARENT_REPORT_ID = '2002';
+        const PARENT_REPORT_ACTION_ID = '3001';
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        const CONCIERGE_REPORT_ID = '999';
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should call LEAVE_ROOM API with correct parameters', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const roomReport = {
+                ...createRandomReport(Number(ROOM_REPORT_ID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            Report.leaveRoom(roomReport, CURRENT_USER_ACCOUNT_ID, false, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_ROOM, 1);
+        });
+
+        it('should set hidden notification preference when workspace member is leaving workspace room', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const roomReport = {
+                ...createRandomReport(Number(ROOM_REPORT_ID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
+            await waitForBatchedUpdates();
+
+            Report.leaveRoom(roomReport, CURRENT_USER_ACCOUNT_ID, true, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
+            expect(updatedReport?.participants?.[CURRENT_USER_ACCOUNT_ID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+            // When workspace member is leaving, the report should NOT be closed
+            expect(updatedReport?.stateNum).not.toBe(CONST.REPORT.STATE_NUM.APPROVED);
+        });
+
+        it('should only keep reportName on success when non-workspace member leaves room', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const reportName = 'Test Room';
+            const roomReport = {
+                ...createRandomReport(Number(ROOM_REPORT_ID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                reportName,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
+            await waitForBatchedUpdates();
+
+            Report.leaveRoom(roomReport, CURRENT_USER_ACCOUNT_ID, false, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            // After success, the report should only have reportName (all other fields removed)
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
+            expect(updatedReport?.reportName).toBe(reportName);
+            // Other fields should be removed
+            expect(updatedReport?.participants).toBeUndefined();
+        });
+
+        it('should update parent report action when leaving a thread', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const threadReport = {
+                ...createRandomReport(Number(ROOM_REPORT_ID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: PARENT_REPORT_ID,
+                parentReportActionID: PARENT_REPORT_ACTION_ID,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const parentReportAction = {
+                ...createRandomReportAction(Number(PARENT_REPORT_ACTION_ID)),
+                childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, threadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
+                [PARENT_REPORT_ACTION_ID]: parentReportAction,
+            });
+            await waitForBatchedUpdates();
+
+            Report.leaveRoom(threadReport, CURRENT_USER_ACCOUNT_ID, false, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            const updatedParentReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}` as const);
+            expect(updatedParentReportActions?.[PARENT_REPORT_ACTION_ID]?.childReportNotificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        });
+
+        it('should work with undefined conciergeReportID', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const roomReport = {
+                ...createRandomReport(Number(ROOM_REPORT_ID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport);
+            await waitForBatchedUpdates();
+
+            // Should not throw an error with undefined conciergeReportID
+            expect(() => {
+                Report.leaveRoom(roomReport, CURRENT_USER_ACCOUNT_ID, false, undefined);
+            }).not.toThrow();
+
+            await waitForBatchedUpdates();
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.LEAVE_ROOM, 1);
+        });
+
+        it('should handle leaving a chat thread correctly', async () => {
+            TestHelper.getGlobalFetchMock();
+
+            const parentReport = createRandomReport(Number(PARENT_REPORT_ID), undefined);
+            const threadReport = {
+                ...createRandomReport(Number(ROOM_REPORT_ID), undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: PARENT_REPORT_ID,
+                parentReportActionID: PARENT_REPORT_ACTION_ID,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, threadReport);
+            await waitForBatchedUpdates();
+
+            Report.leaveRoom(threadReport, CURRENT_USER_ACCOUNT_ID, false, CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}` as const);
+            // Chat threads should only hide notification preference, not close the report
+            expect(updatedReport?.participants?.[CURRENT_USER_ACCOUNT_ID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
         });
     });
 });
