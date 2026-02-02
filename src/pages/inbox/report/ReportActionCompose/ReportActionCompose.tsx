@@ -300,6 +300,13 @@ function ReportActionCompose({
         isKeyboardVisibleWhenShowingModalRef.current = false;
     }, []);
 
+    const onCanceledAttachmentPicker = useCallback(() => {
+        if (!shouldFocusComposerOnScreenFocus) {
+            return;
+        }
+        focus();
+    }, [shouldFocusComposerOnScreenFocus]);
+
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return;
@@ -500,6 +507,9 @@ function ReportActionCompose({
         [isComposerFullSize, reportID, debouncedValidate],
     );
 
+    const includeChronos = useMemo(() => chatIncludesChronos(report), [report]);
+    const isComposerDisabled = useMemo(() => isBlockedFromConcierge || isEmojiPickerVisible(), [isBlockedFromConcierge]);
+
     const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
         policy,
         reportID,
@@ -517,6 +527,31 @@ function ReportActionCompose({
     });
 
     const fsClass = FS.getChatFSClass(report);
+
+    const onEmojiPickerModalHide = useCallback(
+        (isNavigating?: boolean) => {
+            if (isNavigating) {
+                return;
+            }
+            const activeElementId = DomUtils.getActiveElement()?.id;
+            if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
+                return;
+            }
+            focus();
+        },
+        [],
+    );
+
+    const onEmojiSelected = useCallback((...args: Parameters<NonNullable<ComposerRef['replaceSelectionWithText']>>) => {
+        composerRef.current?.replaceSelectionWithText(...args);
+    }, []);
+
+    const onComposerRefChange = useCallback((ref: ComposerRef | null) => {
+        composerRef.current = ref ?? undefined;
+        composerRefShared.set({
+            clear: ref?.clear,
+        });
+    }, [composerRefShared]);
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -556,29 +591,19 @@ function ReportActionCompose({
                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
                             onAddActionPressed={onAddActionPressed}
                             onItemSelected={onItemSelected}
-                            onCanceledAttachmentPicker={() => {
-                                if (!shouldFocusComposerOnScreenFocus) {
-                                    return;
-                                }
-                                focus();
-                            }}
+                            onCanceledAttachmentPicker={onCanceledAttachmentPicker}
                             actionButtonRef={actionButtonRef}
                             shouldDisableAttachmentItem={!!exceededMaxLength}
                         />
                         <ComposerWithSuggestions
-                            ref={(ref) => {
-                                composerRef.current = ref ?? undefined;
-                                composerRefShared.set({
-                                    clear: ref?.clear,
-                                });
-                            }}
+                            ref={onComposerRefChange}
                             suggestionsRef={suggestionsRef}
                             isNextModalWillOpenRef={isNextModalWillOpenRef}
                             isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
                             raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
                             reportID={reportID}
                             policyID={report?.policyID}
-                            includeChronos={chatIncludesChronos(report)}
+                            includeChronos={includeChronos}
                             isGroupPolicyReport={isGroupPolicyReport}
                             lastReportAction={lastReportAction}
                             isMenuVisible={isMenuVisible}
@@ -587,7 +612,7 @@ function ReportActionCompose({
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                             onPasteFile={(files) => validateAttachments({files})}
                             onCleared={submitForm}
-                            disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
+                            disabled={isComposerDisabled}
                             setIsCommentEmpty={setIsCommentEmpty}
                             handleSendMessage={handleSendMessage}
                             shouldShowComposeInput={shouldShowComposeInput}
@@ -620,17 +645,8 @@ function ReportActionCompose({
                         {canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge}
-                                onModalHide={(isNavigating) => {
-                                    if (isNavigating) {
-                                        return;
-                                    }
-                                    const activeElementId = DomUtils.getActiveElement()?.id;
-                                    if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
-                                        return;
-                                    }
-                                    focus();
-                                }}
-                                onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
+                                onModalHide={onEmojiPickerModalHide}
+                                onEmojiSelected={onEmojiSelected}
                                 emojiPickerID={report?.reportID}
                                 shiftVertical={emojiShiftVertical}
                             />
