@@ -311,7 +311,9 @@ describe('actions/Domain', () => {
         });
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const, {
-            member: {[email]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            member: {
+                [email]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            },
         });
 
         clearDomainMemberError(domainAccountID, accountID, email, '');
