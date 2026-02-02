@@ -90,9 +90,7 @@ const useSearchTypeMenuSections = () => {
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
     const isSuggestedSearchDataReady = useMemo(() => {
-        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
-
-        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
+        return Object.values(allPolicies ?? {}).some((policy) => policy?.employeeList !== undefined && policy?.exporter !== undefined);
     }, [allPolicies]);
 
     const typeMenuSections = useMemo(
