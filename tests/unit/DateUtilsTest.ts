@@ -2,6 +2,7 @@
 import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
@@ -298,46 +299,6 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('isCurrentTimeWithinRange', () => {
-        beforeAll(() => {
-            jest.useFakeTimers();
-        });
-
-        afterAll(() => {
-            jest.useRealTimers();
-        });
-
-        it('should return true when current time is within the range', () => {
-            const currentTime = new Date(datetime);
-            jest.setSystemTime(currentTime);
-
-            const startTime = '2022-11-06T10:00:00Z';
-            const endTime = '2022-11-07T14:00:00Z';
-
-            expect(DateUtils.isCurrentTimeWithinRange(startTime, endTime)).toBe(true);
-        });
-
-        it('should return false when current time is before the range', () => {
-            const currentTime = new Date(datetime);
-            jest.setSystemTime(currentTime);
-
-            const startTime = '2022-11-07T10:00:00Z';
-            const endTime = '2022-11-07T14:00:00Z';
-
-            expect(DateUtils.isCurrentTimeWithinRange(startTime, endTime)).toBe(false);
-        });
-
-        it('should return false when current time is after the range', () => {
-            const currentTime = new Date(datetime);
-            jest.setSystemTime(currentTime);
-
-            const startTime = '2022-11-06T10:00:00Z';
-            const endTime = '2022-11-06T14:00:00Z';
-
-            expect(DateUtils.isCurrentTimeWithinRange(startTime, endTime)).toBe(false);
-        });
-    });
-
     describe('getStatusUntilDate', () => {
         const currentTimeZone = 'America/Los_Angeles' as SelectedTimezone;
         const inputTimeZoneNY = 'America/New_York' as SelectedTimezone;
@@ -480,6 +441,40 @@ describe('DateUtils', () => {
             expect(result).toContain('to');
             expect(result).toContain('2024-01-05');
             expect(result).toContain('12 days');
+        });
+    });
+
+    describe('formatCountdownTimer', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(LOCALE, path, ...params);
+
+        it('should format hours, minutes, and seconds correctly', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 5, 30, 45);
+            expect(result).toBe('5h 30m 45s');
+        });
+
+        it('should pad single digit minutes with leading zero', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 2, 5, 30);
+            expect(result).toBe('2h 05m 30s');
+        });
+
+        it('should pad single digit seconds with leading zero', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 1, 15, 8);
+            expect(result).toBe('1h 15m 08s');
+        });
+
+        it('should pad both minutes and seconds with leading zeros', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 0, 3, 7);
+            expect(result).toBe('0h 03m 07s');
+        });
+
+        it('should handle zero values for all parameters', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 0, 0, 0);
+            expect(result).toBe('0h 00m 00s');
+        });
+
+        it('should handle large hour values', () => {
+            const result = DateUtils.formatCountdownTimer(mockTranslate, 23, 59, 59);
+            expect(result).toBe('23h 59m 59s');
         });
     });
 });

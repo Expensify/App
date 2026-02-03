@@ -37,6 +37,9 @@ type PopoverMenuItem = MenuItemProps & {
     /** Text label */
     text: string;
 
+    /** Badge text to be shown near the right end. */
+    badgeText?: string;
+
     /** A callback triggered when this item is selected */
     onSelected?: () => void;
 
@@ -166,8 +169,16 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether we want to avoid the safari exception of ignoring shouldCallAfterModalHide  */
     shouldAvoidSafariException?: boolean;
 
+    /** Whether to preserve focus on sub items after selection */
+    shouldMaintainFocusAfterSubItemSelect?: boolean;
+
     /** Used to locate the component in the tests */
     testID?: string;
+
+    /** Whether to handle navigation back */
+    shouldHandleNavigationBack?: boolean;
+    /** Badge style to be shown near the right end. */
+    badgeStyle?: StyleProp<ViewStyle>;
 };
 
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
@@ -275,6 +286,7 @@ function BasePopoverMenu({
     restoreFocusType,
     shouldShowSelectedItemCheck = false,
     containerStyles,
+    badgeStyle,
     headerStyles,
     innerContainerStyle,
     scrollContainerStyle,
@@ -283,7 +295,9 @@ function BasePopoverMenu({
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
+    shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
     testID,
+    shouldHandleNavigationBack = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -371,7 +385,7 @@ function BasePopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, ...menuItemProps} = item;
+        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, badgeText, ...menuItemProps} = item;
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
         return (
             <OfflineWithFeedback
@@ -396,6 +410,8 @@ function BasePopoverMenu({
                         }
                         setFocusedIndex(menuIndex);
                     }}
+                    badgeText={badgeText}
+                    badgeStyle={StyleSheet.flatten(badgeStyle)}
                     wrapperStyle={[
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
                         shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
@@ -417,7 +433,14 @@ function BasePopoverMenu({
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}>{headerText}</Text>;
+        return (
+            <Text
+                key="header-text"
+                style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
+            >
+                {headerText}
+            </Text>
+        );
     };
 
     useKeyboardShortcut(
@@ -449,7 +472,14 @@ function BasePopoverMenu({
 
     const handleModalHide = () => {
         onModalHide?.();
-        setFocusedIndex(currentMenuItemsFocusedIndex);
+        const keyPath = buildKeyPathFromIndexPath(menuItems, enteredSubMenuIndexes);
+        const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
+
+        if (resolved.found) {
+            setFocusedIndex(getSelectedItemIndex(resolved.itemsAtLeaf));
+        } else {
+            setFocusedIndex(currentMenuItemsFocusedIndex);
+        }
     };
 
     // When the menu items are changed, we want to reset the sub-menu to make sure
@@ -476,7 +506,7 @@ function BasePopoverMenu({
 
         const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
 
-        if (resolved.found) {
+        if (resolved.found && shouldPreserveFocusOnSubItems) {
             setEnteredSubMenuIndexes(resolved.indexes);
             setCurrentMenuItems(resolved.itemsAtLeaf);
             if (!isVisible) {
@@ -569,6 +599,7 @@ function BasePopoverMenu({
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
         >
             <FocusTrapForModal
                 active={isVisible}
