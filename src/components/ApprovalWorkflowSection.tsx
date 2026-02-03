@@ -48,13 +48,15 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
         : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
               .map((m) => Str.removeSMSDomain(m.displayName))
               .join(', ');
-
     return (
         <PressableWithoutFeedback
             accessibilityRole="button"
             style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
             onPress={onPress}
-            accessibilityLabel={translate('workflowsPage.addApprovalsTitle')}
+            accessibilityLabel={translate('workflowsPage.accessibilityLabel', {
+                members,
+                approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
+            })}
         >
             <View style={[styles.flex1]}>
                 {approvalWorkflow.isDefault && (
