@@ -118,7 +118,7 @@ type CardFeedErrorState = {
     /**
      * Whether some workspace has errors.
      */
-    // hasWorkspaceErrors: boolean;
+    hasWorkspaceErrors: boolean;
 
     /**
      * Whether some feed connection is broken.
@@ -138,6 +138,10 @@ type FeedErrors = CardFeedErrorState & {
      * The errors of all cards for a specific feed within a workspace/domain.
      */
     cardErrors: Record<string, CardErrors>;
+    /**
+     * The errors of the workspace/domain.
+     */
+    workspaceErrors?: Errors;
 };
 
 /**
