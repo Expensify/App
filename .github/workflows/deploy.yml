@@ -246,6 +246,9 @@ jobs:
           name: android-build-artifact
           path: ./
 
+      - name: Set aabPath for Fastlane
+        run: echo "aabPath=$(pwd)/Expensify-release.aab" >> "$GITHUB_ENV"
+
       - name: Setup Ruby
         # v1.229.0
         uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
@@ -496,6 +499,11 @@ jobs:
         with:
           name: ios-dsym-artifact
           path: ./
+
+      - name: Set artifact paths for Fastlane
+        run: |
+          echo "ipaPath=$(pwd)/Expensify.ipa" >> "$GITHUB_ENV"
+          echo "dsymPath=$(pwd)/Expensify.app.dSYM.zip" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
         # v1.229.0
