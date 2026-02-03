@@ -863,6 +863,11 @@ function getLastMessageTextForReport({
         return lastVisibleMessage?.lastMessageText ?? '';
     }
 
+    // If lastMessageTextFromReport is empty, it means there's no meaningful last action to show.
+    if (visibleReportActionsDataParam) {
+        return lastMessageTextFromReport;
+    }
+
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
