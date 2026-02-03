@@ -377,6 +377,28 @@ function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParam
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
 }
 
+let shouldPreventSearchAPI = false;
+function handlePreventSearchAPI(hash: number | undefined) {
+    if (typeof hash === 'undefined') {
+        return {};
+    }
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash, undefined, undefined, false, true);
+    return {
+        enableSearchAPIPrevention: () => {
+            shouldPreventSearchAPI = true;
+            if (optimisticData) {
+                Onyx.update(optimisticData);
+            }
+        },
+        disableSearchAPIPrevention: () => {
+            shouldPreventSearchAPI = false;
+            if (finallyData) {
+                Onyx.update(finallyData);
+            }
+        },
+    };
+}
+
 function search({
     queryJSON,
     searchKey,
@@ -394,7 +416,7 @@ function search({
     isOffline?: boolean;
     isLoading: boolean;
 }) {
-    if (isLoading) {
+    if (isLoading || shouldPreventSearchAPI) {
         return;
     }
 
@@ -410,6 +432,7 @@ function search({
         ...(limit !== undefined && {maximumResults: limit}),
     };
     const jsonQuery = JSON.stringify(query);
+
     saveLastSearchParams({
         queryJSON,
         offset,
@@ -1169,7 +1192,7 @@ function handleBulkPayItemSelected(params: {
         showDelegateNoAccessModal,
         confirmPayment,
     } = params;
-    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
+    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems, policy?.id);
     // Policy id is also a last payment method so we shouldn't early return here for that case.
     if (!isValidBulkPayOption(item) && !selectedPolicy) {
         return;
@@ -1351,5 +1374,6 @@ export {
     getTotalFormattedAmount,
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
+    handlePreventSearchAPI,
 };
 export type {TransactionPreviewData};

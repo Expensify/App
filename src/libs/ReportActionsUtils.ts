@@ -68,10 +68,6 @@ type MemberChangeMessageRoomReferenceElement = {
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
-type Followup = {
-    text: string;
-};
-
 function isPolicyExpenseChat(report: OnyxInputOrEntry<Report>): boolean {
     return report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || !!(report && typeof report === 'object' && 'isPolicyExpenseChat' in report && report.isPolicyExpenseChat);
 }
@@ -4028,4 +4024,4 @@ export {
     stripFollowupListFromHtml,
 };
 
-export type {LastVisibleMessage, Followup};
+export type {LastVisibleMessage};

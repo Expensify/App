@@ -51,7 +51,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import resolveSuggestedFollowup from '@libs/actions/Report/SuggestedFollowup';
+import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -890,7 +890,7 @@ function PureReportActionItem({
                     shouldUseLocalization: false,
                     key: `${action.reportActionID}-followup-${followup.text}`,
                     onPress: () => {
-                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup.text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                     },
                 }));
             }
@@ -1740,10 +1740,12 @@ function PureReportActionItem({
                                             shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
                                             primaryTextNumberOfLines={actionableButtonsNoLines}
                                             styles={{
-                                                text: [isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined, actionContainsFollowUps && styles.fontWeightNormal],
+                                                text: [isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined],
                                                 button: actionContainsFollowUps ? [styles.actionableItemButton, hovered && styles.actionableItemButtonBackgroundHovered] : undefined,
-                                                buttonHover: actionContainsFollowUps ? styles.actionableItemButtonHovered : undefined,
-                                                container: actionContainsFollowUps && shouldUseNarrowLayout ? [styles.alignItemsStretch] : undefined,
+                                                container: [
+                                                    actionContainsFollowUps && shouldUseNarrowLayout ? styles.alignItemsStretch : undefined,
+                                                    actionContainsFollowUps ? styles.mt5 : undefined,
+                                                ],
                                             }}
                                         />
                                     )}
