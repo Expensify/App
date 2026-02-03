@@ -21,6 +21,7 @@ import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -202,10 +203,17 @@ function MoneyRequestReportActionsList({
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
+    useFilterSelectedTransactions(transactions);
+
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[]) => {
+            if (isOffline) {
+                setOfflineModalVisible(true);
+                return;
+            }
+
             if (!report) {
                 return;
             }
@@ -220,12 +228,13 @@ function MoneyRequestReportActionsList({
                 policyID: policy?.id,
             });
         },
-        [report, policy?.id],
+        [isOffline, report, policy?.id],
     );
 
     const {
         options: selectedTransactionsOptions,
         handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
         isDeleteModalVisible,
         hideDeleteModal,
     } = useSelectedTransactionsActions({
@@ -741,6 +750,7 @@ function MoneyRequestReportActionsList({
                                 role="button"
                                 accessibilityState={{checked: isSelectAllChecked}}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL}
                             >
                                 <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>
@@ -752,10 +762,11 @@ function MoneyRequestReportActionsList({
                         onConfirm={() => {
                             const shouldNavigateBack =
                                 transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
-                            handleDeleteTransactions();
                             if (shouldNavigateBack) {
                                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                                Navigation.goBack(backToRoute);
+                                handleDeleteTransactionsWithNavigation(backToRoute);
+                            } else {
+                                handleDeleteTransactions();
                             }
                         }}
                         onCancel={hideDeleteModal}
