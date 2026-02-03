@@ -11,6 +11,8 @@ import type {PingPongEvent} from './Pusher/types';
 type Callback<TKey extends OnyxKey> = (data: Array<OnyxServerUpdate<TKey>>) => Promise<void>;
 
 // Keeps track of all the callbacks that need triggered for each event type
+// Using `any` because callbacks can be registered with different key types dynamically.
+// 'any' was introduced during migration away from OnyxKey union for TypeScript performance improvement
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const multiEventCallbackMapping: Record<string, Callback<any>> = {};
 
