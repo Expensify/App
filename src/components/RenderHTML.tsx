@@ -52,7 +52,7 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
 
     return onLinkPress ? (
         <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: isSelectable !== undefined ? isSelectable : true, allowFontScaling: false}}
+            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
             renderersProps={renderersProps}
         >
             {htmlSource}
