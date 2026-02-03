@@ -3,7 +3,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useSharedValue} from 'react-native-reanimated';
-import type {ChartBounds, PointsArray} from 'victory-native';
+import type {ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
@@ -11,13 +11,37 @@ import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LABEL_OFFSET, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import {LABEL_ROTATIONS, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import {DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+
+/** Inner padding between bars (0.3 = 30% of bar width) */
+const BAR_INNER_PADDING = 0.3;
+
+/** Safety buffer multiplier for domain padding calculation */
+const DOMAIN_PADDING_SAFETY_BUFFER = 1.1;
+
+/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
+const BASE_DOMAIN_PADDING = {top: 32, bottom: 0, left: 0, right: 0};
+
+/**
+ * Calculate minimum domainPadding required to prevent data points from crowding chart edges.
+ *
+ * For evenly-spaced data points, Victory maps indices [0..N-1] into the output range.
+ * Without enough padding the first/last points sit too close to the View boundary
+ * and their centered labels get clipped by overflow:hidden.
+ */
+function calculateMinDomainPadding(chartWidth: number, pointCount: number, innerPadding: number): number {
+    if (pointCount <= 0) {
+        return 0;
+    }
+    const minPaddingRatio = (1 - innerPadding) / (2 * (pointCount - 1 + innerPadding));
+    return Math.ceil(chartWidth * minPaddingRatio * DOMAIN_PADDING_SAFETY_BUFFER);
+}
 
 type BarChartProps = CartesianChartProps & {
     /** Callback when a bar is pressed */
@@ -27,35 +51,6 @@ type BarChartProps = CartesianChartProps & {
     useSingleColor?: boolean;
 };
 
-/** Inner padding between bars (0.3 = 30% of bar width) */
-const BAR_INNER_PADDING = 0.3;
-
-/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
-const DOMAIN_PADDING = {
-    top: 32,
-    bottom: 0,
-    left: 0,
-    right: 0,
-};
-
-/** Safety buffer multiplier for domain padding calculation */
-const DOMAIN_PADDING_SAFETY_BUFFER = 1.1;
-
-/**
- * Calculate minimum domainPadding required to prevent bars from overflowing chart edges.
- *
- * The issue: victory-native calculates bar width as (1 - innerPadding) * chartWidth / barCount,
- * but positions bars at indices [0, 1, ..., n-1] scaled to the chart width with domainPadding.
- * For small bar counts, the default padding is insufficient and bars overflow.
- */
-function calculateMinDomainPadding(chartWidth: number, barCount: number, innerPadding: number): number {
-    if (barCount <= 0) {
-        return 0;
-    }
-    const minPaddingRatio = (1 - innerPadding) / (2 * (barCount - 1 + innerPadding));
-    return Math.ceil(chartWidth * minPaddingRatio * DOMAIN_PADDING_SAFETY_BUFFER);
-}
-
 function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -64,7 +59,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const [chartWidth, setChartWidth] = useState(0);
     const [barAreaWidth, setBarAreaWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
-
     const defaultBarColor = DEFAULT_CHART_COLOR;
 
     // prepare data for display
@@ -107,10 +101,10 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
 
     const domainPadding = useMemo(() => {
         if (chartWidth === 0) {
-            return {...DOMAIN_PADDING, left: 0, right: 0};
+            return BASE_DOMAIN_PADDING;
         }
         const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
-        return {...DOMAIN_PADDING, right: horizontalPadding + DOMAIN_PADDING.right, left: horizontalPadding};
+        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
     }, [chartWidth, data.length]);
 
     const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
@@ -140,7 +134,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     );
 
     const handleScaleChange = useCallback(
-        (_xScale: unknown, yScale: (value: number) => number) => {
+        (_xScale: Scale, yScale: Scale) => {
             barGeometry.set({
                 ...barGeometry.get(),
                 yZero: yScale(0),
@@ -226,7 +220,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 titleIcon={titleIcon}
             />
             <View
-                style={[styles.barChartChartContainer, labelRotation === -90 ? dynamicChartStyle : undefined]}
+                style={[styles.barChartChartContainer, labelRotation === -LABEL_ROTATIONS.VERTICAL ? dynamicChartStyle : undefined]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (

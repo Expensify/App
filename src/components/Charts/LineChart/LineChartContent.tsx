@@ -1,8 +1,9 @@
-import {useFont} from '@shopify/react-native-skia';
+import {Group, Text as SkiaText, useFont, vec} from '@shopify/react-native-skia';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
+import type {CartesianChartRenderArg, ChartBounds} from 'victory-native';
 import {CartesianChart, Line, Scatter} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
@@ -10,16 +11,16 @@ import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LABEL_OFFSET, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import {LABEL_ROTATIONS, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
+import {DEFAULT_CHART_COLOR, measureTextWidth} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 /** Inner dot radius for line chart data points */
-const DOT_INNER_RADIUS = 6;
+const DOT_RADIUS = 6;
 
 type LineChartProps = CartesianChartProps & {
     /** Callback when a data point is pressed */
@@ -33,6 +34,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
+    const [plotAreaWidth, setPlotAreaWidth] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
 
@@ -62,13 +64,28 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         setContainerHeight(height);
     }, []);
 
+    const handleChartBoundsChange = useCallback((bounds: ChartBounds) => {
+        setPlotAreaWidth(bounds.right - bounds.left);
+    }, []);
+
     const {labelRotation, labelSkipInterval, truncatedLabels, maxLabelLength} = useChartLabelLayout({
         data,
         font,
         chartWidth,
-        barAreaWidth: chartWidth,
+        barAreaWidth: plotAreaWidth,
         containerHeight,
     });
+
+    // Measure label widths for custom positioning in `renderOutside`
+    const labelWidths = useMemo(() => {
+        if (!font) {
+            return [] as number[];
+        }
+        return truncatedLabels.map((label) => measureTextWidth(label, font));
+    }, [font, truncatedLabels]);
+
+    // Convert hook's degree rotation to radians for Skia rendering
+    const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
     const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
         data,
@@ -84,7 +101,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
         const dx = args.cursorX - args.targetX;
         const dy = args.cursorY - args.targetY;
-        return Math.sqrt(dx * dx + dy * dy) <= DOT_INNER_RADIUS;
+        return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS;
     }, []);
 
     const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
@@ -93,6 +110,72 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     });
 
     const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
+
+    // Victory's built-in x-axis labels center each label under its tick mark,
+    // which works well for bar charts where bars have width and natural spacing.
+    // For line charts, data points sit at the edges of the plot area, so centered
+    // labels get clipped or overflow the chart bounds. We render labels manually
+    // via `renderOutside` so we can right-align each label's last character at its
+    // tick position and clamp edge labels within the canvas.
+    const renderCustomXLabels = useCallback(
+        (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+            if (!font) {
+                return null;
+            }
+
+            const fontMetrics = font.getMetrics();
+            const lineHeight = Math.abs(fontMetrics.ascent) + Math.abs(fontMetrics.descent);
+            const fontSize = font.getSize();
+            const labelY = args.chartBounds.bottom + 2 + fontSize;
+
+            return truncatedLabels.map((label, i) => {
+                if (i % labelSkipInterval !== 0) {
+                    return null;
+                }
+
+                const tickX = args.xScale(i);
+                const labelWidth = labelWidths.at(i) ?? 0;
+
+                // Last character anchored at tickX, clamped to canvas edges.
+                const idealX = tickX - labelWidth;
+                const clampedX = Math.max(0, Math.min(args.canvasSize.width - labelWidth, idealX));
+
+                if (angleRad === 0) {
+                    return (
+                        <SkiaText
+                            key={`xlabel-${label}`}
+                            x={clampedX}
+                            y={labelY}
+                            text={label}
+                            font={font}
+                            color={theme.textSupporting}
+                        />
+                    );
+                }
+
+                // At 90° the rotated label's horizontal footprint is lineHeight;
+                // shift by half to center it on the tick mark.
+                const centeringOffset = labelRotation === -LABEL_ROTATIONS.VERTICAL ? lineHeight / 2 : 0;
+                const origin = vec(clampedX + labelWidth + centeringOffset, labelY);
+                return (
+                    <Group
+                        key={`xlabel-${label}`}
+                        origin={origin}
+                        transform={[{rotate: -angleRad}]}
+                    >
+                        <SkiaText
+                            x={clampedX}
+                            y={labelY}
+                            text={label}
+                            font={font}
+                            color={theme.textSupporting}
+                        />
+                    </Group>
+                );
+            });
+        },
+        [font, truncatedLabels, labelSkipInterval, labelWidths, angleRad, theme.textSupporting],
+    );
 
     const dynamicChartStyle = useMemo(
         () => ({
@@ -120,7 +203,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 titleIcon={titleIcon}
             />
             <View
-                style={[styles.lineChartChartContainer, labelRotation === -90 ? dynamicChartStyle : undefined]}
+                style={[styles.lineChartChartContainer, labelRotation === -LABEL_ROTATIONS.VERTICAL ? dynamicChartStyle : undefined]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
@@ -128,13 +211,15 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                         xKey="x"
                         padding={CHART_PADDING}
                         yKeys={['y']}
-                        domainPadding={{left: 20, right: 20, top: 20, bottom: 20}}
+                        domainPadding={16}
                         actionsRef={actionsRef}
                         customGestures={customGestures}
+                        onChartBoundsChange={handleChartBoundsChange}
+                        renderOutside={renderCustomXLabels}
                         xAxis={{
                             font,
                             tickCount: data.length,
-                            labelColor: theme.textSupporting,
+                            labelColor: 'transparent',
                             lineWidth: X_AXIS_LINE_WIDTH,
                             formatXLabel: formatXAxisLabel,
                             labelRotate: labelRotation,
@@ -152,7 +237,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                                 domain: yAxisDomain,
                             },
                         ]}
-                        frame={{lineWidth: {left: 1, bottom: 1, top: 0, right: 0}}}
+                        frame={{lineWidth: {left: 1, bottom: 1, top: 0, right: 0}, lineColor: theme.border}}
                         data={chartData}
                     >
                         {({points}) => (
@@ -165,7 +250,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                                 />
                                 <Scatter
                                     points={points.y}
-                                    radius={DOT_INNER_RADIUS}
+                                    radius={DOT_RADIUS}
                                     color={DEFAULT_CHART_COLOR}
                                 />
                             </>

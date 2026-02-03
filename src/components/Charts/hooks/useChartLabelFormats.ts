@@ -1,5 +1,6 @@
 import {useCallback} from 'react';
 import type {ChartDataPoint, YAxisUnitPosition} from '@components/Charts/types';
+import {LABEL_ROTATIONS} from './useChartLabelLayout';
 
 type UseChartLabelFormatsProps = {
     data: ChartDataPoint[];
@@ -36,7 +37,7 @@ export default function useChartLabelFormats({data, yAxisUnit, yAxisUnitPosition
             // Use pre-truncated labels
             // If rotation is vertical (-90), we usually want full labels
             // because they have more space vertically.
-            const sourceToUse = labelRotation === -90 ? data.map((p) => p.label) : truncatedLabels;
+            const sourceToUse = labelRotation === -LABEL_ROTATIONS.VERTICAL ? data.map((p) => p.label) : truncatedLabels;
 
             return sourceToUse.at(index) ?? '';
         },

@@ -1,3 +1,4 @@
+import type {SkFont} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
 
 /**
@@ -41,4 +42,13 @@ function getChartColor(index: number): string {
 /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
 const DEFAULT_CHART_COLOR = getChartColor(5);
 
-export {getChartColor, DEFAULT_CHART_COLOR};
+/**
+ * Measure pixel width of a string via glyph widths.
+ * (measureText is not implemented on React Native Web)
+ */
+function measureTextWidth(text: string, font: SkFont): number {
+    const glyphIDs = font.getGlyphIDs(text);
+    return font.getGlyphWidths(glyphIDs).reduce((sum, w) => sum + w, 0);
+}
+
+export {getChartColor, DEFAULT_CHART_COLOR, measureTextWidth};
