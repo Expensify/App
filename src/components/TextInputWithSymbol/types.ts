@@ -90,6 +90,7 @@ type BaseTextInputWithSymbolProps = {
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
 
+    /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
 } & Pick<
     BaseTextInputProps,

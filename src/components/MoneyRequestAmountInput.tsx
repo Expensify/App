@@ -126,6 +126,7 @@ type MoneyRequestAmountInputProps = {
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 
+    /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
 

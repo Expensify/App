@@ -47,6 +47,7 @@ type AmountTextInputProps = {
     /** A unique identifier for this text input for testing purposes */
     testID?: string;
 
+    /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel'>;
 

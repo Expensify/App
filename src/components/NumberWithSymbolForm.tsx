@@ -91,6 +91,7 @@ type NumberWithSymbolFormProps = {
     /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
 
+    /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
