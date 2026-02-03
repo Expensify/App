@@ -7134,7 +7134,7 @@ const CONST = {
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
-            EXPORTED_TO: 'exportedto',
+            EXPORTED_TO: 'exportedTo',
             EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
             NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',

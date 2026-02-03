@@ -26,7 +26,7 @@ const EXPORT_OPTION_TO_QUERY_LABEL: Record<string, string> = {
 
 function SearchFiltersExportedToPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'Table']);
@@ -98,7 +98,7 @@ function SearchFiltersExportedToPage() {
             }
         }
 
-        customItems.sort((a, b) => a.name.localeCompare?.(b.name) ?? 0);
+        customItems.sort((a, b) => localeCompare(a.name, b.name));
 
         return [...integrationItems, ...customItems, ...standardItems];
     }, [integrationsExportTemplates, csvExportLayouts, policy, expensifyIcons, styles, StyleUtils, theme, translate, predefinedConnectionNamesList]);

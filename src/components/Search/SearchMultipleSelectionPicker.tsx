@@ -41,7 +41,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             keyForList: item.name,
             isSelected: true,
             value: item.value,
-                leftElement: item.leftElement,
+            leftElement: item.leftElement,
         }));
 
     const remainingItemsSection = items
@@ -55,7 +55,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             keyForList: item.name,
             isSelected: false,
             value: item.value,
-                leftElement: item.leftElement,
+            leftElement: item.leftElement,
         }));
 
     const noResultsFound = !selectedItemsSection.length && !remainingItemsSection.length;
