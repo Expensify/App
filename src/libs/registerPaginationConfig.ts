@@ -46,7 +46,7 @@ registerPaginationConfig({
         const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
         const isReportArchived = !!reportNameValuePairs?.private_isArchived;
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-        return getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction, true, undefined, reportID);
+        return getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction, true);
     },
     getItemID: (reportAction) => reportAction.reportActionID,
 });

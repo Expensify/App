@@ -12,6 +12,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
+jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+    callback(0);
+    return 0;
+});
+
 type AnyRoute = RouteProp<Record<string, Record<string, unknown> | undefined>, string>;
 const mockUseRoute = jest.fn<AnyRoute, []>();
 jest.mock('@react-navigation/native', () => {
@@ -64,9 +69,14 @@ describe('useSubPage hook', () => {
     });
 
     describe('initialization', () => {
-        it('returns CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, lastPageIndex, moveTo, resetToPage', () => {
+        it('returns CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, lastPageIndex, moveTo, resetToPage, isRedirecting', () => {
             const pages = createMockPages();
             const buildRoute = createBuildRoute();
+            mockUseRoute.mockReturnValue({
+                name: 'TestRoute',
+                key: 'test-key',
+                params: {subPage: 'page1'},
+            } as AnyRoute);
 
             const {result} = renderHook(() =>
                 useSubPage({
@@ -76,13 +86,14 @@ describe('useSubPage hook', () => {
                 }),
             );
 
-            const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, lastPageIndex, moveTo, resetToPage} = result.current;
+            const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, lastPageIndex, moveTo, resetToPage, isRedirecting} = result.current;
 
             expect(CurrentPage).toBe(mockSubPageOne);
             expect(isEditing).toBe(false);
             expect(currentPageName).toBe('page1');
             expect(pageIndex).toBe(0);
             expect(lastPageIndex).toBe(3);
+            expect(isRedirecting).toBe(false);
             expect(typeof prevPage).toBe('function');
             expect(typeof nextPage).toBe('function');
             expect(typeof moveTo).toBe('function');
@@ -138,6 +149,22 @@ describe('useSubPage hook', () => {
             );
 
             expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('page3'), {forceReplace: true});
+        });
+
+        it('returns isRedirecting true when no subPage param is present in URL', () => {
+            const pages = createMockPages();
+            const buildRoute = createBuildRoute();
+
+            const {result} = renderHook(() =>
+                useSubPage({
+                    pages,
+                    onFinished: mockOnFinished,
+                    startFrom: 1,
+                    buildRoute,
+                }),
+            );
+
+            expect(result.current.isRedirecting).toBe(true);
         });
 
         it('does not navigate on mount when subPage param is present in URL', () => {
