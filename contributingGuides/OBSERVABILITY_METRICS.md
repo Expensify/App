@@ -41,7 +41,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 - User sees: Report messages/content displayed
 - Technical: Report actions list rendered (onLayout event)
   - Report data loaded from Onyx (reportID, type, chatType)
-  - Report actions list layout complete (we are waiting for the first page data render, so if there is any data in the Onyx, we'll not wait for the API.)
+  - Report actions list layout complete (we are waiting for the first page data render, so if there is any data in the Onyx, we'll not wait for the API)
   - Called in [`src/pages/home/report/ReportActionsView.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/home/report/ReportActionsView.tsx#L272) and [`src/components/MoneyRequestReportActionsList.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/components/MoneyRequestReportActionsList.tsx#L649)
 **Span ID**: `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`
 **Attributes**: `is_transaction_thread`, `is_one_transaction_report`, `report_type`, `chat_type`
@@ -146,11 +146,17 @@ This document lists all implemented telemetry metrics in the Expensify App.
 **Tags**: `authentication_function`, `authentication_error_type`, `authentication_json_code`
 **Context**: Command name, error message, provided parameters
 
-### ANRs (Application Not Responding)
+### ANRs (Application Not Responding) - Android only
 
 **Goal**: Track error conditions for trend analysis to identify when the app becomes unresponsive.
-**Status**: ANRs are tracked automatically with default Sentry configuration. Keep in mind that ANRs is only supported on Android.
+**Status**: ANRs are tracked automatically with a default Sentry configuration. 
 **What's Measured**: Number of "Application Not Responding" errors
+
+### Watchdog Terminations - iOS only
+
+**Goal**: Track error conditions for trend analysis to identify when the app becomes unresponsive and is terminated by the OS.
+**Status**: Watchdog Terminations are tracked automatically with a default Sentry configuration.
+**What's Measured**: Number of "WatchdogTermination" errors
 
 ## Feature Health
 

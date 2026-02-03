@@ -10,14 +10,14 @@ When users encounter issues in live sessions that we can't reproduce locally, bu
 
 - **Telemetry**: How a system collects data (metrics, logs, traces)
 - **Observability**: Using telemetry to understand what's happening inside the system
-- **Trace**: Collection of spans showing end-to-end flow through the system
 - **Span**: Basic unit representing a specific operation (navigation, API call, render) with duration and metadata
+- **Trace**: Collection of spans showing end-to-end flow through the system
 - **Tags**: Contextual attributes (locale, app version, policy ID) for filtering and pattern detection
 - **P90**: 90th percentile—90% of data falls below this value 
 
 ## Tools & implementation
 
-We use **Sentry** for observability across all platforms (Web, iOS, Android). Sentry collects traces, spans, and contextual data from user sessions to identify and diagnose production issues.
+We use **Sentry** for observability across all platforms (Web, iOS, Android). Sentry collects traces, spans, and contextual data from user sessions to identify and diagnose production issues. For a better understanding of Sentry visit [Sentry docs](https://docs.sentry.io/).
 
 ### Working with Spans
 
@@ -78,7 +78,7 @@ Defined in `src/CONST/index.ts` under `CONST.TELEMETRY`:
 - **Tags**: For filtering and grouping in dashboards (indexed, searchable)
 - **Attributes**: For additional context without filtering (not indexed)
 
-### Middlewares
+### Middleware
 
 Process events before sending to Sentry:
 - **minDurationFilter** - Discards spans shorter than a specified duration
@@ -86,7 +86,7 @@ Process events before sending to Sentry:
 - **emailDomainFilter** - Removes PII
 - **firebasePerformanceFilter** - Filters noise
 
-Middlewares run automatically. Add new middleware only for global filtering or enrichment (e.g., new PII protection).
+Middlewares runs automatically. Add new middleware only for global filtering or enrichment (e.g., new PII protection).
 
 ## Metrics
 
@@ -116,9 +116,11 @@ Error conditions tracked for trend analysis:
 
 ### Feature Health
 
-End-to-end flows for critical features:
+End-to-end flows for critical features. There is only one feature currently tracked:
 
 - **Create expense**: Create spans and dashboard that will provide information about feature health of creating expense for each type: Manual entry, scan, distance.
+
+More features will be handled in the future.
 
 ### Adding New Metrics
 
