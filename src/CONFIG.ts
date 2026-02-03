@@ -143,4 +143,5 @@ export default {
     // eslint-disable-next-line no-restricted-properties
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
     SENTRY_DSN: get(Config, 'SENTRY_DSN', 'https://7b463fb4d4402d342d1166d929a62f4e@o4510228013121536.ingest.us.sentry.io/4510228107427840'),
+    ENABLE_SENTRY_ON_DEV: get(Config, 'ENABLE_SENTRY_ON_DEV', 'false') === 'true',
 } as const;
