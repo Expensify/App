@@ -4,6 +4,7 @@ import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/acti
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasDomainErrors} from '@libs/DomainUtils';
 import {getUberConnectionErrorDirectlyFromPolicy, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError} from '@libs/PolicyUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
@@ -19,6 +20,7 @@ type IndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
 type NavigationTabBarChecksResult = {
     accountStatus: IndicatorStatus | undefined;
     policyStatus: IndicatorStatus | undefined;
+    domainStatus: IndicatorStatus | undefined;
     infoStatus: IndicatorStatus | undefined;
     policyIDWithErrors: string | undefined;
 };
@@ -40,6 +42,7 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, {canBeMissing: true});
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
@@ -98,8 +101,13 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
         [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList),
     };
 
+    const domainChecks: Partial<Record<IndicatorStatus, boolean>> = {
+        [CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS]: Object.values(allDomainErrors ?? {}).some((domainErrors) => hasDomainErrors(domainErrors)),
+    };
+
     const [accountStatus] = Object.entries(accountChecks).find(([, value]) => value) ?? [];
     const [policyStatus] = Object.entries(policyChecks).find(([, value]) => value) ?? [];
+    const [domainStatus] = Object.entries(domainChecks).find(([, value]) => value) ?? [];
     const [infoStatus] = Object.entries(infoChecks).find(([, value]) => value) ?? [];
 
     const policyIDWithErrors = Object.values(policyChecks).find(Boolean)?.id;
@@ -107,6 +115,7 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
     return {
         accountStatus: accountStatus as IndicatorStatus | undefined,
         policyStatus: policyStatus as IndicatorStatus | undefined,
+        domainStatus: domainStatus as IndicatorStatus | undefined,
         infoStatus: infoStatus as IndicatorStatus | undefined,
         policyIDWithErrors,
     };
