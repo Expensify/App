@@ -1670,22 +1670,28 @@ function updateIsVerifiedValidateActionCode(isVerifiedValidateActionCode: boolea
     });
 }
 
-function deleteExpenseRules(expenseRules: ExpenseRule[], ruleKeysToDelete: string[], getKeyForRule: (rule: ExpenseRule) => string) {
-    if (ruleKeysToDelete.length === 0) {
+function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: string[], getKeyForRule: (rule: ExpenseRule) => string) {
+    if (selectedRuleKeys.length === 0) {
         return;
     }
 
-    const optimisticRules = expenseRules.map((rule) => {
-        if (ruleKeysToDelete.includes(getKeyForRule(rule))) {
+    // selectedRuleKeys are in format "${hash}-${index}" to distinguish duplicates
+    const isRuleSelected = (rule: ExpenseRule, index: number) => {
+        const keyForList = `${getKeyForRule(rule)}-${index}`;
+        return selectedRuleKeys.includes(keyForList);
+    };
+
+    const optimisticRules = expenseRules.map((rule, index) => {
+        if (isRuleSelected(rule, index)) {
             return {...rule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         }
         return rule;
     });
 
-    const successRules = expenseRules.filter((rule) => !ruleKeysToDelete.includes(getKeyForRule(rule)));
+    const successRules = expenseRules.filter((rule, index) => !isRuleSelected(rule, index));
 
-    const failureRules = expenseRules.map((rule) => {
-        if (ruleKeysToDelete.includes(getKeyForRule(rule))) {
+    const failureRules = expenseRules.map((rule, index) => {
+        if (isRuleSelected(rule, index)) {
             return {...rule, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
         }
         return rule;

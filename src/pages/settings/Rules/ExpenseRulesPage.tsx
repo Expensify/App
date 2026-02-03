@@ -144,8 +144,7 @@ function ExpenseRulesPage() {
 
     const handleDeleteRules = () => {
         if (selectedRules.length > 0) {
-            const ruleKeysToDelete = selectedRules.map((keyForList) => keyForList.substring(0, keyForList.indexOf('-')));
-            deleteExpenseRules(expenseRules, ruleKeysToDelete, getKeyForRule);
+            deleteExpenseRules(expenseRules, selectedRules, getKeyForRule);
         }
         setDeleteConfirmModalVisible(false);
         setSelectedRules([]);
