@@ -142,10 +142,60 @@ function searchPageQuery(query) {
         });
 }
 
-function clearSearchPage() {
+function clearSearchInput() {
     const input = document.getElementById('search-page-input');
     input.value = '';
     input.focus();
+}
+
+function askHelpsiteAI(query) {
+    const aiContainer = document.getElementById('ai-answer-container');
+    if (!aiContainer) {
+        return;
+    }
+
+    aiContainer.innerHTML = '';
+    aiContainer.appendChild(cloneTemplate('ai-thinking-template'));
+
+    const formData = new FormData();
+    formData.append('command', 'AskHelpsiteAI');
+    formData.append('query', query.trim());
+
+    const platform = new URLSearchParams(window.location.search).get('platform');
+    if (platform) {
+        formData.append('platform', platform);
+    }
+
+    fetch(ASK_AI_API_URL, {method: 'POST', body: formData})
+        .then((response) => response.json())
+        .then((data) => {
+            const answer = data.answer || '';
+            if (!answer) {
+                aiContainer.innerHTML = '';
+                return;
+            }
+
+            const template = cloneTemplate('ai-response-template');
+            const content = template.querySelector('.ai-content');
+            content.innerHTML = answer;
+
+            const showMoreButton = template.querySelector('.ai-show-more');
+            aiContainer.innerHTML = '';
+            aiContainer.appendChild(template);
+
+            // Show "Show more" button if content overflows
+            const renderedContent = aiContainer.querySelector('.ai-content');
+            if (renderedContent.scrollHeight > renderedContent.clientHeight) {
+                showMoreButton.classList.remove('hidden');
+                showMoreButton.addEventListener('click', () => {
+                    renderedContent.classList.toggle('expanded');
+                    showMoreButton.firstChild.textContent = renderedContent.classList.contains('expanded') ? 'Show less ' : 'Show more ';
+                });
+            }
+        })
+        .catch(() => {
+            aiContainer.innerHTML = '';
+        });
 }
 
 function initSearchPage() {
