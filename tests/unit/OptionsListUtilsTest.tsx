@@ -21,6 +21,7 @@ import {
     filterWorkspaceChats,
     formatMemberForList,
     getCurrentUserSearchTerms,
+    getFilteredRecentAttendees,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
@@ -2580,6 +2581,55 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite).toBe(null);
         });
 
+        it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
+            // Given a set of options
+            const options = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                {},
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                {
+                    includeUserToInvite: true,
+                },
+            );
+
+            // When we call filterAndOrderOptions with a plain text name (not email or phone) without shouldAcceptName
+            const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
+                shouldAcceptName: false,
+            });
+
+            // Then userToInvite should be null since plain names are not accepted by default
+            expect(filteredOptions?.userToInvite).toBe(null);
+        });
+
+        it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
+            // Given a set of options
+            const options = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                {},
+                {},
+                nvpDismissedProductTraining,
+                loginList,
+                {},
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                {
+                    includeUserToInvite: true,
+                },
+            );
+
+            // When we call filterAndOrderOptions with a plain text name (not email or phone) with shouldAcceptName
+            const filteredOptions = filterAndOrderOptions(options, 'Jeff', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {
+                shouldAcceptName: true,
+            });
+
+            // Then userToInvite should be returned for the plain name
+            expect(filteredOptions?.userToInvite?.text).toBe('Jeff');
+        });
+
         it('should not return any options if search value does not match any personal details', () => {
             // Given a set of options
             const options = getValidOptions(
@@ -3337,16 +3387,17 @@ describe('OptionsListUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
-        describe('getReportPreviewMessage', () => {
-            it('should format report preview message correctly for non-policy expense chat with IOU action', async () => {
+        describe('REPORT_PREVIEW action', () => {
+            it('should show report preview message for non-policy expense chat', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    isOwnPolicyExpenseChat: false,
+                };
                 const iouReport: Report = {
                     ...createRandomReport(1, undefined),
                     isOwnPolicyExpenseChat: false,
                     type: CONST.REPORT.TYPE.IOU,
                     isWaitingOnBankAccount: false,
-                    currency: CONST.CURRENCY.USD,
-                    total: 100,
-                    unheldTotal: 100,
                 };
                 const reportPreviewAction: ReportAction = {
                     ...createRandomReportAction(1),
@@ -3370,7 +3421,6 @@ describe('OptionsListUtils', () => {
                 };
                 const iouAction: ReportAction = {
                     ...createRandomReportAction(2),
-                    reportID: iouReport.reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     message: [{type: 'COMMENT', text: ''}],
                     originalMessage: {
@@ -3379,15 +3429,25 @@ describe('OptionsListUtils', () => {
                     },
                     shouldShow: true,
                 };
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                await waitForBatchedUpdates();
-
-                // Test getReportPreviewMessage directly - this is the function responsible for formatting the message
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [reportPreviewAction.reportActionID]: reportPreviewAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {
+                    [iouAction.reportActionID]: iouAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    policyTags: {},
+                });
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
-                const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
-                expect(formattedMessage).toBe('$1.00 for A A A');
+                const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
+                expect(lastMessage).toBe(expected);
             });
         });
         it('MOVED_TRANSACTION action', async () => {
@@ -3441,7 +3501,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     policyTags: undefined,
                 });
@@ -3468,7 +3527,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     policyTags: undefined,
                 });
@@ -3495,7 +3553,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     policyTags: undefined,
                 });
@@ -3519,7 +3576,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     policyTags: undefined,
                 });
@@ -3637,7 +3693,6 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 policyTags: {},
-                visibleReportActionsDataParam: {},
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
             });
             expect(result).toBe(expectedVisibleText);
@@ -3690,7 +3745,6 @@ describe('OptionsListUtils', () => {
                     policy,
                     reportMetadata,
                     policyTags: undefined,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
@@ -3723,7 +3777,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     policyTags: undefined,
                 });
@@ -3754,7 +3807,6 @@ describe('OptionsListUtils', () => {
                     report,
                     lastActorDetails: null,
                     isReportArchived: false,
-                    visibleReportActionsDataParam: {},
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     policyTags: undefined,
                 });
@@ -5137,6 +5189,54 @@ describe('OptionsListUtils', () => {
             });
             expect(result).not.toBeNull();
             expect(result?.login).toBe('Jeff Amazon');
+        });
+    });
+
+    describe('getFilteredRecentAttendees', () => {
+        it('should deduplicate recent attendees by email', () => {
+            const personalDetails = {};
+            const attendees: Array<{email: string; displayName: string; avatarUrl: string}> = [];
+            const recentAttendees = [
+                {email: 'user1@example.com', displayName: 'User One', avatarUrl: ''},
+                {email: 'user1@example.com', displayName: 'User One Duplicate', avatarUrl: ''}, // Duplicate by email
+                {email: 'user2@example.com', displayName: 'User Two', avatarUrl: ''},
+            ];
+
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+
+            // Should deduplicate by email - user1@example.com should only appear once
+            const logins = result.map((r) => r.login);
+            const user1Count = logins.filter((login) => login === 'user1@example.com').length;
+            expect(user1Count).toBe(1);
+        });
+
+        it('should deduplicate name-only attendees by displayName', () => {
+            const personalDetails = {};
+            const attendees: Array<{email: string; displayName: string; avatarUrl: string}> = [];
+            const recentAttendees = [
+                {email: '', displayName: 'Name Only', avatarUrl: ''},
+                {email: '', displayName: 'Name Only', avatarUrl: ''}, // Duplicate by displayName (name-only attendee)
+                {email: '', displayName: 'Another Name', avatarUrl: ''},
+            ];
+
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+
+            // Should deduplicate by displayName - Name Only should only appear once
+            const logins = result.map((r) => r.login);
+            const nameOnlyCount = logins.filter((login) => login === 'Name Only').length;
+            expect(nameOnlyCount).toBe(1);
+        });
+
+        it('should use displayName as login for name-only attendees', () => {
+            const personalDetails = {};
+            const attendees: Array<{email: string; displayName: string; avatarUrl: string}> = [];
+            const recentAttendees = [{email: '', displayName: 'John Smith', avatarUrl: ''}];
+
+            const result = getFilteredRecentAttendees(personalDetails, attendees, recentAttendees, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
+
+            // Name-only attendee should have displayName as login
+            const johnSmith = result.find((r) => r.login === 'John Smith');
+            expect(johnSmith).toBeDefined();
         });
     });
 });
