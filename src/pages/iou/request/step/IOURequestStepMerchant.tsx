@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -70,7 +70,12 @@ function IOURequestStepMerchant({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+    const isMerchantRequired = useMemo(() => {
+        if (isEditing) {
+            return isPolicyExpenseChat(report) || isExpenseRequest(report);
+        }
+        return transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+    }, [isEditing, report, transaction?.participants]);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
