@@ -250,6 +250,11 @@ function SearchPage({route}: SearchPageProps) {
 
     const beginExportWithTemplate = useCallback(
         async (templateName: string, templateType: string, policyID: string | undefined) => {
+            if (isOffline) {
+                setIsOfflineModalVisible(true);
+                return;
+            }
+
             // If the user has selected a large number of items, we'll use the queryJSON to search for the reportIDs and transactionIDs necessary for the export
             if (areAllMatchingItemsSelected) {
                 queueExportSearchWithTemplate({
@@ -283,7 +288,7 @@ function SearchPage({route}: SearchPageProps) {
             }
             clearSelectedTransactions(undefined, true);
         },
-        [queryJSON, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs, showConfirmModal, translate, clearSelectedTransactions],
+        [isOffline, areAllMatchingItemsSelected, showConfirmModal, translate, clearSelectedTransactions, queryJSON, selectedTransactionReportIDs, selectedTransactionsKeys],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
@@ -1041,6 +1046,7 @@ function SearchPage({route}: SearchPageProps) {
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
             isFromGlobalCreate: true,
+            isFromFloatingActionButton: true,
             reportID: newReportID,
             personalPolicy,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,

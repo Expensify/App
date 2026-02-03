@@ -131,6 +131,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const {isBetaEnabled} = usePermissions();
 
+    // Check if the transaction has customUnitOutOfPolicy violation (distance rate error)
+    const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    const hasDistanceRateError = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
 
@@ -158,6 +162,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     const onSaveSplitExpense = () => {
+        if (hasDistanceRateError) {
+            showConfirmModal({
+                title: translate('iou.splitExpense'),
+                prompt: translate('iou.splitExpenseDistanceErrorModalDescription'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+
         if (splitExpenses.length > CONST.IOU.SPLITS_LIMIT) {
             setErrorMessage(translate('iou.error.manySplitsProvided'));
             return;
