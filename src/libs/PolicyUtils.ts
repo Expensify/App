@@ -284,17 +284,17 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     return false;
 }
 
-function getCustomUnitsForDuplication(policy: Policy, isCustomUnitsOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
+function getCustomUnitsForDuplication(policy: Policy, isDistanceRatesOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
-    if ((!isCustomUnitsOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
+    if ((!isDistanceRatesOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
         return undefined;
     }
 
-    if (isCustomUnitsOptionSelected && isPerDiemOptionSelected) {
+    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
         return customUnits;
     }
 
-    if (isCustomUnitsOptionSelected) {
+    if (isDistanceRatesOptionSelected) {
         const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
