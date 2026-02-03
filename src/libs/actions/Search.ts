@@ -126,7 +126,7 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
-            if (hasDynamicExternalWorkflow(snapshotPolicy)) {
+            if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
                 return;
             }
@@ -380,6 +380,28 @@ function openSearchPage(params?: OpenSearchPageParams) {
     });
 }
 
+let shouldPreventSearchAPI = false;
+function handlePreventSearchAPI(hash: number | undefined) {
+    if (typeof hash === 'undefined') {
+        return {};
+    }
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash, undefined, undefined, false, true);
+    return {
+        enableSearchAPIPrevention: () => {
+            shouldPreventSearchAPI = true;
+            if (optimisticData) {
+                Onyx.update(optimisticData);
+            }
+        },
+        disableSearchAPIPrevention: () => {
+            shouldPreventSearchAPI = false;
+            if (finallyData) {
+                Onyx.update(finallyData);
+            }
+        },
+    };
+}
+
 function search({
     queryJSON,
     searchKey,
@@ -397,7 +419,7 @@ function search({
     isOffline?: boolean;
     isLoading: boolean;
 }) {
-    if (isLoading) {
+    if (isLoading || shouldPreventSearchAPI) {
         return;
     }
 
@@ -413,6 +435,7 @@ function search({
         ...(limit !== undefined && {maximumResults: limit}),
     };
     const jsonQuery = JSON.stringify(query);
+
     saveLastSearchParams({
         queryJSON,
         offset,
@@ -543,7 +566,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: true}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: true,
+                        pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+                    },
+                ]),
+            ),
         },
     ];
 
@@ -551,7 +582,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: false,
+                        pendingExpenseAction: null,
+                    },
+                ]),
+            ),
         },
     ];
 
@@ -571,7 +610,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: false,
+                        pendingExpenseAction: null,
+                    },
+                ]),
+            ),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -1148,7 +1195,7 @@ function handleBulkPayItemSelected(params: {
         showDelegateNoAccessModal,
         confirmPayment,
     } = params;
-    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
+    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems, policy?.id);
     // Policy id is also a last payment method so we shouldn't early return here for that case.
     if (!isValidBulkPayOption(item) && !selectedPolicy) {
         return;
@@ -1330,5 +1377,6 @@ export {
     getTotalFormattedAmount,
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
+    handlePreventSearchAPI,
 };
 export type {TransactionPreviewData};
