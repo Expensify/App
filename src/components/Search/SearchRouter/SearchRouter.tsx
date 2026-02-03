@@ -256,9 +256,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     );
 
     const submitSearch = useCallback(
-        (queryString: SearchQueryString) => {
+        (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
             if (!updatedQuery) {
                 return;
             }
@@ -404,7 +404,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             timestamp: endTime,
                         });
                     } else {
-                        submitSearch(item.searchQuery);
+                        submitSearch(item.searchQuery, item.keyForList !== 'findItem');
 
                         const endTime = Date.now();
                         Log.info('[CMD_K_DEBUG] Search submitted', false, {
