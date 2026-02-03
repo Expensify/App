@@ -1,7 +1,7 @@
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import {useContext, useMemo} from 'react';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useMemo} from 'react';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
@@ -28,7 +28,7 @@ const getModifiedCardStyleInterpolatorProps = (props: StackCardInterpolationProp
 const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
     const styles = useThemeStyles();
     const customInterpolator = useModalCardStyleInterpolator();
-    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const {wideRHPRouteKeys} = useWideRHPState();
 
     // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
