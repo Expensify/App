@@ -984,7 +984,7 @@ function ReportScreen({ params: { reportID }}) {
   - A parent component fetches data or computes state (via hooks, stores, contexts)
   - That data is passed as props to a child component
   - The parent does not use that data for its own logic — it only serves as an intermediary
-  - The child could reasonably fetch or compute this data itself
+  - The child can retrieve required data on its own
 
   **Signs of violation:**
   - Parent imports hooks/contexts only to satisfy child's data needs
