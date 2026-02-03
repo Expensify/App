@@ -40,6 +40,7 @@ function BasePicker<TPickerValue>({
     onBlur = () => {},
     additionalPickerEvents = () => {},
     ref,
+    accessibilityLabel,
 }: BasePickerProps<TPickerValue>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
@@ -219,7 +220,7 @@ function BasePicker<TPickerValue>({
                     touchableWrapperProps={{
                         accessible: true,
                         accessibilityRole: CONST.ROLE.COMBOBOX,
-                        accessibilityLabel: translate('languagePage.language'),
+                        accessibilityLabel,
                         accessibilityState: {disabled: isDisabled, expanded: isHighlighted},
                     }}
                     pickerProps={{

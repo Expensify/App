@@ -101,6 +101,9 @@ type BasePickerProps<TPickerValue> = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BasePickerHandle>;
+
+    /** An accessibility label for the picker */
+    accessibilityLabel?: string;
 };
 
 export type {BasePickerHandle, BasePickerProps, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};
