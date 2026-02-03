@@ -20,6 +20,7 @@ import type {
     SearchGroupBy,
     SearchQueryJSON,
     SearchStatus,
+    SearchView,
     SearchWithdrawalType,
     SelectedTransactionInfo,
     SingularSearchStatus,
@@ -94,7 +95,7 @@ import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
     canSendInvoice,
-    getCleanedTagName,
+    getCommaSeparatedTagNameWithSanitizedColons,
     getGroupPaidPoliciesWithExpenseChatEnabled,
     getPolicy,
     getSubmitToAccountID,
@@ -2412,7 +2413,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
             // Format the tag name - use translated "No tag" for empty values so it sorts alphabetically
             const rawTag = tagGroup.tag;
             const isEmptyTag = !rawTag || rawTag === CONST.SEARCH.TAG_EMPTY_VALUE || rawTag === '(untagged)';
-            const formattedTag = isEmptyTag ? translate('search.noTag') : getCleanedTagName(rawTag);
+            const formattedTag = isEmptyTag ? translate('search.noTag') : getCommaSeparatedTagNameWithSanitizedColons(rawTag);
 
             tagSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.TAG,
@@ -3753,6 +3754,10 @@ function getGroupByOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
 }
 
+function getViewOptions(translate: LocalizedTranslate) {
+    return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
+}
+
 function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListContextProps['getCurrencySymbol']) {
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
@@ -3785,6 +3790,11 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
             return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
             return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE];
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            return [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE, CONST.SEARCH.DATE_PRESETS.NEVER];
         default:
             return defaultPresets;
     }
@@ -4503,6 +4513,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getViewOptions,
     getGroupCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,
