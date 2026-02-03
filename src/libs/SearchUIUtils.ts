@@ -3658,10 +3658,10 @@ function createTypeMenuSections(
         };
 
         const insightsSearchKeys = [
+            CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
             CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-            CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
         ];
 
         for (const key of insightsSearchKeys) {
