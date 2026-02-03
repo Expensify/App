@@ -127,7 +127,8 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
     const defaultPlanType = isMemberOfControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
     const userPlanType = draftValues?.planType ?? defaultPlanType;
-    const defaultOwner = policyOwnerEmail ?? session?.email ?? '';
+    const defaultOwner = (policyOwnerEmail || session?.email) ?? '';
+
     const userOwner = draftValues?.owner ?? defaultOwner;
     const ownerDisplayName = userOwner;
 
@@ -269,7 +270,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                         interactive
                                         shouldShowRightIcon
                                         onPress={() => {
-                                            Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION_OWNER_SELECTOR.route as never);
+                                            Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION_OWNER_SELECTOR.getRoute(Navigation.getActiveRoute()));
                                         }}
                                         value={userOwner}
                                     />

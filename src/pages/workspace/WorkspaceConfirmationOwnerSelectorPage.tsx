@@ -1,12 +1,12 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 // eslint-disable-next-line no-restricted-imports -- SelectionListWithSections required for section-based user list display
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -17,10 +17,46 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import type {Participant} from '@src/types/onyx/IOU';
+
+/**
+ * Helper function to create a formatted user list item
+ */
+function createUserListItem({
+    personalDetails,
+    login,
+    keyPrefix,
+    isSelected = false,
+}: {
+    personalDetails: ReturnType<typeof getPersonalDetailByEmail>;
+    login: string;
+    keyPrefix: string;
+    isSelected?: boolean;
+}) {
+    const accountID = personalDetails?.accountID ?? generateAccountID(login);
+    return {
+        ...(personalDetails ?? {}),
+        text: personalDetails?.displayName ?? login,
+        alternateText: personalDetails?.login ?? login,
+        login: personalDetails?.login ?? login,
+        keyForList: `${keyPrefix}-${personalDetails?.login ?? login}`,
+        accountID,
+        isSelected,
+        shouldShowSubscript: undefined,
+        icons: [
+            {
+                source: personalDetails?.avatar ?? FallbackAvatar,
+                name: formatPhoneNumber(personalDetails?.login ?? login),
+                type: CONST.ICON_TYPE_AVATAR,
+                id: accountID,
+            },
+        ],
+    };
+}
 
 function WorkspaceConfirmationOwnerSelectorPage() {
     const {translate} = useLocalize();
@@ -32,7 +68,6 @@ function WorkspaceConfirmationOwnerSelectorPage() {
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT, {canBeMissing: true});
     const currentOwner = draftValues?.owner ?? currentUserLogin ?? '';
     const ownerPersonalDetails = getPersonalDetailByEmail(currentOwner);
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const excludeLogins = useMemo(
         () => ({
@@ -64,46 +99,53 @@ function WorkspaceConfirmationOwnerSelectorPage() {
 
     const sections = useMemo(() => {
         const sectionsList = [];
+        const currentUserPersonalDetails = getPersonalDetailByEmail(currentUserLogin ?? '');
 
-        if (currentOwner && ownerPersonalDetails) {
+        // Add selected owner section
+        if (currentOwner) {
+            const ownerItem = createUserListItem({
+                personalDetails: ownerPersonalDetails,
+                login: currentOwner,
+                keyPrefix: 'currentOwner',
+                isSelected: true,
+            });
             sectionsList.push({
                 title: undefined,
-                data: [
-                    {
-                        ...ownerPersonalDetails,
-                        text: ownerPersonalDetails?.displayName ?? currentOwner,
-                        alternateText: ownerPersonalDetails?.login ?? currentOwner,
-                        login: ownerPersonalDetails.login ?? currentOwner,
-                        keyForList: `currentOwner-${ownerPersonalDetails.login}`,
-                        isDisabled: false,
-                        isSelected: true,
-                        shouldShowSubscript: undefined,
-                        icons: [
-                            {
-                                source: ownerPersonalDetails?.avatar ?? icons.FallbackAvatar,
-                                name: formatPhoneNumber(ownerPersonalDetails?.login ?? ''),
-                                type: CONST.ICON_TYPE_AVATAR,
-                                id: ownerPersonalDetails?.accountID,
-                            },
-                        ],
-                    },
-                ],
+                data: [ownerItem],
                 shouldShow: true,
             });
         }
 
+        // Add current user as an option if they're not the selected owner
+        if (currentUserLogin && currentUserLogin !== currentOwner) {
+            const currentUserItem = createUserListItem({
+                personalDetails: currentUserPersonalDetails,
+                login: currentUserLogin,
+                keyPrefix: 'currentUser',
+                isSelected: false,
+            });
+            sectionsList.push({
+                title: undefined,
+                data: [currentUserItem],
+                shouldShow: true,
+            });
+        }
+
+        // Add recent reports section
         sectionsList.push({
             title: translate('common.recents'),
-            data: availableOptions.recentReports,
-            shouldShow: availableOptions.recentReports?.length > 0,
+            data: availableOptions.recentReports ?? [],
+            shouldShow: (availableOptions.recentReports?.length ?? 0) > 0,
         });
 
+        // Add contacts section
         sectionsList.push({
             title: translate('common.contacts'),
-            data: availableOptions.personalDetails,
-            shouldShow: availableOptions.personalDetails?.length > 0,
+            data: availableOptions.personalDetails ?? [],
+            shouldShow: (availableOptions.personalDetails?.length ?? 0) > 0,
         });
 
+        // Add user to invite section
         if (availableOptions.userToInvite) {
             sectionsList.push({
                 title: undefined,
@@ -112,20 +154,8 @@ function WorkspaceConfirmationOwnerSelectorPage() {
             });
         }
 
-        return sectionsList.map((section) => ({
-            ...section,
-            data: section.data.map((option) => ({
-                ...option,
-                text: option.text ?? option.displayName ?? '',
-                alternateText: option.alternateText ?? option.login ?? undefined,
-                keyForList: option.keyForList ?? '',
-                isDisabled: option.isDisabled ?? undefined,
-                isSelected: option.isSelected ?? undefined,
-                login: option.login ?? undefined,
-                shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-            })),
-        }));
-    }, [currentOwner, ownerPersonalDetails, translate, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, icons.FallbackAvatar]);
+        return sectionsList;
+    }, [currentOwner, currentUserLogin, ownerPersonalDetails, translate, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {
