@@ -10,16 +10,9 @@
 
 <template id="search-loading-template">
     <div class="skeleton-search-results">
+        {% for i in (1..10) %}
         <div class="skeleton-item"><div class="skeleton-title"></div><div class="skeleton-description"></div></div>
-        <div class="skeleton-item"><div class="skeleton-title"></div><div class="skeleton-description"></div></div>
-        <div class="skeleton-item"><div class="skeleton-title"></div><div class="skeleton-description"></div></div>
-        <div class="skeleton-item"><div class="skeleton-title"></div><div class="skeleton-description"></div></div>
-        <div class="skeleton-item"><div class="skeleton-title"></div><div class="skeleton-description"></div></div>
-        <div class="skeleton-item"><div class="skeleton-title"></div><div class="skeleton-description"></div></div>
-        <div class="skeleton-item"><div class="skeleton-title"></div><div class="skeleton-description"></div></div>
-        <div class="skeleton-item"><div class="skeleton-title"></div><div class="skeleton-description"></div></div>
-        <div class="skeleton-item"><div class="skeleton-title"></div><div class="skeleton-description"></div></div>
-        <div class="skeleton-item"><div class="skeleton-title"></div><div class="skeleton-description"></div></div>
+        {% endfor %}
     </div>
 </template>
 
