@@ -5,9 +5,10 @@ import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
-import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
+import {getCleanedTagName, getTagList, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
 import {getTagArrayFromName, getTagForDisplay} from './TransactionUtils';
+import {insertTagIntoTransactionTagsString} from './IOUUtils';
 
 type SelectedTagOption = {
     name: string;
@@ -27,6 +28,16 @@ type TagVisibility = {
 
     /** Flag indicating if the tag should be shown */
     shouldShow: boolean;
+};
+
+type UpdatedTransactionTagParams = {
+    transactionTag: string;
+    selectedTagName: string;
+    currentTag: string;
+    tagListIndex: number;
+    policyTags: OnyxEntry<PolicyTagLists>;
+    hasDependentTags: boolean;
+    hasMultipleTagLists: boolean;
 };
 
 /**
@@ -250,5 +261,51 @@ function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTa
     });
 }
 
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag};
+function getUpdatedTransactionTag({
+    transactionTag,
+    selectedTagName,
+    currentTag,
+    tagListIndex,
+    policyTags,
+    hasDependentTags,
+    hasMultipleTagLists,
+}: UpdatedTransactionTagParams): string {
+    const isSelectedTag = selectedTagName === currentTag;
+
+    if (hasDependentTags) {
+        const tagParts = transactionTag ? getTagArrayFromName(transactionTag) : [];
+
+        if (isSelectedTag) {
+            // Deselect: clear this and all child tags.
+            tagParts.splice(tagListIndex);
+        } else {
+            // Select new tag: replace this index and clear child tags.
+            tagParts.splice(tagListIndex, tagParts.length - tagListIndex, selectedTagName);
+
+            const policyTagLists = getTagLists(policyTags);
+            for (let i = tagListIndex + 1; i < policyTagLists.length; i++) {
+                const availableNextLevelTags = getTagList(policyTags, i);
+                const enabledTags = Object.values(availableNextLevelTags.tags).filter((tag) => tag.enabled);
+
+                if (enabledTags.length === 1) {
+                    // If there is only one enabled tag, we can auto-select it.
+                    const firstTag = enabledTags.at(0);
+                    if (firstTag) {
+                        tagParts.push(firstTag.name);
+                    }
+                } else {
+                    // If there are no enabled tags or more than one, stop auto-selecting.
+                    break;
+                }
+            }
+        }
+
+        return tagParts.join(':');
+    }
+
+    // Independent tags (fallback): use comma-separated list.
+    return insertTagIntoTransactionTagsString(transactionTag, isSelectedTag ? '' : selectedTagName, tagListIndex, hasMultipleTagLists);
+}
+
+export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag};
 export type {SelectedTagOption, TagVisibility, TagOption};

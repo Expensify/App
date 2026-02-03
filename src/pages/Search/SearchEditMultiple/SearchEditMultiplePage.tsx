@@ -15,11 +15,12 @@ import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkE
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTaxName, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getTagArrayFromName, getTaxName, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -85,10 +86,11 @@ function SearchEditMultiplePage() {
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const policyTagLists = getTagLists(policyTags);
 
     const isTaxTrackingEnabled = !!policy?.tax?.trackingEnabled;
     const areCategoriesEnabled = !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
-    const areTagsEnabled = !!policy?.areTagsEnabled && hasEnabledTags(Object.values(policyTags ?? {}));
+    const areTagsEnabled = !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
 
     useEffect(() => {
         if (draftTransaction?.transactionID) {
@@ -159,6 +161,20 @@ function SearchEditMultiplePage() {
     };
 
     // TODO: Currency editing and currency symbol should be handled in a separate PR
+    const tagsArray = getTagArrayFromName(draftTransaction?.tag ?? '');
+    const tagFields = areTagsEnabled
+        ? policyTagLists.map((tagList, tagListIndex) => {
+              const tagName = tagsArray.at(tagListIndex) ?? '';
+              const tagTitle = tagName ? getCleanedTagName(tagName) : '';
+              const description = policyTagLists.length > 1 ? tagList.name : translate('common.tag');
+              return {
+                  description: description || translate('common.tag'),
+                  title: tagTitle,
+                  route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.getRoute(tagListIndex),
+              };
+          })
+        : [];
+
     const fields = [
         {
             description: translate('iou.amount'),
@@ -192,15 +208,7 @@ function SearchEditMultiplePage() {
                   },
               ]
             : []),
-        ...(areTagsEnabled
-            ? [
-                  {
-                      description: translate('common.tag'),
-                      title: draftTransaction?.tag ?? '',
-                      route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP,
-                  },
-              ]
-            : []),
+        ...tagFields,
         ...(isTaxTrackingEnabled
             ? [
                   {
@@ -224,7 +232,7 @@ function SearchEditMultiplePage() {
                     <Text style={[styles.ph5, styles.mb5, styles.textSupporting]}>{translate('search.bulkActions.editMultipleDescription')}</Text>
                     {fields.map((field) => (
                         <MenuItemWithTopDescription
-                            key={field.description}
+                            key={field.route}
                             title={field.title}
                             description={field.description}
                             onPress={() => Navigation.navigate(field.route)}
