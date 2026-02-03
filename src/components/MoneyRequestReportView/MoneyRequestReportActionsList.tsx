@@ -201,6 +201,15 @@ function MoneyRequestReportActionsList({
                 return;
             }
 
+            queueExportSearchWithTemplate({
+                templateName,
+                templateType,
+                jsonQuery: '{}',
+                reportIDList: [report.reportID],
+                transactionIDList,
+                policyID: policy?.id,
+            });
+
             showConfirmModal({
                 title: translate('export.exportInProgress'),
                 prompt: translate('export.conciergeWillSend'),
@@ -209,18 +218,10 @@ function MoneyRequestReportActionsList({
             }).then((result) => {
                 if (result.action === ModalActions.CONFIRM) {
                     clearSelectedTransactions(undefined, true);
-                    queueExportSearchWithTemplate({
-                        templateName,
-                        templateType,
-                        jsonQuery: '{}',
-                        reportIDList: [report.reportID],
-                        transactionIDList,
-                        policyID: policy?.id,
-                    });
                 }
             });
         },
-        [report, policy?.id, showConfirmModal, translate, clearSelectedTransactions],
+        [isOffline, report, policy?.id, showConfirmModal, translate, clearSelectedTransactions],
     );
 
     const onDeleteSelected = useCallback(
