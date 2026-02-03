@@ -108,12 +108,7 @@ function Composer({
     );
 
     const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
-
-    // Negative margin moves frame up for correct iOS VoiceOver order; padding compensates visually. See #77499.
-    const composerStyle = useMemo(
-        () => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}, {marginTop: -5, paddingTop: 5}]),
-        [style, textContainsOnlyEmojis, styles],
-    );
+    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
 
     return (
         <RNMarkdownTextInput
