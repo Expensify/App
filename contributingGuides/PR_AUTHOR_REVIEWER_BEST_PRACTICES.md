@@ -18,6 +18,7 @@ This document defines the shared "playbook" for the day-to-day standards that en
   - [New Features](#new-features)
   - [Refactoring](#refactoring)
   - [Package Updates](#package-updates)
+  - [Copy/Translation Changes](#copytranslation-changes)
 - [Unblocking Reviews](#unblocking-reviews)
 - [PR Granularity](#pr-granularity)
 - [Comment Resolution Best Practices](#comment-resolution-best-practices)
@@ -242,6 +243,30 @@ Different types of PRs carry different risks and require tailored focus areas.
 | Test affected features/components | Check for deprecation warnings |
 | Verify web, native, and hybrid app behavior | Test on actual devices, not just simulators |
 | Document any migration steps taken | Verify no performance regressions |
+
+### Copy/Translation Changes
+
+**Primary Focus**: Ensuring proper localization and translation approval
+
+When a PR adds or modifies user-facing copy that requires translation, the Author must follow this workflow:
+
+| Step | Action |
+|------|--------|
+| 1 | **Search for similar strings** in `src/languages/*` to maintain consistency |
+| 2 | **Get Spanish translation** using [JaimeGPT](https://chatgpt.com/g/g-2dgOQl5VM-english-to-spanish-translator-aka-jaimegpt) |
+| 3 | **Gather screenshots** showing where the proposed copy appears in the product |
+| 4 | **Post in [`#expensify-open-source`](https://expensify.enterprise.slack.com/archives/C01GTK53T8Q)** with all the above for internal approval |
+| 5 | **Link the Slack message** in your PR for reference |
+
+> [!IMPORTANT]
+> Translation approval from Expensify internal team is required before the PR can be merged.
+
+| Author | Reviewer |
+|--------|----------|
+| Search language files for existing similar copy | Verify translations are consistent with existing patterns |
+| Provide both English and Spanish translations | Confirm JaimeGPT was used for Spanish |
+| Include product screenshots in Slack post | Verify Slack approval was obtained |
+| Link Slack approval message in PR | Check that copy matches approved version |
 
 ---
 
