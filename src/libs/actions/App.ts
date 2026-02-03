@@ -407,19 +407,21 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         });
     }
 
-    return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
-        const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-        return API.writeWithNoDuplicatesConflictAction(
-            WRITE_COMMANDS.OPEN_APP,
-            params,
-            getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
-        ).finally(() => {
+    return getPolicyParamsForOpenOrReconnect()
+        .then((policyParams: PolicyParamsForOpenOrReconnect) => {
+            const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
+            return API.writeWithNoDuplicatesConflictAction(
+                WRITE_COMMANDS.OPEN_APP,
+                params,
+                getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
+            );
+        })
+        .finally(() => {
             if (!bootsplashSpan) {
                 return;
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
-    });
 }
 
 /**
