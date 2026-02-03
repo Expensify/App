@@ -209,6 +209,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         if (!policyIDParam && !bankAccountIDParam) {
             return;
         }
+        if (bankAccountIDParam) {
+            // we don't need to send the stepToOpen and subStep when opening by bankAccountID - the step is returned from the backend
+            openReimbursementAccountPage('', '', '', undefined, Number(bankAccountIDParam));
+            return;
+        }
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = preserveCurrentStep ? currentStep : getStepToOpenFromRouteParams(route, hasConfirmedUSDCurrency);
@@ -221,11 +226,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             localCurrentStep = achData?.currentStep ?? '';
         }
 
-        if (bankAccountIDParam) {
-            // we don't need to send the stepToOpen and subStep when opening by bankAccountID - the step is returned from the backend
-            openReimbursementAccountPage('', '', localCurrentStep, undefined, Number(bankAccountIDParam));
-            return;
-        }
         openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
     }
 
