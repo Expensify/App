@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
@@ -44,12 +44,9 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const workspaceMembers = useMemo(() => {
-        let membersList: MemberForList[] = [];
-        if (!policy?.employeeList) {
-            return membersList;
-        }
-
+    const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
+    const workspaceMembers: MemberForList[] = [];
+    if (policy?.employeeList) {
         // Get the list of employees from the U4B organization
         const uberEmployees = policy?.receiptPartners?.uber?.employees ?? {};
 
@@ -88,20 +85,15 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     isSelected: true,
                 });
 
-                membersList.push(memberForList);
+                workspaceMembers.push(memberForList);
             }
         }
 
-        membersList = sortAlphabetically(membersList, 'text', localeCompare);
+        sortAlphabetically(workspaceMembers, 'text', localeCompare);
+    }
 
-        return membersList;
-    }, [policy?.employeeList, policy?.receiptPartners?.uber?.employees, localeCompare, isOffline, icons.FallbackAvatar]);
-
-    const data = useMemo(() => {
-        if (workspaceMembers.length === 0) {
-            return [];
-        }
-
+    const allMembersWithState: MemberForList[] = [];
+    if (workspaceMembers.length > 0) {
         let membersToDisplay = workspaceMembers;
 
         // Apply search filter if there's a search term
@@ -124,16 +116,13 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         const selectedLogins = new Set(selectedOptions.map(({login}) => login));
         const unselectedMembers = membersToDisplay.filter(({login}) => !selectedLogins.has(login));
 
-        const allMembersWithState: MemberForList[] = [];
         for (const member of filterSelectedOptions) {
             allMembersWithState.push({...member, isSelected: true});
         }
         for (const member of unselectedMembers) {
             allMembersWithState.push({...member, isSelected: false});
         }
-
-        return allMembersWithState;
-    }, [workspaceMembers, countryCode, debouncedSearchTerm, selectedOptions]);
+    }
 
     // Pre-select all members only once on first load.
     useEffect(() => {
@@ -148,31 +137,25 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         });
     }, [workspaceMembers]);
 
-    const toggleOption = useCallback(
-        (option: MemberForList) => {
-            clearErrors(policyID);
+    const toggleOption = (option: MemberForList) => {
+        clearErrors(policyID);
 
-            const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
+        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
-            let newSelectedOptions: MemberForList[];
-            if (isOptionInList) {
-                newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
-            } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
-            }
+        let newSelectedOptions: MemberForList[];
+        if (isOptionInList) {
+            newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
+        } else {
+            newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
+        }
 
-            setSelectedOptions(newSelectedOptions);
-        },
-        [selectedOptions, policyID],
-    );
+        setSelectedOptions(newSelectedOptions);
+    };
 
-    const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const headerMessage = getHeaderMessage(allMembersWithState.length !== 0, false, searchValue, countryCode, false);
 
-        return getHeaderMessage(data.length !== 0, false, searchValue, countryCode, false);
-    }, [debouncedSearchTerm, data.length, countryCode]);
-
-    const handleConfirm = useCallback(() => {
+    const handleConfirm = () => {
         if (selectedOptions.length === 0) {
             return;
         }
@@ -181,38 +164,29 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
 
         inviteWorkspaceEmployeesToUber(policyID, emails);
         setIsInvitationSent(true);
-    }, [selectedOptions, policyID]);
+    };
 
-    const handleGotIt = useCallback(() => {
+    const handleGotIt = () => {
         Navigation.dismissModal();
-    }, []);
+    };
 
     // Check if we should skip to "All set" page immediately
-    const shouldSkipToAllSet = useMemo(() => {
-        // Skip if no workspace members can be invited (covers all cases: no employees, only owner, already linked)
-        return workspaceMembers.length === 0;
-    }, [workspaceMembers.length]);
+    const shouldSkipToAllSet = workspaceMembers.length === 0;
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            onConfirm: handleConfirm,
-            text: translate('workspace.receiptPartners.uber.confirm'),
-            isDisabled: selectedOptions.length === 0,
-        }),
-        [handleConfirm, selectedOptions.length, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        onConfirm: handleConfirm,
+        text: translate('workspace.receiptPartners.uber.confirm'),
+        isDisabled: selectedOptions.length === 0,
+    };
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage,
-            label: shouldShowTextInput ? translate('common.search') : undefined,
-            value: searchTerm,
-            onChangeText: setSearchTerm,
-            shouldBeInsideList: true,
-        }),
-        [headerMessage, searchTerm, setSearchTerm, shouldShowTextInput, translate],
-    );
+    const textInputOptions = {
+        headerMessage,
+        label: textInputLabel,
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        shouldBeInsideList: true,
+    };
 
     if (isInvitationSent || shouldSkipToAllSet) {
         return (
@@ -247,7 +221,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <SelectionList
-                    data={data}
+                    data={allMembersWithState}
                     ListItem={UserListItem}
                     onSelectRow={toggleOption}
                     customListHeader={<Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.sendInvitesDescription')}</Text>}

@@ -20,6 +20,8 @@ function SortableItem({id, children, disabled = false}: SortableItemProps) {
             {...attributes}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(disabled ? {} : listeners)}
+            // Override dnd-kit's tabIndex to prevent double focus (outer wrapper + inner MenuItem)
+            tabIndex={-1}
         >
             {children}
         </div>

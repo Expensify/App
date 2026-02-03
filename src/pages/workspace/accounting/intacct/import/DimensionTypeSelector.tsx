@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -58,6 +58,7 @@ function DimensionTypeSelector({errorText = '', value = '', onInputChange}: Dime
                         showTooltip={false}
                         isFocused={option.isSelected}
                         onSelectRow={onDimensionTypeSelected}
+                        keyForList={option.keyForList}
                     />
                 ))}
                 {!!errorText && (

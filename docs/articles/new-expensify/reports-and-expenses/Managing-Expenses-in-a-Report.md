@@ -1,15 +1,15 @@
 ---
 title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval]
+keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions]
 ---
 
 Easily add, delete, or move expenses within reports in New Expensify. This guide covers how to manage expenses using the expense table on both web and mobile.
 
-# Managing Expenses in a Report
+# Managing Expenses in a Report in New Expensify
 
 ## Who can edit or modify expenses in a report
-- **Edit expenses on a report**: The member who created the report, and Workspace Admins.
+- **Edit expenses on a report**: The member who created the report, the current approver, and Workspace Admins.
 - **Add expenses to a report**: Only the member who created the report.
 - **Remove expenses from a report**: Only the member who created the report.
 - **Delete an expense**: Only the member who created that specific expense.

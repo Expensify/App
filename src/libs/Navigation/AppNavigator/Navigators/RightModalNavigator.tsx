@@ -1,6 +1,6 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
@@ -11,7 +11,8 @@ import {
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayWideRHPProgress,
     thirdOverlayProgress,
-    WideRHPContext,
+    useWideRHPActions,
+    useWideRHPState,
 } from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanel from '@hooks/useSidePanel';
@@ -47,7 +48,7 @@ const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
 function SecondaryOverlay() {
-    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useContext(WideRHPContext);
+    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
     const {sidePanelOffset} = useSidePanel();
 
     if (shouldRenderSecondaryOverlayForWideRHP) {
@@ -83,14 +84,16 @@ function SecondaryOverlay() {
     return null;
 }
 
-const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/home/RHPReportScreen').default;
+const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
+const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, shouldRenderTertiaryOverlay, clearWideRHPKeys, syncRHPKeys} = useContext(WideRHPContext);
+    const {superWideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
+    const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
@@ -184,6 +187,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         screenListeners={screenListeners}
                         id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     >
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SEARCH_ROUTER}
+                            component={ModalStackNavigators.SearchRouterModalStackNavigator}
+                        />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SETTINGS}
                             component={ModalStackNavigators.SettingsModalStackNavigator}
@@ -344,14 +351,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.SearchReportActionsModalStackNavigator}
                         />
                         <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
-                            getComponent={loadRHPReportScreen}
-                            options={(props) => {
-                                const options = modalStackScreenOptions(props);
-                                return {...options, animation: animationEnabledOnSearchReport ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
-                            }}
-                        />
-                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
                             component={ModalStackNavigators.RestrictedActionModalStackNavigator}
                         />
@@ -376,12 +375,40 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
+                            getComponent={loadRHPReportScreen}
+                            options={(props) => {
+                                const options = modalStackScreenOptions(props);
+                                return {...options, animation: animationEnabledOnSearchReport ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                            }}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.EXPENSE_REPORT}
+                            getComponent={loadSearchMoneyRequestReportPage}
+                            options={(props) => {
+                                const options = modalStackScreenOptions(props);
+                                return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                            }}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}
+                            getComponent={loadSearchMoneyRequestReportPage}
+                            options={(props) => {
+                                const options = modalStackScreenOptions(props);
+                                return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                            }}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.DOMAIN}
                             component={ModalStackNavigators.WorkspacesDomainModalStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SEARCH_COLUMNS}
                             component={ModalStackNavigators.SearchColumnsModalStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION}
+                            component={ModalStackNavigators.MultifactorAuthenticationStackNavigator}
                         />
                     </Stack.Navigator>
                 </Animated.View>

@@ -1,8 +1,8 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import RenderHTML from '@components/RenderHTML';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -43,7 +43,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const connectedIntegration = getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
     // We need to have an unchanged active route for getExportMenuItem so the export page link is not updated incorrectly when user is in other pages
     // See https://github.com/Expensify/App/issues/72352 for more details.
-    const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
+    const activeRoute = Navigation.getActiveRoute();
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card, activeRoute);
     const currentConnectionName = getCurrentConnectionName(policy);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
@@ -56,9 +56,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
 
-    const searchedListOptions = useMemo(() => {
-        return tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value]);
-    }, [exportMenuItem?.data, searchText]);
+    const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value]);
 
     const listEmptyContent = (
         <BlockingView
