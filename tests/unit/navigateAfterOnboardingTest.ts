@@ -29,7 +29,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@libs/ReportUtils', () => ({
-    findLastAccessedReport: () => mockFindLastAccessedReport() as OnyxEntry<Report>,
+    findLastAccessedReport: (...args: Parameters<typeof mockFindLastAccessedReport>) => mockFindLastAccessedReport(...args) as OnyxEntry<Report>,
     parseReportRouteParams: jest.fn(() => ({})),
     isConciergeChatReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isConciergeChatReport,
     isArchivedReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isArchivedReport,
@@ -122,6 +122,16 @@ describe('navigateAfterOnboarding', () => {
 
         navigateAfterOnboarding(true, true, new Set(), ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+    });
+
+    it('should pass archivedReportsIdSet when looking up last accessed report', () => {
+        const archivedReportsIdSet = new Set<string>(['report_1']);
+        mockFindLastAccessedReport.mockReturnValue(undefined);
+        mockShouldOpenOnAdminRoom.mockReturnValue(false);
+
+        navigateAfterOnboarding(true, true, archivedReportsIdSet, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+
+        expect(mockFindLastAccessedReport).toHaveBeenCalledWith(false, false, undefined, undefined, archivedReportsIdSet);
     });
 
     it('should navigate to Concierge room if user uses a test email', () => {
