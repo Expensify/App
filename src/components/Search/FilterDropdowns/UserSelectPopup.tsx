@@ -1,4 +1,3 @@
-import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -8,6 +7,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -59,7 +59,9 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -102,21 +104,33 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             draftComments,
             nvpDismissedProductTraining,
             loginList,
+            currentUserAccountID,
+            currentUserEmail,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                personalDetails,
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
+    }, [options.reports, options.personalDetails, allPolicies, draftComments, nvpDismissedProductTraining, loginList, countryCode, personalDetails, currentUserAccountID, currentUserEmail]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, {
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            canInviteUser: false,
-        });
-    }, [optionsList, cleanSearchTerm, countryCode, loginList]);
+        return filterAndOrderOptions(
+            optionsList,
+            cleanSearchTerm,
+            countryCode,
+            loginList,
+            currentUserEmail,
+
+            currentUserAccountID,
+            {
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+                canInviteUser: false,
+            },
+        );
+    }, [optionsList, cleanSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
@@ -143,17 +157,17 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             }
 
             // Put the current user at the top of the list
-            if (a.accountID === accountID) {
+            if (a.accountID === currentUserAccountID) {
                 return -1;
             }
-            if (b.accountID === accountID) {
+            if (b.accountID === currentUserAccountID) {
                 return 1;
             }
             return 0;
         });
 
         return combined;
-    }, [filteredOptions, accountID, selectedAccountIDs]);
+    }, [filteredOptions, currentUserAccountID, selectedAccountIDs]);
 
     const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
