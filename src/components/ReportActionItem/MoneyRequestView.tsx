@@ -548,7 +548,18 @@ function MoneyRequestView({
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID, getReportRHPActiveRoute()),
         );
-    }, [transactionThreadReport?.reportID, isExpenseSplit, isSplitAvailable, isOdometerDistanceRequest, isManualDistanceRequest, iouType, transaction, allTransactions, allReports, getReportRHPActiveRoute]);
+    }, [
+        transactionThreadReport?.reportID,
+        isExpenseSplit,
+        isSplitAvailable,
+        isOdometerDistanceRequest,
+        isManualDistanceRequest,
+        iouType,
+        transaction,
+        allTransactions,
+        allReports,
+        getReportRHPActiveRoute,
+    ]);
 
     const handleDistanceRatePress = useCallback(() => {
         if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
@@ -584,14 +595,18 @@ function MoneyRequestView({
         if (!transaction?.transactionID) {
             return;
         }
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, getReportRHPActiveRoute()));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, getReportRHPActiveRoute()),
+        );
     }, [transaction?.transactionID, iouType, transactionThreadReport?.reportID, getReportRHPActiveRoute]);
 
     const handleMerchantPress = useCallback(() => {
         if (!transaction?.transactionID) {
             return;
         }
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, getReportRHPActiveRoute()));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID, getReportRHPActiveRoute()),
+        );
     }, [transaction?.transactionID, transactionThreadReport?.reportID, iouType, getReportRHPActiveRoute]);
 
     const handleDatePress = useCallback(() => {
@@ -670,7 +685,13 @@ function MoneyRequestView({
             return;
         }
         Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, transactionThreadReport.reportID, getReportRHPActiveRoute() || lastVisitedPath),
+            ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(
+                CONST.IOU.ACTION.EDIT,
+                iouType,
+                transaction?.transactionID,
+                transactionThreadReport.reportID,
+                getReportRHPActiveRoute() || lastVisitedPath,
+            ),
         );
     }, [transaction?.transactionID, transactionThreadReport?.reportID, canEditReport, shouldNavigateToUpgradePath, iouType, getReportRHPActiveRoute, lastVisitedPath]);
 
