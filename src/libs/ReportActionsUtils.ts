@@ -425,7 +425,7 @@ function getCardConnectionBrokenMessage(reportAction: OnyxEntry<ReportAction>, c
     return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
 }
 
-function getMarkedReimbursedMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
+function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
     return translate('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
 }
