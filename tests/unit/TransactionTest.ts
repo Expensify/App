@@ -1092,7 +1092,7 @@ describe('Transaction', () => {
             };
 
             // When sanitizing the waypoints
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithExtraFields as any);
 
             // Then only allowed fields should remain
@@ -1120,7 +1120,7 @@ describe('Transaction', () => {
             };
 
             // When sanitizing the waypoints
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithPartialFields as any);
 
             // Then only the address should be present
