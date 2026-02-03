@@ -266,6 +266,10 @@ function SearchPage({route}: SearchPageProps) {
                 setIsDownloadErrorModalVisible(true);
                 return;
             }
+            if (isOffline) {
+                setIsOfflineModalVisible(true);
+                return;
+            }
 
             // If the user has selected a large number of items, we'll use the queryJSON to search for the reportIDs and transactionIDs necessary for the export
             if (areAllMatchingItemsSelected) {
@@ -302,6 +306,7 @@ function SearchPage({route}: SearchPageProps) {
         },
         [
             selectedReports,
+            isOffline,
             areAllMatchingItemsSelected,
             showConfirmModal,
             translate,
@@ -1086,6 +1091,7 @@ function SearchPage({route}: SearchPageProps) {
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
             isFromGlobalCreate: true,
+            isFromFloatingActionButton: true,
             reportID: newReportID,
             personalPolicy,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
