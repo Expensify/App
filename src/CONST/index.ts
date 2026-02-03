@@ -8105,6 +8105,8 @@ const CONST = {
             PURE_REPORT_ACTION_ITEM: 'Report-PureReportActionItem',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
+            MONEY_REQUEST_CONFIRMATION_RESET_SPLIT: 'MoneyRequestConfirmation-ResetSplit',
+            MONEY_REQUEST_CONFIRMATION_RECEIPT_THUMBNAIL: 'MoneyRequestConfirmation-ReceiptThumbnail',
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
