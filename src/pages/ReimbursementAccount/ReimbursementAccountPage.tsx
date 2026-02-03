@@ -97,7 +97,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const requestorStepRef = useRef<View>(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
-    const policyCurrency = policy ? policy.outputCurrency : reimbursementAccountDraft?.currency;
+    const achData = reimbursementAccount?.achData;
+    const policyCurrency = policy ? policy.outputCurrency : (achData?.currency ?? reimbursementAccountDraft?.currency);
     const prevPolicyCurrency = usePrevious(policyCurrency);
     const achContractValuesRef = useRef<{
         isAuthorizedToUseBankAccount?: boolean;
@@ -122,7 +123,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
-    const achData = reimbursementAccount?.achData;
     const isPreviousPolicy =
         !!reimbursementAccount && !isLoadingOnyxValue(reimbursementAccountMetadata) ? policyIDParam === achData?.policyID : isLoadingOnyxValue(reimbursementAccountMetadata);
     const hasConfirmedUSDCurrency = (reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '') !== '' || (achData?.accountNumber ?? '') !== '';
@@ -222,7 +222,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         }
 
         if (bankAccountIDParam) {
-            openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, undefined, Number(bankAccountIDParam));
+            // we don't need to send the stepToOpen and subStep when opening by bankAccountID - the step is returned from the backend
+            openReimbursementAccountPage('', '', localCurrentStep, undefined, Number(bankAccountIDParam));
             return;
         }
         openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
