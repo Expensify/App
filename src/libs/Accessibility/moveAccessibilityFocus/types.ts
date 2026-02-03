@@ -1,6 +1,9 @@
-import type {ElementRef, RefObject} from 'react';
-import type {HostComponent} from 'react-native';
+import type {RefObject} from 'react';
 
-type MoveAccessibilityFocus = (ref?: ElementRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>) => void;
+// Accept any RefObject - the implementation handles runtime checks for ref?.current?.focus()
+// This allows both native/web component refs and form input refs (InputComponentBaseProps)
+// Using RefObject<any> is more permissive but still better than 'as any' in calling code
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MoveAccessibilityFocus = (ref?: RefObject<any>) => void;
 
 export default MoveAccessibilityFocus;
