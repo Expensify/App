@@ -124,6 +124,8 @@ More features will be handled in the future.
 
 ### Adding New Metrics
 
+It’s recommended to first verify whether the intended observability outcome can be achieved using existing, built-in metrics. Sentry’s default implementation provides a wide range of useful spans and traces that can often be leveraged for this purpose. If you’ve confirmed that none of the available metrics meet your needs, follow the steps below. 
+
 #### 1. Define Span ID
 
 Span ID identifies an operation instance:
