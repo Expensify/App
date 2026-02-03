@@ -1554,8 +1554,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} via <a href="${policyRulesRoute}">regras do espaço de trabalho</a>`;
         },
-        deleteReport: {one: 'Excluir relatório', other: 'Excluir relatórios'},
-        deleteReportConfirmation: {one: 'Tem certeza de que deseja excluir este relatório?', other: 'Tem certeza de que deseja excluir estes relatórios?'},
+        deleteReport: () => ({one: 'Excluir relatório', other: 'Excluir relatórios'}),
+        deleteReportConfirmation: () => ({one: 'Tem certeza de que deseja excluir este relatório?', other: 'Tem certeza de que deseja excluir estes relatórios?'}),
     },
     transactionMerge: {
         listPage: {

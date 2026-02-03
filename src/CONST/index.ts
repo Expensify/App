@@ -8040,6 +8040,7 @@ const CONST = {
             DOWNLOAD_BUTTON: 'Header-DownloadButton',
             CLOSE_BUTTON: 'Header-CloseButton',
             MORE_BUTTON: 'Header-MoreButton',
+            PDF_BUTTON: 'Header-ClosePDFButton',
         },
         VIDEO_PLAYER: {
             PLAY_PAUSE_BUTTON: 'VideoPlayer-PlayPauseButton',

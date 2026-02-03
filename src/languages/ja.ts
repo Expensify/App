@@ -1253,8 +1253,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'この経費を削除してもよろしいですか？',
             other: 'これらの経費を削除してもよろしいですか？',
         }),
-        deleteReport: 'レポートを削除',
-        deleteReportConfirmation: 'このレポートを削除してもよろしいですか？',
         settledExpensify: '支払い済み',
         done: '完了',
         settledElsewhere: '他で支払い済み',
@@ -1554,8 +1552,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)}（<a href="${policyRulesRoute}">ワークスペースルール</a>経由）`;
         },
-        deleteReport: {one: 'レポートを削除', other: 'レポートを削除'},
-        deleteReportConfirmation: {one: 'このレポートを削除してもよろしいですか？', other: 'これらのレポートを削除してもよろしいですか？'},
+        deleteReport: () => ({one: 'レポートを削除', other: 'レポートを削除'}),
+        deleteReportConfirmation: () => ({one: 'このレポートを削除してもよろしいですか？', other: 'これらのレポートを削除してもよろしいですか？'}),
     },
     transactionMerge: {
         listPage: {

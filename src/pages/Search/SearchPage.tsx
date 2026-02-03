@@ -61,7 +61,6 @@ import {
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {setNameValuePair} from '@libs/actions/User';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
-import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -454,11 +453,14 @@ function SearchPage({route}: SearchPageProps) {
                 if (isExpenseReportType) {
                     // For expense reports, call deleteAppReport which properly un-reports the expenses
                     for (const reportID of selectedReportIDs) {
-                        try {
-                            deleteAppReport(reportID, currentUserPersonalDetails?.login ?? '', validTransactions, allTransactionViolations, bankAccountList);
-                        } catch (error) {
-                            Log.warn('[SearchPage] Failed to delete expense report', {error});
-                        }
+                        deleteAppReport(
+                            reportID,
+                            currentUserPersonalDetails?.login ?? '',
+                            currentUserPersonalDetails?.accountID,
+                            validTransactions,
+                            allTransactionViolations,
+                            bankAccountList,
+                        );
                     }
                 } else {
                     // For individual expenses, delete the transactions
@@ -469,17 +471,18 @@ function SearchPage({route}: SearchPageProps) {
         });
     }, [
         isOffline,
+        hash,
         showConfirmModal,
         translate,
-        selectedTransactionsKeys,
-        hash,
-        clearSelectedTransactions,
+        isExpenseReportType,
         selectedReportIDs,
-        currentUserPersonalDetails?.login,
         allTransactions,
+        clearSelectedTransactions,
+        currentUserPersonalDetails?.login,
+        currentUserPersonalDetails?.accountID,
         allTransactionViolations,
         bankAccountList,
-        isExpenseReportType,
+        selectedTransactionsKeys,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -988,59 +991,60 @@ function SearchPage({route}: SearchPageProps) {
 
         return options;
     }, [
-        searchResults,
         selectedTransactionsKeys,
         status,
         hash,
         selectedTransactions,
+        queryJSON?.type,
+        expensifyIcons.Export,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.Table,
+        expensifyIcons.ThumbsUp,
+        expensifyIcons.ThumbsDown,
+        expensifyIcons.Send,
+        expensifyIcons.MoneyBag,
+        expensifyIcons.Stopwatch,
+        expensifyIcons.ArrowCollapse,
+        expensifyIcons.DocumentMerge,
+        expensifyIcons.ArrowSplit,
+        expensifyIcons.Trashcan,
+        expensifyIcons.Exclamation,
         translate,
-        localeCompare,
         areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
-        selectedTransactionReportIDs,
         lastPaymentMethods,
         selectedReportIDs,
+        personalPolicyID,
+        isExpenseReportType,
+        searchResults,
         allTransactions,
+        currentSearchResults?.data,
+        selectedTransactionReportIDs,
         selectedPolicyIDs,
         policies,
         integrationsExportTemplates,
         csvExportLayouts,
-        clearSelectedTransactions,
+        handleBasicExport,
         beginExportWithTemplate,
+        handleApproveWithDEWCheck,
+        allTransactionViolations,
+        isDelegateAccessRestricted,
+        dismissedRejectUseExplanation,
+        showDelegateNoAccessModal,
+        clearSelectedTransactions,
         bulkPayButtonOptions,
         onBulkPaySelected,
-        handleBasicExport,
-        handleApproveWithDEWCheck,
-        handleDeleteSelectedTransactions,
+        areAllTransactionsFromSubmitter,
+        dismissedHoldUseExplanation,
+        currentUserPersonalDetails.accountID,
+        localeCompare,
         allReports,
+        handleDeleteSelectedTransactions,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        expensifyIcons.ArrowCollapse,
-        expensifyIcons.ArrowRight,
-        expensifyIcons.ArrowSplit,
-        expensifyIcons.DocumentMerge,
-        expensifyIcons.Exclamation,
-        expensifyIcons.Export,
-        expensifyIcons.MoneyBag,
-        expensifyIcons.Send,
-        expensifyIcons.Stopwatch,
-        expensifyIcons.Table,
-        expensifyIcons.ThumbsDown,
-        expensifyIcons.ThumbsUp,
-        expensifyIcons.Trashcan,
-        dismissedHoldUseExplanation,
-        dismissedRejectUseExplanation,
-        areAllTransactionsFromSubmitter,
-        allTransactionViolations,
-        currentSearchResults?.data,
-        isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        currentUserPersonalDetails.accountID,
-        personalPolicyID,
-        isExpenseReportType,
     ]);
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {

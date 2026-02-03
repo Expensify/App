@@ -1264,8 +1264,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Voulez-vous vraiment supprimer cette dépense ?',
             other: 'Voulez-vous vraiment supprimer ces dépenses ?',
         }),
-        deleteReport: 'Supprimer la note de frais',
-        deleteReportConfirmation: 'Voulez-vous vraiment supprimer cette note de frais ?',
         settledExpensify: 'Payé',
         done: 'Terminé',
         settledElsewhere: 'Payé ailleurs',
@@ -1569,8 +1567,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} via les <a href="${policyRulesRoute}">règles de l’espace de travail</a>`;
         },
-        deleteReport: {one: 'Supprimer le rapport', other: 'Supprimer les rapports'},
-        deleteReportConfirmation: {one: 'Êtes-vous sûr de vouloir supprimer ce rapport ?', other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?'},
+        deleteReport: () => ({one: 'Supprimer le rapport', other: 'Supprimer les rapports'}),
+        deleteReportConfirmation: () => ({one: 'Êtes-vous sûr de vouloir supprimer ce rapport ?', other: 'Êtes-vous sûr de vouloir supprimer ces rapports ?'}),
     },
     transactionMerge: {
         listPage: {

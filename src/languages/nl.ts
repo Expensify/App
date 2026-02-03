@@ -1557,8 +1557,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} via <a href="${policyRulesRoute}">werkruimte­regels</a>`;
         },
-        deleteReport: {one: 'Rapport verwijderen', other: 'Rapporten verwijderen'},
-        deleteReportConfirmation: {one: 'Weet je zeker dat je dit rapport wilt verwijderen?', other: 'Weet je zeker dat je deze rapporten wilt verwijderen?'},
+        deleteReport: () => ({one: 'Rapport verwijderen', other: 'Rapporten verwijderen'}),
+        deleteReportConfirmation: () => ({one: 'Weet je zeker dat je dit rapport wilt verwijderen?', other: 'Weet je zeker dat je deze rapporten wilt verwijderen?'}),
     },
     transactionMerge: {
         listPage: {

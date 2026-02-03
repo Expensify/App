@@ -1237,8 +1237,6 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '确定要删除此报销吗？',
             other: '确定要删除这些报销吗？',
         }),
-        deleteReport: '删除报表',
-        deleteReportConfirmation: '确定要删除此报表吗？',
         settledExpensify: '已支付',
         done: '完成',
         settledElsewhere: '在其他地方支付',
@@ -1533,8 +1531,8 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} 通过 <a href="${policyRulesRoute}">工作区规则</a>`;
         },
-        deleteReport: {one: '删除报表', other: '删除报表'},
-        deleteReportConfirmation: {one: '您确定要删除此报表吗？', other: '您确定要删除这些报表吗？'},
+        deleteReport: () => ({one: '删除报表', other: '删除报表'}),
+        deleteReportConfirmation: () => ({one: '您确定要删除此报表吗？', other: '您确定要删除这些报表吗？'}),
     },
     transactionMerge: {
         listPage: {
