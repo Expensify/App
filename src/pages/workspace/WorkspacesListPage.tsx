@@ -490,6 +490,7 @@ function WorkspacesListPage() {
                         style={[styles.mh5]}
                         disabled={item.disabled}
                         onPress={item.action}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
                     >
                         {({hovered}) => (
                             <WorkspacesListRow

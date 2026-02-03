@@ -8207,6 +8207,9 @@ const CONST = {
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
         },
+        WORKSPACE: {
+            WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
+        },
     },
 
     DOMAIN: {
