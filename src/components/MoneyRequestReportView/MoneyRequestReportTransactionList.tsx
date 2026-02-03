@@ -647,14 +647,20 @@ function MoneyRequestReportTransactionList({
                                         ]}
                                     >
                                         <Text
-                                            style={[styles.textLabelSupporting, styles.mr3]}
+                                            style={[styles.textLabelSupporting, styles.mr3, hasPendingAction && styles.opacitySemiTransparent]}
                                             numberOfLines={1}
                                         >
                                             {translate(text as TranslationPaths)}
                                         </Text>
                                         <Text
                                             numberOfLines={1}
-                                            style={[styles.textLabelSupporting, styles.textNormal, shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p, styles.textAlignRight]}
+                                            style={[
+                                                styles.textLabelSupporting,
+                                                styles.textNormal,
+                                                shouldUseNarrowLayout ? styles.mnw64p : styles.mnw100p,
+                                                styles.textAlignRight,
+                                                hasPendingAction && styles.opacitySemiTransparent,
+                                            ]}
                                         >
                                             {value}
                                         </Text>

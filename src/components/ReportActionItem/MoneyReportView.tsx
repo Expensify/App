@@ -38,6 +38,7 @@ import {
     isSettled as isSettledReportUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
+import {getTransactionPendingAction} from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -118,6 +119,8 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         (isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
         (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
         !sortedPolicyReportFields.every(shouldHideSingleReportField);
+
+    const hasPendingAction = transactions.some(getTransactionPendingAction);
 
     const renderThreadDivider = useMemo(
         () =>
@@ -239,7 +242,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                         >
                                             <View style={[styles.flex1, styles.justifyContentCenter]}>
                                                 <Text
-                                                    style={[styles.textLabelSupporting]}
+                                                    style={[styles.textLabelSupporting, hasPendingAction && styles.opacitySemiTransparent]}
                                                     numberOfLines={1}
                                                 >
                                                     {translate(label as TranslationPaths)}
@@ -248,7 +251,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                             <View style={[styles.flexRow, styles.justifyContentCenter]}>
                                                 <Text
                                                     numberOfLines={1}
-                                                    style={subAmountTextStyles}
+                                                    style={[subAmountTextStyles, hasPendingAction && styles.opacitySemiTransparent]}
                                                 >
                                                     {value}
                                                 </Text>
