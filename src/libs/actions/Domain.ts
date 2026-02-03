@@ -963,7 +963,7 @@ function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainNam
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                twoFactorAuthRequiredErrors: null,
+                setTwoFactorAuthRequiredError: null,
             },
         },
     ];
@@ -979,7 +979,7 @@ function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainNam
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                twoFactorAuthRequiredErrors: null,
+                setTwoFactorAuthRequiredError: null,
             },
         },
     ];
@@ -997,7 +997,7 @@ function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainNam
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                twoFactorAuthRequiredErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.forceTwoFactorAuthError'),
+                setTwoFactorAuthRequiredError: getMicroSecondOnyxErrorWithTranslationKey('domain.members.forceTwoFactorAuthError'),
             },
         },
         {
@@ -1021,7 +1021,7 @@ function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainNam
 
 function clearToggleTwoFactorAuthRequiredForDomainError(domainAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        twoFactorAuthRequiredErrors: null,
+        setTwoFactorAuthRequiredError: null,
     });
 }
 

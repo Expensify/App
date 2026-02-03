@@ -66,7 +66,7 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
                 }
                 shouldPlaceSubtitleBelowSwitch
                 pendingAction={domainPendingActions?.twoFactorAuthRequired}
-                errors={getLatestError(domainErrors?.twoFactorAuthRequiredErrors)}
+                errors={getLatestError(domainErrors?.setTwoFactorAuthRequiredError)}
                 onCloseError={() => clearToggleTwoFactorAuthRequiredForDomainError(domainAccountID)}
             />
         </BaseDomainSettingsPage>
