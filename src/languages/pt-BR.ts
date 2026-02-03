@@ -4952,7 +4952,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             chooseCardFeed: 'Escolher feed do cartão',
             ukRegulation:
                 'A Expensify Limited é um agente da Plaid Financial Ltd., uma instituição de pagamento autorizada e regulada pela Financial Conduct Authority sob as Payment Services Regulations 2017 (Número de Referência da Empresa: 804718). A Plaid fornece a você serviços regulados de informações de conta por meio da Expensify Limited como sua agente.',
-            deletedFeed: 'Usunięty kanał',
+            deletedFeed: 'Feed Excluído',
             assignCardFailedError: 'Atribuição do cartão falhou.',
             unassignCardFailedError: 'Falha ao desatribuir o cartão.',
             cardAlreadyAssignedError: 'Este cartão já está atribuído a um usuário em outro workspace.',
