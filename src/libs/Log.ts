@@ -13,6 +13,7 @@ import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
 import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
 import {post} from './Network';
+import {getCurrentUserEmail} from './Network/NetworkStore';
 import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
@@ -46,7 +47,10 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
 
 // eslint-disable-next-line
 type ServerLoggingCallbackOptions = {api_setCookie: boolean; logPacket: string};
-type RequestParams = Merge<ServerLoggingCallbackOptions, {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters: string}>;
+type RequestParams = Merge<
+    ServerLoggingCallbackOptions,
+    {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters: string; email?: string | null}
+>;
 
 /**
  * Network interface for logger.
@@ -56,6 +60,13 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
     requestParams.shouldProcessImmediately = false;
     requestParams.shouldRetry = false;
     requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${pkg.version}`;
+
+    // Extract email from the log lines - use the first non-null email found
+    // Each log line captures the user's email at the time it was created
+    const logLines = JSON.parse(params.logPacket) as Array<{email?: string | null}>;
+    const email = logLines.find((line) => line.email)?.email ?? null;
+    requestParams.email = email;
+
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(requestParams.parameters);
     }
@@ -84,6 +95,7 @@ const Log = new Logger({
     },
     maxLogLinesBeforeFlush: 150,
     isDebug: true,
+    getContextEmail: getCurrentUserEmail,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
