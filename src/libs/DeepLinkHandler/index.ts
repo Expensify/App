@@ -17,7 +17,7 @@ let pendingDeepLinkUrl: string | null = null;
 
 let hasReportsReceived = false;
 
-let linkinEventSubscription: NativeEventSubscription | null = null;
+let linkingEventSubscription: NativeEventSubscription | null = null;
 
 let hasSessionLoaded = false;
 
@@ -102,7 +102,7 @@ function initializeDeepLinkHandler() {
         return;
     }
 
-    linkinEventSubscription = Linking.addEventListener('url', (state) => {
+    linkingEventSubscription = Linking.addEventListener('url', (state) => {
         handleDeepLink(state.url, true);
     });
 
@@ -122,8 +122,8 @@ function processInitialURL(url: string | null) {
 }
 
 function clearModule() {
-    linkinEventSubscription?.remove();
-    linkinEventSubscription = null;
+    linkingEventSubscription?.remove();
+    linkingEventSubscription = null;
 }
 
 startModule();
