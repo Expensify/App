@@ -16,6 +16,7 @@ import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -40,11 +41,12 @@ import {
     isAmountMissing,
     isMerchantMissing,
     isScanning,
+    isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {PersonalDetails, Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
@@ -101,7 +103,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 };
 
 type TransactionItemRowProps = {
-    hash?: number;
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
     shouldUseNarrowLayout: boolean;
@@ -133,6 +134,7 @@ type TransactionItemRowProps = {
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
     customCardNames?: Record<number, string>;
+    reportActions?: ReportAction[];
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -145,11 +147,10 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
     }
 
     const merchantName = StringUtils.getFirstLine(merchant);
-    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
+    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchantName !== CONST.TRANSACTION.DEFAULT_MERCHANT ? merchantName : '';
 }
 
 function TransactionItemRow({
-    hash,
     transactionItem,
     report,
     shouldUseNarrowLayout,
@@ -181,12 +182,14 @@ function TransactionItemRow({
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
     customCardNames,
+    reportActions,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -198,6 +201,13 @@ function TransactionItemRow({
     const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+
+    const filteredViolations = useMemo(() => {
+        if (!violations) {
+            return undefined;
+        }
+        return violations;
+    }, [violations]);
 
     const bgActiveStyles = useMemo(() => {
         if (!isSelected || !shouldHighlightItemWhenSelected) {
@@ -516,7 +526,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                 >
-                    <TextCell text={getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? ''} />
+                    <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (
@@ -524,10 +534,12 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
                 >
-                    <TaxCell
-                        transactionItem={transactionItem}
-                        shouldShowTooltip={shouldShowTooltip}
-                    />
+                    {isTimeRequest(transactionItem) ? null : (
+                        <TaxCell
+                            transactionItem={transactionItem}
+                            shouldShowTooltip={shouldShowTooltip}
+                        />
+                    )}
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
@@ -541,7 +553,11 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                     <TextCell
-                        text={computeReportName(transactionItem.report) ?? transactionItem.report?.reportName ?? ''}
+                        text={
+                            computeReportName(transactionItem.report, undefined, undefined, undefined, undefined, undefined, undefined, currentUserAccountID) ??
+                            transactionItem.report?.reportName ??
+                            ''
+                        }
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
@@ -556,10 +572,7 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                    <ExportedIconCell
-                        hash={hash}
-                        reportID={transactionItem.reportID}
-                    />
+                    <ExportedIconCell reportActions={reportActions} />
                 </View>
             ),
         }),
@@ -591,7 +604,8 @@ function TransactionItemRow({
             isAmountColumnWide,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
-            hash,
+            currentUserAccountID,
+            reportActions,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
@@ -703,7 +717,7 @@ function TransactionItemRow({
                             {shouldShowErrors && (
                                 <TransactionItemRowRBR
                                     transaction={transactionItem}
-                                    violations={violations}
+                                    violations={filteredViolations}
                                     report={report}
                                     containerStyles={[styles.mt2, styles.minHeight4]}
                                     missingFieldError={missingFieldError}
@@ -777,7 +791,7 @@ function TransactionItemRow({
                 {shouldShowErrors && (
                     <TransactionItemRowRBR
                         transaction={transactionItem}
-                        violations={violations}
+                        violations={filteredViolations}
                         report={report}
                         missingFieldError={missingFieldError}
                     />

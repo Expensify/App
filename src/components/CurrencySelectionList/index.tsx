@@ -4,11 +4,9 @@ import React, {useCallback, useMemo, useState} from 'react';
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import SelectableListItem from '@components/SelectionListWithSections/SelectableListItem';
+import useCurrencyList from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import getMatchScore from '@libs/getMatchScore';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
 
@@ -23,12 +21,12 @@ function CurrencySelectionList({
     excludedCurrencies = [],
     ...restProps
 }: CurrencySelectionListProps) {
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
+    const {currencyList, getCurrencySymbol} = useCurrencyList();
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const getUnselectedOptions = useCallback((options: CurrencyListItem[]) => options.filter((option) => !option.isSelected), []);
     const {sections, headerMessage} = useMemo(() => {
-        const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).reduce((acc, [currencyCode, currencyInfo]) => {
+        const currencyOptions: CurrencyListItem[] = Object.entries(currencyList).reduce((acc, [currencyCode, currencyInfo]) => {
             const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
             if (!excludedCurrencies.includes(currencyCode) && (isSelectedCurrency || !currencyInfo?.retired)) {
                 acc.push({
@@ -94,7 +92,7 @@ function CurrencySelectionList({
         }
 
         return {sections: result, headerMessage: isEmpty ? translate('common.noResultsFound') : ''};
-    }, [currencyList, recentlyUsedCurrencies, searchValue, getUnselectedOptions, translate, initiallySelectedCurrencyCode, selectedCurrencies, excludedCurrencies]);
+    }, [currencyList, recentlyUsedCurrencies, searchValue, getUnselectedOptions, translate, initiallySelectedCurrencyCode, selectedCurrencies, excludedCurrencies, getCurrencySymbol]);
 
     return (
         <SelectionList
