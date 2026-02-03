@@ -29,8 +29,8 @@ import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTra
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
-import ReportActionsView from '@pages/home/report/ReportActionsView';
-import ReportFooter from '@pages/home/report/ReportFooter';
+import ReportActionsView from '@pages/inbox/report/ReportActionsView';
+import ReportFooter from '@pages/inbox/report/ReportFooter';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';

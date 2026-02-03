@@ -113,6 +113,11 @@ platforms:
         title: Workspaces
         icon: /assets/images/shield.svg
         description: Configure rules, settings, and limits for your company’s spending.
+
+      - href: insights
+        title: Insights
+        icon: /assets/images/monitor.svg
+        description: Get insight into company expenses to track spend patterns and stay informed. 
       
       - href: reports-and-expenses
         title: Reports & Expenses

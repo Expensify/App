@@ -34,7 +34,7 @@ function SearchTransactionsChangeReport() {
             Object.values(selectedTransactions).reduce(
                 (transactionsCollection, transactionItem) => {
                     // eslint-disable-next-line no-param-reassign
-                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction?.transactionID}`] = transactionItem.transaction;
+                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction.transactionID}`] = transactionItem.transaction;
                     return transactionsCollection;
                 },
                 {} as NonNullable<OnyxCollection<Transaction>>,
