@@ -5,7 +5,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {getIconTitleAndTestID, MEMOIZED_LAZY_TAB_SELECTOR_ICONS} from './getIconTitleAndTestID';
 import TabSelectorBase from './TabSelectorBase';
-import type {TabSelectorBaseItem, TabSelectorProps, WithProductTrainingTooltip} from './types';
+import type {TabSelectorBaseItem, TabSelectorProps} from './types';
 
 function TabSelector({
     state,
@@ -17,7 +17,7 @@ function TabSelector({
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
     equalWidth = false,
-}: TabSelectorProps & WithProductTrainingTooltip) {
+}: TabSelectorProps) {
     const icons = useMemoizedLazyExpensifyIcons(MEMOIZED_LAZY_TAB_SELECTOR_ICONS);
     const {translate} = useLocalize();
 

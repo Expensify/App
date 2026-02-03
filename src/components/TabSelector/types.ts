@@ -16,6 +16,12 @@ type TabSelectorProps = MaterialTopTabBarProps & {
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
+
+    /** Determines whether the product training tooltip should be displayed to the user. */
+    shouldShowProductTrainingTooltip?: boolean;
+
+    /** Function to render the content of the product training tooltip. */
+    renderProductTrainingTooltip?: () => React.JSX.Element;
 };
 
 type TabSelectorBaseItem = {
@@ -50,9 +56,7 @@ type TabSelectorBaseProps = {
 
     /** Whether tabs should have equal width. */
     equalWidth?: boolean;
-};
 
-type WithProductTrainingTooltip = {
     /** Determines whether the product training tooltip should be displayed to the user. */
     shouldShowProductTrainingTooltip?: boolean;
 
@@ -90,6 +94,12 @@ type TabSelectorItemProps = {
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
+
+    /** Determines whether the product training tooltip should be displayed to the user. */
+    shouldShowProductTrainingTooltip?: boolean;
+
+    /** Function to render the content of the product training tooltip. */
+    renderProductTrainingTooltip?: () => React.JSX.Element;
 };
 
 type AnimationConfigBase = {
@@ -137,14 +147,4 @@ type BackgroundColor = Animated.AnimatedInterpolation<string> | string;
 
 type Opacity = 1 | 0 | Animated.AnimatedInterpolation<number>;
 
-export type {
-    TabSelectorProps,
-    BackgroundColor,
-    GetBackgroundColorConfig,
-    Opacity,
-    GetOpacityConfig,
-    WithProductTrainingTooltip,
-    TabSelectorBaseProps,
-    TabSelectorBaseItem,
-    TabSelectorItemProps,
-};
+export type {TabSelectorProps, BackgroundColor, GetBackgroundColorConfig, Opacity, GetOpacityConfig, TabSelectorBaseProps, TabSelectorBaseItem, TabSelectorItemProps};

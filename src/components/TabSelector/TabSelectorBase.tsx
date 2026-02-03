@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import TabSelectorItem from './TabSelectorItem';
-import type {TabSelectorBaseProps, WithProductTrainingTooltip} from './types';
+import type {TabSelectorBaseProps} from './types';
 
 /**
  * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
@@ -26,7 +26,7 @@ function TabSelectorBase({
     equalWidth = false,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
-}: TabSelectorBaseProps & WithProductTrainingTooltip) {
+}: TabSelectorBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const isResizing = useIsResizing();

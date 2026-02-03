@@ -11,18 +11,17 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
-import type {TabSelectorItemProps as BaseTabSelectorItemProps, WithProductTrainingTooltip} from './types';
+import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
-type TabSelectorItemProps = BaseTabSelectorItemProps &
-    WithProductTrainingTooltip & {
-        /** Parent horizontal location, for computing tooltip placement */
-        parentX?: number;
+type TabSelectorItemProps = BaseTabSelectorItemProps & {
+    /** Parent horizontal location, for computing tooltip placement */
+    parentX?: number;
 
-        /** Parent width, for computing tooltip placement */
-        parentWidth?: number;
-    };
+    /** Parent width, for computing tooltip placement */
+    parentWidth?: number;
+};
 
 function TabSelectorItem({
     icon,
