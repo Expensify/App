@@ -1664,11 +1664,18 @@ describe('ReportActionsUtils', () => {
             const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
                 reportUrl,
                 reportName,
+                reportID,
             });
 
             const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
 
             expect(result).toBe(expectedMessage);
+        });
+
+        it('should return a message with plain reportID when reportName is empty', () => {
+            const result = getCreatedReportForUnapprovedTransactionsMessage('123456', '', translateLocal);
+            
+            expect(result).toContain('#123456');
         });
     });
 
