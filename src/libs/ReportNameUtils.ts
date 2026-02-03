@@ -417,7 +417,7 @@ function computeReportNameBasedOnReportAction(
         return translate('workspaceActions.downgradedWorkspace');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
-        return translate('workspaceActions.forcedCorporateUpgrade');
+        return Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'));
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
         return getWorkspaceCurrencyUpdateMessage(translate, parentReportAction);
