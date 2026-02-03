@@ -545,6 +545,10 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
 
+      - name: Configure MapBox SDK
+        if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
       - name: Cache Pod dependencies
         if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
         # v5.0.1
