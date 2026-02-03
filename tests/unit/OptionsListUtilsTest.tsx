@@ -2589,6 +2589,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 loginList,
+                {},
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 {

@@ -2225,7 +2225,7 @@ function getRestrictedLogins(
 /**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
-// fix it in the sepearte issue
+// fix it in the separate issue
 // eslint-disable-next-line @typescript-eslint/max-params
 function getValidOptions(
     options: OptionList,
