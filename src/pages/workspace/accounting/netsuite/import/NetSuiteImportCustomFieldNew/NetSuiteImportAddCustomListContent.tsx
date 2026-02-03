@@ -3,6 +3,7 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {FormRef} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -69,7 +70,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, route}: NetSui
         });
     }, [values, customLists, policyID]);
 
-    const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo} = useSubPage<CustomFieldSubPageWithPolicy>({
+    const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomFieldSubPageWithPolicy>({
         pages,
         startFrom,
         onFinished: handleFinishStep,
@@ -103,6 +104,10 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, route}: NetSui
         }
         nextPage();
     }, [isEditing, goBackToConfirmStep, nextPage]);
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ConnectionLayout
