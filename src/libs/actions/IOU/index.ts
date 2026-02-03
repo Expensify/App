@@ -370,7 +370,7 @@ type TrackExpenseInformation = {
     actionableWhisperReportActionIDParam?: string;
     optimisticReportID: string | undefined;
     optimisticReportActionID: string | undefined;
-    onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys>;
+    onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID>;
 };
 
 type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
@@ -402,7 +402,12 @@ type TrackedExpenseReportInformation = {
 };
 type TrackedExpenseParams = {
     onyxData?: OnyxData<
-        BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE | typeof ONYXKEYS.GPS_DRAFT_DETAILS
+        | BuildOnyxDataForTrackExpenseKeys
+        | BuildPolicyDataKeys
+        | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS
+        | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE
+        | typeof ONYXKEYS.GPS_DRAFT_DETAILS
+        | typeof ONYXKEYS.SELF_DM_REPORT_ID
     >;
     reportInformation: TrackedExpenseReportInformation;
     transactionParams: TrackedExpenseTransactionParams;
@@ -3927,9 +3932,11 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         gpsCoordinates,
     } = transactionParams;
 
-    const optimisticData: Array<OnyxUpdate<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys>> = [];
-    const successData: Array<OnyxUpdate<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys>> = [];
-    const failureData: Array<OnyxUpdate<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys>> = [];
+    const onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID> = {
+        optimisticData: [],
+        successData: [],
+        failureData: [],
+    };
 
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
@@ -3952,7 +3959,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         optimisticReportActionID = selfDMCreatedReportAction.reportActionID;
         chatReport = selfDMReport;
 
-        optimisticData.push(
+        onyxData.optimisticData?.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
@@ -3981,7 +3988,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 },
             },
         );
-        successData.push(
+        onyxData.successData?.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
@@ -4006,7 +4013,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 },
             },
         );
-        failureData.push(
+        onyxData.failureData?.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
@@ -4044,9 +4051,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             activePolicyID,
         });
         createdWorkspaceParams = workspaceData.params;
-        optimisticData.push(...(workspaceData.optimisticData ?? []));
-        successData.push(...(workspaceData.successData ?? []));
-        failureData.push(...(workspaceData.failureData ?? []));
+        onyxData.optimisticData?.push(...(workspaceData.optimisticData ?? []));
+        onyxData.successData?.push(...(workspaceData.successData ?? []));
+        onyxData.failureData?.push(...(workspaceData.failureData ?? []));
     }
 
     // STEP 2: If not in the self-DM flow, we need to use the expense report.
@@ -4204,9 +4211,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         quickAction,
     });
 
-    optimisticData.push(...(trackExpenseOnyxData.optimisticData ?? []));
-    successData.push(...(trackExpenseOnyxData.successData ?? []));
-    failureData.push(...(trackExpenseOnyxData.failureData ?? []));
+    onyxData.optimisticData?.push(...(trackExpenseOnyxData.optimisticData ?? []));
+    onyxData.successData?.push(...(trackExpenseOnyxData.successData ?? []));
+    onyxData.failureData?.push(...(trackExpenseOnyxData.failureData ?? []));
 
     return {
         createdWorkspaceParams,
@@ -4221,11 +4228,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         actionableWhisperReportActionIDParam: actionableTrackExpenseWhisper?.reportActionID,
         optimisticReportID,
         optimisticReportActionID,
-        onyxData: {
-            optimisticData,
-            successData,
-            failureData,
-        },
+        onyxData,
     };
 }
 
