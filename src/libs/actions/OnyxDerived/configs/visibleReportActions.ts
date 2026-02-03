@@ -8,6 +8,9 @@ import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValu
 
 function getOrCreateReportVisibilityRecord(result: VisibleReportActionsDerivedValue, reportID: string): Record<string, boolean> {
     if (!result[reportID]) {
+        // Parameter reassignment is necessary here because we are building up the derived value
+        // object incrementally as we process report actions. Creating a new object would break
+        // the reference chain and lose previously computed visibility data.
         // eslint-disable-next-line no-param-reassign
         result[reportID] = {};
     }
