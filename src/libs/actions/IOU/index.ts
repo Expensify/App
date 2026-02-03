@@ -13599,8 +13599,21 @@ function updateMultipleMoneyRequests(
             },
         });
 
+        // To build proper offline update message, we need to include the currency 
+        const optimisticTransactionChanges =
+            transactionChanges?.amount && !transactionChanges?.currency
+                ? {...transactionChanges, currency: getCurrency(transaction)}
+                : transactionChanges;
+
         // Build optimistic modified expense report action
-        const optimisticReportAction = buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
+        const optimisticReportAction = buildOptimisticModifiedExpenseReportAction(
+            transactionThread,
+            transaction,
+            optimisticTransactionChanges,
+            isFromExpenseReport,
+            policy,
+            updatedTransaction,
+        );
 
         const {updatedMoneyRequestReport, isTotalIndeterminate} = getUpdatedMoneyRequestReportData(
             baseIouReport,
