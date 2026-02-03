@@ -202,7 +202,7 @@ describe('actions/Domain', () => {
             } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         );
 
-        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID, 'add');
+        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
