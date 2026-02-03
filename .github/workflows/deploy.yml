@@ -81,10 +81,12 @@ jobs:
     needs: prep
     secrets: inherit
 
-  android:
-    name: Build and deploy Android HybridApp
+  android-build:
+    name: Build Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
+    outputs:
+      VERSION_CODE: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
     env:
       SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
@@ -141,7 +143,6 @@ jobs:
         run: |
           op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
           op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
-          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
 
           # Copy the keystore to the Android directory for Fullstory
           cp ./upload-key.keystore Mobile-Expensify/Android 
@@ -157,7 +158,6 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
           ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
           ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
-          APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
 
       - name: Get Android native version
         id: getAndroidVersion
@@ -174,39 +174,6 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
-      - name: Upload Android app to Google Play
-        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
-        run: bundle exec fastlane android ${{ vars.ANDROID_UPLOAD_COMMAND }}
-        env:
-          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
-          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
-
-      - name: Get current Android rollout percentage
-        if: ${{ github.ref == 'refs/heads/production' }}
-        id: getAndroidRolloutPercentage
-        uses: ./.github/actions/javascript/getAndroidRolloutPercentage
-        with:
-          GOOGLE_KEY_FILE: ./android-fastlane-json-key.json
-          PACKAGE_NAME: org.me.mobiexpensifyg
-
-      # Complete the previous version rollout if the current rollout percentage is not -1 (no rollout in progress) or 1 (fully rolled out)
-      - name: Submit previous production build to 100%
-        if: ${{ github.ref == 'refs/heads/production' && !contains(fromJSON('["1", "-1"]'), steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE) }}
-        run: bundle exec fastlane android complete_hybrid_rollout
-        continue-on-error: true
-
-      - name: Submit production build for Google Play review and a slow rollout
-        if: ${{ github.ref == 'refs/heads/production' }}
-        run: bundle exec fastlane android upload_google_play_production_hybrid_rollout
-        env:
-          VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
-
-      - name: Upload Android build to Browser Stack
-        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
       - name: Install bundletool
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
@@ -239,14 +206,6 @@ jobs:
           # Unzip just the universal apk
           unzip -p Expensify.apks universal.apk > Expensify.apk
 
-      - name: Upload Android build to Applause
-        if: ${{ fromJSON(env.IS_APP_REPO) && github.ref == 'refs/heads/staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-        run: |
-          APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
-          curl -F "file=@Expensify.apk" \
-            "https://api.applause.com/v2/builds?name=Expensify_$APPLAUSE_VERSION&productId=36008" \
-            -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
-
       - name: Upload Android APK build artifact
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         # v4
@@ -271,8 +230,68 @@ jobs:
           name: android-sourcemap-artifact
           path: /home/runner/work/App/App/Mobile-Expensify/Android/build/generated/sourcemaps/react/release/index.android.bundle.map
 
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+  android-upload-google-play:
+    name: Upload Android to Google Play
+    needs: [prep, android-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Download Android build artifact
+        # v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        with:
+          name: android-build-artifact
+          path: ./
+
+      - name: Setup Ruby
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        with:
+          bundler-cache: true
+
+      - name: Install New Expensify Gems
+        run: bundle install
+
+      - name: Setup 1Password CLI
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load Google Play credentials from 1Password
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+
+      - name: Upload Android app to Google Play
+        run: bundle exec fastlane android ${{ vars.ANDROID_UPLOAD_COMMAND }}
+        env:
+          VERSION: ${{ needs.android-build.outputs.VERSION_CODE }}
+          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
+
+      - name: Get current Android rollout percentage
+        if: ${{ github.ref == 'refs/heads/production' }}
+        id: getAndroidRolloutPercentage
+        uses: ./.github/actions/javascript/getAndroidRolloutPercentage
+        with:
+          GOOGLE_KEY_FILE: ./android-fastlane-json-key.json
+          PACKAGE_NAME: org.me.mobiexpensifyg
+
+      # Complete the previous version rollout if the current rollout percentage is not -1 (no rollout in progress) or 1 (fully rolled out)
+      - name: Submit previous production build to 100%
+        if: ${{ github.ref == 'refs/heads/production' && !contains(fromJSON('["1", "-1"]'), steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE) }}
+        run: bundle exec fastlane android complete_hybrid_rollout
+        continue-on-error: true
+
+      - name: Submit production build for Google Play review and a slow rollout
+        if: ${{ github.ref == 'refs/heads/production' }}
+        run: bundle exec fastlane android upload_google_play_production_hybrid_rollout
+        env:
+          VERSION: ${{ needs.android-build.outputs.VERSION_CODE }}
 
       - name: Warn deployers if Android production deploy failed
         if: ${{ failure() && github.ref == 'refs/heads/production' }}
@@ -293,10 +312,60 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  ios:
-    name: Build and deploy iOS HybridApp
+  android-upload-testing:
+    name: Upload Android to BrowserStack and Applause
+    needs: [prep, android-build]
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Download Android APK artifact
+        # v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        with:
+          name: android-apk-artifact
+          path: ./
+
+      - name: Setup 1Password CLI
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load testing credentials from 1Password
+        id: load-credentials
+        # v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
+
+      - name: Upload Android build to Browser Stack
+        if: ${{ fromJSON(env.IS_APP_REPO) }}
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@Expensify.apk"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Upload Android build to Applause
+        if: ${{ fromJSON(env.IS_APP_REPO) && github.ref == 'refs/heads/staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        run: |
+          APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
+          curl -F "file=@Expensify.apk" \
+            "https://api.applause.com/v2/builds?name=Expensify_$APPLAUSE_VERSION&productId=36008" \
+            -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
+
+  ios-build:
+    name: Build iOS HybridApp
     needs: prep
     runs-on: macos-15-xlarge
+    outputs:
+      IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
       SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
@@ -360,21 +429,7 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore/${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}
           op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Share_Extension/${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}
           op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Notification_Service/${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
-          op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
-
-      - name: Load iOS credentials from 1Password
-        id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
-        with:
-          export-env: false
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
-
-      - name: Set current App version in Env
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: Get iOS native version
         id: getIOSVersion
@@ -393,8 +448,78 @@ jobs:
           APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
-      - name: Upload release build to TestFlight
+      - name: Upload iOS build artifact
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ios-build-artifact
+          path: ${{ env.ipaPath }}
+
+      - name: Upload iOS dSYM artifact
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ios-dsym-artifact
+          path: ${{ env.dsymPath }}
+
+      - name: Upload iOS sourcemap artifact
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ios-sourcemap-artifact
+          path: /Users/runner/work/App/App/Mobile-Expensify/main.jsbundle.map
+
+  ios-upload-testflight:
+    name: Upload iOS to TestFlight
+    needs: [prep, ios-build]
+    runs-on: macos-15-xlarge
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Download iOS build artifact
+        # v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        with:
+          name: ios-build-artifact
+          path: ./
+
+      - name: Download iOS dSYM artifact
+        # v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        with:
+          name: ios-dsym-artifact
+          path: ./
+
+      - name: Setup Ruby
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        with:
+          bundler-cache: true
+
+      - name: Install New Expensify Gems
+        run: bundle install
+
+      - name: Setup 1Password CLI
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load iOS credentials from 1Password
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
+          op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
+
+      - name: Upload release build to TestFlight
         run: bundle exec fastlane ios upload_testflight_hybrid
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
@@ -404,7 +529,7 @@ jobs:
           APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload DSYMs to Firebase for HybridApp
-        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) }}
         run: bundle exec fastlane ios upload_dsyms_hybrid
 
       - name: Submit previous production build to 100%
@@ -416,38 +541,8 @@ jobs:
         if: ${{ github.ref == 'refs/heads/production' }}
         run: bundle exec fastlane ios submit_hybrid_for_rollout
         env:
-          VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
+          VERSION: ${{ needs.ios-build.outputs.IOS_VERSION }}
           APPLE_ID: ${{ vars.APPLE_ID }}
-
-      - name: Upload iOS build to Browser Stack
-        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Upload iOS build to Applause
-        if: ${{ fromJSON(env.IS_APP_REPO) && github.ref == 'refs/heads/staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
-        run: |
-          APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
-          curl -F "file=@${{ env.ipaPath }}" \
-            "https://api.applause.com/v2/builds?name=Expensify_$APPLAUSE_VERSION&productId=36005" \
-            -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
-
-      - name: Upload iOS build artifact
-        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: ios-build-artifact
-          path: ${{ env.ipaPath }}
-
-      - name: Upload iOS sourcemap artifact
-        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: ios-sourcemap-artifact
-          path: /Users/runner/work/App/App/Mobile-Expensify/main.jsbundle.map
 
       - name: Warn deployers if iOS production deploy failed
         if: ${{ failure() && github.ref == 'refs/heads/production' }}
@@ -461,12 +556,60 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 iOS HybridApp production deploy failed. Please <https://stackoverflowteams.com/c/expensify/questions/5740|manually submit> ${{ steps.getIOSVersion.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/471713959/appstore|App Store>. 💥`,
+                text: `💥 iOS HybridApp production deploy failed. Please <https://stackoverflowteams.com/c/expensify/questions/5740|manually submit> ${{ needs.ios-build.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/471713959/appstore|App Store>. 💥`,
               }]
             }
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  ios-upload-testing:
+    name: Upload iOS to BrowserStack and Applause
+    needs: [prep, ios-build]
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Download iOS build artifact
+        # v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        with:
+          name: ios-build-artifact
+          path: ./
+
+      - name: Setup 1Password CLI
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
+
+      - name: Load testing credentials from 1Password
+        id: load-credentials
+        # v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
+
+      - name: Upload iOS build to Browser Stack
+        if: ${{ fromJSON(env.IS_APP_REPO) }}
+        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@Expensify.ipa"
+        env:
+          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Upload iOS build to Applause
+        if: ${{ fromJSON(env.IS_APP_REPO) && github.ref == 'refs/heads/staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        run: |
+          APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
+          curl -F "file=@Expensify.ipa" \
+            "https://api.applause.com/v2/builds?name=Expensify_$APPLAUSE_VERSION&productId=36005" \
+            -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
 
   web:
     name: Build and deploy Web
@@ -561,7 +704,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [android, ios, web]
+    needs: [android-upload-google-play, ios-upload-testflight, web]
     steps:
       - name: Checkout
         # v4
@@ -577,15 +720,15 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [android, ios, web]
+    needs: [android-upload-google-play, ios-upload-testflight, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
         id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          if [ "${{ needs.iOS.result }}" == "success" ] || \
-            [ "${{ needs.android.result }}" == "success" ] || \
+          if [ "${{ needs.ios-upload-testflight.result }}" == "success" ] || \
+            [ "${{ needs.android-upload-google-play.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
           fi
@@ -596,8 +739,8 @@ jobs:
         id: checkDeploymentSuccessOnAllPlatforms
         run: |
           isAllPlatformsDeployed="false"
-          if [ "${{ needs.iOS.result }}" == "success" ] && \
-            [ "${{ needs.android.result }}" == "success" ] && \
+          if [ "${{ needs.ios-upload-testflight.result }}" == "success" ] && \
+            [ "${{ needs.android-upload-google-play.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
           fi
@@ -736,7 +879,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, android, ios, web, checkDeploymentSuccess, createRelease]
+    needs: [prep, android-upload-google-play, ios-upload-testflight, web, checkDeploymentSuccess, createRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         # v3
@@ -793,11 +936,11 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, android, ios, web, checkDeploymentSuccess, createRelease]
+    needs: [prep, android-upload-google-play, ios-upload-testflight, web, checkDeploymentSuccess, createRelease]
     secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android: ${{ needs.android.result }}
-      ios: ${{ needs.ios.result }}
+      android: ${{ needs.android-upload-google-play.result }}
+      ios: ${{ needs.ios-upload-testflight.result }}
       web: ${{ needs.web.result }}
