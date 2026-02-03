@@ -9,6 +9,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -33,14 +34,17 @@ function useContactImport(): UseContactImportResult {
     const {localeCompare} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList);
+            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList, currentUserEmail, currentUserAccountID);
             setContacts(usersFromContact);
         });
-    }, [localeCompare, countryCode, loginList]);
+    }, [localeCompare, countryCode, loginList, currentUserEmail, currentUserAccountID]);
 
     useContactPermissions({
         importAndSaveContacts,

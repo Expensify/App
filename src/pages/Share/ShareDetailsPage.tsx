@@ -7,6 +7,7 @@ import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -18,9 +19,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addAttachmentWithComment, addComment, getCurrentUserAccountID, openReport} from '@libs/actions/Report';
 import type {ParticipantInfo} from '@libs/actions/Report';
+import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,7 +37,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
 import getFileSize from './getFileSize';
@@ -54,39 +56,22 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
 
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const personalDetails = usePersonalDetails();
     const personalDetail = useCurrentUserPersonalDetails();
-
-    const report = getReportOrDraftReport(reportOrAccountID);
-    const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
-
-    const ownerAccountID = report?.ownerAccountID;
-    const personalDetailsSelector = useCallback(
-        (allDetails: OnyxEntry<PersonalDetailsList>) => {
-            if (!allDetails) {
-                return {};
-            }
-            const filtered: PersonalDetailsList = {};
-            const participantAccountIDs = displayReport?.participantsList?.map((p) => p.accountID).filter((id): id is number => id !== undefined) ?? [];
-            for (const accountID of participantAccountIDs) {
-                if (!allDetails[accountID]) {
-                    continue;
-                }
-                filtered[accountID] = allDetails[accountID];
-            }
-            if (ownerAccountID && allDetails[ownerAccountID]) {
-                filtered[ownerAccountID] = allDetails[ownerAccountID];
-            }
-            return filtered;
-        },
-        [displayReport, ownerAccountID],
-    );
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true, selector: personalDetailsSelector}, [personalDetailsSelector]);
     const isTextShared = currentAttachment?.mimeType === CONST.SHARE_FILE_MIMETYPE.TXT;
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+
+    const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
     const ancestors = useAncestors(report);
+    const displayReport = useMemo(
+        () => getReportDisplayOption(report, unknownUserDetails, personalDetail.accountID, personalDetails, privateIsArchived, reportAttributesDerived),
+        [report, unknownUserDetails, personalDetails, privateIsArchived, reportAttributesDerived, personalDetail.accountID],
+    );
 
     const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
@@ -142,7 +127,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     }
 
     const isDraft = isDraftReport(reportOrAccountID);
-    const currentUserID = getCurrentUserAccountID();
 
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
@@ -163,16 +147,15 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 if (isDraft) {
                     const participants: ParticipantInfo[] =
                         displayReport.participantsList
-                            ?.filter((u) => u.accountID !== currentUserID)
+                            ?.filter((u) => u.accountID !== personalDetail.accountID)
                             .map((u) => ({
                                 login: u.login ?? '',
                                 accountID: u.accountID,
                                 personalDetails: personalDetails?.[u.accountID] ?? undefined,
                             })) ?? [];
 
-                    const ownerPersonalDetails = ownerAccountID && personalDetails?.[ownerAccountID] ? personalDetails[ownerAccountID] : undefined;
-
-                    openReport(report.reportID, '', participants, ownerPersonalDetails, report);
+                    const ownerPersonalDetails = report?.ownerAccountID && personalDetails?.[report?.ownerAccountID] ? personalDetails[report?.ownerAccountID] : undefined;
+                    openReport(report.reportID, '', participants, ownerPersonalDetails, report, undefined, undefined, undefined);
                 }
                 if (report.reportID) {
                     addAttachmentWithComment(report, report.reportID, ancestors, file, message, personalDetail.timezone);
