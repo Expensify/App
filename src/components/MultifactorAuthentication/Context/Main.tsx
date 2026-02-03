@@ -148,7 +148,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     publicKey: result.publicKey,
                     authenticationMethod: result.authenticationMethod.mqValue,
                     challenge: registrationChallenge.challenge,
-                    currentPublicKeyIDs: biometrics.serverKnownCredentialIDs,
                 });
 
                 if (!registrationResponse.success) {

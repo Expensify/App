@@ -30,7 +30,6 @@ type RegistrationParams = {
     publicKey: string;
     authenticationMethod: MarqetaAuthTypeName;
     challenge: string;
-    currentPublicKeyIDs: string[];
 };
 
 /**
@@ -92,8 +91,6 @@ async function processRegistration(params: RegistrationParams): Promise<ProcessR
     const {httpCode, reason} = await registerAuthenticationKey({
         keyInfo,
         authenticationMethod: params.authenticationMethod,
-        publicKey: params.publicKey,
-        currentPublicKeyIDs: params.currentPublicKeyIDs,
     });
 
     const success = isHttpSuccess(httpCode);

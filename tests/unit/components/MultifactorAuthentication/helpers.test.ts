@@ -90,7 +90,6 @@ describe('MultifactorAuthentication helpers', () => {
                 publicKey: 'public-key-123',
                 authenticationMethod: 'BIOMETRIC_FACE',
                 challenge: '',
-                currentPublicKeyIDs: [],
             });
 
             expect(result.success).toBe(false);
@@ -104,7 +103,6 @@ describe('MultifactorAuthentication helpers', () => {
                 publicKey: 'public-key-123',
                 authenticationMethod: 'BIOMETRIC_FACE',
                 challenge: 'challenge-123',
-                currentPublicKeyIDs: [],
             });
 
             expect(registerAuthenticationKey).toHaveBeenCalledWith({
@@ -113,8 +111,6 @@ describe('MultifactorAuthentication helpers', () => {
                     type: 'biometric',
                 }),
                 authenticationMethod: 'BIOMETRIC_FACE',
-                publicKey: 'public-key-123',
-                currentPublicKeyIDs: [],
             });
         });
 
@@ -131,7 +127,6 @@ describe('MultifactorAuthentication helpers', () => {
                 publicKey: 'public-key-123',
                 authenticationMethod: 'BIOMETRIC_FACE',
                 challenge: 'challenge-123',
-                currentPublicKeyIDs: [],
             });
 
             expect(result.success).toBe(true);
@@ -150,7 +145,6 @@ describe('MultifactorAuthentication helpers', () => {
                 publicKey: 'public-key-123',
                 authenticationMethod: 'BIOMETRIC_FACE',
                 challenge: 'challenge-123',
-                currentPublicKeyIDs: [],
             });
 
             expect(result.success).toBe(false);

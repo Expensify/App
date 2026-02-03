@@ -29,41 +29,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Please consult before using this pattern.
  */
 
-type RegisterAuthenticationKeyParams = {
-    keyInfo: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']['keyInfo'];
-    authenticationMethod: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']['authenticationMethod'];
-    publicKey: string;
-    currentPublicKeyIDs: string[];
-};
-
-async function registerAuthenticationKey({keyInfo, authenticationMethod, publicKey, currentPublicKeyIDs}: RegisterAuthenticationKeyParams) {
-    const optimisticPublicKeyIDs = [...currentPublicKeyIDs, publicKey];
-
+async function registerAuthenticationKey({keyInfo, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
     try {
-        const response = await makeRequestWithSideEffects(
-            SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY,
-            {keyInfo: JSON.stringify(keyInfo), authenticationMethod},
-            {
-                optimisticData: [
-                    {
-                        onyxMethod: 'merge',
-                        key: ONYXKEYS.ACCOUNT,
-                        value: {
-                            multifactorAuthenticationPublicKeyIDs: optimisticPublicKeyIDs,
-                        },
-                    },
-                ],
-                failureData: [
-                    {
-                        onyxMethod: 'merge',
-                        key: ONYXKEYS.ACCOUNT,
-                        value: {
-                            multifactorAuthenticationPublicKeyIDs: currentPublicKeyIDs,
-                        },
-                    },
-                ],
-            },
-        );
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY, {keyInfo: JSON.stringify(keyInfo), authenticationMethod});
 
         const {jsonCode, message} = response ?? {};
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_AUTHENTICATION_KEY, message);

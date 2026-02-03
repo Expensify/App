@@ -241,7 +241,7 @@ describe('useNativeBiometrics hook', () => {
             });
 
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            expect(PrivateKeyStore.set).toHaveBeenCalledWith(12345, 'private-key-123', {nativePromptTitle: 'Test Prompt'});
+            expect(PrivateKeyStore.set).toHaveBeenCalledWith(12345, 'private-key-123', {nativePromptTitle: 'translated_multifactorAuthentication.letsVerifyItsYou'});
         });
 
         it('should store public key', async () => {
