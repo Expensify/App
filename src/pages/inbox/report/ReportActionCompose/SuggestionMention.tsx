@@ -392,23 +392,29 @@ function SuggestionMention({
                 prefix = lastWord.substring(1);
             }
 
+            // Treat a trailing dot as punctuation so short mentions like "@a." still match "@a".
+            const hasTrailingDot = prefixType === '@' && prefix.length > 1 && prefix.endsWith('.');
+            const normalizedPrefix = hasTrailingDot ? prefix.slice(0, -1) : prefix;
+            // Keep the raw prefix for highlight so dots are preserved in the UI.
+            const mentionPrefix = prefix;
+
             const nextState: Partial<SuggestionValues> = {
                 suggestedMentions: [],
                 atSignIndex,
-                mentionPrefix: prefix,
+                mentionPrefix,
                 prefixType,
             };
 
             if (isMentionCode(suggestionWord) && prefixType === '@') {
-                const suggestions = getUserMentionOptions(weightedPersonalDetails, prefix);
+                const suggestions = getUserMentionOptions(weightedPersonalDetails, normalizedPrefix);
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
             }
 
-            const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
+            const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || normalizedPrefix === '');
             if (prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
                 // Filter reports by room name and current policy
-                nextState.suggestedMentions = getRoomMentionOptions(prefix, reports);
+                nextState.suggestedMentions = getRoomMentionOptions(normalizedPrefix, reports);
 
                 // Even if there are no reports, we should show the suggestion menu - to perform live search
                 nextState.shouldShowSuggestionMenu = true;
