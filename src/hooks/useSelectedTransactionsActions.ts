@@ -1,4 +1,5 @@
 import {useContext, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -7,8 +8,8 @@ import {initSplitExpense} from '@libs/actions/IOU';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
-import {getExportTemplates} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
+import {getExportTemplates, handlePreventSearchAPI} from '@libs/actions/Search';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -23,11 +24,13 @@ import {
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -67,7 +70,7 @@ function useSelectedTransactionsActions({
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     isOnSearch?: boolean;
-    onDeleteSelected?: (handleDeleteTransactions: () => void) => void | Promise<void>;
+    onDeleteSelected?: (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => void | Promise<void>;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -145,6 +148,31 @@ function useSelectedTransactionsActions({
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
         Navigation.removeReportScreen(new Set(deletedThreadReportIDs));
+    };
+
+    const handleDeleteTransactionsWithNavigation = (backToRoute?: Route) => {
+        Navigation.goBack(backToRoute);
+
+        if (!backToRoute && !navigationRef.canGoBack()) {
+            handleDeleteTransactions();
+            return;
+        }
+
+        // When deleting IOUs on the search route, as soon as Navigation.goBack returns to the search route,
+        // the search API may be triggered.
+        // At this point, the transaction has not yet been deleted on the server, which causes the report
+        // to disappear > reappear > and then disappear again.
+        // Since the search API above will return data where the transaction has not yet been deleted,
+        // we temporarily prevent the search API from being triggered until handleDeleteTransactions is completed.
+        const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+        const {enableSearchAPIPrevention, disableSearchAPIPrevention} = handlePreventSearchAPI(currentSearchQueryJSON?.hash);
+        enableSearchAPIPrevention?.();
+
+        const listener = DeviceEventEmitter.addListener(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER, () => {
+            handleDeleteTransactions();
+            listener.remove();
+            disableSearchAPIPrevention?.();
+        });
     };
 
     const showDeleteModal = () => {
@@ -368,7 +396,7 @@ function useSelectedTransactionsActions({
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
                 onSelected: () => {
                     if (onDeleteSelected) {
-                        onDeleteSelected(handleDeleteTransactions);
+                        onDeleteSelected(handleDeleteTransactions, handleDeleteTransactionsWithNavigation);
                     } else {
                         showDeleteModal();
                     }
@@ -381,6 +409,7 @@ function useSelectedTransactionsActions({
     return {
         options: computedOptions,
         handleDeleteTransactions,
+        handleDeleteTransactionsWithNavigation,
         isDeleteModalVisible,
         showDeleteModal,
         hideDeleteModal,
