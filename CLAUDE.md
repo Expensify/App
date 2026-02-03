@@ -172,6 +172,18 @@ Key GitHub Actions workflows:
 
 ## Development Practices
 
+### React Native Best Practices
+Use the `/react-native-best-practices` skill when working on performance-sensitive code, native modules, or release preparation. This ensures code respects established best practices from the start, resulting in more consistent code, fewer review iterations, and better resilience against regressions.
+
+The skill provides guidance on:
+- **Performance**: FPS optimization, virtualized lists (FlashList), memoization, atomic state, animations
+- **Bundle & App Size**: Barrel imports, tree shaking, bundle analysis, R8 shrinking
+- **Startup (TTI)**: Hermes bytecode optimization, native navigation, deferred work
+- **Native Modules**: Turbo Module development, threading model, Swift/Kotlin/C++ patterns
+- **Memory**: JS and native memory leak detection and patterns
+- **Build Compliance**: Android 16KB page alignment (Google Play requirement)
+- **Platform Tooling**: Xcode/Android Studio profiling and debugging setup
+
 ### Code Quality
 - **TypeScript**: Strict mode enabled
 - **ESLint**: Linter
@@ -240,37 +252,16 @@ npm run android
 npm run web
 ```
 
-## Browser Testing with Playwright MCP
+## Development Environment
 
-Claude can interact with the running App dev server using Playwright MCP for testing and debugging:
-
-### Setup
-1. Verify dev server is running
-2. Dev server runs at `https://dev.new.expensify.com:8082/`
-3. Ask Claude to open the URL in Playwright browser
-2. **IF MCP NOT AVAILABLE**: Guide user to install it before proceeding
-
-### MCP Installation
-If Playwright MCP connection fails, guide user to install:
-```bash
-claude mcp add playwright npx '@playwright/mcp@latest'
-```
-
-### Testing Workflow (MCP Required)
-1. Verify App dev server is running: `pgrep webpack`
-2. Use Playwright MCP tools to navigate to `https://dev.new.expensify.com:8082/`
-3. Use MCP tools to interact with the browser (click, type, screenshot, etc.)
-
-### Dev Server Requirements
+### Dev Server
 - **Location**: Runs on HOST machine (not in VM)
 - **URL**: `https://dev.new.expensify.com:8082/`
 - **Start command**: `npm run web`
 - **VM is only for**: Backend services (Auth, Bedrock, Integration-Server, Web-Expensify)
 
-### Dev Environment Sign-In Credentials
-- **Email**: Generate a random Gmail address (e.g., `user+<random-numbers>@gmail.com`)
-- **Magic code**: Always `000000` for dev environment
-- **Onboarding**: Always skip optional steps
+### Browser Testing
+Use the `/playwright-app-testing` skill to test and debug the App in a browser. Use this skill after making frontend changes to verify your work, or when the user requests testing.
 
 ## Architecture Decisions
 

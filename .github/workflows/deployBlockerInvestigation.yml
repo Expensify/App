@@ -17,7 +17,7 @@ on:
 
 concurrency:
   group: deploy-blocker-investigation-${{ github.event.issue.html_url || inputs.ISSUE_URL }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   investigate:
@@ -32,10 +32,10 @@ jobs:
         with:
           fetch-depth: 1
 
-      # Validate that the user has write access to the repository
-      # workflow_dispatch already requires write access, but this makes it explicit
-      # and ensures the token works for team membership checks
+      # Only validate write access for manual dispatch - label events are already gated by GitHub's
+      # permission model (triage+ can add labels), and the workflow uses controlled tools
       - name: Validate actor has write access
+        if: github.event_name == 'workflow_dispatch'
         uses: ./.github/actions/composite/validateActor
         with:
           REQUIRE_APP_DEPLOYER: false
