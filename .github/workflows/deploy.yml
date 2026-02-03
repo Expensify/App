@@ -240,6 +240,7 @@ jobs:
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
 
       - name: Download Android build artifact
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         # v7
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
@@ -247,6 +248,7 @@ jobs:
           path: ./
 
       - name: Set aabPath for Fastlane
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         run: echo "aabPath=$(pwd)/Expensify-release.aab" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
@@ -271,6 +273,7 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
 
       - name: Upload Android app to Google Play
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         run: bundle exec fastlane android ${{ vars.ANDROID_UPLOAD_COMMAND }}
         env:
           VERSION: ${{ needs.android-build.outputs.VERSION_CODE }}
@@ -487,6 +490,7 @@ jobs:
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
 
       - name: Download iOS build artifact
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         # v7
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
@@ -494,6 +498,7 @@ jobs:
           path: ./
 
       - name: Download iOS dSYM artifact
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         # v7
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
@@ -501,6 +506,7 @@ jobs:
           path: ./
 
       - name: Set artifact paths for Fastlane
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         run: |
           echo "ipaPath=$(pwd)/Expensify.ipa" >> "$GITHUB_ENV"
           echo "dsymPath=$(pwd)/Expensify.app.dSYM.zip" >> "$GITHUB_ENV"
@@ -528,6 +534,7 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
 
       - name: Upload release build to TestFlight
+        if: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
         run: bundle exec fastlane ios upload_testflight_hybrid
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
@@ -537,7 +544,7 @@ jobs:
           APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload DSYMs to Firebase for HybridApp
-        if: ${{ fromJSON(env.IS_APP_REPO) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
         run: bundle exec fastlane ios upload_dsyms_hybrid
 
       - name: Submit previous production build to 100%
