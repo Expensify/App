@@ -158,7 +158,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Overrides the icon for shouldShowRightIcon */
         iconRight?: IconAsset;
 
-        /** Should dim and apply small size for right icon */
+        /** Should apply semi transparency for right icon */
         shouldDimIconRight?: boolean;
 
         /** Should render component on the right */
@@ -478,7 +478,7 @@ function MenuItem({
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
-    shouldDimIconRight = false,
+    shouldDimIconRight = true,
     iconRight,
     furtherDetailsIcon,
     furtherDetails,
@@ -1033,7 +1033,7 @@ function MenuItem({
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.pl6,
-                                                            isHovered || shouldDimIconRight ? styles.opacity1 : styles.opacitySemiTransparent,
+                                                            shouldDimIconRight && styles.opacitySemiTransparent,
                                                             styles.alignItemsEnd,
                                                             rightIconWrapperStyle,
                                                         ]}

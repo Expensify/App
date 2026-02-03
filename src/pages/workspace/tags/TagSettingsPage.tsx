@@ -208,6 +208,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
                                 interactive={!hasAccountingConnections && !hasDependentTags}
                                 shouldShowRightIcon={!hasDependentTags}
+                                shouldDimIconRight={!hasAccountingConnections}
                             />
                         </OfflineWithFeedback>
                     )}

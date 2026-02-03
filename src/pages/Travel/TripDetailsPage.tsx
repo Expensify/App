@@ -117,6 +117,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         icon={icons.Pencil}
                         iconRight={icons.NewWindow}
                         shouldShowRightIcon
+                        shouldDimIconRight={false}
                         onPress={() => {
                             setIsModifyTripLoading(true);
                             openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))?.finally(() => {
@@ -132,6 +133,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                         icon={icons.Phone}
                         iconRight={icons.NewWindow}
                         shouldShowRightIcon
+                        shouldDimIconRight={false}
                         onPress={() => {
                             setIsTripSupportLoading(true);
                             openTravelDotLink(activePolicyID, CONST.TRIP_SUPPORT)?.finally(() => {

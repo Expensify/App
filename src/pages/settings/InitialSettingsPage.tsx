@@ -86,6 +86,7 @@ type MenuData = {
     title?: string;
     shouldShowRightIcon?: boolean;
     iconRight?: IconAsset;
+    shouldDimIconRight?: boolean;
     badgeText?: string;
     badgeStyle?: ViewStyle;
     sentryLabel?: string;
@@ -346,6 +347,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: icons.QuestionMark,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
+                shouldDimIconRight: false,
                 link: CONST.NEWHELP_URL,
                 action: () => {
                     openExternalLink(CONST.NEWHELP_URL);
@@ -356,6 +358,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: icons.TreasureChest,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
+                shouldDimIconRight: false,
                 link: CONST.WHATS_NEW_URL,
                 action: () => {
                     openExternalLink(CONST.WHATS_NEW_URL);
@@ -449,6 +452,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             sentryLabel={item.sentryLabel}
                             iconRight={item.iconRight}
                             shouldShowRightIcon={item.shouldShowRightIcon}
+                            shouldDimIconRight={item.shouldDimIconRight}
                             shouldIconUseAutoWidthStyle
                         />
                     );

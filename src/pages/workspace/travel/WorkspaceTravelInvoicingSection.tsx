@@ -207,6 +207,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     iconRight={icons.NewWindow}
                     icon={icons.LuggageWithLines}
                     shouldShowRightIcon
+                    shouldDimIconRight={false}
                 />
             </Section>
             {optionItems.map(renderOptionItem)}
