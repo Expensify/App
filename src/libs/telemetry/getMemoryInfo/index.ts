@@ -1,5 +1,4 @@
 import {Platform} from 'react-native';
-import Log from '@libs/Log';
 import type {MemoryInfo} from './types';
 
 const BYTES_PER_MB = 1024 * 1024;
@@ -68,7 +67,7 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
             }
         }
 
-        const memoryInfo: MemoryInfo = {
+        return {
             usedMemoryBytes,
             usedMemoryMB: usedMemoryBytes !== null ? Math.round(usedMemoryBytes / BYTES_PER_MB) : null,
             totalMemoryBytes,
@@ -79,14 +78,7 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
             freeMemoryPercentage: totalMemoryBytes !== null && usedMemoryBytes !== null ? parseFloat((((totalMemoryBytes - usedMemoryBytes) / totalMemoryBytes) * 100).toFixed(2)) : null,
             platform: Platform.OS,
         };
-
-        Log.info(`[getMemoryInfo] Memory check: ${memoryInfo.usedMemoryMB ?? '?'}MB used / ${memoryInfo.freeMemoryMB ?? '?'}MB free`, true, {
-            ...memoryInfo,
-        });
-
-        return memoryInfo;
     } catch (error) {
-        Log.hmmm('[getMemoryInfo] Failed to get memory info', {error});
         return {
             usedMemoryBytes: null,
             usedMemoryMB: null,

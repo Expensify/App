@@ -1,6 +1,5 @@
 import * as Sentry from '@sentry/react-native';
 import AppStateMonitor from '@libs/AppStateMonitor';
-import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import getMemoryInfo from './getMemoryInfo';
 
@@ -35,10 +34,14 @@ function sendMemoryContext() {
                 logLevel = 'error';
             }
 
+            const timestamp = Date.now();
+            const timestampISO = new Date(timestamp).toISOString();
+
             Sentry.addBreadcrumb({
                 category: 'system.memory',
                 message: `RAM Check: ${usedMemoryMB ?? '?'}MB used / ${freeMemoryMB ?? '?'}MB free`,
                 level: logLevel,
+                timestamp: timestamp / 1000,
                 data: {
                     ...memoryInfo,
                     freeMemoryMB,
@@ -50,13 +53,11 @@ function sendMemoryContext() {
                 ...memoryInfo,
                 freeMemoryMB,
                 lowMemoryThreat: logLevel !== 'info',
-                lastUpdated: new Date().toISOString(),
+                lastUpdated: timestampISO,
             });
         })
         .catch((error) => {
-            Log.hmmm('[SentrySync] Failed to get memory info', {
-                error,
-            });
+            // Ignore error
         });
 }
 
