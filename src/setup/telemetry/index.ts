@@ -16,7 +16,9 @@ export default function (): void {
         dsn: CONFIG.SENTRY_DSN,
         transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
-        profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
+        // 1. Profiling for Android is currently disabled because it causes crashes sometimes.
+        // 2. When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
+        profilesSampleRate: Platform.OS === 'android' ? 0 : 0.3,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations,
