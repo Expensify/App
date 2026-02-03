@@ -79,7 +79,8 @@ type DynamicRoutes = Record<string, DynamicRouteConfig>;
  */
 const DYNAMIC_ROUTES = {
     VERIFY_ACCOUNT: {
-        path: 'verify-account',
+        // The path is intentionally misspelled to avoid conflicts when dynamic routes logic isn't entirely ready
+        path: 'verify-accountt',
         entryScreens: [],
     },
 } as const satisfies DynamicRoutes;
