@@ -8264,7 +8264,6 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 addMember: 'Não foi possível adicionar este membro. Tente novamente.',
             },
         },
-        domainAdmins: 'Administradores de domínio',
     },
 };
 export default translations;

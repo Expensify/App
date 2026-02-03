@@ -8106,6 +8106,6 @@ ${reportName}
                 addMember: '无法添加此成员。请重试。',
             },
         },
-    }
+    },
 };
 export default translations;
