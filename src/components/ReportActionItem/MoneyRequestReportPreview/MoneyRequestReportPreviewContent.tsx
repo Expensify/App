@@ -894,6 +894,7 @@ function MoneyRequestReportPreviewContent({
                         chatReport={chatReport}
                         moneyRequestReport={iouReport}
                         transactionCount={numberOfRequests}
+                        hasNonHeldExpenses={!hasOnlyHeldExpenses}
                         startAnimation={() => {
                             if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
                                 startApprovedAnimation();
