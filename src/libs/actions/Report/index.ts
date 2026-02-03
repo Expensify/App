@@ -5940,6 +5940,7 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean, 
 
 function buildOptimisticChangePolicyData(
     report: Report,
+    parentReport: OnyxEntry<Report>,
     policy: Policy,
     currentUserAccountID: number,
     email: string,
@@ -6155,7 +6156,6 @@ function buildOptimisticChangePolicyData(
         });
 
         // Update the expense chat report
-        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldWorkspaceChatReportID}`];
         const lastMessageText = getLastVisibleMessage(oldWorkspaceChatReportID, isReportLastVisibleArchived, {
             [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
         })?.lastMessageText;
@@ -6177,7 +6177,7 @@ function buildOptimisticChangePolicyData(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${oldWorkspaceChatReportID}`,
-            value: chatReport,
+            value: parentReport,
         });
     }
 
@@ -6401,6 +6401,7 @@ function buildOptimisticChangePolicyData(
  */
 function changeReportPolicy(
     report: Report,
+    parentReport: OnyxEntry<Report>,
     policy: Policy,
     accountID: number,
     email: string,
@@ -6416,6 +6417,7 @@ function changeReportPolicy(
 
     const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(
         report,
+        parentReport,
         policy,
         accountID,
         email,
@@ -6441,18 +6443,31 @@ function changeReportPolicy(
 /**
  * Invites the submitter to the new report policy, changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat
  */
-function changeReportPolicyAndInviteSubmitter(
-    report: Report,
-    policy: Policy,
-    currentUserAccountID: number,
-    email: string,
-    hasViolationsParam: boolean,
-    isChangePolicyTrainingModalDismissed: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    employeeList: PolicyEmployeeList | undefined,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    isReportLastVisibleArchived: boolean | undefined,
-) {
+function changeReportPolicyAndInviteSubmitter({
+    report,
+    parentReport,
+    policy,
+    currentUserAccountID,
+    email,
+    hasViolationsParam,
+    isChangePolicyTrainingModalDismissed,
+    isASAPSubmitBetaEnabled,
+    employeeList,
+    formatPhoneNumber,
+    isReportLastVisibleArchived,
+}: {
+    report: Report;
+    parentReport: OnyxEntry<Report>;
+    policy: Policy;
+    currentUserAccountID: number;
+    email: string;
+    hasViolationsParam: boolean;
+    isChangePolicyTrainingModalDismissed: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    employeeList: PolicyEmployeeList | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    isReportLastVisibleArchived: boolean | undefined;
+}) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
     }
@@ -6486,6 +6501,7 @@ function changeReportPolicyAndInviteSubmitter(
         optimisticMovedReportAction,
     } = buildOptimisticChangePolicyData(
         report,
+        parentReport,
         policy,
         currentUserAccountID,
         email,
