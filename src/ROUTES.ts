@@ -149,8 +149,6 @@ const ROUTES = {
     SEARCH_EDIT_MULTIPLE_DATE_RHP: 'search/edit-multiple/date',
     SEARCH_EDIT_MULTIPLE_CATEGORY_RHP: 'search/edit-multiple/category',
     SEARCH_EDIT_MULTIPLE_TAG_RHP: 'search/edit-multiple/tag',
-    SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP: 'search/edit-multiple/attendees',
-    SEARCH_EDIT_MULTIPLE_REPORT_RHP: 'search/edit-multiple/report',
     SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
