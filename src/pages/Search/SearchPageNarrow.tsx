@@ -5,7 +5,7 @@ import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedVa
 import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
+import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -148,7 +148,7 @@ function SearchPageNarrow({
         }
     }, []);
 
-    const {addRouteKey, removeRouteKey} = useContext(FullScreenBlockingViewContext);
+    const {addRouteKey, removeRouteKey} = useFullScreenBlockingViewActions();
     useEffect(() => {
         if (!searchRouterListVisible) {
             return;
