@@ -130,6 +130,7 @@ function VerifyPage({route}: VerifyPageProps) {
                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                             textStyles={[styles.buttonMediumText]}
                             accessible={false}
+                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY}
                         />
                     </View>
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>

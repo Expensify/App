@@ -230,6 +230,7 @@ function BaseTwoFactorAuthForm({
                     onPress={handleToggleInputType}
                     hoverDimmingValue={1}
                     accessibilityLabel={translate(toggleLabelKey)}
+                    sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.RESEND_CODE}
                 >
                     <Text style={[styles.link]}>{translate(toggleLabelKey)}</Text>
                 </PressableWithFeedback>
