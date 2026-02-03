@@ -131,6 +131,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const {isBetaEnabled} = usePermissions();
 
+    // Check if the transaction has customUnitOutOfPolicy violation (distance rate error)
+    const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    const hasDistanceRateError = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+
     useEffect(() => {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
 
@@ -158,6 +162,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     const onSaveSplitExpense = () => {
+        if (hasDistanceRateError) {
+            showConfirmModal({
+                title: translate('iou.splitExpense'),
+                prompt: translate('iou.splitExpenseDistanceErrorModalDescription'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+
         if (splitExpenses.length > CONST.IOU.SPLITS_LIMIT) {
             setErrorMessage(translate('iou.error.manySplitsProvided'));
             return;
@@ -317,17 +331,21 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         </View>
     );
 
-    const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
-    const warningMessage = shouldShowWarningMessage
-        ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
-        : '';
+    const difference = sumOfSplitExpenses - transactionDetailsAmount;
+    let warningMessage = '';
+    if (difference < 0) {
+        warningMessage = translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(-difference, transactionDetails.currency)});
+    } else if (difference > 0) {
+        warningMessage = translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)});
+    }
+
     const footerContent = (
         <View style={[styles.ph5, styles.pb5]}>
             {(!!errorMessage || !!warningMessage) && (
                 <FormHelpMessage
                     style={[styles.ph1, styles.mb2]}
                     isError={!!errorMessage}
-                    isInfo={!errorMessage && shouldShowWarningMessage}
+                    isInfo={!errorMessage && !!warningMessage}
                     message={errorMessage || warningMessage}
                 />
             )}

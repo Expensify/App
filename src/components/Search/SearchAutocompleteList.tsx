@@ -110,7 +110,7 @@ type SearchAutocompleteListProps = {
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
 
     /** All cards */
-    allCards: CardList;
+    allCards: CardList | undefined;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListHandle>;
@@ -183,7 +183,7 @@ function SearchAutocompleteList({
     personalDetails,
     reports,
     allFeeds,
-    allCards,
+    allCards = CONST.EMPTY_OBJECT,
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
@@ -196,6 +196,7 @@ function SearchAutocompleteList({
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -222,10 +223,23 @@ function SearchAutocompleteList({
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
             loginList,
+            visibleReportActionsData,
             currentUserAccountID,
             currentUserEmail,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    }, [
+        areOptionsInitialized,
+        options,
+        draftComments,
+        nvpDismissedProductTraining,
+        betas,
+        autocompleteQueryValue,
+        countryCode,
+        loginList,
+        visibleReportActionsData,
+        currentUserAccountID,
+        currentUserEmail,
+    ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -242,6 +256,10 @@ function SearchAutocompleteList({
                 return [];
         }
     }, [currentType]);
+
+    const viewAutocompleteList = useMemo(() => {
+        return Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
+    }, []);
 
     const statusAutocompleteList = useMemo(() => {
         let suggestedStatuses;
@@ -432,6 +450,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
@@ -465,6 +484,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    visibleReportActionsData,
                     currentUserAccountID,
                     currentUserEmail,
                 }).recentReports.filter((chat) => {
@@ -494,6 +514,12 @@ function SearchAutocompleteList({
                     (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
                 );
                 return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
+            }
+            case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW: {
+                const filteredViews = viewAutocompleteList.filter(
+                    (viewValue) => viewValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(viewValue.toLowerCase()),
+                );
+                return filteredViews.map((viewValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW, text: viewValue}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
@@ -639,6 +665,7 @@ function SearchAutocompleteList({
         currentUserAccountID,
         currentUserEmail,
         groupByAutocompleteList,
+        viewAutocompleteList,
         statusAutocompleteList,
         feedAutoCompleteList,
         cardAutocompleteList,
@@ -646,6 +673,7 @@ function SearchAutocompleteList({
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
+        visibleReportActionsData,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

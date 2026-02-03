@@ -15,7 +15,7 @@ type SearchTypeMenuNarrowProps = {
 function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight} = useSearchTypeMenu(queryJSON);
+    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, windowHeight} = useSearchTypeMenu(queryJSON);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
@@ -45,10 +45,6 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                     scrollContainerStyle={styles.pv0}
                 />
             )}
-            {/* DeleteConfirmModal is a stable JSX element returned by the hook.
-                Returning the element directly keeps the component identity across re-renders so React
-                can play its exit animation instead of removing it instantly. */}
-            {DeleteConfirmModal}
         </>
     );
 }
