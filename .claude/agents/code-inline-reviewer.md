@@ -66,38 +66,23 @@ Bad:
 
 ---
 
-### [PERF-2] Use early returns in array iteration methods
+### [PERF-2] Fail fast - validate before expensive work
 
-- **Search patterns**: `.every(`, `.some(`, `.find(`, `.filter(`
+- **Search patterns**: `if (!`, `return`, function bodies with validation after work
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
-  - Using .every(), .some(), .find(), .filter() or similar function
-  - Function contains an "expensive operation" (defined below)
-  - There exists a simple property check that could eliminate items earlier
-  - The simple check is performed AFTER the expensive operation
-
-  **Expensive operations are**:
-
-  - Function calls (except simple getters/property access)
-  - Regular expressions
-  - Object/array iterations
-  - Math calculations beyond basic arithmetic
-
-  **Simple checks are**:
-
-  - Property existence (!obj.prop, obj.prop === undefined)
-  - Boolean checks (obj.isActive)
-  - Primitive comparisons (obj.id === 5)
-  - Type checks (typeof, Array.isArray)
+  - Code performs expensive work (function calls, iterations, API/Onyx reads)
+  - A simple check could short-circuit earlier
+  - The simple check happens AFTER the expensive work
 
   **DO NOT flag if**:
 
-  - No expensive operations exist
-  - Simple checks are already done first
-  - The expensive operation MUST run for all items (e.g., for side effects)
+  - Simple checks already come first
+  - Validation requires the computed result
+  - Expensive work must run for side effects
 
-- **Reasoning**: Expensive operations can be any long-running synchronous tasks (like complex calculations) and should be avoided when simple property checks can eliminate items early. This reduces unnecessary computation and improves iteration performance, especially on large datasets.
+- **Reasoning**: Failing fast prevents wasted computation. Validate inputs and check simple conditions before doing expensive work.
 
 Good:
 
