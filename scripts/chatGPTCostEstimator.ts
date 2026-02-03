@@ -18,17 +18,22 @@ class ChatGPTCostEstimator {
     /** Average number of tokens per character (rule of thumb for English-ish text) */
     static readonly TOKENS_PER_CHAR = 0.25;
 
+    /** Discount rate for cached prompt tokens (cached tokens cost ~10% of full price) */
+    static readonly CACHED_INPUT_DISCOUNT = 0.1;
+
     /**
      * Calculates the estimated cost for OpenAI API calls based on input and output tokens.
      *
-     * @param inputTokens - Total number of input tokens
+     * @param inputTokens - Total number of uncached input tokens
      * @param outputTokens - Total number of output tokens
+     * @param cachedInputTokens - Total number of cached input tokens (default: 0)
      * @returns Estimated cost in USD
      */
-    static getTotalEstimatedCost(inputTokens: number, outputTokens: number): number {
-        const inputCost = (inputTokens / 1_000_000) * ChatGPTCostEstimator.GPT_5_1_INPUT_COST_PER_MILLION;
+    static getTotalEstimatedCost(inputTokens: number, outputTokens: number, cachedInputTokens = 0): number {
+        const uncachedInputCost = (inputTokens / 1_000_000) * ChatGPTCostEstimator.GPT_5_1_INPUT_COST_PER_MILLION;
+        const cachedInputCost = (cachedInputTokens / 1_000_000) * ChatGPTCostEstimator.GPT_5_1_INPUT_COST_PER_MILLION * ChatGPTCostEstimator.CACHED_INPUT_DISCOUNT;
         const outputCost = (outputTokens / 1_000_000) * ChatGPTCostEstimator.GPT_5_1_OUTPUT_COST_PER_MILLION;
-        return inputCost + outputCost;
+        return uncachedInputCost + cachedInputCost + outputCost;
     }
 }
 
