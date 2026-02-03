@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, Login, PersonalDetails, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -157,6 +157,7 @@ type GetValidReportsConfig = {
     preferredPolicyID?: string;
     shouldUnreadBeBold?: boolean;
     shouldAlwaysIncludeDM?: boolean;
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -179,7 +180,9 @@ type IsValidReportsConfig = Pick<
     | 'isRestrictedToPreferredPolicy'
     | 'preferredPolicyID'
     | 'shouldAlwaysIncludeDM'
->;
+> & {
+    currentUserAccountID: number;
+};
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
@@ -190,7 +193,6 @@ type GetOptionsConfig = {
     excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;
     searchString?: string;
-    searchInputValue?: string;
     maxElements?: number;
     maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
@@ -199,7 +201,6 @@ type GetOptionsConfig = {
 
 type GetUserToInviteConfig = {
     searchValue: string | undefined;
-    searchInputValue?: string;
     loginsToExclude?: Record<string, boolean>;
     reportActions?: ReportActions;
     firstName?: string;
@@ -211,6 +212,8 @@ type GetUserToInviteConfig = {
     optionsToExclude?: GetOptionsConfig['selectedOptions'];
     countryCode?: number;
     loginList: OnyxEntry<Login>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -248,7 +251,7 @@ type PreviewConfig = {
     isSelected?: boolean;
 };
 
-type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
+type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
 };

@@ -298,7 +298,7 @@ jobs:
     needs: prep
     runs-on: macos-15-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
       SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout

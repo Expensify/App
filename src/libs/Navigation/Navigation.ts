@@ -505,7 +505,7 @@ function resetToHome() {
               name: SCREENS.REPORT,
           }
         : undefined;
-    const payload = getInitialSplitNavigatorState({name: SCREENS.HOME}, splitNavigatorMainScreen);
+    const payload = getInitialSplitNavigatorState({name: SCREENS.INBOX}, splitNavigatorMainScreen);
     navigationRef.dispatch({payload, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE, target: rootState.key});
 }
 
@@ -519,7 +519,7 @@ function goBackToHome() {
     const isNarrowLayout = getIsNarrowLayout();
 
     // This set the right split navigator.
-    goBack(ROUTES.HOME);
+    goBack(ROUTES.INBOX);
 
     // We want to keep the report screen in the split navigator on wide layout.
     if (!isNarrowLayout) {
@@ -527,7 +527,7 @@ function goBackToHome() {
     }
 
     // This set the right route in this split navigator.
-    goBack(ROUTES.HOME);
+    goBack(ROUTES.INBOX);
 }
 
 /**

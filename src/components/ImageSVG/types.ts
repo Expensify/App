@@ -1,8 +1,10 @@
-import type {ImageContentFit, ImageStyle} from 'expo-image';
+import type {ImageContentFit, ImageProps, ImageStyle} from 'expo-image';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type ImageSVGProps = {
+    /** The image cache policy */
+    cachePolicy?: ImageProps['cachePolicy'];
     /** The asset to render. */
     src: IconAsset | undefined;
 
