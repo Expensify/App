@@ -555,6 +555,7 @@ function MoneyRequestReportPreviewContent({
             isSubmittingAnimationRunning,
             isDEWSubmitPending,
             violationsData: transactionViolations,
+            reportMetadata: iouReportMetadata,
         });
     }, [
         bankAccountList,
@@ -571,6 +572,7 @@ function MoneyRequestReportPreviewContent({
         isSubmittingAnimationRunning,
         transactionViolations,
         isDEWSubmitPending,
+        iouReportMetadata,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
@@ -894,6 +896,7 @@ function MoneyRequestReportPreviewContent({
                         chatReport={chatReport}
                         moneyRequestReport={iouReport}
                         transactionCount={numberOfRequests}
+                        hasNonHeldExpenses={!hasOnlyHeldExpenses}
                         startAnimation={() => {
                             if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
                                 startApprovedAnimation();

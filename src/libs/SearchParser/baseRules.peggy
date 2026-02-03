@@ -114,8 +114,12 @@ columnsValues
   / groupWithdrawn
   / groupWithdrawalId
   / groupCategory
+  / groupTag
   / groupMerchant
   / groupMonth
+  / groupWeek
+  / groupYear
+  / groupQuarter
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -140,8 +144,12 @@ groupBankAccount        = "group-bank-account"i &wordBoundary       { return "gr
 groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "groupWithdrawn"; }
 groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
+groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
-groupMonth              = "group-month"i &wordBoundary              { return "groupMonth"; }
+groupMonth              = "group-month"i &wordBoundary              { return "groupmonth"; }
+groupWeek               = "group-week"i &wordBoundary               { return "groupweek"; }
+groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
+groupQuarter            = "group-quarter"i &wordBoundary            { return "groupquarter"; }
 
 
 operator "operator"

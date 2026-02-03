@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {memo, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
@@ -11,7 +11,7 @@ import type {Emoji} from '@assets/emojis/types';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -147,6 +147,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
 
 type SwitchToCurrentReportProps = {
     preexistingReportID: string;
+    reportToCopyDraftTo: string;
     callback: () => void;
 };
 
@@ -258,7 +259,7 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
-    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
+    const {superWideRHPRouteKeys} = useWideRHPState();
     // Autofocus is disabled on SearchReport when another RHP is displayed below as it causes animation issues
     const shouldDisableAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 
@@ -289,6 +290,14 @@ function ComposerWithSuggestions({
 
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
+
+    // Tracks transition state to prevent SilentCommentUpdater from overwriting the just-saved draft during report ID changes
+    const isTransitioningToPreExistingReport = useRef(false);
+
+    // Callback to clear the transitioning flag - passed to SilentCommentUpdater to avoid prop mutation
+    const handleTransitionToPreExistingReportComplete = useCallback(() => {
+        isTransitioningToPreExistingReport.current = false;
+    }, []);
 
     const animatedRef = useAnimatedRef();
     /**
@@ -322,12 +331,16 @@ function ComposerWithSuggestions({
     );
 
     useEffect(() => {
-        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}: SwitchToCurrentReportProps) => {
+        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({reportToCopyDraftTo, callback}: SwitchToCurrentReportProps) => {
             if (!commentRef.current) {
                 callback();
                 return;
             }
-            saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+
+            // Mark that we're transitioning to a preexisting report
+            // This prevents SilentCommentUpdater from overwriting the draft
+            isTransitioningToPreExistingReport.current = true;
+            saveReportDraftComment(reportToCopyDraftTo, commentRef.current, callback);
         });
 
         return () => {
@@ -912,6 +925,8 @@ function ComposerWithSuggestions({
                     updateComment={updateComment}
                     commentRef={commentRef}
                     isCommentPendingSaved={isCommentPendingSaved}
+                    isTransitioningToPreExistingReport={isTransitioningToPreExistingReport}
+                    onTransitionToPreExistingReportComplete={handleTransitionToPreExistingReportComplete}
                 />
             )}
 

@@ -1,4 +1,4 @@
-import {filterPersonalCards} from '@selectors/Card';
+import {filterOutPersonalCards} from '@selectors/Card';
 import type {PropsWithChildren} from 'react';
 import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
@@ -38,7 +38,7 @@ const ExpensifyCardActionsContext = createContext<ExpensifyCardActionsContextTyp
  */
 function ExpensifyCardContextProvider({children}: PropsWithChildren) {
     const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {
-        selector: filterPersonalCards,
+        selector: filterOutPersonalCards,
         canBeMissing: true,
     });
     const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});
