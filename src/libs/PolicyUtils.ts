@@ -1780,7 +1780,7 @@ function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
 }
 
 function getDefaultTimeTrackingRate(policy: Partial<OnyxEntry<Policy>>): number | undefined {
-    return policy?.units?.time?.rate ? convertToBackendAmount(policy.units.time.rate) : undefined;
+    return policy?.units?.time?.rate !== undefined ? convertToBackendAmount(policy.units.time.rate) : undefined;
 }
 
 export {
