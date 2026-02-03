@@ -2773,8 +2773,9 @@ function isPayer(
         if (!policy) {
             return false;
         }
-        // For paid group policies, verify membership via employeeList
-        if (isPaidGroupPolicy(iouReport) && !isPolicyMemberWithoutPendingDelete(currentUserEmailParam, policy)) {
+        // For paid group policies, verify membership via employeeList (only when loaded)
+        // employeeList may be lazily loaded/partial, so only check if it's present
+        if (isPaidGroupPolicy(iouReport) && !isEmptyObject(policy?.employeeList) && !isPolicyMemberWithoutPendingDelete(currentUserEmailParam, policy)) {
             return false;
         }
     }
