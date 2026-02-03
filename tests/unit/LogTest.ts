@@ -32,10 +32,23 @@ async function processNetworkQueue() {
     await waitForBatchedUpdates();
 }
 
+type LogLine = {
+    message: string;
+    parameters: unknown;
+    timestamp: string;
+};
+
 type CapturedLogData = {
     email: string | null | undefined;
     logPacket: string | undefined;
 };
+
+function parseLogPacket(logPacket: string | undefined): LogLine[] {
+    if (!logPacket) {
+        return [];
+    }
+    return JSON.parse(logPacket) as LogLine[];
+}
 
 /**
  * Sets up a mock for HttpUtils.xhr that captures Log command data.
@@ -128,14 +141,18 @@ describe('LogTest', () => {
         expect(captured.logPacket).toBeDefined();
 
         // And contain all the queued messages
-        const logs = JSON.parse(captured.logPacket ?? '[]');
+        const logs = parseLogPacket(captured.logPacket);
         expect(logs.length).toBeGreaterThanOrEqual(4);
 
-        const messages = logs.map((log: {message: string}) => log.message);
-        expect(messages.some((m: string) => m.includes('User performed action A'))).toBe(true);
-        expect(messages.some((m: string) => m.includes('User performed action B'))).toBe(true);
-        expect(messages.some((m: string) => m.includes('User performed action C'))).toBe(true);
-        expect(messages.some((m: string) => m.includes('Something suspicious happened'))).toBe(true);
+        const messages = logs.map((log) => log.message);
+        expect(messages).toEqual(
+            expect.arrayContaining([
+                expect.stringContaining('User performed action A'),
+                expect.stringContaining('User performed action B'),
+                expect.stringContaining('User performed action C'),
+                expect.stringContaining('Something suspicious happened'),
+            ]),
+        );
 
         // And the email should still be the original user's email
         // BUG: Currently fails because email is captured at send time
@@ -167,9 +184,9 @@ describe('LogTest', () => {
         await processNetworkQueue();
 
         // Then the log about "No credentials" should be in the packet
-        const logs = JSON.parse(captured.logPacket ?? '[]');
-        const hasNoCredentialsLog = logs.some((log: {message: string}) => log.message.includes('No credentials available, redirecting to sign in'));
-        expect(hasNoCredentialsLog).toBe(true);
+        const logs = parseLogPacket(captured.logPacket);
+        const messages = logs.map((log) => log.message);
+        expect(messages).toEqual(expect.arrayContaining([expect.stringContaining('No credentials available, redirecting to sign in')]));
 
         // And the email should be the original user's email
         // BUG: Currently fails because email is captured at send time
