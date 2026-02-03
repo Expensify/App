@@ -27,6 +27,7 @@ import {
     getPerDiemExpenseInformation,
     getReportOriginalCreationTimestamp,
     getReportPreviewAction,
+    handleNavigateAfterExpenseCreate,
     initMoneyRequest,
     initSplitExpense,
     markRejectViolationAsResolved,
@@ -44,8 +45,14 @@ import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestAttendees,
     updateMoneyRequestCategory,
+    updateMoneyRequestDate,
+    updateMoneyRequestDescription,
     updateMoneyRequestDistance,
+    updateMoneyRequestDistanceRate,
+    updateMoneyRequestMerchant,
     updateMoneyRequestTag,
+    updateMoneyRequestTaxAmount,
+    updateMoneyRequestTaxRate,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
@@ -58,6 +65,7 @@ import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
@@ -111,9 +119,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
     dismissToPreviousRHP: jest.fn(),
     dismissToSuperWideRHP: jest.fn(),
+    navigateBackToLastSuperWideRHPScreen: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
+    getSearchTopmostReportId: jest.fn(() => topMostReportID),
     setNavigationActionToMicrotaskQueue: jest.fn(),
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
@@ -137,6 +147,7 @@ jest.mock('@src/libs/actions/Report', () => {
     };
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 
 const unapprovedCashHash = 71801560;
 const unapprovedCashSimilarSearchHash = 1832274510;
@@ -8898,6 +8909,35 @@ describe('actions/IOU', () => {
                 });
             });
         });
+
+        it('should call notifyNewAction after updating the money request category', async () => {
+            const transactionID = '100';
+            const transactionThreadReport = {reportID: '3'} as Report;
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(22),
+                taxRates: CONST.DEFAULT_TAX,
+                rules: {},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount: 100, transactionID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, transactionThreadReport);
+
+            updateMoneyRequestCategory({
+                transactionID,
+                transactionThreadReport,
+                parentReport: undefined,
+                category: 'Advertising',
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                policyRecentlyUsedCategories: [],
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+
+            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('setDraftSplitTransaction', () => {
@@ -9914,6 +9954,56 @@ describe('actions/IOU', () => {
             });
             expect(updatedTransaction?.modifiedAmount).toBe('');
         });
+
+        it('should call notifyNewAction after updating the money request amount and currency', async () => {
+            const fakeReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(100),
+                reportID: fakeReport.reportID,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            updateMoneyRequestAmountAndCurrency({
+                transactionID: fakeTransaction.transactionID,
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
+                amount: 20000,
+                currency: CONST.CURRENCY.USD,
+                taxAmount: 0,
+                taxCode: '',
+                taxValue: '',
+                policy: {
+                    id: '123',
+                    role: CONST.POLICY.ROLE.USER,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: '',
+                    owner: '',
+                    outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
+                },
+                policyTagList: {},
+                policyCategories: {},
+                transactions: {},
+                transactionViolations: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                policyRecentlyUsedCurrencies: [],
+            });
+
+            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('updateMoneyRequestAmountAndCurrency', () => {
@@ -10367,6 +10457,7 @@ describe('actions/IOU', () => {
                             category: 'Food',
                             tags: ['lunch'],
                             created: DateUtils.getDBTime(),
+                            isManuallyEdited: true, // Lock the existing split so new split gets remaining amount
                         },
                     ],
                     attendees: [],
@@ -10386,7 +10477,7 @@ describe('actions/IOU', () => {
 
             const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
             expect(splitExpenses).toHaveLength(2);
-            expect(splitExpenses?.[1].amount).toBe(0);
+            expect(splitExpenses?.[1].amount).toBe(50); // New split gets remaining 50 from total 100 - 50 locked
             expect(splitExpenses?.[1].description).toBe('Test comment');
             expect(splitExpenses?.[1].category).toBe('Food');
             expect(splitExpenses?.[1].tags).toEqual(['lunch']);
@@ -10428,6 +10519,7 @@ describe('actions/IOU', () => {
                             tags: ['lunch'],
                             created: DateUtils.getDBTime(),
                             reimbursable: false, // Existing split - not reimbursable
+                            isManuallyEdited: true, // Lock the existing split so new split gets remaining amount
                         },
                     ],
                     attendees: [],
@@ -10452,7 +10544,7 @@ describe('actions/IOU', () => {
 
             // Verify: The new split should have reimbursable: false (not counted as out-of-pocket)
             expect(splitExpenses?.[1].reimbursable).toBe(false);
-            expect(splitExpenses?.[1].amount).toBe(0);
+            expect(splitExpenses?.[1].amount).toBe(50); // New split gets remaining 50 from total 100 - 50 locked
             expect(splitExpenses?.[1].description).toBe('Card transaction');
             expect(splitExpenses?.[1].category).toBe('Food');
             expect(splitExpenses?.[1].tags).toEqual(['lunch']);
@@ -12379,6 +12471,270 @@ describe('actions/IOU', () => {
             expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(newTag);
         });
+
+        it('should call notifyNewAction after updating the money request tag', async () => {
+            const policy = createRandomPolicy(100);
+            const transactionThreadReport = {reportID: '23', parentReportID: '34'} as Report;
+            const parentReport = {reportID: '34', policyID: policy.id} as Report;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}23`, transactionThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}34`, parentReport);
+
+            updateMoneyRequestTag({
+                transactionID: '100',
+                transactionThreadReport,
+                parentReport,
+                tag: 'new tag',
+                policy,
+                policyTagList: {},
+                policyRecentlyUsedTags: undefined,
+                policyCategories: undefined,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+
+            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('updateMoneyRequestDate', () => {
+        it('should call notifyNewAction after updating the money request date', async () => {
+            const fakeReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(100),
+                reportID: fakeReport.reportID,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            updateMoneyRequestDate({
+                transactionID: fakeTransaction.transactionID,
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
+                transactions: {},
+                transactionViolations: {},
+                value: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                policy: {
+                    id: '123',
+                    role: CONST.POLICY.ROLE.USER,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: '',
+                    owner: '',
+                    outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
+                },
+                policyTags: {},
+                policyCategories: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+
+            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('updateMoneyRequestMerchant', () => {
+        it('should call notifyNewAction after updating the money request merchant', async () => {
+            const fakeReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(100),
+                reportID: fakeReport.reportID,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            updateMoneyRequestMerchant({
+                transactionID: fakeTransaction.transactionID,
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
+                value: 'Test Merchant',
+                policy: {
+                    id: '123',
+                    role: CONST.POLICY.ROLE.USER,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: '',
+                    owner: '',
+                    outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
+                },
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+
+            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('updateMoneyRequestTaxRate', () => {
+        it('should call notifyNewAction after updating the money request tax rate', async () => {
+            const fakeReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+
+            updateMoneyRequestTaxRate({
+                transactionID: '1',
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
+                taxCode: 'id_TAX_RATE_1',
+                taxAmount: 5,
+                taxValue: '5%',
+                policy: {
+                    id: '123',
+                    role: CONST.POLICY.ROLE.USER,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: '',
+                    owner: '',
+                    outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
+                },
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+
+            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('updateMoneyRequestDescription', () => {
+        it('should call notifyNewAction after updating the money request description', async () => {
+            const fakeReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(100),
+                reportID: fakeReport.reportID,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            updateMoneyRequestDescription({
+                transactionID: fakeTransaction.transactionID,
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
+                comment: 'Test description',
+                policy: {
+                    id: '123',
+                    role: CONST.POLICY.ROLE.USER,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: '',
+                    owner: '',
+                    outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
+                },
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+
+            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('updateMoneyRequestDistanceRate', () => {
+        it('should call notifyNewAction after updating the money request distance rate', async () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+            };
+            const fakePolicy = createRandomPolicy(123);
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: fakeReport.reportID,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 10,
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}123`, fakePolicy);
+
+            updateMoneyRequestDistanceRate({
+                transactionID: fakeTransaction.transactionID,
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
+                rateID: 'rate_1',
+                policy: fakePolicy,
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+
+            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('updateMoneyRequestTaxAmount', () => {
+        it('should call notifyNewAction after updating the money request tax amount', async () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+
+            updateMoneyRequestTaxAmount({
+                transactionID: '1',
+                transactionThreadReport: fakeReport,
+                parentReport: undefined,
+                taxAmount: 10,
+                policy: {
+                    id: '123',
+                    role: CONST.POLICY.ROLE.USER,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: '',
+                    owner: '',
+                    outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
+                },
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+            });
+
+            expect(notifyNewAction).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('rejectMoneyRequest', () => {
@@ -13573,6 +13929,43 @@ describe('actions/IOU', () => {
             expect(result.size).toBe(1);
             expect(result.get('mainReport')).toBe(12000); // 10000 - (-2000) = 12000
         });
+    });
+
+    it('handleNavigateAfterExpenseCreate', async () => {
+        const mockedIsReportTopmostSplitNavigator = isReportTopmostSplitNavigator as jest.MockedFunction<typeof isReportTopmostSplitNavigator>;
+        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute');
+        const activeReportID = '1';
+        const transactionID = '1';
+        mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+
+        // When on the Inbox tab, or NOT from the "global create" button, or without a transactionID,
+        // the function dismissModalAndOpenReportInInboxTab will always be called to handle it,
+        // so mergeTransactionIdsHighlightOnSearchRoute will never be invoked.
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: false});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        mockedIsReportTopmostSplitNavigator.mockReturnValue(true);
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        // When NOT on the Inbox tab
+        mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID});
+
+        // then mergeTransactionIdsHighlightOnSearchRoute will be called
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(CONST.SEARCH.DATA_TYPES.EXPENSE, {[transactionID]: true});
+        spyOnMergeTransactionIdsHighlightOnSearchRoute.mockClear();
+
+        // If expense is an invoice
+        handleNavigateAfterExpenseCreate({activeReportID, isFromGlobalCreate: true, transactionID, isInvoice: true});
+
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(CONST.SEARCH.DATA_TYPES.INVOICE, {[transactionID]: true});
+        spyOnMergeTransactionIdsHighlightOnSearchRoute.mockReset();
     });
 
     describe('updateMoneyRequestDistance', () => {

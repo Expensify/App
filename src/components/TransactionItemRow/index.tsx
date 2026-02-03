@@ -41,6 +41,7 @@ import {
     isAmountMissing,
     isMerchantMissing,
     isScanning,
+    isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -207,9 +208,6 @@ function TransactionItemRow({
     const filteredViolations = useMemo(() => {
         if (!violations) {
             return undefined;
-        }
-        if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED) {
-            return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
         }
         return violations;
     }, [violations]);
@@ -534,7 +532,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                 >
-                    <TextCell text={getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? ''} />
+                    <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (
@@ -542,10 +540,12 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
                 >
-                    <TaxCell
-                        transactionItem={transactionItem}
-                        shouldShowTooltip={shouldShowTooltip}
-                    />
+                    {isTimeRequest(transactionItem) ? null : (
+                        <TaxCell
+                            transactionItem={transactionItem}
+                            shouldShowTooltip={shouldShowTooltip}
+                        />
+                    )}
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: (
