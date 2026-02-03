@@ -19,8 +19,8 @@ jobs:
       TAG: ${{ steps.getTagName.outputs.TAG }}
       # Is this deploy for a cherry-pick?
       IS_CHERRY_PICK: ${{ steps.isCherryPick.outputs.IS_CHERRY_PICK }}
-      # Should we build and deploy native apps? (staging or cherry-pick, not production)
-      SHOULD_DEPLOY_NATIVE: ${{ github.ref == 'refs/heads/staging' || fromJSON(steps.isCherryPick.outputs.IS_CHERRY_PICK) }}
+      # Should we build native apps? (only on staging or cherry-pick, not production)
+      SHOULD_BUILD_NATIVE: ${{ github.ref == 'refs/heads/staging' || fromJSON(steps.isCherryPick.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout
         # v6
@@ -90,7 +90,7 @@ jobs:
     outputs:
       VERSION_CODE: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
     env:
-      SHOULD_BUILD_APP: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+      SHOULD_BUILD_APP: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout App and Mobile-Expensify repo
         # v6
@@ -242,7 +242,7 @@ jobs:
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
 
       - name: Download Android build artifact
-        if: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+        if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
         # v7
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
@@ -250,7 +250,7 @@ jobs:
           path: ./
 
       - name: Set aabPath for Fastlane
-        if: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+        if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
         run: echo "aabPath=$(pwd)/Expensify-release.aab" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
@@ -275,7 +275,7 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
 
       - name: Upload Android app to Google Play
-        if: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+        if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
         run: bundle exec fastlane android ${{ vars.ANDROID_UPLOAD_COMMAND }}
         env:
           VERSION: ${{ needs.android-build.outputs.VERSION_CODE }}
@@ -324,7 +324,7 @@ jobs:
     name: Upload Android to BrowserStack and Applause
     needs: [prep, android-build]
     runs-on: ubuntu-latest
-    if: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+    if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     continue-on-error: true
     steps:
       - name: Checkout
@@ -376,7 +376,7 @@ jobs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
-      SHOULD_BUILD_APP: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+      SHOULD_BUILD_APP: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
         # v6
@@ -492,7 +492,7 @@ jobs:
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
 
       - name: Download iOS build artifact
-        if: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+        if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
         # v7
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
@@ -500,7 +500,7 @@ jobs:
           path: ./
 
       - name: Download iOS dSYM artifact
-        if: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+        if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
         # v7
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
@@ -508,7 +508,7 @@ jobs:
           path: ./
 
       - name: Set artifact paths for Fastlane
-        if: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+        if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
         run: |
           echo "ipaPath=$(pwd)/Expensify.ipa" >> "$GITHUB_ENV"
           echo "dsymPath=$(pwd)/Expensify.app.dSYM.zip" >> "$GITHUB_ENV"
@@ -536,7 +536,7 @@ jobs:
           op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
 
       - name: Upload release build to TestFlight
-        if: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+        if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
         run: bundle exec fastlane ios upload_testflight_hybrid
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
@@ -546,7 +546,7 @@ jobs:
           APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload DSYMs to Firebase for HybridApp
-        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
         run: bundle exec fastlane ios upload_dsyms_hybrid
 
       - name: Submit previous production build to 100%
@@ -584,7 +584,7 @@ jobs:
     name: Upload iOS to BrowserStack and Applause
     needs: [prep, ios-build]
     runs-on: ubuntu-latest
-    if: ${{ fromJSON(needs.prep.outputs.SHOULD_DEPLOY_NATIVE) }}
+    if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     continue-on-error: true
     steps:
       - name: Checkout
