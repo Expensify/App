@@ -16,4 +16,9 @@
         </button>
     </form>
     <div id="search-page-results" class="search-results homepage-results-container"></div>
+<script>
+    if (new URLSearchParams(window.location.search).get('q')) {
+        document.getElementById('search-page-results').style.minHeight = '500px';
+    }
+</script>
 </div>
