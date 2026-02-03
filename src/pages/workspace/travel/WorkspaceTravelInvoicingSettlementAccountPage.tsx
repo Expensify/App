@@ -65,7 +65,13 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
     };
 
     const handleAddNewBankAccount = () => {
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)));
+        Navigation.navigate(
+            ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
+                policyID,
+                stepToOpen: REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW,
+                backTo: ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID),
+            }),
+        );
     };
 
     const customHeaderContent = <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>;
