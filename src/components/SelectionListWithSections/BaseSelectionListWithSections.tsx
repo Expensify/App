@@ -866,6 +866,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
         // Reset the current page to 1 when the user types something
         setCurrentPage(1);
+        wasIncrementPageCancelledRef.current = false;
     }, [textInputValue, prevTextInputValue]);
 
     useEffect(() => {
