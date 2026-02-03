@@ -11362,7 +11362,21 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         mccGroup,
     } as Transaction);
 
-    const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => shouldShowPolicy(policy, false, currentUserEmail));
+    let firstPolicy: Policy | undefined;
+    let filteredPoliciesCount = 0;
+    for (const policy of Object.values(allPolicies ?? {})) {
+        if (shouldShowPolicy(policy, false, currentUserEmail)) {
+            if (filteredPoliciesCount === 0) {
+                firstPolicy = policy;
+            }
+            filteredPoliciesCount++;
+
+            // Short-circuit once we find 2 policies
+            if (filteredPoliciesCount > 1) {
+                break;
+            }
+        }
+    }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
         if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id)) {
@@ -11389,7 +11403,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
             }
             return;
         }
-        if (filteredPolicies.length === 0 || filteredPolicies.length > 1) {
+        if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
                 ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                     action: actionName,
@@ -11404,7 +11418,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
             return;
         }
 
-        const policyID = filteredPolicies.at(0)?.id;
+        const policyID = firstPolicy?.id;
         const policyExpenseReportID = getPolicyExpenseChat(currentUserAccountID, policyID)?.reportID;
         setMoneyRequestParticipants(transactionID, [
             {
@@ -11429,7 +11443,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         return;
     }
 
-    if (actionName === CONST.IOU.ACTION.SUBMIT || (allPolicies && filteredPolicies.length > 0)) {
+    if (actionName === CONST.IOU.ACTION.SUBMIT || (allPolicies && filteredPoliciesCount > 0)) {
         // Check if user is restricted to preferred workspace for submit tracked expenses
         if (isRestrictedToPreferredPolicy && preferredPolicyID) {
             const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, preferredPolicyID);
