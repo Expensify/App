@@ -30,9 +30,14 @@ type DomainErrors = {
     useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
 
     /**
-     * Errors related to specific domain member, keyed by their accountID. memberErrors are keyed with user email, NOT accountID
+     * Errors related to specific domain member, keyed by their user email, (NOT accountID)
      */
     memberErrors?: Record<string | number, GeneralDomainMemberErrors>;
+
+    /**
+     * Errors related to specific domain member lock account status, keyed by their accountID.
+     */
+    lockAccountErrors?: Record<number, GeneralDomainMemberErrors>;
 
     /**
      * Errors for the domain itself

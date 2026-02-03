@@ -1,6 +1,5 @@
 import React from 'react';
 import Text from '@components/Text';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';

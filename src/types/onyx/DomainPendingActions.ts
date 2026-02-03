@@ -36,6 +36,11 @@ type DomainPendingAction = {
     member?: Record<string | number, GeneralDomainMemberPendingAction>;
 
     /**
+     * Pending actions for specific domain member lock account action, keyed by their accountID
+     */
+    lockAccount?: Record<number, GeneralDomainMemberPendingAction>;
+
+    /**
      * Pending action for the domain itself
      */
     pendingAction?: OnyxCommon.PendingAction;
