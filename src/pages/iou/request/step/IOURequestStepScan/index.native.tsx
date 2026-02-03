@@ -766,6 +766,7 @@ function IOURequestStepScan({
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
                         submit={submitMultiScanReceipts}
+                        isCapturingPhoto={didCapturePhoto}
                     />
                 )}
 
