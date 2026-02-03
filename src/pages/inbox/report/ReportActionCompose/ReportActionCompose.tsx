@@ -437,17 +437,17 @@ function ReportActionCompose({
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
     const composerRefShared = useSharedValue<{
         clear: (() => void) | undefined;
-        reset: (() => void) | undefined;
-    }>({clear: undefined, reset: undefined});
+        resetHeight: (() => void) | undefined;
+    }>({clear: undefined, resetHeight: undefined});
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !debouncedValidate.flush()) {
             return;
         }
 
-        const {reset} = composerRefShared.get();
+        const {resetHeight} = composerRefShared.get();
 
-        reset?.();
+        resetHeight?.();
         setIsComposerFullSize(reportID, false);
 
         scheduleOnUI(() => {
@@ -576,7 +576,7 @@ function ReportActionCompose({
                                 composerRef.current = ref ?? undefined;
                                 composerRefShared.set({
                                     clear: ref?.clear as (() => void) | undefined,
-                                    reset: ref?.reset as (() => void) | undefined,
+                                    resetHeight: ref?.resetHeight as (() => void) | undefined,
                                 });
                             }}
                             suggestionsRef={suggestionsRef}

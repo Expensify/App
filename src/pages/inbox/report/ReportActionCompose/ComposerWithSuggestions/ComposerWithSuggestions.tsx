@@ -162,7 +162,7 @@ type ComposerRef = {
      * Once the composer ahs cleared onCleared will be called with the value that was cleared.
      */
     clear: () => void;
-    reset: () => void;
+    resetHeight: () => void;
 };
 
 const {RNTextInputReset} = NativeModules;
@@ -758,7 +758,7 @@ function ComposerWithSuggestions({
             replaceSelectionWithText,
             isFocused: () => !!textInputRef.current?.isFocused(),
             clear,
-            reset: () => {
+            resetHeight: () => {
                 if (!defaultComposerHeightRef.current) {
                     return;
                 }
