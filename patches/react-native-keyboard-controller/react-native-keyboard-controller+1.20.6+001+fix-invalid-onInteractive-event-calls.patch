@@ -5,11 +5,11 @@ index d1ccd45..0695b74 100644
 @@ -30,6 +30,10 @@ extension KeyboardMovementObserver {
        return
      }
- 
+
 +    if KeyboardEventsIgnorer.shared.shouldIgnore {
 +      return
 +    }
 +
      let position = keyboardTrackingView.interactive(point: changeValue)
- 
+
      if position == KeyboardTrackingView.invalidPosition {
