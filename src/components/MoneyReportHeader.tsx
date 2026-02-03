@@ -1949,6 +1949,7 @@ function MoneyReportHeader({
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                         wrapperStyle={[styles.pAbsolute, styles.r0]}
+                        sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.PDF_MODAL_CLOSE}
                     >
                         <Icon
                             src={expensifyIcons.Close}
