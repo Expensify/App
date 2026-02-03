@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, ViewToken} from 'react-native';
+import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -16,8 +16,8 @@ import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderSta
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
+import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -61,18 +61,15 @@ import {
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
-    hasReportBeenReopened as hasReportBeenReopenedUtils,
-    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
-    isReportOwner,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
-    isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
+    shouldCurrentUserSubmitReport,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -231,14 +228,9 @@ function MoneyRequestReportPreviewContent({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {canBeMissing: true});
 
-    const hasReportBeenRetracted = hasReportBeenReopenedUtils(iouReport, reportActions) || hasReportBeenRetractedUtils(iouReport, reportActions);
-
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
-    const isWaitingForSubmissionFromCurrentUser = useMemo(() => {
-        const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && hasReportBeenRetracted;
-        return isOwnAndReportHasBeenRetracted || isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy);
-    }, [chatReport, policy, hasReportBeenRetracted, iouReport]);
+    const isWaitingForSubmissionFromCurrentUser = useMemo(() => shouldCurrentUserSubmitReport(iouReport, chatReport, policy, reportActions), [iouReport, chatReport, policy, reportActions]);
 
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {

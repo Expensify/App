@@ -2948,9 +2948,7 @@ function hasOutstandingChildRequest(
                 return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
             });
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`];
-        const reportHasBeenReopenedOrRetracted = hasReportBeenReopened(iouReport, reportActions) || hasReportBeenRetracted(iouReport, reportActions);
-        const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && reportHasBeenReopenedOrRetracted;
-        const shouldWaitForSubmission = isOwnAndReportHasBeenRetracted || isWaitingForSubmissionFromCurrentUser(chatReport, policy);
+        const shouldWaitForSubmission = shouldCurrentUserSubmitReport(iouReport, chatReport, policy, reportActions);
         const canSubmitAndIsAwaitingForCurrentUser =
             !hasAutoRejectedTransactionsForManager &&
             canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam, currentUserAccountIDParam) &&
@@ -2961,6 +2959,18 @@ function hasOutstandingChildRequest(
             canSubmitAndIsAwaitingForCurrentUser
         );
     });
+}
+
+/**
+ * Determines if the current user should submit the report
+ * Returns true if:
+ * - User owns the report AND it has been reopened or retracted
+ * - OR the report is waiting for submission from current user (based on policy settings)
+ */
+function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]) {
+    const hasBeenReopenedOrRetracted = hasReportBeenReopened(iouReport, reportActions) || hasReportBeenRetracted(iouReport, reportActions);
+    const isOwnReportAndRetracted = isReportOwner(iouReport) && hasBeenReopenedOrRetracted;
+    return isOwnReportAndRetracted || isWaitingForSubmissionFromCurrentUser(chatReport, policy);
 }
 
 /**
@@ -13185,6 +13195,7 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
+    shouldCurrentUserSubmitReport,
     getParentReport,
     getReportOrDraftReport,
     getRoom,
