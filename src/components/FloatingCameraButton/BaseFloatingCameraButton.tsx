@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
@@ -32,6 +33,8 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const {textLight} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -80,7 +83,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_CAMERA_BUTTON}
         >
             <View
-                style={styles.floatingActionButton}
+                style={[styles.floatingActionButton, isSmallScreenWidth && styles.floatingActionButtonMobileShadow]}
                 testID="floating-camera-button-container"
             >
                 <Icon

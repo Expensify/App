@@ -45,7 +45,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isLHBVisible = !shouldUseNarrowLayout;
     const {translate} = useLocalize();
 
@@ -118,7 +118,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
                     return (
                         <Animated.View
-                            style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, animatedStyle]}
+                            style={[styles.floatingActionButton, {borderRadius}, isLHBVisible && styles.floatingActionButtonSmall, isSmallScreenWidth && styles.floatingActionButtonMobileShadow, animatedStyle]}
                             testID="fab-animated-container"
                         >
                             <Svg
