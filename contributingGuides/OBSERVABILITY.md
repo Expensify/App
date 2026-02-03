@@ -8,11 +8,11 @@ When users encounter issues in live sessions that we can't reproduce locally, bu
 
 ### Terminology
 
-- **Telemetry**: How a system collects data (metrics, logs, traces)
-- **Observability**: Using telemetry to understand what's happening inside the system
-- **Span**: Basic unit representing a specific operation (navigation, API call, render) with duration and metadata
-- **Trace**: Collection of spans showing end-to-end flow through the system
-- **Tags**: Contextual attributes (locale, app version, policy ID) for filtering and pattern detection
+- [**Telemetry**](https://opentelemetry.io/docs/concepts/observability-primer/#reliability-and-metrics): How a system collects data (metrics, logs, traces)
+- [**Observability**](https://opentelemetry.io/docs/concepts/observability-primer/#what-is-observability): Using telemetry to understand what's happening inside the system
+- [**Span**](https://docs.sentry.io/concepts/key-terms/tracing/#whats-a-span): Basic unit representing a specific operation (navigation, API call, render) with duration and metadata
+- [**Trace**](https://docs.sentry.io/concepts/key-terms/tracing/#whats-a-trace): Collection of spans showing end-to-end flow through the system
+- [**Tags**](https://docs.sentry.io/platforms/react-native/enriching-events/tags/): Contextual attributes (locale, app version, policy ID) for filtering and pattern detection
 - **P90**: 90th percentile—90% of data falls below this value 
 
 ## Tools & implementation
