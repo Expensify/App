@@ -5639,6 +5639,10 @@ function getReportName(
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translateLocal);
     }
 
+    if (isTaskReport(report)) {
+        return Parser.htmlToText(report?.reportName ?? '').trim();
+    }
+
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
