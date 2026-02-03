@@ -1201,9 +1201,10 @@ function handleBulkPayItemSelected(params: {
         showDelegateNoAccessModal,
         confirmPayment,
     } = params;
-    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
-    // Policy id is also a last payment method so we shouldn't early return here for that case.
-    if (!isValidBulkPayOption(item) && !selectedPolicy) {
+    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems, policy?.id);
+    const isPolicyBasedPaymentOption = activeAdminPolicies.some((activePolicy) => activePolicy.id === item.key);
+    // Early return if item is not a valid payment method and not a policy-based payment option
+    if (!isValidBulkPayOption(item) && !isPolicyBasedPaymentOption) {
         return;
     }
 
