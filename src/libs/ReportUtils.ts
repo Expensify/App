@@ -9180,12 +9180,13 @@ function shouldHideReport(
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
     const reportID = report?.reportID;
+    const canPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     const isChildReportHasComment =
         !!reportID &&
         Object.values(reportActions ?? {})?.some(
             (reportAction) =>
                 (reportAction?.childVisibleActionCount ?? 0) > 0 &&
-                isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData),
+                isReportActionVisible(reportAction, reportID, canPerformWrite, visibleReportActionsData),
         );
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
