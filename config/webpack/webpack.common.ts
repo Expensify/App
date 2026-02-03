@@ -149,8 +149,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     {from: 'assets/fonts/web', to: 'fonts'},
                     {from: 'assets/sounds', to: 'sounds'},
                     {from: 'assets/pdfs', to: 'pdfs'},
-                    {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
-                    {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
+                    {from: 'node_modules/react-pdf/dist/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
+                    {from: 'node_modules/react-pdf/dist/Page/TextLayer.css', to: 'css/TextLayer.css'},
                     {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
                     {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
 
