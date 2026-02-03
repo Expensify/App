@@ -1,10 +1,10 @@
-import {useMemo, useRef, useState} from 'react';
-import {Gesture} from 'react-native-gesture-handler';
-import type {SharedValue} from 'react-native-reanimated';
-import {useAnimatedReaction, useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
-import {TOOLTIP_BAR_GAP} from '@components/Charts/constants';
-import {useChartInteractionState} from './useChartInteractionState';
+import { useMemo, useRef, useState } from 'react';
+import { Gesture } from 'react-native-gesture-handler';
+import type { SharedValue } from 'react-native-reanimated';
+import { useAnimatedReaction, useDerivedValue } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+import { TOOLTIP_BAR_GAP } from '@components/Charts/constants';
+import { useChartInteractionState } from './useChartInteractionState';
 
 /**
  * Arguments passed to the checkIsOver callback for hit-testing
@@ -34,7 +34,7 @@ type UseChartInteractionsProps = {
      */
     checkIsOver: (args: HitTestArgs) => boolean;
     /** Optional shared value containing bar dimensions used for hit-testing in bar charts */
-    barGeometry?: SharedValue<{barWidth: number; chartBottom: number; yZero: number}>;
+    barGeometry?: SharedValue<{ barWidth: number; chartBottom: number; yZero: number }>;
 };
 
 /**
@@ -74,9 +74,9 @@ type CartesianActionsHandle = {
  * );
  * ```
  */
-function useChartInteractions({handlePress, checkIsOver, barGeometry}: UseChartInteractionsProps) {
+function useChartInteractions({ handlePress, checkIsOver, barGeometry }: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
-    const {state: chartInteractionState, isActive: isTooltipActiveState} = useChartInteractionState({x: 0, y: {y: 0}});
+    const { state: chartInteractionState, isActive: isTooltipActiveState } = useChartInteractionState({ x: 0, y: { y: 0 } });
 
     /** Ref passed to CartesianChart to allow manual touch injection */
     const actionsRef = useRef<CartesianActionsHandle>(null);
@@ -183,22 +183,18 @@ function useChartInteractions({handlePress, checkIsOver, barGeometry}: UseChartI
     const customGestures = useMemo(() => Gesture.Race(hoverGesture, tapGesture), [hoverGesture, tapGesture]);
 
     /**
-     * Animated style for positioning a tooltip relative to the matched data point.
-     * Automatically applies vertical offset and centering.
-     * For negative bars, positions tooltip at yZero (top of bar) instead of targetY (bottom of bar).
+     * Raw tooltip positioning data.
+     * We return these as individual derived values so the caller can 
+     * compose them into their own useAnimatedStyle.
      */
-    const tooltipStyle = useAnimatedStyle(() => {
+    const initialTooltipPosition = useDerivedValue(() => {
         const targetY = chartInteractionState.y.y.position.get();
         const yZero = barGeometry?.get().yZero ?? targetY;
-        // Position tooltip at the top of the bar (min of targetY and yZero)
         const barTopY = Math.min(targetY, yZero);
 
         return {
-            position: 'absolute',
-            left: chartInteractionState.x.position.get(),
-            top: barTopY - TOOLTIP_BAR_GAP,
-            transform: [{translateX: '-50%'}, {translateY: '-100%'}],
-            opacity: chartInteractionState.isActive.get() ? 1 : 0,
+            x: chartInteractionState.x.position.get(),
+            y: barTopY - TOOLTIP_BAR_GAP,
         };
     });
 
@@ -211,10 +207,10 @@ function useChartInteractions({handlePress, checkIsOver, barGeometry}: UseChartI
         activeDataIndex,
         /** Whether the tooltip should currently be rendered and visible */
         isTooltipActive: isOverTarget && isTooltipActiveState,
-        /** Animated styles for the tooltip container */
-        tooltipStyle,
+        /** Raw tooltip positioning data */
+        initialTooltipPosition,
     };
 }
 
-export {useChartInteractions};
-export type {HitTestArgs};
+export { useChartInteractions };
+export type { HitTestArgs };
