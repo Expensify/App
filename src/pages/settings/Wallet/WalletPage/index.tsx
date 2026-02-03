@@ -78,7 +78,7 @@ function WalletPage() {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus']);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table']);
     const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet']);
     const walletIllustration = useWalletSectionIllustration();
 
@@ -442,26 +442,40 @@ function WalletPage() {
     );
 
     const cardThreeDotsMenuItems = useMemo(() => {
-        const isCSVImport = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
-        const shouldShowDeleteCardButton = isCSVImport && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
+        const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
         return [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
             {
                 text: translate('workspace.common.viewTransactions'),
                 icon: icons.MoneySearch,
                 onSelected: () => {
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query: buildCannedSearchQuery({
-                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                                cardID: String(paymentMethod.methodID),
+                    closeModal(() => {
+                        Navigation.navigate(
+                            ROUTES.SEARCH_ROOT.getRoute({
+                                query: buildCannedSearchQuery({
+                                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                                    cardID: String(paymentMethod.methodID),
+                                }),
                             }),
-                        }),
-                    );
+                        );
+                    });
                 },
             },
-            ...(shouldShowDeleteCardButton
+            ...(shouldShowCSVImportItems
+                ? [
+                      {
+                          text: translate('spreadsheet.importSpreadsheet'),
+                          icon: icons.Table,
+                          onSelected: () => {
+                              closeModal(() => {
+                                  Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(paymentMethod.methodID)));
+                              });
+                          },
+                      },
+                  ]
+                : []),
+            ...(shouldShowCSVImportItems
                 ? [
                       {
                           text: translate('common.delete'),
@@ -475,7 +489,7 @@ function WalletPage() {
                   ]
                 : []),
         ];
-    }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
+    }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
         return (
@@ -528,14 +542,14 @@ function WalletPage() {
                             />
                         </Section>
 
-                        {hasAssignedCard ? (
-                            <Section
-                                subtitle={translate('walletPage.assignedCardsDescription')}
-                                title={translate('walletPage.assignedCards')}
-                                isCentralPane
-                                subtitleMuted
-                                titleStyles={styles.accountSettingsSectionTitle}
-                            >
+                        <Section
+                            subtitle={translate('walletPage.assignedCardsDescription')}
+                            title={translate('walletPage.assignedCards')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            {hasAssignedCard && (
                                 <PaymentMethodList
                                     shouldShowAddBankAccount={false}
                                     shouldShowAssignedCards
@@ -544,8 +558,19 @@ function WalletPage() {
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 />
-                            </Section>
-                        ) : null}
+                            )}
+                            {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
+                                <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                    <MenuItem
+                                        title={translate('workspace.companyCards.importTransactions.importButton')}
+                                        icon={icons.Table}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                    />
+                                </View>
+                            )}
+                        </Section>
 
                         {hasWallet && (
                             <Section

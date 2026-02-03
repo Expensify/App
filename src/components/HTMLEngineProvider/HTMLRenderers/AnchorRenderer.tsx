@@ -1,13 +1,13 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
-import useEnterKeyHandler from '@hooks/useEnterKeyHandler';
+import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -52,13 +52,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
         return undefined;
     }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment]);
-
-    const handlePress = (event: GestureResponderEvent) => {
-        event.preventDefault();
-        openLink(attrHref, environmentURL, isAttachment);
-    };
-
-    const handleKeyDown = useEnterKeyHandler(() => openLink(attrHref, environmentURL, isAttachment));
 
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
@@ -110,17 +103,13 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         }
 
         return (
-            <Text
+            <TextLink
                 style={linkStyle}
-                href={attrHref}
-                onPress={handlePress}
-                onKeyDown={handleKeyDown}
-                suppressHighlighting
-                role={CONST.ROLE.LINK}
-                tabIndex={0}
+                onPress={() => openLink(attrHref, environmentURL, isAttachment)}
+                suppressDefaultStyle
             >
                 <TNodeChildrenRenderer tnode={tnode} />
-            </Text>
+            </TextLink>
         );
     }
 
