@@ -1,5 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {Linking, NativeEventSubscription} from 'react-native';
+import type { NativeEventSubscription} from 'react-native';
+import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {openReportFromDeepLink} from '@libs/actions/Link';
