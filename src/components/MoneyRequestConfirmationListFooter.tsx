@@ -457,12 +457,12 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
-                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && (!isTimeRequest || !shouldShowTimeRequestFields)}
+                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    interactive={!isReadOnly && (!isTimeRequest || !shouldShowTimeRequestFields)}
+                    interactive={!isReadOnly && !shouldShowTimeRequestFields}
                     onPress={() => {
-                        if (isDistanceRequest || (isTimeRequest && shouldShowTimeRequestFields) || !transactionID) {
+                        if (isDistanceRequest || shouldShowTimeRequestFields || !transactionID) {
                             return;
                         }
 
