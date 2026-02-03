@@ -7,10 +7,9 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -107,27 +106,27 @@ function TaskAssigneeSelectorModal() {
             sectionsList.push({
                 title: translate('newTaskPage.assignMe'),
                 data: [optionsWithoutCurrentUser.currentUserOption],
-                shouldShow: true,
+                sectionIndex: 0,
             });
         }
 
         sectionsList.push({
             title: translate('common.recents'),
             data: optionsWithoutCurrentUser.recentReports,
-            shouldShow: optionsWithoutCurrentUser.recentReports?.length > 0,
+            sectionIndex: 1,
         });
 
         sectionsList.push({
             title: translate('common.contacts'),
             data: optionsWithoutCurrentUser.personalDetails,
-            shouldShow: optionsWithoutCurrentUser.personalDetails?.length > 0,
+            sectionIndex: 2,
         });
 
         if (optionsWithoutCurrentUser.userToInvite) {
             sectionsList.push({
                 title: '',
                 data: [optionsWithoutCurrentUser.userToInvite],
-                shouldShow: true,
+                sectionIndex: 3,
             });
         }
 
@@ -219,6 +218,16 @@ function TaskAssigneeSelectorModal() {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage,
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+        }),
+        [headerMessage, searchTerm, setSearchTerm, translate],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -235,12 +244,9 @@ function TaskAssigneeSelectorModal() {
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchTerm}
-                        textInputValue={searchTerm}
-                        headerMessage={headerMessage}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        textInputOptions={textInputOptions}
+                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         shouldUpdateFocusedIndex
-                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
                     />
