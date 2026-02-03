@@ -68,6 +68,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
         }
 
         if (isSuccessful) {
+            Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
             clearIssueNewCardFlow(policyID);
             return;
