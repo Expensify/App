@@ -112,8 +112,9 @@ function ExpenseRulesPage() {
     };
 
     const toggleAllRules = () => {
-        const someSelected = filteredRuleList.some((rule) => selectedRules.includes(rule.keyForList));
-        setSelectedRules(someSelected ? [] : filteredRuleList.map(({keyForList}) => keyForList));
+        const selectableRules = filteredRuleList.filter((rule) => !rule.isDisabled);
+        const someSelected = selectableRules.some((rule) => selectedRules.includes(rule.keyForList));
+        setSelectedRules(someSelected ? [] : selectableRules.map(({keyForList}) => keyForList));
     };
 
     const navigateToNewRulePage = () => {
