@@ -438,7 +438,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
-                        icon={expensifyIcons.Rotate}
+                        icon={expensifyIcons.CropImage}
                         onPress={rotateReceipt}
                         text={translate('common.rotate')}
                         isLoading={isRotating}
