@@ -102,6 +102,8 @@ function searchPageQuery(query) {
     resultsContainer.innerHTML = '';
     resultsContainer.appendChild(cloneTemplate('search-loading-template'));
 
+    askHelpsiteAI(query);
+
     const formData = new FormData();
     formData.append('command', 'SearchHelpsite');
     formData.append('query', query.trim());
