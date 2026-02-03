@@ -969,7 +969,7 @@ button {
         &__illustration {
             display: none;
 
-            @include breakpoint($breakpoint-tablet) {
+            @include breakpoint($breakpoint-desktop) {
                 display: block;
             }
 
