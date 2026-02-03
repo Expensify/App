@@ -445,7 +445,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
     };
 
-    const deleteTags = useCallback(() => {
+    const deleteTags = () => {
         deletePolicyTags(policyData, selectedTags);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -455,7 +455,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 turnOffMobileSelectionMode();
             }
         });
-    }, [policyData, selectedTags, isMobileSelectionModeEnabled, policyTagLists, setSelectedTags]);
+    };
 
     const isLoading = !isOffline && policyTags === undefined;
     const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
