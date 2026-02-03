@@ -12,6 +12,8 @@ type TooltipData = {
  * Computes the display amount (with optional currency unit) and the percentage relative to all data points.
  */
 function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], yAxisUnit?: string, yAxisUnitPosition?: YAxisUnitPosition): TooltipData | null {
+    const totalSum = useMemo(() => data.reduce((sum, point) => sum + Math.abs(point.total), 0), [data]);
+
     return useMemo(() => {
         if (activeDataIndex < 0 || activeDataIndex >= data.length) {
             return null;
@@ -27,14 +29,13 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], yAxisUn
             const separator = yAxisUnit.length > 1 ? ' ' : '';
             formattedAmount = yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
         }
-        const totalSum = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
         const percent = totalSum > 0 ? Math.round((Math.abs(dataPoint.total) / totalSum) * 100) : 0;
         return {
             label: dataPoint.label,
             amount: formattedAmount,
             percentage: percent < 1 ? '<1%' : `${percent}%`,
         };
-    }, [activeDataIndex, data, yAxisUnit, yAxisUnitPosition]);
+    }, [activeDataIndex, data, totalSum, yAxisUnit, yAxisUnitPosition]);
 }
 
 export {useTooltipData};
