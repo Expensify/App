@@ -1,6 +1,7 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {deleteMoneyRequest, getIOURequestPolicyID, initSplitExpenseItemData} from '@libs/actions/IOU';
+import {deleteMoneyRequest, getIOURequestPolicyID} from '@libs/actions/IOU';
+import {initSplitExpenseItemData} from '@libs/actions/IOU/Split';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {updateSplitTransactions} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';

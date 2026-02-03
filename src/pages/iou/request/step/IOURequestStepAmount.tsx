@@ -29,16 +29,14 @@ import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {
     getMoneyRequestParticipantsFromReport,
     requestMoney,
-    resetSplitShares,
-    setDraftSplitTransaction,
     setMoneyRequestAmount,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    setSplitShares,
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
 } from '@userActions/IOU';
+import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

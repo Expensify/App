@@ -81,6 +81,7 @@ import {
     getReceiptError,
     getReportPreviewAction,
     getUpdateMoneyRequestParams,
+    getUserAccountID,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
@@ -1588,7 +1589,7 @@ function initSplitExpenseItemData(
     {amount, transactionID, reportID, created, isManuallyEdited}: {amount?: number; transactionID?: string; reportID?: string; created?: string; isManuallyEdited?: boolean} = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
-    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const currentReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
 
     return {
         transactionID: transactionID ?? transactionDetails?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
