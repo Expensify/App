@@ -133,7 +133,14 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                                 return JSON.stringify(cell);
                             }),
                         );
-                        return setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, isImportingMultiLevelTags ?? false, importedSpreadsheet?.importTransactionSettings);
+                        return setSpreadsheetData(
+                            formattedSpreadsheetData,
+                            fileURI,
+                            file.type,
+                            file.name,
+                            isImportingMultiLevelTags ?? false,
+                            importedSpreadsheet?.importTransactionSettings,
+                        );
                     })
                     .then(() => {
                         Navigation.navigate(goTo);
