@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
+import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrencyList from '@hooks/useCurrencyList';
@@ -36,7 +36,7 @@ type SearchAutocompleteInputProps = {
     onSubmit?: () => void;
 
     /** SearchAutocompleteList ref for managing TextInput and SearchAutocompleteList focus */
-    autocompleteListRef?: RefObject<SelectionListHandle | null>;
+    autocompleteListRef?: RefObject<SelectionListWithSectionsHandle | null>;
 
     /** Whether the input is full width */
     isFullWidth: boolean;
@@ -214,13 +214,10 @@ function SearchAutocompleteInput({
                         loadingSpinnerStyle={[styles.mt0, styles.mr1, styles.justifyContentCenter]}
                         onFocus={() => {
                             onFocus?.();
-                            autocompleteListRef?.current?.updateExternalTextInputFocus(true);
                             focusedSharedValue.set(true);
                         }}
                         onBlur={() => {
-                            autocompleteListRef?.current?.updateExternalTextInputFocus(false);
                             focusedSharedValue.set(false);
-
                             onBlur?.();
                         }}
                         isLoading={isSearchingForReports}

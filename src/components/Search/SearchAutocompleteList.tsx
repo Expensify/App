@@ -2,13 +2,13 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import type {ListItem as NewListItem, UserListItemProps, ValidListItem} from '@components/SelectionList/ListItem/types';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 // eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
-import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
@@ -36,21 +36,11 @@ import {
     getAutocompleteRecentTags,
     getAutocompleteTags,
     getAutocompleteTaxList,
-    getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {
-    buildSearchQueryJSON,
-    buildUserReadableQueryString,
-    getQueryWithoutFilters,
-    getUserFriendlyKey,
-    getUserFriendlyValue,
-    sanitizeSearchValue,
-    shouldHighlight,
-} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyKey, getUserFriendlyValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
 import Timing from '@userActions/Timing';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,7 +57,9 @@ type AutocompleteItemData = {
     mapKey?: SearchFilterKey;
 };
 
-type GetAdditionalSectionsCallback = (options: Options) => Array<SectionListDataType<OptionData | SearchQueryItem>> | undefined;
+type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
+
+type GetAdditionalSectionsCallback = (options: Options) => Array<Section<AutocompleteListItem>> | undefined;
 
 type SearchAutocompleteListProps = {
     /** Value of TextInput */
@@ -85,20 +77,11 @@ type SearchAutocompleteListProps = {
     /** Callback to call when an item is clicked/selected */
     onListItemPress: (item: OptionData | SearchQueryItem) => void;
 
-    /** Callback to call when user did not click an item but still text query should be changed */
-    setTextQuery: (item: string) => void;
-
-    /** Callback to call when the list of autocomplete substitutions should be updated */
-    updateAutocompleteSubstitutions: (item: SearchQueryItem) => void;
-
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
     shouldSubscribeToArrowKeyEvents?: boolean;
 
     /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
     onHighlightFirstItem?: () => void;
-
-    /** Ref for textInput */
-    textInputRef?: React.RefObject<AnimatedTextInputRef | null>;
 
     /** Personal details */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -113,7 +96,7 @@ type SearchAutocompleteListProps = {
     allCards: CardList | undefined;
 
     /** Reference to the outer element */
-    ref?: ForwardedRef<SelectionListHandle>;
+    ref?: ForwardedRef<SelectionListWithSectionsHandle>;
 };
 
 const defaultListOptions = {
@@ -124,13 +107,7 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
-const setPerformanceTimersEnd = () => {
-    Timing.end(CONST.TIMING.OPEN_SEARCH);
-    Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
-    endSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
-};
-
-function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
+function isSearchQueryListItem(listItem: UserListItemProps<AutocompleteListItem> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
     return isSearchQueryItem(listItem.item);
 }
 
@@ -138,14 +115,7 @@ function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
     return `${filterKey}:${value}`;
 }
 
-function getItemHeight(item: OptionData | SearchQueryItem) {
-    if (isSearchQueryItem(item)) {
-        return 44;
-    }
-    return 64;
-}
-
-function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryListItemProps) {
+function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | SearchQueryListItemProps) {
     const styles = useThemeStyles();
 
     if (isSearchQueryListItem(props)) {
@@ -175,11 +145,8 @@ function SearchAutocompleteList({
     searchQueryItem,
     getAdditionalSections,
     onListItemPress,
-    setTextQuery,
-    updateAutocompleteSubstitutions,
     shouldSubscribeToArrowKeyEvents = true,
     onHighlightFirstItem,
-    textInputRef,
     personalDetails,
     reports,
     allFeeds,
@@ -228,6 +195,11 @@ function SearchAutocompleteList({
     }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
+
+    useEffect(() => {
+        setIsInitialRender(false);
+    }, []);
+
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
     const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
@@ -786,10 +758,11 @@ function SearchAutocompleteList({
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
     /* Sections generation */
-    const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
+    const sections: Array<Section<AutocompleteListItem>> = [];
+    let sectionIndex = 0;
 
     if (searchQueryItem) {
-        sections.push({data: [searchQueryItem]});
+        sections.push({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
     }
 
     const additionalSections = useMemo(() => {
@@ -797,11 +770,13 @@ function SearchAutocompleteList({
     }, [getAdditionalSections, searchOptions]);
 
     if (additionalSections) {
-        sections.push(...additionalSections);
+        for (const section of additionalSections) {
+            sections.push({...section, sectionIndex: sectionIndex++});
+        }
     }
 
     if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
-        sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
+        sections.push({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
     }
     const styledRecentReports = useMemo(
         () =>
@@ -811,18 +786,19 @@ function SearchAutocompleteList({
                 const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
                 return {
                     ...option,
+                    keyForList: option.keyForList ?? option.reportID ?? String(option.accountID ?? ''),
                     pressableStyle: styles.br2,
                     text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
                     wrapperStyle: [styles.pr3, styles.pl3],
-                };
+                } as AutocompleteListItem;
             }),
         [recentReportsOptions, styles.br2, styles.pr3, styles.pl3],
     );
 
-    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
+    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports, sectionIndex: sectionIndex++});
 
     if (autocompleteSuggestions.length > 0) {
-        const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
+        const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
             return {
                 text: getAutocompleteDisplayText(filterKey, text),
                 mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
@@ -834,50 +810,10 @@ function SearchAutocompleteList({
             };
         });
 
-        sections.push({title: translate('search.suggestions'), data: autocompleteData});
+        sections.push({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
     }
 
-    const onArrowFocus = useCallback(
-        (focusedItem: OptionData | SearchQueryItem) => {
-            if (
-                isInitialRender ||
-                !autocompleteQueryValue.trim() ||
-                !isSearchQueryItem(focusedItem) ||
-                !focusedItem.searchQuery ||
-                focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION
-            ) {
-                return;
-            }
-
-            const fieldKey = focusedItem.mapKey?.includes(':') ? focusedItem.mapKey.split(':').at(0) : focusedItem.mapKey;
-            const isNameField = fieldKey && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
-
-            let trimmedUserSearchQuery;
-            if (isNameField && fieldKey) {
-                const fieldPattern = `${fieldKey}:`;
-                const keyIndex = autocompleteQueryValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
-
-                if (keyIndex !== -1) {
-                    const afterFieldKey = autocompleteQueryValue.substring(keyIndex + fieldPattern.length);
-                    const lastCommaIndex = afterFieldKey.lastIndexOf(',');
-
-                    if (lastCommaIndex !== -1) {
-                        trimmedUserSearchQuery = autocompleteQueryValue.substring(0, keyIndex + fieldPattern.length + lastCommaIndex + 1);
-                    } else {
-                        trimmedUserSearchQuery = autocompleteQueryValue.substring(0, keyIndex + fieldPattern.length);
-                    }
-                } else {
-                    trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
-                }
-            } else {
-                trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(autocompleteQueryValue);
-            }
-
-            setTextQuery(`${trimmedUserSearchQuery}${sanitizeSearchValue(focusedItem.searchQuery)}\u00A0`);
-            updateAutocompleteSubstitutions(focusedItem);
-        },
-        [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions, isInitialRender],
-    );
+    // TODO: Bring back onArrowFocus if necessary
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = useMemo(() => sectionItemText.toLowerCase(), [sectionItemText]);
@@ -894,32 +830,21 @@ function SearchAutocompleteList({
         // On page refresh, when the list is rendered before options are initialized the auto-focusing on initiallyFocusedOptionKey
         // will fail because the list will be empty on first render so we only render after options are initialized.
         areOptionsInitialized && (
-            <SelectionList<OptionData | SearchQueryItem>
+            <SelectionList<AutocompleteListItem>
                 showLoadingPlaceholder
-                fixedNumItemsForLoader={4}
-                loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
                 sections={sections}
                 onSelectRow={onListItemPress}
-                ListItem={SearchRouterItem}
-                containerStyle={[styles.mh100]}
-                sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
-                listItemWrapperStyle={[styles.pr0, styles.pl0]}
-                getItemHeight={getItemHeight}
-                onLayout={() => {
-                    setPerformanceTimersEnd();
-                    setIsInitialRender(false);
-                    if (!!textInputRef?.current && ref && 'current' in ref) {
-                        ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
-                    }
+                ListItem={SearchRouterItem as unknown as ValidListItem}
+                style={{
+                    containerStyle: [styles.mh100],
+                    listStyle: [styles.ph2, styles.pb2, styles.overscrollBehaviorContain],
+                    listItemWrapperStyle: [styles.pr0, styles.pl0],
+                    sectionTitleStyles: styles.mhn2,
                 }}
-                showScrollIndicator={!shouldUseNarrowLayout}
-                sectionTitleStyles={styles.mhn2}
                 shouldSingleExecuteRowSelect
-                onArrowFocus={onArrowFocus}
                 ref={ref}
-                initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
+                initiallyFocusedItemKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
                 shouldScrollToFocusedIndex={!isInitialRender}
-                shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
                 disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
                 addBottomSafeAreaPadding
             />
