@@ -727,8 +727,9 @@ function isRemoveHoldAction(
     if (!isReportOnHold) {
         return false;
     }
+    const transactionIDs = reportTransactions.map((t) => t.transactionID);
 
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, undefined, transactionIDs);
 
     if (!transactionThreadReportID) {
         return false;
