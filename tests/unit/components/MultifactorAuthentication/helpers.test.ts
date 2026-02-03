@@ -50,7 +50,7 @@ describe('MultifactorAuthentication helpers', () => {
         // When getOutcomePath is called with these parameters
         // Then it should construct a path that includes both the scenario prefix and success suffix because the path must uniquely identify which scenario succeeded
         it('should construct outcome path with scenario prefix and success suffix', () => {
-            const result = getOutcomePath('biometrics-test', 'success');
+            const result = getOutcomePath('BIOMETRICS-TEST', 'success');
             expect(result).toContain('success');
             expect(result).toContain('biometrics-test');
         });
@@ -59,7 +59,7 @@ describe('MultifactorAuthentication helpers', () => {
         // When getOutcomePath is called with these parameters
         // Then it should construct a path that includes both the scenario prefix and failure suffix because the path must uniquely identify which scenario failed
         it('should construct outcome path with scenario prefix and failure suffix', () => {
-            const result = getOutcomePath('biometrics-test', 'failure');
+            const result = getOutcomePath('BIOMETRICS-TEST', 'failure');
             expect(result).toContain('failure');
             expect(result).toContain('biometrics-test');
         });

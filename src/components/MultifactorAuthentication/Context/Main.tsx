@@ -59,25 +59,24 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             isFlowComplete,
         } = state;
 
-        // 0. Check if flow is already complete, user is offline or scenario not set - do nothing
-        if (isFlowComplete || !scenario || isOffline) {
+        // 0. Check if one of the early exit conditions applies:
+        // - Flow is already complete,
+        // - User is offline,
+        // - Scenario is not set,
+        // - There's a continuable error:
+        //      Pause flow and wait for the user to fix it.
+        //      Continuable errors (like invalid validate code) are displayed on the current screen
+        //      and don't stop the entire flow - the user can retry without restarting
+        if (isFlowComplete || !scenario || isOffline || continuableError) {
             return;
         }
 
-        // 0.5 Check if there's a continuable error - pause flow and wait for user to fix it
-        // Continuable errors (like invalid validate code) are displayed on the current screen
-        // and don't stop the entire flow - the user can retry without restarting
-        if (continuableError) {
-            return;
-        }
-
-        const scenarioLowerCase = scenario.toLowerCase() as Lowercase<MultifactorAuthenticationScenario>;
         const paths = outcomePaths ?? getOutcomePaths(scenario);
 
         // 1. Check if there's an error - stop processing
         if (error) {
             if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS) {
-                const noEligibleMethodsOutcomePath = getOutcomePath(scenarioLowerCase, 'no-eligible-methods');
+                const noEligibleMethodsOutcomePath = getOutcomePath(scenario, 'no-eligible-methods');
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(noEligibleMethodsOutcomePath), {forceReplace: true});
             } else {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.failureOutcome), {forceReplace: true});

@@ -15,11 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 
-type BiometricsInfo = {
-    /** Whether device supports biometric authentication */
-    deviceSupportsBiometrics: boolean;
-};
-
 type RegisterParams = {
     nativePromptTitle: string;
 };
@@ -60,9 +55,6 @@ type AuthorizeResultFailure = {
 type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;
 
 type UseNativeBiometricsReturn = {
-    /** Biometrics info about device and registration status */
-    info: BiometricsInfo;
-
     /** Whether server has any registered credentials for this account */
     serverHasAnyCredentials: boolean;
 
@@ -141,13 +133,6 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
         return biometrics || credentials;
     }, []);
-
-    const info = useMemo<BiometricsInfo>(
-        () => ({
-            deviceSupportsBiometrics: doesDeviceSupportBiometrics(),
-        }),
-        [doesDeviceSupportBiometrics],
-    );
 
     const hasLocalCredentials = useCallback(async () => {
         const config = await isBiometryConfigured(accountID);
@@ -276,7 +261,6 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     };
 
     return {
-        info,
         serverHasAnyCredentials,
         serverKnownCredentialIDs,
         doesDeviceSupportBiometrics,
@@ -289,4 +273,4 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
 }
 
 export default useNativeBiometrics;
-export type {BiometricsInfo, RegisterParams, RegisterResult, AuthorizeParams, AuthorizeResult, UseNativeBiometricsReturn};
+export type {RegisterParams, RegisterResult, AuthorizeParams, AuthorizeResult, UseNativeBiometricsReturn};

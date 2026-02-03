@@ -4,14 +4,15 @@ import type {AllMultifactorAuthenticationOutcomeType, MultifactorAuthenticationO
 /**
  * Constructs an outcome type string from scenario prefix and outcome suffix.
  * Combines the lowercase scenario name with the kebab-cased suffix (e.g., 'biometrics-test-success').
- * @param scenarioPrefix - The lowercase scenario name or undefined to use default 'biometrics-test'.
+ * @param scenario - The authentication scenario or undefined for defaults.
  * @param suffix - The outcome suffix (success/failure).
  * @returns A fully qualified outcome type string.
  */
 const getOutcomePath = <T extends MultifactorAuthenticationScenario>(
-    scenarioPrefix: Lowercase<T> | undefined,
+    scenario: T | undefined,
     suffix: MultifactorAuthenticationOutcomeSuffixes<T>,
 ): AllMultifactorAuthenticationOutcomeType => {
+    const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
     return `${scenarioPrefix ?? 'biometrics-test'}-${suffix}` as AllMultifactorAuthenticationOutcomeType;
 };
 
@@ -22,9 +23,8 @@ const getOutcomePath = <T extends MultifactorAuthenticationScenario>(
  * @returns An object containing successOutcome and failureOutcome paths.
  */
 const getOutcomePaths = (scenario: MultifactorAuthenticationScenario | undefined): OutcomePaths => {
-    const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
-    const successOutcome = getOutcomePath(scenarioPrefix, 'success');
-    const failureOutcome = getOutcomePath(scenarioPrefix, 'failure');
+    const successOutcome = getOutcomePath(scenario, 'success');
+    const failureOutcome = getOutcomePath(scenario, 'failure');
 
     return {
         successOutcome,

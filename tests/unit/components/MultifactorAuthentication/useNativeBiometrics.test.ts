@@ -85,7 +85,6 @@ describe('useNativeBiometrics hook', () => {
         it('should return hook with required properties', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current).toHaveProperty('info');
             expect(result.current).toHaveProperty('serverHasAnyCredentials');
             expect(result.current).toHaveProperty('doesDeviceSupportBiometrics');
             expect(result.current).toHaveProperty('hasLocalCredentials');
@@ -98,10 +97,7 @@ describe('useNativeBiometrics hook', () => {
         it('should initialize info with biometrics status', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.info).toEqual({
-                deviceSupportsBiometrics: true,
-            });
-
+            expect(result.current.doesDeviceSupportBiometrics()).toBe(true);
             expect(result.current.hasLocalCredentials()).resolves.toBe(false);
             expect(result.current.areLocalCredentialsKnownToServer()).resolves.toBe(false);
         });
