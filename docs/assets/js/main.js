@@ -163,6 +163,8 @@ function initSearchPage() {
         searchPageQuery(query);
     }
 
+    input.focus();
+
     searchForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const query = input.value.trim();
