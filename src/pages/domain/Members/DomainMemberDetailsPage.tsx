@@ -1,12 +1,10 @@
-import {adminAccountIDsSelector, domainNameSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import {domainNameSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,7 +17,6 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
 
@@ -35,11 +32,6 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
-    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
-        selector: adminAccountIDsSelector,
-    });
-
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: selectSecurityGroupForAccount(accountID),
@@ -53,9 +45,6 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
 
     const memberLogin = personalDetails?.login ?? '';
-
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
     const handleCloseAccount = async () => {
         if (!userSecurityGroup || shouldForceCloseAccount === undefined) {
@@ -94,15 +83,10 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         <Button
             text={translate('domain.members.closeAccount')}
             onPress={() => setIsModalVisible(true)}
-            isDisabled={!isAdmin}
             icon={icons.RemoveMembers}
             style={styles.mb5}
         />
     );
-
-    if (isLoadingOnyxValue(domainMetadata)) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
-    }
 
     return (
         <>

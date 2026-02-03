@@ -27,7 +27,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const styles = useThemeStyles();
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
-    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true, selector: memberPendingActionSelector});
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true, selector: memberPendingActionSelector});
     const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: defaultSecurityGroupIDSelector});
 
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -49,7 +49,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const getCustomRowProps = (accountID: number, email?: string) => {
         const errorKey = email ?? accountID;
         const errors = getLatestError(domainErrors?.memberErrors?.[errorKey]?.errors) ?? undefined;
-        const pendingAction = email ? domainPendingAction?.[email]?.pendingAction : undefined;
+        const pendingAction = email ? domainPendingActions?.[email]?.pendingAction : undefined;
 
         return {errors, pendingAction};
     };
@@ -73,7 +73,5 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         />
     );
 }
-
-DomainMembersPage.displayName = 'DomainMembersPage';
 
 export default DomainMembersPage;
