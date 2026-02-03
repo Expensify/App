@@ -2139,6 +2139,12 @@ const staticStyles = (theme: ThemeColors) =>
                     flexGrow: 1,
                     flexShrink: 1,
                 }),
+
+                // On iOS, negative margin adjusts frame position for correct VoiceOver focus order. See #77499.
+                ...(Platform.OS === 'ios' && {
+                    marginTop: -5,
+                    paddingTop: 5,
+                }),
             },
             0,
         ),
