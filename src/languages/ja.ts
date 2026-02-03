@@ -2139,10 +2139,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
-        brokenConnection: 'Your card connection is broken',
-        fixCard: 'Fix card',
+        fixCard: 'カードを修正',
+        brokenConnection: 'カード接続が切断されました',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
-            `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`,
+            `${cardName} カードの接続が切断されました。<a href="${connectionLink}">銀行にログイン</a>してカードを修復してください。`,
     },
     walletPage: {
         balance: '残高',
@@ -7557,8 +7557,8 @@ ${reportName}
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 return isAdmin
-                    ? `Can't auto-match receipt due to broken card connection. Mark as cash to ignore, or <a href="${connectionLink}">fix the card</a> to match the receipt.`
-                    : "Can't auto-match receipt due to broken card connection.";
+                    ? `カード接続が切断されているため、レシートを自動照合できません。現金としてマークして無視するか、レシートと一致するように<a href="${connectionLink}">カードを修正</a>してください。`
+                    : 'カード接続が切断されているため、領収書を自動照合できません。';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

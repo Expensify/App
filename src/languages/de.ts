@@ -2150,10 +2150,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
-        brokenConnection: 'Your card connection is broken',
-        fixCard: 'Fix card',
+        brokenConnection: 'Ihre Kartenverbindung ist unterbrochen.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
-            `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`,
+            `Die Verbindung zu Ihrer Karte ${cardName} ist unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrem Online-Banking an</a>, um die Karte zu reparieren.`,
+        fixCard: 'Karte reparieren',
     },
     walletPage: {
         balance: 'Saldo',
@@ -7635,8 +7635,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 return isAdmin
-                    ? `Can't auto-match receipt due to broken card connection. Mark as cash to ignore, or <a href="${connectionLink}">fix the card</a> to match the receipt.`
-                    : "Can't auto-match receipt due to broken card connection.";
+                    ? `Der Beleg kann aufgrund einer fehlerhaften Kartenverbindung nicht automatisch zugeordnet werden. Markieren Sie ihn als Bargeld, um ihn zu ignorieren, oder <a href="${connectionLink}">korrigieren Sie die Kartenverbindung</a>, damit er zum Beleg passt.`
+                    : 'Automatischer Abgleich des Belegs aufgrund einer unterbrochenen Kartenverbindung nicht möglich.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

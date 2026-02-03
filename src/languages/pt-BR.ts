@@ -2143,10 +2143,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
-        brokenConnection: 'Your card connection is broken',
-        fixCard: 'Fix card',
+        fixCard: 'Corrigir cartão',
+        brokenConnection: 'A conexão do seu cartão está interrompida',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
-            `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`,
+            `A conexão do seu cartão ${cardName} está interrompida. <a href="${connectionLink}">Faça login no seu banco</a> para corrigir o cartão.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7588,8 +7588,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 return isAdmin
-                    ? `Can't auto-match receipt due to broken card connection. Mark as cash to ignore, or <a href="${connectionLink}">fix the card</a> to match the receipt.`
-                    : "Can't auto-match receipt due to broken card connection.";
+                    ? `Não foi possível associar o recibo automaticamente devido a uma falha na conexão do cartão. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para que a correspondência com o recibo seja feita.`
+                    : 'Não foi possível associar o recibo automaticamente devido a uma falha na conexão do cartão.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

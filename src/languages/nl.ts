@@ -2146,10 +2146,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
-        brokenConnection: 'Your card connection is broken',
-        fixCard: 'Fix card',
+        fixCard: 'Kaart repareren',
+        brokenConnection: 'De verbinding met uw netwerkkaart is verbroken.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
-            `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`,
+            `De verbinding met uw kaart ${cardName} is verbroken. <a href="${connectionLink}">Log in bij uw bank</a> om de kaart te herstellen.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7606,8 +7606,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 return isAdmin
-                    ? `Can't auto-match receipt due to broken card connection. Mark as cash to ignore, or <a href="${connectionLink}">fix the card</a> to match the receipt.`
-                    : "Can't auto-match receipt due to broken card connection.";
+                    ? `Automatische koppeling van bon mislukt vanwege verbroken kaartverbinding. Markeer als contant om te negeren, of <a href="${connectionLink}">corrigeer de kaart</a> zodat deze overeenkomt met de bon.`
+                    : 'Bon kan niet automatisch worden gekoppeld vanwege een onderbroken kaartverbinding.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

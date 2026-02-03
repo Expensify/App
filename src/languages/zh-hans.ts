@@ -2115,10 +2115,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
-        brokenConnection: 'Your card connection is broken',
-        fixCard: 'Fix card',
+        fixCard: '修复卡片',
+        brokenConnection: '您的卡连接已断开',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
-            `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`,
+            `您的 ${cardName} 卡连接已断开。<a href="${connectionLink}">登录您的银行</a> 以修复卡片。`,
     },
     walletPage: {
         balance: '余额',
@@ -7446,8 +7446,8 @@ ${reportName}
             }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 return isAdmin
-                    ? `Can't auto-match receipt due to broken card connection. Mark as cash to ignore, or <a href="${connectionLink}">fix the card</a> to match the receipt.`
-                    : "Can't auto-match receipt due to broken card connection.";
+                    ? `由于卡片连接故障，无法自动匹配收据。请将其标记为现金以忽略，或<a href="${connectionLink}">修复卡片</a>以匹配收据。`
+                    : '由于卡片连接故障，无法自动匹配收据。';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin ? `银行连接已断开。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接已中断。请联系管理员重新连接以匹配收据。';
