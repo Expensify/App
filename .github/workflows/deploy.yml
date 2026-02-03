@@ -251,7 +251,7 @@ jobs:
 
       - name: Set aabPath for Fastlane
         if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
-        run: echo "aabPath=$(find $(pwd) -maxdepth 1 -name '*.aab' | head -1)" >> "$GITHUB_ENV"
+        run: echo "aabPath=$(find $(pwd) -name '*.aab' | head -1)" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
         # v1.229.0
@@ -513,8 +513,8 @@ jobs:
       - name: Set artifact paths for Fastlane
         if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
         run: |
-          echo "ipaPath=$(find $(pwd) -maxdepth 1 -name '*.ipa' | head -1)" >> "$GITHUB_ENV"
-          echo "dsymPath=$(find $(pwd) -maxdepth 1 -name '*.dSYM.zip' | head -1)" >> "$GITHUB_ENV"
+          echo "ipaPath=$(find $(pwd) -name '*.ipa' | head -1)" >> "$GITHUB_ENV"
+          echo "dsymPath=$(find $(pwd) -name '*.dSYM.zip' | head -1)" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
         # v1.229.0
