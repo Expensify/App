@@ -528,30 +528,30 @@ function ReportActionCompose({
 
     const fsClass = FS.getChatFSClass(report);
 
-    const onEmojiPickerModalHide = useCallback(
-        (isNavigating?: boolean) => {
-            if (isNavigating) {
-                return;
-            }
-            const activeElementId = DomUtils.getActiveElement()?.id;
-            if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
-                return;
-            }
-            focus();
-        },
-        [],
-    );
+    const onEmojiPickerModalHide = useCallback((isNavigating?: boolean) => {
+        if (isNavigating) {
+            return;
+        }
+        const activeElementId = DomUtils.getActiveElement()?.id;
+        if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
+            return;
+        }
+        focus();
+    }, []);
 
     const onEmojiSelected = useCallback((...args: Parameters<NonNullable<ComposerRef['replaceSelectionWithText']>>) => {
         composerRef.current?.replaceSelectionWithText(...args);
     }, []);
 
-    const onComposerRefChange = useCallback((ref: ComposerRef | null) => {
-        composerRef.current = ref ?? undefined;
-        composerRefShared.set({
-            clear: ref?.clear,
-        });
-    }, [composerRefShared]);
+    const onComposerRefChange = useCallback(
+        (ref: ComposerRef | null) => {
+            composerRef.current = ref ?? undefined;
+            composerRefShared.set({
+                clear: ref?.clear,
+            });
+        },
+        [composerRefShared],
+    );
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
