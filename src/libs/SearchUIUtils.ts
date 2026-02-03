@@ -57,6 +57,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
@@ -4460,7 +4461,7 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
-function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) => string}, fallbackRoute?: string) {
+function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) => Route}, fallbackRoute?: Route) {
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.navigate(route.getRoute(Navigation.getActiveRoute()));
     } else {
