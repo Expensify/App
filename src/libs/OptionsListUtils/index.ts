@@ -910,7 +910,7 @@ function createOption(
         // Display properties needed for UI rendering
         icons: undefined, // Set below - needed for avatars
         subtitle: undefined, // Set below - needed for display
-        keyForList: report?.reportID ?? '', // Set below - needed for React keys
+        keyForList: '', // Set below - needed for React keys
 
         // Legacy property kept for backwards compatibility
         selected: isSelected ?? selected ?? false, // Duplicate of isSelected for backwards compatibility
