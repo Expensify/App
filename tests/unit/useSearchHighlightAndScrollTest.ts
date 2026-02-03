@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {renderHook} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
 import {search} from '@libs/actions/Search';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@react-navigation/native', () => ({
@@ -54,6 +56,7 @@ describe('useSearchHighlightAndScroll', () => {
             hash: 123,
             recentSearchHash: 456,
             similarSearchHash: 789,
+            view: 'table',
         },
         searchKey: undefined,
         shouldCalculateTotals: false,
@@ -254,6 +257,82 @@ describe('useSearchHighlightAndScroll', () => {
         // @ts-expect-error
         rerender(updatedProps);
         expect(result.current.newSearchResultKeys?.size).toBe(2);
+    });
+
+    it('should return new search result keys for manually highlighted expenses', async () => {
+        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest
+            .spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute')
+            .mockImplementationOnce(jest.fn());
+        // We need to mock requestAnimationFrame to mimic long Onyx merge overhead
+        jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+            callback(performance.now());
+            return 0;
+        });
+
+        await Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[baseProps.queryJSON.type]: {'3': true}});
+
+        const {rerender, result} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps: baseProps,
+        });
+        const updatedProps1 = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {
+                        transactionID: '1',
+                    },
+                    transactions_2: {
+                        transactionID: '2',
+                    },
+                },
+            },
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+                '3': {transactionID: '3'},
+            },
+            previousTransactions: {
+                '1': {transactionID: '1'},
+            },
+        } as unknown as UseSearchHighlightAndScroll;
+
+        // When there is no data yet, even if the transactionID has been added to manual highlight transactionIDs,
+        // it still will not be included in newSearchResultKeys.
+        rerender(updatedProps1);
+        expect(result.current.newSearchResultKeys?.size).toBe(2);
+        expect([...(result.current.newSearchResultKeys ?? new Set())]).not.toContain('transactions_3');
+
+        // When the data contains the highlight transactionID, it will be highlighted.
+        const updatedProps2 = {
+            ...updatedProps1,
+            searchResults: {
+                ...updatedProps1.searchResults,
+                data: {
+                    transactions_1: {
+                        transactionID: '1',
+                    },
+                    transactions_2: {
+                        transactionID: '2',
+                    },
+                    transactions_3: {
+                        transactionID: '3',
+                    },
+                },
+            },
+        } as unknown as UseSearchHighlightAndScroll;
+
+        rerender(updatedProps2);
+        expect(result.current.newSearchResultKeys?.size).toBe(1);
+        expect([...(result.current.newSearchResultKeys ?? new Set())]).toContain('transactions_3');
+
+        // Wait 1s for the timer in useSearchHighlightAndScroll to complete.
+        await new Promise((resolve) => {
+            setTimeout(resolve, 1000);
+        });
+
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(baseProps.queryJSON.type, {'3': false});
     });
 
     it('should return multiple new search result keys when there are multiple new chats', () => {

@@ -64,7 +64,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 // Basic navigation to a route
-Navigation.navigate(ROUTES.HOME);
+Navigation.navigate(ROUTES.INBOX);
 
 // Navigation with parameters
 Navigation.navigate(
@@ -511,6 +511,7 @@ function StepOne({isEditing, onNext, onMove, formValues}: CustomSubPageProps) {
 ```ts
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 
 type CustomSubPageProps = SubPageProps & {
@@ -533,6 +534,7 @@ function MyFlowContent() {
         lastPageIndex,
         moveTo,
         resetToPage,
+        isRedirecting,
     } = useSubPage<CustomSubPageProps>({
         pages,
         startFrom: 0,
@@ -556,6 +558,10 @@ function MyFlowContent() {
 
         prevPage();
     };
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper>
@@ -1344,7 +1350,7 @@ import {ROUTES} from '@src/ROUTES';
 Navigation.goBack();
 
 // Back navigation with fallback
-Navigation.goBack(ROUTES.HOME);
+Navigation.goBack(ROUTES.INBOX);
 
 const reportID = 123;
 // Back navigation to a route with specific params

@@ -3,6 +3,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -26,7 +27,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {setSearchContext} from '@libs/actions/Search';
-import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -62,13 +62,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID, true);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, policies, currentUserAccountID, true);
 
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT, {canBeMissing: true});
     const shouldShowQuery = searchContext?.shouldShowSearchQuery ?? false;
@@ -115,9 +113,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [queryText, shouldShowQuery]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, policies, currentUserAccountID);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID]);
+    }, [allFeeds, nonPersonalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
@@ -132,6 +130,15 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         listRef.current?.updateAndScrollToFocusedIndex(0);
         setShowPopupButton(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handleKeyPress = useCallback((e: TextInputKeyPressEvent) => {
+        const keyEvent = e as unknown as KeyboardEvent;
+
+        if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && textInputRef.current?.isFocused()) {
+            keyEvent.preventDefault();
+            textInputRef.current.blur();
+        }
     }, []);
 
     const handleSearchAction = useCallback(
@@ -380,6 +387,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                                 autocompleteListRef={listRef}
                                 ref={textInputRef}
+                                onKeyPress={handleKeyPress}
                             />
                         </Animated.View>
                         {showPopupButton && (
@@ -400,8 +408,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 ref={listRef}
                                 personalDetails={personalDetails}
                                 reports={reports}
-                                allCards={allCards}
+                                allCards={nonPersonalAndWorkspaceCards}
                                 allFeeds={allFeeds}
+                                textInputRef={textInputRef}
                             />
                         </View>
                     )}
@@ -459,6 +468,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             ref={textInputRef}
                             selection={selection}
                             substitutionMap={autocompleteSubstitutions}
+                            onKeyPress={handleKeyPress}
                         />
                     </View>
                     {isAutocompleteListVisible && (
@@ -474,8 +484,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
                                 personalDetails={personalDetails}
                                 reports={reports}
-                                allCards={allCards}
+                                allCards={nonPersonalAndWorkspaceCards}
                                 allFeeds={allFeeds}
+                                textInputRef={textInputRef}
                             />
                         </View>
                     )}
