@@ -226,7 +226,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register({nativePromptTitle: 'Authenticate'}, onResult);
+                await result.current.register(onResult);
             });
 
             expect(generateKeyPair).toHaveBeenCalled();
@@ -237,7 +237,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register({nativePromptTitle: 'Test Prompt'}, onResult);
+                await result.current.register(onResult);
             });
 
             // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -249,7 +249,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register({nativePromptTitle: 'Authenticate'}, onResult);
+                await result.current.register(onResult);
             });
 
             // Verify both stores were called
@@ -264,7 +264,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register({nativePromptTitle: 'Authenticate'}, onResult);
+                await result.current.register(onResult);
             });
 
             // Verify the full flow was triggered

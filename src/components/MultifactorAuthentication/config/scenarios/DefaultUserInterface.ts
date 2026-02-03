@@ -56,7 +56,6 @@ const DEFAULT_CONFIG = {
             cancelButtonText: 'common.cancel',
         },
     },
-    nativePromptTitle: 'multifactorAuthentication.letsVerifyItsYou',
 } as const satisfies MultifactorAuthenticationDefaultUIConfig;
 
 /**

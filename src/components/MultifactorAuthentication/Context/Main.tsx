@@ -1,9 +1,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo} from 'react';
 import type {ReactNode} from 'react';
-import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import {getOutcomePath, getOutcomePaths} from '@components/MultifactorAuthentication/config/outcomePaths';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import type {OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
@@ -36,7 +34,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const {state, dispatch} = useMultifactorAuthenticationState();
 
     const biometrics = useNativeBiometrics();
-    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     /**
@@ -135,10 +132,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
-            const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
-            const nativePromptTitle = translate(nativePromptTitleTPath);
-
-            await biometrics.register({nativePromptTitle}, async (result: RegisterResult) => {
+            await biometrics.register(async (result: RegisterResult) => {
                 if (!result.success) {
                     dispatch({
                         type: 'SET_ERROR',
@@ -246,7 +240,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // 6. All steps completed - success
         Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome), {forceReplace: true});
         dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
-    }, [biometrics, dispatch, isOffline, state, translate]);
+    }, [biometrics, dispatch, isOffline, state]);
 
     /**
      * Drives the MFA state machine forward whenever relevant state changes occur.

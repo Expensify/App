@@ -1,6 +1,5 @@
 import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -14,10 +13,6 @@ import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
-
-type RegisterParams = {
-    nativePromptTitle: string;
-};
 
 type BaseRegisterResult = {
     privateKey: string;
@@ -71,7 +66,7 @@ type UseNativeBiometricsReturn = {
     areLocalCredentialsKnownToServer: () => Promise<boolean>;
 
     /** Register biometrics on device */
-    register: (params: RegisterParams, onResult: (result: RegisterResult) => Promise<void> | void) => Promise<void>;
+    register: (onResult: (result: RegisterResult) => Promise<void> | void) => Promise<void>;
 
     /** Authorize using biometrics */
     authorize: <T extends MultifactorAuthenticationScenario>(params: AuthorizeParams<T>, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
@@ -148,9 +143,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         await resetKeys(accountID);
     }, [accountID]);
 
-    const register = async (params: RegisterParams, onResult: (result: RegisterResult) => Promise<void> | void) => {
-        const {nativePromptTitle} = params;
-
+    const register = async (onResult: (result: RegisterResult) => Promise<void> | void) => {
         // Generate key pair
         const {privateKey, publicKey} = generateKeyPair();
 
@@ -158,7 +151,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
 
         // Store private key
-        const privateKeyResult = await PrivateKeyStore.set(accountID, privateKey, {nativePromptTitle});
+        const privateKeyResult = await PrivateKeyStore.set(accountID, privateKey, {nativePromptTitle: translate('multifactorAuthentication.letsVerifyItsYou')});
         const authTypeEntry = Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === privateKeyResult.type);
 
         const authType = authTypeEntry
@@ -199,16 +192,13 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     };
 
     const authorize = async <T extends MultifactorAuthenticationScenario>(params: AuthorizeParams<T>, onResult: (result: AuthorizeResult) => Promise<void> | void) => {
-        const {scenario, challenge} = params;
-
-        const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
-        const nativePromptTitle = translate(nativePromptTitleTPath);
+        const {challenge} = params;
 
         // Extract public keys from challenge.allowCredentials
         const authPublicKeys = challenge.allowCredentials?.map((cred: {id: string; type: string}) => cred.id) ?? [];
 
         // Get private key from SecureStore
-        const privateKeyData = await PrivateKeyStore.get(accountID, {nativePromptTitle});
+        const privateKeyData = await PrivateKeyStore.get(accountID, {nativePromptTitle: translate('multifactorAuthentication.letsVerifyItsYou')});
 
         if (!privateKeyData.value) {
             onResult({
@@ -273,4 +263,4 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
 }
 
 export default useNativeBiometrics;
-export type {RegisterParams, RegisterResult, AuthorizeParams, AuthorizeResult, UseNativeBiometricsReturn};
+export type {RegisterResult, AuthorizeParams, AuthorizeResult, UseNativeBiometricsReturn};

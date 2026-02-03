@@ -168,17 +168,12 @@ type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> =
      * so the absence of payload will be tolerated at the run-time.
      */
     pure?: true;
-    nativePromptTitle: TranslationPaths;
 } & MultifactorAuthenticationUI;
 
 /**
  * Scenario configuration for custom scenarios with optional overrides.
  */
-type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unknown> = EmptyObject> = Omit<
-    MultifactorAuthenticationScenarioConfig<T>,
-    'MODALS' | 'OUTCOMES' | 'nativePromptTitle'
-> & {
-    nativePromptTitle?: TranslationPaths;
+type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unknown> = EmptyObject> = Omit<MultifactorAuthenticationScenarioConfig<T>, 'MODALS' | 'OUTCOMES'> & {
     MODALS?: MultifactorAuthenticationModalOptional;
     OUTCOMES: MultifactorAuthenticationOutcomeOptional;
 };
@@ -186,7 +181,7 @@ type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unkn
 /**
  * Default UI configuration shared across scenarios.
  */
-type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig<never>, 'nativePromptTitle' | 'MODALS' | 'OUTCOMES'>;
+type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig<never>, 'MODALS' | 'OUTCOMES'>;
 
 /**
  * Record mapping all scenarios to their configurations.
