@@ -175,6 +175,7 @@
         "dimen",
         "directfeeds",
         "Dishoom",
+        "displaystatus",
         "DocuSign",
         "domhandler",
         "domparser",
@@ -249,6 +250,7 @@
         "Ferroalloy",
         "FinancialForce",
         "firebaselogging",
+        "fireroom",
         "firstname",
         "Fiscale",
         "flac",
@@ -817,7 +819,10 @@
         "RNCORE",
         "Wooo",
         "Splittable",
-        "pgrep"
+        "pgrep",
+        "skia",
+        "canvaskit",
+        "Invoicify"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -829,6 +834,7 @@
         "src/languages/pl.ts",
         "src/languages/pt-BR.ts",
         "src/languages/zh-hans.ts",
+        "prompts/translation/fr.ts",
         "android/app/BUCK",
         "android/app/build_defs.bzl",
         "android/app/build.gradle",

@@ -1,4 +1,5 @@
-import type {Section} from '@libs/OptionsListUtils';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
 import IntlStore from '@src/languages/IntlStore';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
@@ -53,7 +54,7 @@ describe('TaxOptionsListUtils', () => {
             taxCode: 'CODE1',
         } as Transaction;
 
-        const resultList: Section[] = [
+        const resultList: Array<Section<TaxRatesOption>> = [
             {
                 data: [
                     {
@@ -87,12 +88,12 @@ describe('TaxOptionsListUtils', () => {
                         pendingAction: 'delete',
                     },
                 ],
-                shouldShow: false,
+                sectionIndex: 2,
                 title: '',
             },
         ];
 
-        const searchResultList: Section[] = [
+        const searchResultList: Array<Section<TaxRatesOption>> = [
             {
                 data: [
                     {
@@ -106,15 +107,15 @@ describe('TaxOptionsListUtils', () => {
                         pendingAction: 'delete',
                     },
                 ],
-                shouldShow: true,
+                sectionIndex: 1,
                 title: '',
             },
         ];
 
-        const wrongSearchResultList: Section[] = [
+        const wrongSearchResultList: Array<Section<TaxRatesOption>> = [
             {
                 data: [],
-                shouldShow: true,
+                sectionIndex: 1,
                 title: '',
             },
         ];

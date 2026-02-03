@@ -1,10 +1,22 @@
-/** Model of tax rate */
-type TaxRate = {
+/** Model of tax rate on a personal rule */
+type PersonalRuleTaxRate = {
     /** The tax ID */
     externalID: string;
 
     /** The tax rate */
     value: string;
+};
+
+/** Model of tax rate on a policy rule */
+type PolicyRuleTaxRate = {
+    /** The tax ID */
+    externalID: string;
+
+    /** The tax rate */
+    value: string;
+
+    /** The name of the tax rate */
+    name: string;
 };
 
 /** Model of expense rule */
@@ -37,8 +49,8 @@ type ExpenseRule = {
     tag?: string;
 
     /** The tax rate set by the rule */
-    tax?: Record<string, TaxRate>;
+    tax?: Record<string, PersonalRuleTaxRate>;
 };
 
-export type {TaxRate};
+export type {PersonalRuleTaxRate, PolicyRuleTaxRate};
 export default ExpenseRule;
