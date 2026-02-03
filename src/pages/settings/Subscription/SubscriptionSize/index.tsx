@@ -41,7 +41,7 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
         Navigation.goBack(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS);
     };
 
-    const {CurrentPage, pageIndex, prevPage, nextPage, moveTo} = useSubPage({
+    const {CurrentPage, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage({
         pages,
         onFinished,
         startFrom,
@@ -68,7 +68,7 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
         return <NotFoundPage />;
     }
 
-    if (!privateSubscription) {
+    if (isRedirecting || !privateSubscription) {
         return <FullScreenLoadingIndicator />;
     }
 
