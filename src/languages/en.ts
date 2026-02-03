@@ -940,7 +940,7 @@ const translations = {
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `created this report to hold all expenses from <a href="${reportUrl}">${reportName}</a> that couldn't be submitted on your chosen frequency`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID}: CreatedReportForUnapprovedTransactionsParams) =>
-            `created this report for any held expenses from ${reportName ? `<a href="${reportUrl}">${reportName}</a>` : `#${reportID}`}`,
+            `created this report for any held expenses from ${reportName ? `<a href="${reportUrl}">${reportName}</a>` : `deleted report #${reportID}`}`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone in this conversation',

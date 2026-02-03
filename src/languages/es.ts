@@ -688,7 +688,7 @@ const translations: TranslationDeepObject<typeof en> = {
         harvestCreatedExpenseReport: (reportUrl, reportName) =>
             `creó este informe para contener todos los gastos de <a href="${reportUrl}">${reportName}</a> que no se pudieron enviar con la frecuencia que elegiste`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID}: CreatedReportForUnapprovedTransactionsParams) =>
-            `creó este informe para cualquier gasto retenido de ${reportName ? `<a href="${reportUrl}">${reportName}</a>` : `#${reportID}`}`,
+            `creó este informe para cualquier gasto retenido de ${reportName ? `<a href="${reportUrl}">${reportName}</a>` : `informe eliminado #${reportID}`}`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notificar a todos en esta conversación',

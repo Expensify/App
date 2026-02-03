@@ -1675,7 +1675,7 @@ describe('ReportActionsUtils', () => {
         it('should return a message with plain reportID when reportName is empty', () => {
             const result = getCreatedReportForUnapprovedTransactionsMessage('123456', '', translateLocal);
 
-            expect(result).toContain('#123456');
+            expect(result).toContain('deleted report #123456');
         });
     });
 
