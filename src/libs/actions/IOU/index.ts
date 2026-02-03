@@ -4586,7 +4586,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             value: lodashUnionBy(
                 transactionChanges.attendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, email})),
                 recentAttendees,
-                'email',
+                (attendee) => attendee.email || attendee.displayName,
             ).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW),
         });
     }
@@ -6974,7 +6974,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
                 optimisticReportID,
                 optimisticReportActionID,
-                policyID: isDistanceRequest ? undefined : policy?.id,
+                // Tracked expenses in the CREATE flow are unreported and not tied to a policy
+                policyID: undefined,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 reimbursable,

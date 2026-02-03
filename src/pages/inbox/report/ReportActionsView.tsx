@@ -29,7 +29,7 @@ import {
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
     isMoneyRequestAction,
-    isReportActionVisible,
+    shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
@@ -87,9 +87,9 @@ function ReportActionsView({
 
     const getTransactionThreadReportActions = useCallback(
         (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxTypes.ReportAction[] => {
-            return getSortedReportActionsForDisplay(reportActions, canPerformWriteAction, true, undefined, transactionThreadReportID ?? undefined);
+            return getSortedReportActionsForDisplay(reportActions, canPerformWriteAction, true);
         },
-        [canPerformWriteAction, transactionThreadReportID],
+        [canPerformWriteAction],
     );
 
     const [transactionThreadReportActions] = useOnyx(
@@ -102,7 +102,6 @@ function ReportActionsView({
     );
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
@@ -219,26 +218,13 @@ function ReportActionsView({
 
     const visibleReportActions = useMemo(
         () =>
-            reportActions.filter((reportAction) => {
-                const passesOfflineCheck =
-                    isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;
-
-                if (!passesOfflineCheck) {
-                    return false;
-                }
-
-                const actionReportID = reportAction.reportID ?? reportID;
-                if (!isReportActionVisible(reportAction, actionReportID, canPerformWriteAction, visibleReportActionsData)) {
-                    return false;
-                }
-
-                if (!isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)) {
-                    return false;
-                }
-
-                return true;
-            }),
-        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, visibleReportActionsData, reportID],
+            reportActions.filter(
+                (reportAction) =>
+                    (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
+                    isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
+            ),
+        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
@@ -323,8 +309,7 @@ function ReportActionsView({
         return <ReportActionsSkeletonView />;
     }
 
-    const hasDerivedValueTimingIssue = reportActions.length > 0 && isMissingReportActions;
-    if (hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) {
+    if (!isReportTransactionThread && isMissingReportActions) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
