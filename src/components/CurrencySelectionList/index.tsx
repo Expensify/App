@@ -23,7 +23,6 @@ function CurrencySelectionList({
     const {translate} = useLocalize();
     const getUnselectedOptions = (options: CurrencyListItem[]) => options.filter((option) => !option.isSelected);
 
-
     const currencyOptions: CurrencyListItem[] = Object.entries(currencyList).reduce((acc, [currencyCode, currencyInfo]) => {
         const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
         if (!excludedCurrencies.includes(currencyCode) && (isSelectedCurrency || !currencyInfo?.retired)) {
