@@ -6370,6 +6370,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 adultEntertainment: 'Divertissement pour adultes',
                 requireCompanyCard: "Exiger l'utilisation de cartes d'entreprise pour tous les achats",
                 requireCompanyCardDescription: 'Signaler toutes les dépenses en espèces, y compris le kilométrage et les indemnités journalières.',
+                requireCompanyCardDisabledTooltip: 'Connectez une carte professionnelle pour activer cette fonctionnalité.',
             },
             expenseReportRules: {
                 title: 'Avancé',

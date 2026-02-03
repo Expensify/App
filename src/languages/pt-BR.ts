@@ -6318,6 +6318,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 adultEntertainment: 'Entretenimento adulto',
                 requireCompanyCard: 'Exigir cartões corporativos para todas as compras',
                 requireCompanyCardDescription: 'Sinalize todos os gastos em dinheiro, incluindo despesas com quilometragem e diárias.',
+                requireCompanyCardDisabledTooltip: 'Conecte um cartão corporativo para ativar este recurso.',
             },
             expenseReportRules: {
                 title: 'Avançado',

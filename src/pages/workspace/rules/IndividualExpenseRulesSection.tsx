@@ -253,6 +253,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
                     disabled={disableRequireCompanyCardToggle}
                     showLockIcon={disableRequireCompanyCardToggle}
+                    disabledText={disableRequireCompanyCardToggle ? translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip') : undefined}
                     wrapperStyle={[styles.mt3]}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}

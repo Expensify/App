@@ -6293,6 +6293,7 @@ ${reportName}
                 adultEntertainment: 'アダルトエンターテインメント',
                 requireCompanyCard: 'すべての購入に会社カードを必須にする',
                 requireCompanyCardDescription: 'マイレージや日当経費を含む、すべての現金支出にフラグを付ける。',
+                requireCompanyCardDisabledTooltip: 'この機能を有効にするには、会社カードを連携してください。',
             },
             expenseReportRules: {
                 title: '詳細設定',

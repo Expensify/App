@@ -6335,6 +6335,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 adultEntertainment: 'Intrattenimento per adulti',
                 requireCompanyCard: 'Richiedi le carte aziendali per tutti gli acquisti',
                 requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, inclusi chilometraggio e indennità giornaliere.',
+                requireCompanyCardDisabledTooltip: 'Collega una carta aziendale per abilitare questa funzionalità.',
             },
             expenseReportRules: {
                 title: 'Avanzate',

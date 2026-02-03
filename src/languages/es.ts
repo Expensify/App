@@ -6059,6 +6059,7 @@ ${amount} para ${merchant} - ${date}`,
                 adultEntertainment: 'Entretenimiento para adultos',
                 requireCompanyCard: 'Requerir que todas las compras se hagan con la tarjeta de empresa',
                 requireCompanyCardDescription: 'Marca todo gasto en efectivo, incluyendo kilometraje y gastos per diem.',
+                requireCompanyCardDisabledTooltip: 'Conecta una tarjeta de empresa para habilitar esta función.',
             },
             expenseReportRules: {
                 title: 'Avanzado',
