@@ -247,19 +247,27 @@ describe('actions/Domain', () => {
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
                 {domain: domainName, targetEmail, overrideProcessingReports: false},
                 {
-                    optimisticData: [
+                    optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {members: {[targetEmail]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                            value: {member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}},
                         }),
-                    ],
-                    successData: [
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {memberErrors: {[targetEmail]: null}},
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {members: {[targetEmail]: null}},
+                            value: {member: {[targetEmail]: null}},
                         }),
-                    ],
-                    failureData: [
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {memberErrors: {[targetEmail]: null}},
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
                             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -272,9 +280,9 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {members: {[targetEmail]: null}},
+                            value: {member: {[targetEmail]: null}},
                         }),
-                    ],
+                    ]),
                 },
             );
 

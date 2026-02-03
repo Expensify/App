@@ -49,7 +49,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const getCustomRowProps = (accountID: number, email?: string) => {
         const errorKey = email ?? accountID;
         const errors = getLatestError(domainErrors?.memberErrors?.[errorKey]?.errors) ?? undefined;
-        const pendingAction = email ? domainPendingAction?.[email] : undefined;
+        const pendingAction = email ? domainPendingAction?.[email]?.pendingAction : undefined;
 
         return {errors, pendingAction};
     };

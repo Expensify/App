@@ -134,7 +134,7 @@ function selectSecurityGroupForAccount(accountID: number) {
     };
 }
 
-const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.members ?? {};
+const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.member ?? {};
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 

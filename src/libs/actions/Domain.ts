@@ -952,24 +952,21 @@ function clearDomainMemberError(domainAccountID: number, accountID: number, emai
 
 /** Sends a request to remove a user from a domain and close their account */
 function closeUserAccount(domainAccountID: number, domain: string, accountID: number, targetEmail: string, securityGroupsData: UserSecurityGroupData, overrideProcessingReports = false) {
-    const failureValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
-
-    if (securityGroupsData) {
-        const groupID = securityGroupsData.key;
-
-        failureValue[groupID] = {
-            shared: {
-                [accountID]: 'read',
-            },
-        };
-    }
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                members: {[targetEmail]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [targetEmail]: null,
+                },
             },
         },
     ];
@@ -979,7 +976,16 @@ function closeUserAccount(domainAccountID: number, domain: string, accountID: nu
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                members: {[targetEmail]: null},
+                member: {[targetEmail]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [targetEmail]: null,
+                },
             },
         },
     ];
@@ -996,15 +1002,23 @@ function closeUserAccount(domainAccountID: number, domain: string, accountID: nu
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: failureValue,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {[targetEmail]: null},
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-            value: {
-                members: {[targetEmail]: null},
-            },
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: (securityGroupsData?.key
+                ? {
+                      [securityGroupsData.key]: {
+                          shared: {
+                              [accountID]: 'read',
+                          },
+                      },
+                  }
+                : {}) as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         },
     ];
 
