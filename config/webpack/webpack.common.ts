@@ -389,6 +389,20 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         name: 'illustrations',
                         chunks: 'all',
                     },
+                    // React and React-DOM - separate chunk for better caching
+                    react: {
+                        test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+                        name: 'react',
+                        chunks: 'initial',
+                        priority: 30,
+                    },
+                    // UI Libraries - React Native Web and related UI libraries
+                    uiLibraries: {
+                        test: /[\\/]node_modules[\\/](react-native-web|react-native-reanimated|react-native-gesture-handler|react-native-svg|@react-navigation|react-native-tab-view|@shopify\/flash-list|react-native-screens|react-native-safe-area-context)[\\/]/,
+                        name: 'ui-libraries',
+                        chunks: 'initial',
+                        priority: 20,
+                    },
                     // Extract all 3rd party dependencies (~75% of App) to separate js file
                     // This gives a more efficient caching - 3rd party deps don't change as often as main source
                     // When dependencies don't change webpack would produce the same js file (and content hash)
@@ -401,6 +415,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         // Capture only the scripts needed for the initial load, so any async imports
                         // would be grouped (and lazy loaded) separately
                         chunks: 'initial',
+                        priority: 10,
                     },
                 },
             },
