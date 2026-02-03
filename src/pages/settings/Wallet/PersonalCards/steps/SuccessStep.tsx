@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {clearAddNewPersonalCardFlow} from '@userActions/PersonalCards';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 
@@ -33,10 +32,7 @@ function SuccessStep() {
 
     const exitFlow = () => {
         goBack();
-        clearAddNewPersonalCardFlow();
     };
-
-    useEffect(() => clearAddNewPersonalCardFlow, []);
 
     return (
         <ScreenWrapper

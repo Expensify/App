@@ -16,7 +16,6 @@ import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/t
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards/PersonalCardsErrorConfirmation';
 import useGetNewPersonalCard from '@pages/settings/Wallet/PersonalCards/useGetNewPersonalCard';
-import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import {setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
 import CONST from '@src/CONST';
@@ -47,7 +46,6 @@ function BankConnection({route}: BankConnectionProps) {
     const headerTitle = translate('workspace.companyCards.addCards');
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
-
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
             return;
@@ -57,7 +55,7 @@ function BankConnection({route}: BankConnectionProps) {
 
     const handleBackButtonPress = () => {
         customWindow?.close();
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_BANK});
     };
 
     const CustomSubtitle = (

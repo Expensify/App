@@ -444,6 +444,10 @@ function WalletPage() {
         ],
     );
 
+    const onAddPersonalCardPress = () => {
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
+    };
+
     const openCompanyCardFlow = () => {
         if (hasSinglePolicy) {
             const policy = activeAdminPolicies.at(0);
@@ -556,32 +560,14 @@ function WalletPage() {
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
                             <>
-                                {!hasAssignedCard ? (
-                                    <PaymentMethodList
-                                        shouldShowAddBankAccount={false}
-                                        shouldShowAssignedCards
-                                        onPress={assignedCardPressed}
-                                        threeDotsMenuItems={cardThreeDotsMenuItems}
-                                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                    />
-                                ) : null}
-                                <MenuItem
-                                    title={translate('personalCard.addPersonalCard')}
-                                    icon={icons.Plus}
-                                    onPress={() => {
-                                        if (isAccountLocked) {
-                                            showLockedAccountModal();
-                                            return;
-                                        }
-
-                                        if (!isUserValidated) {
-                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT);
-                                            return;
-                                        }
-                                        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
-                                    }}
-                                    wrapperStyle={[styles.transferBalance, styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                <PaymentMethodList
+                                    shouldShowAddBankAccount={false}
+                                    shouldShowAssignedCards
+                                    onPress={assignedCardPressed}
+                                    onAddPersonalCardPress={onAddPersonalCardPress}
+                                    threeDotsMenuItems={cardThreeDotsMenuItems}
+                                    style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                    listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 />
                                 {hasAssignedCard ? (
                                     <MenuItem

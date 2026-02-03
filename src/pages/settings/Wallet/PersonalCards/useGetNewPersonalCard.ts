@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 export default function useGetNewPersonalCard() {
     const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
@@ -10,6 +10,13 @@ export default function useGetNewPersonalCard() {
     const prevCardListRef = useRef<Record<string, Card>>({});
 
     useEffect(() => {
+        if (!cardList) {
+            return;
+        }
+        if (isEmptyObject(prevCardListRef.current) && cardList) {
+            prevCardListRef.current = cardList;
+            return;
+        }
         const prevCardList = prevCardListRef.current;
         const prevIds = new Set(Object.keys(prevCardList));
         const currentIds = Object.keys(cardList);

@@ -100,6 +100,9 @@ type PaymentMethodListProps = {
     /** Function to be called when the user presses the add bank account button */
     onAddBankAccountPress?: () => void;
 
+    /** Function to be called when the user presses the add personal card button */
+    onAddPersonalCardPress?: () => void;
+
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;
 
@@ -162,6 +165,7 @@ function PaymentMethodList({
     shouldHideDefaultBadge = false,
     threeDotsMenuItems,
     onThreeDotsMenuPress,
+    onAddPersonalCardPress,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -193,6 +197,7 @@ function PaymentMethodList({
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
+    const shouldShowListFooterComponent = !!onAddPersonalCardPress || shouldShowAddBankAccount;
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -446,6 +451,10 @@ function PaymentMethodList({
     ]);
 
     const onPressItem = useCallback(() => {
+        if (onAddPersonalCardPress) {
+            onAddPersonalCardPress();
+            return;
+        }
         if (!isUserValidated && !shouldSkipDefaultAccountValidation) {
             const path = Navigation.getActiveRoute();
             if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
@@ -456,19 +465,19 @@ function PaymentMethodList({
             return;
         }
         onAddBankAccountPress();
-    }, [isUserValidated, onAddBankAccountPress, policyID, shouldSkipDefaultAccountValidation]);
+    }, [isUserValidated, onAddBankAccountPress, policyID, shouldSkipDefaultAccountValidation, onAddPersonalCardPress]);
 
     const renderListFooterComponent = useCallback(
         () => (
             <MenuItem
                 onPress={onPressItem}
-                title={translate('bankAccount.addBankAccount')}
+                title={onAddPersonalCardPress ? translate('personalCard.addPersonalCard') : translate('bankAccount.addBankAccount')}
                 icon={Expensicons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
             />
         ),
 
-        [onPressItem, translate, styles.paymentMethod, listItemStyle],
+        [onPressItem, onAddPersonalCardPress, translate, styles.paymentMethod, listItemStyle],
     );
 
     const itemsToRender = useMemo(() => {
@@ -530,13 +539,13 @@ function PaymentMethodList({
     );
 
     return (
-        <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
+        <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowListFooterComponent ? 1 : 0)) * variables.optionRowHeight}]}>
             <FlashList<PaymentMethod | string>
                 data={itemsToRender}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 ListHeaderComponent={listHeaderComponent}
-                ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
+                ListFooterComponent={shouldShowListFooterComponent ? renderListFooterComponent : null}
                 onContentSizeChange={onListContentSizeChange}
             />
         </View>

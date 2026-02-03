@@ -74,18 +74,16 @@ function SelectCountryStep() {
     };
 
     const getCountries = () =>
-        Object.keys(CONST.PLAID_SUPPORT_COUNTRIES)
-            .filter((countryISO) => !CONST.PLAID_EXCLUDED_COUNTRIES.includes(countryISO))
-            .map((countryISO) => {
-                const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-                return {
-                    value: countryISO,
-                    keyForList: countryISO,
-                    text: countryName,
-                    isSelected: currentCountry === countryISO,
-                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-                };
-            });
+        CONST.PLAID_SUPPORT_COUNTRIES.map((countryISO) => {
+            const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+            return {
+                value: countryISO,
+                keyForList: countryISO,
+                text: countryName,
+                isSelected: currentCountry === countryISO,
+                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+            };
+        });
 
     const countries = getCountries();
 
