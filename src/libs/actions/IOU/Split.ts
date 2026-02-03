@@ -2134,6 +2134,7 @@ export {
     updateSplitTransactions,
     updateSplitTransactionsFromSplitExpensesFlow,
     initSplitExpense,
+    initSplitExpenseItemData,
     updateSplitExpenseField,
     updateSplitExpenseAmountField,
     clearSplitTransactionDraftErrors,
@@ -2145,6 +2146,8 @@ export {
     adjustRemainingSplitShares,
     setDraftSplitTransaction,
     setIndividualShare,
+    setSplitShares,
+    resetSplitShares,
 };
 
 export type {SplitBillActionsParams, UpdateSplitTransactionsParams};
