@@ -265,6 +265,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // We intentionally omit `process` and `state` from dependencies.
         // Including them would cause infinite re-renders since `process` is recreated on every state change.
         // Instead, we list only the specific state fields that should trigger a re-run of the MFA flow.
+        // https://github.com/Expensify/App/issues/81197
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         // Error states - need to handle failures and navigate to outcome screens
