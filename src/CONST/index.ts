@@ -1712,6 +1712,8 @@ const CONST = {
         SHOW_HOVER_PREVIEW_DELAY: 270,
         SHOW_HOVER_PREVIEW_ANIMATION_DURATION: 250,
         ACTIVITY_INDICATOR_TIMEOUT: 10000,
+        TODO_COMPUTATION: 'todo_computation',
+        HOME_PAGE_TTI: 'home_page_tti',
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
