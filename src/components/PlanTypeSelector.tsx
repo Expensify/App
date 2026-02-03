@@ -69,15 +69,13 @@ function PlanTypeSelector({errorText = '', value: planType, onInputChange = () =
     };
 
     // Create plan type options
-    const planTypeOptions: PlanTypeItem[] = Object.values(CONST.POLICY.TYPE)
-        .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL)
-        .map((policyType) => ({
-            value: policyType,
-            text: translate(`workspace.planTypePage.planTypes.${policyType}.label`),
-            alternateText: translate(`workspace.planTypePage.planTypes.${policyType}.description`),
-            keyForList: policyType,
-            isSelected: policyType === planType,
-        }));
+    const planTypeOptions: PlanTypeItem[] = [CONST.POLICY.TYPE.TEAM, CONST.POLICY.TYPE.CORPORATE].map((policyType) => ({
+        value: policyType,
+        text: translate(`workspace.planTypePage.planTypes.${policyType}.label`),
+        alternateText: translate(`workspace.planTypePage.planTypes.${policyType}.description`),
+        keyForList: policyType,
+        isSelected: policyType === planType,
+    }));
 
     return (
         <>
