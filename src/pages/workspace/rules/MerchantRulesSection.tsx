@@ -68,7 +68,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const theme = useTheme();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const {isDevelopment} = useEnvironment();
+    const {isProduction} = useEnvironment();
 
     // Hoist iterator-independent translations to avoid redundant calls in the loop
     const fieldLabels: FieldLabels = useMemo(
@@ -100,7 +100,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             });
     }, [codingRules]);
 
-    if (!isDevelopment) {
+    if (isProduction) {
         return null;
     }
 

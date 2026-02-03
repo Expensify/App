@@ -1,5 +1,5 @@
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
-import {filterPersonalCards} from '@selectors/Card';
+import {filterOutPersonalCards} from '@selectors/Card';
 import {differenceInDays} from 'date-fns';
 import {stopLocationUpdatesAsync} from 'expo-location';
 import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
@@ -118,7 +118,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
-    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -243,6 +243,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             brickRoadIndicator: walletBrickRoadIndicator,
             action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
             badgeText: hasActivatedWallet ? convertToDisplayString(userWallet?.currentBalance) : undefined,
+        },
+        {
+            translationKey: 'expenseRulesPage.title',
+            icon: icons.Bolt,
+            screenName: SCREENS.SETTINGS.RULES.ROOT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_RULES),
         },
         {
             translationKey: 'common.preferences',

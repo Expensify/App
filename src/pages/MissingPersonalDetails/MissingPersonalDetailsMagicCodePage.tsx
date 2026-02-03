@@ -21,7 +21,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubPageValues} from './utils';
 
 const areAllCardsShippedSelector = (cardList: OnyxEntry<CardList>) =>
-    Object.values(cardList ?? {})?.every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED && isPersonalCard(card));
+    Object.values(cardList ?? {})?.every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED && !isPersonalCard(card));
 
 function MissingPersonalDetailsMagicCodePage() {
     const {translate} = useLocalize();
