@@ -8049,6 +8049,8 @@ const CONST = {
             DOWNLOAD_BUTTON: 'Header-DownloadButton',
             CLOSE_BUTTON: 'Header-CloseButton',
             MORE_BUTTON: 'Header-MoreButton',
+            PREVIOUS_BUTTON: 'Header-PreviousButton',
+            NEXT_BUTTON: 'Header-NextButton',
         },
         VIDEO_PLAYER: {
             PLAY_PAUSE_BUTTON: 'VideoPlayer-PlayPauseButton',
