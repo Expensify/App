@@ -627,29 +627,38 @@ jobs:
             echo "Release ${{ needs.prep.outputs.TAG }} already exists, skipping creating it again."
           else
             echo "Release ${{ needs.prep.outputs.TAG }} does not exist, creating it now."
-            CREATE_RETRIES=0
             readonly CREATE_MAX_RETRIES=5
-            until gh release create "${{ needs.prep.outputs.TAG }}" ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
-              --repo "${{ github.repository }}" \
-              --title "${{ needs.prep.outputs.TAG }}" \
-              ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
-              --generate-notes \
-              --verify-tag \
-              --target "${{ github.ref }}" || [[ $CREATE_RETRIES -ge $CREATE_MAX_RETRIES ]]; do
-              echo "Failed to create release. Retrying in 3 seconds... ($((CREATE_MAX_RETRIES - ++CREATE_RETRIES)) attempts left)"
-              sleep 3
+            for ((i = 0; i <= CREATE_MAX_RETRIES; i++)); do
+              if gh release create "${{ needs.prep.outputs.TAG }}" ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
+                --repo "${{ github.repository }}" \
+                --title "${{ needs.prep.outputs.TAG }}" \
+                ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
+                --generate-notes \
+                --verify-tag \
+                --target "${{ github.ref }}"; then
+                break
+              fi
+              if [[ $i -lt $CREATE_MAX_RETRIES ]]; then
+                echo "Failed to create release. Retrying in 3 seconds... ($((CREATE_MAX_RETRIES - i)) attempts left)"
+                sleep 3
+              else
+                echo "Failed to create release after $((CREATE_MAX_RETRIES + 1)) attempts"
+                exit 1
+              fi
             done
 
-            if [[ $CREATE_RETRIES -ge $CREATE_MAX_RETRIES ]]; then
-              echo "Failed to create release after $CREATE_MAX_RETRIES attempts"
-              exit 1
-            fi
-
-            RETRIES=0
-            readonly MAX_RETRIES=10
-            until [[ $(gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}") || $RETRIES -ge $MAX_RETRIES ]]; do
-              echo "Release ${{ needs.prep.outputs.TAG }} not yet visible after creation. Retrying... ($((MAX_RETRIES - RETRIES++)) attempts left)"
-              sleep 1
+            readonly VIEW_MAX_RETRIES=10
+            for ((i = 0; i <= VIEW_MAX_RETRIES; i++)); do
+              if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
+                break
+              fi
+              if [[ $i -lt $VIEW_MAX_RETRIES ]]; then
+                echo "Release ${{ needs.prep.outputs.TAG }} not yet visible after creation. Retrying... ($((VIEW_MAX_RETRIES - i)) attempts left)"
+                sleep 1
+              else
+                echo "Release ${{ needs.prep.outputs.TAG }} never became visible after $((VIEW_MAX_RETRIES + 1)) checks"
+                exit 1
+              fi
             done
           fi
         env:
