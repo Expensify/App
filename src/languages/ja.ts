@@ -7318,13 +7318,8 @@ ${reportName}
     },
     cardTransactions: {
         notActivated: '未有効化',
-<<<<<<< HEAD
         outOfPocket: '返金可能',
         companySpend: '返金不可',
-=======
-        outOfPocket: '立替経費支出',
-        companySpend: '会社の支出',
->>>>>>> main
     },
     distance: {
         addStop: '停止を追加',
