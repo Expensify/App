@@ -257,6 +257,16 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+// Global variable to store policies collection for SubscriptionUtils calls
+let allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (policies) => {
+        allPolicies = policies;
+    },
+});
+
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
@@ -9790,7 +9800,7 @@ function approveMoneyRequest(
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(allPolicies, expenseReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -10618,7 +10628,7 @@ function submitReport(
     if (!expenseReport) {
         return;
     }
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(allPolicies, expenseReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -11129,7 +11139,7 @@ function completePaymentOnboarding(
 
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     const {paymentType, chatReport, iouReport, introSelected, iouReportCurrentNextStepDeprecated, currentUserAccountID, paymentPolicyID, full = true, activePolicy, policy} = params;
-    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
+    if (chatReport.policyID && shouldRestrictUserBillableActions(allPolicies, chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
     }

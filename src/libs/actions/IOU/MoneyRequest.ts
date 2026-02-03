@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
@@ -14,6 +15,7 @@ import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -36,6 +38,16 @@ import {
     trackExpense,
 } from './index';
 import {startSplitBill} from './Split';
+
+// Global variable to store policies collection for SubscriptionUtils calls
+let allPolicies: OnyxCollection<Policy> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (policies) => {
+        allPolicies = policies;
+    },
+});
 
 type CreateTransactionParams = {
     transactions: Transaction[];
@@ -423,7 +435,7 @@ function handleMoneyRequestStepScanParticipants({
 
     // If there was no reportID, then that means the user started this flow from the global + menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
+    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, allPolicies)) {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id);
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -608,7 +620,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
     // If there was no reportID, then that means the user started this flow from the global menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
+    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, allPolicies)) {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id);
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;

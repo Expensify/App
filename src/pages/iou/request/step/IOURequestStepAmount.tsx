@@ -105,6 +105,7 @@ function IOURequestStepAmount({
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -297,7 +298,7 @@ function IOURequestStepAmount({
 
         // Starting from global + menu means no participant context exists yet,
         // so we need to handle participant selection based on available workspace settings
-        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
+        if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, policies)) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;

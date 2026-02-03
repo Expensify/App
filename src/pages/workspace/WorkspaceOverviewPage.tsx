@@ -90,6 +90,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
@@ -320,7 +321,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        if (shouldCalculateBillNewDot(canDowngrade)) {
+        if (shouldCalculateBillNewDot(allPolicies, canDowngrade)) {
             setIsDeletingPaidWorkspace(true);
             calculateBillNewDot();
             return;
@@ -462,7 +463,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onSelected: onDeleteWorkspace,
                 disabled: isLoadingBill,
                 shouldShowLoadingSpinnerIcon: isLoadingBill,
-                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(account?.canDowngrade),
+                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(allPolicies, account?.canDowngrade),
             });
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;

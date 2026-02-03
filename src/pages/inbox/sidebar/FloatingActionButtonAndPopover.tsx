@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import {createPoliciesSelector} from '@selectors/Policy';
 import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
@@ -95,20 +94,6 @@ type FloatingActionButtonAndPopoverRef = {
     hideCreateMenu: () => void;
 };
 
-const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
-    (policy && {
-        type: policy.type,
-        role: policy.role,
-        id: policy.id,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
-        pendingAction: policy.pendingAction,
-        avatarURL: policy.avatarURL,
-        name: policy.name,
-        areInvoicesEnabled: policy.areInvoicesEnabled,
-    }) as PolicySelector;
-
-const policiesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => createPoliciesSelector(policies, policySelector);
-
 const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
 const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => account?.primaryLogin;
@@ -163,7 +148,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         return policyChatsForActivePolicy.length > 0 ? policyChatsForActivePolicy.at(0) : ({} as OnyxTypes.Report);
     }, [activePolicy, activePolicyID, session?.accountID, allReports]);
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
@@ -309,13 +294,13 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
-            if (shouldRestrictAction && quickActionReport?.policyID && shouldRestrictUserBillableActions(quickActionReport.policyID)) {
+            if (shouldRestrictAction && quickActionReport?.policyID && shouldRestrictUserBillableActions(allPolicies, quickActionReport.policyID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReport.policyID));
                 return;
             }
             onSelected();
         },
-        [quickActionReport?.policyID],
+        [quickActionReport?.policyID, allPolicies],
     );
 
     const showRedirectToExpensifyClassicModal = useCallback(async () => {
@@ -349,7 +334,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const startQuickScan = useCallback(() => {
         interceptAnonymousUser(() => {
-            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(allPolicies, policyChatForActivePolicy.policyID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                 return;
             }
@@ -358,7 +343,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts, true);
         });
-    }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);
+    }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, allPolicies, reportID, allTransactionDrafts]);
 
     /**
      * Check if LHN status changed from active to inactive.
@@ -503,7 +488,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         if (!isEmptyObject(policyChatForActivePolicy)) {
             const onSelected = () => {
                 interceptAnonymousUser(() => {
-                    if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+                    if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(allPolicies, policyChatForActivePolicy.policyID)) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                         return;
                     }
@@ -530,27 +515,28 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
         return [];
     }, [
-        icons,
         translate,
         styles.pt3,
         styles.pb2,
         quickAction,
-        policyChatForActivePolicy,
         quickActionReport,
+        policyChatForActivePolicy,
         quickActionPolicy,
         isReportArchived,
         isRestrictedToPreferredPolicy,
+        icons,
         quickActionTitle,
         quickActionAvatars,
         quickActionSubtitle,
         shouldUseNarrowLayout,
         isDelegateAccessRestricted,
+        personalDetails,
         isValidReport,
         selectOption,
         lastDistanceExpenseType,
-        personalDetails,
         currentUserPersonalDetails.accountID,
         showDelegateNoAccessModal,
+        allPolicies,
         reportID,
         allTransactionDrafts,
     ]);
@@ -606,13 +592,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
                               const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
-                              if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                              if (
+                                  !workspaceIDForReportCreation ||
+                                  (shouldRestrictUserBillableActions(allPolicies, workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)
+                              ) {
                                   // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
                                   Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                                   return;
                               }
 
-                              if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                              if (!shouldRestrictUserBillableActions(allPolicies, workspaceIDForReportCreation)) {
                                   // Check if empty report confirmation should be shown
                                   if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                                       openFabCreateReportConfirmation();

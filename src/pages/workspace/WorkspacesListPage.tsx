@@ -319,7 +319,7 @@ function WorkspacesListPage() {
         return translate('common.leaveWorkspaceConfirmation');
     };
 
-    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade);
+    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(policies, account?.canDowngrade);
 
     const resetLoadingSpinnerIconIndex = useCallback(() => {
         setLoadingSpinnerIconIndex(null);

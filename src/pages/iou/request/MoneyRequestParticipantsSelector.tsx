@@ -499,7 +499,7 @@ function MoneyRequestParticipantsSelector({
 
     const onSelectRow = useCallback(
         (option: Participant) => {
-            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID)) {
+            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(allPolicies, option.policyID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
             }
@@ -511,7 +511,7 @@ function MoneyRequestParticipantsSelector({
 
             addSingleParticipant(option);
         },
-        [isIOUSplit, addParticipantToSelection, addSingleParticipant],
+        [allPolicies, isIOUSplit, addSingleParticipant, addParticipantToSelection],
     );
 
     const importContactsButtonComponent = useMemo(() => {

@@ -79,13 +79,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (value) => (allPolicies = value),
-    waitForCollectionCallback: true,
-});
-
 /**
  * @returns The date when the grace period ends.
  */
@@ -189,13 +182,14 @@ function hasCardExpiringSoon(fundList: OnyxEntry<FundList>, billingStatus: OnyxE
 }
 
 function shouldShowDiscountBanner(
+    policies: OnyxCollection<Policy>,
     hasTeam2025Pricing: boolean,
     subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null,
     firstDayFreeTrial: string | undefined,
     lastDayFreeTrial: string | undefined,
     userBillingFundID: number | undefined,
 ): boolean {
-    if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
+    if (!getOwnedPaidPolicies(policies, currentUserAccountID)?.length) {
         return false;
     }
 
@@ -483,10 +477,10 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 /**
  * Whether the user's billable actions should be restricted.
  */
-function shouldRestrictUserBillableActions(policyID: string): boolean {
+function shouldRestrictUserBillableActions(policies: OnyxCollection<Policy>, policyID: string): boolean {
     const currentDate = new Date();
 
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
     // We should restrict the workspace's non-owner actions if it's member of a workspace where the owner is
@@ -519,8 +513,8 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
-function shouldCalculateBillNewDot(canDowngrade: boolean | undefined = false): boolean {
-    return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
+function shouldCalculateBillNewDot(policies: OnyxCollection<Policy>, canDowngrade: boolean | undefined = false): boolean {
+    return canDowngrade && getOwnedPaidPolicies(policies, currentUserAccountID).length === 1;
 }
 
 function getSubscriptionPrice(

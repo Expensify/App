@@ -59,6 +59,16 @@ import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
+// Global variable to store policies collection for SubscriptionUtils calls
+let policies: OnyxCollection<Policy> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (allPolicies) => {
+        policies = allPolicies;
+    },
+});
+
 type OnyxSearchResponse = {
     data: [];
     search: {
@@ -1208,7 +1218,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (policy && shouldRestrictUserBillableActions(policy?.id)) {
+    if (policy && shouldRestrictUserBillableActions(policies, policy?.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }

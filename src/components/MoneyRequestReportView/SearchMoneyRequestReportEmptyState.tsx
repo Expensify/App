@@ -23,6 +23,7 @@ const minModalHeight = 380;
 
 function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes.Report; policy?: OnyxTypes.Policy}) {
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
@@ -40,7 +41,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                 if (!reportId) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(allPolicies, policy.id)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -55,7 +56,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                 if (!reportId) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(allPolicies, policy.id)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -67,7 +68,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
             text: translate('iou.addUnreportedExpense'),
             icon: icons.ReceiptPlus,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(allPolicies, policy.id)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }

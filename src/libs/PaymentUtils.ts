@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -10,6 +11,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
@@ -22,6 +24,16 @@ import {approveMoneyRequest} from './actions/IOU';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
+
+// Global variable to store policies collection for SubscriptionUtils calls
+let allPolicies: OnyxCollection<Policy> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (policies) => {
+        allPolicies = policies;
+    },
+});
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 type TriggerKYCFlow = (params: ContinueActionParams) => void;
@@ -177,7 +189,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         iouReport,
         iouReportNextStep,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+    if (policy && shouldRestrictUserBillableActions(allPolicies, policy.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }

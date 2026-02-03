@@ -35,6 +35,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: sessionSelector});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const reportID = useMemo(() => generateReportID(), []);
@@ -53,7 +54,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
     const onPress = () => {
         interceptAnonymousUser(() => {
-            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policies, policyChatForActivePolicy.policyID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                 return;
             }

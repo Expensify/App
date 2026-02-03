@@ -229,7 +229,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 return;
             }
 
-            if (shouldRestrictUserBillableActions(policy.policyID)) {
+            if (shouldRestrictUserBillableActions(policies, policy.policyID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
                 return;
             }
@@ -240,7 +240,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 shouldShowEmptyReportConfirmation: !!policiesWithEmptyReports?.[policy.policyID] && hasDismissedEmptyReportsConfirmation !== true,
             });
         },
-        [hasDismissedEmptyReportsConfirmation, policiesWithEmptyReports],
+        [hasDismissedEmptyReportsConfirmation, policies, policiesWithEmptyReports],
     );
 
     const hasPerDiemTransactions = useMemo(() => {

@@ -5,6 +5,7 @@ import {getEarlyDiscountInfo, shouldShowDiscountBanner} from '@libs/Subscription
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function useTimeSensitiveOffers() {
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
@@ -12,7 +13,7 @@ function useTimeSensitiveOffers() {
     const subscriptionPlan = useSubscriptionPlan();
 
     // Use the same logic as the subscription page to determine if discount banner should be shown
-    const shouldShowDiscount = shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID);
+    const shouldShowDiscount = shouldShowDiscountBanner(policies, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID);
     const discountInfo = getEarlyDiscountInfo(firstDayFreeTrial);
 
     // Determine which offer to show based on discount type (they are mutually exclusive)

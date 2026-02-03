@@ -207,13 +207,13 @@ function SettlementButton({
             return true;
         }
 
-        if (policy && shouldRestrictUserBillableActions(policy.id)) {
+        if (policy && shouldRestrictUserBillableActions(policies, policy.id)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return true;
         }
 
         return false;
-    }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID, showLockedAccountModal, isDelegateAccessRestricted, showDelegateNoAccessModal]);
+    }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID, showLockedAccountModal, isDelegateAccessRestricted, showDelegateNoAccessModal, policies]);
 
     const getPaymentSubItems = useCallback(
         (payAsBusiness: boolean) => {

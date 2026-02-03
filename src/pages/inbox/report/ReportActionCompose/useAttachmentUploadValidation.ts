@@ -181,7 +181,7 @@ function useAttachmentUploadValidation({
 
     const onReceiptDropped = useCallback(
         (e: DragEvent) => {
-            if (policy && shouldRestrictUserBillableActions(policy.id)) {
+            if (policy && shouldRestrictUserBillableActions(allPolicies, policy.id)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
@@ -202,7 +202,7 @@ function useAttachmentUploadValidation({
             attachmentUploadType.current = 'receipt';
             validateFiles(files, items, {isValidatingReceipts: true});
         },
-        [policy, shouldAddOrReplaceReceipt, transactionID, validateFiles],
+        [allPolicies, policy, shouldAddOrReplaceReceipt, transactionID, validateFiles],
     );
 
     return {

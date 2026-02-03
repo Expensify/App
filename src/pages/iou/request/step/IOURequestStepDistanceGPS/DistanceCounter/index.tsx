@@ -25,11 +25,12 @@ type DistanceCounterProps = {
 function DistanceCounter({report, transaction, iouType}: DistanceCounterProps) {
     const styles = useThemeStyles();
     const policy = usePolicy(report?.policyID);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
-    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, policies);
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
