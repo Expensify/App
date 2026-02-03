@@ -22,6 +22,7 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2140,6 +2141,12 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Ocorreu um erro ao adicionar seu cartão. Tente novamente.',
             password: 'Insira sua senha do Expensify',
         },
+    },
+    personalCard: {
+        brokenConnection: 'Your card connection is broken',
+        fixCard: 'Fix card',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7575,9 +7582,14 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisão necessária',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Não é possível associar automaticamente o recibo devido à conexão bancária interrompida';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                return isAdmin
+                    ? `Can't auto-match receipt due to broken card connection. Mark as cash to ignore, or <a href="${connectionLink}">fix the card</a> to match the receipt.`
+                    : "Can't auto-match receipt due to broken card connection.";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

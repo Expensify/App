@@ -4,7 +4,14 @@ import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
-import type {CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, RoutedDueToDEWParams, SplitDateRangeParams, ViolationsRterParams} from './params';
+import type {
+    ConciergeBrokenCardConnectionParams,
+    CreatedReportForUnapprovedTransactionsParams,
+    PaidElsewhereParams,
+    RoutedDueToDEWParams,
+    SplitDateRangeParams,
+    ViolationsRterParams,
+} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -1909,6 +1916,12 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Se ha producido un error al añadir tu tarjeta. Por favor, vuelva a intentarlo.',
             password: 'Por favor, introduce tu contraseña de Expensify',
         },
+    },
+    personalCard: {
+        brokenConnection: 'Your card connection is broken',
+        fixCard: 'Fix card',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7691,9 +7704,14 @@ ${amount} para ${merchant} - ${date}`,
         },
         customRules: ({message}) => message,
         reviewRequired: 'Revisión requerida',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                return isAdmin
+                    ? `Can't auto-match receipt due to broken card connection. Mark as cash to ignore, or <a href="${connectionLink}">fix the card</a> to match the receipt.`
+                    : "Can't auto-match receipt due to broken card connection.";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
