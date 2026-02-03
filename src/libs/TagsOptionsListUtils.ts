@@ -3,12 +3,12 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import CONST from '@src/CONST';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {insertTagIntoTransactionTagsString} from './IOUUtils';
 import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
 import {getCleanedTagName, getTagList, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
 import {getTagArrayFromName, getTagForDisplay} from './TransactionUtils';
-import {insertTagIntoTransactionTagsString} from './IOUUtils';
 
 type SelectedTagOption = {
     name: string;
@@ -261,15 +261,7 @@ function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTa
     });
 }
 
-function getUpdatedTransactionTag({
-    transactionTag,
-    selectedTagName,
-    currentTag,
-    tagListIndex,
-    policyTags,
-    hasDependentTags,
-    hasMultipleTagLists,
-}: UpdatedTransactionTagParams): string {
+function getUpdatedTransactionTag({transactionTag, selectedTagName, currentTag, tagListIndex, policyTags, hasDependentTags, hasMultipleTagLists}: UpdatedTransactionTagParams): string {
     const isSelectedTag = selectedTagName === currentTag;
 
     if (hasDependentTags) {

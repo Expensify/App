@@ -91,7 +91,6 @@ function IOURequestStepTag({
     };
 
     const updateTag = (selectedTag: Partial<OptionData>) => {
-
         const updatedTag = getUpdatedTransactionTag({
             transactionTag,
             selectedTagName: selectedTag.searchText ?? '',
