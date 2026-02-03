@@ -322,18 +322,18 @@ onReconnection(flush);
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
 
-function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
+async function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest): Promise<void> {
     if (conflictAction.type === 'push') {
-        savePersistedRequest(newRequest);
+        await savePersistedRequest(newRequest);
     } else if (conflictAction.type === 'replace') {
         updatePersistedRequest(conflictAction.index, conflictAction.request ?? newRequest);
     } else if (conflictAction.type === 'delete') {
         deletePersistedRequestsByIndices(conflictAction.indices);
         if (conflictAction.pushNewRequest) {
-            savePersistedRequest(newRequest);
+            await savePersistedRequest(newRequest);
         }
         if (conflictAction.nextAction) {
-            handleConflictActions(conflictAction.nextAction, newRequest);
+            await handleConflictActions(conflictAction.nextAction, newRequest);
         }
     } else {
         Log.info(`[SequentialQueue] No action performed to command ${newRequest.command} and it will be ignored.`);
@@ -342,6 +342,7 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
 
 function push(newRequest: OnyxRequest) {
     const {checkAndFixConflictingRequest} = newRequest;
+    let savePromise: Promise<void>;
 
     if (checkAndFixConflictingRequest) {
         const requests = getAllPersistedRequests();
@@ -351,28 +352,29 @@ function push(newRequest: OnyxRequest) {
         // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
         delete newRequest.checkAndFixConflictingRequest;
-        handleConflictActions(conflictAction, newRequest);
+        savePromise = handleConflictActions(conflictAction, newRequest);
     } else {
         Log.info('[SequentialQueue] No conflict action. Adding request to Persisted Requests', false, {command: newRequest.command});
         // Add request to Persisted Requests so that it can be retried if it fails
-        savePersistedRequest(newRequest);
+        savePromise = savePersistedRequest(newRequest);
     }
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (isOffline()) {
         Log.info('[SequentialQueue] Unable to push request due to offline status');
-        return;
+        return savePromise;
     }
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
         Log.info('[SequentialQueue] Queue is running. Will flush when the current request is finished.');
         isReadyPromise.then(() => flush(true));
-        return;
+        return savePromise;
     }
 
     Log.info('[SequentialQueue] Queue is not running. Flushing the queue.');
     flush(true);
+    return savePromise;
 }
 
 function getCurrentRequest(): Promise<void> {
