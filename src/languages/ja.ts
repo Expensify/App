@@ -8218,7 +8218,7 @@ ${reportName}
             errors: {
                 addMember: 'このメンバーを追加できません。もう一度お試しください。',
             },
-            orceTwoFactorAuth: '2 要素認証を強制する',
+            forceTwoFactorAuth: '2 要素認証を強制する',
             forceTwoFactorAuthSAMLEnabledDescription: `<muted-text>二要素認証を強制するには、<a href="${CONST.SAML_HELP_URL}">SAML</a> を無効にしてください。</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>このドメインのすべてのメンバーに二要素認証を必須にします。ドメインのメンバーは、サインイン時にアカウントで二要素認証を設定するよう求められます。</muted-text>`,
             forceTwoFactorAuthError: '2 要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',

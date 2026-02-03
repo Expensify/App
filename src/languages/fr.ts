@@ -8325,7 +8325,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceTwoFactorAuthDescription: `<muted-text>Exiger l’authentification à deux facteurs pour tous les membres de ce domaine. Les membres du domaine seront invités à configurer l’authentification à deux facteurs sur leur compte lorsqu’ils se connecteront.</muted-text>`,
             forceTwoFactorAuthError: 'Impossible de modifier l’obligation d’authentification à deux facteurs. Veuillez réessayer ultérieurement.',
         },
-        domainAdmins: 'Administrateurs de domaine',
         common: {settings: 'Paramètres'},
     },
 };

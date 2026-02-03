@@ -8261,7 +8261,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             primaryContact: 'Contatto principale',
             addPrimaryContact: 'Aggiungi contatto principale',
             setPrimaryContactError: 'Impossibile impostare il contatto principale. Riprova più tardi.',
-            settings: 'Impostazioni',
             consolidatedDomainBilling: 'Fatturazione dominio consolidata',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Se abilitata, la persona di contatto principale pagherà tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.</muted-text-label></comment>`,
