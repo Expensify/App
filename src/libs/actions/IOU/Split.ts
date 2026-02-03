@@ -1537,7 +1537,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     }
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
-        Navigation.dismissToSuperWideRHP();
+        Navigation.navigateBackToLastSuperWideRHPScreen();
 
         // After the modal is dismissed, remove the transaction thread report screen
         // to avoid navigating back to a report removed by the split transaction.

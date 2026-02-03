@@ -1263,6 +1263,7 @@ function openReport(
                 [iouReportActionID]: {
                     ...optimisticIOUAction,
                     childReportID: reportID,
+                    isOptimisticAction: true,
                 },
             },
         });
@@ -6464,7 +6465,7 @@ function changeReportPolicyAndInviteSubmitter(
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
     const {optimisticData, successData, failureData, membersChats} = buildAddMembersToWorkspaceOnyxData(
         {[submitterEmail]: report.ownerAccountID},
-        policy.id,
+        policy,
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
         formatPhoneNumber,
