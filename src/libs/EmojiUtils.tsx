@@ -61,7 +61,7 @@ function getEmojiCodeForInsertion(emoji: Emoji, preferredSkinTone: number, isIns
 }
 
 /**
- * Revert emojis to shortcodes inside code blocks (Slack behavior).
+ * Revert emojis to shortcodes inside code blocks.
  */
 function revertEmojisInCodeBlocks(text: string): string {
     const codeRanges = getCodeRanges(text);
@@ -448,7 +448,8 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
         cursorPosition = firstReplacement.position + firstReplacement.replacement.length + offsetFromLeftReplacements;
     }
 
-    // Append space after last emoji if not already followed by one
+    // cursorPosition points to the end of the last replaced emoji. Append a space
+    // at the cursor position, but only if the next character is not already a space.
     if (cursorPosition && cursorPosition > 0) {
         const space = ' ';
         if (newText.charAt(cursorPosition) !== space) {
