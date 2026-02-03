@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
 
-type RequestMatcher<TKey extends OnyxKey> = (request: OnyxRequest<TKey>) => boolean;
+type AnyRequestMatcher = (request: AnyRequest) => boolean;
 
 const addNewMessage = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 
@@ -53,7 +53,7 @@ function createUpdateCommentMatcher(reportActionID: string) {
  * - If no match is found, it suggests adding the request to the list, indicating a 'push' action.
  * - If a match is found, it suggests updating the existing entry, indicating a 'replace' action at the found index.
  */
-function resolveDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, requestMatcher: RequestMatcher<TKey>): ConflictActionData {
+function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], requestMatcher: AnyRequestMatcher): ConflictActionData {
     const index = persistedRequests.findIndex(requestMatcher);
     if (index === -1) {
         return {
@@ -237,4 +237,4 @@ export {
     enablePolicyFeatureCommand,
 };
 
-export type {EnablePolicyFeatureCommand, RequestMatcher};
+export type {EnablePolicyFeatureCommand, AnyRequestMatcher};

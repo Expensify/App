@@ -24,7 +24,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
-HttpUtils.xhr = jest.fn() as typeof HttpUtils.xhr;
+HttpUtils.xhr = jest.fn<typeof HttpUtils.xhr<never>>();
 
 // Mocked to ensure push notifications are subscribed/unsubscribed as the session changes
 jest.mock('@libs/Notification/PushNotification');
