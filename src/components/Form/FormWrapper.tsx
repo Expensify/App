@@ -11,6 +11,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
@@ -134,6 +135,12 @@ function FormWrapper({
 
         // Focus the input after scrolling, as on the Web it gives a slightly better visual result
         focusInput?.focus?.();
+
+        // Use the inputRefs ref which contains InputComponentBaseProps with a focus method
+        const componentRef = inputRefs.current?.[focusKey];
+        if (componentRef) {
+            Accessibility.moveAccessibilityFocus(componentRef);
+        }
     };
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
