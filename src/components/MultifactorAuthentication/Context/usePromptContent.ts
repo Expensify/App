@@ -12,6 +12,7 @@ type PromptContent = {
     animation: DotLottieAnimation;
     title: TranslationPaths;
     subtitle: TranslationPaths | undefined;
+    shouldDisplayConfirmButton: boolean;
 };
 
 /**
@@ -53,10 +54,13 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
         subtitle = undefined;
     }
 
+    const shouldDisplayConfirmButton = !state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials;
+
     return {
         animation: contentData.animation,
         title,
         subtitle,
+        shouldDisplayConfirmButton,
     };
 }
 
