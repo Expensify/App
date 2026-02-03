@@ -4834,12 +4834,28 @@ function canEditFieldOfMoneyRequest(
             return false;
         }
 
-        return (
-            Object.values(allPolicies ?? {}).flatMap((currentPolicy) =>
-                getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
-            ).length > 1 ||
-            ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID))
-        );
+        // Check the cheaper condition first
+        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
+            return true;
+        }
+
+        // Check if there are multiple outstanding reports across policies
+        let outstandingReportsCount = 0;
+        for (const currentPolicy of Object.values(allPolicies ?? {})) {
+            const reports = getOutstandingReportsForUser(
+                currentPolicy?.id,
+                moneyRequestReport?.ownerAccountID,
+                outstandingReportsByPolicyID?.[currentPolicy?.id ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+            );
+            outstandingReportsCount += reports.length;
+
+            // Short-circuit once we find more than 1
+            if (outstandingReportsCount > 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
