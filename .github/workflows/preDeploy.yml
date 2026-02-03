@@ -64,6 +64,8 @@ jobs:
           else
             echo "SHOULD_DEPLOY=false" >> "$GITHUB_OUTPUT"
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
   skipDeploy:
     runs-on: ubuntu-latest

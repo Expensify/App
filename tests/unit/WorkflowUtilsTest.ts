@@ -1,11 +1,22 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as WorkflowUtils from '@src/libs/WorkflowUtils';
+import CONST from '@src/CONST';
+import {
+    calculateApprovers,
+    convertApprovalWorkflowToPolicyEmployees,
+    convertPolicyEmployeesToApprovalWorkflows,
+    getApprovalLimitDescription,
+    getOpenConnectedToPolicyBusinessBankAccounts,
+    updateWorkflowDataOnApproverRemoval,
+} from '@src/libs/WorkflowUtils';
+import type {Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {BankAccountList} from '@src/types/onyx/BankAccount';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
-import * as TestHelper from '../utils/TestHelper';
+import createRandomPolicy from '../utils/collections/policies';
+import {buildPersonalDetails, localeCompare} from '../utils/TestHelper';
 
 const personalDetails: PersonalDetailsList = {};
 const personalDetailsByEmail: PersonalDetailsList = {};
@@ -50,7 +61,7 @@ describe('WorkflowUtils', () => {
     beforeAll(() => {
         for (let accountID = 0; accountID < 10; accountID++) {
             const email = `${accountID}@example.com`;
-            personalDetails[accountID] = TestHelper.buildPersonalDetails(email, accountID, email);
+            personalDetails[accountID] = buildPersonalDetails(email, accountID, email);
             personalDetailsByEmail[email] = personalDetails[accountID];
         }
     });
@@ -59,7 +70,7 @@ describe('WorkflowUtils', () => {
         it('Should return no approvers for empty employees object', () => {
             const employees: PolicyEmployeeList = {};
             const firstEmail = '1@example.com';
-            const approvers = WorkflowUtils.calculateApprovers({employees, firstEmail, personalDetailsByEmail});
+            const approvers = calculateApprovers({employees, firstEmail, personalDetailsByEmail});
 
             expect(approvers).toEqual([]);
         });
@@ -76,7 +87,7 @@ describe('WorkflowUtils', () => {
                 },
             };
             const firstEmail = '1@example.com';
-            const approvers = WorkflowUtils.calculateApprovers({employees, firstEmail, personalDetailsByEmail});
+            const approvers = calculateApprovers({employees, firstEmail, personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1)]);
         });
@@ -93,7 +104,7 @@ describe('WorkflowUtils', () => {
                 },
             };
             const firstEmail = '1@example.com';
-            const approvers = WorkflowUtils.calculateApprovers({employees, firstEmail, personalDetailsByEmail});
+            const approvers = calculateApprovers({employees, firstEmail, personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1)]);
         });
@@ -122,21 +133,18 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+            expect(calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(1, {forwardsTo: '2@example.com'}),
                 buildApprover(2, {forwardsTo: '3@example.com'}),
                 buildApprover(3, {forwardsTo: '4@example.com'}),
                 buildApprover(4),
             ]);
-            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
+            expect(calculateApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(2, {forwardsTo: '3@example.com'}),
                 buildApprover(3, {forwardsTo: '4@example.com'}),
                 buildApprover(4),
             ]);
-            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '3@example.com', personalDetailsByEmail})).toEqual([
-                buildApprover(3, {forwardsTo: '4@example.com'}),
-                buildApprover(4),
-            ]);
+            expect(calculateApprovers({employees, firstEmail: '3@example.com', personalDetailsByEmail})).toEqual([buildApprover(3, {forwardsTo: '4@example.com'}), buildApprover(4)]);
         });
 
         it('Should return a list of approvers with circular references', () => {
@@ -163,7 +171,7 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+            expect(calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(1, {forwardsTo: '2@example.com'}),
                 buildApprover(2, {forwardsTo: '3@example.com'}),
                 buildApprover(3, {forwardsTo: '4@example.com'}),
@@ -171,7 +179,7 @@ describe('WorkflowUtils', () => {
                 buildApprover(5, {forwardsTo: '1@example.com'}),
                 buildApprover(1, {forwardsTo: '2@example.com', isCircularReference: true}),
             ]);
-            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
+            expect(calculateApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(2, {forwardsTo: '3@example.com'}),
                 buildApprover(3, {forwardsTo: '4@example.com'}),
                 buildApprover(4, {forwardsTo: '5@example.com'}),
@@ -189,7 +197,7 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            expect(WorkflowUtils.calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+            expect(calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(1, {forwardsTo: '1@example.com'}),
                 buildApprover(1, {forwardsTo: '1@example.com', isCircularReference: true}),
             ]);
@@ -215,7 +223,7 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            const approvers = WorkflowUtils.calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([
                 buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com'}),
@@ -233,7 +241,7 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            const approvers = WorkflowUtils.calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1, {approvalLimit: null, overLimitForwardsTo: ''})]);
         });
@@ -257,7 +265,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             expect(approvalWorkflows).toEqual([]);
         });
@@ -273,7 +281,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             expect(approvalWorkflows).toEqual([]);
         });
@@ -294,7 +302,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([1, 2], [1], {isDefault: true})]);
         });
@@ -325,7 +333,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([2, 3], [1], {isDefault: true}), buildWorkflow([1, 4], [4])]);
         });
@@ -361,7 +369,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([3, 2], [1], {isDefault: true}), buildWorkflow([5], [3]), buildWorkflow([4, 1], [4])]);
         });
@@ -392,7 +400,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {isDefault: true});
             let firstApprover = defaultWorkflow.approvers.at(0);
@@ -448,7 +456,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = WorkflowUtils.convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare: TestHelper.localeCompare});
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             const defaultWorkflow = buildWorkflow([1, 4, 5, 6], [1], {isDefault: true});
             const secondWorkflow = buildWorkflow([2, 3], [4, 5, 6]);
@@ -471,7 +479,7 @@ describe('WorkflowUtils', () => {
                 isDefault: true,
             };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
                 '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', overLimitForwardsTo: '', submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
@@ -486,7 +494,7 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
                 '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com', overLimitForwardsTo: '', pendingFields: {forwardsTo: 'add', overLimitForwardsTo: 'add'}}),
@@ -505,7 +513,7 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'remove'});
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'remove'});
 
             expect(convertedEmployees).toEqual({
                 '1@example.com': buildPolicyEmployee(1, {
@@ -542,7 +550,7 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
                 '1@example.com': buildPolicyEmployee(1, {
@@ -570,7 +578,7 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'remove'});
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'remove'});
 
             // approvalLimit should be null (not undefined) so it gets sent to the API and clears the field
             expect(convertedEmployees['1@example.com']?.approvalLimit).toBeNull();
@@ -592,7 +600,7 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update'});
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update'});
 
             // pendingFields should include the fields that changed (forwardsTo didn't change since it's '' -> '')
             expect(convertedEmployees['1@example.com']?.pendingFields).toEqual({
@@ -618,7 +626,7 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
-            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update'});
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update'});
 
             // Only overLimitForwardsTo changed, so only that should be in pendingFields
             expect(convertedEmployees['1@example.com']?.pendingFields).toEqual({
@@ -647,13 +655,13 @@ describe('WorkflowUtils', () => {
                 return;
             }
 
-            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+            const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
                 removedApprover,
                 ownerDetails,
             });
 
-            expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, removeApprovalWorkflow: true}]);
+            expect(updateWorkflowDataOnApproverRemovalResult).toEqual([approvalWorkflow1, {...approvalWorkflow2, removeApprovalWorkflow: true}]);
         });
         it('Should replace the approvers in Workflow 2 with the Workspace Owner if it has no approvers and the approver in Workspace (default) is different from the Workspace Owner', () => {
             const approvalWorkflow1: ApprovalWorkflow = {
@@ -674,13 +682,13 @@ describe('WorkflowUtils', () => {
                 return;
             }
 
-            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+            const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
                 removedApprover,
                 ownerDetails,
             });
 
-            expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(1)]}]);
+            expect(updateWorkflowDataOnApproverRemovalResult).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(1)]}]);
         });
         it('Should remove Workflow 2 if its approver is the Workspace Owner and the default Workspace approver is removed.', () => {
             const approvalWorkflow1: ApprovalWorkflow = {
@@ -701,13 +709,13 @@ describe('WorkflowUtils', () => {
                 return;
             }
 
-            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+            const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
                 removedApprover,
                 ownerDetails,
             });
 
-            expect(updateWorkflowDataOnApproverRemoval).toEqual([
+            expect(updateWorkflowDataOnApproverRemovalResult).toEqual([
                 {...approvalWorkflow1, approvers: [buildApprover(1)]},
                 {...approvalWorkflow2, removeApprovalWorkflow: true},
             ]);
@@ -731,13 +739,13 @@ describe('WorkflowUtils', () => {
                 return;
             }
 
-            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+            const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
                 removedApprover,
                 ownerDetails,
             });
 
-            expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(2), buildApprover(3), buildApprover(1)]}]);
+            expect(updateWorkflowDataOnApproverRemovalResult).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(2), buildApprover(3), buildApprover(1)]}]);
         });
         it('Should remove the approvers that have submitsTo set to the removed approver, update the removed approver to the Workspace Owner, and ensure there was a previous approver before this one', () => {
             const approvalWorkflow1: ApprovalWorkflow = {
@@ -758,13 +766,13 @@ describe('WorkflowUtils', () => {
                 return;
             }
 
-            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+            const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
                 removedApprover,
                 ownerDetails,
             });
 
-            expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(2), buildApprover(1)]}]);
+            expect(updateWorkflowDataOnApproverRemovalResult).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(2), buildApprover(1)]}]);
         });
         it('Should remove Workflow 2 if it has no approvers and the default Workspace approver is the approve', () => {
             const approvalWorkflow1: ApprovalWorkflow = {
@@ -785,13 +793,13 @@ describe('WorkflowUtils', () => {
                 return;
             }
 
-            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+            const updateWorkflowDataOnApproverRemovalResult = updateWorkflowDataOnApproverRemoval({
                 approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
                 removedApprover,
                 ownerDetails,
             });
 
-            expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, removeApprovalWorkflow: true}]);
+            expect(updateWorkflowDataOnApproverRemovalResult).toEqual([approvalWorkflow1, {...approvalWorkflow2, removeApprovalWorkflow: true}]);
         });
     });
 
@@ -808,10 +816,10 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should return undefined when approver is undefined', () => {
-            const result = WorkflowUtils.getApprovalLimitDescription({
+            const result = getApprovalLimitDescription({
                 approver: undefined,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
                 personalDetailsByEmail: {},
             });
 
@@ -821,10 +829,10 @@ describe('WorkflowUtils', () => {
         it('Should return undefined when approvalLimit is null', () => {
             const approver = buildApprover(1, {approvalLimit: null, overLimitForwardsTo: '2@example.com'});
 
-            const result = WorkflowUtils.getApprovalLimitDescription({
+            const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
                 personalDetailsByEmail: {},
             });
 
@@ -834,10 +842,10 @@ describe('WorkflowUtils', () => {
         it('Should return undefined when approvalLimit is undefined', () => {
             const approver = buildApprover(1, {approvalLimit: undefined, overLimitForwardsTo: '2@example.com'});
 
-            const result = WorkflowUtils.getApprovalLimitDescription({
+            const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
                 personalDetailsByEmail: {},
             });
 
@@ -847,10 +855,10 @@ describe('WorkflowUtils', () => {
         it('Should return undefined when overLimitForwardsTo is missing', () => {
             const approver = buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: undefined});
 
-            const result = WorkflowUtils.getApprovalLimitDescription({
+            const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
                 personalDetailsByEmail: {},
             });
 
@@ -860,10 +868,10 @@ describe('WorkflowUtils', () => {
         it('Should return description when approvalLimit and overLimitForwardsTo are set', () => {
             const approver = buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '2@example.com'});
 
-            const result = WorkflowUtils.getApprovalLimitDescription({
+            const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
                 personalDetailsByEmail: {},
             });
 
@@ -876,14 +884,146 @@ describe('WorkflowUtils', () => {
                 '2@example.com': {accountID: 2, displayName: 'John Doe'},
             };
 
-            const result = WorkflowUtils.getApprovalLimitDescription({
+            const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
                 personalDetailsByEmail: personalDetailsWithEmail,
             });
 
             expect(result).toBe('Reports above $1,000.00 forward to John Doe');
+        });
+    });
+
+    describe('getOpenConnectedToPolicyBusinessBankAccounts', () => {
+        const matchingBankAccountID = 12345;
+
+        const policyWithACH = {
+            ...createRandomPolicy(1),
+            outputCurrency: 'USD',
+            achAccount: {
+                bankAccountID: matchingBankAccountID,
+            },
+        } as Policy;
+
+        const openBusinessBankAccount = {
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+            accountData: {
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                bankAccountID: matchingBankAccountID,
+            },
+        };
+
+        it('should return empty array when bankAccountList is undefined', () => {
+            const result = getOpenConnectedToPolicyBusinessBankAccounts(undefined, policyWithACH);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should return empty array when policy is undefined', () => {
+            const bankAccountList: BankAccountList = {
+                '1': openBusinessBankAccount,
+            };
+
+            const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, undefined);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should return matching bank accounts that meet all criteria', () => {
+            const bankAccountList: BankAccountList = {
+                '1': openBusinessBankAccount,
+            };
+
+            const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policyWithACH);
+
+            expect(result).toEqual([openBusinessBankAccount]);
+        });
+
+        it('should filter out accounts with non-matching currency', () => {
+            const nonMatchingCurrencyAccount = {
+                ...openBusinessBankAccount,
+                bankCurrency: 'EUR',
+            };
+            const bankAccountList: BankAccountList = {
+                '1': nonMatchingCurrencyAccount,
+            };
+
+            const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policyWithACH);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should filter out accounts that are not in OPEN state', () => {
+            const pendingAccount = {
+                ...openBusinessBankAccount,
+                accountData: {
+                    ...openBusinessBankAccount.accountData,
+                    state: CONST.BANK_ACCOUNT.STATE.PENDING,
+                },
+            };
+            const bankAccountList: BankAccountList = {
+                '1': pendingAccount,
+            };
+
+            const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policyWithACH);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should filter out accounts that are not BUSINESS type', () => {
+            const personalAccount = {
+                ...openBusinessBankAccount,
+                accountData: {
+                    ...openBusinessBankAccount.accountData,
+                    type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                },
+            };
+            const bankAccountList: BankAccountList = {
+                '1': personalAccount,
+            };
+
+            const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policyWithACH);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should filter out accounts not linked to policy ACH account', () => {
+            const unlinkedAccount = {
+                ...openBusinessBankAccount,
+                accountData: {
+                    ...openBusinessBankAccount.accountData,
+                    bankAccountID: 99999,
+                },
+            };
+            const bankAccountList: BankAccountList = {
+                '1': unlinkedAccount,
+            };
+
+            const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policyWithACH);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should return multiple matching accounts', () => {
+            const secondMatchingAccount = {
+                ...openBusinessBankAccount,
+                accountData: {
+                    ...openBusinessBankAccount.accountData,
+                    bankAccountID: matchingBankAccountID,
+                    accountNumber: '9999',
+                },
+            };
+            const bankAccountList: BankAccountList = {
+                '1': openBusinessBankAccount,
+                '2': secondMatchingAccount,
+            };
+
+            const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policyWithACH);
+
+            expect(result).toEqual([openBusinessBankAccount, secondMatchingAccount]);
         });
     });
 });

@@ -141,7 +141,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         });
 
         sectionsArray.push({
-            title: formattedPolicyAdmins.length > 0 ? translate('workflowsPayerPage.admins') : undefined,
+            title: translate('workflowsPayerPage.admins'),
             data: formattedPolicyAdmins,
             sectionIndex: 2,
         });

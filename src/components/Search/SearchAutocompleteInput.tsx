@@ -73,7 +73,7 @@ type SearchAutocompleteInputProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-} & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
+} & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection' | 'onKeyPress'>;
 
 function SearchAutocompleteInput({
     value,
@@ -94,6 +94,7 @@ function SearchAutocompleteInput({
     isSearchingForReports,
     selection,
     substitutionMap,
+    onKeyPress,
     ref,
 }: SearchAutocompleteInputProps) {
     const styles = useThemeStyles();
@@ -223,6 +224,7 @@ function SearchAutocompleteInput({
 
                             onBlur?.();
                         }}
+                        onKeyPress={onKeyPress}
                         isLoading={isSearchingForReports}
                         ref={(element) => {
                             if (!ref) {

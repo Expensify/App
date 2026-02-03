@@ -42,6 +42,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         if (policyID === undefined) {
             return;
         }
+
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
         setWorkspaceReimbursement({
             policyID,

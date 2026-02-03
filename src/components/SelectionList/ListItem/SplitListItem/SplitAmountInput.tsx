@@ -68,6 +68,7 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
                     shouldWrapInputInContainer={false}
                     onFocus={focusHandler}
                     onBlur={onInputBlur}
+                    allowNegativeInput
                 />
             </View>
         );

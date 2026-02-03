@@ -362,6 +362,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should add category specific violations', () => {
+            policy.areRulesEnabled = true;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([categoryOverLimitViolation, categoryReceiptRequiredViolation, categoryMissingCommentViolation, ...transactionViolations]));
         });
@@ -394,6 +395,83 @@ describe('getViolationsOnyxData', () => {
             const violations = result.value as TransactionViolation[];
             const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined(); // Should follow policy threshold
+        });
+
+        it('should add receiptRequired when itemizedReceiptRequired existed but category changed to never require itemized', () => {
+            // Given a transaction that previously had an itemizedReceiptRequired violation because the policy requires itemized receipts
+            policy.maxExpenseAmountNoReceipt = 100; // $1.00
+            policy.maxExpenseAmountNoItemizedReceipt = 100; // $1.00
+            policyCategories.Food.maxAmountNoReceipt = undefined;
+            policyCategories.Food.maxAmountNoItemizedReceipt = CONST.DISABLED_MAX_EXPENSE_VALUE;
+            transaction.amount = -300; // $3.00
+            const existingViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+
+            // When the category is changed to "never require itemized receipt"
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, existingViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+
+            // Then the itemized violation should be removed and replaced with receiptRequired because the policy still requires receipts
+            const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            expect(itemizedViolation).toBeUndefined();
+            expect(receiptViolation).toBeDefined();
+        });
+
+        it('should update itemizedReceiptRequired violation data when threshold changes', () => {
+            // Given a transaction with an existing itemizedReceiptRequired violation that has stale threshold data
+            policy.maxExpenseAmountNoItemizedReceipt = 7500; // $75.00
+            transaction.amount = -10000; // $100.00
+            const existingViolations: TransactionViolation[] = [
+                {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$50.00'}},
+            ];
+
+            // When violations are recalculated after the policy threshold changed
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, existingViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+
+            // Then the violation should have updated threshold data to reflect the current policy settings
+            const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(itemizedViolation).toBeDefined();
+            expect(itemizedViolation?.data?.formattedLimit).not.toBe('$50.00');
+        });
+
+        it('should replace receiptRequired with itemizedReceiptRequired when category changes to always require itemized', () => {
+            // Given a transaction with a receiptRequired violation from the policy threshold
+            policy.maxExpenseAmountNoReceipt = 2500; // $25.00
+            policyCategories.Food.maxAmountNoReceipt = undefined;
+            policyCategories.Food.maxAmountNoItemizedReceipt = 0;
+            transaction.amount = -5000; // $50.00
+            const existingViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+
+            // When the category is changed to "always require itemized receipts"
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, existingViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+
+            // Then itemized should supersede receipt because itemized is more restrictive
+            const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            expect(receiptViolation).toBeUndefined();
+            expect(itemizedViolation).toBeDefined();
+        });
+
+        it('should remove both violations when category is set to never for both receipt and itemized', () => {
+            // Given a transaction with an itemizedReceiptRequired violation from the policy
+            policy.maxExpenseAmountNoReceipt = 100; // $1.00
+            policy.maxExpenseAmountNoItemizedReceipt = 100; // $1.00
+            policyCategories.Food.maxAmountNoReceipt = CONST.DISABLED_MAX_EXPENSE_VALUE;
+            policyCategories.Food.maxAmountNoItemizedReceipt = CONST.DISABLED_MAX_EXPENSE_VALUE;
+            transaction.amount = -10000; // $100.00
+            const existingViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+
+            // When the category is set to "never" for both receipt types
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, existingViolations, policy, policyTags, policyCategories, false, false);
+            const violations = result.value as TransactionViolation[];
+
+            // Then no receipt violations should exist because category overrides take precedence over policy settings
+            const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            expect(itemizedViolation).toBeUndefined();
+            expect(receiptViolation).toBeUndefined();
         });
     });
 
