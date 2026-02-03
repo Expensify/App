@@ -7094,11 +7094,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
         has: 'A A',
         groupBy: 'Regrouper par',
-        view: {
-            label: 'Afficher',
-            table: 'Table',
-            bar: 'Bar',
-        },
+        view: {label: 'Afficher', table: 'Table', bar: 'Bar', line: 'Ligne'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cartes',
@@ -7134,7 +7130,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
-        spendOverTime: 'Dépenses au fil du temps',
+        spendOverTime: 'Dépenses dans le temps',
     },
     genericErrorPage: {
         title: 'Oups, quelque chose s’est mal passé !',

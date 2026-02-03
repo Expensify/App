@@ -7049,11 +7049,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
         has: 'Heeft',
         groupBy: 'Groeperen op',
-        view: {
-            label: 'Bekijken',
-            table: 'Tabel',
-            bar: 'Balk',
-        },
+        view: {label: 'Bekijken', table: 'Tabel', bar: 'Balk', line: 'Regel'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Kaarten',
@@ -7089,6 +7085,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             selectAllMatchingItems: 'Selecteer alle overeenkomende items',
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
+        spendOverTime: 'Uitgaven in de tijd',
     },
     genericErrorPage: {
         title: 'Oeps, er is iets misgegaan!',

@@ -6898,11 +6898,7 @@ ${reportName}
         },
         has: '有',
         groupBy: '分组依据',
-        view: {
-            label: '查看',
-            table: '表',
-            bar: '栏',
-        },
+        view: {label: '查看', table: '表', bar: '栏', line: '行'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',
             [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
@@ -6938,6 +6934,7 @@ ${reportName}
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选中所有匹配项',
         },
+        spendOverTime: '随时间支出',
     },
     genericErrorPage: {
         title: '哎呀，出错了！',

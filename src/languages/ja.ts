@@ -7002,11 +7002,7 @@ ${reportName}
         },
         has: '持っている',
         groupBy: 'グループ化基準',
-        view: {
-            label: '表示',
-            table: 'テーブル',
-            bar: 'バー',
-        },
+        view: {label: '表示', table: 'テーブル', bar: 'バー', line: '行'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
             [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
@@ -7042,6 +7038,7 @@ ${reportName}
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致するすべての項目を選択済み',
         },
+        spendOverTime: '時間経過による支出',
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
