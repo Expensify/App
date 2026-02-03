@@ -103,7 +103,7 @@ This document lists all implemented telemetry metrics in the Expensify App.
 
 **Constant**: `CONST.TELEMETRY.SPAN_SEND_MESSAGE`
 **Sentry Name**: `ManualSendMessage`
-**Threshold**: 300ms (P90)
+**Threshold**: 100ms (P90)
 **What's Measured**: Time from submitting message to message rendered
 **Start**: Message submitted in composer ([`src/pages/home/report/ReportActionCompose/ReportActionCompose.tsx`](https://github.com/Expensify/App/blob/8f123f449f1a4533830b18a1040c9a5f1949821d/src/pages/home/report/ReportActionCompose/ReportActionCompose.tsx#L344))
 **End**:
