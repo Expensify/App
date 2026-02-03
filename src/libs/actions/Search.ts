@@ -1177,7 +1177,6 @@ function handleBulkPayItemSelected(params: {
     isUserValidated: boolean | undefined;
     isDelegateAccessRestricted: boolean;
     showDelegateNoAccessModal: () => void;
-    lastPaymentMethods: OnyxEntry<LastPaymentMethod>;
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
 }) {
     const {
@@ -1191,13 +1190,12 @@ function handleBulkPayItemSelected(params: {
         isUserValidated,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
-        lastPaymentMethods,
         confirmPayment,
     } = params;
     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems, policy?.id);
-    const hasPolicyLastPaymentMethod = selectedPolicy && !!lastPaymentMethods?.[selectedPolicy.id];
-    // Early return if item is not a valid payment method and user has no saved payment method for this policy
-    if (!isValidBulkPayOption(item) && !hasPolicyLastPaymentMethod) {
+    const isPolicyBasedPaymentOption = activeAdminPolicies.some((activePolicy) => activePolicy.id === item.key);
+    // Early return if item is not a valid payment method and not a policy-based payment option
+    if (!isValidBulkPayOption(item) && !isPolicyBasedPaymentOption) {
         return;
     }
 
