@@ -8283,7 +8283,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.',
             },
         },
-        domainAdmins: 'Domeinbeheerders',
     },
 };
 export default translations;

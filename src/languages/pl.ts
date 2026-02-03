@@ -8263,7 +8263,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 addMember: 'Nie można dodać tego członka. Spróbuj ponownie.',
             },
         },
-        domainAdmins: 'Administratorzy domeny',
     },
 };
 export default translations;

@@ -8227,7 +8227,6 @@ ${reportName}
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
             },
         },
-        domainAdmins: 'ドメイン管理者',
     },
 };
 export default translations;

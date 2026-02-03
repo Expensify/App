@@ -8304,9 +8304,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             findMember: 'Mitglied finden',
             addMember: 'Mitglied hinzufügen',
             email: 'E-Mail-Adresse',
-            errors: {
-                addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
-            },
             closeAccount: 'Konto schließen',
             closeAccountPrompt: 'Bist du sicher? Diese Aktion ist dauerhaft.',
             forceCloseAccount: 'Konto zwangsweise schließen',
@@ -8318,7 +8315,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
             },
         },
-        domainAdmins: 'Domain-Admins',
     },
 };
 export default translations;

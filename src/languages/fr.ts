@@ -8329,7 +8329,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',
             },
         },
-        domainAdmins: 'Administrateurs de domaine',
     },
 };
 export default translations;

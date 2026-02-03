@@ -8106,7 +8106,6 @@ ${reportName}
                 addMember: '无法添加此成员。请重试。',
             },
         },
-        domainAdmins: '域管理员',
     }
 };
 export default translations;
