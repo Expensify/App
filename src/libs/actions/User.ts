@@ -1784,7 +1784,9 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         failureRules = expenseRules;
     }
 
-    const rulesForAPI = successRules.map(({pendingAction: _pendingAction, errors: _errors, ...rule}) => rule);
+    const rulesForAPI = successRules
+        .filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map(({pendingAction: _pendingAction, errors: _errors, ...rule}) => rule);
 
     const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_EXPENSE_RULES,
