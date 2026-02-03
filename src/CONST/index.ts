@@ -745,6 +745,7 @@ const CONST = {
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
+        SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3000,7 +3001,7 @@ const CONST = {
             APPROVE: 'approve',
             TRACK: 'track',
         },
-        AMOUNT_MAX_LENGTH: 8,
+        AMOUNT_MAX_LENGTH: 10,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
         RECEIPT_STATE: {
             SCAN_READY: 'SCANREADY',
@@ -8075,6 +8076,7 @@ const CONST = {
         },
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
+            USER_SELECTION_CHECKBOX: 'Search-UserSelectionCheckbox',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
@@ -8102,6 +8104,7 @@ const CONST = {
             THREAD_DIVIDER: 'Report-ThreadDivider',
             PURE_REPORT_ACTION_ITEM: 'Report-PureReportActionItem',
             MODERATION_BUTTON: 'Report-ModerationButton',
+            MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
