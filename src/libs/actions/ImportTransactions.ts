@@ -97,6 +97,69 @@ function parseCSVDate(input: string): string | null {
     return null;
 }
 
+type ColumnIndexes = {
+    date: number;
+    merchant: number;
+    amount: number;
+    category: number;
+};
+
+type ColumnMappings = {
+    date?: string;
+    merchant?: string;
+    amount?: string;
+    category?: string;
+};
+
+/**
+ * Extracts the column indexes for each transaction attribute from the spreadsheet column mapping
+ */
+function getColumnIndexes(columns: Record<number, string> | undefined): ColumnIndexes {
+    const indexes: ColumnIndexes = {
+        date: -1,
+        merchant: -1,
+        amount: -1,
+        category: -1,
+    };
+
+    if (columns) {
+        for (const [indexStr, role] of Object.entries(columns)) {
+            const index = Number(indexStr);
+            if (role === 'date' || role === 'merchant' || role === 'amount' || role === 'category') {
+                indexes[role] = index;
+            }
+        }
+    }
+
+    return indexes;
+}
+
+/**
+ * Builds a mapping of transaction attributes to their column header names from the spreadsheet
+ */
+function buildColumnMappings(spreadsheet: ImportedSpreadsheet): ColumnMappings {
+    const {data, columns, containsHeader = true} = spreadsheet;
+    const columnMappings: ColumnMappings = {};
+
+    if (!containsHeader || !data || data.length === 0 || !columns) {
+        return columnMappings;
+    }
+
+    const columnIndexes = getColumnIndexes(columns);
+
+    // For each attribute, get the header name from the first row of data
+    for (const [role, index] of Object.entries(columnIndexes)) {
+        if (index >= 0 && index < data.length) {
+            const headerName = data[index]?.[0];
+            if (headerName) {
+                columnMappings[role as keyof ColumnMappings] = headerName;
+            }
+        }
+    }
+
+    return columnMappings;
+}
+
 /**
  * Converts spreadsheet data to transaction objects based on column mapping
  */
@@ -105,32 +168,7 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
     const {flipAmountSign = false} = settings;
 
     // Find the column indexes for each field
-    let dateColumnIndex = -1;
-    let merchantColumnIndex = -1;
-    let amountColumnIndex = -1;
-    let categoryColumnIndex = -1;
-
-    if (columns) {
-        for (const [indexStr, role] of Object.entries(columns)) {
-            const index = Number(indexStr);
-            switch (role) {
-                case 'date':
-                    dateColumnIndex = index;
-                    break;
-                case 'merchant':
-                    merchantColumnIndex = index;
-                    break;
-                case 'amount':
-                    amountColumnIndex = index;
-                    break;
-                case 'category':
-                    categoryColumnIndex = index;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
+    const {date: dateColumnIndex, merchant: merchantColumnIndex, amount: amountColumnIndex, category: categoryColumnIndex} = getColumnIndexes(columns);
 
     const transactions: TransactionFromCSV[] = [];
     const startIndex = containsHeader ? 1 : 0;
@@ -276,12 +314,16 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
     // Create optimistic transactions
     const optimisticTransactions = buildOptimisticTransactions(transactionList, cardID, currency, isReimbursable);
 
+    // Build column mappings from the spreadsheet data
+    const columnMappings = buildColumnMappings(spreadsheet);
+
     const params: ImportCSVTransactionsParams = {
         transactionList: JSON.stringify(transactionList),
         cardID,
         cardName: cardDisplayName,
         currency,
         reimbursable: isReimbursable,
+        columnMappings: JSON.stringify(columnMappings),
     };
 
     const optimisticData = [] as OnyxUpdate[];
