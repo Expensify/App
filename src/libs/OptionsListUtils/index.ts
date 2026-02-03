@@ -662,11 +662,12 @@ function getLastMessageTextForReport({
         const reportCache = iouReportID ? visibleReportActionsDataParam?.[iouReportID] : undefined;
         const visibleReportActionsForIOUReport = reportCache && Object.keys(reportCache).length > 0 ? visibleReportActionsDataParam : undefined;
         const iouReportActions = iouReportID ? allSortedReportActions[iouReportID] : undefined;
+        const canPerformWrite = canUserPerformWriteAction(report, isReportArchived);
         const lastIOUMoneyReportAction =
             iouReportID && iouReportActions
                 ? iouReportActions.find(
                       (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                          isReportActionVisible(reportAction, iouReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsForIOUReport) &&
+                          isReportActionVisible(reportAction, iouReportID, canPerformWrite, visibleReportActionsForIOUReport) &&
                           reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                           isMoneyRequestAction(reportAction),
                   )
