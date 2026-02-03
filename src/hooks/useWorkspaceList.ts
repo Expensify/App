@@ -30,7 +30,7 @@ function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, search
 
         const result = [];
         for (const policy of Object.values(policies)) {
-            if (!policy || !shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin) || policy.isJoinRequestPending || (additionalFilter && !additionalFilter(policy))) {
+            if (!policy || policy.isJoinRequestPending || !shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin) || (additionalFilter && !additionalFilter(policy))) {
                 continue;
             }
 

@@ -325,9 +325,11 @@ function SearchAutocompleteList({
     const workspaceList = useMemo(() => {
         const result = [];
         for (const singlePolicy of Object.values(policies)) {
-            if (singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserEmail) && !singlePolicy.isJoinRequestPending) {
-                result.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
+            if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail)) {
+                continue;
             }
+
+            result.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
         }
 
         return result;

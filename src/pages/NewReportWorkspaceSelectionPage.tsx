@@ -263,9 +263,9 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         let index = 0;
         for (const policy of Object.values(policies)) {
             if (
-                !shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) ||
                 policy?.isJoinRequestPending ||
                 !policy?.isPolicyExpenseChatEnabled ||
+                !shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) ||
                 (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy))
             ) {
                 continue;
