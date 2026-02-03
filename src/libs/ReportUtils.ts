@@ -9184,9 +9184,7 @@ function shouldHideReport(
     const isChildReportHasComment =
         !!reportID &&
         Object.values(reportActions ?? {})?.some(
-            (reportAction) =>
-                (reportAction?.childVisibleActionCount ?? 0) > 0 &&
-                isReportActionVisible(reportAction, reportID, canPerformWrite, visibleReportActionsData),
+            (reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0 && isReportActionVisible(reportAction, reportID, canPerformWrite, visibleReportActionsData),
         );
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }

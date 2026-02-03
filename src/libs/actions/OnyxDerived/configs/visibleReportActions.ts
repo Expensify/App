@@ -34,12 +34,13 @@ function shouldSkipCachingAction(action: ReportAction): boolean {
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS,
-    // Note: REPORT and SESSION dependencies are needed to trigger recompute when reports change
-    // (for UNREPORTED_TRANSACTION/MOVED_TRANSACTION visibility) or when user changes (for whisper targeting).
+    // Note: REPORT dependency is needed both to trigger recompute when reports change
+    // (for UNREPORTED_TRANSACTION/MOVED_TRANSACTION visibility) AND to provide the current
+    // report collection to the visibility check, avoiding stale data from global connections.
+    // SESSION dependency is needed for whisper targeting when user changes.
     // NETWORK is needed to recompute when online/offline status changes (for DELETE action visibility).
-    // shouldReportActionBeVisible uses global Onyx-connected variables internally.
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.SESSION, ONYXKEYS.NETWORK],
-    compute: ([allReportActions], {sourceValues, currentValue}): VisibleReportActionsDerivedValue => {
+    compute: ([allReportActions, allReports], {sourceValues, currentValue}): VisibleReportActionsDerivedValue => {
         if (!allReportActions) {
             return {};
         }
@@ -67,7 +68,7 @@ export default createOnyxDerivedValueConfig({
                         if (shouldSkipCachingAction(action)) {
                             continue;
                         }
-                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID);
+                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, allReports);
                     }
                 }
             }
@@ -98,7 +99,7 @@ export default createOnyxDerivedValueConfig({
                             delete reportVisibility[action.reportActionID];
                             continue;
                         }
-                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID);
+                        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, allReports);
                         if (actionID !== action.reportActionID) {
                             delete reportVisibility[actionID];
                         }
@@ -145,7 +146,7 @@ export default createOnyxDerivedValueConfig({
                     continue;
                 }
 
-                reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID);
+                reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, allReports);
                 if (actionID !== action.reportActionID) {
                     delete reportVisibility[actionID];
                 }

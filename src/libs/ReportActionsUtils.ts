@@ -1069,7 +1069,7 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, reportsParam?: OnyxCollection<Report>): boolean {
     if (!reportAction) {
         return false;
     }
@@ -1085,10 +1085,12 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    const reports = reportsParam ?? allReports;
+
     if (actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
         const unreportedTransactionOriginalMessage = getOriginalMessage(reportAction as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>>) ?? {};
         const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
-        const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+        const fromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
         return !!fromReport;
     }
 
@@ -1101,8 +1103,8 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
             return false;
         }
 
-        const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-        const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+        const toReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
+        const fromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
         return !!fromReport || !!toReport;
     }
 
