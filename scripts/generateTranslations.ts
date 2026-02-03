@@ -283,7 +283,7 @@ class TranslationGenerator {
 
         console.log('\n');
         console.log('═'.repeat(80));
-        console.log('                           ❌ TRANSLATION ERRORS SUMMARY');
+        console.log('❌ TRANSLATION ERRORS SUMMARY');
         console.log('═'.repeat(80));
         console.log(`\nThe following ${failures.length} translation(s) failed after exhausting all retries:`);
         console.log('(The original text was used as a fallback for these translations)\n');
