@@ -79,6 +79,7 @@ import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import WorkspacesEmptyStateComponent from './WorkspacesEmptyStateComponent';
 import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
 import WorkspacesListRow from './WorkspacesListRow';
@@ -94,7 +95,7 @@ type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
         iconType?: ValueOf<typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON>;
         policyID?: string;
         isJoinRequestPending?: boolean;
-    };
+    } & WithSentryLabel;
 
 type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state' | 'domains-empty-state'};
 
@@ -491,6 +492,7 @@ function WorkspacesListPage() {
                         style={[styles.mh5]}
                         disabled={item.disabled}
                         onPress={item.action}
+                        sentryLabel={item.sentryLabel}
                     >
                         {({hovered}) => (
                             <WorkspacesListRow

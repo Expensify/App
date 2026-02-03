@@ -48,6 +48,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
     shouldShowRightCaret = false,
+    sentryLabel,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -138,6 +139,7 @@ function BaseListItem<TItem extends ListItem>({
                 tabIndex={item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
                 testID={testID}
+                sentryLabel={sentryLabel}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
