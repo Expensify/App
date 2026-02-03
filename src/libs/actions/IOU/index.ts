@@ -234,7 +234,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
-import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
+import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI} from '@userActions/Transaction';
 import {removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
@@ -5502,7 +5502,7 @@ function updateMoneyRequestDistance({
     parentReportNextStep,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
-        ...(waypoints && {waypoints: sanitizeRecentWaypoints(waypoints)}),
+        ...(waypoints && {waypoints: sanitizeWaypointsForAPI(waypoints)}),
         routes,
         ...(distance && {distance}),
         ...(odometerStart !== undefined && {odometerStart}),
@@ -6399,7 +6399,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
 
-    const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeRecentWaypoints(waypoints)) : undefined;
+    const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeWaypointsForAPI(waypoints)) : undefined;
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -6789,7 +6789,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN, name: 'receipt-generic.png'} : receipt;
-    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
+    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeWaypointsForAPI(validWaypoints)) : undefined;
 
     const retryParams: CreateTrackExpenseParams = {
         ...params,
@@ -7749,7 +7749,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS | typeof ONYXKEYS.GPS_DRAFT_DETAILS>;
-    const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeRecentWaypoints(validWaypoints) : null;
+    const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeWaypointsForAPI(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {
             splitData,
