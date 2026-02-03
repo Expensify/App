@@ -25,6 +25,21 @@ type ImportFinalModalUnion = {
     [K in SpreadsheetTranslationPaths]: ImportFinalModal<K>;
 }[SpreadsheetTranslationPaths];
 
+/** Settings for importing transactions */
+type ImportTransactionSettings = {
+    /** Display name for the card */
+    cardDisplayName?: string;
+
+    /** Currency for the imported transactions */
+    currency?: string;
+
+    /** Whether the transactions are reimbursable */
+    isReimbursable?: boolean;
+
+    /** Whether to flip the amount sign */
+    flipAmountSign?: boolean;
+};
+
 /** Model of imported spreadsheet data */
 type ImportedSpreadsheet = {
     /** Data of the imported spreadsheet */
@@ -59,6 +74,10 @@ type ImportedSpreadsheet = {
 
     /** The file name of the imported file */
     fileName?: string;
+
+    /** Settings for importing transactions from the spreadsheet */
+    importTransactionSettings?: ImportTransactionSettings;
 };
 
 export default ImportedSpreadsheet;
+export type {ImportTransactionSettings};
