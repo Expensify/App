@@ -196,6 +196,7 @@ function ToggleSettingOptionRow({
                         accessibilityLabel={title}
                         role={shouldMakeContentPressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                         accessible={false}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TOGGLE_SETTINGS_ROW}
                     >
                         {contentArea}
                     </PressableWithoutFeedback>
