@@ -22,7 +22,6 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
     ChangeFieldParams,
-    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -615,7 +614,6 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Erstattungsfähiger Gesamtbetrag',
         nonReimbursableTotal: 'Nicht erstattungsfähige Gesamtsumme',
         month: 'Monat',
-        home: 'Startseite',
         week: 'Woche',
         year: 'Jahr',
         quarter: 'Quartal',
@@ -1085,8 +1083,6 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Bitte bestätige die folgenden Details für die ${count} neuen Workspace-Mitglieder, die im Rahmen dieses Uploads hinzugefügt werden. Bestehende Mitglieder erhalten keine Rollenaktualisierungen oder Einladungsnachrichten.`,
         }),
-        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
-            transactions > 1 ? `${transactions} Transaktionen wurden importiert.` : '1 Transaktion wurde importiert.',
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -2152,11 +2148,6 @@ const translations: TranslationDeepObject<typeof en> = {
             password: 'Bitte gib dein Expensify-Passwort ein',
         },
     },
-    personalCard: {
-        brokenConnection: 'Ihre Kartenverbindung ist unterbrochen.',
-        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
-            `Die Verbindung zu Ihrer Karte ${cardName} ist unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrem Online-Banking an</a>, um die Karte zu reparieren.`,
-    },
     walletPage: {
         balance: 'Saldo',
         paymentMethodsTitle: 'Zahlungsmethoden',
@@ -2211,9 +2202,6 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} wird den Zugriff auf dieses Geschäftskonto verlieren. Wir schließen dennoch alle laufenden Zahlungen ab.`,
         reachOutForHelp: 'Sie wird mit der Expensify Card verwendet. <concierge-link>Wende dich an Concierge</concierge-link>, wenn du sie nicht mehr teilen möchtest.',
         unshareErrorModalTitle: 'Bankkonto kann nicht freigegeben werden',
-        deleteCard: 'Karte löschen',
-        deleteCardConfirmation:
-            'Alle nicht eingereichten Kartentransaktionen, einschließlich der auf offenen Berichten, werden entfernt. Möchten Sie diese Karte wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2285,7 +2273,6 @@ const translations: TranslationDeepObject<typeof en> = {
 
 ${amount} für ${merchant} – ${date}`,
         },
-        csvCardDescription: 'CSV-Import',
     },
     workflowsPage: {
         workflowTitle: 'Ausgaben',
@@ -7635,7 +7622,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Überprüfung erforderlich',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Beleg kann wegen unterbrochener Bankverbindung nicht automatisch zugeordnet werden';
             }
@@ -7646,11 +7633,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin ? `Bitte ${member} darum, als Barzahlung zu markieren, oder warte 7 Tage und versuche es dann erneut` : 'Warten auf Abgleich mit Kartentransaktion.';
-            }
-            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_PERSONAL_CARD_CONNECTION) {
-                return isAdmin
-                    ? `Der Beleg kann aufgrund einer fehlerhaften Kartenverbindung nicht automatisch zugeordnet werden. Markieren Sie ihn als Bargeld, um ihn zu ignorieren, oder <a href="${connectionLink}">korrigieren Sie die Kartenverbindung</a>, damit er zum Beleg passt.`
-                    : 'Automatischer Abgleich des Belegs aufgrund einer unterbrochenen Kartenverbindung nicht möglich.';
             }
             return '';
         },
@@ -8325,37 +8307,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             errors: {
                 addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
             },
-        },
-    },
-    homePage: {
-        forYou: 'Für dich',
-        announcements: 'Ankündigungen',
-        discoverSection: {
-            title: 'Entdecken',
-            menuItemTitleNonAdmin: 'Erfahren Sie, wie Sie Ausgaben erstellen und Berichte einreichen.',
-            menuItemTitleAdmin: 'Erfahren Sie, wie Sie Mitglieder einladen, Genehmigungs-Workflows bearbeiten und Firmenkarten abstimmen.',
-            menuItemDescription: 'Sieh dir in 2 Minuten an, was Expensify kann',
-        },
-        forYouSection: {
-            submit: ({count}: {count: number}) => `Sende ${count} ${count === 1 ? 'Bericht' : 'Berichte'}`,
-            approve: ({count}: {count: number}) => `Genehmige ${count} ${count === 1 ? 'Bericht' : 'Berichte'}`,
-            pay: ({count}: {count: number}) => `Bezahlen ${count} ${count === 1 ? 'Bericht' : 'Berichte'}`,
-            export: ({count}: {count: number}) => `${count} ${count === 1 ? 'Bericht' : 'Berichte'} exportieren`,
-            begin: 'Beginnen',
-            emptyStateMessages: {
-                nicelyDone: 'Gut gemacht',
-                keepAnEyeOut: 'Behalte im Blick, was als Nächstes kommt!',
-                allCaughtUp: 'Du bist auf dem neuesten Stand',
-                upcomingTodos: 'Anstehende To-dos werden hier angezeigt.',
-            },
-        },
-        timeSensitiveSection: {
-            title: 'Zeitkritisch',
-            cta: 'Antrag',
-            offer50off: {title: 'Erhalte 50 % Rabatt auf dein erstes Jahr!', subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} verbleibend`},
-            offer25off: {title: 'Erhalten Sie 25 % Rabatt auf Ihr erstes Jahr!', subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'Tag' : 'Tage'} verbleiben`},
-            addShippingAddress: {title: 'Wir benötigen Ihre Versandadresse', subtitle: 'Gib eine Adresse an, um deine Expensify Card zu erhalten.', cta: 'Adresse hinzufügen'},
-            activateCard: {title: 'Aktiviere deine Expensify Card', subtitle: 'Bestätige deine Karte und beginne mit dem Ausgeben.', cta: 'Aktivieren'},
         },
     },
 };
