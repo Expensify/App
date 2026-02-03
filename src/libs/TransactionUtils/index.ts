@@ -2,7 +2,7 @@ import {format, isValid, parse} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
-import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
@@ -46,7 +46,7 @@ import {
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
-import type {IOURequestType} from '@userActions/IOU';
+import type {IOURequestType, UpdateMoneyRequestDataKeys} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -2256,7 +2256,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
  *
  */
 function removeTransactionFromDuplicateTransactionViolation(
-    onyxData: OnyxData<OnyxKey>,
+    onyxData: OnyxData<UpdateMoneyRequestDataKeys>,
     transactionID: string,
     transactions: OnyxCollection<Transaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,

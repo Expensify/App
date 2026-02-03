@@ -201,6 +201,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    AnyRequest,
     BankAccountList,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -1067,18 +1068,17 @@ function openReport(
           };
 
     const optimisticData: Array<
-        | OnyxUpdate<
-              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-              | typeof ONYXKEYS.COLLECTION.REPORT
-              | typeof ONYXKEYS.COLLECTION.TRANSACTION
-              | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-              | typeof ONYXKEYS.NVP_INTRO_SELECTED
-              | typeof ONYXKEYS.COLLECTION.POLICY
-              | typeof ONYXKEYS.NVP_ONBOARDING
-              | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-          >
-        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.NVP_INTRO_SELECTED
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.NVP_ONBOARDING
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2411,7 +2411,7 @@ function editReportComment(
                 if (addCommentIndex > -1) {
                     return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
                 }
-                return resolveDuplicationConflictAction(persistedRequests, createUpdateCommentMatcher(reportActionID));
+                return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },
         },
     );
