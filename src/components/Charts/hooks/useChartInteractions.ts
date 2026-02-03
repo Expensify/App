@@ -1,10 +1,10 @@
-import { useMemo, useRef, useState } from 'react';
-import { Gesture } from 'react-native-gesture-handler';
-import type { SharedValue } from 'react-native-reanimated';
-import { useAnimatedReaction, useDerivedValue } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
-import { TOOLTIP_BAR_GAP } from '@components/Charts/constants';
-import { useChartInteractionState } from './useChartInteractionState';
+import {useMemo, useRef, useState} from 'react';
+import {Gesture} from 'react-native-gesture-handler';
+import type {SharedValue} from 'react-native-reanimated';
+import {useAnimatedReaction, useDerivedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+import {TOOLTIP_BAR_GAP} from '@components/Charts/constants';
+import {useChartInteractionState} from './useChartInteractionState';
 
 /**
  * Arguments passed to the checkIsOver callback for hit-testing
@@ -34,7 +34,7 @@ type UseChartInteractionsProps = {
      */
     checkIsOver: (args: HitTestArgs) => boolean;
     /** Optional shared value containing bar dimensions used for hit-testing in bar charts */
-    barGeometry?: SharedValue<{ barWidth: number; chartBottom: number; yZero: number }>;
+    barGeometry?: SharedValue<{barWidth: number; chartBottom: number; yZero: number}>;
 };
 
 /**
@@ -74,9 +74,9 @@ type CartesianActionsHandle = {
  * );
  * ```
  */
-function useChartInteractions({ handlePress, checkIsOver, barGeometry }: UseChartInteractionsProps) {
+function useChartInteractions({handlePress, checkIsOver, barGeometry}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
-    const { state: chartInteractionState, isActive: isTooltipActiveState } = useChartInteractionState({ x: 0, y: { y: 0 } });
+    const {state: chartInteractionState, isActive: isTooltipActiveState} = useChartInteractionState({x: 0, y: {y: 0}});
 
     /** Ref passed to CartesianChart to allow manual touch injection */
     const actionsRef = useRef<CartesianActionsHandle>(null);
@@ -184,7 +184,7 @@ function useChartInteractions({ handlePress, checkIsOver, barGeometry }: UseChar
 
     /**
      * Raw tooltip positioning data.
-     * We return these as individual derived values so the caller can 
+     * We return these as individual derived values so the caller can
      * compose them into their own useAnimatedStyle.
      */
     const initialTooltipPosition = useDerivedValue(() => {
@@ -212,5 +212,5 @@ function useChartInteractions({ handlePress, checkIsOver, barGeometry }: UseChar
     };
 }
 
-export { useChartInteractions };
-export type { HitTestArgs };
+export {useChartInteractions};
+export type {HitTestArgs};

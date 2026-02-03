@@ -1,12 +1,12 @@
-import React, { useCallback, useState } from 'react';
-import type { LayoutChangeEvent } from 'react-native';
-import { View } from 'react-native';
+import React, {useCallback, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import type {SharedValue} from 'react-native-reanimated';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
-import type { SharedValue } from 'react-native-reanimated';
-import { TOOLTIP_POINTER_HEIGHT, TOOLTIP_POINTER_WIDTH } from './constants';
+import {TOOLTIP_POINTER_HEIGHT, TOOLTIP_POINTER_WIDTH} from './constants';
 
 type ChartTooltipProps = {
     /** Label text (e.g., "Airfare", "Amazon") */
@@ -22,10 +22,10 @@ type ChartTooltipProps = {
     chartWidth: number;
 
     /** The initial tooltip position */
-    initialTooltipPosition: SharedValue<{ x: number; y: number }>;
+    initialTooltipPosition: SharedValue<{x: number; y: number}>;
 };
 
-function ChartTooltip({ label, amount, percentage, chartWidth, initialTooltipPosition }: ChartTooltipProps) {
+function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosition}: ChartTooltipProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -37,7 +37,7 @@ function ChartTooltip({ label, amount, percentage, chartWidth, initialTooltipPos
 
     const content = percentage ? `${label} • ${amount} (${percentage})` : `${label} • ${amount}`;
 
-    /** * Visibility gate: Only true when the currently rendered text matches 
+    /** * Visibility gate: Only true when the currently rendered text matches
      * the text we've already received a width measurement for.
      */
     const isReady = measuredContent === content;
@@ -48,7 +48,7 @@ function ChartTooltip({ label, amount, percentage, chartWidth, initialTooltipPos
      */
     const handleTooltipLayout = useCallback(
         (event: LayoutChangeEvent) => {
-            const { width } = event.nativeEvent.layout;
+            const {width} = event.nativeEvent.layout;
             if (width > 0) {
                 tooltipMeasuredWidth.set(width);
                 setMeasuredContent(content);
@@ -62,7 +62,7 @@ function ChartTooltip({ label, amount, percentage, chartWidth, initialTooltipPos
      * Calculates the clamped center to keep the box within chart boundaries.
      */
     const tooltipStyle = useAnimatedStyle(() => {
-        const { x, y } = initialTooltipPosition.get();
+        const {x, y} = initialTooltipPosition.get();
         const width = tooltipMeasuredWidth.get();
         const halfWidth = width / 2;
 
@@ -74,7 +74,7 @@ function ChartTooltip({ label, amount, percentage, chartWidth, initialTooltipPos
             left: clampedCenter,
             top: y,
             /** Center the wrapper horizontally and lift it entirely above the Y point */
-            transform: [{ translateX: '-50%' }, { translateY: '-100%' }],
+            transform: [{translateX: '-50%'}, {translateY: '-100%'}],
             /** Keep invisible until measurement for the current bar's content is ready */
             opacity: isReady ? 1 : 0,
         };
@@ -86,7 +86,7 @@ function ChartTooltip({ label, amount, percentage, chartWidth, initialTooltipPos
      * even when the main container is clamped to the edges.
      */
     const pointerStyle = useAnimatedStyle(() => {
-        const { x } = initialTooltipPosition.get();
+        const {x} = initialTooltipPosition.get();
         const width = tooltipMeasuredWidth.get();
         const halfWidth = width / 2;
 
@@ -95,15 +95,22 @@ function ChartTooltip({ label, amount, percentage, chartWidth, initialTooltipPos
         const relativeOffset = x - clampedCenter;
 
         return {
-            transform: [{ translateX: relativeOffset }],
+            transform: [{translateX: relativeOffset}],
         };
     }, [chartWidth, initialTooltipPosition]);
 
     return (
-        <Animated.View style={tooltipStyle} onLayout={handleTooltipLayout} pointerEvents="none">
+        <Animated.View
+            style={tooltipStyle}
+            onLayout={handleTooltipLayout}
+            pointerEvents="none"
+        >
             <View style={styles.chartTooltipWrapper}>
                 <View style={styles.chartTooltipBox}>
-                    <Text style={styles.chartTooltipText} numberOfLines={1}>
+                    <Text
+                        style={styles.chartTooltipText}
+                        numberOfLines={1}
+                    >
                         {content}
                     </Text>
                 </View>
