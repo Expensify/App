@@ -51,7 +51,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import resolveSuggestedFollowup from '@libs/actions/Report/SuggestedFollowup';
+import {cleanUpMoneyRequest} from '@libs/actions/IOU';
+import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -594,11 +595,16 @@ function PureReportActionItem({
 
     const dismissError = useCallback(() => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+        if (isSendingMoney && transactionID && reportID) {
+            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+            cleanUpMoneyRequest(transactionID, action, reportID, report, chatReport, undefined, true);
+            return;
+        }
         if (transactionID) {
             clearError(transactionID);
         }
         clearAllRelatedReportActionErrors(reportID, action);
-    }, [reportID, clearError, clearAllRelatedReportActionErrors, action]);
+    }, [action, isSendingMoney, clearAllRelatedReportActionErrors, reportID, allReports, report, clearError]);
 
     const showDismissReceiptErrorModal = useCallback(async () => {
         const result = await showConfirmModal({
@@ -890,7 +896,7 @@ function PureReportActionItem({
                     shouldUseLocalization: false,
                     key: `${action.reportActionID}-followup-${followup.text}`,
                     onPress: () => {
-                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup.text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                     },
                 }));
             }
@@ -1374,7 +1380,7 @@ function PureReportActionItem({
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
             const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
-            children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(action)} />;
+            children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
@@ -1740,10 +1746,12 @@ function PureReportActionItem({
                                             shouldUseLocalization={!isConciergeOptions && !actionContainsFollowUps}
                                             primaryTextNumberOfLines={actionableButtonsNoLines}
                                             styles={{
-                                                text: [isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined, actionContainsFollowUps && styles.fontWeightNormal],
+                                                text: [isConciergeOptions || actionContainsFollowUps ? styles.textAlignLeft : undefined],
                                                 button: actionContainsFollowUps ? [styles.actionableItemButton, hovered && styles.actionableItemButtonBackgroundHovered] : undefined,
-                                                buttonHover: actionContainsFollowUps ? styles.actionableItemButtonHovered : undefined,
-                                                container: actionContainsFollowUps && shouldUseNarrowLayout ? [styles.alignItemsStretch] : undefined,
+                                                container: [
+                                                    actionContainsFollowUps && shouldUseNarrowLayout ? styles.alignItemsStretch : undefined,
+                                                    actionContainsFollowUps ? styles.mt5 : undefined,
+                                                ],
                                             }}
                                         />
                                     )}

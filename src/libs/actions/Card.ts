@@ -1,10 +1,11 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
     CardDeactivateParams,
+    DeletePersonalCardParams,
     OpenCardDetailsPageParams,
     ReportVirtualExpensifyCardFraudParams,
     RequestReplacementExpensifyCardParams,
@@ -22,9 +23,10 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
@@ -1022,6 +1024,74 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
     API.write(WRITE_COMMANDS.CARD_DEACTIVATE, parameters, {optimisticData, failureData});
 }
 
+type DeletePersonalCardData = {
+    cardID: number;
+    card?: Card;
+    allTransactions: OnyxCollection<Transaction>;
+    allReports: OnyxCollection<Report>;
+};
+
+/**
+ * Deletes a personal card (CSV-imported card) and its associated transactions.
+ * The backend will handle deleting transactions on unsubmitted/open reports.
+ */
+function deletePersonalCard({cardID, card, allTransactions, allReports}: DeletePersonalCardData) {
+    // Find all transactions associated with this card that are on open/unsubmitted reports
+    // This matches the backend logic which only deletes transactions on open reports
+    const transactionsToDelete: Transaction[] = [];
+    for (const transaction of Object.values(allTransactions ?? {})) {
+        if (transaction?.cardID === cardID && isReportOpenOrUnsubmitted(transaction.reportID, allReports)) {
+            transactionsToDelete.push(transaction);
+        }
+    }
+
+    // Optimistically remove the card immediately for instant UI feedback
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: null,
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    ...card,
+                    pendingAction: null,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+    ];
+
+    // Optimistically delete transactions and prepare failure data to restore them
+    for (const transaction of transactionsToDelete) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: null,
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: transaction,
+        });
+    }
+
+    const parameters: DeletePersonalCardParams = {
+        cardID,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_PERSONAL_CARD, parameters, {optimisticData, failureData});
+}
+
 function startIssueNewCardFlow(policyID: string | undefined) {
     const parameters: StartIssueNewCardFlowParams = {
         policyID,
@@ -1389,6 +1459,7 @@ export {
     updateSelectedFeed,
     updateSelectedExpensifyCardFeed,
     deactivateCard,
+    deletePersonalCard,
     getCardDefaultName,
     queueExpensifyCardForBilling,
     clearIssueNewCardFormData,

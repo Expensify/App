@@ -15,11 +15,13 @@ import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -27,6 +29,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +41,7 @@ import {getDescriptionForPolicyDomainCard, hasEligibleActiveAdminFromWorkspaces}
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
@@ -60,6 +64,8 @@ function WalletPage() {
         selector: fundListSelector,
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
@@ -72,7 +78,7 @@ function WalletPage() {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus']);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table']);
     const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet']);
     const walletIllustration = useWalletSectionIllustration();
 
@@ -81,10 +87,13 @@ function WalletPage() {
     const {translate} = useLocalize();
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
+    const {showConfirmModal} = useConfirmModal();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+    const [selectedCard, setSelectedCard] = useState<OnyxTypes.Card | undefined>(undefined);
     const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
@@ -164,6 +173,7 @@ function WalletPage() {
 
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
+        setSelectedCard(cardData);
         setPaymentMethod({
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
@@ -238,6 +248,29 @@ function WalletPage() {
     const navigateToWalletOrTransferBalancePage = (source?: Source) => {
         Navigation.navigate(source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET ? ROUTES.SETTINGS_WALLET : ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
+
+    /**
+     * Show confirmation modal for deleting a personal card and delete it if confirmed
+     */
+    const confirmDeleteCard = useCallback(async () => {
+        if (!selectedCard?.cardID) {
+            return;
+        }
+
+        const result = await showConfirmModal({
+            title: translate('walletPage.deleteCard'),
+            prompt: translate('walletPage.deleteCardConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+
+        if (result.action === ModalActions.CONFIRM) {
+            deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports});
+        }
+        setSelectedCard(undefined);
+    }, [selectedCard, showConfirmModal, translate, allTransactions, allReports]);
 
     useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader
@@ -408,27 +441,55 @@ function WalletPage() {
         ],
     );
 
-    const cardThreeDotsMenuItems = useMemo(
-        () => [
+    const cardThreeDotsMenuItems = useMemo(() => {
+        const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
+        return [
             ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
             {
                 text: translate('workspace.common.viewTransactions'),
                 icon: icons.MoneySearch,
                 onSelected: () => {
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query: buildCannedSearchQuery({
-                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-                                cardID: String(paymentMethod.methodID),
+                    closeModal(() => {
+                        Navigation.navigate(
+                            ROUTES.SEARCH_ROOT.getRoute({
+                                query: buildCannedSearchQuery({
+                                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                                    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                                    cardID: String(paymentMethod.methodID),
+                                }),
                             }),
-                        }),
-                    );
+                        );
+                    });
                 },
             },
-        ],
-        [bottomMountItem, icons.MoneySearch, paymentMethod.methodID, shouldUseNarrowLayout, translate],
-    );
+            ...(shouldShowCSVImportItems
+                ? [
+                      {
+                          text: translate('spreadsheet.importSpreadsheet'),
+                          icon: icons.Table,
+                          onSelected: () => {
+                              closeModal(() => {
+                                  Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(paymentMethod.methodID)));
+                              });
+                          },
+                      },
+                  ]
+                : []),
+            ...(shouldShowCSVImportItems
+                ? [
+                      {
+                          text: translate('common.delete'),
+                          icon: icons.Trashcan,
+                          onSelected: () => {
+                              closeModal(() => {
+                                  confirmDeleteCard();
+                              });
+                          },
+                      },
+                  ]
+                : []),
+        ];
+    }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
         return (
@@ -481,14 +542,14 @@ function WalletPage() {
                             />
                         </Section>
 
-                        {hasAssignedCard ? (
-                            <Section
-                                subtitle={translate('walletPage.assignedCardsDescription')}
-                                title={translate('walletPage.assignedCards')}
-                                isCentralPane
-                                subtitleMuted
-                                titleStyles={styles.accountSettingsSectionTitle}
-                            >
+                        <Section
+                            subtitle={translate('walletPage.assignedCardsDescription')}
+                            title={translate('walletPage.assignedCards')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            {hasAssignedCard && (
                                 <PaymentMethodList
                                     shouldShowAddBankAccount={false}
                                     shouldShowAssignedCards
@@ -497,8 +558,19 @@ function WalletPage() {
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 />
-                            </Section>
-                        ) : null}
+                            )}
+                            {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
+                                <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                    <MenuItem
+                                        title={translate('workspace.companyCards.importTransactions.importButton')}
+                                        icon={icons.Table}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                    />
+                                </View>
+                            )}
+                        </Section>
 
                         {hasWallet && (
                             <Section
