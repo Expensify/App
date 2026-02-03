@@ -3448,7 +3448,8 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             for (const [method, value] of Object.entries({...defaults, ...mocks})) {
                 if (typeof value === 'function') {
-                    jest.spyOn(ReportUtils, method as keyof typeof ReportUtils).mockImplementation(value);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+                    jest.spyOn(ReportUtils, method as keyof typeof ReportUtils).mockImplementation(value as any);
                 } else {
                     jest.spyOn(ReportUtils, method as keyof typeof ReportUtils).mockReturnValue(value);
                 }
@@ -3500,7 +3501,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         });
 
         it('should return true when only one available policy and it is different from current report policy', () => {
-            setupMocks({isWorkspaceEligibleForReportChange: (_, policy) => policy?.id === POLICY_ID});
+            setupMocks({isWorkspaceEligibleForReportChange: ((_, policy: Policy) => policy?.id === POLICY_ID) as MockFunction});
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
