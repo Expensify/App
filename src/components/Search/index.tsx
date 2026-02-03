@@ -397,7 +397,9 @@ function Search({
     const shouldShowLoadingState =
         !shouldUseLiveData &&
         !isOffline &&
-        (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) || (hasErrors && searchRequestResponseStatusCode === null));
+        (!isDataLoaded ||
+            (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
+            (hasErrors && searchRequestResponseStatusCode === null));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
