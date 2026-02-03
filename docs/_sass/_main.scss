@@ -1039,6 +1039,113 @@ button {
         width: 100%;
     }
 
+    .search-columns {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-top: 48px;
+
+        @include breakpoint($breakpoint-tablet) {
+            flex-direction: row;
+            gap: 32px;
+        }
+    }
+
+    .search-articles-column {
+        flex: 1;
+        min-width: 0;
+        order: 2;
+
+        @include breakpoint($breakpoint-tablet) {
+            order: 1;
+        }
+
+        .homepage-results-container {
+            margin-top: 0;
+        }
+    }
+
+    .ai-answer-container {
+        order: 1;
+
+        @include breakpoint($breakpoint-tablet) {
+            order: 2;
+            width: 400px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 52px;
+            align-self: flex-start;
+        }
+    }
+
+    .ai-panel {
+        background-color: var(--color-highlightBG);
+        border-radius: 12px;
+        padding: 20px;
+        min-height: 676px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ai-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+
+    .ai-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .ai-title {
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+
+    .ai-content {
+        font-size: 15px;
+        line-height: 24px;
+        max-height: 580px;
+        overflow: hidden;
+
+        &.expanded {
+            max-height: none;
+        }
+    }
+
+    .ai-illustration {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+
+        img {
+            width: 120px;
+            opacity: 0.5;
+        }
+    }
+
+    .ai-show-more {
+        background: none;
+        border: none;
+        color: var(--color-link);
+        cursor: pointer;
+        font-size: 13px;
+        padding: 8px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        &.hidden {
+            display: none;
+        }
+    }
+
     .getting-started-cards {
         @include breakpoint($breakpoint-desktop) {
             grid-template-columns: repeat(3, 1fr);
