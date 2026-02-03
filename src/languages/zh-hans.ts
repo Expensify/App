@@ -899,8 +899,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: '你的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到 ${roomName}！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 + 按钮来${additionalText}一笔费用。`,
-        askConcierge: '随时提问并获得 24/7 实时支持。',
-        conciergeSupport: '24/7 支持',
+        askConcierge: '尽管问我任何问题！',
+        conciergeSupport: '您的专属AI助手',
         create: '创建',
         iouTypes: {
             pay: '支付',
