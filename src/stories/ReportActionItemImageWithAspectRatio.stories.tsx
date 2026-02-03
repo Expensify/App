@@ -5,7 +5,7 @@ import type {ReportActionItemImageWithAspectRatioProps} from '@components/Report
 import ReportActionItemImageWithAspectRatio from '@components/ReportActionItem/ReportActionItemImageWithAspectRatio';
 import type {Transaction} from '@src/types/onyx';
 
-type ReportActionItemImagesStory = StoryFn<typeof ReportActionItemImageWithAspectRatio>;
+type ReportActionItemImageWithAspectRatioStory = StoryFn<typeof ReportActionItemImageWithAspectRatio>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -33,7 +33,7 @@ function Template(props: ReportActionItemImageWithAspectRatioProps) {
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default: ReportActionItemImagesStory = Template.bind({});
+const Default: ReportActionItemImageWithAspectRatioStory = Template.bind({});
 const image = {
     image: 'eReceipt/FAKE_3',
     thumbnail: '',
@@ -55,7 +55,7 @@ Default.args = {
     image,
 };
 
-const WithAspectRatio: ReportActionItemImagesStory = Template.bind({});
+const WithAspectRatio: ReportActionItemImageWithAspectRatioStory = Template.bind({});
 WithAspectRatio.args = {
     image,
     shouldUseAspectRatio: true,
