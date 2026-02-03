@@ -191,7 +191,7 @@ function IOURequestStartPage({
                 isFromGlobalCreate: transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
-                newIouRequestType: newIOUType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP : newIOUType,
+                newIouRequestType: newIOUType,
                 report,
                 parentReport,
                 currentDate,
