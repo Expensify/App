@@ -22,7 +22,7 @@ import FontUtils from '@styles/utils/FontUtils';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {RecentWaypoint, ReportAction, ReportActions} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -698,6 +698,12 @@ describe('Unread Indicators', () => {
             comment: 'description',
         };
 
+        let recentWaypoints: RecentWaypoint[] = [];
+        Onyx.connect({
+            key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
+            callback: (val) => (recentWaypoints = val ?? []),
+        });
+
         // When the user track an expense on the self DM
         const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
         trackExpense({
@@ -720,6 +726,7 @@ describe('Unread Indicators', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
+            recentWaypoints,
         });
         await waitForBatchedUpdates();
 

@@ -42,7 +42,7 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             add(NavBarManagerPackage())
         }
 
-        override fun getJSMainModuleName() = "index"
+        override fun getJSMainModuleName() = ".expo/.virtual-metro-entry"
 
         override val isNewArchEnabled: Boolean
             get() = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED

@@ -40,8 +40,11 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
         return cleanFileName(rawFileName);
     }, [source]);
 
+    const isVideo = typeof source === 'string' && Str.isVideo(source);
+    const isFileImage = checkIsFileImage(source, fileName);
+
     const [thumbnail, setThumbnail] = useState<VideoThumbnail | null>(null);
-    const videoPlayer = useVideoPlayer(source);
+    const videoPlayer = useVideoPlayer(isVideo ? source : null);
 
     const {videoSource} = useEvent(videoPlayer, 'sourceLoad', {videoSource: null} as SourceLoadEventPayload);
 
@@ -49,10 +52,10 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
         if (!videoSource) {
             return;
         }
-        videoPlayer.generateThumbnailsAsync(1).then((thumbnails) => setThumbnail(thumbnails.at(0) ?? null));
+        videoPlayer.generateThumbnailsAsync([1]).then((thumbnails) => setThumbnail(thumbnails.at(0) ?? null));
     }, [videoPlayer, videoSource]);
 
-    if (typeof source === 'string' && Str.isVideo(source)) {
+    if (isVideo) {
         return (
             <PressableWithFeedback
                 accessibilityRole="button"
@@ -81,7 +84,6 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
             </PressableWithFeedback>
         );
     }
-    const isFileImage = checkIsFileImage(source, fileName);
 
     if (isFileImage) {
         return (

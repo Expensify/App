@@ -2,11 +2,10 @@ import type {EventHint, TransactionEvent} from '@sentry/core';
 import emailDomainFilter from './emailDomainFilter';
 import firebasePerformanceFilter from './firebasePerformanceFilter';
 import minDurationFilter from './minDurationFilter';
-import scopeTagsEnricher from './scopeTagsEnricher';
 
 type TelemetryBeforeSend = (event: TransactionEvent, hint: EventHint) => TransactionEvent | null | Promise<TransactionEvent | null>;
 
-const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, firebasePerformanceFilter, minDurationFilter, scopeTagsEnricher];
+const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, firebasePerformanceFilter, minDurationFilter];
 
 function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint): Promise<TransactionEvent | null> {
     return middlewares.reduce(
