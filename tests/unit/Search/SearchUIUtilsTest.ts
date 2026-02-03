@@ -45,6 +45,7 @@ import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/Test
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@selectors/Card');
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((cb: () => void) => cb()),
