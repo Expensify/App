@@ -10,17 +10,9 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
 
-type PaymentActionParams = {
-    paymentType?: PaymentMethodType;
-    payAsBusiness?: boolean;
-    methodID?: number;
-    paymentMethod?: PaymentMethod;
-    isSelectedTransactionAction?: boolean;
-};
-
 type SettlementButtonProps = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: (params: PaymentActionParams) => void;
+    onPress: (paymentType: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined, policyID?: string) => void;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
@@ -117,4 +109,3 @@ type SettlementButtonProps = {
 };
 
 export default SettlementButtonProps;
-export type {PaymentActionParams};

@@ -32,6 +32,7 @@ import type {
     WorkspaceCardFeedsStatus,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
+import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
@@ -344,4 +345,5 @@ export type {
     DomainErrors,
     DomainPendingActions,
     DomainSecurityGroup,
+    CodingRuleMatchingTransaction,
 };
