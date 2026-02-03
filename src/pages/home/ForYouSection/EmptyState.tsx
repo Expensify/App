@@ -8,12 +8,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-const ILLUSTRATION_SIZE = 100;
+const ILLUSTRATION_WIDTH = 100;
 
 type EmptyStateMessage = {
     titleKey: TranslationPaths;
     subtitleKey: TranslationPaths;
     illustration: IconAsset;
+    illustrationHeight: number;
 };
 
 function EmptyState() {
@@ -25,6 +26,8 @@ function EmptyState() {
         titleKey: 'homePage.forYouSection.emptyStateMessages.nicelyDone',
         subtitleKey: 'homePage.forYouSection.emptyStateMessages.keepAnEyeOut',
         illustration: illustrations.ThumbsUpStars,
+        // ThumbsUpStars viewBox is 68x68 (1:1 aspect ratio)
+        illustrationHeight: 100,
     };
 
     const emptyStateMessages: EmptyStateMessage[] = [
@@ -33,6 +36,8 @@ function EmptyState() {
             titleKey: 'homePage.forYouSection.emptyStateMessages.allCaughtUp',
             subtitleKey: 'homePage.forYouSection.emptyStateMessages.upcomingTodos',
             illustration: illustrations.Fireworks,
+            // Fireworks viewBox is 164x148, so height = 100 * (148/164) ≈ 90
+            illustrationHeight: 90,
         },
     ];
 
@@ -45,8 +50,8 @@ function EmptyState() {
         <View style={styles.forYouEmptyStateContainer}>
             <ImageSVG
                 src={emptyStateMessage.illustration}
-                width={ILLUSTRATION_SIZE}
-                height={ILLUSTRATION_SIZE}
+                width={ILLUSTRATION_WIDTH}
+                height={emptyStateMessage.illustrationHeight}
             />
             <Text style={styles.forYouEmptyStateTitle}>{translate(emptyStateMessage.titleKey)}</Text>
             <Text style={styles.forYouEmptyStateSubtitle}>{translate(emptyStateMessage.subtitleKey)}</Text>
