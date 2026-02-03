@@ -26,10 +26,8 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
         showConfirmModal({
             title: translate('focusModeUpdateModal.title'),
             confirmText: translate('common.buttonConfirm'),
-            onConfirm: onClose,
             shouldShowCancelButton: false,
             onBackdropPress: onClose,
-            onCancel: onClose,
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
                     <RenderHTML html={translate('focusModeUpdateModal.prompt', priorityModePageUrl)} />
@@ -38,6 +36,8 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
             image: illustrations.ThreeLeggedLaptopWoman,
             imageStyles: StyleUtils.getBackgroundColorStyle(colors.pink800),
             titleStyles: [styles.textHeadline, styles.mbn3],
+        }).then(() => {
+            onClose();
         });
     }, [showConfirmModal, translate, onClose, styles, illustrations.ThreeLeggedLaptopWoman, StyleUtils, priorityModePageUrl]);
 
