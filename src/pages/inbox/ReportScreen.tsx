@@ -25,6 +25,8 @@ import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
+import useHandleBackButton from '@hooks/useHandleBackButton';
+import useHandleBrowserBack from '@hooks/useHandleBrowserBack';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -912,6 +914,20 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         Navigation.setParams({reportActionID: ''});
         fetchReport();
     }, [fetchReport]);
+
+    // Handle browser back button on web when showing "not found" view for deleted linked actions
+    useHandleBrowserBack(navigateToEndOfReport, shouldShowNotFoundLinkedAction);
+
+    // Handle Android hardware back button when showing "not found" view for deleted linked actions
+    const handleAndroidBackPress = useCallback(() => {
+        if (!shouldShowNotFoundLinkedAction) {
+            return false;
+        }
+        navigateToEndOfReport();
+        return true;
+    }, [shouldShowNotFoundLinkedAction, navigateToEndOfReport]);
+
+    useHandleBackButton(handleAndroidBackPress);
 
     useEffect(() => {
         // Only handle deletion cases when there's a deleted action
