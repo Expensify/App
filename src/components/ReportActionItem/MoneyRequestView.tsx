@@ -527,6 +527,7 @@ function MoneyRequestView({
         actualAttendees,
         currentUserPersonalDetails,
         policy?.isAttendeeTrackingEnabled,
+        policy?.type === CONST.POLICY.TYPE.CORPORATE,
     );
 
     const getErrorForField = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {

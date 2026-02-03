@@ -262,6 +262,9 @@ const CONST = {
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
     MAX_IMAGE_CANVAS_AREA: 16777216,
+
+    // Maximum pixel count (width × height) for processing images. Prevents memory crashes with extremely large images.
+    MAX_IMAGE_PIXEL_COUNT: 50000000,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -1717,6 +1720,8 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
+        TAG_POLICIES_COUNT: 'policies_count',
+        TAG_REPORTS_COUNT: 'reports_count',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
         TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
         TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
@@ -2188,6 +2193,7 @@ const CONST = {
         FOLDER_NOT_ALLOWED: 'folderNotAllowed',
         MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
         PROTECTED_FILE: 'protectedFile',
+        IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
@@ -3001,7 +3007,7 @@ const CONST = {
             APPROVE: 'approve',
             TRACK: 'track',
         },
-        AMOUNT_MAX_LENGTH: 8,
+        AMOUNT_MAX_LENGTH: 10,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
         RECEIPT_STATE: {
             SCAN_READY: 'SCANREADY',
@@ -5820,19 +5826,6 @@ const CONST = {
     },
 
     /**
-     * Feature flag to enable the missingAttendees violation feature.
-     * Currently enabled only on staging for testing.
-     * When true:
-     * - Enables new missingAttendees violations to be created
-     * - Shows existing missingAttendees violations in transaction lists
-     * - Shows "Require attendees" toggle in category settings
-     * Note: Config?.ENVIRONMENT is undefined in local dev when .env doesn't set it, so we treat undefined as dev
-     */
-    // We can't use nullish coalescing for boolean comparison
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    IS_ATTENDEES_REQUIRED_ENABLED: !Config?.ENVIRONMENT || Config?.ENVIRONMENT === 'staging' || Config?.ENVIRONMENT === 'development',
-
-    /**
      * Constants for types of violation.
      */
     VIOLATION_TYPES: {
@@ -8202,6 +8195,15 @@ const CONST = {
             VIEW_DESCRIPTION: 'Task-ViewDescription',
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
+        },
+        ACCOUNT: {
+            PROFILE: 'Account-Profile',
+            WALLET: 'Account-Wallet',
+            RULES: 'Account-Rules',
+            PREFERENCES: 'Account-Preferences',
+            SECURITY: 'Account-Security',
+            SUBSCRIPTION: 'Account-Subscription',
+            STATUS_PICKER: 'Account-StatusPicker',
         },
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
