@@ -34,7 +34,13 @@ function getIsMissingAttendeesViolation(
     iouAttendees: Attendee[] | string | undefined,
     userPersonalDetails: CurrentUserPersonalDetails,
     isAttendeeTrackingEnabled = false,
+    isControlPolicy = false,
 ) {
+    // Only enforce attendee requirement on Control policies
+    if (!isControlPolicy) {
+        return false;
+    }
+
     const areAttendeesRequired = !!policyCategories?.[category ?? '']?.areAttendeesRequired;
     // If attendee tracking is disabled at the policy level, don't enforce attendee requirement
     if (!isAttendeeTrackingEnabled || !areAttendeesRequired) {
@@ -70,10 +76,16 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     userPersonalDetails: CurrentUserPersonalDetails,
     isAttendeeTrackingEnabled: boolean,
     isControlPolicy: boolean,
+    isInvoice = false,
 ): T[] {
+    // Don't show missingAttendees violation on invoices
+    if (isInvoice) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
+    }
+
     const hasMissingAttendeesViolation = violations.some((v) => v.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
     const shouldShowMissingAttendees =
-        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled);
+        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
 
     if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
         // Add violation when it should show but isn't present from BE

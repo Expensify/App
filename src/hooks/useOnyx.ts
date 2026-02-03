@@ -52,16 +52,18 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     const isOnSearch = useIsOnSearch();
 
     let currentSearchHash: number | undefined;
+    let shouldUseLiveData = false;
     if (isOnSearch && isSnapshotCompatibleKey) {
-        const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchContext);
+        const {currentSearchHash: searchContextCurrentSearchHash, shouldUseLiveData: contextShouldUseLiveData} = use(SearchContext);
         currentSearchHash = searchContextCurrentSearchHash;
+        shouldUseLiveData = !!contextShouldUseLiveData;
     }
 
     const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
     // Determine if we should use snapshot data based on search state and key
-    const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatibleKey;
+    const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatibleKey && !shouldUseLiveData;
 
     // Create selector function that handles both regular and snapshot data
     const selector = useMemo(() => {

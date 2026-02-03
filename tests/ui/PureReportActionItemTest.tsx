@@ -11,7 +11,7 @@ import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import PureReportActionItem from '@pages/home/report/PureReportActionItem';
+import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
@@ -87,6 +87,7 @@ describe('PureReportActionItem', () => {
                             <PureReportActionItem
                                 allReports={undefined}
                                 policies={undefined}
+                                personalPolicyID={undefined}
                                 report={undefined}
                                 reportActions={[]}
                                 parentReportAction={undefined}
@@ -100,6 +101,7 @@ describe('PureReportActionItem', () => {
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                allTransactionDrafts={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -263,6 +265,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     allReports={undefined}
+                                    personalPolicyID={undefined}
                                     policies={{testPolicy: dewPolicy as Policy}}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
@@ -279,6 +282,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    allTransactionDrafts={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -321,6 +325,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     allReports={undefined}
+                                    personalPolicyID={undefined}
                                     policies={{testPolicy: basicPolicy as Policy}}
                                     policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
@@ -336,6 +341,7 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    allTransactionDrafts={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -348,6 +354,141 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('iou.queuedToSubmitViaDEW'))).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('Followup list buttons', () => {
+        it('should display followup buttons when message contains unresolved followup-list', async () => {
+            const followupQuestion1 = 'How do I set up QuickBooks?';
+            const followupQuestion2 = 'What is the Expensify Card cashback?';
+
+            const action = {
+                reportActionID: '12345',
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created: '2025-07-12 09:03:17.653',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                automatic: false,
+                shouldShow: true,
+                avatar: '',
+                person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        html: `<p>Here is some helpful information.</p>
+<followup-list>
+  <followup><followup-text>${followupQuestion1}</followup-text></followup>
+  <followup><followup-text>${followupQuestion2}</followup-text></followup>
+</followup-list>`,
+                        text: 'Here is some helpful information.',
+                    },
+                ],
+                originalMessage: {},
+            } as ReportAction;
+
+            const report = {
+                reportID: 'testReport',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    allReports={undefined}
+                                    policies={undefined}
+                                    personalPolicyID={undefined}
+                                    report={report}
+                                    reportActions={[]}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    isMostRecentIOUReportAction={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    allTransactionDrafts={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Verify followup buttons are displayed
+            expect(screen.getByText(followupQuestion1)).toBeOnTheScreen();
+            expect(screen.getByText(followupQuestion2)).toBeOnTheScreen();
+        });
+
+        it('should not display followup buttons when followup-list is resolved (has selected attribute)', async () => {
+            const followupQuestion = 'How do I set up QuickBooks?';
+
+            const action = {
+                reportActionID: '12345',
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created: '2025-07-12 09:03:17.653',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                automatic: false,
+                shouldShow: true,
+                avatar: '',
+                person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        html: `<p>Here is some helpful information.</p>
+<followup-list selected>
+  <followup><followup-text>${followupQuestion}</followup-text></followup>
+</followup-list>`,
+                        text: 'Here is some helpful information.',
+                    },
+                ],
+                originalMessage: {},
+            } as ReportAction;
+
+            const report = {
+                reportID: 'testReport',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <OptionsListContextProvider>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <PureReportActionItem
+                                    allReports={undefined}
+                                    policies={undefined}
+                                    personalPolicyID={undefined}
+                                    report={report}
+                                    reportActions={[]}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    isMostRecentIOUReportAction={false}
+                                    shouldDisplayNewMarker={false}
+                                    index={0}
+                                    isFirstVisibleReportAction={false}
+                                    taskReport={undefined}
+                                    linkedReport={undefined}
+                                    iouReportOfLinkedReport={undefined}
+                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                    allTransactionDrafts={undefined}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </OptionsListContextProvider>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Verify followup buttons are NOT displayed (resolved state)
+            expect(screen.queryByText(followupQuestion)).not.toBeOnTheScreen();
         });
     });
 });

@@ -17,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type PaymentMethodItem = PaymentMethod & {
@@ -28,6 +29,7 @@ type PaymentMethodItem = PaymentMethod & {
     canDismissError?: boolean;
     disabled?: boolean;
     shouldShowRightIcon?: boolean;
+    shouldShowThreeDotsMenu?: boolean;
     interactive?: boolean;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     errors?: Errors;
@@ -61,6 +63,7 @@ function dismissError(item: PaymentMethodItem) {
         return;
     }
 
+    const hasErrors = !isEmptyObject(item.errors);
     const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
     const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
     const paymentID = isBankAccount ? item.accountData?.bankAccountID : item.accountData?.fundID;
@@ -70,7 +73,7 @@ function dismissError(item: PaymentMethodItem) {
         return;
     }
 
-    if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+    if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || hasErrors) {
         clearDeletePaymentMethodError(paymentList, paymentID);
         if (!isBankAccount) {
             clearDeletePaymentMethodError(ONYXKEYS.FUND_LIST, paymentID);
@@ -92,9 +95,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
+    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems;
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (isAccountInSetupState(item) || !threeDotsMenuItems || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (isAccountInSetupState(item) || !showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
@@ -116,8 +120,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             onClose={item.canDismissError ? () => dismissError(item) : undefined}
             pendingAction={item.pendingAction}
             errors={item.errors}
-            errorRowStyles={styles.ph6}
-            shouldShowErrorMessages={false}
+            errorRowStyles={styles.paymentMethodErrorRow}
+            shouldShowErrorMessages={!!item.errors}
         >
             <MenuItem
                 onPress={handleRowPress}
@@ -136,10 +140,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 badgeSuccess={isAccountInSetupState(item) ? true : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={item.iconRight}
-                shouldShowRightIcon={!threeDotsMenuItems && item.shouldShowRightIcon}
-                shouldShowRightComponent={!!threeDotsMenuItems}
+                shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
+                shouldShowRightComponent={showThreeDotsMenu}
                 rightComponent={
-                    threeDotsMenuItems ? (
+                    showThreeDotsMenu ? (
                         <View style={styles.alignSelfCenter}>
                             <ThreeDotsMenu
                                 shouldSelfPosition
@@ -149,6 +153,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                 shouldOverlay
                                 isNested
                                 threeDotsMenuRef={threeDotsMenuRef}
+                                disabled={item.disabled}
                             />
                         </View>
                     ) : undefined

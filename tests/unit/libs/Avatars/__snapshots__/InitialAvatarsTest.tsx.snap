@@ -2,6 +2,9 @@
 
 exports[`getInitialAvatarSvg matches snapshot for a letter avatar 1`] = `
 <View
+  accessibilityElementsHidden={true}
+  accessible={false}
+  importantForAccessibility="no-hide-descendants"
   style={[]}
   testID=""
 >
