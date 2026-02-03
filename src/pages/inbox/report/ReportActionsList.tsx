@@ -802,7 +802,10 @@ function ReportActionsList({
         );
     }, [canShowHeader, retryLoadNewerChatsError]);
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowSkeleton =
+        (isOffline || !reportMetadata?.hasOnceLoadedReportActions) && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    const reportActionsToRender = useMemo(() => (shouldShowSkeleton ? sortedVisibleReportActions.slice(0, 1) : sortedVisibleReportActions), [shouldShowSkeleton, sortedVisibleReportActions]);
 
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
@@ -857,7 +860,7 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={sortedVisibleReportActions}
+                    data={reportActionsToRender}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
