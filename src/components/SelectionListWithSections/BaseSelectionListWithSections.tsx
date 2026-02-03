@@ -645,6 +645,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                                sentryLabel="BaseSelectionListWithSections.SelectAll"
                             >
                                 <Text style={[styles.textStrong, styles.ph3, selectAllStyle]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>
