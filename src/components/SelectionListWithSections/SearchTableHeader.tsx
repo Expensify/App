@@ -261,6 +261,18 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
 ];
 
 const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderIcons): SearchColumnConfig[] => {
+    const commonGroupHeaders: SearchColumnConfig[] = [
+        {
+            columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+            translationKey: 'common.expenses' as TranslationPaths,
+            isColumnSortable: true,
+        },
+        {
+            columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+            translationKey: 'common.total' as TranslationPaths,
+            isColumnSortable: true,
+        },
+    ];
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return [
@@ -274,14 +286,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
                     translationKey: 'common.from',
                 },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                    translationKey: 'common.expenses',
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    translationKey: 'common.total',
-                },
+                ...commonGroupHeaders,
             ];
         case CONST.SEARCH.GROUP_BY.CARD:
             return [
@@ -299,14 +304,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED,
                     translationKey: 'search.filters.feed',
                 },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                    translationKey: 'common.expenses',
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    translationKey: 'common.total',
-                },
+                ...commonGroupHeaders,
             ];
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
             return [
@@ -328,14 +326,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     translationKey: 'common.withdrawalID',
                 },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                    translationKey: 'common.expenses',
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    translationKey: 'common.total',
-                },
+                ...commonGroupHeaders,
             ];
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return [
@@ -344,16 +335,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     translationKey: 'common.category',
                     isColumnSortable: true,
                 },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                    translationKey: 'common.expenses',
-                    isColumnSortable: true,
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    translationKey: 'common.total',
-                    isColumnSortable: true,
-                },
+                ...commonGroupHeaders,
             ];
         case CONST.SEARCH.GROUP_BY.MERCHANT:
             return [
@@ -362,16 +344,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     translationKey: 'common.merchant',
                     isColumnSortable: true,
                 },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                    translationKey: 'common.expenses',
-                    isColumnSortable: true,
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    translationKey: 'common.total',
-                    isColumnSortable: true,
-                },
+                ...commonGroupHeaders,
             ];
         case CONST.SEARCH.GROUP_BY.TAG:
             return [
@@ -380,16 +353,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     translationKey: 'common.tag',
                     isColumnSortable: true,
                 },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                    translationKey: 'common.expenses',
-                    isColumnSortable: true,
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    translationKey: 'common.total',
-                    isColumnSortable: true,
-                },
+                ...commonGroupHeaders,
             ];
         case CONST.SEARCH.GROUP_BY.MONTH:
             return [
@@ -398,16 +362,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     translationKey: 'common.month',
                     isColumnSortable: true,
                 },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                    translationKey: 'common.expenses',
-                    isColumnSortable: true,
-                },
-                {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    translationKey: 'common.total',
-                    isColumnSortable: true,
-                },
+                ...commonGroupHeaders,
             ];
         case CONST.SEARCH.GROUP_BY.WEEK:
             return [
@@ -416,16 +371,25 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     translationKey: 'common.week',
                     isColumnSortable: true,
                 },
+                ...commonGroupHeaders,
+            ];
+        case CONST.SEARCH.GROUP_BY.YEAR:
+            return [
                 {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-                    translationKey: 'common.expenses',
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
+                    translationKey: 'common.year',
                     isColumnSortable: true,
                 },
+                ...commonGroupHeaders,
+            ];
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+            return [
                 {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-                    translationKey: 'common.total',
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
+                    translationKey: 'common.quarter',
                     isColumnSortable: true,
                 },
+                ...commonGroupHeaders,
             ];
         default:
             return [];

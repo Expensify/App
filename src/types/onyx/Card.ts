@@ -72,6 +72,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last updated time */
     lastScrape?: string;
 
+    /** Whether transactions from the card should be marked reimbursable by default */
+    reimbursable?: boolean;
+
     /** Last update result */
     lastScrapeResult?: number;
 
