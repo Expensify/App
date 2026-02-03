@@ -92,6 +92,7 @@ import {
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
+    isWhisperAction,
     withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
@@ -117,6 +118,7 @@ import {
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportSubtitlePrefix,
+    getReportTransactions,
     getUnreportedTransactionMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
@@ -144,6 +146,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
+import {isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -861,6 +864,23 @@ function getLastMessageTextForReport({
     // If the last action differs from last original action, it means there's a hidden action (like a whisper), then use getLastVisibleMessage to get the preview text
     if (!lastMessageTextFromReport && !lastReportAction && !!lastOriginalReportAction && isWhisperAction(lastOriginalReportAction)) {
         return lastVisibleMessage?.lastMessageText ?? '';
+    }
+
+    if (reportID && !lastMessageTextFromReport && isExpenseReport(report)) {
+        const transactions = getReportTransactions(reportID);
+        const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
+        if (scanningTransactions.length > 0) {
+            return translateLocal('iou.receiptScanning', {count: scanningTransactions.length});
+        }
+
+        if (report?.total && report?.total !== 0 && report?.currency) {
+            return lastVisibleMessage?.lastMessageText;
+        }
+
+        // Returning 'No activity yet' as message preview if report doesn't have any transaction.
+        if (report?.total === 0) {
+            return translateLocal('report.noActivityYet');
+        }
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
