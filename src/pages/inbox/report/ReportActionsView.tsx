@@ -101,7 +101,7 @@ function ReportActionsView({
         [getTransactionThreadReportActions],
     );
     const [transactionThreadReportOnyxValue] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    
+
     // Create a lightweight memoized version of transactionThreadReportOnyxValue
     const transactionThreadReport = useMemo(() => {
         if (!transactionThreadReportOnyxValue) {
@@ -120,7 +120,7 @@ function ReportActionsView({
         transactionThreadReportOnyxValue?.lastVisibleActionCreated,
         transactionThreadReportOnyxValue?.parentReportID,
     ]);
-    
+
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);

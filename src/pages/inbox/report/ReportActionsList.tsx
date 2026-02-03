@@ -2,6 +2,7 @@ import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/Vir
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
@@ -68,7 +69,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import { deepEqual } from 'fast-equals';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
@@ -178,8 +178,8 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, { canBeMissing: false });
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, { canBeMissing: true });
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const policiesRef = useRef(policies);
     // Stabilize policies - only update ref when content actually changes
     const stablePolicies = useMemo(() => {
@@ -764,7 +764,7 @@ function ReportActionsList({
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
-            transactions
+            transactions,
         ],
     );
 
@@ -823,7 +823,10 @@ function ReportActionsList({
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }, [shouldShowSkeleton]);
 
-    const contentContainerStyle = useMemo(() => [styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined], [shouldFocusToTopOnMount, styles.chatContentScrollView, styles.justifyContentEnd]);
+    const contentContainerStyle = useMemo(
+        () => [styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined],
+        [shouldFocusToTopOnMount, styles.chatContentScrollView, styles.justifyContentEnd],
+    );
 
     const onContentSizeChange = useCallback(() => {
         trackVerticalScrolling(undefined);
