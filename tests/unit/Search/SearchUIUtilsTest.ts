@@ -6246,7 +6246,8 @@ describe('SearchUIUtils', () => {
             const viewValues = Object.values(CONST.SEARCH.VIEW);
             expect(viewValues).toContain('table');
             expect(viewValues).toContain('bar');
-            expect(viewValues).toHaveLength(2);
+            expect(viewValues).toContain('pie');
+            expect(viewValues).toHaveLength(3);
         });
 
         test('should correctly map view values to user-friendly values', () => {
@@ -6254,7 +6255,7 @@ describe('SearchUIUtils', () => {
             const userFriendlyValues = viewValues.map((value) => getUserFriendlyValue(value));
 
             // All view values should be mapped (they may be the same or different)
-            expect(userFriendlyValues).toHaveLength(2);
+            expect(userFriendlyValues).toHaveLength(3);
             expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
         });
     });

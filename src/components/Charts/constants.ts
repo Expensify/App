@@ -87,6 +87,15 @@ const X_AXIS_LABEL_MAX_HEIGHT_RATIO = 0.35;
 /** Ellipsis character for truncated labels */
 const LABEL_ELLIPSIS = '...';
 
+/** Minimum percentage for a slice to be shown individually (slices below this are aggregated to "Other") */
+const PIE_CHART_MIN_SLICE_PERCENTAGE = 2;
+
+/** Maximum number of slices before aggregating smallest to "Other" */
+const PIE_CHART_MAX_SLICES = 20;
+
+/** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
+const PIE_CHART_START_ANGLE = -90;
+
 export {
     CHART_COLORS,
     Y_AXIS_TICK_COUNT,
@@ -110,4 +119,7 @@ export {
     LABEL_PADDING,
     X_AXIS_LABEL_MAX_HEIGHT_RATIO,
     LABEL_ELLIPSIS,
+    PIE_CHART_MIN_SLICE_PERCENTAGE,
+    PIE_CHART_MAX_SLICES,
+    PIE_CHART_START_ANGLE,
 };

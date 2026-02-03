@@ -27,6 +27,7 @@ import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUti
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SearchBarChart from './SearchBarChart';
+import SearchPieChart from './SearchPieChart';
 import type {ChartView, SearchGroupBy, SearchQueryJSON} from './types';
 
 type GroupedItem =
@@ -126,7 +127,7 @@ type SearchChartViewProps = {
     queryJSON: SearchQueryJSON;
 
     /** The view type (bar, etc.) */
-    view: Exclude<ChartView, 'line' | 'pie'>;
+    view: Exclude<ChartView, 'line'>;
 
     /** The groupBy parameter */
     groupBy: SearchGroupBy;
@@ -144,8 +145,9 @@ type SearchChartViewProps = {
 /**
  * Map of chart view types to their corresponding chart components.
  */
-const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'line' | 'pie'>, typeof SearchBarChart> = {
+const CHART_VIEW_TO_COMPONENT: Record<Exclude<ChartView, 'line'>, typeof SearchBarChart | typeof SearchPieChart> = {
     [CONST.SEARCH.VIEW.BAR]: SearchBarChart,
+    [CONST.SEARCH.VIEW.PIE]: SearchPieChart,
 };
 
 /**

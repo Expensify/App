@@ -7104,7 +7104,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
         topSpenders: 'Plus gros dépensiers',
-        view: {label: 'Afficher', table: 'Tableau', bar: 'Barre'},
+        view: {label: 'Afficher', table: 'Tableau', bar: 'Barre', pie: 'Camembert'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cartes',

@@ -7092,7 +7092,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
         topSpenders: 'Top-Ausgaben',
-        view: {label: 'Ansehen', table: 'Tabelle', bar: 'Bar'},
+        view: {label: 'Ansehen', table: 'Tabelle', bar: 'Bar', pie: 'Kuchen'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Karten',

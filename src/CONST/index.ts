@@ -7182,6 +7182,7 @@ const CONST = {
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
+            PIE: 'pie',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
