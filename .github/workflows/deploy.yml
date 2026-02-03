@@ -490,6 +490,9 @@ jobs:
       - name: Checkout
         # v6
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
 
       - name: Download iOS build artifact
         if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
