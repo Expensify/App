@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyAutomaticApprovalRate} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -32,13 +32,14 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
     const styles = useThemeStyles();
 
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
+    const isWorkflowsEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED);
     const defaultValue = Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100);
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
-            shouldBeBlocked={!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable}
+            shouldBeBlocked={isWorkflowsEnabled && (!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

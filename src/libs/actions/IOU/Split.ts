@@ -1272,6 +1272,13 @@ function updateSplitTransactions({
             return transactionID === undeletedTransaction?.transactionID;
         }) as ReportAction;
 
+        // For a reverse split operation (i.e. deleting one transaction from a 2-split), the other split(undeleted)
+        // transaction also gets marked for deletion optimistically. This causes the undeleted split to remain visible,
+        // resulting in 3 transactions(deleted, undeleted, and original) being shown at the same time when offline.
+        // Since original transaction will be reverted and both splits will eventually be deleted, we remove
+        // the undeleted split entirely instead of marking it for deletion.
+        const forceDeleteSplitTransactionID = isReverseSplitOperation ? splitExpenses.at(0)?.transactionID : undefined;
+
         const {
             optimisticData: deleteExpenseOptimisticData,
             failureData: deleteExpenseFailureData,
@@ -1285,7 +1292,7 @@ function updateSplitTransactions({
             undefined,
             undefined,
             undefined,
-            isReportArchived,
+            isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
         );
 
         optimisticData.push(...(deleteExpenseOptimisticData ?? []));
@@ -1537,7 +1544,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     }
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
-        Navigation.dismissToSuperWideRHP();
+        Navigation.navigateBackToLastSuperWideRHPScreen();
 
         // After the modal is dismissed, remove the transaction thread report screen
         // to avoid navigating back to a report removed by the split transaction.
