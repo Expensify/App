@@ -32,8 +32,8 @@ import {
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTag,
-    setSplitShares,
 } from '@userActions/IOU';
+import {setSplitShares} from '@userActions/IOU/Split';
 import {createDraftWorkspace} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
