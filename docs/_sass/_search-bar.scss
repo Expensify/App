@@ -4,10 +4,7 @@
 
 .search-icon {
     margin: auto 0px;
-}
-
-.gsc-input-box {
-    border: 0 !important;
+    margin-left: auto;
 }
 
 #sidebar-search {
@@ -39,34 +36,30 @@
 }
 
 .searchbar-title-wrapper {
-    padding: 20px;
+    display: flex;
+    align-items: center;
+    padding: 24px 20px;
 }
 
 .search-title {
     font-size: 17px;
-    padding-bottom: 20px;
+    margin: 0;
+    padding: 0;
+    line-height: 24px;
 }
 
 #toggle-search-close {
-    margin: auto;
-    margin-left: 0px;
+    display: flex;
+    align-items: center;
     margin-right: 10px;
 }
 
 /* Sidebar Layer */
 #sidebar-layer {
     position: fixed;
-
-    /* Sit on top of the page content */
     display: none;
-
-    /* Hidden by default */
     width: 100%;
-
-    /* Full width (cover the whole page) */
     height: 100%;
-
-    /* Full height (cover the whole page) */
     top: 0;
     left: 0;
     right: 0;
@@ -75,207 +68,145 @@
     z-index: 1;
 }
 
-/* All gsc id & class are Google Search relate gcse_0 is the search bar parent & gcse_1 is the search result list parent */
-#___gcse_0 {
-    margin-left: 20px;
-    margin-top: -8px;
+.search-form {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin: 12px 20px 16px 20px;
 }
 
-/* This input is in #___gcse_0 search bar */
-input#gsc-i-id1.gsc-input {
-    background-image: none !important;
-    background-color: var(--color-appBG) !important;
-    padding: 15px 0px 0px !important;
-    pointer-events: auto;
-    color: var(--color-text) !important;
-    font-family: 'Expensify Neue', 'Segoe UI Emoji', 'Noto Color Emoji' !important;
-}
-
-/* These below #gsc-iw-id1, .gsc-input-box & .gsib_a are inner wrapper of search bar input */
-#gsc-iw-id1 {
-    background-color: var(--color-appBG);
-    border-bottom: var(--color-borders) 2px solid !important;
-    border-bottom-left-radius: 0px;
-    pointer-events: none;
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    border: 1px solid var(--color-borders);
+    border-radius: 8px;
+    padding: 7px 12px;
+    flex: 1;
+    height: 52px;
+    min-height: 52px;
+    box-sizing: border-box;
+    cursor: text;
 
     &:focus-within {
-        border-bottom: var(--color-accent) 2px solid !important;
+        border-color: var(--color-button-success-background);
     }
 }
 
-.gsc-input-box .gsib_a {
-    padding: 0px 0px 4px 0px;
-}
-
-.search-icon {
-    margin-left: auto;
-}
-
-.gsst_b,
-.gsst_a {
-    padding: 0px !important;
-}
-/* This is the close icon on search bar */
-.gsib_b .gsst_a .gscb_a {
-    color: var(--color-icons);
-    padding: 8px 6px 0px 6px !important;
-    pointer-events: auto;
-
-    &:hover {
-        color: var(--color-text);
-    }
-}
-
-/* This is to manage hover on parent close icon and make it the same effect on close icon */
-.gsst_a:hover {
-    .gscb_a {
-        color: var(--color-text) !important;
-    }
-}
-
-/* Manage Google Search label animation */
-input#gsc-i-id1:focus + label.search-label,
-input#gsc-i-id1:valid + label.search-label,
-input#gsc-i-id1:active + label.search-label {
-    transform: translateY(-100%) scale(0.8);
-}
-
-label.search-label {
-    display: block;
-    position: absolute;
-    margin-top: -20px;
-    font-size: 15px;
+.search-label {
     font-family: 'Expensify Neue', 'Segoe UI Emoji', 'Noto Color Emoji';
-    transform: translateY(-50%);
-    left: 20px;
-    pointer-events: none;
     color: var(--color-text-supporting);
-    transform-origin: left top;
-    user-select: none;
-    transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1), top 500ms;
+    pointer-events: none;
+    font-size: 15px;
+    line-height: 20px;
+    transition: all 200ms ease-in-out;
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
 }
 
-/* Hide the relevance, Ads, Branding, find more button & etc sections */
-.gsc-above-wrapper-area,
-.gsc-webResult.gsc-result .gsc-url-top,
-.gsc-results-wrapper-visible .gsc-adBlock,
-.gcsc-more-maybe-branding-root,
-.gcsc-find-more-on-google-root {
-    display: none;
+.search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--color-text);
+    font-family: 'Expensify Neue', 'Segoe UI Emoji', 'Noto Color Emoji';
+    font-size: 15px;
+    line-height: 20px;
+    width: 100%;
+    padding: 0;
 }
 
-.gsc-control-cse {
-    background-color: var(--color-appBG) !important;
-    border: var(--color-appBG) !important;
-    font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif !important;
+.search-input:focus ~ .search-label,
+.search-input:valid ~ .search-label {
+    font-size: 13px;
+    line-height: 16px;
+    top: 7px;
+    transform: translateY(0);
 }
 
-.gsc-webResult.gsc-result {
-    border-color: var(--color-appBG) !important;
-    background-color: var(--color-appBG) !important;
-}
-
-/* Hide the scrollbar */
-.gsc-control-cse::-webkit-scrollbar {
-    display: none;
-}
-
-.gs-title * {
-    font-weight: bold;
-    color: var(--color-link) !important;
-}
-
-/* Change the Google Search Button icon into Expensify icon button */
-.gsc-search-button.gsc-search-button-v2 {
-    padding: 10px;
-    margin-left: 15px;
-    margin-right: 20px;
-    border-radius: 25px;
+.search-button {
     background-color: var(--color-button-success-background);
-    border-color: var(--color-appBG) !important;
-    cursor: pointer;
+    border: none;
+    border-radius: 50%;
     width: 40px;
     height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:hover {
+        background-color: var(--color-button-success-background-hover);
+    }
+
+    .base-icon {
+        filter: brightness(0) invert(1);
+    }
 }
 
-.gsc-search-button.gsc-search-button-v2:hover,
-.gsc-search-button.gsc-search-button-v2:focus {
-    background-color: var(--color-button-success-background-hover);
+.search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
 }
 
-.gsc-search-button.gsc-search-button-v2 svg {
-    fill: var(--color-button-text);
-    height: auto;
-    width: auto;
+.search-result-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    text-decoration: none;
+    cursor: pointer;
+    &:hover,
+    &:focus {
+        background-color: var(--color-highlightBG);
+        outline: none;
+    }
 }
 
-.gsc-search-button.gsc-search-button-v2 svg path {
-    fill-rule: evenodd;
-    clip-rule: evenodd;
+.search-result-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
 }
 
-.gsc-resultsbox-visible .gsc-webResult .gsc-result {
-    border-bottom: none;
+.search-result-title {
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 20px;
+    color: var(--color-text);
 }
 
-/* Change Font the Google Search result */
-.gsc-control-cse .gsc-table-result {
-    font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif !important;
-}
-
-/* Change Font result Paragraph color */
-.gsc-results .gs-webResult:not(.gs-no-results-result):not(.gs-error-result) .gs-snippet,
-.gs-fileFormatType {
+.search-result-description {
+    font-weight: 400;
+    font-size: 13px;
+    line-height: 16px;
     color: var(--color-text-supporting);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
-/* Change the color of the Google Search Suggestion font */
-.gs-spelling.gs-result {
-    color: var(--color-text);
+.search-result-item > .base-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
 }
 
-/* Pagination related style */
-.gsc-resultsbox-visible .gsc-results .gsc-cursor-box {
-    text-align: center;
-}
-
-.gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
-    margin: 4px;
-    width: 28px;
-    height: 28px;
-    border-radius: 25px;
-    display: inline-block;
-    line-height: 2.5;
-    background-color: var(--color-accent);
-    font-weight: bold;
-    font-size: 11px;
-}
-
-/* Change the color & background of Google Search Pagination */
-.gsc-cursor-next-page,
-.gsc-cursor-final-page {
-    color: var(--color-text);
-    background-color: var(--color-appBG);
-}
-
-/* Change the color & background of Google Search Current Page */
-.gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page.gsc-cursor-current-page {
-    background-color: var(--color-accent);
-    color: var(--color-text);
-
-    &:hover {
-        text-decoration: none;
-        background-color: var(--color-accent);
-    }
-}
-
-/* Change the color & background of Google Search of Other Page */
-.gsc-resultsbox-visible .gsc-results .gsc-cursor-box .gsc-cursor-page {
-    background-color: var(--color-button-background);
-    color: var(--color-text);
-
-    &:hover {
-        background-color: var(--color-button-background-hover);
-        text-decoration: none;
-    }
+.search-loading,
+.search-no-results,
+.search-error {
+    padding: 0 20px;
+    color: var(--color-text-supporting);
+    font-size: 15px;
 }
