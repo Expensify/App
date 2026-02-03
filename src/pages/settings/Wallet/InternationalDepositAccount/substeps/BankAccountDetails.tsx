@@ -14,21 +14,21 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 import {fetchCorpayFields} from '@userActions/BankAccounts';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fieldsMap}: CustomSubStepProps) {
+function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
-        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}),
+        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}),
         onNext,
         shouldSaveDraft: isEditing,
     });
@@ -39,14 +39,14 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                 return;
             }
             fetchCorpayFields(formValues.bankCountry, value);
-            resetScreenIndex?.(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS);
+            onMove(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS, false);
         },
-        [formValues.bankCountry, formValues.bankCurrency, resetScreenIndex],
+        [formValues.bankCountry, formValues.bankCurrency, onMove],
     );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS], translate);
+            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS], translate);
         },
         [fieldsMap, translate],
     );
@@ -80,7 +80,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                         shouldShowFullPageOfflineView
                     />
                 </View>
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).map((field) => (
+                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}).map((field) => (
                     <View
                         style={(field.valueSet ?? []).length > 0 ? [styles.mhn5, styles.pv1] : [styles.pv2]}
                         key={field.id}

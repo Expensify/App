@@ -231,7 +231,13 @@ type SettingsNavigatorParamList = {
         bankAccountID: string;
     };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
-    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
+        // TODO will be removed once dynamic routes are implemented https://github.com/Expensify/App/issues/73825
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+        subPage?: string;
+        action?: 'edit';
+    };
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: {
         // TODO will be removed once dynamic routes are implemented https://github.com/Expensify/App/issues/73825
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md

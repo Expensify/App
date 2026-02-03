@@ -14,7 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow, hideBankAccountErrors} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -37,7 +37,7 @@ function TermsAndConditionsLabel() {
     return <RenderHTML html={translate('common.acceptTermsOfService')} />;
 }
 
-function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProps) {
+function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: false});
@@ -104,7 +104,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         },
     ];
 
-    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {})) {
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {})) {
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
@@ -115,7 +115,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         });
     }
 
-    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] ?? {})) {
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE] ?? {})) {
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
@@ -126,7 +126,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         });
     }
 
-    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] ?? {}).sort(
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION] ?? {}).sort(
         ([field1], [field2]) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field2),
     )) {
         summaryItems.push({
@@ -139,7 +139,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         });
     }
 
-    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] ?? {}).sort(
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS] ?? {}).sort(
         ([field1], [field2]) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field2),
     )) {
         summaryItems.push({
