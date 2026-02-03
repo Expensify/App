@@ -510,7 +510,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 onLongPress={onLongPress}
                 onPress={onPress}
                 disabled={isDisabled && !isItemSelected}
-                sentryLabel="TransactionGroupListItem"
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
