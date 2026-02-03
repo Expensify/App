@@ -3,7 +3,6 @@
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import createRandomPolicy, {createCategoryTaxExpenseRules} from 'tests/utils/collections/policies';
 import createRandomTransaction from 'tests/utils/collections/transaction';
 import {requestMoney} from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
@@ -43,6 +42,7 @@ import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
+import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
