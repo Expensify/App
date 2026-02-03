@@ -4369,8 +4369,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const transactionDetails = getTransactionDetails(updatedTransaction, undefined, undefined, allowNegative);
 
     if (transactionDetails?.waypoints) {
-        // This needs to be a JSON string since we're sending this to the MapBox API
-        transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+        // Sanitize waypoints for API - only keep allowed fields (name, address, lat, lng)
+        // This is done here (not in transactionChanges) to preserve keyForList in Onyx optimistic data
+        transactionDetails.waypoints = JSON.stringify(sanitizeWaypointsForAPI(transactionDetails.waypoints as WaypointCollection));
     }
 
     const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => key in transactionChanges));
@@ -4907,8 +4908,9 @@ function getUpdateTrackExpenseParams(
     const transactionDetails = getTransactionDetails(updatedTransaction);
 
     if (transactionDetails?.waypoints) {
-        // This needs to be a JSON string since we're sending this to the MapBox API
-        transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+        // Sanitize waypoints for API - only keep allowed fields (name, address, lat, lng)
+        // This is done here (not in transactionChanges) to preserve keyForList in Onyx optimistic data
+        transactionDetails.waypoints = JSON.stringify(sanitizeWaypointsForAPI(transactionDetails.waypoints as WaypointCollection));
     }
 
     const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => key in transactionChanges));
@@ -5502,7 +5504,9 @@ function updateMoneyRequestDistance({
     parentReportNextStep,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
-        ...(waypoints && {waypoints: sanitizeWaypointsForAPI(waypoints)}),
+        // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
+        // Sanitization happens when building API params
+        ...(waypoints && {waypoints}),
         routes,
         ...(distance && {distance}),
         ...(odometerStart !== undefined && {odometerStart}),
