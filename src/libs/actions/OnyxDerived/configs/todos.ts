@@ -5,6 +5,18 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
+type CreateTodosReportsAndTransactionsParams = {
+    allReports: OnyxCollection<Report>;
+    allTransactions: OnyxCollection<Transaction>;
+    allPolicies: OnyxCollection<Policy>;
+    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+    allReportActions: OnyxCollection<ReportActions>;
+    allReportMetadata: OnyxCollection<ReportMetadata>;
+    bankAccountList: OnyxEntry<BankAccountList>;
+    currentUserAccountID: number;
+    login: string;
+};
+
 const createTodosReportsAndTransactions = ({
     allReports,
     allTransactions,
@@ -15,24 +27,14 @@ const createTodosReportsAndTransactions = ({
     bankAccountList,
     currentUserAccountID,
     login,
-}: {
-    allReports: OnyxCollection<Report>;
-    allTransactions: OnyxCollection<Transaction>;
-    allPolicies: OnyxCollection<Policy>;
-    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-    allReportActions: OnyxCollection<ReportActions>;
-    allReportMetadata: OnyxCollection<ReportMetadata>;
-    bankAccountList: OnyxEntry<BankAccountList>;
-    currentUserAccountID: number;
-    login: string;
-}) => {
+}: CreateTodosReportsAndTransactionsParams) => {
     const reportsToSubmit: Report[] = [];
     const reportsToApprove: Report[] = [];
     const reportsToPay: Report[] = [];
     const reportsToExport: Report[] = [];
     const transactionsByReportID: Record<string, Transaction[]> = {};
 
-    const reports = allReports ? Object.values(allReports) : [];
+    const reports = Object.values(allReports ?? {});
     if (reports.length === 0) {
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
     }
