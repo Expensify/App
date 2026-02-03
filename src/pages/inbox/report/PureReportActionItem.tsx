@@ -578,7 +578,7 @@ function PureReportActionItem({
 
     const reportPreviewStyles = useMemo(() => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined), [StyleUtils, shouldUseNarrowLayout]);
 
-    // In this case we are interested only in wheter the action's message field has changed
+    // In this case we are interested only in whether the action's message field has changed
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const isDeletedParentAction = useMemo(() => isDeletedParentActionUtils(action), [action.message]);
 
