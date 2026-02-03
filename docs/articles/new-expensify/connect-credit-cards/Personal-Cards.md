@@ -1,32 +1,78 @@
 ---
-title: Personal Cards
-description: Learn how to track and manage your personal credit card expenses in Expensify through automatic imports or manual uploads.
-keywords: [New Expensify, personal cards, credit card import, CSV upload, SmartScan, eReceipts, reimbursements]
+title: Manage personal cards in New Expensify
+description: Learn how to view and manage personal credit cards in New Expensify.
+keywords: [personal cards, Wallet, reimbursable, credit card import, Expensify Classic, New Expensify, assigned cards, card details]
 ---
 
+<div id="new-expensify" markdown="1">
 
-Tracking personal credit card expenses in Expensify is simple and flexible. Whether you're getting reimbursed or just organizing your spending, you can connect a personal card or upload transactions manually.
+# Manage personal cards in New Expensify
 
----
-
-# Overview
-
-Once available in **New Expensify**, personal card connections will allow you to:
-
-- **Automatically import transactions** from your linked card
-- **Manually upload CSV files** with your expense history
-- **Merge imported transactions with SmartScanned receipts**
-- Generate **IRS-compliant eReceipts** for eligible USD purchases
-
-These features make it easy to capture personal expenses for reimbursement, tax reporting, or budgeting.
+You can now view and manage personal credit cards imported from Expensify Classic directly in New Expensify. This makes it easier to track personal expenses for tax season or submit reimbursable transactions from a personal card.
 
 ---
 
-# Feature Status
+## Who can use personal card management in New Expensify
 
-We’re currently building the personal card connection functionality for New Expensify. This feature is not yet available but will be released soon.
+- Members with personal cards previously connected in Expensify Classic
+- Available on both **web and mobile** for all account types
 
-Once it's live, we’ll update this article with full setup instructions, screenshots, and tips for managing your imported expenses.
+---
 
-**Stay tuned!** You can follow product announcements or contact Concierge for updates on availability.
+## Where to find personal cards in New Expensify
+
+1. Open the **Wallet** tab on web or mobile.
+2. Under **Assigned cards**:
+   - Personal cards imported from Expensify Classic will appear here.
+   - You'll see the card name, bank icon, and last 4 digits.
+3. Tap the personal card you want to manage.
+
+If you have both company and personal cards, you'll see them separated into **Company cards** and **Personal cards** sections.
+
+![Tap a personal card to open card details]({{site.url}}/assets/images/personal-card-01.png){:width="100%"}
+
+---
+
+## What can you do with personal cards in New Expensify
+
+- View all personal cards imported from Expensify Classic
+- Automatically import transactions from your linked personal cards
+- Generate IRS-compliant eReceipts for eligible USD purchases
+- Update personal card settings
+- Filter expenses by card in the **Expenses** tab on the **Reports** page
+
+---
+
+## How to update personal card settings
+
+1. From the **Wallet** tab, tap a personal card.
+2. On the **Card details** page, you can:
+   - Rename the card
+   - Update the card to pull in new transactions (if not CSV-imported)
+   - Unassign the card if it's no longer needed
+   - Toggle **Mark transactions as reimbursable**
+     - This setting applies to new transactions only.
+     - It is enabled by default.
+
+**Note:** Unassigning a card will delete all of its expenses that are unreported or unsubmitted expenses on draft reports. 
+
+![Update personal card settings from the card details page]({{site.url}}/assets/images/personal-card-02.png){:width="100%"}
+
+---
+
+# FAQ
+
+## Can I connect a new personal card?
+
+Not yet. Only cards that were connected in Expensify Classic are available to start. Support for adding new personal cards will be available in a future update.
+
+## Can I change the reimbursable setting for past transactions?
+
+No. Toggling the reimbursable setting only affects new transactions imported after the change.
+
+## Why don’t I see my personal card in the Wallet?
+
+Make sure the card was connected in Expensify Classic. If not, you’ll need to wait for support to add new personal cards in New Expensify.
+
+</div>
 
