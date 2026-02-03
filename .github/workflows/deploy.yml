@@ -208,24 +208,24 @@ jobs:
 
       - name: Upload Android APK build artifact
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        # v6
+        uses: actions/upload-artifact@47309c993abb98030a35d55ef7ff34b7fa1074b5
         with:
           name: android-apk-artifact
           path: Expensify.apk
 
       - name: Upload Android build artifact
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        # v6
+        uses: actions/upload-artifact@47309c993abb98030a35d55ef7ff34b7fa1074b5
         with:
           name: android-build-artifact
           path: ${{ env.aabPath }}
 
       - name: Upload Android sourcemap artifact
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        # v6
+        uses: actions/upload-artifact@47309c993abb98030a35d55ef7ff34b7fa1074b5
         with:
           name: android-sourcemap-artifact
           path: /home/runner/work/App/App/Mobile-Expensify/Android/build/generated/sourcemaps/react/release/index.android.bundle.map
@@ -450,24 +450,24 @@ jobs:
 
       - name: Upload iOS build artifact
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        # v6
+        uses: actions/upload-artifact@47309c993abb98030a35d55ef7ff34b7fa1074b5
         with:
           name: ios-build-artifact
           path: ${{ env.ipaPath }}
 
       - name: Upload iOS dSYM artifact
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        # v6
+        uses: actions/upload-artifact@47309c993abb98030a35d55ef7ff34b7fa1074b5
         with:
           name: ios-dsym-artifact
           path: ${{ env.dsymPath }}
 
       - name: Upload iOS sourcemap artifact
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        # v6
+        uses: actions/upload-artifact@47309c993abb98030a35d55ef7ff34b7fa1074b5
         with:
           name: ios-sourcemap-artifact
           path: /Users/runner/work/App/App/Mobile-Expensify/main.jsbundle.map
@@ -675,8 +675,8 @@ jobs:
           HOST: ${{ github.ref == 'refs/heads/production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
       - name: Upload web sourcemaps artifact
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        # v6
+        uses: actions/upload-artifact@47309c993abb98030a35d55ef7ff34b7fa1074b5
         with:
           name: web-sourcemaps-artifact
           path: ./dist/merged-source-map.js.map
@@ -687,15 +687,15 @@ jobs:
           zip -r webBuild.zip dist
 
       - name: Upload .tar.gz web build artifact
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        # v6
+        uses: actions/upload-artifact@47309c993abb98030a35d55ef7ff34b7fa1074b5
         with:
           name: web-build-tar-gz-artifact
           path: ./webBuild.tar.gz
 
       - name: Upload .zip web build artifact
-        # v4
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        # v6
+        uses: actions/upload-artifact@47309c993abb98030a35d55ef7ff34b7fa1074b5
         with:
           name: web-build-zip-artifact
           path: ./webBuild.zip
