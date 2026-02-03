@@ -813,8 +813,6 @@ function SearchAutocompleteList({
         sections.push({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
     }
 
-    // TODO: Bring back onArrowFocus if necessary
-
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = useMemo(() => sectionItemText.toLowerCase(), [sectionItemText]);
 
