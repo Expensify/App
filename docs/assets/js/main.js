@@ -229,7 +229,7 @@ function initSearchPage() {
         }
     });
 
-    document.getElementById('search-page-clear').addEventListener('click', clearSearchPage);
+    document.getElementById('search-page-clear').addEventListener('click', clearSearchInput);
 }
 
 const FIXED_HEADER_HEIGHT = 80;
