@@ -493,7 +493,6 @@ const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; h
                         resolve({width, height});
                         return;
                     }
-                    // Skip to next marker
                     // eslint-disable-next-line no-bitwise
                     const segmentLength = (arr[offset + 2] << 8) | arr[offset + 3];
                     offset += 2 + segmentLength;
@@ -511,7 +510,6 @@ const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; h
                 return;
             }
 
-            // Could not parse dimensions from header
             resolve(null);
         };
         reader.onerror = () => resolve(null);
@@ -549,12 +547,10 @@ const getImageDimensionsAfterResize = async (file: FileObject): Promise<{width: 
             return calculateScaledDimensions(headerDimensions.width, headerDimensions.height);
         }
 
-        // Fall back to ImageSize.getSize if header parsing failed
         const {width, height} = await ImageSize.getSize(file.uri ?? '');
         return calculateScaledDimensions(width, height);
     }
 
-    // For non-blob URLs (native), use ImageSize.getSize
     const {width, height} = await ImageSize.getSize(file.uri ?? '');
     return calculateScaledDimensions(width, height);
 };
