@@ -33,6 +33,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const {textLight} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    // We need isSmallScreenWidth specifically to apply mobile-only shadow styles, not narrow layout behavior
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
