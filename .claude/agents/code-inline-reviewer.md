@@ -979,17 +979,12 @@ function ReportScreen({ params: { reportID }}) {
 
 - **Search patterns**: Large prop counts in JSX, props named `*Report`, `*Policy`, `*Transaction`, `*Actions`, `useOnyx`/context results passed directly as props
 
-- **Condition**: Flag ONLY when ALL of these are true:
-
-  - A parent component fetches data or computes state (via hooks, stores, contexts)
-  - That data is passed as props to a child component
-  - The parent does not use that data for its own logic — it only serves as an intermediary
-  - The child can retrieve required data on its own
+- **Condition**: Flag when a parent component acts as a pure data intermediary — fetching or computing state only to pass it to children without using it for its own logic.
 
   **Signs of violation:**
   - Parent imports hooks/contexts only to satisfy child's data needs
   - Props that are direct pass-throughs of hook results (e.g., `report={reportOnyx}`)
-  - Child receives 10+ props of computed/fetched data
+  - Component receives props that are just passed through to children or that it could fetch itself
   - Removing or commenting out the child would leave unused variables in the parent
 
   **DO NOT flag if:**
