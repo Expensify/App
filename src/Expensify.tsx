@@ -75,6 +75,11 @@ Onyx.registerLogger(({level, message, parameters}) => {
     } else if (level === 'hmmm') {
         Log.hmmm(message, parameters);
     } else {
+        if (typeof parameters === 'object' && 'isPerformanceMetric' in parameters && parameters.isPerformanceMetric) {
+            // eslint-disable-next-line no-console
+            console.log(message);
+            return;
+        }
         Log.info(message, undefined, parameters);
     }
 });
