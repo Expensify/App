@@ -1,3 +1,4 @@
+import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
 import Log from '@libs/Log';
@@ -9,7 +10,8 @@ import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer
 // eslint-disable-next-line import/no-cycle
 import {validateAndApplyDeferredUpdates} from '.';
 
-let missingOnyxUpdatesQueryPromise: Promise<Response | Response[] | void> | undefined;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let missingOnyxUpdatesQueryPromise: Promise<Response<any> | Array<Response<any>> | void> | undefined;
 let deferredUpdates: DeferredUpdatesDictionary = {};
 
 /**
@@ -23,7 +25,7 @@ function getMissingOnyxUpdatesQueryPromise() {
 /**
  * Sets the promise that fetches the missing onyx updates
  */
-function setMissingOnyxUpdatesQueryPromise(promise: Promise<Response | Response[] | void>) {
+function setMissingOnyxUpdatesQueryPromise<TKey extends OnyxKey>(promise: Promise<Response<TKey> | Array<Response<TKey>> | void>) {
     missingOnyxUpdatesQueryPromise = promise;
 }
 

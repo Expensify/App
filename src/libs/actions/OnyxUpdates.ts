@@ -135,7 +135,7 @@ function apply<TKey extends OnyxKey>({
     request,
     response,
     updates,
-}: Merge<OnyxUpdatesFromServer<TKey>, {request: Request<TKey>; response: Response<TKey>; type: 'https'}>): Promise<Response>;
+}: Merge<OnyxUpdatesFromServer<TKey>, {request: Request<TKey>; response: Response<TKey>; type: 'https'}>): Promise<Response<TKey>>;
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<Response<TKey>>;
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});

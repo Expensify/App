@@ -31,7 +31,8 @@ jest.mock('@src/libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn().mockReturnValue({}),
 }));
 
-const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock<any>;
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
