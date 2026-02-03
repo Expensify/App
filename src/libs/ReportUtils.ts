@@ -6224,11 +6224,13 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
 
     let policyCount = 0;
     for (const policy of Object.values(allPolicies ?? {})) {
-        if (shouldShowPolicy(policy, false, currentUserEmail)) {
-            policyCount++;
-            if (policyCount >= 2) {
-                break;
-            }
+        if (!policy || !shouldShowPolicy(policy, false, currentUserEmail)) {
+            continue;
+        }
+
+        policyCount++;
+        if (policyCount >= 2) {
+            break;
         }
     }
     if (policyCount < 2) {
@@ -11365,16 +11367,18 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     let firstPolicy: Policy | undefined;
     let filteredPoliciesCount = 0;
     for (const policy of Object.values(allPolicies ?? {})) {
-        if (shouldShowPolicy(policy, false, currentUserEmail)) {
-            if (filteredPoliciesCount === 0) {
-                firstPolicy = policy;
-            }
-            filteredPoliciesCount++;
+        if (!policy || !shouldShowPolicy(policy, false, currentUserEmail)) {
+            continue;
+        }
 
-            // Short-circuit once we find 2 policies
-            if (filteredPoliciesCount > 1) {
-                break;
-            }
+        if (filteredPoliciesCount === 0) {
+            firstPolicy = policy;
+        }
+        filteredPoliciesCount++;
+
+        // Short-circuit once we find 2 policies
+        if (filteredPoliciesCount > 1) {
+            break;
         }
     }
 

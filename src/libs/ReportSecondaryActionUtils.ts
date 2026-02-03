@@ -569,16 +569,18 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     let firstAvailablePolicy: Policy | undefined;
     let availablePoliciesCount = 0;
     for (const policy of Object.values(policies ?? {})) {
-        if (isWorkspaceEligibleForReportChange(submitterEmail, policy, report)) {
-            if (availablePoliciesCount === 0) {
-                firstAvailablePolicy = policy;
-            }
-            availablePoliciesCount++;
+        if (!policy || !isWorkspaceEligibleForReportChange(submitterEmail, policy, report)) {
+            continue;
+        }
 
-            // Short-circuit once we find 2 - we know we can change workspace
-            if (availablePoliciesCount > 1) {
-                break;
-            }
+        if (availablePoliciesCount === 0) {
+            firstAvailablePolicy = policy;
+        }
+        availablePoliciesCount++;
+
+        // Short-circuit once we find 2 - we know we can change workspace
+        if (availablePoliciesCount > 1) {
+            break;
         }
     }
 

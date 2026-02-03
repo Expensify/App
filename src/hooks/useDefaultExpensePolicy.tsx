@@ -17,14 +17,15 @@ export default function useDefaultExpensePolicy() {
     let count = 0;
     let singlePolicy;
     for (const policy of Object.values(allPolicies ?? {})) {
-        if (isPaidGroupPolicy(policy) && isPolicyAccessible(policy, login)) {
-            count++;
+        if (!policy || !isPaidGroupPolicy(policy) || !isPolicyAccessible(policy, login)) {
+            continue;
+        }
 
-            if (count === 1) {
-                singlePolicy = policy;
-            } else {
-                break; // More than 1, no need to continue
-            }
+        count++;
+        if (count === 1) {
+            singlePolicy = policy;
+        } else {
+            break; // More than 1, no need to continue
         }
     }
 
