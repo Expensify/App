@@ -262,7 +262,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     });
 
     const shouldShowNewWorkspaceButton =
-        Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email)) && !isRestrictedPolicyCreation;
+        !isRestrictedPolicyCreation && Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 
     const quickActionAvatars = useMemo(() => {
         if (isValidReport) {
