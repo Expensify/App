@@ -1,5 +1,5 @@
-import {InteractionManager} from 'react-native';
 import {eachDayOfInterval, format} from 'date-fns';
+import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -38,13 +38,24 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {buildOptimisticTransaction, getAmount, getChildTransactions, getCurrency, getOriginalTransactionWithSplitInfo, getUpdatedTransaction, isOnHold, isPerDiemRequest as isPerDiemRequestTransactionUtils, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
+import {
+    buildOptimisticTransaction,
+    getAmount,
+    getChildTransactions,
+    getCurrency,
+    getOriginalTransactionWithSplitInfo,
+    getUpdatedTransaction,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isOnHold,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
+} from '@libs/TransactionUtils';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {removeDraftSplitTransaction, removeDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
@@ -74,7 +85,6 @@ import {
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
 import type {MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams} from './index';
-import ROUTES from '@src/ROUTES';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -1932,8 +1942,6 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
     });
 }
 
-
-
 function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
@@ -2117,7 +2125,25 @@ function setIndividualShare(transactionID: string, participantAccountID: number,
     });
 }
 
-
-export {completeSplitBill, splitBill, splitBillAndOpenReport, startSplitBill, updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow, initSplitExpense, updateSplitExpenseField, updateSplitExpenseAmountField, clearSplitTransactionDraftErrors, addSplitExpenseField, resetSplitExpensesByDateRange, evenlyDistributeSplitExpenseAmounts, removeSplitExpenseField, initDraftSplitExpenseDataForEdit, adjustRemainingSplitShares, setDraftSplitTransaction, setIndividualShare};
+export {
+    completeSplitBill,
+    splitBill,
+    splitBillAndOpenReport,
+    startSplitBill,
+    updateSplitTransactions,
+    updateSplitTransactionsFromSplitExpensesFlow,
+    initSplitExpense,
+    updateSplitExpenseField,
+    updateSplitExpenseAmountField,
+    clearSplitTransactionDraftErrors,
+    addSplitExpenseField,
+    resetSplitExpensesByDateRange,
+    evenlyDistributeSplitExpenseAmounts,
+    removeSplitExpenseField,
+    initDraftSplitExpenseDataForEdit,
+    adjustRemainingSplitShares,
+    setDraftSplitTransaction,
+    setIndividualShare,
+};
 
 export type {SplitBillActionsParams, UpdateSplitTransactionsParams};
