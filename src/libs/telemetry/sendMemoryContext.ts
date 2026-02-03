@@ -56,7 +56,8 @@ function sendMemoryContext() {
                 lastUpdated: timestampISO,
             });
         })
-        .catch((error) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .catch((_error) => {
             // Ignore error
         });
 }

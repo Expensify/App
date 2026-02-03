@@ -2,7 +2,6 @@ import type JSZip from 'jszip';
 import type {RefObject} from 'react';
 import React, {useEffect, useState} from 'react';
 import {Alert} from 'react-native';
-import DeviceInfo from 'react-native-device-info';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
