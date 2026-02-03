@@ -42,6 +42,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     // Stores an option to execute after modal closes when using deferred execution
     const selectedOptionRef = useRef<DropdownOption<SearchHeaderOptionValue> | null>(null);
     const {accountID} = useCurrentUserPersonalDetails();
@@ -88,6 +89,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                                 isUserValidated,
                                 isDelegateAccessRestricted,
                                 showDelegateNoAccessModal,
+                                lastPaymentMethods,
                                 confirmPayment,
                             })
                         }
