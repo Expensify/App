@@ -776,16 +776,39 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [androidUploadGooglePlay, iosUploadTestflight, web]
+      ANDROID_RESULT: ${{ steps.platformResults.outputs.ANDROID_RESULT }}
+      IOS_RESULT: ${{ steps.platformResults.outputs.IOS_RESULT }}
+      WEB_RESULT: ${{ steps.platformResults.outputs.WEB_RESULT }}
+    needs: [androidBuild, androidUploadGooglePlay, iosBuild, iosUploadTestflight, web]
     if: ${{ always() }}
     steps:
+      # Determine effective result for each platform (build failure = failure, not skipped)
+      - name: Determine platform results
+        id: platformResults
+        run: |
+          # Android: if build failed, result is failure; otherwise use upload result
+          if [ "${{ needs.androidBuild.result }}" == "failure" ]; then
+            echo "ANDROID_RESULT=failure" >> "$GITHUB_OUTPUT"
+          else
+            echo "ANDROID_RESULT=${{ needs.androidUploadGooglePlay.result }}" >> "$GITHUB_OUTPUT"
+          fi
+
+          # iOS: if build failed, result is failure; otherwise use upload result
+          if [ "${{ needs.iosBuild.result }}" == "failure" ]; then
+            echo "IOS_RESULT=failure" >> "$GITHUB_OUTPUT"
+          else
+            echo "IOS_RESULT=${{ needs.iosUploadTestflight.result }}" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "WEB_RESULT=${{ needs.web.result }}" >> "$GITHUB_OUTPUT"
+
       - name: Check deployment success on at least one platform
         id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          if [ "${{ needs.iosUploadTestflight.result }}" == "success" ] || \
-            [ "${{ needs.androidUploadGooglePlay.result }}" == "success" ] || \
-            [ "${{ needs.web.result }}" == "success" ]; then
+          if [ "${{ steps.platformResults.outputs.IOS_RESULT }}" == "success" ] || \
+            [ "${{ steps.platformResults.outputs.ANDROID_RESULT }}" == "success" ] || \
+            [ "${{ steps.platformResults.outputs.WEB_RESULT }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
           fi
           echo "IS_AT_LEAST_ONE_PLATFORM_DEPLOYED=$isAtLeastOnePlatformDeployed" >> "$GITHUB_OUTPUT"
@@ -795,9 +818,9 @@ jobs:
         id: checkDeploymentSuccessOnAllPlatforms
         run: |
           isAllPlatformsDeployed="false"
-          if [ "${{ needs.iosUploadTestflight.result }}" == "success" ] && \
-            [ "${{ needs.androidUploadGooglePlay.result }}" == "success" ] && \
-            [ "${{ needs.web.result }}" == "success" ]; then
+          if [ "${{ steps.platformResults.outputs.IOS_RESULT }}" == "success" ] && \
+            [ "${{ steps.platformResults.outputs.ANDROID_RESULT }}" == "success" ] && \
+            [ "${{ steps.platformResults.outputs.WEB_RESULT }}" == "success" ]; then
             isAllPlatformsDeployed="true"
           fi
 
@@ -992,11 +1015,11 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, androidUploadGooglePlay, iosUploadTestflight, web, checkDeploymentSuccess, createRelease]
+    needs: [prep, checkDeploymentSuccess, createRelease]
     secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android: ${{ needs.androidUploadGooglePlay.result }}
-      ios: ${{ needs.iosUploadTestflight.result }}
-      web: ${{ needs.web.result }}
+      android: ${{ needs.checkDeploymentSuccess.outputs.ANDROID_RESULT }}
+      ios: ${{ needs.checkDeploymentSuccess.outputs.IOS_RESULT }}
+      web: ${{ needs.checkDeploymentSuccess.outputs.WEB_RESULT }}
