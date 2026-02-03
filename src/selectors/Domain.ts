@@ -100,7 +100,7 @@ function isSecurityGroupEntry(entry: [string, unknown]): entry is [SecurityGroup
     return key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX) && typeof value === 'object' && value !== null && 'shared' in value;
 }
 /**
- * Creates a selector function to a single security group for a specific account ID.
+ * Creates a selector for a single security group for a specific account ID.
  * The returned function searches through a domain and returns a group where
  * the account ID is present in the 'shared' property.
  *
