@@ -903,14 +903,6 @@ function getFormattedSplitDateRange(translateParam: LocaleContextProps['translat
 }
 
 /**
- * Checks if the current time falls within the specified time range.
- */
-const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean => {
-    const now = Date.now();
-    return isAfter(now, new Date(startTime)) && isBefore(now, new Date(endTime));
-};
-
-/**
  * Converts a date to a string in the format MMMM d, yyyy
  */
 const formatToReadableString = (date: string): string => {
@@ -1071,7 +1063,6 @@ const DateUtils = {
     isFutureDay,
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
-    isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
     getMonthDateRange,
     getWeekDateRange,
