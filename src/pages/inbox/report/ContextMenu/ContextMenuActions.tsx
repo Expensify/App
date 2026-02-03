@@ -18,6 +18,7 @@ import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+import getPlatform from '@libs/getPlatform';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
 import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
@@ -182,13 +183,14 @@ function setClipboardMessage(content: string | undefined) {
     if (!content) {
         return;
     }
+    // Web-only fix: plain-text clipboard should be plain text, keep markdown on native to preserve legacy behavior.
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const htmlPlainText = Parser.htmlToText(content);
+    const plainText = isWeb ? htmlPlainText : Parser.htmlToMarkdown(content);
     if (!Clipboard.canSetHtml()) {
-        Clipboard.setString(Parser.htmlToMarkdown(content));
+        Clipboard.setString(plainText);
     } else {
-        // Use markdown format text for the plain text(clipboard type "text/plain") to ensure consistency across all platforms.
-        // More info: https://github.com/Expensify/App/issues/53718
-        const markdownText = Parser.htmlToMarkdown(content);
-        Clipboard.setHtml(content, markdownText);
+        Clipboard.setHtml(content, htmlPlainText);
     }
 }
 
