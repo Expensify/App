@@ -1,4 +1,4 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
+import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
@@ -89,6 +89,8 @@ type BaseTextInputWithSymbolProps = {
 
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
+
+    keyboardType?: KeyboardTypeOptions;
 } & Pick<
     BaseTextInputProps,
     | 'autoFocus'

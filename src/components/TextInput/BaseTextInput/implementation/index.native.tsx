@@ -281,6 +281,7 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
 
     return (
         <>
@@ -404,7 +405,7 @@ function BaseTextInput({
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
                                 keyboardType={inputProps.keyboardType}
-                                inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
+                                inputMode={!disableKeyboard ? isKeyboardType : CONST.INPUT_MODE.NONE}
                                 value={uncontrolled ? undefined : value}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
