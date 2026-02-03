@@ -31,6 +31,7 @@ function BaseListItem<TItem extends ListItem>({
     rightHandSideComponent,
     keyForList,
     errors,
+    errorRowStyles,
     pendingAction,
     FooterComponent,
     children,
@@ -90,7 +91,7 @@ function BaseListItem<TItem extends ListItem>({
             onClose={() => onDismissError(item)}
             pendingAction={pendingAction}
             errors={errors}
-            errorRowStyles={styles.ph5}
+            errorRowStyles={[styles.ph5, errorRowStyles]}
             contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback

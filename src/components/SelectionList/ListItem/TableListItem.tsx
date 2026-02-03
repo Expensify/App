@@ -7,6 +7,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
@@ -26,6 +27,7 @@ function TableListItem<TItem extends ListItem>({
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
     shouldShowRightCaret,
+    errorRowStyles,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -62,7 +64,7 @@ function TableListItem<TItem extends ListItem>({
             ]}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            containerStyle={styles.mb2}
+            containerStyle={isEmptyObject(item.errors) ? styles.mb2 : undefined}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -72,6 +74,7 @@ function TableListItem<TItem extends ListItem>({
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
+            errorRowStyles={errorRowStyles}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
