@@ -184,7 +184,6 @@ function IOURequestStartPage({
                 policy,
                 personalPolicy,
                 isFromGlobalCreate: transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
-                isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
@@ -198,7 +197,6 @@ function IOURequestStartPage({
         },
         [
             transaction?.iouRequestType,
-            transaction?.isFromGlobalCreate,
             transaction?.isFromGlobalCreate,
             reportID,
             policy,

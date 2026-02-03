@@ -113,7 +113,6 @@ function DistanceRequestStartPage({
                 policy,
                 personalPolicy,
                 isFromGlobalCreate,
-                isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
@@ -127,8 +126,6 @@ function DistanceRequestStartPage({
         },
         [
             transaction?.iouRequestType,
-            transaction?.isFromGlobalCreate,
-            transaction?.isFromFloatingActionButton,
             reportID,
             policy,
             personalPolicy,

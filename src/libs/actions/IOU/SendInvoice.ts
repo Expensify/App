@@ -8,6 +8,8 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -32,15 +34,7 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {
-    getAllPersonalDetails,
-    getPolicyTags,
-    getReceiptError,
-    getSearchOnyxUpdate,
-    handleNavigateAfterExpenseCreate,
-    mergePolicyRecentlyUsedCategories,
-    mergePolicyRecentlyUsedCurrencies,
-} from '.';
+import {getAllPersonalDetails, getPolicyTags, getReceiptError, getSearchOnyxUpdate, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from '.';
 import type {BasePolicyParams} from '.';
 
 type SendInvoiceInformation = {
@@ -83,7 +77,6 @@ type SendInvoiceOptions = {
     companyWebsite?: string;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
-    isFromGlobalCreate?: boolean;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -741,7 +734,6 @@ function sendInvoice({
     companyWebsite,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
-    isFromGlobalCreate,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -806,12 +798,11 @@ function sendInvoice({
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    handleNavigateAfterExpenseCreate({
-        activeReportID: invoiceRoom.reportID,
-        transactionID,
-        isFromGlobalCreate,
-        isInvoice: true,
-    });
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.dismissModal();
+    } else {
+        Navigation.dismissModalWithReport({reportID: invoiceRoom.reportID});
+    }
 
     notifyNewAction(invoiceRoom.reportID, currentUserAccountID);
 }
