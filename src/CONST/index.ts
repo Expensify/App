@@ -3001,7 +3001,7 @@ const CONST = {
             APPROVE: 'approve',
             TRACK: 'track',
         },
-        AMOUNT_MAX_LENGTH: 8,
+        AMOUNT_MAX_LENGTH: 10,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
         RECEIPT_STATE: {
             SCAN_READY: 'SCANREADY',
