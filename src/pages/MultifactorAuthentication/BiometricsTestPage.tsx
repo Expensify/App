@@ -1,8 +1,12 @@
 import React, {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {serverHasRegisteredCredentials, useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -12,6 +16,8 @@ import ROUTES from '@src/ROUTES';
 function MultifactorAuthenticationBiometricsTestPage() {
     const {executeScenario} = useMultifactorAuthentication();
     const [serverHasCredentials = false] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: serverHasRegisteredCredentials});
+    const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
     useEffect(() => {
         if (serverHasCredentials) {
@@ -36,7 +42,20 @@ function MultifactorAuthenticationBiometricsTestPage() {
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationBiometricsTestPage.displayName}>
-            <FullScreenLoadingIndicator />
+            {/*
+                The back button needs to be displayed when the user is offline so they can exit the offline page,
+                and not get stuck there. If they are online, they will simply be redirected to the next flow page.
+            */}
+            {isOffline && (
+                <HeaderWithBackButton
+                    title={translate('multifactorAuthentication.letsVerifyItsYou')}
+                    onBackButtonPress={Navigation.closeRHPFlow}
+                    shouldShowBackButton
+                />
+            )}
+            <FullPageOfflineBlockingView>
+                <FullScreenLoadingIndicator />
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
