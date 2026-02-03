@@ -12,14 +12,14 @@ You can now view and manage personal credit cards imported from Expensify Classi
 
 ---
 
-## Who can use personal card management in New Expensify
+## Who can view and manage personal cards in New Expensify
 
 - Members with personal cards previously connected in Expensify Classic
 - Available on both **web and mobile** for all account types
 
 ---
 
-## Where to find personal cards in New Expensify
+## Where to find personal cards in the Wallet
 
 1. Open the **Wallet** tab on web or mobile.
 2. Under **Assigned cards**:
@@ -33,7 +33,7 @@ If you have both company and personal cards, you'll see them separated into **Co
 
 ---
 
-## What can you do with personal cards in New Expensify
+## What you can do with personal cards
 
 - View all personal cards imported from Expensify Classic
 - Automatically import transactions from your linked personal cards
@@ -54,7 +54,7 @@ If you have both company and personal cards, you'll see them separated into **Co
      - This setting applies to new transactions only.
      - It is enabled by default.
 
-**Note:** Unassigning a card will delete all of its expenses that are unreported or unsubmitted expenses on draft reports. 
+**Note:** Unassigning a card will delete all of its expenses that are unreported or on draft reports. 
 
 ![Update personal card settings from the card details page]({{site.url}}/assets/images/personal-card-02.png){:width="100%"}
 
