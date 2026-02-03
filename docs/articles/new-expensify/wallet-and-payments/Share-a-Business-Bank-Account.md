@@ -40,8 +40,6 @@ To share an existing account with other admins:
 
 ![Close the confirmation screen once the share is successful]({{site.url}}/assets/images/Help-ShareBankAccount-4.png){:width="100%"}
 
----
-
 ## What happens after sharing a business bank account
 
 - The shared-to admins will receive a Concierge message letting them know the account was shared.
@@ -59,10 +57,10 @@ To share an existing account with other admins:
 
 When changing the **Authorized Payer** in a Workspace:
 
-- If you have access to the existing bank account but the new payer doesn’t:
-  - You’ll be prompted to **share** the bank account directly from the **Authorized payer** screen.
-  - We’ll share the bank account immediately if you proceed. 
-  - You’ll land on a confirmation screen after the share is successful.
+- If you have access but the new payer doesn't:
+  - You'll be prompted to share the bank account from the Authorized Payer screen.
+  - The account shares immediately when you confirm.
+  - A confirmation screen appears after successful sharing.
 
 - If your own copy of the bank account is pending validation, and you try to assign a new payer who doesn’t have access:
   - You’ll see an error prompting you to **validate your account first** by entering the test transactions before changing payers.
@@ -70,8 +68,7 @@ When changing the **Authorized Payer** in a Workspace:
 - If **neither** you nor the new selected payer has access:
   - You’ll be shown an error telling you to ask the current payer to share the account.
 
-These flows ensure you can only set an Authorized Payer who already has bank account access or is granted access during the flow.
-
+This process ensures you can only set an Authorized Payer who already has bank account access or receives access during the payer change.
 
 ---
 
