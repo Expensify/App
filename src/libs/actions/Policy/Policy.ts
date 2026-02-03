@@ -2225,17 +2225,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
     const isCorporateIntegration = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration);
 
-    const determineWorkspaceType = (): typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE => {
-        if (type) {
-            return type;
-        }
-        if (isCorporateFeature || isCorporateIntegration || shouldCreateControlPolicy) {
-            return CONST.POLICY.TYPE.CORPORATE;
-        }
-        return CONST.POLICY.TYPE.TEAM;
-    };
-
-    const workspaceType = determineWorkspaceType();
+    const workspaceType = type ?? (isCorporateFeature || isCorporateIntegration || shouldCreateControlPolicy ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM);
 
     const areDistanceRatesEnabled = !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
+// eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
 import type {ScrollView as RNScrollView} from 'react-native';
 import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -71,7 +71,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const {inputCallbackRef} = useAutoFocusInput();
     const scrollViewRef = useRef<RNScrollView>(null);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const isApprovedAccountant = !!account?.isApprovedAccountant || true;
+    const isApprovedAccountant = !!account?.isApprovedAccountant;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
@@ -127,7 +127,7 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
 
     const defaultPlanType = isMemberOfControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
     const userPlanType = draftValues?.planType ?? defaultPlanType;
-    const defaultOwner = session?.email ?? policyOwnerEmail ?? '';
+    const defaultOwner = policyOwnerEmail ?? session?.email ?? '';
     const userOwner = draftValues?.owner ?? defaultOwner;
     const ownerDisplayName = userOwner;
 
