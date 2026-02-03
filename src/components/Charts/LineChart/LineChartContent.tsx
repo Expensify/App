@@ -143,7 +143,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 if (angleRad === 0) {
                     return (
                         <SkiaText
-                            key={`xlabel-${label}`}
+                            key={`x-label-${label}`}
                             x={clampedX}
                             y={labelY}
                             text={label}
@@ -159,7 +159,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 const origin = vec(clampedX + labelWidth + centeringOffset, labelY);
                 return (
                     <Group
-                        key={`xlabel-${label}`}
+                        key={`x-label-${label}`}
                         origin={origin}
                         transform={[{rotate: -angleRad}]}
                     >
@@ -174,7 +174,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 );
             });
         },
-        [font, truncatedLabels, labelSkipInterval, labelWidths, angleRad, theme.textSupporting],
+        [font, truncatedLabels, labelSkipInterval, labelWidths, angleRad, labelRotation, theme.textSupporting],
     );
 
     const dynamicChartStyle = useMemo(
