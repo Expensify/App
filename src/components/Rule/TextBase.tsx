@@ -76,6 +76,7 @@ function TextBase<TFormID extends OnyxFormKey>({
             onSubmit={onSubmit}
             submitButtonText={translate('common.save')}
             enabledWhenOffline
+            shouldUseStrictHtmlTagValidation
         >
             <View style={styles.mb5}>
                 <InputWrapper
