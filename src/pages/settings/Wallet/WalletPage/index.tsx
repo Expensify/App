@@ -195,7 +195,7 @@ function WalletPage() {
             showLockedAccountModal();
             return;
         }
-        if (Object.values(allPolicies ?? {}).some((policy) => isPolicyAdmin(policy, currentUserLogin))) {
+        if (hasEligibleActiveAdmin) {
             Navigation.navigate(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
             return;
         }
