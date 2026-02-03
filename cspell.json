@@ -314,6 +314,7 @@
         "idfa",
         "Idology",
         "ifdef",
+        "IHDR",
         "imagebutton",
         "Inactives",
         "inbetweenCompo",
@@ -820,6 +821,8 @@
         "Wooo",
         "Splittable",
         "pgrep",
+        "skia",
+        "canvaskit",
         "Invoicify"
     ],
     "ignorePaths": [
@@ -832,6 +835,7 @@
         "src/languages/pl.ts",
         "src/languages/pt-BR.ts",
         "src/languages/zh-hans.ts",
+        "prompts/translation/fr.ts",
         "android/app/BUCK",
         "android/app/build_defs.bzl",
         "android/app/build.gradle",
