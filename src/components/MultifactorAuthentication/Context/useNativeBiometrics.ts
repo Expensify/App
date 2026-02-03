@@ -49,6 +49,9 @@ type AuthorizeResultFailure = {
 
 type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;
 
+// In the 4th release of the Multifactor Authentication this interface will not focus on the Onyx/Auth values.
+// Instead, the providers abstraction will be added.
+// For context, see: https://github.com/Expensify/App/pull/79473#discussion_r2747993460
 type UseNativeBiometricsReturn = {
     /** Whether server has any registered credentials for this account */
     serverHasAnyCredentials: boolean;
@@ -184,7 +187,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         // Return success with keys - challenge is passed from Main.tsx
         await onResult({
             success: true,
-            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_PAIR_GENERATED,
+            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
             privateKey,
             publicKey,
             authenticationMethod: authType,
