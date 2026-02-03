@@ -520,60 +520,43 @@ const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; h
     });
 };
 
-const getImageDimensionsAfterResize = (file: FileObject): Promise<{width: number; height: number}> => {
+/**
+ * Calculates the scaled dimensions for an image, throwing if the image exceeds the max pixel count.
+ */
+const calculateScaledDimensions = (width: number, height: number): {width: number; height: number} => {
+    const totalPixels = width * height;
+
+    if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
+        throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+    }
+
+    const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
+    const newWidth = Math.max(1, width * scaleFactor);
+    const newHeight = Math.max(1, height * scaleFactor);
+
+    return {width: newWidth, height: newHeight};
+};
+
+const getImageDimensionsAfterResize = async (file: FileObject): Promise<{width: number; height: number}> => {
     // For blob URLs (web), read dimensions directly from file header to avoid
     // Android Chrome's Image API downsampling which returns incorrect dimensions
     if (file.uri?.startsWith('blob:')) {
-        return fetch(file.uri)
-            .then((response) => response.blob())
-            .then((blob) => getImageDimensionsFromFileHeader(blob))
-            .then((headerDimensions) => {
-                if (headerDimensions) {
-                    const {width, height} = headerDimensions;
-                    const totalPixels = width * height;
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
+        const headerDimensions = await getImageDimensionsFromFileHeader(blob);
 
-                    if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
-                        throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
-                    }
+        if (headerDimensions) {
+            return calculateScaledDimensions(headerDimensions.width, headerDimensions.height);
+        }
 
-                    const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
-                    const newWidth = Math.max(1, width * scaleFactor);
-                    const newHeight = Math.max(1, height * scaleFactor);
-
-                    return {width: newWidth, height: newHeight};
-                }
-
-                // Fall back to ImageSize.getSize if header parsing failed
-                return ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
-                    const totalPixels = width * height;
-
-                    if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
-                        throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
-                    }
-
-                    const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
-                    const newWidth = Math.max(1, width * scaleFactor);
-                    const newHeight = Math.max(1, height * scaleFactor);
-
-                    return {width: newWidth, height: newHeight};
-                });
-            });
+        // Fall back to ImageSize.getSize if header parsing failed
+        const {width, height} = await ImageSize.getSize(file.uri ?? '');
+        return calculateScaledDimensions(width, height);
     }
 
     // For non-blob URLs (native), use ImageSize.getSize
-    return ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
-        const totalPixels = width * height;
-
-        if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
-            throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
-        }
-
-        const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
-        const newWidth = Math.max(1, width * scaleFactor);
-        const newHeight = Math.max(1, height * scaleFactor);
-
-        return {width: newWidth, height: newHeight};
-    });
+    const {width, height} = await ImageSize.getSize(file.uri ?? '');
+    return calculateScaledDimensions(width, height);
 };
 
 const createFile = (file: File): FileObject => {
