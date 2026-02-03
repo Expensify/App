@@ -2016,6 +2016,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证 (2FA)，且无法将其禁用。',
+        replaceDevice: '更换设备',
+        replaceDeviceTitle: '更换双重验证设备',
+        verifyOldDeviceTitle: '验证旧设备',
+        verifyOldDeviceDescription: '请输入您当前身份验证器应用中的六位数验证码，以确认您可以访问该应用。',
+        verifyNewDeviceTitle: '设置新设备',
+        verifyNewDeviceDescription: '使用新设备扫描二维码，然后输入代码以完成设置。',
     },
     recoveryCodeForm: {
         error: {

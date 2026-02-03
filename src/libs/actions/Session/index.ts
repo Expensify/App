@@ -15,6 +15,7 @@ import type {
     BeginSignInParams,
     DisableTwoFactorAuthParams,
     LogOutParams,
+    ReplaceTwoFactorDeviceParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
     ResetSMSDeliveryFailureStatusParams,
@@ -1187,6 +1188,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                // Clear the secret key once we know we no longer need to show it
+                // This is necessary in case the user needs to complete the replaceTwoFactorDevice flow on this device at some point in the future - that flow uses the presence of this key to know when to navigate from one step to the next
+                twoFactorAuthSecretKey: null,
             },
         },
     ];
@@ -1218,6 +1222,54 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
 
         updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken);
     });
+}
+
+function replaceTwoFactorDevice(step: 'verify_old' | 'verify_new', twoFactorAuthCode: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: null,
+                // clear out the secret key to signal to the view that the call succeeded
+                ...(step === 'verify_new' ? {twoFactorAuthSecretKey: null} : {}),
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const params: ReplaceTwoFactorDeviceParams = {step, twoFactorAuthCode};
+
+    return API.write(WRITE_COMMANDS.REPLACE_TWO_FACTOR_DEVICE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears the two-factor auth secret key from account data.
+ * Used when starting the device replacement flow to ensure clean state.
+ */
+function clearTwoFactorAuthSecretKey() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: undefined});
 }
 
 /**
@@ -1501,6 +1553,8 @@ export {
     isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
+    replaceTwoFactorDevice,
+    clearTwoFactorAuthSecretKey,
     waitForUserSignIn,
     hasAuthToken,
     isExpiredSession,

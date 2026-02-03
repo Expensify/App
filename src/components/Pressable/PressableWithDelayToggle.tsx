@@ -155,17 +155,17 @@ function PressableWithDelayToggle({
                     >
                         {({hovered, pressed}) => (
                             <>
-                                {!inline && displayLabelText}
                                 {shouldShowIcon && (
                                     <Icon
                                         src={!isActive ? iconChecked : (icon ?? iconChecked)}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
-                                        additionalStyles={iconStyles}
+                                        additionalStyles={[styles.mr2, iconStyles]}
                                         width={iconWidth}
                                         height={iconHeight}
                                         inline={inline}
                                     />
                                 )}
+                                {!inline && displayLabelText}
                             </>
                         )}
                     </PressableWithoutFeedback>

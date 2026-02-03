@@ -2049,6 +2049,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'La tua azienda richiede l’autenticazione a due fattori.',
         twoFactorAuthCannotDisable: 'Impossibile disattivare l’autenticazione a due fattori (2FA)',
         twoFactorAuthRequired: "Per la tua connessione a Xero è richiesta l'autenticazione a due fattori (2FA) e non può essere disattivata.",
+        replaceDevice: 'Sostituisci dispositivo',
+        replaceDeviceTitle: "Sostituisci dispositivo per l'autenticazione a due fattori",
+        verifyOldDeviceTitle: 'Verifica dispositivo precedente',
+        verifyOldDeviceDescription: 'Inserisci il codice a sei cifre dalla tua attuale app di autenticazione per confermare di avere accesso ad essa.',
+        verifyNewDeviceTitle: 'Configura nuovo dispositivo',
+        verifyNewDeviceDescription: 'Scansiona il codice QR con il tuo nuovo dispositivo, quindi inserisci il codice per completare la configurazione.',
     },
     recoveryCodeForm: {
         error: {

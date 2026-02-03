@@ -2045,6 +2045,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'あなたの会社では、二要素認証が必須です。',
         twoFactorAuthCannotDisable: '2要素認証を無効にできません',
         twoFactorAuthRequired: 'Xero 連携には二要素認証（2FA）が必須であり、無効にすることはできません。',
+        replaceDevice: 'デバイスを交換',
+        replaceDeviceTitle: '2 要素認証デバイスを交換',
+        verifyOldDeviceTitle: '古いデバイスを確認',
+        verifyOldDeviceDescription: '現在使用している認証アプリに表示されている6桁のコードを入力して、アクセスできることを確認してください。',
+        verifyNewDeviceTitle: '新しいデバイスをセットアップ',
+        verifyNewDeviceDescription: '新しいデバイスでQRコードをスキャンし、その後コードを入力して設定を完了してください。',
     },
     recoveryCodeForm: {
         error: {

@@ -247,6 +247,8 @@ const SCREENS = {
         SUCCESS: 'Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
         DISABLE: 'Settings_TwoFactorAuth_Disable',
+        REPLACE_VERIFY_OLD: 'Settings_TwoFactorAuth_Replace_VerifyOld',
+        REPLACE_VERIFY_NEW: 'Settings_TwoFactorAuth_Replace_VerifyNew',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',

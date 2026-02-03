@@ -107,6 +107,7 @@ const WRITE_COMMANDS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     ENABLE_TWO_FACTOR_AUTH: 'EnableTwoFactorAuth',
     DISABLE_TWO_FACTOR_AUTH: 'DisableTwoFactorAuth',
+    REPLACE_TWO_FACTOR_DEVICE: 'ReplaceTwoFactorDevice',
     ADD_COMMENT: 'AddComment',
     ADD_ATTACHMENT: 'AddAttachment',
     ADD_TEXT_AND_ATTACHMENT: 'AddTextAndAttachment',
@@ -641,6 +642,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UNLINK_LOGIN]: Parameters.UnlinkLoginParams;
     [WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH]: null;
     [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: Parameters.DisableTwoFactorAuthParams;
+    [WRITE_COMMANDS.REPLACE_TWO_FACTOR_DEVICE]: Parameters.ReplaceTwoFactorDeviceParams;
     [WRITE_COMMANDS.ADD_COMMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.ADD_ATTACHMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.CREATE_APP_REPORT]: Parameters.CreateAppReportParams;

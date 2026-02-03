@@ -877,6 +877,8 @@ const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePay
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisabledPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisablePage').default,
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyOldPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_NEW]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyNewPage').default,
 });
 
 const SearchRouterModalStackNavigator = createModalStackNavigator({

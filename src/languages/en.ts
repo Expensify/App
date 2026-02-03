@@ -2095,6 +2095,12 @@ const translations = {
         twoFactorAuthIsRequiredCompany: 'Your company requires two-factor authentication.',
         twoFactorAuthCannotDisable: 'Cannot disable 2FA',
         twoFactorAuthRequired: 'Two-factor authentication (2FA) is required for your Xero connection and cannot be disabled.',
+        replaceDevice: 'Replace device',
+        replaceDeviceTitle: 'Replace two-factor device',
+        verifyOldDeviceTitle: 'Verify old device',
+        verifyOldDeviceDescription: 'Enter the six-digit code from your current authenticator app to confirm you have access to it.',
+        verifyNewDeviceTitle: 'Set up new device',
+        verifyNewDeviceDescription: 'Scan the QR code with your new device, then enter the code to complete setup.',
     },
     recoveryCodeForm: {
         error: {
