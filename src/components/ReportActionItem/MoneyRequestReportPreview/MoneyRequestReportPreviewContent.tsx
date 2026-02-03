@@ -11,6 +11,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -19,7 +20,6 @@ import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
-import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -241,11 +241,11 @@ function MoneyRequestReportPreviewContent({
     }, [chatReport, policy, hasReportBeenRetracted, iouReport]);
 
     const confirmPayment = useCallback(
-        ({paymentType: selectedPaymentType, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
-            if (!selectedPaymentType) {
+        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
+            if (!type) {
                 return;
             }
-            setPaymentType(selectedPaymentType);
+            setPaymentType(type);
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
@@ -255,7 +255,7 @@ function MoneyRequestReportPreviewContent({
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
                     payInvoice({
-                        paymentMethodType: selectedPaymentType,
+                        paymentMethodType: type,
                         chatReport,
                         invoiceReport: iouReport,
                         invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
@@ -270,7 +270,7 @@ function MoneyRequestReportPreviewContent({
                     });
                 } else {
                     payMoneyRequest({
-                        paymentType: selectedPaymentType,
+                        paymentType: type,
                         chatReport,
                         iouReport,
                         introSelected,
@@ -555,6 +555,7 @@ function MoneyRequestReportPreviewContent({
             isSubmittingAnimationRunning,
             isDEWSubmitPending,
             violationsData: transactionViolations,
+            reportMetadata: iouReportMetadata,
         });
     }, [
         bankAccountList,
@@ -571,6 +572,7 @@ function MoneyRequestReportPreviewContent({
         isSubmittingAnimationRunning,
         transactionViolations,
         isDEWSubmitPending,
+        iouReportMetadata,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
@@ -894,6 +896,7 @@ function MoneyRequestReportPreviewContent({
                         chatReport={chatReport}
                         moneyRequestReport={iouReport}
                         transactionCount={numberOfRequests}
+                        hasNonHeldExpenses={!hasOnlyHeldExpenses}
                         startAnimation={() => {
                             if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
                                 startApprovedAnimation();

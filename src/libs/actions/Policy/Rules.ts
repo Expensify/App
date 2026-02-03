@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -10,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type Policy from '@src/types/onyx/Policy';
-import type {CodingRule, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
 
 /**
  * Builds the tax object from a tax key and policy
@@ -215,6 +216,32 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
+function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRuleFilter) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW,
+            value: false,
+        },
+    ];
+
+    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {policyID, filters: JSON.stringify(filters)}, {optimisticData, successData, failureData});
+}
+
 /**
  * Deletes a coding rule from the given policy
  * @param policyID - The ID of the policy to delete the rule from
@@ -291,4 +318,4 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule};
+export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule, getTransactionsMatchingCodingRule};

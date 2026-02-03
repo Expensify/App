@@ -100,7 +100,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:bar from:12345`);
+            expect(result).toEqual(`${defaultQuery} view:bar groupBy:category from:12345`);
         });
 
         test('returns query with view:line', () => {
@@ -108,7 +108,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:line category:travel`);
+            expect(result).toEqual(`${defaultQuery} view:line groupBy:category category:travel`);
         });
 
         test('returns query with view:pie', () => {
@@ -116,7 +116,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:pie merchant:Amazon`);
+            expect(result).toEqual(`${defaultQuery} view:pie groupBy:category merchant:Amazon`);
         });
 
         test('deduplicates conflicting type filters keeping the last occurrence', () => {
@@ -325,6 +325,81 @@ describe('SearchQueryUtils', () => {
                 const result = buildQueryStringFromFilterFormValues(filterValues);
 
                 expect(result).not.toContain('limit:');
+            });
+
+            test('omits limit when form value is empty string (user cleared the field)', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    limit: '',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+
+                expect(result).not.toContain('limit:');
+            });
+        });
+
+        describe('view parameter', () => {
+            test('with view parameter set to bar', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                    view: CONST.SEARCH.VIEW.BAR,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense groupBy:category view:bar');
+            });
+
+            test('with view parameter set to table', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                    view: CONST.SEARCH.VIEW.TABLE,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense groupBy:category view:table');
+            });
+
+            test('without view parameter omits view from query', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('view:');
+            });
+
+            test('view is omitted from query when groupBy is not set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    view: CONST.SEARCH.VIEW.BAR,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('view:');
+                expect(result).not.toContain('groupBy:');
+            });
+
+            test('view is omitted when groupBy is cleared but view remains in form', () => {
+                // This simulates the case where groupBy was set (with view), then groupBy was reset
+                // but view wasn't explicitly cleared from the form
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: undefined,
+                    view: CONST.SEARCH.VIEW.BAR,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('view:');
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense');
             });
         });
     });
@@ -559,6 +634,94 @@ describe('SearchQueryUtils', () => {
                 amountLessThan: '-12345',
                 amountGreaterThan: '-67890',
                 amountEqualTo: '-54321',
+            });
+        });
+
+        test('attendee filter preserves name-only attendees without filtering by personalDetails', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {
+                12345: {accountID: 12345, login: 'user@example.com'},
+            };
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            // Test with mix of accountID and name-only attendee
+            const queryString = 'sortBy:date sortOrder:desc type:expense attendee:12345,ZZ';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // Both values should be preserved - name-only attendees should not be filtered out
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                attendee: ['12345', 'ZZ'],
+            });
+        });
+
+        describe('view parameter', () => {
+            const emptyParams = {
+                policyCategories: {},
+                policyTags: {},
+                currencyList: {},
+                personalDetails: {},
+                cardList: {},
+                reports: {},
+                taxRates: {},
+            };
+
+            test('sets view in form when groupBy is also set', () => {
+                const queryString = 'type:expense groupBy:category view:bar';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(
+                    queryJSON,
+                    emptyParams.policyCategories,
+                    emptyParams.policyTags,
+                    emptyParams.currencyList,
+                    emptyParams.personalDetails,
+                    emptyParams.cardList,
+                    emptyParams.reports,
+                    emptyParams.taxRates,
+                );
+
+                expect(result.groupBy).toEqual(CONST.SEARCH.GROUP_BY.CATEGORY);
+                expect(result.view).toEqual(CONST.SEARCH.VIEW.BAR);
+            });
+
+            test('defaults groupBy to category when chart view is specified without groupBy', () => {
+                const queryString = 'type:expense view:bar';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(
+                    queryJSON,
+                    emptyParams.policyCategories,
+                    emptyParams.policyTags,
+                    emptyParams.currencyList,
+                    emptyParams.personalDetails,
+                    emptyParams.cardList,
+                    emptyParams.reports,
+                    emptyParams.taxRates,
+                );
+
+                // When a chart view is specified without groupBy, groupBy defaults to category
+                expect(result.groupBy).toEqual(CONST.SEARCH.GROUP_BY.CATEGORY);
+                expect(result.view).toEqual(CONST.SEARCH.VIEW.BAR);
             });
         });
     });

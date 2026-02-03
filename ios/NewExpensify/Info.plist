@@ -44,7 +44,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>9.3.11.1</string>
+	<string>9.3.11.23</string>
 	<key>FullStory</key>
 	<dict>
 		<key>OrgId</key>
@@ -73,6 +73,8 @@
 	<string>Your camera is used to create chat attachments, documents, and facial capture.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Import contacts from your phone so your favorite people are always a tap away.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Face ID is used for authentication.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Your location is used to determine your default currency and timezone.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
