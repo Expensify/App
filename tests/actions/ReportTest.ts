@@ -1169,6 +1169,8 @@ describe('actions/Report', () => {
 
         Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
+        await waitForBatchedUpdates();
+
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(1);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1185,16 +1187,8 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
-                    resolve();
-                },
-            });
-        });
+        const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
+        expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
 
         rerender(originalReport);
         Report.deleteReportComment(REPORT_ID, reportAction, ancestors.current, undefined, undefined, '');
@@ -1622,7 +1616,7 @@ describe('actions/Report', () => {
         Report.addComment(REPORT, REPORT_ID, [], 'Attachment with comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
-        const newComment = PersistedRequests.getAll().at(0);
+        const newComment = (await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS))?.at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
@@ -1654,18 +1648,10 @@ describe('actions/Report', () => {
             TEST_USER_ACCOUNT_ID,
         );
 
-        await waitForBatchedUpdates();
-        await new Promise<void>((resolve) => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.PERSISTED_REQUESTS,
-                callback: (persistedRequests) => {
-                    Onyx.disconnect(connection);
-                    expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
-                    expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
-                    resolve();
-                },
-            });
-        });
+        const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
+        expect(persistedRequests?.length).toBe(2);
+        expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_EMOJI_REACTION);
+        expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.REMOVE_EMOJI_REACTION);
 
         Report.deleteReportComment(REPORT_ID, reportAction, [], undefined, undefined, '');
 
@@ -1804,6 +1790,7 @@ describe('actions/Report', () => {
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
@@ -1895,6 +1882,8 @@ describe('actions/Report', () => {
         expect(requests?.at(0)?.data?.reportComment).toBe('value3');
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
 
