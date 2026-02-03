@@ -771,8 +771,8 @@ jobs:
         id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          if [ "${{ needs.ios-upload-testflight.result }}" == "success" ] || \
-            [ "${{ needs.android-upload-google-play.result }}" == "success" ] || \
+          if [ "${{ needs['ios-upload-testflight'].result }}" == "success" ] || \
+            [ "${{ needs['android-upload-google-play'].result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
           fi
@@ -783,8 +783,8 @@ jobs:
         id: checkDeploymentSuccessOnAllPlatforms
         run: |
           isAllPlatformsDeployed="false"
-          if [ "${{ needs.ios-upload-testflight.result }}" == "success" ] && \
-            [ "${{ needs.android-upload-google-play.result }}" == "success" ] && \
+          if [ "${{ needs['ios-upload-testflight'].result }}" == "success" ] && \
+            [ "${{ needs['android-upload-google-play'].result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
           fi
@@ -985,6 +985,6 @@ jobs:
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android: ${{ needs.android-upload-google-play.result }}
-      ios: ${{ needs.ios-upload-testflight.result }}
+      android: ${{ needs['android-upload-google-play'].result }}
+      ios: ${{ needs['ios-upload-testflight'].result }}
       web: ${{ needs.web.result }}
