@@ -63,6 +63,7 @@ function SearchEditMultipleDatePage() {
                         InputComponent={DatePicker}
                         inputID={INPUT_IDS.DATE}
                         label={translate('common.date')}
+                        autoFocus
                         defaultValue={currentDate}
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
