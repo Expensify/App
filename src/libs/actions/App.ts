@@ -496,6 +496,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     activePolicyID: string | undefined;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    shouldCreateControlPolicy?: boolean;
 };
 
 /**
@@ -517,6 +518,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         activePolicyID,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        shouldCreateControlPolicy,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -540,6 +542,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             currentUserAccountIDParam,
             currentUserEmailParam,
             allReportsParam: allReports,
+            shouldCreateControlPolicy,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
     });
@@ -558,6 +561,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
+    shouldCreateControlPolicy?: boolean;
 };
 
 /**
@@ -576,6 +580,7 @@ function savePolicyDraftByNewWorkspace({
     currentUserAccountIDParam,
     currentUserEmailParam,
     allReportsParam,
+    shouldCreateControlPolicy,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -591,6 +596,7 @@ function savePolicyDraftByNewWorkspace({
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
+        shouldCreateControlPolicy,
     });
 }
 
