@@ -83,7 +83,7 @@ Defined in `src/CONST/index.ts` under `CONST.TELEMETRY`:
 Process events before sending to Sentry:
 - **minDurationFilter** - Discards spans shorter than a specified duration
 - **scopeTagsEnricher** - Adds cohort and policy tags
-- **emailDomainFilter** - Removes PII
+- **emailDomainFilter** - Removes accounts we don't want to send telemetry for
 - **firebasePerformanceFilter** - Filters noise
 
 Middlewares runs automatically. Add new middleware only for global filtering or enrichment (e.g., new PII protection).
