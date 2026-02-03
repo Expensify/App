@@ -61,6 +61,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'Bookmark',
+        'CalendarSolid',
         'Pencil',
         'Receipt',
         'ChatBubbles',

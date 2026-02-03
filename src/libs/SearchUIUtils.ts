@@ -411,7 +411,12 @@ type SearchTypeMenuItem = {
     key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
-    icon?: IconAsset | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket'>;
+    icon?:
+        | IconAsset
+        | Extract<
+              ExpensifyIconName,
+              'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank' | 'User' | 'Folder' | 'Basket' | 'CalendarSolid'
+          >;
     searchQuery: string;
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
@@ -755,7 +760,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
             translationPath: 'search.spendOverTime',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'Receipt',
+            icon: 'CalendarSolid',
             searchQuery: buildQueryStringFromFilterFormValues(
                 {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
