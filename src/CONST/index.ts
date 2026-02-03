@@ -5468,6 +5468,10 @@ const CONST = {
         LINKEDIN: 'Linkedin',
     },
 
+    SOCIAL_SENTRY_LABELS: {
+        ICON: 'SignIn-Socials-Icon',
+    },
+
     /**
      * Acceptable values for the `role` attribute on react native components.
      *
