@@ -1,9 +1,7 @@
-import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
-import type {NumberWithSymbolFormRef} from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -58,20 +56,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const defaultApprovalLimit = currentApprover?.approvalLimit ? convertToFrontendAmountAsString(currentApprover.approvalLimit, currency) : '';
 
-    const [editedApprovalLimit, setEditedApprovalLimit] = useState<string | null>(null);
+    const [editedApprovalLimit, setEditedApprovalLimit] = useState<{approverEmail: string; value: string} | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const amountFormRef = useRef<NumberWithSymbolFormRef>(null);
-    const isFocused = useIsFocused();
 
-    const approvalLimit = editedApprovalLimit ?? defaultApprovalLimit;
-
-    // Clear the amount input when the screen is focused and the over-limit approver was unselected
-    useEffect(() => {
-        if (!isFocused || currentApprover?.approvalLimit != null || editedApprovalLimit !== null) {
-            return;
-        }
-        amountFormRef.current?.updateNumber('');
-    }, [isFocused, currentApprover?.approvalLimit, editedApprovalLimit]);
+    const approverEmail = currentApprover?.email ?? '';
+    const approvalLimit = editedApprovalLimit?.approverEmail === approverEmail ? editedApprovalLimit.value : defaultApprovalLimit;
 
     const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
     const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
@@ -112,6 +101,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         if (!approvalWorkflow || !currentApprover) {
             return;
         }
+
         setApprovalWorkflowApprover({
             approver: {
                 ...currentApprover,
@@ -167,27 +157,15 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     };
 
     const handleAmountChange = (value: string) => {
-        setEditedApprovalLimit(value);
-        setHasSubmitted(false);
-    };
-
-    const saveCurrentStateToOnyx = () => {
-        const limitInCents = approvalLimit ? convertToBackendAmount(Number.parseFloat(approvalLimit)) : null;
-        updateCurrentApprover({
-            approvalLimit: limitInCents,
-            overLimitForwardsTo: selectedApproverEmail,
-        });
-        setEditedApprovalLimit(null);
+        setEditedApprovalLimit({approverEmail, value});
         setHasSubmitted(false);
     };
 
     const navigateToApproverSelector = () => {
-        saveCurrentStateToOnyx();
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex));
     };
 
     const navigateToApproverChange = () => {
-        saveCurrentStateToOnyx();
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, approverIndex));
     };
 
@@ -246,6 +224,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
                             <View style={styles.mb4}>
                                 <AmountForm
+                                    key={approverEmail}
                                     label={translate('workflowsApprovalLimitPage.reportAmountLabel')}
                                     currency={currency}
                                     value={approvalLimit}
@@ -255,7 +234,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                     disabled={areLimitFieldsDisabled}
                                     errorText={amountError}
                                     onSubmitEditing={handleSubmit}
-                                    numberFormRef={amountFormRef}
                                 />
                             </View>
 

@@ -7,8 +7,8 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
-    checkIfFeedConnectionIsBroken,
     filterInactiveCards,
+    filterOutPersonalCards,
     flatAllCardsList,
     formatCardExpiration,
     getAllCardsForWorkspace,
@@ -44,7 +44,7 @@ import {
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {localeCompare} from '../utils/TestHelper';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const shortDate = '0924';
@@ -156,23 +156,6 @@ const directFeedCardsSingleList: WorkspaceCardsList = {
     },
 };
 
-const commercialFeedCardsSingleList: WorkspaceCardsList = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    '21570652': {
-        accountID: 18439984,
-        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-        cardID: 21570652,
-        cardName: 'CREDIT CARD...5501',
-        domainName: 'expensify-policy17f617b9fe23d2f1.exfy',
-        fraud: 'none',
-        lastFourPAN: '5501',
-        lastScrape: '',
-        lastUpdated: '',
-        lastScrapeResult: 531,
-        scrapeMinDate: '2024-08-27',
-        state: 3,
-    },
-};
 const directFeedCardsMultipleList: WorkspaceCardsList = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     '21570655': {
@@ -575,26 +558,26 @@ describe('CardUtils', () => {
         });
         it('Should return custom name if exists', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
-            const feedName = getCustomOrFormattedFeedName(feed, customFeedName);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed, customFeedName);
             expect(feedName).toBe(customFeedName);
         });
 
         it('Should return formatted name if there is no custom name', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const customName = undefined;
-            const feedName = getCustomOrFormattedFeedName(feed, customName);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed, customName);
             expect(feedName).toBe('Visa cards');
         });
 
         it('Should return undefined if no feed provided', () => {
             const feed = undefined;
-            const feedName = getCustomOrFormattedFeedName(feed);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed);
             expect(feedName).toBe(undefined);
         });
 
         it('Should return feed key name for unknown feed', () => {
             const companyCardNickname = cardFeedsCollection.FAKE_ID_7?.settings?.companyCardNicknames?.[unknownFeed];
-            const feedName = getCustomOrFormattedFeedName(unknownFeed, companyCardNickname);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, unknownFeed, companyCardNickname);
             expect(feedName).toBe(unknownFeed);
         });
     });
@@ -655,6 +638,16 @@ describe('CardUtils', () => {
         it('Should return card name without last 4 numbers', () => {
             const maskedCardNumber = maskCardNumber('Business Card Cash - 3001', undefined);
             expect(maskedCardNumber).toBe('Business Card Cash');
+        });
+
+        it('Should return CSV import card display name without 4-character formatting', () => {
+            const maskedCardNumber = maskCardNumber('Checking', CONST.COMPANY_CARDS.BANK_NAME.UPLOAD);
+            expect(maskedCardNumber).toBe('Checking');
+        });
+
+        it('Should return CSV import card display name as-is for longer names', () => {
+            const maskedCardNumber = maskCardNumber('JustChecking', CONST.COMPANY_CARDS.BANK_NAME.UPLOAD);
+            expect(maskedCardNumber).toBe('JustChecking');
         });
     });
 
@@ -913,50 +906,6 @@ describe('CardUtils', () => {
             const workspaceAccountID = 11111111;
             const flattenedCardsList = flatAllCardsList(undefined, workspaceAccountID);
             expect(flattenedCardsList).toBeUndefined();
-        });
-    });
-
-    describe('checkIfFeedConnectionIsBroken', () => {
-        it('should return true if at least one of the feed(s) cards has the lastScrapeResult not equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsMultipleList)).toBeTruthy();
-        });
-
-        it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsSingleList)).toBeFalsy();
-        });
-
-        it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 531', () => {
-            expect(checkIfFeedConnectionIsBroken(commercialFeedCardsSingleList)).toBeFalsy();
-        });
-
-        it('should return false if no feed(s) cards are provided', () => {
-            expect(checkIfFeedConnectionIsBroken({})).toBeFalsy();
-        });
-
-        it('should not take into consideration cards related to feed which is provided as feedToExclude', () => {
-            const cards = {...directFeedCardsMultipleList, ...directFeedCardsSingleList};
-            const feedToExclude = CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE;
-            expect(checkIfFeedConnectionIsBroken(cards, feedToExclude)).toBeFalsy();
-        });
-    });
-
-    describe('checkIfFeedConnectionIsBroken', () => {
-        it('should return true if at least one of the feed(s) cards has the lastScrapeResult not equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsMultipleList)).toBeTruthy();
-        });
-
-        it('should return false if all of the feed(s) cards has the lastScrapeResult equal to 200', () => {
-            expect(checkIfFeedConnectionIsBroken(directFeedCardsSingleList)).toBeFalsy();
-        });
-
-        it('should return false if no feed(s) cards are provided', () => {
-            expect(checkIfFeedConnectionIsBroken({})).toBeFalsy();
-        });
-
-        it('should not take into consideration cards related to feed which is provided as feedToExclude', () => {
-            const cards = {...directFeedCardsMultipleList, ...directFeedCardsSingleList};
-            const feedToExclude = CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE;
-            expect(checkIfFeedConnectionIsBroken(cards, feedToExclude)).toBeFalsy();
         });
     });
 
@@ -1238,7 +1187,7 @@ describe('CardUtils', () => {
                 scrapeMinDate: '2024-10-17',
                 state: 3,
             };
-            const description = getCardDescription(card);
+            const description = getCardDescription(card, translateLocal);
             expect(description).toBe('Visa - 2554');
         });
 
@@ -1255,7 +1204,7 @@ describe('CardUtils', () => {
                 lastUpdated: '',
                 state: 2,
             };
-            const description = getCardDescription(card);
+            const description = getCardDescription(card, translateLocal);
             expect(description).toBe('Expensify Card');
         });
     });
@@ -1501,6 +1450,140 @@ describe('CardUtils', () => {
                 expect(firstCard?.cardName).toBe('Plaid Checking 0000');
                 expect(firstCard?.cardID).toBe('Plaid Checking 0000');
             });
+        });
+    });
+
+    describe('filterOutPersonalCards', () => {
+        it('should return only cards with a valid fundID', () => {
+            const cardList: CardList = {
+                '1': {
+                    cardID: 1,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Company Card 1',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '100',
+                },
+                '2': {
+                    cardID: 2,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Personal Card',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    // No fundID - personal card
+                },
+                '3': {
+                    cardID: 3,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+                    cardName: 'Company Card 2',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '3333',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '200',
+                },
+            };
+
+            const result = filterOutPersonalCards(cardList);
+            const cardIDs = Object.keys(result);
+
+            expect(cardIDs).toHaveLength(2);
+            expect(cardIDs).toContain('1');
+            expect(cardIDs).toContain('3');
+            expect(cardIDs).not.toContain('2');
+        });
+
+        it('should filter out cards with fundID of "0"', () => {
+            const cardList: CardList = {
+                '1': {
+                    cardID: 1,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Card with fundID 0',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '0',
+                },
+                '2': {
+                    cardID: 2,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Card with valid fundID',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                    fundID: '123',
+                },
+            };
+
+            const result = filterOutPersonalCards(cardList);
+            const cardIDs = Object.keys(result);
+
+            expect(cardIDs).toHaveLength(1);
+            expect(cardIDs).toContain('2');
+            expect(cardIDs).not.toContain('1');
+        });
+
+        it('should return empty object for undefined card list', () => {
+            const result = filterOutPersonalCards(undefined);
+            expect(result).toEqual({});
+        });
+
+        it('should return empty object when no cards have fundID', () => {
+            const cardList: CardList = {
+                '1': {
+                    cardID: 1,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardName: 'Personal Card 1',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '1111',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+                '2': {
+                    cardID: 2,
+                    accountID: 12345,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
+                    cardName: 'Personal Card 2',
+                    domainName: '',
+                    fraud: 'none',
+                    lastFourPAN: '2222',
+                    lastScrape: '',
+                    lastUpdated: '',
+                    state: 3,
+                },
+            };
+
+            const result = filterOutPersonalCards(cardList);
+            expect(Object.keys(result)).toHaveLength(0);
+        });
+
+        it('should handle empty card list', () => {
+            const result = filterOutPersonalCards({});
+            expect(result).toEqual({});
         });
     });
 });

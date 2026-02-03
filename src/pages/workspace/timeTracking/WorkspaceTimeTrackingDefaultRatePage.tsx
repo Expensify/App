@@ -1,0 +1,79 @@
+import React from 'react';
+import AmountForm from '@components/AmountForm';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {setPolicyTimeTrackingDefaultRate} from '@libs/actions/Policy/Policy';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import Navigation from '@navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import {policyTimeTrackingSelector} from '@src/selectors/Policy';
+import INPUT_IDS from '@src/types/form/WorkspaceTimeTrackingDefaultRateForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+type WorkspaceTimeTrackingDefaultRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TIME_TRACKING_DEFAULT_RATE>;
+
+function WorkspaceTimeTrackingDefaultRatePage({
+    route: {
+        params: {policyID},
+    },
+}: WorkspaceTimeTrackingDefaultRatePageProps) {
+    const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
+    const styles = useThemeStyles();
+    const [policy, policyFetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true, selector: policyTimeTrackingSelector});
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+    if (!policy || isLoadingOnyxValue(policyFetchStatus)) {
+        return <FullScreenLoadingIndicator />;
+    }
+
+    return (
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED}
+        >
+            <ScreenWrapper testID="WorkspaceTimeTrackingDefaultRatePage">
+                <HeaderWithBackButton title={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')} />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.WORKSPACE_TIME_TRACKING_DEFAULT_RATE_FORM}
+                    submitButtonText={translate('common.save')}
+                    onSubmit={(values) => {
+                        setPolicyTimeTrackingDefaultRate(policyID, Number.parseFloat(values[INPUT_IDS.RATE]));
+                        Navigation.dismissModal();
+                    }}
+                    style={[styles.flex1, styles.mh5]}
+                    enabledWhenOffline
+                    validate={(values) => getFieldRequiredErrors(values, [INPUT_IDS.RATE])}
+                >
+                    <InputWrapper
+                        label={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
+                        InputComponent={AmountForm}
+                        inputID={INPUT_IDS.RATE}
+                        currency={currency}
+                        defaultValue={convertToFrontendAmountAsString(getDefaultTimeTrackingRate(policy), currency)}
+                        isCurrencyPressable={false}
+                        ref={inputCallbackRef}
+                        displayAsTextInput
+                    />
+                </FormProvider>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default WorkspaceTimeTrackingDefaultRatePage;
