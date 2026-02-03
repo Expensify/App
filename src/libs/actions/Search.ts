@@ -373,8 +373,11 @@ function deleteSavedSearch(hash: number) {
     API.write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchPage({includePartiallySetupBankAccounts}: OpenSearchPageParams) {
-    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {includePartiallySetupBankAccounts});
+function openSearchPage(params?: OpenSearchPageParams) {
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, {
+        includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
+        includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
+    });
 }
 
 let shouldPreventSearchAPI = false;

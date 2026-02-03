@@ -613,6 +613,7 @@ const translations: TranslationDeepObject<typeof en> = {
         week: '周',
         year: '年份',
         quarter: '季度',
+        locked: '已锁定',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -3108,6 +3109,10 @@ ${
             `哎呀！看起来您的工作区货币不是 USD。要继续操作，请前往<a href="${workspaceRoute}">工作区设置</a>将其设置为 USD，然后再试一次。`,
         bbaAdded: '已添加企业银行账户！',
         bbaAddedDescription: '它已准备好用于付款。',
+        lockedBankAccount: '已锁定的银行账户',
+        unlockBankAccount: '解锁银行账户',
+        youCantPayThis: '您无法支付此报告，因为您有一个',
+        tapBelow: '请点击下方，礼宾服务将协助您完成解锁步骤。',
         error: {
             youNeedToSelectAnOption: '请选择一个选项以继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户',

@@ -618,6 +618,7 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semaine',
         year: 'Année',
         quarter: 'Trimestre',
+        locked: 'Verrouillé',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -3175,6 +3176,10 @@ ${
             `Oups ! Il semble que la devise de votre espace de travail soit définie sur une devise différente du dollar américain (USD). Pour continuer, veuillez accéder aux <a href="${workspaceRoute}">paramètres de votre espace de travail</a>, la définir sur USD, puis réessayer.`,
         bbaAdded: 'Compte bancaire professionnel ajouté !',
         bbaAddedDescription: 'Il est prêt à être utilisé pour les paiements.',
+        lockedBankAccount: 'Compte bancaire verrouillé',
+        unlockBankAccount: 'Déverrouiller le compte bancaire',
+        youCantPayThis: 'Vous ne pouvez pas payer ce rapport car vous avez un',
+        tapBelow: 'Appuyez ci-dessous et le Concierge vous aidera à le déverrouiller.',
         error: {
             youNeedToSelectAnOption: 'Veuillez sélectionner une option pour continuer',
             noBankAccountAvailable: 'Désolé, aucun compte bancaire n’est disponible',

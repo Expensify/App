@@ -617,6 +617,7 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Settimana',
         year: 'Anno',
         quarter: 'Trimestre',
+        locked: 'Bloccato',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -3157,6 +3158,10 @@ ${
             `Ops! Sembra che la valuta del tuo workspace sia impostata su una valuta diversa da USD. Per procedere, vai alle <a href="${workspaceRoute}">impostazioni del tuo workspace</a>, impostala su USD e riprova.`,
         bbaAdded: 'Conto bancario aziendale aggiunto!',
         bbaAddedDescription: 'È pronto per essere utilizzato per i pagamenti.',
+        lockedBankAccount: 'Conto bancario bloccato',
+        unlockBankAccount: 'Sblocca conto bancario',
+        youCantPayThis: 'Non puoi pagare questo report perché hai un',
+        tapBelow: 'Tocca qui sotto e il Concierge ti aiuterà con i prossimi passi per sbloccarlo.',
         error: {
             youNeedToSelectAnOption: "Seleziona un'opzione per continuare",
             noBankAccountAvailable: 'Spiacenti, non è disponibile alcun conto bancario',

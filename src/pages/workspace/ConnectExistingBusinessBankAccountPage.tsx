@@ -14,8 +14,10 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
+import {pressedOnLockedBankAccount} from '@userActions/BankAccounts';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -40,6 +42,12 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
         if (policyID === undefined) {
+            return;
+        }
+
+        if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
+            pressedOnLockedBankAccount(accountData?.bankAccountID);
+            navigateToConciergeChat(undefined);
             return;
         }
 

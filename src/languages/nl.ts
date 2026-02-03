@@ -617,6 +617,7 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Week',
         year: 'Jaar',
         quarter: 'Kwartaal',
+        locked: 'Geblokkeerd',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -3159,6 +3160,10 @@ ${
             `Oeps! Het lijkt erop dat de valuta van je workspace is ingesteld op een andere valuta dan USD. Ga naar <a href="${workspaceRoute}">de instellingen van je workspace</a>, stel deze in op USD en probeer het opnieuw.`,
         bbaAdded: 'Zakelijke bankrekening toegevoegd!',
         bbaAddedDescription: 'Het is klaar om voor betalingen te worden gebruikt.',
+        lockedBankAccount: 'Geblokkeerde bankrekening',
+        unlockBankAccount: 'Deblokkeer bankrekening',
+        youCantPayThis: 'Je kunt dit rapport niet betalen omdat je een',
+        tapBelow: 'Tik hieronder en de Concierge helpt je met de volgende stappen om deze te deblokkeren.',
         error: {
             youNeedToSelectAnOption: 'Selecteer een optie om door te gaan',
             noBankAccountAvailable: 'Sorry, er is geen bankrekening beschikbaar',

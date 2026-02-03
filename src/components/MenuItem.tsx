@@ -86,6 +86,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the badge should be shown as success */
         badgeSuccess?: boolean;
 
+        /** Whether the badge should be shown as error */
+        badgeError?: boolean;
+
         /** Callback to fire when the badge is pressed */
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
@@ -445,6 +448,7 @@ function MenuItem({
     badgeText,
     badgeIcon,
     badgeSuccess,
+    badgeError,
     onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
@@ -981,6 +985,7 @@ function MenuItem({
                                                         icon={badgeIcon}
                                                         badgeStyles={badgeStyle}
                                                         success={badgeSuccess}
+                                                        error={badgeError}
                                                         onPress={onBadgePress}
                                                         pressable={!!onBadgePress}
                                                     />

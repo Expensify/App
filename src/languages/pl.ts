@@ -617,6 +617,7 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Tydzień',
         year: 'Rok',
         quarter: 'Kwartał',
+        locked: 'Zablokowany',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -3149,6 +3150,10 @@ ${
             `Ups! Wygląda na to, że waluta Twojego przestrzeni roboczej jest inna niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawień swojej przestrzeni roboczej</a>, ustaw ją na USD i spróbuj ponownie.`,
         bbaAdded: 'Dodano firmowe konto bankowe!',
         bbaAddedDescription: 'Jest gotowe do używania do płatności.',
+        lockedBankAccount: 'Zablokowane konto bankowe',
+        unlockBankAccount: 'Odblokuj konto bankowe',
+        youCantPayThis: 'Nie możesz zapłacić za ten raport, ponieważ masz',
+        tapBelow: 'Stuknij poniżej, a Concierge pomoże Ci w kolejnych krokach odblokowania.',
         error: {
             youNeedToSelectAnOption: 'Wybierz opcję, aby kontynuować',
             noBankAccountAvailable: 'Przepraszamy, brak dostępnego konta bankowego',
