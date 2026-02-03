@@ -180,7 +180,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     // Function to remove a member and close the modal
     const removeMemberAndCloseModal = () => {
-        removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
+        removeMembers(policy, [memberLogin], {[memberLogin]: accountID});
         const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         const remainingEmployeeCount = previousEmployeesCount - 1;
         if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {

@@ -365,17 +365,16 @@ function resetAccountingPreferredExporter(policy: OnyxEntry<Policy>, loginList: 
  * Remove the passed members from the policy employeeList
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function removeMembers(policyID: string, selectedMemberEmails: string[], policyMemberEmailsToAccountIDs: Record<string, number>) {
-    if (selectedMemberEmails.length === 0) {
+function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], policyMemberEmailsToAccountIDs: Record<string, number>) {
+    if (!policy?.id || selectedMemberEmails.length === 0) {
         return;
     }
+
+    const policyID = policy.id;
 
     const accountIDs = selectedMemberEmails.map((email) => policyMemberEmailsToAccountIDs[email]).filter((id) => id !== undefined);
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
     // comment out for time this issue would be resolved https://github.com/Expensify/App/issues/35952
@@ -659,8 +658,11 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
-function buildUpdateWorkspaceMembersRoleOnyxData(policyID: string, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
+    if (!policy?.id) {
+        return {optimisticData: [], successData: [], failureData: [], memberRoles: []};
+    }
+    const policyID = policy?.id;
     const previousEmployeeList = {...policy?.employeeList};
     const memberRoles: WorkspaceMembersRoleData[] = selectedMemberEmails.map((login: string) => {
         return {
@@ -765,11 +767,14 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policyID: string, selectedMembe
     return {optimisticData, successData, failureData, memberRoles};
 }
 
-function updateWorkspaceMembersRole(policyID: string, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
-    const {optimisticData, successData, failureData, memberRoles} = buildUpdateWorkspaceMembersRoleOnyxData(policyID, selectedMemberEmails, selectedMemberAccountIDs, newRole);
+function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
+    if (!policy?.id) {
+        return;
+    }
+    const {optimisticData, successData, failureData, memberRoles} = buildUpdateWorkspaceMembersRoleOnyxData(policy, selectedMemberEmails, selectedMemberAccountIDs, newRole);
 
     const params: UpdateWorkspaceMembersRoleParams = {
-        policyID,
+        policyID: policy.id,
         employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
     };
 
@@ -874,12 +879,13 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    policyID: string,
+    policy: Policy,
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     policyExpenseChatNotificationPreference?: NotificationPreference,
 ) {
+    const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
@@ -908,7 +914,7 @@ function buildAddMembersToWorkspaceOnyxData(
             email,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             role,
-            submitsTo: getDefaultApprover(allPolicies?.[policyKey]),
+            submitsTo: getDefaultApprover(policy),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
@@ -977,14 +983,18 @@ function buildAddMembersToWorkspaceOnyxData(
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
     welcomeNote: string,
-    policyID: string,
+    policy: OnyxEntry<Policy>,
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
+    if (!policy?.id) {
+        Log.warn('addMembersToWorkspace: Policy ID is undefined');
+        return;
+    }
     const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
-        policyID,
+        policy,
         policyMemberAccountIDs,
         role,
         formatPhoneNumber,
@@ -997,7 +1007,7 @@ function addMembersToWorkspace(
         welcomeNote: Parser.replace(welcomeNote, {
             shouldEscapeText: false,
         }),
-        policyID,
+        policyID: policy.id,
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
@@ -1012,10 +1022,11 @@ type PolicyMember = {
     forwardsTo?: string;
 };
 
-function importPolicyMembers(policyID: string, members: PolicyMember[]) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]) {
+    if (!policy?.id) {
+        Log.warn('importPolicyMembers called without a valid policy');
+        return;
+    }
     const {added, updated} = members.reduce(
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
@@ -1033,7 +1044,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
     const onyxData = updateImportSpreadsheetData(added, updated);
 
     const parameters = {
-        policyID,
+        policyID: policy.id,
         employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role, submitsTo: member.submitsTo, forwardsTo: member.forwardsTo}))),
     };
 

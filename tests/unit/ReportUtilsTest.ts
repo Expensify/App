@@ -80,6 +80,7 @@ import {
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName as getReportNameDeprecated,
+    getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportStatusTranslation,
@@ -145,7 +146,7 @@ import type {
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
-import type {Participant, Participants} from '@src/types/onyx/Report';
+import type {NotificationPreference, Participant, Participants} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -524,10 +525,12 @@ describe('ReportUtils', () => {
             );
         });
 
-        it('should not add anything to guidedSetupData when posting into the admin room', async () => {
+        it('should not add anything to guidedSetupData when posting into the admin room with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            // Enable the suggestedFollowups beta so tasks are skipped in favor of backend-generated followups
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
@@ -543,6 +546,29 @@ describe('ReportUtils', () => {
             });
             expect(result?.guidedSetupData).toHaveLength(0);
             expect(result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`)).toHaveLength(0);
+        });
+
+        it('should add guidedSetupData when posting into admin room WITHOUT suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            // Do NOT set the suggestedFollowups beta - user should get the old task list behavior
+            await Onyx.merge(ONYXKEYS.BETAS, []);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false, mediaAttributes: {}}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+            // Without the beta, tasks SHOULD be generated (old behavior)
+            expect(result?.guidedSetupData).toHaveLength(3);
         });
 
         it('should add guidedSetupData when email has a +', async () => {
@@ -2258,7 +2284,7 @@ describe('ReportUtils', () => {
                     const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
                     expect(reportName).toBe(
-                        `The Regions Bank cards connection is broken. To restore card imports, <a href='https://dev.new.expensify.com:8082/workspaces/1/company-cards'>log into your bank</a>`,
+                        `The Regions Bank cards connection is broken. To restore card imports, <a href='https://dev.new.expensify.com:8082/workspaces/1/company-cards'>log into your bank</a>.`,
                     );
                 });
             });
@@ -10890,6 +10916,18 @@ describe('ReportUtils', () => {
             expect(missingPaymentMethod).not.toBe('wallet');
 
             await Onyx.clear();
+        });
+    });
+
+    describe('getReportNotificationPreference', () => {
+        it('should return hidden if notification preference is empty', () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID]),
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: '' as NotificationPreference},
+                },
+            };
+            expect(getReportNotificationPreference(report)).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
         });
     });
 

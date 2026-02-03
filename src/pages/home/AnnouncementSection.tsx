@@ -28,7 +28,10 @@ function AnnouncementSection() {
                     onPress={() => Linking.openURL(announcement.url)}
                     shouldShowRightIcon
                     leftComponent={<DateIcon date={announcement.publishedDate} />}
-                    wrapperStyle={[styles.alignItemsCenter, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}
+                    wrapperStyle={[styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                    hasSubMenuItems
+                    viewMode={CONST.OPTION_MODE.COMPACT}
+                    rightIconWrapperStyle={styles.pl2}
                 />
             ))}
         </WidgetContainer>

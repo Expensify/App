@@ -236,7 +236,7 @@ function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boo
     }
 
     // CSV imported cards use user-provided display names, not card numbers - return as-is
-    if (feed === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD) {
+    if (feed === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD) {
         return cardName;
     }
 
@@ -375,13 +375,13 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | u
         return Illustrations.ExpensifyCardImage;
     }
 
-    const feedIcon = feedIcons[cardFeed as CompanyCardFeed];
+    const feedIcon = feedIcons[cardFeed as keyof typeof feedIcons];
     if (feedIcon) {
         return feedIcon;
     }
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, cdfbmo
-    const feedKey = (Object.keys(feedIcons) as CompanyCardFeed[]).find((feed) => cardFeed.startsWith(feed));
+    const feedKey = (Object.keys(feedIcons) as Array<keyof typeof feedIcons>).find((feed) => cardFeed.startsWith(feed));
 
     if (feedKey) {
         return feedIcons[feedKey];
@@ -448,10 +448,10 @@ function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): strin
         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_FILE_DOWNLOAD]: 'American Express',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: 'PEX',
         [CONST.EXPENSIFY_CARD.BANK]: 'Expensify',
-    } satisfies Record<CardFeed, string>;
+    } satisfies Partial<Record<CardFeed, string>>;
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
-    const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType?.startsWith(feed));
+    const feedKey = (Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>).find((feed) => feedType?.startsWith(feed));
 
     if (feedType?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
         return CONST.COMPANY_CARDS.CARD_TYPE.CSV;
@@ -935,6 +935,16 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
 }
 
 /**
+ * Generate a random cardID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
+ * There were approximately 24,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly 0.25 billionth of the space for these numbers,
+ * so we live with the 1 in 4 billion chance of a collision with an older ID until we can switch to 64-bit IDs.
+ *
+ */
+function generateCardID(): number {
+    return Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32);
+}
+
+/**
  * Check if there are any assigned cards that should be displayed in the wallet page.
  * This includes active Expensify cards, company cards (domain), and personal cards.
  */
@@ -1021,6 +1031,7 @@ export {
     COMPANY_CARD_BANK_ICON_NAMES,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
+    generateCardID,
     hasDisplayableAssignedCards,
 };
 

@@ -52,7 +52,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const displayName = getDisplayNameOrDefault(cardholder);
     const isUserPersonalCard = !!(card && isPersonalCard(card));
     const reimbursableSetting = card?.reimbursable ?? true;
-    const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
+    const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
 
     const removeCardFromUser = () => {
         setIsUnassignModalVisible(false);
