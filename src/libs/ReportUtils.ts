@@ -2951,8 +2951,15 @@ function hasOutstandingChildRequest(
         const reportHasBeenReopenedOrRetracted = hasReportBeenReopened(iouReport, reportActions) || hasReportBeenRetracted(iouReport, reportActions);
         const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && reportHasBeenReopenedOrRetracted;
         const shouldWaitForSubmission = isOwnAndReportHasBeenRetracted || isWaitingForSubmissionFromCurrentUser(chatReport, policy);
-        const canSubmitAndIsAwaitingForCurrentUser = !hasAutoRejectedTransactionsForManager && canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam, currentUserAccountIDParam) && shouldWaitForSubmission;
-        return canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions) || canApproveIOU(iouReport, policy, reportMetadata, transactions) || canSubmitAndIsAwaitingForCurrentUser;
+        const canSubmitAndIsAwaitingForCurrentUser =
+            !hasAutoRejectedTransactionsForManager &&
+            canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam, currentUserAccountIDParam) &&
+            shouldWaitForSubmission;
+        return (
+            canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions) ||
+            canApproveIOU(iouReport, policy, reportMetadata, transactions) ||
+            canSubmitAndIsAwaitingForCurrentUser
+        );
     });
 }
 
