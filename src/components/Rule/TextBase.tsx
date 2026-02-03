@@ -23,16 +23,7 @@ type TextBaseProps<TFormID extends OnyxFormKey> = {
     onSubmit: (values: FormOnyxValues<TFormID>) => void;
 };
 
-function TextBase<TFormID extends OnyxFormKey>({
-    fieldID,
-    hint,
-    isRequired,
-    title,
-    label,
-    onSubmit,
-    formID,
-    characterLimit = CONST.MERCHANT_NAME_MAX_BYTES,
-}: TextBaseProps<TFormID>) {
+function TextBase<TFormID extends OnyxFormKey>({fieldID, hint, isRequired, title, label, onSubmit, formID, characterLimit = CONST.MERCHANT_NAME_MAX_BYTES}: TextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const [form] = useOnyx(formID, {canBeMissing: true});
     const styles = useThemeStyles();
@@ -71,6 +62,7 @@ function TextBase<TFormID extends OnyxFormKey>({
             onSubmit={onSubmit}
             submitButtonText={translate('common.save')}
             enabledWhenOffline
+            shouldUseStrictHtmlTagValidation
         >
             <View style={styles.mb5}>
                 <InputWrapper
