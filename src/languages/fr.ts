@@ -7440,6 +7440,11 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             endReading: 'Fin de lecture',
             saveForLater: 'Enregistrer pour plus tard',
             totalDistance: 'Distance totale',
+            startTitle: 'Photo du compteur de départ',
+            endTitle: 'Photo de fin de compteur kilométrique',
+            startMessageWeb:
+                'Ajoutez une photo de votre compteur kilométrique prise au <strong>début</strong> de votre trajet. Faites glisser un fichier ici ou choisissez-en un à téléverser.',
+            endMessageWeb: 'Ajoutez une photo de votre odomètre prise à la <strong>fin</strong> de votre trajet. Faites glisser un fichier ici ou choisissez-en un à téléverser.',
         },
     },
     gps: {

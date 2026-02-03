@@ -7407,6 +7407,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             endReading: 'Fine lettura',
             saveForLater: 'Salva per dopo',
             totalDistance: 'Distanza totale',
+            startTitle: 'Foto dell'odometro iniziale',
+            endTitle: 'Foto del contachilometri finale',
+            startMessageWeb: 'Aggiungi una foto del tuo contachilometri dall'<strong>inizio</strong> del tuo viaggio. Trascina un file qui oppure scegline uno da caricare.',
+            endMessageWeb: 'Aggiungi una foto del contachilometri scattata alla <strong>fine</strong> del viaggio. Trascina qui un file oppure scegline uno da caricare.',
         },
     },
     gps: {

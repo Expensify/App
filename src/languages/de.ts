@@ -7424,6 +7424,10 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             endReading: 'Lesen beenden',
             saveForLater: 'Für später speichern',
             totalDistance: 'Gesamtdistanz',
+            startTitle: 'Foto des Kilometerzähler-Starts',
+            endTitle: 'Foto des Endstands des Kilometerzählers',
+            startMessageWeb: 'Fügen Sie ein Foto Ihres Kilometerzählers vom <strong>Start</strong> Ihrer Fahrt hinzu. Ziehen Sie eine Datei hierher oder wählen Sie eine zum Hochladen aus.',
+            endMessageWeb: 'Fügen Sie ein Foto Ihres Kilometerzählers vom <strong>Ende</strong> Ihrer Reise hinzu. Ziehen Sie eine Datei hierher oder wählen Sie eine zum Hochladen aus.',
         },
     },
     gps: {

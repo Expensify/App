@@ -7236,6 +7236,10 @@ ${reportName}
             endReading: '结束阅读',
             saveForLater: '稍后保存',
             totalDistance: '总距离',
+            startTitle: '里程表起始照片',
+            endTitle: '里程表结束照片',
+            startMessageWeb: '从行程<strong>开始</strong>时起，添加一张里程表照片。将文件拖到此处或选择一个上传。',
+            endMessageWeb: '从行程<strong>结束</strong>时拍摄并添加一张里程表照片。在此拖放文件或选择文件上传。',
         },
     },
     gps: {

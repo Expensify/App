@@ -7377,6 +7377,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             endReading: 'Zakończ czytanie',
             saveForLater: 'Zapisz na później',
             totalDistance: 'Całkowity dystans',
+            startTitle: 'Zdjęcie stanu licznika na początku',
+            endTitle: 'Zdjęcie licznika na końcu',
+            startMessageWeb: 'Dodaj zdjęcie licznika kilometrów z <strong>początku</strong> swojej podróży. Przeciągnij tutaj plik lub wybierz go, aby przesłać.',
+            endMessageWeb: 'Dodaj zdjęcie licznika kilometrów z <strong>końca</strong> podróży. Przeciągnij tutaj plik lub wybierz jeden, aby go przesłać.',
         },
     },
     gps: {

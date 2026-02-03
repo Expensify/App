@@ -7377,6 +7377,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             endReading: 'Finalizar leitura',
             saveForLater: 'Salvar para depois',
             totalDistance: 'Distância total',
+            startTitle: 'Foto do odômetro no início',
+            endTitle: 'Foto do final do hodômetro',
+            startMessageWeb: 'Adicione uma foto do hodômetro do <strong>início</strong> da sua viagem. Arraste um arquivo aqui ou escolha um para enviar.',
+            endMessageWeb: 'Adicione uma foto do hodômetro do <strong>fim</strong> da sua viagem. Arraste um arquivo aqui ou escolha um para enviar.',
         },
     },
     gps: {
