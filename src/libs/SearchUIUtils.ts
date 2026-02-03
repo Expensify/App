@@ -737,7 +737,39 @@ function getSuggestedSearches(
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
-        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: createTopSearchMenuItem(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS, 'search.topSpenders', 'User', CONST.SEARCH.GROUP_BY.FROM),
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+            translationPath: 'search.topSpenders',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.User,
+            searchQuery: buildQueryStringFromFilterFormValues(
+                {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                    status: [
+                        CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                        CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                        CONST.SEARCH.STATUS.EXPENSE.APPROVED,
+                        CONST.SEARCH.STATUS.EXPENSE.DONE,
+                        CONST.SEARCH.STATUS.EXPENSE.PAID,
+                    ],
+                },
+                {
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                },
+            ),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
         [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: createTopSearchMenuItem(
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             'search.topCategories',
