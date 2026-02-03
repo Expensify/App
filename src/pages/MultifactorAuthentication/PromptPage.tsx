@@ -103,6 +103,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                     {!state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials ? (
                         <Button
                             success
+                            large
                             onPress={onConfirm}
                             text={translate('common.buttonConfirm')}
                         />
