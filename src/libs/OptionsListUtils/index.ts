@@ -910,7 +910,7 @@ function createOption(
         // Display properties needed for UI rendering
         icons: undefined, // Set below - needed for avatars
         subtitle: undefined, // Set below - needed for display
-        keyForList: '', // Set below - needed for React keys
+        keyForList: report?.reportID ?? '', // Set below - needed for React keys
 
         // Legacy property kept for backwards compatibility
         selected: isSelected ?? selected ?? false, // Duplicate of isSelected for backwards compatibility
@@ -2595,7 +2595,7 @@ function getFilteredRecentAttendees(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: Partial<SearchOptionData> & Pick<SearchOptionData, 'reportID'>): MemberForList {
+function formatMemberForList(member: SearchOptionData): MemberForList {
     const accountID = member.accountID;
 
     return {

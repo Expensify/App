@@ -61,15 +61,14 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         }
     }
 
-    let headerMessage = '';
-    if (areOptionsInitialized) {
-        headerMessage = getHeaderMessage(
-            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-            !!availableOptions.userToInvite,
-            debouncedSearchTerm.trim(),
-            countryCode,
-        );
-    }
+    const headerMessage = areOptionsInitialized
+        ? getHeaderMessage(
+              (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+              !!availableOptions.userToInvite,
+              debouncedSearchTerm.trim(),
+              countryCode,
+          )
+        : '';
 
     const attachLogToReport = (option: Report) => {
         if (!option.reportID) {
