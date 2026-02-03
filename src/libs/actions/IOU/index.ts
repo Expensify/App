@@ -60,6 +60,7 @@ import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
@@ -190,7 +191,7 @@ import {
     shouldEnableNegative,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -234,7 +235,7 @@ import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
-import {sanitizeRecentWaypoints} from '@userActions/Transaction';
+import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
@@ -276,6 +277,7 @@ type BaseTransactionParams = {
     billable?: boolean;
     reimbursable?: boolean;
     customUnitRateID?: string;
+    isFromGlobalCreate?: boolean;
 };
 
 type InitMoneyRequestParams = {
@@ -283,6 +285,7 @@ type InitMoneyRequestParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
     personalPolicy: Pick<OnyxTypes.Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'> | undefined;
     isFromGlobalCreate?: boolean;
+    isFromFloatingActionButton?: boolean;
     currentIouRequestType?: IOURequestType | undefined;
     newIouRequestType: IOURequestType | undefined;
     report: OnyxEntry<OnyxTypes.Report>;
@@ -697,6 +700,7 @@ type TrackExpenseTransactionParams = {
     isLinkedTrackedExpenseReportArchived?: boolean;
     odometerStart?: number;
     odometerEnd?: number;
+    isFromGlobalCreate?: boolean;
     gpsCoordinates?: string;
 };
 
@@ -1033,9 +1037,9 @@ function getPolicyTagsData(policyID: string | undefined) {
  * If the action is done from the report RHP, then we just want to dismiss the money request flow screens.
  * It is a helper function used only in this file.
  */
-function dismissModalAndOpenReportInInboxTab(reportID?: string) {
+function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: boolean) {
     const rootState = navigationRef.getRootState();
-    if (isReportOpenInRHP(rootState)) {
+    if (!isInvoice && isReportOpenInRHP(rootState)) {
         const rhpKey = rootState.routes.at(-1)?.state?.key;
         if (rhpKey) {
             const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === reportID).length > 0;
@@ -1061,6 +1065,53 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string) {
         return;
     }
     Navigation.dismissModalWithReport({reportID});
+}
+
+/**
+ * Helper to navigate after an expense is created in order to standardize the post‑creation experience
+ * when creating an expense from the global create button.
+ * If the expense is created from the global create button then:
+ * - If it is created on the inbox tab, it will open the chat report containing that expense.
+ * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
+ */
+function handleNavigateAfterExpenseCreate({
+    activeReportID,
+    transactionID,
+    isFromGlobalCreate,
+    isInvoice,
+    shouldHandleNavigation = true,
+}: {
+    activeReportID?: string;
+    transactionID?: string;
+    isFromGlobalCreate?: boolean;
+    isInvoice?: boolean;
+    shouldHandleNavigation?: boolean;
+}) {
+    const isUserOnInbox = isReportTopmostSplitNavigator();
+
+    // If the expense is not created from global create or is currently on the inbox tab,
+    // we just need to dismiss the money request flow screens
+    // and open the report chat containing the IOU report
+    if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
+        if (shouldHandleNavigation) {
+            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice);
+        }
+        return;
+    }
+
+    const type = isInvoice ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+
+    // We mark this transaction to be highlighted when opening the expense search route page
+    mergeTransactionIdsHighlightOnSearchRoute(type, {[transactionID]: true});
+
+    if (!shouldHandleNavigation) {
+        return;
+    }
+    const queryString = buildCannedSearchQuery({type});
+    Navigation.dismissModal();
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+    });
 }
 
 /**
@@ -1116,6 +1167,7 @@ function initMoneyRequest({
     policy,
     personalPolicy,
     isFromGlobalCreate,
+    isFromFloatingActionButton,
     currentIouRequestType,
     newIouRequestType,
     report,
@@ -1144,6 +1196,7 @@ function initMoneyRequest({
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
             reportID,
             isFromGlobalCreate,
+            isFromFloatingActionButton,
             created,
             currency,
             transactionID: newTransactionID,
@@ -1217,6 +1270,7 @@ function initMoneyRequest({
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        isFromFloatingActionButton,
         merchant: defaultMerchant,
     };
 
@@ -1251,6 +1305,7 @@ function startMoneyRequest(
     skipConfirmation = false,
     backToReport?: string,
     draftTransactions?: OnyxCollection<OnyxTypes.Transaction>,
+    isFromFloatingActionButton?: boolean,
 ) {
     Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE);
     const sourceRoute = Navigation.getActiveRoute();
@@ -1265,6 +1320,9 @@ function startMoneyRequest(
         },
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
+    if (isFromFloatingActionButton) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
+    }
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
             Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
@@ -1283,8 +1341,18 @@ function startMoneyRequest(
     }
 }
 
-function startDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false, backToReport?: string) {
+function startDistanceRequest(
+    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+    reportID: string,
+    requestType?: IOURequestType,
+    skipConfirmation = false,
+    backToReport?: string,
+    isFromFloatingActionButton?: boolean,
+) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation);
+    if (isFromFloatingActionButton) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
+    }
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.DISTANCE_MAP:
             Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
@@ -4532,7 +4600,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             value: lodashUnionBy(
                 transactionChanges.attendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, email})),
                 recentAttendees,
-                'email',
+                (attendee) => attendee.email || attendee.displayName,
             ).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW),
         });
     }
@@ -6271,6 +6339,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         count,
         rate,
         unit,
+        isFromGlobalCreate,
     } = transactionParams;
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
@@ -6468,14 +6537,20 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     if (shouldHandleNavigation) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => removeDraftTransactions());
-        if (!requestMoneyInformation.isRetry) {
-            dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
-        }
 
         const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
         if (trackReport?.key) {
             Navigation.removeScreenByKey(trackReport.key);
         }
+    }
+
+    if (!requestMoneyInformation.isRetry) {
+        handleNavigateAfterExpenseCreate({
+            activeReportID: backToReport ?? activeReportID,
+            transactionID: transaction.transactionID,
+            isFromGlobalCreate,
+            shouldHandleNavigation,
+        });
     }
 
     if (activeReportID && !isMoneyRequestReport) {
@@ -6507,7 +6582,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         policyRecentlyUsedCurrencies,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
-    const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
+    const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
     if (
         isEmptyObject(policyParams.policy) ||
@@ -6593,7 +6668,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    dismissModalAndOpenReportInInboxTab(activeReportID);
+    handleNavigateAfterExpenseCreate({activeReportID, transactionID: transaction.transactionID, isFromGlobalCreate});
 
     if (activeReportID) {
         notifyNewAction(activeReportID, payeeAccountID);
@@ -6649,6 +6724,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         attendees,
         odometerStart,
         odometerEnd,
+        isFromGlobalCreate,
         gpsCoordinates,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -6912,7 +6988,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
                 optimisticReportID,
                 optimisticReportActionID,
-                policyID: isDistanceRequest ? undefined : policy?.id,
+                // Tracked expenses in the CREATE flow are unreported and not tied to a policy
+                policyID: undefined,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 receiptState: trackedReceipt?.state,
                 reimbursable,
@@ -6942,10 +7019,15 @@ function trackExpense(params: CreateTrackExpenseParams) {
     if (shouldHandleNavigation) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+    }
 
-        if (!params.isRetry) {
-            dismissModalAndOpenReportInInboxTab(activeReportID);
-        }
+    if (!params.isRetry) {
+        handleNavigateAfterExpenseCreate({
+            activeReportID,
+            transactionID: transaction?.transactionID,
+            isFromGlobalCreate,
+            shouldHandleNavigation,
+        });
     }
 
     notifyNewAction(activeReportID, payeeAccountID);
@@ -7589,6 +7671,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         receipt,
         odometerStart,
         odometerEnd,
+        isFromGlobalCreate,
         gpsCoordinates,
     } = transactionParams;
 
@@ -7795,7 +7878,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
     if (shouldHandleNavigation) {
-        dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
+        handleNavigateAfterExpenseCreate({activeReportID: backToReport ?? activeReportID, isFromGlobalCreate, transactionID: parameters.transactionID});
     }
 
     if (!isMoneyRequestReport) {
@@ -13798,6 +13881,7 @@ export {
     getPolicyTags,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
+    handleNavigateAfterExpenseCreate,
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
     createSplitsAndOnyxData,
