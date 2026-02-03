@@ -240,8 +240,8 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Download Android build artifact
-        # v4
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: android-build-artifact
           path: ./
@@ -324,8 +324,8 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Download Android APK artifact
-        # v4
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: android-apk-artifact
           path: ./
@@ -484,15 +484,15 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Download iOS build artifact
-        # v4
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: ios-build-artifact
           path: ./
 
       - name: Download iOS dSYM artifact
-        # v4
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: ios-dsym-artifact
           path: ./
@@ -575,8 +575,8 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Download iOS build artifact
-        # v4
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: ios-build-artifact
           path: ./
