@@ -4729,6 +4729,12 @@ function canEditMultipleTransactions(
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
+        const isApproved = isReportApproved({report});
+
+        if (isApproved) {
+            return false;
+        }
+
         const fieldsToCheck = [
             CONST.EDIT_REQUEST_FIELD.AMOUNT,
             CONST.EDIT_REQUEST_FIELD.MERCHANT,
