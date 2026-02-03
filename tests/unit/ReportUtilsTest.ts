@@ -9277,7 +9277,7 @@ describe('ReportUtils', () => {
             const total = 100;
             const currency = CONST.CURRENCY.USD;
             const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency);
-            expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
+            expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(total, currency)}`);
         });
     });
 
