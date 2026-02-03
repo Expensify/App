@@ -143,9 +143,9 @@ const ROUTES = {
         route: 'search/hold/search/:backTo?',
         getRoute: (backTo?: string) => {
             if (!backTo) {
-                return 'search/hold/search';
+                return 'search/hold/search' as const;
             }
-            return `search/hold/search/${encodeURIComponent(backTo)}`;
+            return `search/hold/search/${encodeURIComponent(backTo)}` as const;
         },
     },
     SEARCH_REJECT_REASON_RHP: 'search/reject',
@@ -153,9 +153,9 @@ const ROUTES = {
         route: 'search/move-transactions/search/:backTo?',
         getRoute: (backTo?: string) => {
             if (!backTo) {
-                return 'search/move-transactions/search';
+                return 'search/move-transactions/search' as const;
             }
-            return `search/move-transactions/search/${encodeURIComponent(backTo)}`;
+            return `search/move-transactions/search/${encodeURIComponent(backTo)}` as const;
         },
     },
 
