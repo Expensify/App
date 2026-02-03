@@ -330,10 +330,9 @@ function SearchAutocompleteList({
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
     const exportedToAutocompleteList = useMemo(() => {
-        const predefinedValues = CONST.SEARCH.PREDEFINED_INTEGRATION_FILTER_VALUES;
         const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
         const customNames = exportTemplates.map((t) => t.templateName).filter(Boolean);
-        return [...new Set([...predefinedValues, ...customNames])];
+        return Array.from(new Set([...CONST.SEARCH.PREDEFINED_INTEGRATION_FILTER_VALUES, ...customNames]));
     }, [integrationsExportTemplates, csvExportLayouts, translate]);
 
     const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = useMemo(() => {
@@ -625,7 +624,10 @@ function SearchAutocompleteList({
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO: {
                 const filteredExportedTo = exportedToAutocompleteList
-                    .filter((value) => value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(value.toLowerCase()))
+                    .filter((value) => {
+                        const lowerValue = value.toLowerCase();
+                        return lowerValue.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(lowerValue);
+                    })
                     .sort()
                     .slice(0, 10);
                 return filteredExportedTo.map((value) => ({

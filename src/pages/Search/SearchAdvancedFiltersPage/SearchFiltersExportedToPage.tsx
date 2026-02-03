@@ -38,10 +38,10 @@ function SearchFiltersExportedToPage() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const policy = policyIDs?.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDs.at(0)}`] : undefined;
 
-    const items = useMemo((): SearchMultipleSelectionPickerItem[] => {
-        const predefinedConnectionNamesList = getPredefinedConnectionNamesForSearch();
-        const predefinedConnectionNamesSet = new Set<string>(predefinedConnectionNamesList);
+    const predefinedConnectionNamesList = getPredefinedConnectionNamesForSearch();
+    const predefinedConnectionNamesSet = new Set<string>(predefinedConnectionNamesList);
 
+    const items = useMemo((): SearchMultipleSelectionPickerItem[] => {
         const defaultExportOptionIcon = (
             <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <Icon
@@ -101,7 +101,7 @@ function SearchFiltersExportedToPage() {
         customItems.sort((a, b) => a.name.localeCompare?.(b.name) ?? 0);
 
         return [...integrationItems, ...customItems, ...standardItems];
-    }, [integrationsExportTemplates, csvExportLayouts, policy, expensifyIcons, styles, StyleUtils, theme, translate]);
+    }, [integrationsExportTemplates, csvExportLayouts, policy, expensifyIcons, styles, StyleUtils, theme, translate, predefinedConnectionNamesList]);
 
     const initiallySelectedItems = useMemo((): SearchMultipleSelectionPickerItem[] | undefined => {
         const selectedValues = searchAdvancedFiltersForm?.exportedTo ?? [];
