@@ -13,7 +13,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getCleanedTagName} from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -45,7 +47,8 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCleanedTagName(rule.tag)));
     }
     if (rule.comment) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, rule.comment));
+        const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, commentMarkdown));
     }
     if (rule.tax?.field_id_TAX?.value) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
@@ -67,7 +70,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const theme = useTheme();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const {isDevelopment} = useEnvironment();
+    const {isProduction} = useEnvironment();
 
     // Hoist iterator-independent translations to avoid redundant calls in the loop
     const fieldLabels: FieldLabels = useMemo(
@@ -99,7 +102,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             });
     }, [codingRules]);
 
-    if (!isDevelopment) {
+    if (isProduction) {
         return null;
     }
 
@@ -125,7 +128,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 <View style={[styles.mt3]}>
                     {sortedRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
-                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName);
+                        const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
                         const ruleDescription = getRuleDescription(rule, translate, fieldLabels);
 
                         return (

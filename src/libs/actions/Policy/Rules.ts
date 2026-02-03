@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -6,11 +7,12 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
+import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
 import type Policy from '@src/types/onyx/Policy';
-import type {CodingRule, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
 
 /**
  * Builds the tax object from a tax key and policy
@@ -36,18 +38,64 @@ function buildTaxObject(taxKey: string | undefined, policy: Policy | undefined):
 }
 
 /**
- * Maps form fields to rule properties
+ * Converts a markdown comment to HTML using Parser.replace().
+ * Returns null if the comment is empty or undefined.
  */
-function mapFormFieldsToRule(form: MerchantRuleForm, policy: Policy | undefined) {
+function convertCommentToHTML(comment: string | undefined): string | null {
+    if (!comment) {
+        return null;
+    }
+    return Parser.replace(comment);
+}
+
+/**
+ * Maps form fields to rule properties with null for empty values.
+ * Used for Onyx to properly remove cleared fields during merge.
+ */
+function mapFormFieldsToRuleForOnyx(form: MerchantRuleForm, policy: Policy | undefined) {
     return {
-        merchant: form.merchant || undefined,
-        category: form.category || undefined,
-        tag: form.tag || undefined,
-        tax: buildTaxObject(form.tax, policy),
-        comment: form.comment || undefined,
-        reimbursable: form.reimbursable,
-        billable: form.billable,
+        merchant: form.merchant || null,
+        category: form.category || null,
+        tag: form.tag || null,
+        tax: buildTaxObject(form.tax, policy) ?? null,
+        comment: convertCommentToHTML(form.comment),
+        reimbursable: form.reimbursable ?? null,
+        billable: form.billable ?? null,
     };
+}
+
+/**
+ * Maps form fields to rule properties, omitting empty values.
+ * Used for API to avoid sending null values.
+ */
+function mapFormFieldsToRuleForAPI(form: MerchantRuleForm, policy: Policy | undefined): Partial<CodingRule> {
+    const rule: Partial<CodingRule> = {};
+
+    if (form.merchant) {
+        rule.merchant = form.merchant;
+    }
+    if (form.category) {
+        rule.category = form.category;
+    }
+    if (form.tag) {
+        rule.tag = form.tag;
+    }
+    const tax = buildTaxObject(form.tax, policy);
+    if (tax) {
+        rule.tax = tax;
+    }
+    const commentHTML = convertCommentToHTML(form.comment);
+    if (commentHTML) {
+        rule.comment = commentHTML;
+    }
+    if (form.reimbursable !== undefined) {
+        rule.reimbursable = form.reimbursable;
+    }
+    if (form.billable !== undefined) {
+        rule.billable = form.billable;
+    }
+
+    return rule;
 }
 
 /**
@@ -80,30 +128,38 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
 
     const isEditing = !!ruleID;
     const existingRule = isEditing ? policy?.rules?.codingRules?.[ruleID] : undefined;
-    const ruleFields = mapFormFieldsToRule(form, policy);
 
-    // When editing, use the existing rule and merge updated fields; when adding, create a new rule
+    // Build rule with nulls for Onyx (to remove cleared fields) and without nulls for API
+    const ruleFieldsForOnyx = mapFormFieldsToRuleForOnyx(form, policy);
+    const ruleFieldsForAPI = mapFormFieldsToRuleForAPI(form, policy);
+
     const targetRuleID = ruleID ?? NumberUtils.rand64();
-    const ruleForOptimisticUpdate: CodingRule =
-        isEditing && existingRule
-            ? {
-                  ...existingRule,
-                  ...ruleFields,
-                  filters: {
-                      ...existingRule.filters,
-                      right: form.merchantToMatch,
-                  },
-              }
-            : {
-                  ruleID: targetRuleID,
-                  filters: {
-                      left: 'merchant',
-                      operator: 'eq',
-                      right: form.merchantToMatch,
-                  },
-                  ...ruleFields,
-                  created: new Date().toISOString(),
-              };
+    const operator = form.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+    const created = existingRule?.created ?? new Date().toISOString();
+
+    // Rule for Onyx optimistic update (includes null values to remove cleared fields)
+    const ruleForOnyx = {
+        ruleID: targetRuleID,
+        filters: {
+            left: 'merchant',
+            operator,
+            right: form.merchantToMatch,
+        },
+        ...ruleFieldsForOnyx,
+        created,
+    };
+
+    // Rule for API (excludes null values)
+    const ruleForAPI: Partial<CodingRule> = {
+        ruleID: targetRuleID,
+        filters: {
+            left: 'merchant',
+            operator,
+            right: form.merchantToMatch,
+        },
+        ...ruleFieldsForAPI,
+        created,
+    };
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const pendingAction = isEditing ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
@@ -119,7 +175,7 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
                 value: {
                     rules: {
                         codingRules: {
-                            [targetRuleID]: ruleForOptimisticUpdate,
+                            [targetRuleID]: ruleForOnyx,
                         },
                     },
                     pendingFields: {
@@ -165,12 +221,38 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
 
     const parameters: SetPolicyCodingRuleParams = {
         policyID,
-        ruleID: targetRuleID,
-        value: JSON.stringify(ruleForOptimisticUpdate),
+        codingRuleID: targetRuleID,
+        codingRuleValue: JSON.stringify(ruleForAPI),
         shouldUpdateMatchingTransactions,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
+}
+
+function getTransactionsMatchingCodingRule(policyID: string, filters: CodingRuleFilter) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW,
+            value: true,
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW,
+            value: false,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW,
+            value: false,
+        },
+    ];
+
+    return API.read(READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE, {policyID, filters: JSON.stringify(filters)}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -241,12 +323,12 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
 
     const parameters: SetPolicyCodingRuleParams = {
         policyID: policy.id,
-        ruleID,
-        value: '',
+        codingRuleID: ruleID,
+        codingRuleValue: '',
         shouldUpdateMatchingTransactions: false,
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
-export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule};
+export {openPolicyRulesPage, setPolicyCodingRule, deletePolicyCodingRule, getTransactionsMatchingCodingRule};
