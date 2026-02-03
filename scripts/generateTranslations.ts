@@ -42,7 +42,7 @@ const GENERATED_FILE_PREFIX = dedent(`
      */
 `);
 
-const tsPrinter = ts.createPrinter();
+const tsPrinter = ts.createPrinter({removeComments: true});
 
 /**
  * If the estimated cost of translation exceeds this threshold (in USD), prompt the user for confirmation before proceeding.
@@ -415,11 +415,6 @@ class TranslationGenerator {
         finalFileContent = finalFileContent.replace('const translations = {', 'const translations: TranslationDeepObject<typeof en> = {');
         finalFileContent = finalFileContent.replace('export default translations satisfies TranslationDeepObject<typeof translations>;', 'export default translations;');
 
-        // Add a fun ascii art touch with a helpful message
-        if (!finalFileContent.startsWith(GENERATED_FILE_PREFIX)) {
-            finalFileContent = `${GENERATED_FILE_PREFIX}${finalFileContent}`;
-        }
-
         fs.writeFileSync(outputPath, finalFileContent, 'utf8');
 
         // Format the file with prettier
@@ -430,6 +425,15 @@ class TranslationGenerator {
 
         // Format again with Prettier to ensure consistent formatting after dedent transformation
         await Prettier.format(outputPath);
+
+        // Add a fun ascii art touch with a helpful message
+        // This must be done AFTER formatDedentCallsInFile since that function uses the printer which removes comments
+        finalFileContent = fs.readFileSync(outputPath, 'utf8');
+        if (!finalFileContent.startsWith(GENERATED_FILE_PREFIX)) {
+            finalFileContent = `${GENERATED_FILE_PREFIX}${finalFileContent}`;
+        }
+
+        fs.writeFileSync(outputPath, finalFileContent, 'utf8');
 
         console.log(`✅ Translated file created: ${outputPath}`);
     }

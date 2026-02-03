@@ -357,6 +357,7 @@ describe('generateTranslations', () => {
             `),
                 'utf8',
             );
+            const translateSpy = jest.spyOn(Translator.prototype, 'translate');
             await generateTranslations();
             const itContent = fs.readFileSync(IT_PATH, 'utf8');
             expect(itContent).toStrictEqual(
@@ -364,37 +365,82 @@ describe('generateTranslations', () => {
                 import type en from './en';
 
                 const strings = {
-                    // @context As in a financial institution
                     bank: '[it][ctx: As in a financial institution] Bank',
-                    // @context As in a financial institution
                     bankTemplate: \`[it][ctx: As in a financial institution] Bank\`,
-                    // @context As in an aviation maneuver
                     aviationBank: '[it][ctx: As in an aviation maneuver] Bank',
-                    // This key has regular comments mixed with context-comments
-                    // eslint-disable-next-line max-len
-                    // @context foo
                     foo: '[it][ctx: foo] Foo',
-                    // @context bar
-                    // What about if the context comment isn't the last comment?
                     bar: '[it][ctx: bar] Bar',
                     some: {
                         nested: {
-                            // @context nested
                             str: '[it][ctx: nested] nested string',
-                            // @context for my template function
                             func: ({destructuredArg}) => \`[it][ctx: for my template function] My template string contains a single \${destructuredArg} argument\`,
                         },
                     },
-                    // @context will be applied to both translations
                     boolFunc: (flag: boolean) => (flag ? '[it][ctx: will be applied to both translations] ValueIfTrue' : '[it][ctx: will be applied to both translations] ValueIfFalse'),
-                    separateContextTernaries: (flag: boolean) => (flag ? /* @context only for true */ '[it][ctx: only for true] True with context' : '[it] False without context'),
-                    // @context formal greeting, only provided to outermost template translation
+                    separateContextTernaries: (flag: boolean) => (flag ? '[it][ctx: only for true] True with context' : '[it] False without context'),
                     onlyInTopLevelOfTemplates: (name: string) =>
-                        \`[it][ctx: formal greeting, only provided to outermost template translation] Salutations, \${name ?? /* @context inline context */ '[it][ctx: inline context] my very good friend'}\`,
+                        \`[it][ctx: formal greeting, only provided to outermost template translation] Salutations, \${name ?? '[it][ctx: inline context] my very good friend'}\`,
                 };
                 export default strings;
             `)}`,
             );
+
+            // Verify no @context comments leaked into the output
+            expect(itContent).not.toContain('@context');
+
+            // Verify the translator was called with the correct context values
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Bank', 'As in a financial institution', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Bank', 'As in an aviation maneuver', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Foo', 'foo', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Bar', 'bar', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'nested string', 'nested', expect.anything());
+            // eslint-disable-next-line no-template-curly-in-string
+            expect(translateSpy).toHaveBeenCalledWith('it', 'My template string contains a single ${destructuredArg} argument', 'for my template function', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'ValueIfTrue', 'will be applied to both translations', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'ValueIfFalse', 'will be applied to both translations', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'True with context', 'only for true', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'False without context', undefined, expect.anything());
+            // Complex template expression with nullish coalesce gets serialized with hash for the complex span
+            // We just verify it was called with the context, not the exact hash value
+            expect(translateSpy).toHaveBeenCalledWith('it', expect.stringContaining('Salutations'), 'formal greeting, only provided to outermost template translation', expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'my very good friend', 'inline context', expect.anything());
+        });
+
+        it('does not include any comments in generated translation files', async () => {
+            fs.writeFileSync(
+                EN_PATH,
+                dedent(`
+                const strings = {
+                    // Regular comment before a string
+                    greeting: 'Hello',
+                    // @context As in a financial institution
+                    bank: 'Bank',
+                    /* Multi-line comment
+                       spanning several lines */
+                    farewell: 'Goodbye',
+                    /* @context inline multi-line */ inline: 'Inline',
+                    // eslint-disable-next-line max-len
+                    longString: 'This is a very long string',
+                };
+                export default strings;
+            `),
+                'utf8',
+            );
+            await generateTranslations();
+            const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+            // Verify no comments of any kind appear in the output (except the generated file prefix)
+            const contentAfterPrefix = itContent.substring(GENERATED_FILE_PREFIX.length);
+            expect(contentAfterPrefix).not.toContain('//');
+            expect(contentAfterPrefix).not.toContain('/*');
+            expect(contentAfterPrefix).not.toContain('*/');
+            expect(contentAfterPrefix).not.toContain('@context');
+            expect(contentAfterPrefix).not.toContain('eslint-disable');
+
+            // Verify translations still work correctly
+            expect(itContent).toContain('[it][ctx: As in a financial institution] Bank');
+            expect(itContent).toContain('[it] Hello');
+            expect(itContent).toContain('[it] Goodbye');
         });
 
         it("doesn't request duplicate translations", async () => {
@@ -431,16 +477,15 @@ describe('generateTranslations', () => {
                         anotherGreeting: '[it] Hello',
                         anotherFarewell: '[it] Goodbye',
                     },
-                    // @context diff
                     greetingWithDifferentContext: '[it][ctx: diff] Hello',
                 };
                 export default strings;
             `)}`,
             );
             expect(translateSpy).toHaveBeenCalledTimes(3);
-            expect(translateSpy).toHaveBeenNthCalledWith(1, 'it', 'Hello', undefined);
-            expect(translateSpy).toHaveBeenNthCalledWith(2, 'it', 'Goodbye', undefined);
-            expect(translateSpy).toHaveBeenNthCalledWith(3, 'it', 'Hello', 'diff');
+            expect(translateSpy).toHaveBeenNthCalledWith(1, 'it', 'Hello', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenNthCalledWith(2, 'it', 'Goodbye', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenNthCalledWith(3, 'it', 'Hello', 'diff', expect.anything());
         });
 
         it("doesn't translate type annotations", async () => {
@@ -585,7 +630,7 @@ describe('generateTranslations', () => {
 
             // Should only translate the new string
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined, expect.anything());
         });
 
         it('translates only specified paths when --paths is provided', async () => {
@@ -657,8 +702,8 @@ describe('generateTranslations', () => {
             expect(itContent).not.toContain('[it] Old Error Translation');
 
             expect(translateSpy).toHaveBeenCalledTimes(2);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'An error occurred', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'An error occurred', undefined, expect.anything());
         });
 
         it('translates nested paths when parent path is specified', async () => {
@@ -733,9 +778,9 @@ describe('generateTranslations', () => {
             expect(itContent).not.toContain('[it] Deep value (existing)');
 
             expect(translateSpy).toHaveBeenCalledTimes(3);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Cancel', undefined);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Deep value', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Cancel', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Deep value', undefined, expect.anything());
         });
 
         it('ignores --compare-ref when --paths is provided', async () => {
@@ -790,7 +835,7 @@ describe('generateTranslations', () => {
             expect(itContent).not.toContain('[it] Save (existing)');
 
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined, expect.anything());
         });
 
         it('throws error when target file does not exist for --paths', async () => {
@@ -1082,8 +1127,8 @@ describe('generateTranslations', () => {
 
             // Only the new string should have been translated
             expect(translateSpy).toHaveBeenCalledTimes(2); // Once for IT, once for FR
-            expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
-            expect(translateSpy).toHaveBeenCalledWith('fr', 'New value!', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('fr', 'New value!', undefined, expect.anything());
         });
 
         it('validates compare-ref is a valid git reference', async () => {
@@ -1350,10 +1395,10 @@ describe('generateTranslations', () => {
             expect(itContent).toContain('[it] Typed output');
 
             // Should translate the new strings
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Save', undefined, expect.anything());
             // eslint-disable-next-line no-template-curly-in-string
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Hello ${name}', undefined);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Typed output', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Hello ${name}', undefined, expect.anything());
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Typed output', undefined, expect.anything());
         });
 
         it('handles adding new properties to existing nested structures with --compare-ref', async () => {
@@ -1430,7 +1475,7 @@ describe('generateTranslations', () => {
 
             // Should only translate the new string
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'New value added to existing nested structure', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'New value added to existing nested structure', undefined, expect.anything());
         });
 
         it('handles modifying existing string values with --compare-ref', async () => {
@@ -1509,7 +1554,7 @@ describe('generateTranslations', () => {
 
             // Should translate the modified string
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Skip it if you dare', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Skip it if you dare', undefined, expect.anything());
         });
 
         it('should handle string concatenation expressions', async () => {
@@ -1711,7 +1756,7 @@ describe('generateTranslations', () => {
 
             // Should translate the string with the new context
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', 'as a verb, not a noun');
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', 'as a verb, not a noun', expect.anything());
         });
 
         it('detects modifications when a context annotation is changed with --compare-ref', async () => {
@@ -1790,7 +1835,7 @@ describe('generateTranslations', () => {
 
             // Should translate the string with the new context
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', 'as a verb, not a noun');
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', 'as a verb, not a noun', expect.anything());
         });
 
         it('detects modifications when a context annotation is removed with --compare-ref', async () => {
@@ -1876,7 +1921,7 @@ describe('generateTranslations', () => {
 
             // Should translate the string without context
             expect(translateSpy).toHaveBeenCalledTimes(1);
-            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'Pin', undefined, expect.anything());
 
             // The context comment should not be in the output
             expect(itContent).not.toContain('// @context as a verb, not a noun');
@@ -2190,12 +2235,12 @@ describe('generateTranslations', () => {
             await generateTranslations();
 
             // Only prop1 should be translated (it actually changed)
-            expect(translateSpy).toHaveBeenCalledWith('it', 'First property\n', undefined);
+            expect(translateSpy).toHaveBeenCalledWith('it', 'First property\n', undefined, expect.anything());
 
             // prop2 and prop3 should NOT be translated (they didn't change, just moved line numbers)
             // BUG: Due to the bug, these WILL be called, causing this test to FAIL
-            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Second property', undefined);
-            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Third property', undefined);
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Second property', undefined, expect.anything());
+            expect(translateSpy).not.toHaveBeenCalledWith('it', 'Third property', undefined, expect.anything());
 
             // Verify only 1 translation was requested
             expect(translateSpy).toHaveBeenCalledTimes(1);
