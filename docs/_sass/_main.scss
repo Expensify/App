@@ -64,6 +64,7 @@ body {
     min-height: 100%;
     background: var(--color-appBG);
     color: var(--color-text-supporting);
+    overflow-x: hidden;
 }
 
 hr {
