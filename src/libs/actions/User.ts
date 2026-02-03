@@ -1689,6 +1689,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
     });
 
     const successRules = expenseRules.filter((rule, index) => !isRuleSelected(rule, index));
+    const rulesForAPI = successRules.map(({pendingAction, errors, ...rule}) => rule);
 
     const failureRules = expenseRules.map((rule, index) => {
         if (isRuleSelected(rule, index)) {
@@ -1699,7 +1700,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
 
     const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_EXPENSE_RULES,
-        value: JSON.stringify(successRules),
+        value: JSON.stringify(rulesForAPI),
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -1783,9 +1784,11 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         failureRules = expenseRules;
     }
 
+    const rulesForAPI = successRules.map(({pendingAction: _pendingAction, errors: _errors, ...rule}) => rule);
+
     const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_EXPENSE_RULES,
-        value: JSON.stringify(successRules),
+        value: JSON.stringify(rulesForAPI),
     };
 
     const optimisticData: OnyxUpdate[] = [

@@ -58,7 +58,7 @@ function ExpenseRulesPage() {
         setSelectedRules([]);
     }, [expenseRules]);
 
-    const hasRules = expenseRules.length > 0;
+    const hasRules = expenseRules.filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
     const isLoading = !hasRules && isLoadingOnyxValue(expenseRulesResult);
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
@@ -82,6 +82,7 @@ function ExpenseRulesPage() {
             keyForList: getKeyForList(rule, index),
             pendingAction: rule.pendingAction,
             errors: rule.errors,
+            isDisabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             rightElement: !shouldUseNarrowLayout && (
                 <View style={[styles.flex1]}>
                     <Text
