@@ -292,12 +292,25 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         };
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
 
+    const wasIncrementPageCancelledRef = useRef(false);
+
     const incrementPage = useCallback(() => {
         if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
+            wasIncrementPageCancelledRef.current = true;
             return;
         }
         setCurrentPage((prev) => prev + 1);
+        wasIncrementPageCancelledRef.current = false;
     }, [flattenedSections.allOptions.length, currentPage]);
+
+    useEffect(() => {
+        if (!wasIncrementPageCancelledRef.current) {
+            return;
+        }
+        incrementPage();
+        // We only really want to recall `incrementPage` after the data has been updated.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [flattenedSections.allOptions.length]);
 
     const slicedSections = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
