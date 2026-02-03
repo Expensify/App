@@ -222,13 +222,13 @@ function addBusinessWebsiteForDraft(websiteUrl: string) {
  * Get the Onyx data required to set the last used payment method to VBBA for a given policyID
  */
 function getOnyxDataForConnectingVBBAAndLastPaymentMethod(
-    policyID: string,
+    policyID?: string,
     lastPaymentMethod?: LastPaymentMethodType | string,
 ): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> {
     const onyxData = getVBBADataForOnyx();
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
-    if (!lastUsedPaymentMethod) {
+    if (!lastUsedPaymentMethod && policyID) {
         onyxData.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
@@ -529,7 +529,7 @@ function updatePersonalInformationForBankAccount(bankAccountID: number, params: 
     );
 }
 
-function validateBankAccount(bankAccountID: number, validateCode: string, policyID: string) {
+function validateBankAccount(bankAccountID: number, validateCode: string, policyID?: string) {
     const parameters: ValidateBankAccountWithTransactionsParams = {
         bankAccountID,
         validateCode,
@@ -1097,7 +1097,7 @@ function updateBeneficialOwnersForBankAccount(bankAccountID: number, params: Par
  * @param policyID - ID of the policy we're setting the bank account on
  * @param lastPaymentMethod - last payment method used in the app
  */
-function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID: string, lastPaymentMethod?: LastPaymentMethodType | string) {
+function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContractStepProps, policyID?: string, lastPaymentMethod?: LastPaymentMethodType | string) {
     const onyxData = getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID, lastPaymentMethod);
 
     API.write(
@@ -1133,7 +1133,7 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
 /**
  * Verify the user's identity via Onfido
  */
-function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID: string) {
+function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoDataWithApplicantID, policyID?: string) {
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
