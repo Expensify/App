@@ -14,6 +14,7 @@ import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
 import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isExpenseReport, isIOUReport} from './ReportUtils';
+import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     getAmount,
@@ -125,14 +126,14 @@ function isEmptyMergeValue(value: unknown) {
  * @param field - The merge field key to get the value for
  * @returns The value of the specified field from the transaction
  */
-function getMergeFieldValue(transaction: OnyxEntry<Transaction>, field: MergeFieldKey) {
-    const transactionDetails = getTransactionDetails(transaction, undefined, undefined, true, true);
-    if (!transactionDetails || !transaction) {
+function getMergeFieldValue(transaction: OnyxEntry<Transaction>, field: MergeFieldKey, transactionDetails?: TransactionDetails) {
+    const details = transactionDetails ?? getTransactionDetails(transaction, undefined, undefined, true, true);
+    if (!details || !transaction) {
         return '';
     }
 
     if (field === 'description') {
-        return transactionDetails.comment;
+        return details.comment;
     }
     if (field === 'reimbursable') {
         return getReimbursable(transaction);
@@ -144,7 +145,7 @@ function getMergeFieldValue(transaction: OnyxEntry<Transaction>, field: MergeFie
         return '';
     }
 
-    return transactionDetails[field];
+    return details[field];
 }
 
 /**
@@ -206,9 +207,12 @@ function getMergeableDataAndConflictFields(
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
+    const targetTransactionDetails = getTransactionDetails(targetTransaction, undefined, undefined, true, true);
+    const sourceTransactionDetails = getTransactionDetails(sourceTransaction, undefined, undefined, true, true);
+
     for (const field of getMergeFields(targetTransaction)) {
-        const targetValue = getMergeFieldValue(targetTransaction, field);
-        const sourceValue = getMergeFieldValue(sourceTransaction, field);
+        const targetValue = getMergeFieldValue(targetTransaction, field, targetTransactionDetails);
+        const sourceValue = getMergeFieldValue(sourceTransaction, field, sourceTransactionDetails);
 
         const isTargetValueEmpty = isEmptyMergeValue(targetValue);
         const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
