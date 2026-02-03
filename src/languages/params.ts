@@ -228,6 +228,7 @@ type ViolationsRterParams = {
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
     companyCardPageURL?: string;
     connectionLink?: string;
+    isPersonalCard?: boolean;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;

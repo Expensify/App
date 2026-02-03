@@ -33,6 +33,7 @@ import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isManualDistanceRequest,
     isScanning,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
@@ -121,6 +122,7 @@ function MoneyRequestReceiptView({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -136,8 +138,7 @@ function MoneyRequestReceiptView({
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
-    // TODO add correct link to card page in wallet settings
-    const connectionLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
+    const connectionLink = transaction?.cardID ? `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(transaction.cardID)}` : undefined;
 
     const canEditReceipt =
         isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
@@ -174,16 +175,17 @@ function MoneyRequestReceiptView({
         for (const violation of filteredViolations) {
             const isReceiptFieldViolation = receiptFieldViolationNames.has(violation.name);
             const isReceiptImageViolation = receiptImageViolationNames.has(violation.name);
-            if (isReceiptFieldViolation || isReceiptImageViolation) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink);
+            const isRTERViolation = violation.name === CONST.VIOLATIONS.RTER;
+            if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
+                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, cardList);
                 allViolations.push(violationMessage);
-                if (isReceiptImageViolation) {
+                if (isReceiptImageViolation || isRTERViolation) {
                     imageViolations.push(violationMessage);
                 }
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink]);
+    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -268,6 +270,8 @@ function MoneyRequestReceiptView({
 
     const showBorderlessLoading = isLoading && fillSpace;
 
+    const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
+
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
             <ReceiptAuditMessages notes={receiptImageViolations} />
@@ -334,7 +338,14 @@ function MoneyRequestReceiptView({
                     contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
-                        <View style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}>
+                        <View
+                            style={[
+                                styles.getMoneyRequestViewImage(showBorderlessLoading),
+                                receiptStyle,
+                                showBorderlessLoading && styles.flex1,
+                                fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
+                            ]}
+                        >
                             <ReportActionItemImage
                                 shouldUseThumbnailImage={!fillSpace}
                                 shouldUseFullHeight={fillSpace}
