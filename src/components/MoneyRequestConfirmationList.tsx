@@ -399,7 +399,7 @@ function MoneyRequestConfirmationList({
     // to calculate the distance stored in transaction.comment.customUnit.quantity
     const gpsDistance = transaction?.comment?.customUnit?.quantity;
     const gpsDistanceWithCurrentDistanceUnit = calculateGPSDistance(distance, unit);
-    const shouldUpdateGpsDistance = gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
+    const shouldUpdateGpsDistance = isGPSDistanceRequest && gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
     useEffect(() => {
         if (!shouldUpdateGpsDistance || !transactionID || isReadOnly) {
             return;
@@ -468,6 +468,7 @@ function MoneyRequestConfirmationList({
         iouAttendees,
         currentUserPersonalDetails,
         isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
+        isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
     });
 
     useEffect(() => {
@@ -998,7 +999,14 @@ function MoneyRequestConfirmationList({
             // Since invoices are not expense reports that need attendee tracking, this validation should not apply to invoices
             const isMissingAttendeesViolation =
                 iouType !== CONST.IOU.TYPE.INVOICE &&
-                getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
+                getIsMissingAttendeesViolation(
+                    policyCategories,
+                    iouCategory,
+                    iouAttendees,
+                    currentUserPersonalDetails,
+                    policy?.isAttendeeTrackingEnabled,
+                    policy?.type === CONST.POLICY.TYPE.CORPORATE,
+                );
             if (isMissingAttendeesViolation) {
                 setFormError('violations.missingAttendees');
                 return;

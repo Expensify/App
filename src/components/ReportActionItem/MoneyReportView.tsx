@@ -38,7 +38,7 @@ import {
     isSettled as isSettledReportUtils,
     shouldHideSingleReportField,
 } from '@libs/ReportUtils';
-import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
+import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
