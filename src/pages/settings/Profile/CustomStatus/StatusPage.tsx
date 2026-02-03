@@ -262,6 +262,7 @@ function StatusPage() {
                     onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
                     additionalDescription={translate('statusPage.vacationDelegate')}
+                    containerStyles={[styles.mb2, styles.mt6]}
                 />
             </FormProvider>
         </ScreenWrapper>

@@ -13,9 +13,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Participant} from '@src/types/onyx/IOU';
 import HeaderWithBackButton from './HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from './SelectionListWithSections';
-import UserListItem from './SelectionListWithSections/UserListItem';
+import UserListItem from './SelectionList/ListItem/UserListItem';
+import SelectionList from './SelectionList/SelectionListWithSections';
 
 type BaseVacationDelegateSelectionComponentProps = {
     /** Current vacation delegate login */
@@ -65,6 +64,7 @@ function BaseVacationDelegateSelectionComponent({currentVacationDelegate, onSele
     if (currentVacationDelegate && delegatePersonalDetails) {
         sectionsList.push({
             title: undefined,
+            sectionIndex: 0,
             data: [
                 {
                     ...delegatePersonalDetails,
@@ -85,26 +85,25 @@ function BaseVacationDelegateSelectionComponent({currentVacationDelegate, onSele
                     ],
                 },
             ],
-            shouldShow: true,
         });
     }
 
     sectionsList.push({
         title: translate('common.recents'),
+        sectionIndex: 1,
         data: availableOptions.recentReports,
-        shouldShow: (availableOptions.recentReports?.length ?? 0) > 0,
     });
     sectionsList.push({
         title: translate('common.contacts'),
+        sectionIndex: 2,
         data: availableOptions.personalDetails,
-        shouldShow: (availableOptions.personalDetails?.length ?? 0) > 0,
     });
 
     if (availableOptions.userToInvite) {
         sectionsList.push({
             title: undefined,
+            sectionIndex: 3,
             data: [availableOptions.userToInvite],
-            shouldShow: true,
         });
     }
 
@@ -122,9 +121,18 @@ function BaseVacationDelegateSelectionComponent({currentVacationDelegate, onSele
         })),
     }));
 
-    const hasAvailableItems = availableOptions.recentReports?.length > 0 || availableOptions.personalDetails?.length > 0;
-
-    const headerMessage = getHeaderMessage(hasAvailableItems, !!availableOptions.userToInvite, debouncedSearchTerm.trim(), countryCode, false);
+    const textInputOptions = {
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        headerMessage: getHeaderMessage(
+            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+            !!availableOptions.userToInvite,
+            debouncedSearchTerm.trim(),
+            countryCode,
+            false,
+        ),
+    };
 
     return (
         <>
@@ -136,15 +144,19 @@ function BaseVacationDelegateSelectionComponent({currentVacationDelegate, onSele
                 <SelectionList
                     sections={areOptionsInitialized ? sections : []}
                     ListItem={UserListItem}
-                    onSelectRow={onSelectRow}
-                    shouldSingleExecuteRowSelect
-                    onChangeText={setSearchTerm}
-                    textInputValue={searchTerm}
-                    headerMessage={headerMessage}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                    onSelectRow={(item) => {
+                        // Clear search to prevent "No results found" after selection
+                        setSearchTerm('');
+
+                        onSelectRow(item);
+                    }}
+                    textInputOptions={textInputOptions}
                     showLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
                     onEndReached={onListEndReached}
+                    disableMaintainingScrollPosition
+                    shouldSingleExecuteRowSelect
+                    shouldShowTextInput
                 />
             </View>
         </>

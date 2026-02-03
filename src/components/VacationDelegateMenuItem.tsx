@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -37,9 +38,12 @@ type VacationDelegateSectionProps = {
      * Optional additional title/description displayed above the section
      */
     additionalDescription?: string;
+
+    /** Optional styles for container element */
+    containerStyles?: StyleProp<ViewStyle>;
 };
 
-function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCloseError, onPress, additionalDescription}: VacationDelegateSectionProps) {
+function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCloseError, onPress, additionalDescription, containerStyles}: VacationDelegateSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
@@ -49,10 +53,13 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
     const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
     return (
-        <View style={[styles.mb2, styles.mt6]}>
-            {!!additionalDescription && <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>}
-
-            {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{additionalDescription}</Text>}
+        <View style={[containerStyles]}>
+            {!!additionalDescription && (
+                <>
+                    <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
+                    {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{additionalDescription}</Text>}
+                </>
+            )}
 
             {hasVacationDelegate ? (
                 <OfflineWithFeedback

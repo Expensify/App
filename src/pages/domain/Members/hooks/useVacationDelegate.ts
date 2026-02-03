@@ -1,14 +1,12 @@
 import {vacationDelegateSelector} from '@selectors/Domain';
+import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
-import useOnyx from './useOnyx';
 
 const useVacationDelegate = (domainAccountID: number, accountID: number): BaseVacationDelegate | undefined => {
-    const selector = vacationDelegateSelector(accountID);
-
     const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector,
+        selector: vacationDelegateSelector(accountID),
     });
 
     return vacationDelegate;
