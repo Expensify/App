@@ -37,6 +37,7 @@ import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
     Beta,
+    BetaConfiguration,
     IntroSelected,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -1114,6 +1115,12 @@ Onyx.connectWithoutView({
     callback: (value) => (allBetas = value),
 });
 
+let betaConfiguration: OnyxEntry<BetaConfiguration> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETA_CONFIGURATION,
+    callback: (value) => (betaConfiguration = value ?? {}),
+});
+
 let allTransactions: OnyxCollection<Transaction> = {};
 let reportsTransactions: Record<string, Transaction[]> = {};
 Onyx.connectWithoutView({
@@ -1890,7 +1897,10 @@ function getDefaultNotificationPreferenceForReport(report: OnyxEntry<Report>): V
  */
 function getReportNotificationPreference(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
     const participant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
-    return participant?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+
+    // Empty notification preference should return `hidden`
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return participant?.notificationPreference || CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
 /**
@@ -2659,6 +2669,9 @@ function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
 
 /**
  * Checks if a report has only one transaction associated with it
+ * NOTE: This function should not be exported because it accesses module-level Onyx data (allReportActions, allReports)
+ * which can become stale. Each file should implement its own version using local Onyx collections.
+ * See tests/actions/EnforceActionExportRestrictions.ts for more details.
  * @deprecated - Use isOneTransactionReport instead
  */
 function isOneTransactionReportDeprecated(report: OnyxEntry<Report>): boolean {
@@ -11563,8 +11576,8 @@ function prepareOnboardingOnyxData({
 
     // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
-    // When posting to admins room in non-production environments, we skip tasks in favor of backend-generated followups.
-    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && environment !== CONST.ENVIRONMENT.PRODUCTION;
+    // When posting to admins room and the user is in the suggestedFollowups beta, we skip tasks in favor of backend-generated followups.
+    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, allBetas, betaConfiguration);
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
@@ -12353,23 +12366,6 @@ function getIntegrationIcon(connectionName?: ConnectionName, expensifyIcons?: Re
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
         return expensifyIcons?.QBDSquare;
-    }
-
-    return undefined;
-}
-
-function getIntegrationExportIcon(connectionName?: ConnectionName): 'XeroExport' | 'QBOExport' | 'NetSuiteExport' | 'SageIntacctExport' | undefined {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return 'XeroExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO || connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
-        return 'QBOExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return 'NetSuiteExport';
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
-        return 'SageIntacctExport';
     }
 
     return undefined;
@@ -13359,7 +13355,6 @@ export {
     getReportViolations,
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
-    getIntegrationExportIcon,
     canBeExported,
     isExported,
     hasExportError,

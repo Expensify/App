@@ -28,6 +28,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Account, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
@@ -329,6 +330,10 @@ function openReportFromDeepLink(
                             }
 
                             if (shouldSkipDeepLinkNavigation(route)) {
+                                return;
+                            }
+
+                            if (currentFocusedRoute?.name !== SCREENS.HOME && route === ROUTES.HOME) {
                                 return;
                             }
 
