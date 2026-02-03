@@ -748,7 +748,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [android-upload-google-play, ios-upload-testflight, web]
+    needs: [android-build, android-upload-google-play, ios-build, ios-upload-testflight, web]
     steps:
       - name: Checkout
         # v6
