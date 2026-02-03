@@ -1,5 +1,5 @@
 import React from 'react';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -42,9 +42,6 @@ type RuleTextBaseProps<TFormID extends OnyxFormKey> = {
 
     /** Optional hash for rule not found validation */
     hash?: string;
-
-    /** Custom validation function */
-    customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 };
 
 function RuleTextBase<TFormID extends OnyxFormKey>({
@@ -59,7 +56,6 @@ function RuleTextBase<TFormID extends OnyxFormKey>({
     onSave,
     onBack,
     hash,
-    customValidate,
 }: RuleTextBaseProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -85,7 +81,6 @@ function RuleTextBase<TFormID extends OnyxFormKey>({
                     onSubmit={onSave}
                     title={translate(titleKey)}
                     characterLimit={characterLimit}
-                    customValidate={customValidate}
                 />
             </ScreenWrapper>
         </RuleNotFoundPageWrapper>
