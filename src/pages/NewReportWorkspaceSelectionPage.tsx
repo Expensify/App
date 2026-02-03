@@ -259,15 +259,19 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return [];
         }
 
-        return Object.values(policies)
-            .filter(
-                (policy) =>
-                    shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) &&
-                    !policy?.isJoinRequestPending &&
-                    policy?.isPolicyExpenseChatEnabled &&
-                    (!hasPerDiemTransactions || canSubmitPerDiemExpenseFromWorkspace(policy)),
-            )
-            .map((policy, index) => ({
+        const result = [];
+        let index = 0;
+        for (const policy of Object.values(policies)) {
+            if (
+                !shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) ||
+                policy?.isJoinRequestPending ||
+                !policy?.isPolicyExpenseChatEnabled ||
+                (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy))
+            ) {
+                continue;
+            }
+
+            result.push({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
                 icons: [
@@ -282,8 +286,11 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 keyForList: `${policy?.id}-${index}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
-            }))
-            .sort((a, b) => localeCompare(a.text, b.text));
+            });
+            index++;
+        }
+
+        return result.sort((a, b) => localeCompare(a.text, b.text));
     }, [policies, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions, icons.FallbackWorkspaceAvatar]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
