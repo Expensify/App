@@ -531,6 +531,7 @@ platform :ios do
   desc "Upload HybridApp to TestFlight"
   lane :upload_testflight_hybrid do
     upload_to_testflight(
+      ipa: ENV[KEY_IPA_PATH],
       app_identifier: ENV["APPLE_ID"],
       api_key_path: "./ios-fastlane-json-key.json",
       distribute_external: true,
