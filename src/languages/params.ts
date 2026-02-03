@@ -84,6 +84,7 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
 type CreatedReportForUnapprovedTransactionsParams = {
     reportUrl: string;
     reportName: string;
+    reportID: string | undefined;
 };
 
 type MovedTransactionParams = {
