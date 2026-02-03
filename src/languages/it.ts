@@ -5148,12 +5148,12 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 },
                 bookOrManageYourTrip: {
                     title: 'Prenotazione di viaggio',
-                    subtitle: 'Complimenti! Ora sei pronto per prenotare e gestire i viaggi in questo workspace.',
+                    subtitle: 'Complimenti! Ora sei pronto per prenotare e gestire i viaggi in questo spazio di lavoro.',
                     ctaText: 'Gestisci viaggi',
                 },
                 settings: {
                     autoAddTripName: {
-                        title: 'Aggiungi nomi dei viaggi alle spese',
+                        title: 'Aggiungi nomi di viaggi alle spese',
                         subtitle: 'Aggiungi automaticamente i nomi dei viaggi alle descrizioni delle spese per i viaggi prenotati in Expensify.',
                     },
                 },

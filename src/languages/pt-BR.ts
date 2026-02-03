@@ -5133,13 +5133,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 },
                 bookOrManageYourTrip: {
                     title: 'Reserva de viagem',
-                    subtitle: 'Parabéns! Agora você está pronto para reservar e gerenciar viagens neste workspace.',
+                    subtitle: 'Parabéns! Você já está pronto para reservar e gerenciar viagens neste workspace.',
                     ctaText: 'Gerenciar viagens',
                 },
                 settings: {
                     autoAddTripName: {
-                        title: 'Adicionar nomes de viagens às despesas',
-                        subtitle: 'Adicione automaticamente nomes de viagens às descrições de despesas para viagens reservadas no Expensify.',
+                        title: 'Adicionar nomes de viagem às despesas',
+                        subtitle: 'Adicione automaticamente os nomes das viagens às descrições das despesas para viagens reservadas no Expensify.',
                     },
                 },
                 travelInvoicing: {
