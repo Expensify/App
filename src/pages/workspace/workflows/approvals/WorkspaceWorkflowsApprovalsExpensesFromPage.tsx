@@ -69,24 +69,20 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
-    // Fix for #78777: Use route.params.backTo to detect initial creation flow instead of approvalWorkflow?.isInitialFlow
-    // This ensures proper state sync when navigating back
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
 
     const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
 
-    // Fix for #78777: Remove the selectedMembers.length > 0 check that prevented proper state sync
     useEffect(() => {
         if (!approvalWorkflow?.members) {
             return;
         }
 
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         setSelectedMembers(
             approvalWorkflow.members.map((member) => {
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-                // Fix for #78781: Handle non-workspace members properly
                 let accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
                 const isPolicyMember = !!policy?.employeeList?.[member.email];
 
@@ -104,7 +100,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
                 const login = personalDetailLogins?.[accountID] ?? member.email;
                 const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
-                // Fix for #78781: Use avatar from personalDetail if member.avatar is not available
                 const avatar = member.avatar ?? personalDetail?.avatar;
 
                 return {
@@ -135,9 +130,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             return members;
         }
 
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         const availableMembers = approvalWorkflow.availableMembers
             .map((member) => {
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
                 const login = personalDetailLogins?.[accountID];
 
@@ -228,7 +223,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action]);
 
     const nextStep = useCallback(() => {
-        // Fix for #78776: Separate existing members from users that need to be invited
         const existingMembers: Member[] = [];
         const usersToInvite: Array<{email: string; accountID?: number}> = [];
 
@@ -278,14 +272,11 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 if (!user.email) {
                     continue;
                 }
-                if (user.accountID) {
-                    invitedEmailsToAccountIDs[user.email] = user.accountID;
-                }
+                invitedEmailsToAccountIDs[user.email] = user.accountID ?? CONST.DEFAULT_NUMBER_ID;
             }
 
             setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
 
-            // Navigate to invite page with backTo set to return here
             const backToRoute = isInitialCreationFlow
                 ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID)
                 : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID, route.params.backTo);
