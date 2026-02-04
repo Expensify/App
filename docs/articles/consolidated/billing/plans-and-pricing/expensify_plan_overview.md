@@ -1,3 +1,4 @@
+
 ---
 title: Expensify Plans Overview: Collect vs Control
 description: Learn the key differences between Expensify's Collect and Control plans to help you choose the right one for your team.
