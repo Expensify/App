@@ -3899,6 +3899,7 @@ const translations = {
             card: 'Cards',
             expensifyCard: 'Expensify Card',
             companyCards: 'Company cards',
+            personalCards: 'Personal cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',

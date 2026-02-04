@@ -3802,6 +3802,7 @@ ${
             card: '卡片',
             expensifyCard: 'Expensify 卡',
             companyCards: '公司卡片',
+            personalCards: '个人卡片',
             workflows: '工作流程',
             workspace: '工作区',
             findWorkspace: '查找工作区',

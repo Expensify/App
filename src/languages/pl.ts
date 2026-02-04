@@ -3859,6 +3859,7 @@ ${
             card: 'Karty',
             expensifyCard: 'Karta Expensify',
             companyCards: 'Firmowe karty',
+            personalCards: 'Osobiste karty',
             workflows: 'Przepływy pracy',
             workspace: 'Przestrzeń robocza',
             findWorkspace: 'Znajdź przestrzeń roboczą',

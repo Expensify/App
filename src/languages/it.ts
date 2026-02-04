@@ -3866,6 +3866,7 @@ ${
             card: 'Carte',
             expensifyCard: 'Carta Expensify',
             companyCards: 'Carte aziendali',
+            personalCards: 'Carte personali',
             workflows: 'Flussi di lavoro',
             workspace: 'Spazio di lavoro',
             findWorkspace: 'Trova spazio di lavoro',
