@@ -1,3 +1,4 @@
+import {useCallback} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 import {isExpenseUnreported} from '@libs/TransactionUtils';
@@ -34,11 +35,9 @@ const customUnitPolicySelector = (policies: OnyxCollection<Policy>, transaction:
 function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, isPerDiemRequest}: UsePolicyForTransactionParams): UsePolicyForTransactionResult {
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
-    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
-    const [customUnitPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-        selector: (policies) => customUnitPolicySelector(policies, transaction),
-    });
+    const policySelector = useCallback((policies: OnyxCollection<Policy>) => customUnitPolicySelector(policies, transaction), [transaction]);
+    const [customUnitPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector: policySelector});
+
     const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicyID}`, {canBeMissing: true});
 
     const isUnreportedExpense = isExpenseUnreported(transaction);
