@@ -11585,7 +11585,7 @@ describe('ReportUtils', () => {
         };
 
         const testReport: Report = {
-            ...createRandomReport(false),
+            ...createRandomReport(1, undefined),
             policyID: 'policy123',
             policyName: 'Report Policy Name',
             oldPolicyName: 'Old Policy Name',
@@ -11655,7 +11655,7 @@ describe('ReportUtils', () => {
 
         it('should return report.policyName when no policy is found', () => {
             const report: Report = {
-                ...createRandomReport(false),
+                ...createRandomReport(1, undefined),
                 policyID: 'nonexistent',
                 policyName: 'Fallback Policy Name',
             };
@@ -11665,7 +11665,7 @@ describe('ReportUtils', () => {
 
         it('should return report.oldPolicyName when policyName is not available', () => {
             const report: Report = {
-                ...createRandomReport(false),
+                ...createRandomReport(1, undefined),
                 policyID: 'nonexistent',
                 policyName: undefined,
                 oldPolicyName: 'Old Fallback Name',
@@ -11676,12 +11676,12 @@ describe('ReportUtils', () => {
 
         it('should return parent report policyName when report has no policyName', () => {
             const parentReport: Report = {
-                ...createRandomReport(false),
+                ...createRandomReport(1, undefined),
                 reportID: 'parent123',
                 policyName: 'Parent Policy Name',
             };
             const childReport: Report = {
-                ...createRandomReport(false),
+                ...createRandomReport(1, undefined),
                 policyID: 'nonexistent',
                 policyName: undefined,
                 oldPolicyName: undefined,
@@ -11717,7 +11717,7 @@ describe('ReportUtils', () => {
                 name: 'Policy From Onyx',
             };
             const report: Report = {
-                ...createRandomReport(false),
+                ...createRandomReport(1, undefined),
                 policyID: 'onyxPolicy456',
                 policyName: undefined,
             };
@@ -11734,7 +11734,7 @@ describe('ReportUtils', () => {
 
         it('should return report.policyName when policies is empty array and policy not in allPolicies', async () => {
             const report: Report = {
-                ...createRandomReport(false),
+                ...createRandomReport(1, undefined),
                 policyID: 'nonExistentPolicy789',
                 policyName: 'Report Fallback Name',
             };
