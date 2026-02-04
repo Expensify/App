@@ -100,7 +100,7 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
             return;
         }
 
-        setSelectedCountry(countryDefaultValue);
+        setUserSelectedCountry(countryDefaultValue);
     }, [selectedCountry, countryDefaultValue]);
 
     return (
