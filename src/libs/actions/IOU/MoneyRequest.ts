@@ -25,6 +25,7 @@ import type {GpsPoint} from './index';
 import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
+    getRecentWaypoints,
     requestMoney,
     resetSplitShares,
     setCustomUnitRateID,
@@ -163,6 +164,7 @@ function createTransaction({
     const draftTransactionIDs = Object.values(allTransactionDrafts ?? {})
         .filter((transaction): transaction is NonNullable<typeof transaction> => !!transaction)
         .map((transaction) => transaction.transactionID);
+    const recentWaypoints = getRecentWaypoints();
 
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -195,6 +197,7 @@ function createTransaction({
                 introSelected,
                 activePolicyID,
                 quickAction,
+                recentWaypoints,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -511,6 +514,7 @@ function handleMoneyRequestStepDistanceNavigation({
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
+    const recentWaypoints = getRecentWaypoints();
 
     if (transaction?.splitShares && !isManualDistance) {
         resetSplitShares(transaction);
@@ -575,6 +579,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
+                    recentWaypoints,
                 });
                 return;
             }
@@ -607,6 +612,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                recentWaypoints,
             });
             return;
         }

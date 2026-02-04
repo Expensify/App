@@ -34,6 +34,7 @@ import {
     getCurrentUserEmail,
     getMoneyRequestParticipantsFromReport,
     getPolicyTags,
+    getRecentWaypoints,
     getUserAccountID,
     requestMoney,
     trackExpense,
@@ -100,30 +101,29 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         value: originalSelectedTransaction as OnyxTypes.Transaction,
     };
 
-    const optimisticTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDList.map((id) => ({
+    const optimisticTransactionDuplicatesData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = params.transactionIDList.map((id) => ({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
         value: null,
     }));
 
-    const failureTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDList.map((id) => ({
+    const failureTransactionDuplicatesData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = params.transactionIDList.map((id) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         value: allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] as OnyxTypes.Transaction,
     }));
 
-    const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
+    const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...params.transactionIDList, params.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
         };
     });
 
-    const failureTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
+    const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...params.transactionIDList, params.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -347,19 +347,18 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         value: originalSelectedTransaction as OnyxTypes.Transaction,
     };
 
-    const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
+    const optimisticTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...params.transactionIDList, params.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
         const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION};
         const updatedViolations = id === params.transactionID ? violations : [...violations, newViolation];
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: updatedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
         };
     });
 
-    const failureTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
+    const failureTransactionViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [...params.transactionIDList, params.transactionID].map((id) => {
         const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -503,6 +502,7 @@ function duplicateExpenseTransaction({
 
     const userAccountID = getUserAccountID();
     const currentUserEmail = getCurrentUserEmail();
+    const recentWaypoints = getRecentWaypoints();
 
     const participants = getMoneyRequestParticipantsFromReport(targetReport, userAccountID);
     const transactionDetails = getTransactionDetails(transaction);
@@ -569,6 +569,7 @@ function duplicateExpenseTransaction({
             introSelected,
             activePolicyID,
             quickAction,
+            recentWaypoints,
         };
         return trackExpense(trackExpenseParams);
     }
@@ -604,6 +605,7 @@ function duplicateExpenseTransaction({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 customUnitPolicyID,
+                recentWaypoints,
             };
             return createDistanceRequest(distanceParams);
         }
