@@ -8221,7 +8221,7 @@ const translations = {
             addMember: 'Add member',
             email: 'Email address',
             vacationDelegate: 'Vacation delegate',
-            errors: {
+            error: {
                 addMember: 'Unable to add this member. Please try again.',
                 vacationDelegate: 'Unable to set this user as an vacation delegate. Please try again.',
             },

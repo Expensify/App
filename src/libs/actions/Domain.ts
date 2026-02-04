@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     AddAdminToDomainParams,
@@ -18,9 +17,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain} from '@src/types/onyx';
 import type {DomainSecurityGroup} from '@src/types/onyx/Domain';
-import {OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
@@ -897,7 +895,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
             value: {
                 memberErrors: {
                     [email]: {
-                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.errors.addMember'),
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.error.addMember'),
                     },
                 },
             },
@@ -1043,7 +1041,7 @@ function deleteDomainVacationDelegate(domainAccountID: number, domainMemberAccou
                     creator: null,
                     delegate: null,
                 },
-            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, BaseVacationDelegate>,
+            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1100,7 +1098,7 @@ function deleteDomainVacationDelegate(domainAccountID: number, domainMemberAccou
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
                 [`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`]: vacationDelegate,
-            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, BaseVacationDelegate>,
+            } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX, NullishDeep<BaseVacationDelegate>>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
