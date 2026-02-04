@@ -923,8 +923,8 @@ const translations: TranslationDeepObject<typeof en> = {
             `選択した頻度で提出できなかった、<a href="${reportUrl}">${reportName}</a> のすべての経費を保持するためにこのレポートを作成しました`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
             isReportDeleted
-                ? `削除されたレポート #${reportID} から保留中の経費を対象としてこのレポートを作成しました`
-                : `<a href="${reportUrl}">${reportName}</a> から保留中の経費を対象としてこのレポートを作成しました`,
+                ? `削除されたレポート #${reportID} に保留されていた経費のためにこのレポートを作成しました`
+                : `<a href="${reportUrl}">${reportName}</a> の保留中経費すべてに対してこのレポートを作成しました`,
     },
     mentionSuggestions: {
         hereAlternateText: 'この会話の全員に通知',

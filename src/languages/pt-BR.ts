@@ -926,8 +926,8 @@ const translations: TranslationDeepObject<typeof en> = {
             `criou este relatório para manter todas as despesas de <a href="${reportUrl}">${reportName}</a> que não puderam ser enviadas na frequência escolhida por você`,
         createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
             isReportDeleted
-                ? `criou este relatório para quaisquer despesas em espera de relatório excluído #${reportID}`
-                : `criou este relatório para quaisquer despesas em espera de <a href="${reportUrl}">${reportName}</a>`,
+                ? `criou este relatório para quaisquer despesas retidas do relatório excluído nº ${reportID}`
+                : `criou este relatório para quaisquer despesas retidas de <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notificar todas as pessoas nesta conversa',
