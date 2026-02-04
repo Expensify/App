@@ -87,7 +87,7 @@ Bad:
 Good:
 
 ```ts
-function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
+function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
     if (!reportAction?.reportActionID) {
         return;
     }
@@ -100,7 +100,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
 Bad:
 
 ```ts
-function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
+function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
 
     if (!reportAction?.reportActionID) {
