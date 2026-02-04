@@ -67,6 +67,8 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
                 !shouldUseNarrowLayout ? styles.borderRight : {},
                 shouldDisplayLHB ? StyleUtils.positioning.l0 : StyleUtils.positioning.b0,
             ]}
+            accessibilityElementsHidden={!isReadyToDisplayBottomBar}
+            aria-hidden={!isReadyToDisplayBottomBar}
         >
             {/* We are not rendering NavigationTabBar conditionally for two reasons
                 1. It's faster to hide/show it than mount a new when needed.

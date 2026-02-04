@@ -1,8 +1,8 @@
 import {useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import type {ReactNode} from 'react';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, Keyboard} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
@@ -16,11 +16,14 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
+import {isMobile} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
+import getPlatform from '@libs/getPlatform';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -91,7 +94,6 @@ function ScreenWrapper({
     shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
     isOfflineIndicatorTranslucent,
     focusTrapSettings,
-    ref,
     ...restContainerProps
 }: ScreenWrapperProps) {
     /**
@@ -104,10 +106,12 @@ function ScreenWrapper({
     const navigationFallback = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
+    const screenWrapperRef = useRef<View>(null);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const shouldMoveAccessibilityFocus = getPlatform() === CONST.PLATFORM.WEB && isMobile();
 
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
@@ -220,6 +224,30 @@ function ScreenWrapper({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        if (!shouldMoveAccessibilityFocus || !didScreenTransitionEnd || !isFocused) {
+            return;
+        }
+
+        const element = screenWrapperRef.current as unknown as HTMLElement | null;
+        if (!element) {
+            return;
+        }
+
+        const activeElement = document?.activeElement as HTMLElement | null;
+        if (activeElement && element.contains(activeElement)) {
+            return;
+        }
+
+        const focusTarget = element.querySelector<HTMLElement>('button, [href], [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])');
+        if (focusTarget && focusTarget !== activeElement) {
+            focusTarget.focus();
+            return;
+        }
+
+        Accessibility.moveAccessibilityFocus(screenWrapperRef as unknown as Parameters<typeof Accessibility.moveAccessibilityFocus>[0]);
+    }, [didScreenTransitionEnd, isFocused, shouldMoveAccessibilityFocus]);
+
     useFocusEffect(
         useCallback(() => {
             // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
@@ -255,7 +283,7 @@ function ScreenWrapper({
     return (
         <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>
             <ScreenWrapperContainer
-                ref={ref}
+                ref={screenWrapperRef}
                 style={[styles.flex1, style]}
                 bottomContent={bottomContent}
                 didScreenTransitionEnd={didScreenTransitionEnd}
