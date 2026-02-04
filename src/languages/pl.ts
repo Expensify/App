@@ -669,6 +669,7 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'Plik PDF chroniony hasłem nie jest obsługiwany',
         attachmentImageResized: 'Ten obraz został przeskalowany na potrzeby podglądu. Pobierz go, aby zobaczyć w pełnej rozdzielczości.',
         attachmentImageTooLarge: 'Ten obraz jest zbyt duży, aby wyświetlić podgląd przed przesłaniem.',
+        imageDimensionsTooLarge: 'Wymiary obrazu są zbyt duże do przetworzenia. Użyj mniejszego obrazu.',
         tooManyFiles: (fileLimit: number) => `Możesz jednorazowo przesłać maksymalnie ${fileLimit} plików.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Plik przekracza ${maxUploadSizeInMB} MB. Spróbuj ponownie.`,
         someFilesCantBeUploaded: 'Niektórych plików nie można przesłać',
@@ -909,8 +910,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witaj w ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Użyj przycisku +, aby ${additionalText} wydatek.`,
-        askConcierge: 'Zadawaj pytania i otrzymuj całodobowe wsparcie w czasie rzeczywistym.',
-        conciergeSupport: 'Całodobowe wsparcie',
+        askConcierge: 'Zapytaj mnie o cokolwiek!',
+        conciergeSupport: 'Twój osobisty agent AI',
         create: 'utwórz',
         iouTypes: {
             pay: 'zapłać',
@@ -1002,6 +1003,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.',
                 cta: 'Aktywuj',
             },
+            ctaFix: 'Napraw',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Napraw połączenie karty firmowej ${feedName}` : 'Napraw połączenie karty firmowej'),
+                subtitle: 'Workspace > Karty firmowe',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Napraw połączenie ${integrationName}`, subtitle: 'Przestrzeń robocza > Księgowość'},
         },
         announcements: 'Ogłoszenia',
         discoverSection: {
@@ -4950,6 +4957,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             chooseCardFeed: 'Wybierz źródło karty',
             ukRegulation:
                 'Expensify Limited jest agentem Plaid Financial Ltd., autoryzowanej instytucji płatniczej regulowanej przez Financial Conduct Authority na podstawie Payment Services Regulations 2017 (numer referencyjny firmy: 804718). Plaid świadczy Ci regulowane usługi dostępu do informacji o rachunku za pośrednictwem Expensify Limited jako swojego agenta.',
+            deletedFeed: 'Usunięty kanał',
             assignCardFailedError: 'Przypisanie karty nie powiodło się.',
             unassignCardFailedError: 'Odłączenie karty nie powiodło się.',
             cardAlreadyAssignedError: 'Ta karta jest już przypisana do użytkownika w innej przestrzeni roboczej.',

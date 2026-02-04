@@ -418,7 +418,7 @@ function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction:
 }
 
 function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
-    if (!reportAction) {
+    if (!reportAction || reportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
         return undefined;
     }
 

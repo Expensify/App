@@ -25,11 +25,11 @@ function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMAS
             allowFontScaling={false}
             textBreakStrategy="simple"
             keyboardAppearance={theme.colorScheme}
-            ref={(refHandle) => {
+            ref={(refHandle: AnimatedTextInputRef) => {
                 if (typeof ref !== 'function') {
                     return;
                 }
-                ref(refHandle as AnimatedTextInputRef);
+                ref(refHandle);
             }}
             // eslint-disable-next-line react/forbid-component-props
             fsClass={forwardedFSClass}

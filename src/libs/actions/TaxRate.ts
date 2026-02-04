@@ -40,7 +40,7 @@ function covertTaxNameToID(name: string) {
  *  Function to validate tax name
  */
 const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM>, translate: LocalizedTranslate) => {
-    const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
+    const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
 
     const name = values[INPUT_IDS.NAME];
     if (name.length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
@@ -53,7 +53,7 @@ const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
 };
 
 const validateTaxCode = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>, translate: LocalizedTranslate) => {
-    const errors = getFieldRequiredErrors(values, [INPUT_IDS_TAX_CODE.TAX_CODE]);
+    const errors = getFieldRequiredErrors(values, [INPUT_IDS_TAX_CODE.TAX_CODE], translate);
 
     const taxCode = values[INPUT_IDS_TAX_CODE.TAX_CODE];
     if (taxCode.length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
@@ -69,7 +69,7 @@ const validateTaxCode = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
  *  Function to validate tax value
  */
 const validateTaxValue = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>, translate: LocalizedTranslate) => {
-    const errors = getFieldRequiredErrors(values, [INPUT_IDS.VALUE]);
+    const errors = getFieldRequiredErrors(values, [INPUT_IDS.VALUE], translate);
 
     const value = values[INPUT_IDS.VALUE];
     if (!isValidPercentage(value)) {

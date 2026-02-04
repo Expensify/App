@@ -36,7 +36,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM> =>
-        getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME]);
+        getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME], translate);
 
     return (
         <AccessOrNotFoundWrapper

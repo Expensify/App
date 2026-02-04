@@ -1211,8 +1211,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.ACTIVATED_CARD_PIN]: string | undefined;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
-    [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];
-    [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.Request;
+    [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
+    [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
