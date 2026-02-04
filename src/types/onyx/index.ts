@@ -109,6 +109,7 @@ import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import type RecentlyUsedTags from './RecentlyUsedTags';
 import type {RecentSearchItem} from './RecentSearch';
 import type RecentWaypoint from './RecentWaypoint';
+import type SavedCSVColumnLayoutList from './SavedCSVColumnLayout';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
 import type {ReportActions} from './ReportAction';
@@ -239,6 +240,7 @@ export type {
     QuickAction,
     ShareBankAccount,
     RecentWaypoint,
+    SavedCSVColumnLayoutList,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,

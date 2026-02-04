@@ -9,7 +9,7 @@ import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList} from '@src/types/onyx';
+import type {Card, CardList, SavedCSVColumnLayoutList} from '@src/types/onyx';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -353,6 +353,21 @@ function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, existingCar
             value: null,
         });
     }
+
+    // Optimistically save the column mappings for this card
+    const optimisticSavedColumnLayout: SavedCSVColumnLayoutList = {
+        [cardID]: {
+            name: cardDisplayName,
+            columnMapping: {
+                names: columnMappings,
+            },
+        },
+    };
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST,
+        value: optimisticSavedColumnLayout,
+    });
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
