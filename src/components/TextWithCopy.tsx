@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import Text from './Text';
