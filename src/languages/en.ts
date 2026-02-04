@@ -8226,7 +8226,7 @@ const translations = {
             forceCloseAccount: 'Force close account',
             safeCloseAccount: 'Close account safely',
             closeAccountInfo:
-                'We recommend closing the account safely to skip closing it in case there are: <ul><li>Pending approvals</li><li>Active reimbursements</li><li>No alternative login methods</li></ul> Otherwise, you can ignore the safety precautions above and force close the selected account.',
+                'We recommend closing the account safely to skip closing it in case there are: <ul><li>Pending approvals</li><li>Active reimbursements</li><li>No alternative login methods</li></ul>Otherwise, you can ignore the safety precautions above and force close the selected account.',
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',

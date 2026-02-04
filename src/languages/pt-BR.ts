@@ -8260,7 +8260,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             forceCloseAccount: 'Forçar encerramento da conta',
             safeCloseAccount: 'Fechar conta com segurança',
             closeAccountInfo:
-                'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul> Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
+                'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
             error: {
                 removeMember: 'Não foi possível remover este usuário. Tente novamente.',
                 addMember: 'Não foi possível adicionar este membro. Tente novamente.',

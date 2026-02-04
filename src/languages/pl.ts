@@ -8259,7 +8259,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             forceCloseAccount: 'Wymuś zamknięcie konta',
             safeCloseAccount: 'Zamknij konto bezpiecznie',
             closeAccountInfo:
-                'Zalecamy bezpieczne zamknięcie konta, aby pominąć jego zamykanie w przypadku, gdy występują: <ul><li>Oczekujące zatwierdzenia</li><li>Aktywne zwroty kosztów</li><li>Brak alternatywnych metod logowania</li></ul> W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranego konta.',
+                'Zalecamy bezpieczne zamknięcie konta, aby pominąć jego zamykanie w przypadku, gdy występują: <ul><li>Oczekujące zatwierdzenia</li><li>Aktywne zwroty kosztów</li><li>Brak alternatywnych metod logowania</li></ul>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranego konta.',
             error: {
                 removeMember: 'Nie można usunąć tego użytkownika. Spróbuj ponownie.',
                 addMember: 'Nie można dodać tego członka. Spróbuj ponownie.',

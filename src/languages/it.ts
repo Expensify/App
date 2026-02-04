@@ -8292,7 +8292,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             forceCloseAccount: 'Forza chiusura account',
             safeCloseAccount: 'Chiudi il conto in sicurezza',
             closeAccountInfo:
-                'Consigliamo di chiudere l’account in modo sicuro per evitare problemi in caso di: <ul><li>Approvazioni in sospeso</li><li>Rimborsi attivi</li><li>Nessun metodo di accesso alternativo</li></ul> In caso contrario, puoi ignorare le precauzioni di sicurezza sopra indicate e forzare la chiusura dell’account selezionato.',
+                'Consigliamo di chiudere l’account in modo sicuro per evitare problemi in caso di: <ul><li>Approvazioni in sospeso</li><li>Rimborsi attivi</li><li>Nessun metodo di accesso alternativo</li></ul>In caso contrario, puoi ignorare le precauzioni di sicurezza sopra indicate e forzare la chiusura dell’account selezionato.',
             error: {
                 removeMember: 'Impossibile rimuovere questo utente. Riprova.',
                 addMember: 'Impossibile aggiungere questo membro. Riprova.',
