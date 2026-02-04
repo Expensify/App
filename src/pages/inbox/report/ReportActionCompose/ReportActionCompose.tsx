@@ -334,28 +334,39 @@ function ReportActionCompose({
      */
     const submitForm = useCallback(
         (newComment: string) => {
-            const newCommentTrimmed = newComment.trim();
+            setTimeout(() => {
+                const newCommentTrimmed = newComment.trim();
 
-            if (isConciergeChat) {
-                kickoffWaitingIndicator();
-            }
+                if (isConciergeChat) {
+                    kickoffWaitingIndicator();
+                }
 
-            if (attachmentFileRef.current) {
-                addAttachmentWithComment(transactionThreadReport ?? report, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true, isInSidePanel);
-                attachmentFileRef.current = null;
-            } else {
-                Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
-                Timing.start(CONST.TIMING.SEND_MESSAGE);
-                startSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE, {
-                    name: 'send-message',
-                    op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
-                    attributes: {
-                        [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                        [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
-                    },
-                });
-                onSubmit(newCommentTrimmed);
-            }
+                if (attachmentFileRef.current) {
+                    addAttachmentWithComment(
+                        transactionThreadReport ?? report,
+                        reportID,
+                        ancestors,
+                        attachmentFileRef.current,
+                        newCommentTrimmed,
+                        personalDetail.timezone,
+                        true,
+                        isInSidePanel,
+                    );
+                    attachmentFileRef.current = null;
+                } else {
+                    Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
+                    Timing.start(CONST.TIMING.SEND_MESSAGE);
+                    startSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE, {
+                        name: 'send-message',
+                        op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
+                        attributes: {
+                            [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                            [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
+                        },
+                    });
+                    onSubmit(newCommentTrimmed);
+                }
+            }, 0);
         },
         [isConciergeChat, kickoffWaitingIndicator, transactionThreadReport, report, reportID, ancestors, personalDetail.timezone, onSubmit, isInSidePanel],
     );
