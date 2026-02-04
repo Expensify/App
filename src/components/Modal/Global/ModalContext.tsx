@@ -71,9 +71,13 @@ function ModalProvider({children}: {children: React.ReactNode}) {
             const lastModalId = prevState.modals.at(-1)?.id;
 
             if (!lastModalId) {
-                Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} No promise found for the confirm modal. This should never happen.`);
+                Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} Empty modals stack while attempting to close one. This should never happen.`);
             } else {
-                modalPromisesStack.current?.[lastModalId]?.resolve(data);
+                const lastModalPromise = modalPromisesStack.current?.[lastModalId];
+                if (!lastModalPromise) {
+                    Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} Missing modal promise while attempting to close modal with id ${lastModalId}. This should never happen.`);
+                }
+                lastModalPromise.resolve(data);
                 delete modalPromisesStack.current?.[lastModalId];
             }
 
