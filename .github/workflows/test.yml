@@ -48,7 +48,7 @@ jobs:
 
       - name: Upload memory artifact
         if: ${{ always() }}
-        uses: actions/upload-artifact@c7d193f32edb3c5b26950aacbe4aaf96e3c6a1e9 # v4.3.0
+        uses: actions/upload-artifact@v4
         with:
           name: jest-memory-${{ matrix.chunk }}
           path: jest-memory-${{ matrix.chunk }}.json
@@ -101,7 +101,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Download memory artifacts
-        uses: actions/download-artifact@3c8623c72862da8d75e2084bb0466a00d2008dcd # v4.1.4
+        uses: actions/download-artifact@v4
         continue-on-error: true
         with:
           pattern: jest-memory-*
