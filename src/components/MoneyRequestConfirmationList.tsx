@@ -281,7 +281,7 @@ function MoneyRequestConfirmationList({
         selector: mileageRateSelector,
         canBeMissing: true,
     });
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const [defaultMileageRateReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: mileageRateSelector,
@@ -350,7 +350,12 @@ function MoneyRequestConfirmationList({
         setCustomUnitRateID(transactionID, lastSelectedRate);
     }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense]);
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
+    const mileageRate = DistanceRequestUtils.getRate({
+        transaction,
+        policy: isTrackExpense ? policyForMovingExpenses : policy,
+        ...(isMovingTransactionFromTrackExpense && {policyForMovingExpenses}),
+        policyDraft,
+    });
     const rate = mileageRate.rate;
     const prevRate = usePrevious(rate);
     const unit = mileageRate.unit;
@@ -358,8 +363,6 @@ function MoneyRequestConfirmationList({
     const currency = mileageRate.currency ?? CONST.CURRENCY.USD;
     const prevCurrency = usePrevious(currency);
     const prevSubRates = usePrevious(subRates);
-
-    const {shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     // A flag for showing the categories field
     const shouldShowCategories = isTrackExpense

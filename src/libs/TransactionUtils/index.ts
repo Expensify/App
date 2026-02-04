@@ -2838,7 +2838,6 @@ export {
     createUnreportedExpenses,
     isDemoTransaction,
     shouldShowViolation,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
     hasTransactionBeenRejected,
     isExpenseSplit,
     getAttendeesListDisplayString,

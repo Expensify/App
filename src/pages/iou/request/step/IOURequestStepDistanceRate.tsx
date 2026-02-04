@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
@@ -77,7 +78,9 @@ function IOURequestStepDistanceRate({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const rates = DistanceRequestUtils.getMileageRates(isTrackExpense ? policyForMovingExpenses : policy, false, currentRateID);
     const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
 
     const navigateBack = () => {

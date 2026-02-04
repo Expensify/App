@@ -105,6 +105,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
 type MoneyRequestStepDistanceNavigationParams = {
     iouType: IOUType;
     policy: OnyxEntry<Policy>;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
     report: OnyxEntry<Report>;
     reportID: string;
     transactionID: string;
@@ -112,7 +113,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     reportAttributesDerived?: Record<string, ReportAttributes>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     waypoints?: WaypointCollection;
-    customUnitRateID: string;
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
@@ -473,13 +473,13 @@ function handleMoneyRequestStepDistanceNavigation({
     iouType,
     report,
     policy,
+    policyForMovingExpenses,
     transaction,
     reportID,
     transactionID,
     reportAttributesDerived,
     personalDetails,
     waypoints,
-    customUnitRateID,
     manualDistance,
     currentUserLogin,
     currentUserAccountID,
@@ -547,7 +547,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         participant,
                     },
                     policyParams: {
-                        policy,
+                        policy: policyForMovingExpenses,
                     },
                     transactionParams: {
                         amount: 0,
@@ -559,7 +559,12 @@ function handleMoneyRequestStepDistanceNavigation({
                         billable: false,
                         reimbursable: isManualDistance ? undefined : true,
                         validWaypoints,
-                        customUnitRateID,
+                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
+                            reportID: report.reportID,
+                            isTrackDistanceExpense: true,
+                            policy: policyForMovingExpenses,
+                            isPolicyExpenseChat: false,
+                        }),
                         attendees: transaction?.comment?.attendees,
                         gpsCoordinates,
                     },

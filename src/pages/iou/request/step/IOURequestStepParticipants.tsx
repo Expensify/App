@@ -193,8 +193,13 @@ function IOURequestStepParticipants({
             return;
         }
 
-        const rateID = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
         for (const transaction of transactions) {
+            const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: selfDMReportID,
+                isTrackDistanceExpense: isDistanceRequest(transaction),
+                policy: policyForMovingExpenses,
+                isPolicyExpenseChat: false,
+            });
             setCustomUnitRateID(transaction.transactionID, rateID);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(
@@ -219,7 +224,19 @@ function IOURequestStepParticipants({
                 }
             });
         });
-    }, [selfDMReportID, transactions, action, initialTransactionID, waitForKeyboardDismiss, iouType, selfDMReport, currentUserPersonalDetails.accountID, isActivePolicyRequest, backTo]);
+    }, [
+        selfDMReportID,
+        transactions,
+        action,
+        initialTransactionID,
+        waitForKeyboardDismiss,
+        iouType,
+        selfDMReport,
+        currentUserPersonalDetails.accountID,
+        isActivePolicyRequest,
+        backTo,
+        policyForMovingExpenses,
+    ]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {

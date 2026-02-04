@@ -1687,6 +1687,7 @@ function getActions(
     }
 
     const transaction = isTransaction ? data[key] : undefined;
+
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];

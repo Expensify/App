@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMoneyRequestParticipantsFromReport, setMoneyRequestDistance, updateMoneyRequestDistance} from '@libs/actions/IOU';
@@ -70,6 +71,7 @@ function IOURequestStepDistanceManual({
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const policy = usePolicy(report?.policyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const personalPolicy = usePersonalPolicy();
@@ -95,7 +97,6 @@ function IOURequestStepDistanceManual({
 
     const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
 
-    const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -178,7 +179,6 @@ function IOURequestStepDistanceManual({
                 transactionID,
                 reportAttributesDerived,
                 personalDetails,
-                customUnitRateID,
                 manualDistance: distanceAsFloat,
                 currentUserLogin: currentUserEmailParam,
                 currentUserAccountID: currentUserAccountIDParam,
@@ -225,8 +225,8 @@ function IOURequestStepDistanceManual({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
-            customUnitRateID,
             introSelected,
+            policyForMovingExpenses,
             activePolicyID,
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
