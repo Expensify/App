@@ -3130,6 +3130,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             // Create a tracked expense
             trackExpense({
@@ -3154,7 +3155,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                allBetas: [CONST.BETAS.ALL],
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
 
@@ -3245,8 +3246,8 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 policyRecentlyUsedCurrencies: [],
-                allBetas: [CONST.BETAS.ALL],
                 quickAction: undefined,
+                isSelfTourViewed: false,
             });
 
             await waitForBatchedUpdates();
