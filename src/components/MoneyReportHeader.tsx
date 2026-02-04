@@ -66,7 +66,7 @@ import {
     generateReportID,
     getAddExpenseDropdownOptions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
-    getIntegrationExportIcon,
+    getIntegrationIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
@@ -155,6 +155,7 @@ import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkel
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
+import {usePersonalDetails} from './OnyxListItemProvider';
 import type {PopoverMenuItem} from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
@@ -220,6 +221,7 @@ function MoneyReportHeader({
     const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Buildings',
         'Plus',
@@ -244,10 +246,11 @@ function MoneyReportHeader({
         'Info',
         'Export',
         'Document',
-        'XeroExport',
-        'QBOExport',
-        'NetSuiteExport',
-        'SageIntacctExport',
+        'XeroSquare',
+        'QBOSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
         'Feed',
         'Close',
         'Location',
@@ -417,6 +420,8 @@ function MoneyReportHeader({
 
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
+    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+
     const showExportProgressModal = useCallback(() => {
         return showConfirmModal({
             title: translate('export.exportInProgress'),
@@ -428,6 +433,11 @@ function MoneyReportHeader({
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
+            if (isOffline) {
+                setOfflineModalVisible(true);
+                return;
+            }
+
             if (!moneyRequestReport) {
                 return;
             }
@@ -447,10 +457,9 @@ function MoneyReportHeader({
                 policyID,
             });
         },
-        [moneyRequestReport, showExportProgressModal, clearSelectedTransactions],
+        [isOffline, moneyRequestReport, showExportProgressModal, clearSelectedTransactions],
     );
 
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const isOnSearch = route.name.toLowerCase().startsWith('search');
     const {
         options: originalSelectedTransactionsOptions,
@@ -688,6 +697,7 @@ function MoneyReportHeader({
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
+                    personalDetails,
                 });
             }
         },
@@ -702,6 +712,7 @@ function MoneyReportHeader({
             policyRecentlyUsedCurrencies,
             policy?.id,
             isSelfTourViewed,
+            personalDetails,
         ],
     );
 
@@ -911,9 +922,10 @@ function MoneyReportHeader({
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 text: translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegrationFallback!}),
                 icon: (() => {
-                    const iconName = getIntegrationExportIcon(connectedIntegration ?? connectedIntegrationFallback);
-                    return iconName ? expensifyIcons[iconName] : undefined;
+                    return getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons);
                 })(),
+                displayInDefaultIconColor: true,
+                additionalIconStyles: styles.integrationIcon,
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
                 sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
                 onSelected: () => {
@@ -930,9 +942,10 @@ function MoneyReportHeader({
             [CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED]: {
                 text: translate('workspace.common.markAsExported'),
                 icon: (() => {
-                    const iconName = getIntegrationExportIcon(connectedIntegration ?? connectedIntegrationFallback);
-                    return iconName ? expensifyIcons[iconName] : undefined;
+                    return getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons);
                 })(),
+                additionalIconStyles: styles.integrationIcon,
+                displayInDefaultIconColor: true,
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
                 sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
                 onSelected: () => {
@@ -960,7 +973,19 @@ function MoneyReportHeader({
         }
 
         return options;
-    }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates, expensifyIcons]);
+    }, [
+        translate,
+        expensifyIcons,
+        connectedIntegrationFallback,
+        styles.integrationIcon,
+        moneyRequestReport,
+        isOffline,
+        transactionIDs,
+        connectedIntegration,
+        isExported,
+        exportTemplates,
+        beginExportWithTemplate,
+    ]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
@@ -1928,6 +1953,7 @@ function MoneyReportHeader({
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                         wrapperStyle={[styles.pAbsolute, styles.r0]}
+                        sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
                     >
                         <Icon
                             src={expensifyIcons.Close}
