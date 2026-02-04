@@ -40,9 +40,12 @@ type ValueSelectorModalProps = {
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
+
+    /** Whether to add bottom safe area padding */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-type ValueSelectionListProps = Pick<ValueSelectorModalProps, 'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips'>;
+type ValueSelectionListProps = Pick<ValueSelectorModalProps, 'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding'>;
 
 type ValuePickerProps = ForwardedFSClassProps & {
     /** Item to display */
@@ -74,6 +77,9 @@ type ValuePickerProps = ForwardedFSClassProps & {
 
     /** Reference to the outer element */
     ref: ForwardedRef<View>;
+
+    /** Whether to add bottom safe area padding */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

@@ -174,6 +174,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
                         setTypeSelected(value as CardLimitType);
                     }}
                     shouldShowModal={false}
+                    addBottomSafeAreaPadding={false}
                 />
 
                 <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />
