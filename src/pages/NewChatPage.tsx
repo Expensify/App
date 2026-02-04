@@ -276,7 +276,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         undefined,
         reportAttributesDerived,
     );
-    sections.push(formatResults.section);
+    sections.push({...formatResults.section, title: undefined, shouldShow: true});
 
     if (!firstKeyForList) {
         firstKeyForList = getFirstKeyForList(formatResults.section.data);
@@ -405,7 +405,6 @@ function NewChatPage({ref}: NewChatPageProps) {
             return (
                 <PressableWithFeedback
                     onPress={() => toggleOption(item)}
-                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.ADD_TO_GROUP}
                     disabled={item.isDisabled}
                     role={CONST.ROLE.CHECKBOX}
                     accessibilityLabel={item.text ?? ''}

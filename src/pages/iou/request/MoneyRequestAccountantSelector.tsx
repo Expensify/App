@@ -164,7 +164,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             undefined,
             reportAttributesDerived,
         );
-        newSections.push(formatResults.section);
+        newSections.push({...formatResults.section, title: undefined, shouldShow: true});
 
         newSections.push({
             title: translate('common.recents'),
