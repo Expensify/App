@@ -5472,6 +5472,8 @@ const CONST = {
      * should use the `role` prop instead.
      */
     ROLE: {
+        /** Use for items within a list. */
+        OPTION: 'option',
         /** Use for elements with important, time-sensitive information. */
         ALERT: 'alert',
         /** Use for elements that act as buttons. */
@@ -8210,6 +8212,9 @@ const CONST = {
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
+        },
+        BASE_LIST_ITEM: {
+            OPTION: 'BaseListItem-Option',
         },
     },
 

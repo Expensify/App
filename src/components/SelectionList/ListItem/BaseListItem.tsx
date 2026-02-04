@@ -1,6 +1,5 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -96,6 +95,9 @@ function BaseListItem<TItem extends ListItem>({
             <PressableWithFeedback
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
+                sentryLabel={CONST.SENTRY_LABEL.BASE_LIST_ITEM.OPTION}
+                accessibilityState={{selected: item.isSelected}}
+                aria-selected={item.isSelected}
                 ref={pressableRef}
                 onLongPress={() => {
                     onLongPressRow?.(item);
@@ -113,7 +115,7 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
-                role={getButtonRole(true)}
+                role={CONST.ROLE.OPTION}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
@@ -140,7 +142,6 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused &&
