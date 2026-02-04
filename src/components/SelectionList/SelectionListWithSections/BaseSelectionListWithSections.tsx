@@ -65,7 +65,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldScrollToFocusedIndex = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
-    onTabOut,
+    shouldPreventItemFocus = false,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
@@ -198,12 +198,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         isActive: !disableKeyboardShortcuts && isScreenFocused && focusedIndex >= 0 && !disableEnterShortcut,
     });
 
-    // Cycle back to text input when Tab is pressed at the last item
-    const isAtLastItem = focusedIndex >= flattenedData.length - 1;
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.TAB, () => onTabOut?.(), {
-        isActive: !disableKeyboardShortcuts && isScreenFocused && isAtLastItem && !!onTabOut,
-    });
-
     const textInputKeyPress = (event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
         if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
@@ -279,12 +273,22 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 const isItemFocused = index === focusedIndex;
                 const isDisabled = !!item.isDisabled;
 
+                // When shouldPreventItemFocus is true, remove items from Tab order
+                // Navigation is handled by arrow keys only
+                // Cast to TItem is safe here since we're in the ROW case (not HEADER)
+                const itemToRender = shouldPreventItemFocus
+                    ? ({
+                          ...item,
+                          tabIndex: -1,
+                      } as TItem)
+                    : (item as TItem);
+
                 return (
                     <ListItemRenderer
                         ListItem={ListItem}
                         selectRow={selectRow}
                         showTooltip={shouldShowTooltips}
-                        item={item as TItem}
+                        item={itemToRender}
                         index={index}
                         normalizedIndex={index}
                         isFocused={isItemFocused}
@@ -296,7 +300,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
-                        shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
+                        shouldSyncFocus={!shouldPreventItemFocus && !isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                         shouldHighlightSelectedItem
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}

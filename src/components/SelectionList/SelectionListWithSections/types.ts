@@ -37,8 +37,10 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
 
-    /** Callback to fire when Tab is pressed at the end of the list (for cycling back to text input) */
-    onTabOut?: () => void;
+    /** Whether to prevent list items from receiving browser focus during keyboard navigation.
+     * When true, items are only visually highlighted but focus stays on the text input.
+     * Useful when you want Tab to skip list items entirely. */
+    shouldPreventItemFocus?: boolean;
 };
 
 type SelectionListWithSectionsHandle = {

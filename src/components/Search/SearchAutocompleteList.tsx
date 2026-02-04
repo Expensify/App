@@ -1,8 +1,7 @@
-import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps, ValidListItem} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
@@ -98,9 +97,6 @@ type SearchAutocompleteListProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
-
-    /** Ref for external textInput (for Tab key cycling) */
-    textInputRef?: RefObject<AnimatedTextInputRef | null>;
 };
 
 const defaultListOptions = {
@@ -156,7 +152,6 @@ function SearchAutocompleteList({
     allFeeds,
     allCards = CONST.EMPTY_OBJECT,
     ref,
-    textInputRef,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -854,7 +849,7 @@ function SearchAutocompleteList({
                 shouldScrollToFocusedIndex={!isInitialRender}
                 disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
                 addBottomSafeAreaPadding
-                onTabOut={() => textInputRef?.current?.focus()}
+                shouldPreventItemFocus
             />
         )
     );
