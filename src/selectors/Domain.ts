@@ -99,16 +99,17 @@ function isSecurityGroupEntry(entry: [string, unknown]): entry is [SecurityGroup
     const [key, value] = entry;
     return key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX) && typeof value === 'object' && value !== null && 'shared' in value;
 }
+
 /**
- * Creates a selector function to get all security groups for a specific account ID.
- * The returned function searches through a domain and returns groups where
+ * Creates a selector for a single security group for a specific account ID.
+ * The returned function searches through a domain and returns a group where
  * the account ID is present in the 'shared' property.
  *
  * @param accountID - The account ID to filter by
- * @returns A function that takes a domain and returns the filtered keys and security group data
+ * @returns A function that takes a domain and returns the filtered key and security group data
  */
 function selectSecurityGroupForAccount(accountID: number) {
-    return (domain: Domain | undefined): UserSecurityGroupData => {
+    return (domain: OnyxEntry<Domain>): UserSecurityGroupData => {
         if (!domain) {
             return undefined;
         }
@@ -134,7 +135,7 @@ function selectSecurityGroupForAccount(accountID: number) {
     };
 }
 
-const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.members ?? {};
+const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.member ?? {};
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 

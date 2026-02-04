@@ -202,7 +202,7 @@ describe('actions/Domain', () => {
             } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         );
 
-        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID, 'add');
+        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -241,25 +241,33 @@ describe('actions/Domain', () => {
                 },
             };
 
-            closeUserAccount(domainAccountID, domainName, accountID, targetEmail, securityGroupsData);
+            closeUserAccount(domainAccountID, domainName, targetEmail, securityGroupsData);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
                 {domain: domainName, targetEmail, overrideProcessingReports: false},
                 {
-                    optimisticData: [
+                    optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {members: {[targetEmail]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                            value: {member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}},
                         }),
-                    ],
-                    successData: [
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {memberErrors: {[targetEmail]: null}},
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {members: {[targetEmail]: null}},
+                            value: {member: {[targetEmail]: null}},
                         }),
-                    ],
-                    failureData: [
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {memberErrors: {[targetEmail]: null}},
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
                             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -272,9 +280,9 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {members: {[targetEmail]: null}},
+                            value: {member: {[targetEmail]: null}},
                         }),
-                    ],
+                    ]),
                 },
             );
 
@@ -285,10 +293,9 @@ describe('actions/Domain', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainName = 'test.com';
-            const accountID = 456;
             const targetEmail = 'user@test.com';
 
-            closeUserAccount(domainAccountID, domainName, accountID, targetEmail, undefined, true);
+            closeUserAccount(domainAccountID, domainName, targetEmail, undefined, true);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_DOMAIN_MEMBER, {domain: domainName, targetEmail, overrideProcessingReports: true}, expect.any(Object));
 

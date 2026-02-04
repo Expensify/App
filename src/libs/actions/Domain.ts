@@ -781,7 +781,7 @@ function resetDomain(domainAccountID: number, domainName: string, domain: Domain
 }
 
 /**
- * Clears errors after trying to reset the domain
+ * Clears domain related errors and pending actions.
  */
 function clearDomainErrors(domainAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
@@ -792,6 +792,12 @@ function clearDomainErrors(domainAccountID: number) {
     });
 }
 
+/**
+ * Adds a member to a domain
+ * @param domainAccountID Account ID of a domain
+ * @param email Email of a user to be added
+ * @param defaultSecurityGroupID Security group ip to be used for optimistic updates
+ */
 function addMemberToDomain(domainAccountID: number, email: string, defaultSecurityGroupID: string) {
     const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
     const optimisticAccountID = generateAccountID(email);
@@ -950,26 +956,30 @@ function clearDomainMemberError(domainAccountID: number, accountID: number, emai
     });
 }
 
-/** Sends a request to remove a user from a domain and close their account */
-function closeUserAccount(domainAccountID: number, domain: string, accountID: number, targetEmail: string, securityGroupsData: UserSecurityGroupData, overrideProcessingReports = false) {
-    const failureValue: PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>> = {};
-
-    if (securityGroupsData) {
-        const groupID = securityGroupsData.key;
-
-        failureValue[groupID] = {
-            shared: {
-                [accountID]: 'read',
-            },
-        };
-    }
-
+/**
+ * Sends a request to remove a user from a domain and close their account
+ * @param domainAccountID Account ID of a domain
+ * @param domain Domain name
+ * @param targetEmail Email of a user to be removed
+ * @param securityGroupsData Data of a security group user is in
+ * @param overrideProcessingReports "Force" flag. If true user will be removed regardless of if they have outstanding reports
+ */
+function closeUserAccount(domainAccountID: number, domain: string, targetEmail: string, securityGroupsData: UserSecurityGroupData, overrideProcessingReports = false) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                members: {[targetEmail]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [targetEmail]: null,
+                },
             },
         },
     ];
@@ -979,7 +989,16 @@ function closeUserAccount(domainAccountID: number, domain: string, accountID: nu
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                members: {[targetEmail]: null},
+                member: {[targetEmail]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [targetEmail]: null,
+                },
             },
         },
     ];
@@ -996,15 +1015,19 @@ function closeUserAccount(domainAccountID: number, domain: string, accountID: nu
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: failureValue,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                member: {[targetEmail]: null},
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-            value: {
-                members: {[targetEmail]: null},
-            },
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: (securityGroupsData?.key
+                ? {
+                      [securityGroupsData.key]: securityGroupsData.securityGroup,
+                  }
+                : {}) as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         },
     ];
 
