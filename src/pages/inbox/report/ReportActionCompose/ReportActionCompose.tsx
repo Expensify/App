@@ -334,6 +334,8 @@ function ReportActionCompose({
      */
     const submitForm = useCallback(
         (newComment: string) => {
+            // We need to use `setTimeout` toqueue the submission of the comment into a macro-task to ensure that
+            // the composer is cleared and it's  height is updated before the JS thread is blocked by this logic.
             setTimeout(() => {
                 const newCommentTrimmed = newComment.trim();
 

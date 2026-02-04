@@ -833,6 +833,8 @@ function ComposerWithSuggestions({
             if (defaultComposerHeightRef.current === null && inputHeight > 0 && !valueRef.current.includes('\n')) {
                 defaultComposerHeightRef.current = inputHeight;
                 setComposerHeight(inputHeight);
+            // Once we cleared the input and the composer finished rendering, we need to reset the manual height value.
+            // After that, the composer will adjust it's height based on it's parent flex layout.
             }
 
             const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
