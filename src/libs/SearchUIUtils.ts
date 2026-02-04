@@ -2472,6 +2472,7 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
  */
 function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionMonthGroupListItemType[], number] {
     const monthSections: Record<string, TransactionMonthGroupListItemType> = {};
+    const dateFilters = queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const monthGroup = data[key];
@@ -2480,10 +2481,7 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            const {start: monthStart, end: monthEnd} = adjustTimeRangeToDateFilters(
-                DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month),
-                queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
-            );
+            const {start: monthStart, end: monthEnd} = adjustTimeRangeToDateFilters(DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month), dateFilters);
             if (queryJSON && monthGroup.year && monthGroup.month) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
@@ -2523,6 +2521,7 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
  */
 function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionWeekGroupListItemType[], number] {
     const weekSections: Record<string, TransactionWeekGroupListItemType> = {};
+    const dateFilters = queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const weekGroup = data[key];
@@ -2531,10 +2530,7 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(
-                DateUtils.getWeekDateRange(weekGroup.week),
-                queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
-            );
+            const {start: weekStart, end: weekEnd} = adjustTimeRangeToDateFilters(DateUtils.getWeekDateRange(weekGroup.week), dateFilters);
             if (queryJSON && weekGroup.week) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
@@ -2570,6 +2566,7 @@ function getWeekSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
  */
 function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionYearGroupListItemType[], number] {
     const yearSections: Record<string, TransactionYearGroupListItemType> = {};
+    const dateFilters = queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const yearGroup = data[key];
@@ -2578,10 +2575,7 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            const {start: yearStart, end: yearEnd} = adjustTimeRangeToDateFilters(
-                DateUtils.getYearDateRange(yearGroup.year),
-                queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
-            );
+            const {start: yearStart, end: yearEnd} = adjustTimeRangeToDateFilters(DateUtils.getYearDateRange(yearGroup.year), dateFilters);
             if (queryJSON && yearGroup.year !== undefined) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
@@ -2614,6 +2608,7 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
 
 function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionQuarterGroupListItemType[], number] {
     const quarterSections: Record<string, TransactionQuarterGroupListItemType> = {};
+    const dateFilters = queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     for (const key in data) {
         if (isGroupEntry(key)) {
             const quarterGroup = data[key];
@@ -2622,10 +2617,7 @@ function getQuarterSections(data: OnyxTypes.SearchResults['data'], queryJSON: Se
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            const {start: quarterStart, end: quarterEnd} = adjustTimeRangeToDateFilters(
-                DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter),
-                queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
-            );
+            const {start: quarterStart, end: quarterEnd} = adjustTimeRangeToDateFilters(DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter), dateFilters);
             if (queryJSON && quarterGroup.year !== undefined && quarterGroup.quarter !== undefined) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
