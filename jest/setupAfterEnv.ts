@@ -4,9 +4,13 @@ import Pusher from '@libs/Pusher';
 
 jest.useRealTimers();
 
-// Clean up after each test to prevent memory leaks
-afterEach(async () => {
-    // Clear Onyx storage to prevent data accumulation across tests
+// Clean up after all tests finish to prevent memory leaks
+// Note: We use afterAll instead of afterEach because:
+// 1. Tests use beforeEach to clear Onyx at the start, not afterEach
+// 2. Clearing Onyx after each test can interfere with async operations
+// 3. Pusher connections can persist across tests in the same suite
+afterAll(async () => {
+    // Clear Onyx storage to prevent data accumulation across test suites
     await Onyx.clear();
 
     // Disconnect Pusher to clean up WebSocket connections and event listeners
