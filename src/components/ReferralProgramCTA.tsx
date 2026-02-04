@@ -51,6 +51,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             }}
             style={[styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}
             isNested
+            accessible={false}
             accessibilityLabel={translate(`referralProgram.${referralContentType}.header`)}
             role={getButtonRole(true)}
         >
