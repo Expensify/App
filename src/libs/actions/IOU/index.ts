@@ -828,6 +828,7 @@ type GetSearchOnyxUpdateParams = {
 type DeleteTrackExpenseParams = {
     chatReportID: string | undefined;
     chatReport: OnyxEntry<OnyxTypes.Report> | undefined;
+    transactionThread: OnyxEntry<OnyxTypes.Report>;
     transactionID: string | undefined;
     reportAction: OnyxTypes.ReportAction;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -2950,7 +2951,8 @@ function buildOnyxDataForTrackExpense({
 }
 
 function getDeleteTrackExpenseInformation(
-    chatReportID: string,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
+    transactionThread: OnyxEntry<OnyxTypes.Report>,
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
     isChatReportArchived: boolean | undefined,
@@ -2961,14 +2963,9 @@ function getDeleteTrackExpenseInformation(
     shouldRemoveIOUTransaction = true,
 ) {
     // STEP 1: Get all collections we're updating
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
-    let transactionThread = null;
-    if (transactionThreadID) {
-        transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
-    }
 
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread and we're not moving the transaction
@@ -3002,8 +2999,8 @@ function getDeleteTrackExpenseInformation(
     if (chatReport) {
         canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
     }
-    const lastVisibleAction = getLastVisibleAction(chatReportID, canUserPerformWriteAction, updatedReportAction);
-    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(chatReportID, canUserPerformWriteAction, updatedReportAction);
+    const lastVisibleAction = getLastVisibleAction(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction);
+    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction);
 
     // STEP 4: Build Onyx data
     const optimisticData: Array<
@@ -3130,12 +3127,12 @@ function getDeleteTrackExpenseInformation(
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-            value: transactionThread,
+            value: transactionThread ?? null,
         });
     }
 
     if (actionableWhisperReportActionID) {
-        const actionableWhisperReportAction = getReportAction(chatReportID, actionableWhisperReportActionID);
+        const actionableWhisperReportAction = getReportAction(chatReport?.reportID, actionableWhisperReportActionID);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
@@ -3163,7 +3160,7 @@ function getDeleteTrackExpenseInformation(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: chatReport,
+            value: chatReport ?? null,
         },
     );
 
@@ -5786,7 +5783,8 @@ const getConvertTrackedExpenseInformation = (
         successData: deleteSuccessData,
         failureData: deleteFailureData,
     } = getDeleteTrackExpenseInformation(
-        linkedTrackedExpenseReportID,
+        allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTrackedExpenseReportID}`],
+        allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedTrackedExpenseReportAction?.childReportID}`],
         transactionID,
         linkedTrackedExpenseReportAction,
         isLinkedTrackedExpenseReportArchived,
@@ -8817,6 +8815,7 @@ function deleteTrackExpense({
     chatReport,
     transactionID,
     reportAction,
+    transactionThread,
     iouReport,
     chatIOUReport,
     transactions,
@@ -8862,7 +8861,8 @@ function deleteTrackExpense({
     const whisperAction = getTrackExpenseActionableWhisper(transactionID, chatReportID);
     const actionableWhisperReportActionID = whisperAction?.reportActionID;
     const {parameters, optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
-        chatReportID,
+        chatReport,
+        transactionThread,
         transactionID,
         reportAction,
         isChatReportArchived,
