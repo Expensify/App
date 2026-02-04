@@ -462,8 +462,6 @@ function ReportActionCompose({
         setIsComposerFullSize(reportID, false);
 
         scheduleOnUI(() => {
-            'worklet';
-
             const {clear: clearComposer} = composerRefShared.get();
 
             if (!clearComposer) {
