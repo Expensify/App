@@ -148,6 +148,7 @@ import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PrivateIsArchivedMap} from '@src/selectors/ReportNameValuePairs';
 import type {
     Beta,
     DismissedProductTraining,
@@ -687,7 +688,7 @@ function getLastMessageTextForReport({
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
         lastMessageTextFromReport = translate('parentReportAction.hiddenMessage');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        lastMessageTextFromReport = getMarkedReimbursedMessage(lastReportAction);
+        lastMessageTextFromReport = getMarkedReimbursedMessage(translate, lastReportAction);
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translate('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
@@ -1272,6 +1273,7 @@ function processReport(
 function createOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number,
+    privateIsArchivedMap: PrivateIsArchivedMap,
     reports?: OnyxCollection<Report>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -1295,19 +1297,25 @@ function createOptionList(
         }
     }
 
-    const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
-        item: personalDetail,
-        ...createOption(
-            [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
-            personalDetails,
-            reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
-            currentUserAccountID,
-            {
-                showPersonalDetails: true,
-            },
-            reportAttributesDerived,
-        ),
-    }));
+    const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => {
+        const report = reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+        const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+
+        return {
+            item: personalDetail,
+            ...createOption(
+                [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                personalDetails,
+                report,
+                currentUserAccountID,
+                {
+                    showPersonalDetails: true,
+                },
+                reportAttributesDerived,
+                privateIsArchived,
+            ),
+        };
+    });
 
     span.setAttributes({
         personalDetails: allPersonalDetailsOptions.length,
@@ -1725,6 +1733,7 @@ function canCreateOptimisticPersonalDetailOption({
  */
 function getUserToInviteOption({
     searchValue,
+    personalDetails,
     searchInputValue,
     loginsToExclude = {},
     selectedOptions = [],
@@ -1759,7 +1768,7 @@ function getUserToInviteOption({
     // Generates an optimistic account ID for new users not yet saved in Onyx
     const optimisticAccountID = generateAccountID(searchValue);
     const personalDetailsExtended = {
-        ...allPersonalDetails,
+        ...personalDetails,
         [optimisticAccountID]: {
             accountID: optimisticAccountID,
             login: searchValue,
@@ -2403,6 +2412,7 @@ function getValidOptions(
             loginList,
             currentUserEmail,
             currentUserAccountID,
+            personalDetails,
             countryCode,
             {
                 excludeLogins: loginsToExclude,
@@ -2440,7 +2450,7 @@ type SearchOptionsConfig = {
     loginList: OnyxEntry<Login>;
     currentUserAccountID: number;
     currentUserEmail: string;
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 /**
@@ -2464,6 +2474,7 @@ function getSearchOptions({
     loginList,
     currentUserAccountID,
     currentUserEmail,
+    personalDetails,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2497,6 +2508,7 @@ function getSearchOptions({
             includeUserToInvite,
             shouldShowGBR,
             shouldUnreadBeBold,
+            personalDetails,
         },
         countryCode,
     );
@@ -2872,6 +2884,7 @@ function filterUserToInvite(
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
     config?: FilterUserToInviteConfig,
 ): SearchOptionData | null {
@@ -2897,6 +2910,7 @@ function filterUserToInvite(
     };
     return getUserToInviteOption({
         searchValue,
+        personalDetails,
         loginsToExclude,
         countryCode,
         loginList,
@@ -2943,6 +2957,7 @@ function filterOptions(
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
     config?: FilterUserToInviteConfig,
 ): Options {
     const trimmedSearchInput = searchInputValue.trim();
@@ -2966,6 +2981,7 @@ function filterOptions(
         loginList,
         currentUserEmail,
         currentUserAccountID,
+        personalDetailsCollection,
         countryCode,
         {
             ...config,
@@ -3031,11 +3047,12 @@ function filterAndOrderOptions(
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     config?: FilterAndOrderConfig,
 ): Options {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, config);
+        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config);
     }
 
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
