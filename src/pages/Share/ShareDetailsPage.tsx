@@ -189,12 +189,12 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             testID="ShareDetailsPage"
         >
             <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
-                {/* eslint-disable-next-line no-restricted-syntax -- Temporarily disabled ESLint for the missing sentryLabel, as it is out of scope for this PR and should be addressed in the PR that introduced the lint rule. */}
                 <PressableWithoutFeedback
                     onPress={() => {
                         KeyboardUtils.dismiss();
                     }}
                     accessible={false}
+                    sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
                 >
                     <HeaderWithBackButton
                         title={translate('share.shareToExpensify')}
@@ -235,12 +235,12 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                             />
                         </ScrollView>
                     </View>
-                    {/* eslint-disable-next-line no-restricted-syntax -- Temporarily disabled ESLint for the missing sentryLabel, as it is out of scope for this PR and should be addressed in the PR that introduced the lint rule. */}
                     <PressableWithoutFeedback
                         onPress={() => {
                             KeyboardUtils.dismiss();
                         }}
                         accessible={false}
+                        sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
                     >
                         {shouldShowAttachment && (
                             <>
