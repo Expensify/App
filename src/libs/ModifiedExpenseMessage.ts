@@ -28,7 +28,7 @@ import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, 
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- ModifiedExpenseMessage utility uses Onyx.connectWithoutView to maintain global policyTags state for getForReportAction, which is called by utility files (ReportUtils, OptionsListUtils, ReportNameUtils) that cannot use hooks. This will be migrated when those utility files are refactored.
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- ModifiedExpenseMessage.getForReportAction is called by utility files (ReportUtils.getModifiedExpenseMessage, OptionsListUtils, ReportNameUtils) that cannot use React hooks. The global policyTags state is required for these non-React contexts. Migration to useOnyx will happen when these utility files are converted to custom hooks.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -45,7 +45,7 @@ let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 let currentUserLogin = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- ModifiedExpenseMessage utility uses Onyx.connectWithoutView to access session data globally for getForReportAction, which is called by utility files (ReportUtils, OptionsListUtils, ReportNameUtils) that cannot use hooks. This will be migrated when those utility files are refactored.
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- ModifiedExpenseMessage.getForReportAction requires currentUserLogin for isPolicyAdmin checks. This function is called by non-React utility files (ReportUtils.getModifiedExpenseMessage, OptionsListUtils, ReportNameUtils) that cannot use React hooks. Migration to useOnyx will happen when these utility files are converted to custom hooks.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
