@@ -928,6 +928,12 @@ type OriginalMessageMarkedReimbursed = {
     message?: string;
 };
 
+/** Model of `reimbursed` report action */
+type OriginalMessageReimbursed = {
+    /** Whether this action was created from NewDot */
+    isNewDot?: boolean;
+};
+
 /** Model of `trip room preview` report action */
 type OriginalMessageTripRoomPreview = {
     /** ID of the report to be previewed */
