@@ -403,6 +403,7 @@ type UpdateOptimisticParentReportAction = {
     childCommenterCount: number;
     childLastVisibleActionCreated: string;
     childOldestFourAccountIDs: string | undefined;
+    childReportNotificationPreference?: NotificationPreference;
 };
 
 type OptimisticExpenseReport = Pick<
@@ -994,6 +995,20 @@ type GetReportStatusParams = {
     translate: LocaleContextProps['translate'];
 };
 
+type BuildOptimisticExpenseReportParams = {
+    chatReportID: string | undefined;
+    policyID: string | undefined;
+    payeeAccountID: number;
+    total: number;
+    currency: string;
+    betas: OnyxEntry<Beta[]>;
+    nonReimbursableTotal?: number;
+    parentReportActionID?: string;
+    optimisticIOUReportID?: string;
+    reportTransactions?: Record<string, Transaction>;
+    createdTimestamp?: string;
+};
+
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
 
 let currentUserEmail: string | undefined;
@@ -1006,6 +1021,12 @@ getEnvironmentURL().then((url: string) => (environmentURL = url));
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
     environment = env;
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
 });
 
 // This cache is used to save parse result of report action html message into text
@@ -1107,12 +1128,6 @@ Onyx.connectWithoutView({
             return acc;
         }, {});
     },
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
 });
 
 let betaConfiguration: OnyxEntry<BetaConfiguration> = {};
@@ -2812,6 +2827,13 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
+function isReportIneligibleForMoveExpenses(moneyRequestReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    if (isDraftReport(moneyRequestReport?.reportID)) {
+        return false;
+    }
+    return isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID);
+}
+
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport) || isReportArchived) {
         return false;
@@ -2979,7 +3001,7 @@ function getAddExpenseDropdownOptions(
                 if (!iouReportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && shouldRestrictUserBillableActions(policy.id)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -6617,6 +6639,7 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
         childCommenterCount,
         childLastVisibleActionCreated: lastVisibleActionCreated,
         childOldestFourAccountIDs,
+        ...(type === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && {childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}),
     };
 }
 
@@ -6844,8 +6867,8 @@ function buildOptimisticInvoiceReport(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isEmptyOptimisticReport = false) {
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, betas: OnyxEntry<Beta[]>, isEmptyOptimisticReport = false) {
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
     if (isASAPSubmitBetaEnabled) {
         return {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -6888,18 +6911,19 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isEmptyOptimi
  * @param parentReportActionID – The parent ReportActionID of the PolicyExpenseChat
  * @param optimisticIOUReportID – Optimistic IOU report id
  */
-function buildOptimisticExpenseReport(
-    chatReportID: string | undefined,
-    policyID: string | undefined,
-    payeeAccountID: number,
-    total: number,
-    currency: string,
+function buildOptimisticExpenseReport({
+    chatReportID,
+    policyID,
+    payeeAccountID,
+    total,
+    currency,
+    betas,
     nonReimbursableTotal = 0,
-    parentReportActionID?: string,
-    optimisticIOUReportID?: string,
-    reportTransactions?: Record<string, Transaction>,
-    createdTimestamp?: string,
-): OptimisticExpenseReport {
+    parentReportActionID,
+    optimisticIOUReportID,
+    reportTransactions,
+    createdTimestamp,
+}: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
@@ -6912,7 +6936,7 @@ function buildOptimisticExpenseReport(
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const policy = policyReal ?? policyDraft;
 
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas);
 
     const created = createdTimestamp ?? DateUtils.getDBTime();
 
@@ -6971,8 +6995,16 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, parentReportActionID: string, policy: OnyxEntry<Policy>, timeOfCreation: string) {
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, true);
+function buildOptimisticEmptyReport(
+    reportID: string,
+    accountID: number,
+    parentReport: OnyxEntry<Report>,
+    parentReportActionID: string,
+    policy: OnyxEntry<Policy>,
+    timeOfCreation: string,
+    betas: OnyxEntry<Beta[]>,
+) {
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas, true);
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
         reportName: '',
@@ -12458,10 +12490,7 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
         (transaction) => !shouldExcludeDeletedTransactions || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
-        return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) <= 0);
-    }
-    return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
+    return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) <= 0);
 }
 
 /**
@@ -13081,6 +13110,7 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
+    isReportIneligibleForMoveExpenses,
     canDeleteTransaction,
     canBeAutoReimbursed,
     canCreateRequest,
