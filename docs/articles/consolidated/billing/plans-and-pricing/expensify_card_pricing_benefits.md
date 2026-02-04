@@ -1,3 +1,4 @@
+
 ---
 title: Expensify Card: How Pricing Discounts and Cash Back Work
 description: Learn how using the Expensify Card can unlock discounted pricing and earn cash back across any plan.
