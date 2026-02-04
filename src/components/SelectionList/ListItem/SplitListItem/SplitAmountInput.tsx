@@ -4,6 +4,7 @@ import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import SplitAmountDisplay from './SplitAmountDisplay';
 
 type SplitAmountInputProps = {
@@ -44,7 +45,7 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
                 onAmountChange={onSplitExpenseValueChange}
                 prefixContainerStyle={[styles.pv0, styles.h100]}
                 prefixStyle={styles.lineHeightUndefined}
-                inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                inputStyle={[styles.lineHeightUndefined]}
                 containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                 touchableInputWrapperStyle={[styles.ml3]}
                 maxLength={formattedOriginalAmount.length + 1}
@@ -54,6 +55,7 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
                 shouldWrapInputInContainer={false}
                 onFocus={focusHandler}
                 onBlur={onInputBlur}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMBERS_AND_PUNCTUATION}
             />
         );
     }

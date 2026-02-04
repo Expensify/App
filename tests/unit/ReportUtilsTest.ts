@@ -81,6 +81,7 @@ import {
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName as getReportNameDeprecated,
+    getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportStatusTranslation,
@@ -97,6 +98,7 @@ import {
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
+    isReportIneligibleForMoveExpenses,
     isReportOutstanding,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
@@ -129,6 +131,7 @@ import ROUTES from '@src/ROUTES';
 import type {
     BankAccountList,
     Beta,
+    Onboarding,
     OnyxInputOrEntry,
     PersonalDetailsList,
     Policy,
@@ -145,7 +148,7 @@ import type {
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
-import type {Participant, Participants} from '@src/types/onyx/Report';
+import type {NotificationPreference, Participant, Participants} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -177,7 +180,7 @@ import {
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {formatPhoneNumber, localeCompare} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -444,11 +447,26 @@ describe('ReportUtils', () => {
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
             const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
-            expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
+            expect(getIOUReportActionDisplayMessage(translateLocal, reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
     });
 
     describe('prepareOnboardingOnyxData', () => {
+        const REPORT_ID = '5';
+        beforeEach(async () => {
+            Onyx.merge(ONYXKEYS.SESSION, {email: 'test+test@example.com'});
+
+            const chatReport: Report = {
+                reportID: REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+        });
+
         it('provides test drive url to task title', () => {
             const title = jest.fn();
 
@@ -507,6 +525,71 @@ describe('ReportUtils', () => {
                     testDriveURL: expect.any(String),
                 }),
             );
+        });
+
+        it('should not add anything to guidedSetupData when posting into the admin room with suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            // Enable the suggestedFollowups beta so tasks are skipped in favor of backend-generated followups
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false, mediaAttributes: {}}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+            expect(result?.guidedSetupData).toHaveLength(0);
+            expect(result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`)).toHaveLength(0);
+        });
+
+        it('should add guidedSetupData when posting into admin room WITHOUT suggestedFollowups beta', async () => {
+            const adminsChatReportID = '1';
+            // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
+            // Do NOT set the suggestedFollowups beta - user should get the old task list behavior
+            await Onyx.merge(ONYXKEYS.BETAS, []);
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false, mediaAttributes: {}}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+            // Without the beta, tasks SHOULD be generated (old behavior)
+            expect(result?.guidedSetupData).toHaveLength(3);
+        });
+
+        it('should add guidedSetupData when email has a +', async () => {
+            const adminsChatReportID = '1';
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false, mediaAttributes: {}}],
+                },
+                adminsChatReportID,
+                selectedInterestedFeatures: ['areCompanyCardsEnabled'],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+            expect(result?.guidedSetupData).toHaveLength(3);
+            expect(result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`)).toHaveLength(0);
         });
 
         it('should not create tasks if the task feature is not in the selected interested features', () => {
@@ -2203,7 +2286,7 @@ describe('ReportUtils', () => {
                     const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
                     expect(reportName).toBe(
-                        `The Regions Bank cards connection is broken. To restore card imports, <a href='https://dev.new.expensify.com:8082/workspaces/1/company-cards'>log into your bank</a>`,
+                        `The Regions Bank cards connection is broken. To restore card imports, <a href='https://dev.new.expensify.com:8082/workspaces/1/company-cards'>log into your bank</a>.`,
                     );
                 });
             });
@@ -2791,7 +2874,11 @@ describe('ReportUtils', () => {
             });
         });
 
-        afterAll(() => Onyx.clear());
+        afterAll(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+        });
 
         describe('return empty iou options if', () => {
             it('participants array contains excluded expensify iou emails', () => {
@@ -3700,7 +3787,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false if the report is neither the system or concierge chat', () => {
-            expect(isChatUsedForOnboarding(LHNTestUtils.getFakeReport())).toBeFalsy();
+            expect(isChatUsedForOnboarding(LHNTestUtils.getFakeReport(), undefined)).toBeFalsy();
         });
 
         it('should return false if the user account ID is odd and report is the system chat - only the Concierge chat chat should be the onboarding chat for users without the onboarding NVP', async () => {
@@ -3720,7 +3807,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(isChatUsedForOnboarding(report)).toBeFalsy();
+            expect(isChatUsedForOnboarding(report, undefined)).toBeFalsy();
         });
 
         it('should return true if the user account ID is even and report is the concierge chat', async () => {
@@ -3744,34 +3831,37 @@ describe('ReportUtils', () => {
 
         it("should use the report id from the onboarding NVP if it's set", async () => {
             const reportID = '8010';
+            const onboardingValue = {chatReportID: reportID, hasCompletedGuidedSetupFlow: true} as Onboarding;
 
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_ONBOARDING]: {chatReportID: reportID, hasCompletedGuidedSetupFlow: true},
+                [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
             });
 
             const report1: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID,
             };
-            expect(isChatUsedForOnboarding(report1)).toBeTruthy();
+            expect(isChatUsedForOnboarding(report1, onboardingValue)).toBeTruthy();
 
             const report2: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '8011',
             };
-            expect(isChatUsedForOnboarding(report2)).toBeFalsy();
+            expect(isChatUsedForOnboarding(report2, onboardingValue)).toBeFalsy();
         });
 
         it('should return true for admins rooms chat when posting tasks in admins room', async () => {
+            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
+                [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
             });
 
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             };
-            expect(isChatUsedForOnboarding(report, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeTruthy();
+            expect(isChatUsedForOnboarding(report, onboardingValue, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeTruthy();
         });
     });
 
@@ -3779,7 +3869,15 @@ describe('ReportUtils', () => {
         it('should return canUnholdRequest as true for a held duplicate transaction', async () => {
             const chatReport: Report = {reportID: '1'};
             const reportPreviewReportActionID = '8';
-            const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 'USD', undefined, reportPreviewReportActionID);
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: chatReport.reportID,
+                policyID: '123',
+                payeeAccountID: currentUserAccountID,
+                total: 122,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+                parentReportActionID: reportPreviewReportActionID,
+            });
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -4266,7 +4364,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return true when the report has outstanding violations', async () => {
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]});
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -4581,7 +4679,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false when the report is the single transaction thread', async () => {
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]});
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -4783,7 +4881,7 @@ describe('ReportUtils', () => {
                     oldName: 'workspace 1',
                 },
             };
-            expect(getWorkspaceNameUpdatedMessage(action as ReportAction)).toEqual(
+            expect(getWorkspaceNameUpdatedMessage(translateLocal, action as ReportAction)).toEqual(
                 'updated the name of this workspace to &quot;&amp;#104;&amp;#101;&amp;#108;&amp;#108;&amp;#111;&quot; (previously &quot;workspace 1&quot;)',
             );
         });
@@ -5720,7 +5818,11 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policyTest);
         });
 
-        afterAll(() => Onyx.clear());
+        afterAll(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+        });
 
         it('should return false for admin of a group policy with reimbursement enabled and report not approved', () => {
             expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, undefined, undefined, false)).toBe(false);
@@ -6320,6 +6422,191 @@ describe('ReportUtils', () => {
             const result = canAddTransaction(report, isReportArchived.current);
 
             // Then the result is false
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isReportIneligibleForMoveExpenses', () => {
+        it('should return false when policy is undefined', () => {
+            const report: Report = {
+                ...createRandomReport(30000, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const result = isReportIneligibleForMoveExpenses(report, undefined);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when instant submit is not enabled', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3000),
+                autoReporting: false,
+            };
+            const report: Report = {
+                ...createRandomReport(30001, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when submit and close is not enabled', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3001),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const report: Report = {
+                ...createRandomReport(30002, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when report has reimbursable transactions', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3002),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30003, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+            const transaction = {
+                transactionID: '30003',
+                reportID: report.reportID,
+                reimbursable: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when report has no transactions', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3003),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30004, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return true when instant submit, submit and close, and only non-reimbursable transactions', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3004),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30005, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+            const transaction = {
+                transactionID: '30005',
+                reportID: report.reportID,
+                reimbursable: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(true);
+        });
+
+        it('should return false for draft reports even when instant submit, submit and close, and only non-reimbursable transactions', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3006),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30007, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+            const transaction = {
+                transactionID: '30007',
+                reportID: report.reportID,
+                reimbursable: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when report has mixed reimbursable and non-reimbursable transactions', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3005),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30006, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+            const transaction1 = {
+                transactionID: '30006a',
+                reportID: report.reportID,
+                reimbursable: false,
+            };
+            const transaction2 = {
+                transactionID: '30006b',
+                reportID: report.reportID,
+                reimbursable: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
             expect(result).toBe(false);
         });
     });
@@ -9185,11 +9472,11 @@ describe('ReportUtils', () => {
 
             const total = 100;
             const currency = CONST.CURRENCY.USD;
-            const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency);
+            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID: undefined, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
             expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
 
-        it('should set reportName to "New Report" when policy field list is empty and CUSTOM_REPORT_NAMES beta is enabled', async () => {
+        it('should set reportName to "New Report" when policy field list is empty', async () => {
             // Given a policy with an empty field list
             const policyID = '200';
             const policyWithEmptyFieldList: Policy = {
@@ -9199,8 +9486,7 @@ describe('ReportUtils', () => {
                 fieldList: {},
             };
 
-            // And the CUSTOM_REPORT_NAMES beta is enabled
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_REPORT_NAMES]);
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
             await waitForBatchedUpdates();
 
@@ -9213,13 +9499,13 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
             const total = 100;
             const currency = CONST.CURRENCY.USD;
-            const expenseReport = buildOptimisticExpenseReport(chatReportID, policyID, 1, total, currency);
+            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
 
             // Then the report name should be "New Report" instead of the default name
             expect(expenseReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
-        it('should set reportName to default expense report name when policy field list is empty and CUSTOM_REPORT_NAMES beta is disabled', async () => {
+        it('should set reportName to default expense report name when policy field list is empty for different report', async () => {
             // Given a policy with an empty field list
             const policyID = '201';
             const policyWithEmptyFieldList: Policy = {
@@ -9229,8 +9515,7 @@ describe('ReportUtils', () => {
                 fieldList: {},
             };
 
-            // And the CUSTOM_REPORT_NAMES beta is NOT enabled
-            await Onyx.set(ONYXKEYS.BETAS, []);
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.ALL]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
             await waitForBatchedUpdates();
 
@@ -9243,7 +9528,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
             const total = 100;
             const currency = CONST.CURRENCY.USD;
-            const expenseReport = buildOptimisticExpenseReport(chatReportID, policyID, 1, total, currency);
+            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
 
             // Then the report name should be the default expense report name
             expect(expenseReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
@@ -10887,6 +11172,18 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getReportNotificationPreference', () => {
+        it('should return hidden if notification preference is empty', () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID]),
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: '' as NotificationPreference},
+                },
+            };
+            expect(getReportNotificationPreference(report)).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+        });
+    });
+
     describe('getAllReportActionsErrorsAndReportActionThatRequiresAttention for DEW', () => {
         it('should return error for DEW_SUBMIT_FAILED action on OPEN report', () => {
             const report = {
@@ -11533,7 +11830,7 @@ describe('ReportUtils', () => {
     });
 
     describe('buildOptimisticEmptyReport', () => {
-        it('should set reportName to "New Report" when policy field list is empty and the beta is enabled', async () => {
+        it('should set reportName to "New Report" when policy field list is empty', async () => {
             // Given a policy with an empty field list
             const policyWithEmptyFieldList: Policy = {
                 ...createRandomPolicy(200),
@@ -11542,8 +11839,8 @@ describe('ReportUtils', () => {
                 fieldList: {},
             };
 
-            // And the CUSTOM_REPORT_NAMES beta is enabled
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_REPORT_NAMES]);
+            const betas = [CONST.BETAS.ALL];
+            await Onyx.set(ONYXKEYS.BETAS, betas);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyWithEmptyFieldList.id}`, policyWithEmptyFieldList);
             await waitForBatchedUpdates();
 
@@ -11558,11 +11855,11 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation);
+            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
-        it('should set reportName to empty string when policy field list is empty and the beta is not enabled', async () => {
+        it('should set reportName to "New Report" when policy field list is empty for different report', async () => {
             // Given a policy with an empty field list
             const policyWithEmptyFieldList: Policy = {
                 ...createRandomPolicy(201),
@@ -11571,8 +11868,8 @@ describe('ReportUtils', () => {
                 fieldList: {},
             };
 
-            // And the CUSTOM_REPORT_NAMES beta is NOT enabled
-            await Onyx.set(ONYXKEYS.BETAS, []);
+            const betas = [CONST.BETAS.ALL];
+            await Onyx.set(ONYXKEYS.BETAS, betas);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyWithEmptyFieldList.id}`, policyWithEmptyFieldList);
             await waitForBatchedUpdates();
 
@@ -11586,8 +11883,8 @@ describe('ReportUtils', () => {
             const parentReportActionID = 'parent-report-action-id-789';
             const timeOfCreation = DateUtils.getDBTime();
 
-            // Then the report name should be empty string (beta not enabled, so no name computation)
-            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation);
+            // Then the report name should be "New Report"
+            const optimisticReport = buildOptimisticEmptyReport(reportID, accountID, parentReport, parentReportActionID, policyWithEmptyFieldList, timeOfCreation, betas);
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
     });

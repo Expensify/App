@@ -25,9 +25,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getRateID} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -86,6 +85,7 @@ function IOURequestStepDistanceManual({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -94,14 +94,7 @@ function IOURequestStepDistanceManual({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const shouldUseDefaultExpensePolicy = useMemo(
-        () =>
-            iouType === CONST.IOU.TYPE.CREATE &&
-            isPaidGroupPolicy(defaultExpensePolicy) &&
-            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
-        [iouType, defaultExpensePolicy],
-    );
+    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
 
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
@@ -147,6 +140,8 @@ function IOURequestStepDistanceManual({
         return isCreatingNewRequest ? translate('common.next') : translate('common.save');
     }, [shouldSkipConfirmation, translate, isCreatingNewRequest]);
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     const navigateToNextPage = useCallback(
         (amount: string) => {
             const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
@@ -168,6 +163,7 @@ function IOURequestStepDistanceManual({
                         currentUserEmailParam,
                         isASAPSubmitBetaEnabled,
                         parentReportNextStep,
+                        recentWaypoints,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -202,6 +198,7 @@ function IOURequestStepDistanceManual({
                 introSelected,
                 activePolicyID,
                 privateIsArchived: reportNameValuePairs?.private_isArchived,
+                betas,
             });
         },
         [
@@ -236,6 +233,9 @@ function IOURequestStepDistanceManual({
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
             reportID,
+            recentWaypoints,
+            currentUserPersonalDetails.accountID,
+            betas,
         ],
     );
 
@@ -243,12 +243,7 @@ function IOURequestStepDistanceManual({
         const value = numberFormRef.current?.getNumber() ?? '';
         const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserAccountIDParam).at(0));
 
-        if (isBetaEnabled(CONST.BETAS.ZERO_EXPENSES)) {
-            if (!value.length || parseFloat(value) < 0) {
-                setFormError(translate('iou.error.invalidDistance'));
-                return;
-            }
-        } else if (!value.length || parseFloat(value) <= 0) {
+        if (!value.length || parseFloat(value) < 0) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
@@ -259,7 +254,7 @@ function IOURequestStepDistanceManual({
         }
 
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam, isBetaEnabled]);
+    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {

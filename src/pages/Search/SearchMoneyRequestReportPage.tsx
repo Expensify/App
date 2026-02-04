@@ -35,12 +35,12 @@ import {
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
-import ReactionListWrapper from '@pages/home/ReactionListWrapper';
+import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
+import type {ActionListContextType, ScrollPosition} from '@pages/inbox/ReportScreenContext';
+import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
-import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -162,9 +162,18 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
 
+    // Tracks initial mount to ensure openReport is called once for multi-transaction reports
+    const isInitialMountRef = useRef(true);
+    const prevReportIDFromRoute = usePrevious(reportIDFromRoute);
+
     useEffect(() => {
+        // Reset flag when reportID changes (screen stays mounted but navigates to different report)
+        if (prevReportIDFromRoute !== reportIDFromRoute) {
+            isInitialMountRef.current = true;
+        }
+
         // Guard prevents calling openReport for multi-transaction reports
-        if (visibleTransactions.length > 2) {
+        if (visibleTransactions.length > 2 && !isInitialMountRef.current) {
             return;
         }
 
@@ -175,6 +184,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         }
 
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
+        isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:
         // oneTransactionID updates after transactionThreadReportID,

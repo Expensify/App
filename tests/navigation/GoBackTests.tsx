@@ -13,7 +13,7 @@ import TestNavigationContainer from '../utils/TestNavigationContainer';
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
-jest.mock('@pages/home/sidebar/NavigationTabBarAvatar');
+jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 jest.mock('@src/components/Navigation/TopLevelNavigationTabBar');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
@@ -185,7 +185,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 2,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -248,7 +248,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 2,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -307,7 +307,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 3,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -359,7 +359,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 2,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -407,7 +407,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 3,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,

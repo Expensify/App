@@ -833,6 +833,18 @@ function getFormattedDuration(translateParam: LocaleContextProps['translate'], d
     return `${hours ? `${hours}${translateParam('common.hourAbbreviation')} ` : ''}${minutes}${translateParam('common.minuteAbbreviation')}`;
 }
 
+const TIME_UNIT_PADDING = 2; // Pad time units to 2 digits (e.g., "09" instead of "9")
+
+/**
+ * Formats a countdown timer with hours, minutes, and seconds (e.g., "23h 59m 59s").
+ */
+function formatCountdownTimer(translateParam: LocaleContextProps['translate'], hours: number, minutes: number, seconds: number): string {
+    const paddedMinutes = minutes.toString().padStart(TIME_UNIT_PADDING, '0');
+    const paddedSeconds = seconds.toString().padStart(TIME_UNIT_PADDING, '0');
+
+    return `${hours}${translateParam('common.hourAbbreviation')} ${paddedMinutes}${translateParam('common.minuteAbbreviation')} ${paddedSeconds}${translateParam('common.secondAbbreviation')}`;
+}
+
 function doesDateBelongToAPastYear(date: string): boolean {
     const transactionYear = new Date(date).getFullYear();
     return transactionYear !== new Date().getFullYear();
@@ -891,14 +903,6 @@ function getFormattedSplitDateRange(translateParam: LocaleContextProps['translat
 }
 
 /**
- * Checks if the current time falls within the specified time range.
- */
-const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean => {
-    const now = Date.now();
-    return isAfter(now, new Date(startTime)) && isBefore(now, new Date(endTime));
-};
-
-/**
  * Converts a date to a string in the format MMMM d, yyyy
  */
 const formatToReadableString = (date: string): string => {
@@ -916,6 +920,92 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
     }
 };
 
+/**
+ * Returns the start and end dates of a month in the format yyyy-MM-dd.
+ * @param year - Year (e.g., 2025)
+ * @param month - Month (1-12, where 1 is January)
+ */
+function getMonthDateRange(year: number, month: number): {start: string; end: string} {
+    return {
+        start: format(new Date(year, month - 1, 1), 'yyyy-MM-dd'),
+        end: format(new Date(year, month, 0), 'yyyy-MM-dd'),
+    };
+}
+
+/**
+ * Returns the start and end dates of a week in the format yyyy-MM-dd.
+ * @param weekStartDate - Week start date string in YYYY-MM-DD format
+ */
+function getWeekDateRange(weekStartDate: string): {start: string; end: string} {
+    // Parse the date string as a local date to avoid timezone issues
+    // Using parse with explicit format ensures it's treated as local time, not UTC
+    // This prevents dates like '2026-01-25' from being interpreted as UTC midnight
+    // which would shift to the previous day in timezones behind UTC (e.g., PST)
+    const weekStart = parse(weekStartDate, 'yyyy-MM-dd', new Date());
+    const weekEnd = addDays(weekStart, 6);
+    return {
+        start: format(weekStart, 'yyyy-MM-dd'),
+        end: format(weekEnd, 'yyyy-MM-dd'),
+    };
+}
+
+/**
+ * Checks if a date string (yyyy-MM-dd or yyyy-MM-dd HH:mm:ss) falls within a specific month.
+ * Uses string comparison to avoid timezone issues.
+ *
+ * @param dateString - Date string in format yyyy-MM-dd or yyyy-MM-dd HH:mm:ss
+ * @param year - Year (e.g., 2025)
+ * @param month - Month (1-12, where 1 is January)
+ */
+function isDateStringInMonth(dateString: string, year: number, month: number): boolean {
+    const datePart = dateString.substring(0, 10);
+    const {start: monthStart, end: monthEnd} = getMonthDateRange(year, month);
+
+    // String comparison works because yyyy-MM-dd format is lexicographically sortable
+    return datePart >= monthStart && datePart <= monthEnd;
+}
+
+/**
+ * Returns a formatted date range.
+ */
+function getFormattedDateRangeForSearch(startDate: string, endDate: string): string {
+    const start = parse(startDate, 'yyyy-MM-dd', new Date());
+    const end = parse(endDate, 'yyyy-MM-dd', new Date());
+    if (isSameYear(new Date(start), new Date(end))) {
+        return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+    }
+    return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
+}
+
+function getYearDateRange(year: number): {start: string; end: string} {
+    return {
+        start: `${year}-01-01`,
+        end: `${year}-12-31`,
+    };
+}
+
+function getQuarterDateRange(year: number, quarter: number): {start: string; end: string} {
+    const startMonth = (quarter - 1) * 3 + 1;
+    const endMonth = quarter * 3;
+    // Use set() to create dates in local timezone explicitly
+    // This ensures the dates are created in the current/local timezone, not UTC
+    const quarterStart = set(new Date(), {year, month: startMonth - 1, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
+    const quarterEnd = set(new Date(), {year, month: endMonth, date: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
+    return {
+        start: format(quarterStart, 'yyyy-MM-dd'),
+        end: format(quarterEnd, 'yyyy-MM-dd'),
+    };
+}
+
+function getFormattedQuarterForSearch(year: number, quarter: number): string {
+    const startMonth = (quarter - 1) * 3 + 1;
+    const endMonth = quarter * 3;
+    // Use set() to create dates in local timezone explicitly
+    // This ensures the dates are created in the current/local timezone, not UTC
+    const quarterStart = set(new Date(), {year, month: startMonth - 1, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
+    const quarterEnd = set(new Date(), {year, month: endMonth, date: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
+    return `Q${quarter} ${year} (${format(quarterStart, 'MMM d')} - ${format(quarterEnd, 'MMM d')})`;
+}
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -969,11 +1059,18 @@ const DateUtils = {
     isValidDateString,
     getFormattedDurationBetweenDates,
     getFormattedDuration,
+    formatCountdownTimer,
     isFutureDay,
     getFormattedDateRangeForPerDiem,
     getFormattedSplitDateRange,
-    isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
+    getMonthDateRange,
+    getWeekDateRange,
+    isDateStringInMonth,
+    getFormattedDateRangeForSearch,
+    getYearDateRange,
+    getQuarterDateRange,
+    getFormattedQuarterForSearch,
 };
 
 export default DateUtils;
