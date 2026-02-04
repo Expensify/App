@@ -123,8 +123,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
     const childTransactions = getChildTransactions(allTransactions, allReports, transactionID);
-    const splitFieldDataFromChildTransactions = childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
-    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction);
+    const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
+        const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
+        return initSplitExpenseItemData(childTransaction, transactionReport);
+    });
+    const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
