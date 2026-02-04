@@ -20,7 +20,7 @@ import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {ConflictData} from '@src/types/onyx/Request';
+import type {AnyRequest, ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
@@ -322,11 +322,11 @@ onReconnection(flush);
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
 
-function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
+function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>) {
     if (conflictAction.type === 'push') {
         savePersistedRequest(newRequest);
     } else if (conflictAction.type === 'replace') {
-        updatePersistedRequest(conflictAction.index, conflictAction.request ?? newRequest);
+        updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
     } else if (conflictAction.type === 'delete') {
         deletePersistedRequestsByIndices(conflictAction.indices);
         if (conflictAction.pushNewRequest) {
@@ -340,12 +340,10 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
     }
 }
 
-function push(newRequest: OnyxRequest) {
-    const {checkAndFixConflictingRequest} = newRequest;
-
-    if (checkAndFixConflictingRequest) {
+function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
+    if (newRequest.checkAndFixConflictingRequest) {
         const requests = getAllPersistedRequests();
-        const {conflictAction} = checkAndFixConflictingRequest(requests);
+        const {conflictAction} = newRequest.checkAndFixConflictingRequest(requests as Array<OnyxRequest<TKey>>);
         Log.info(`[SequentialQueue] Conflict action for command ${newRequest.command} - ${conflictAction.type}:`);
 
         // don't try to serialize a function.
