@@ -285,12 +285,12 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
-        it('should not highlight TOTAL filter with amounts exceeding 8 digits', () => {
-            const input = 'total:999999999';
+        it('should not highlight TOTAL filter with amounts exceeding AMOUNT_MAX_LENGTH digits', () => {
+            const input = 'total:99999999999';
 
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockTranslatedStatusSet);
 
-            // Total amounts with more than 8 digits fail validation
+            // Total amounts with more than AMOUNT_MAX_LENGTH digits fail validation
             expect(result).toEqual([]);
         });
 
