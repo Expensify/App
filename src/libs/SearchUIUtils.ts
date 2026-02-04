@@ -3933,9 +3933,6 @@ function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, d
         adjustedEnd = limitsEnd;
     }
 
-    console.log('cristi - adjustedStart', adjustedStart);
-    console.log('cristi - adjustedEnd', adjustedEnd);
-
     return {
         start: adjustedStart,
         end: adjustedEnd,
