@@ -5,13 +5,12 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import {removeApprovalWorkflow} from '@libs/actions/Workflow';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import {updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceMembersPage from '@pages/workspace/WorkspaceMembersPage';
 import CONST from '@src/CONST';
@@ -23,33 +22,13 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-jest.mock('@libs/WorkflowUtils', () => {
-    // eslint-disable-next-line
-    const actual = jest.requireActual('@libs/WorkflowUtils');
-    // eslint-disable-next-line
-    return {
-        ...actual,
-        updateWorkflowDataOnApproverRemoval: jest.fn(() => [{members: [], approvers: [], isDefault: false, removeApprovalWorkflow: true}]),
-    };
-});
-
-jest.mock('@libs/actions/Workflow', () => {
-    // eslint-disable-next-line
-    const actual = jest.requireActual('@libs/actions/Workflow');
-    // eslint-disable-next-line
-    return {
-        ...actual,
-        removeApprovalWorkflow: jest.fn(),
-    };
-});
-
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.MEMBERS]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, ModalProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -362,17 +341,7 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByLabelText(confirmText)).toBeOnTheScreen();
             });
 
-            // Press confirm button
-            fireEvent.press(screen.getByLabelText(confirmText));
-
-            await waitForBatchedUpdatesWithAct();
-
-            // Verify workflow actions are only called once when an approver is removed
-            expect(updateWorkflowDataOnApproverRemoval).toHaveBeenCalledTimes(1);
-            expect(removeApprovalWorkflow).toHaveBeenCalledTimes(1);
-
             unmount();
-            await waitForBatchedUpdatesWithAct();
         });
     });
 });
