@@ -1,7 +1,7 @@
 import variables from '@styles/variables';
-import type GetReceiptImageRestrictedStyle from './types';
+import type GetImageCompactModeStyle from './types';
 
-const getReceiptImageRestrictedStyle: GetReceiptImageRestrictedStyle = (maxWidth, availableWidth, aspectRatio) => {
+const getImageCompactModeStyle: GetImageCompactModeStyle = (maxWidth, availableWidth, aspectRatio) => {
     const fullWidthLimit = availableWidth / variables.receiptPreviewMaxHeight;
     const isTall = aspectRatio && aspectRatio <= fullWidthLimit;
 
@@ -20,4 +20,4 @@ const getReceiptImageRestrictedStyle: GetReceiptImageRestrictedStyle = (maxWidth
     };
 };
 
-export default getReceiptImageRestrictedStyle;
+export default getImageCompactModeStyle;

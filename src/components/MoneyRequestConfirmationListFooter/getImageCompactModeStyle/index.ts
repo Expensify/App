@@ -1,6 +1,6 @@
-import type GetReceiptImageRestrictedStyle from './types';
+import type GetImageCompactModeStyle from './types';
 
-const getReceiptImageRestrictedStyle: GetReceiptImageRestrictedStyle = (maxWidth, availableWidth, aspectRatio) => {
+const getImageCompactModeStyle: GetImageCompactModeStyle = (maxWidth, availableWidth, aspectRatio) => {
     const cappedRatio = aspectRatio ? Math.min(aspectRatio, 1) : 1;
 
     return {
@@ -15,4 +15,4 @@ const getReceiptImageRestrictedStyle: GetReceiptImageRestrictedStyle = (maxWidth
     };
 };
 
-export default getReceiptImageRestrictedStyle;
+export default getImageCompactModeStyle;
