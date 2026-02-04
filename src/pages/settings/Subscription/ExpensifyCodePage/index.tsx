@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {applyExpensifyCode} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,17 +27,22 @@ function ExpensifyCodePage() {
     const {inputCallbackRef} = useAutoFocusInput();
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [subscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
+    const isExpensifyCodeApplied = !!subscription?.expensifyCode;
 
     const defaultValues = {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
     };
 
     useEffect(() => {
-        if (!hasSubmitted || !subscription?.expensifyCode) {
+        if (!hasSubmitted || !isExpensifyCodeApplied) {
             return;
         }
         Navigation.goBack();
-    }, [hasSubmitted, subscription?.expensifyCode]);
+    }, [hasSubmitted, isExpensifyCodeApplied]);
+
+    if (isExpensifyCodeApplied) {
+        return <NotFoundPage />;
+    }
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM> => {
@@ -58,33 +65,36 @@ function ExpensifyCodePage() {
             shouldShowOfflineIndicatorInWideScreen
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('subscription.expensifyCode.title')}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <FormProvider
-                formID={ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM}
-                submitButtonText={translate('subscription.expensifyCode.apply')}
-                onSubmit={handleSubmit}
-                validate={validate}
-                style={[styles.mh5, styles.flexGrow1]}
-                shouldHideFixErrorsAlert
-            >
-                <View>
-                    <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.expensifyCode.enterCode')}</Text>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        ref={inputCallbackRef}
-                        inputID={INPUT_IDS.EXPENSIFY_CODE}
-                        label={translate('subscription.expensifyCode.discountCode')}
-                        aria-label={translate('subscription.expensifyCode.discountCode')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={defaultValues[INPUT_IDS.EXPENSIFY_CODE]}
-                        shouldSaveDraft
-                        autoCapitalize="none"
-                    />
-                </View>
-            </FormProvider>
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('subscription.expensifyCode.title')}
+                    onBackButtonPress={Navigation.goBack}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM}
+                    submitButtonText={translate('subscription.expensifyCode.apply')}
+                    onSubmit={handleSubmit}
+                    validate={validate}
+                    style={[styles.mh5, styles.flexGrow1]}
+                    shouldHideFixErrorsAlert
+                >
+                    <View>
+                        <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.expensifyCode.enterCode')}</Text>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            ref={inputCallbackRef}
+                            inputID={INPUT_IDS.EXPENSIFY_CODE}
+                            label={translate('subscription.expensifyCode.discountCode')}
+                            aria-label={translate('subscription.expensifyCode.discountCode')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={defaultValues[INPUT_IDS.EXPENSIFY_CODE]}
+                            shouldSaveDraft
+                            autoCapitalize="none"
+                            testID="expensify-code-input"
+                        />
+                    </View>
+                </FormProvider>
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
