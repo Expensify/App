@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -14,6 +14,7 @@ import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -57,6 +58,7 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
     isSelfTourViewed: boolean;
 };
 
@@ -99,6 +101,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     isSelfTourViewed: boolean;
+    allTransactionDrafts?: OnyxCollection<Transaction>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -155,8 +158,12 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
+    allTransactionDrafts,
     isSelfTourViewed,
 }: CreateTransactionParams) {
+    const draftTransactionIDs = Object.values(allTransactionDrafts ?? {})
+        .filter((transaction): transaction is NonNullable<typeof transaction> => !!transaction)
+        .map((transaction) => transaction.transactionID);
     const recentWaypoints = getRecentWaypoints();
 
     for (const [index, receiptFile] of files.entries()) {
@@ -193,6 +200,9 @@ function createTransaction({
                 recentWaypoints,
             });
         } else {
+            const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+            const existingTransactionDraft = allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`];
+
             requestMoney({
                 report,
                 participantParams: {
@@ -221,6 +231,8 @@ function createTransaction({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                existingTransactionDraft,
+                draftTransactionIDs,
                 isSelfTourViewed,
             });
         }
@@ -273,6 +285,7 @@ function handleMoneyRequestStepScanParticipants({
     isTestTransaction = false,
     locationPermissionGranted = false,
     isSelfTourViewed,
+    allTransactionDrafts,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -367,6 +380,7 @@ function handleMoneyRequestStepScanParticipants({
                             billable: false,
                             reimbursable: true,
                             isSelfTourViewed,
+                            allTransactionDrafts,
                         });
                     },
                     (errorData) => {
@@ -389,6 +403,7 @@ function handleMoneyRequestStepScanParticipants({
                             files,
                             participant,
                             isSelfTourViewed,
+                            allTransactionDrafts,
                         });
                     },
                 );
@@ -411,6 +426,7 @@ function handleMoneyRequestStepScanParticipants({
                 files,
                 participant,
                 isSelfTourViewed,
+                allTransactionDrafts,
             });
             return;
         }

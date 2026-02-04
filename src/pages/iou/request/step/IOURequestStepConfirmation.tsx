@@ -40,6 +40,7 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {
+    getExistingTransactionID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
     shouldShowReceiptEmptyState,
@@ -572,6 +573,9 @@ function IOURequestStepConfirmation({
                     );
                 }
 
+                const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
+                const existingTransactionDraft = transactions.find((tx) => tx.transactionID === existingTransactionID);
+
                 const {iouReport} = requestMoneyIOUActions({
                     report,
                     existingIOUReport,
@@ -630,12 +634,15 @@ function IOURequestStepConfirmation({
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
+                    existingTransactionDraft,
+                    draftTransactionIDs: transactionIDs,
                     isSelfTourViewed,
                 });
                 existingIOUReport = iouReport;
             }
         },
         [
+            transactionIDs,
             transactions,
             receiptFiles,
             privateIsArchivedMap,

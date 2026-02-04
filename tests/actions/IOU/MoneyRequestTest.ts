@@ -88,6 +88,7 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
+            allTransactionDrafts: {},
             isSelfTourViewed: false,
         };
 
