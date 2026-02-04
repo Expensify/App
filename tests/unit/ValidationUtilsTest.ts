@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
     getAgeRequirementError,
+    isInvalidMerchantValue,
     isRequiredFulfilled,
     isValidAccountRoute,
     isValidDate,
@@ -548,6 +549,21 @@ describe('ValidationUtils', () => {
             ])('validates Non-EU country registration number', (country, value, expected) => {
                 expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
             });
+        });
+    });
+
+    describe('isInvalidMerchantValue', () => {
+        test('Valid merchnt name', () => {
+            expect(isInvalidMerchantValue('test name')).toBe(false);
+            expect(isInvalidMerchantValue('none')).toBe(false);
+            expect(isInvalidMerchantValue('Unknown Merchant')).toBe(false);
+            expect(isInvalidMerchantValue('X Æ A test')).toBe(false);
+        });
+
+        test('Invalid merchant name', () => {
+            expect(isInvalidMerchantValue('')).toBe(true);
+            expect(isInvalidMerchantValue('Expense')).toBe(true);
+            expect(isInvalidMerchantValue('(none)')).toBe(true);
         });
     });
 });
