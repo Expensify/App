@@ -222,7 +222,7 @@ function ComposerWithSuggestions({
     isScrollLikelyLayoutTriggered,
     raiseIsScrollLikelyLayoutTriggered,
     onClear: onClearProp = () => {},
-    onLayout: onLayoutProp,
+    onLayout,
 
     // Refs
     suggestionsRef,
@@ -907,7 +907,7 @@ function ComposerWithSuggestions({
                     value={value}
                     testID="composer"
                     shouldCalculateCaretPosition
-                    onLayout={onLayoutProp}
+                    onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
