@@ -10,7 +10,6 @@ import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
-import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import {updateNetSuiteCustomSegments} from '@userActions/connections/NetSuiteCommands';
 import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -19,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
+import type {Policy} from '@src/types/onyx';
 import {getCustomSegmentInitialSubstep, getSubstepValues} from './customUtils';
 import ChooseSegmentTypeStep from './substeps/ChooseSegmentTypeStep';
 import ConfirmCustomSegmentStep from './substeps/ConfirmCustomSegmentList';
@@ -28,8 +28,8 @@ import CustomSegmentNameStep from './substeps/CustomSegmentNameStep';
 import CustomSegmentScriptIdStep from './substeps/CustomSegmentScriptIdStep';
 
 type NetSuiteImportAddCustomSegmentContentProps = {
-    policy: WithPolicyConnectionsProps['policy'];
-    route: WithPolicyConnectionsProps['route'];
+    policy: OnyxEntry<Policy>;
+    policyIDParam: string | undefined;
     draftValues: OnyxEntry<NetSuiteCustomFieldForm>;
 };
 
@@ -42,7 +42,7 @@ const pages = [
     {pageName: CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.PAGE_NAME.CONFIRM, component: ConfirmCustomSegmentStep},
 ];
 
-function NetSuiteImportAddCustomSegmentContent({policy, route, draftValues}: NetSuiteImportAddCustomSegmentContentProps) {
+function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValues}: NetSuiteImportAddCustomSegmentContentProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const formRef = useRef<FormRef | null>(null);
@@ -80,11 +80,11 @@ function NetSuiteImportAddCustomSegmentContent({policy, route, draftValues}: Net
         pages,
         startFrom,
         onFinished: handleFinishStep,
-        buildRoute: (pageName, action) => ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD.getRoute(route.params.policyID, pageName, action),
+        buildRoute: (pageName, action) => ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD.getRoute(policyIDParam, pageName, action),
     });
 
     const goBackToConfirmStep = () => {
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD.getRoute(route.params.policyID, CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.PAGE_NAME.CONFIRM));
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD.getRoute(policyIDParam, CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT.PAGE_NAME.CONFIRM));
     };
 
     const handleBackButtonPress = () => {
