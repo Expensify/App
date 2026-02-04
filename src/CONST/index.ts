@@ -8214,6 +8214,9 @@ const CONST = {
         REANIMATED_MODAL: {
             BACKDROP: 'ReanimatedModal-Backdrop',
         },
+        ONBOARDING: {
+            FEATURE_ITEM: 'Onboarding-FeatureItem',
+        },
     },
 
     DOMAIN: {

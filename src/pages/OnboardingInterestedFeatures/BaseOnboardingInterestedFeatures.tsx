@@ -304,6 +304,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             const isSelected = selectedFeatures.includes(item.id);
             return (
                 <PressableWithoutFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.FEATURE_ITEM}
                     key={item.id}
                     onPress={() => {
                         handleFeatureSelect(item.id);
