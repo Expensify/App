@@ -824,7 +824,7 @@ function ComposerWithSuggestions({
     const isTouchEndedRef = useRef(false);
     const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
 
-    const updateIsFullComposerAvailable = useCallback(
+    const handleContentSizeChange = useCallback(
         (e: TextInputContentSizeChangeEvent) => {
             const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
             const inputHeight = e.nativeEvent.contentSize.height;
@@ -880,10 +880,7 @@ function ComposerWithSuggestions({
                     onChangeText={onChangeText}
                     onKeyPress={handleKeyPress}
                     textAlignVertical="top"
-                    style={[
-                        styles.textInputCompose,
-                        isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose /* composerHeight ? {height: composerHeight} : null */,
-                    ]}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, composerHeight ? {height: composerHeight} : null]}
                     maxLines={maxComposerLines}
                     onFocus={handleFocus}
                     onBlur={onBlur}
@@ -897,7 +894,7 @@ function ComposerWithSuggestions({
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}
-                    onContentSizeChange={updateIsFullComposerAvailable}
+                    onContentSizeChange={handleContentSizeChange}
                     value={value}
                     testID="composer"
                     shouldCalculateCaretPosition
