@@ -6925,7 +6925,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `supprimé le taux « ${customUnitName} », le sous-taux « ${customUnitRateName} » « ${removedSubRateName} »`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
-            const thresholdSuffix = notificationThreshold ? `avec un seuil de notification de « ${notificationThreshold}% »` : '';
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `avec un seuil de notification de « ${notificationThreshold}% »` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `ajout de ${frequency} budget individuel « ${individual} » et de ${frequency} budget partagé « ${shared} »${thresholdSuffix} au ${entityType} « ${entityName} »`;
             }
@@ -6949,7 +6949,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
-            const thresholdChanged = !!(newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold);
+            const thresholdChanged = typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold;
             const changesList: string[] = [];
             if (frequencyChanged) {
                 changesList.push(`fréquence du budget modifiée en « ${newFrequency} » (auparavant « ${oldFrequency} »)`);

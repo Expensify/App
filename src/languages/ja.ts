@@ -6835,7 +6835,7 @@ ${reportName}
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `「${customUnitName}」レート「${customUnitRateName}」のサブラテ「${removedSubRateName}」を削除しました`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
-            const thresholdSuffix = notificationThreshold ? `通知しきい値「${notificationThreshold}%」付き` : '';
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `通知しきい値「${notificationThreshold}%」付き` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `${entityType}「${entityName}」に、個人用予算「${individual}」を${frequency}件、共有予算「${shared}」を${frequency}件${thresholdSuffix}追加しました`;
             }
@@ -6859,7 +6859,7 @@ ${reportName}
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
-            const thresholdChanged = !!(newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold);
+            const thresholdChanged = typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold;
             const changesList: string[] = [];
             if (frequencyChanged) {
                 changesList.push(`予算の頻度を「${newFrequency}」（以前は「${oldFrequency}」）に変更しました`);

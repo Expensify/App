@@ -6725,7 +6725,7 @@ ${reportName}
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `已移除“${customUnitName}”费率“${customUnitRateName}”子费率“${removedSubRateName}”`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
-            const thresholdSuffix = notificationThreshold ? `通知阈值为“${notificationThreshold}%”` : '';
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `通知阈值为"${notificationThreshold}%"` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `已为${entityType}“${entityName}”${thresholdSuffix}添加了${frequency}个个人预算“${individual}”和${frequency}个共享预算“${shared}”`;
             }
@@ -6749,7 +6749,7 @@ ${reportName}
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
-            const thresholdChanged = !!(newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold);
+            const thresholdChanged = typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold;
             const changesList: string[] = [];
             if (frequencyChanged) {
                 changesList.push(`将预算频率更改为“${newFrequency}”（之前为“${oldFrequency}”）`);

@@ -313,7 +313,6 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
               | 'Pin'
               | 'Flag'
               | 'Bug'
-              | 'Trashcan'
               | 'Concierge'
           >;
     successTextTranslateKey?: TranslationPaths;

@@ -6454,7 +6454,7 @@ ${amount} para ${merchant} - ${date}`,
         updateReimbursementEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}) => {
-            const thresholdSuffix = notificationThreshold ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? ` con umbral de notificación de "${notificationThreshold}%"` : '';
             let entityLabel = entityType;
             if (entityType === 'category') {
                 entityLabel = 'la categoría';
@@ -6473,7 +6473,7 @@ ${amount} para ${merchant} - ${date}`,
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
-            const thresholdChanged = !!(newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold);
+            const thresholdChanged = typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold;
             const changesList: string[] = [];
 
             if (frequencyChanged) {

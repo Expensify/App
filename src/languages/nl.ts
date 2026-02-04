@@ -6880,7 +6880,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
             `verwijderde "${customUnitName}" tarief "${customUnitRateName}" subtarief "${removedSubRateName}"`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
-            const thresholdSuffix = notificationThreshold ? `met meldingsdrempel van "${notificationThreshold}%"` : '';
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `met meldingsdrempel van "${notificationThreshold}%"` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `heeft ${frequency} individueel budget “${individual}” en ${frequency} gedeeld budget “${shared}”${thresholdSuffix} toegevoegd aan de ${entityType} “${entityName}”`;
             }
@@ -6904,7 +6904,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
-            const thresholdChanged = !!(newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold);
+            const thresholdChanged = typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold;
             const changesList: string[] = [];
             if (frequencyChanged) {
                 changesList.push(`budgetfrequentie gewijzigd in "${newFrequency}" (voorheen "${oldFrequency}")`);

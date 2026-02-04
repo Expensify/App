@@ -3661,8 +3661,8 @@ function getAddedBudgetMessage(translate: LocalizedTranslate, reportAction: Onyx
             frequency,
             entityName,
             entityType: translate(`workspace.common.budgetTypeForNotificationMessage.${entityType}`),
-            shared: value.shared ? sharedAmount : undefined,
-            individual: value.individual ? individualAmount : undefined,
+            shared: typeof value.shared === 'number' ? sharedAmount : undefined,
+            individual: typeof value.individual === 'number' ? individualAmount : undefined,
             notificationThreshold: value.notificationThreshold,
         });
     }
@@ -3835,7 +3835,6 @@ function getUpdatedIndividualBudgetNotificationMessage(translate: LocalizedTrans
         !budgetFrequency ||
         !budgetName ||
         !(budgetTypeForNotificationMessage === 'category' || budgetTypeForNotificationMessage === 'tag') ||
-        !summaryLinkMessage ||
         thresholdPercentage === undefined ||
         totalSpend === undefined ||
         unsubmittedSpend === undefined ||
@@ -3845,7 +3844,10 @@ function getUpdatedIndividualBudgetNotificationMessage(translate: LocalizedTrans
     ) {
         return getReportActionText(reportAction);
     }
-    const summaryLink = extractLinksFromMessageHtmlString(summaryLinkMessage);
+    let summaryLink: string | undefined;
+    if (summaryLinkMessage) {
+        summaryLink = extractLinksFromMessageHtmlString(summaryLinkMessage);
+    }
 
     return translate('workspaceActions.updatedIndividualBudgetNotification', {
         budgetAmount,
@@ -3881,7 +3883,6 @@ function getUpdatedSharedBudgetNotificationMessage(translate: LocalizedTranslate
         !budgetFrequency ||
         !budgetName ||
         !(budgetTypeForNotificationMessage === 'category' || budgetTypeForNotificationMessage === 'tag') ||
-        !summaryLinkMessage ||
         thresholdPercentage === undefined ||
         totalSpend === undefined ||
         unsubmittedSpend === undefined ||
@@ -3891,7 +3892,10 @@ function getUpdatedSharedBudgetNotificationMessage(translate: LocalizedTranslate
         return getReportActionText(reportAction);
     }
 
-    const summaryLink = extractLinksFromMessageHtmlString(summaryLinkMessage);
+    let summaryLink: string | undefined;
+    if (summaryLinkMessage) {
+        summaryLink = extractLinksFromMessageHtmlString(summaryLinkMessage);
+    }
 
     return translate('workspaceActions.updatedSharedBudgetNotification', {
         budgetAmount,
