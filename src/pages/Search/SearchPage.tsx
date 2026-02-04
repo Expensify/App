@@ -110,7 +110,7 @@ function SearchPage({route}: SearchPageProps) {
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems, currentSearchResults} =
         useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
@@ -1018,6 +1018,7 @@ function SearchPage({route}: SearchPageProps) {
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
             isFromGlobalCreate: true,
+            isFromFloatingActionButton: true,
             reportID: newReportID,
             personalPolicy,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
