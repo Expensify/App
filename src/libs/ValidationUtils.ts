@@ -766,8 +766,8 @@ function isValidTaxIDEINNumber(number: string, country: Country | '') {
 /**
  * Checks if a merchant string value is considered invalid/empty
  */
-function isInvalidMerchantValue(merchant?: string): boolean {
-    return !merchant || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+function isInvalidMerchantValue(merchant: string): boolean {
+    return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
 }
 
 export {
