@@ -336,6 +336,102 @@ describe('SubscriptionUtils', () => {
         });
     });
 
+    describe('shouldRestrictUserBillableActions - pure function behavior', () => {
+        beforeEach(async () => {
+            // Clear all Onyx state to ensure we're testing pure function behavior
+            await Onyx.clear();
+        });
+
+        it('should return true when ownerBillingGraceEndPeriod is passed as parameter with amount owed and user is policy owner', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            // Pass overdue ownerBillingGraceEndPeriod as parameter instead of Onyx
+            expect(shouldRestrictUserBillableActions(policyID, GRACE_PERIOD_DATE_OVERDUE)).toBeTruthy();
+        });
+
+        it('should return false when future grace period is passed as parameter (not yet past due)', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            // Pass future ownerBillingGraceEndPeriod as parameter - should return false (not past due)
+            expect(shouldRestrictUserBillableActions(policyID, GRACE_PERIOD_DATE)).toBeFalsy();
+        });
+
+        it('should return false when no grace period is passed and none is set in Onyx', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            // No Onyx value for grace period, no parameter passed
+            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
+        });
+
+        it('should use parameter value when both parameter and Onyx value exist', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                // Set Onyx to future date (would return false)
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            // Pass overdue date as parameter - should use parameter and return true
+            expect(shouldRestrictUserBillableActions(policyID, GRACE_PERIOD_DATE_OVERDUE)).toBeTruthy();
+        });
+
+        it('should fall back to Onyx value when parameter is undefined', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                // Set Onyx to overdue date
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE_OVERDUE,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            // No parameter passed - should fall back to Onyx value and return true
+            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeTruthy();
+        });
+    });
+
     describe('getSubscriptionStatus', () => {
         afterEach(async () => {
             await Onyx.clear();

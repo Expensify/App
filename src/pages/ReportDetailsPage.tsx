@@ -190,6 +190,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
@@ -459,6 +460,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         activePolicy,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
+                        ownerBillingGraceEndPeriod,
                     );
                 },
             });
@@ -478,6 +480,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
+                            undefined,
+                            undefined,
+                            ownerBillingGraceEndPeriod,
                         );
                     },
                 });
@@ -496,6 +501,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
+                            undefined,
+                            undefined,
+                            ownerBillingGraceEndPeriod,
                         );
                     },
                 });
