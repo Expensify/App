@@ -66,9 +66,9 @@ Bad:
 
 ---
 
-### [PERF-2] Fail fast - validate before expensive work
+### [PERF-2] Return early before expensive work
 
-- **Search patterns**: `if (!`, `return`, function bodies with validation after work
+- **Search patterns**: Function bodies where `if (!param)` or `if (param === undefined)` appears AFTER function calls that use `param`
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
@@ -82,27 +82,32 @@ Bad:
   - Validation requires the computed result
   - Expensive work must run for side effects
 
-- **Reasoning**: Failing fast prevents wasted computation. Validate inputs and check simple conditions before doing expensive work.
+- **Reasoning**: Early returns prevent wasted computation. Validate inputs before passing them to expensive operations.
 
 Good:
 
 ```ts
-const areAllTransactionsValid = transactions.every((transaction) => {
-    if (!transaction.rawData || transaction.amount <= 0) {
-        return false;
+function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
+    if (!reportAction?.reportActionID) {
+        return;
     }
-    const validation = validateTransaction(transaction);
-    return validation.isValid;
-});
+
+    const originalReportID = getOriginalReportID(reportID, reportAction);
+    // ...
+}
 ```
 
 Bad:
 
 ```ts
-const areAllTransactionsValid = transactions.every((transaction) => {
-    const validation = validateTransaction(transaction);
-    return validation.isValid;
-});
+function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
+    const originalReportID = getOriginalReportID(reportID, reportAction);
+
+    if (!reportAction?.reportActionID) {
+        return;
+    }
+    // ...
+}
 ```
 
 ---
