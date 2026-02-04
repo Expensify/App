@@ -837,10 +837,10 @@ function getOptionData({
             result.alternateText = getRenamedAction(translate, lastAction, isExpense, lastActorDisplayName);
         } else if (isTaskAction(lastAction)) {
             result.alternateText = formatReportLastMessageText(getTaskReportActionMessage(translate, lastAction).text);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
             const actionMessage = getReportActionMessageText(lastAction);
             result.alternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
             result.alternateText = translate('report.actions.type.leftTheChatWithName', {nameOrEmail: lastActorDisplayName});
         } else if (isInviteOrRemovedAction(lastAction)) {
             let actorDetails;
