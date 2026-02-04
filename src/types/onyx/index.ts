@@ -46,7 +46,6 @@ import type {
     OutstandingReportsByPolicyIDDerivedValue,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
-    VisibleReportActionsDerivedValue,
 } from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
@@ -126,6 +125,7 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
 import type ReportViolations from './ReportViolation';
 import type Request from './Request';
+import type {AnyRequest} from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
@@ -257,6 +257,7 @@ export type {
     ReportFieldsViolations,
     ReportLayoutGroupBy,
     GroupedTransactions,
+    AnyRequest,
     Request,
     Response,
     ScreenShareRequest,
@@ -331,7 +332,6 @@ export type {
     LastSearchParams,
     ReportTransactionsAndViolationsDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
-    VisibleReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     ScheduleCallDraft,
