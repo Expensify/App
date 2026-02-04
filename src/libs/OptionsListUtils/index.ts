@@ -3099,7 +3099,9 @@ function getManagerMcTestParticipant(currentUserAccountID: number, personalDetai
         : getPersonalDetailByEmail(CONST.EMAIL.MANAGER_MCTEST);
     const managerMcTestReport =
         managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
-    return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
+    return managerMcTestPersonalDetails
+        ? {...getParticipantsOption(managerMcTestPersonalDetails, personalDetails ?? allPersonalDetails ?? {}), reportID: managerMcTestReport?.reportID}
+        : undefined;
 }
 
 function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {

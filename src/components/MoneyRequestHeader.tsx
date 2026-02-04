@@ -81,6 +81,7 @@ import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
+import {usePersonalDetails} from './OnyxListItemProvider';
 import {useSearchContext} from './Search/SearchContext';
 import {useWideRHPState} from './WideRHPContextProvider';
 
@@ -139,6 +140,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'ReceiptScan']);
     const {login: currentUserLogin, email, accountID} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
     const isOnHold = isOnHoldTransactionUtils(transaction);
@@ -206,6 +208,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
+                    personalDetails,
                 });
             }
         },
@@ -220,6 +223,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             policyRecentlyUsedCurrencies,
             policy?.id,
             isSelfTourViewed,
+            personalDetails,
         ],
     );
 

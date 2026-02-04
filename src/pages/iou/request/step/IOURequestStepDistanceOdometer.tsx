@@ -442,6 +442,7 @@ function IOURequestStepDistanceOdometer({
                     transactionViolations,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    personalDetails,
                     recentWaypoints,
                 });
                 return;

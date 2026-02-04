@@ -879,6 +879,7 @@ function IOURequestStepConfirmation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                personalDetails,
                 recentWaypoints,
             });
         },
@@ -907,6 +908,7 @@ function IOURequestStepConfirmation({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            personalDetails,
             recentWaypoints,
         ],
     );
