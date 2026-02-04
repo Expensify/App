@@ -58,6 +58,21 @@ function openPolicyTravelPage(policyID: string, workspaceAccountID: number) {
 function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountID: number, settlementBankAccountID: number, previousPaymentBankAccountID?: number) {
     const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
+    // Determine if we need to set the default frequency:
+    // - When enabling for the first time (no previous account): default to monthly
+    // - When disabling (zero bank account): clear the frequency
+    // - When changing accounts (previous account exists): don't touch frequency (undefined = no change)
+    const isFirstEnable = settlementBankAccountID !== 0 && !previousPaymentBankAccountID;
+    const isDisabling = settlementBankAccountID === 0;
+
+    let monthlySettlementDate: Date | null | undefined;
+    if (isFirstEnable) {
+        monthlySettlementDate = new Date();
+    } else if (isDisabling) {
+        monthlySettlementDate = null;
+    }
+    // Otherwise leave undefined - Onyx.merge will not overwrite existing value
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -65,6 +80,7 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             value: {
                 paymentBankAccountID: settlementBankAccountID,
                 previousPaymentBankAccountID,
+                monthlySettlementDate,
                 isLoading: true,
                 pendingFields: {
                     paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -83,6 +99,7 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
             value: {
                 paymentBankAccountID: settlementBankAccountID,
                 previousPaymentBankAccountID: null,
+                monthlySettlementDate,
                 isLoading: false,
                 pendingFields: {
                     paymentBankAccountID: null,
@@ -102,6 +119,7 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
                 // Keep the attempted value visible (grayed out) until error is dismissed
                 paymentBankAccountID: settlementBankAccountID,
                 previousPaymentBankAccountID,
+                monthlySettlementDate,
                 isLoading: false,
                 pendingFields: {
                     paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -127,10 +145,14 @@ function setTravelInvoicingSettlementAccount(policyID: string, workspaceAccountI
  */
 function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number, paymentBankAccountID: number | null) {
     Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
-        errors: null,
-        pendingAction: null,
         paymentBankAccountID,
         previousPaymentBankAccountID: null,
+        pendingFields: {
+            paymentBankAccountID: null,
+        },
+        errorFields: {
+            paymentBankAccountID: null,
+        },
     });
 }
 
@@ -145,8 +167,7 @@ function updateTravelInvoiceSettlementFrequency(
     frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
     currentMonthlySettlementDate?: Date,
 ) {
-    const cardSettingsKey =
-        `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${string}`;
+    const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
     // If Monthly, set date (optimistically today). If Daily, set null.
     const monthlySettlementDate = frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY ? new Date() : null;
@@ -161,7 +182,6 @@ function updateTravelInvoiceSettlementFrequency(
                 pendingFields: {
                     monthlySettlementDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
-                errors: null,
                 errorFields: {
                     monthlySettlementDate: null,
                 },
@@ -179,7 +199,6 @@ function updateTravelInvoiceSettlementFrequency(
                 pendingFields: {
                     monthlySettlementDate: null,
                 },
-                errors: null,
                 errorFields: {
                     monthlySettlementDate: null,
                 },
@@ -197,7 +216,6 @@ function updateTravelInvoiceSettlementFrequency(
                 pendingFields: {
                     monthlySettlementDate: null,
                 },
-                errors: null,
                 errorFields: {
                     monthlySettlementDate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
@@ -219,13 +237,14 @@ function updateTravelInvoiceSettlementFrequency(
  */
 function clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID: number, monthlySettlementDate: Date | null | undefined) {
     Onyx.merge(getTravelInvoicingCardSettingsKey(workspaceAccountID), {
-        errors: null,
+        monthlySettlementDate: monthlySettlementDate ?? null,
+        previousMonthlySettlementDate: null,
+        pendingFields: {
+            monthlySettlementDate: null,
+        },
         errorFields: {
             monthlySettlementDate: null,
         },
-        pendingAction: null,
-        monthlySettlementDate: monthlySettlementDate ?? null,
-        previousMonthlySettlementDate: null,
     });
 }
 
