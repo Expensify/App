@@ -743,7 +743,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
