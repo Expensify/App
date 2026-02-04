@@ -92,7 +92,6 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         goBack();
     }, [goBack]);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- useSubStep is deprecated; migrate to useSubPage per https://github.com/Expensify/App/issues/79039
     const {
         componentToRender: SubStep,
         isEditing,
@@ -101,6 +100,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         screenIndex,
         moveTo,
         resetScreenIndex,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- useSubStep is deprecated; migrate to useSubPage per https://github.com/Expensify/App/issues/79039
     } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep, skipSteps: skippedSteps});
 
     const handleBackButtonPress = () => {
