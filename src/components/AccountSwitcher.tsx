@@ -196,7 +196,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     interactive={canSwitchAccounts}
                     pressDimmingValue={canSwitchAccounts ? undefined : 1}
                     wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
-                    sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS} 
+                    sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
                 >
                     <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                         <Avatar
