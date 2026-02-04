@@ -2963,9 +2963,6 @@ function hasOutstandingChildRequest(
 
 /**
  * Determines if the current user should submit the report
- * Returns true if:
- * - User owns the report AND it has been reopened or retracted
- * - OR the report is waiting for submission from current user (based on policy settings)
  */
 function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]) {
     const hasBeenReopenedOrRetracted = hasReportBeenReopened(iouReport, reportActions) || hasReportBeenRetracted(iouReport, reportActions);
