@@ -42,7 +42,7 @@ import CardSectionUtils from './utils';
 
 function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'CreditCard']);
@@ -62,7 +62,7 @@ function CardSection() {
     const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-    const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
+    const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
     const hasFailedLastBilling = useMemo(
         () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018,
         [purchaseList],
@@ -101,11 +101,10 @@ function CardSection() {
             billingStatus: billingStatusOnyx,
             creditCardEyesIcon: illustrations.CreditCardEyes,
             fundList,
-            locale: preferredLocale,
         }),
     );
 
-    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate(preferredLocale) : undefined;
+    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
     const sectionSubtitle = getSectionSubtitle({
         translate,
@@ -126,7 +125,6 @@ function CardSection() {
                 billingStatus: billingStatusOnyx,
                 creditCardEyesIcon: illustrations.CreditCardEyes,
                 fundList,
-                locale: preferredLocale,
             }),
         );
     }, [
@@ -141,7 +139,6 @@ function CardSection() {
         billingStatusOnyx,
         illustrations.CreditCardEyes,
         fundList,
-        preferredLocale,
     ]);
 
     const handleRetryPayment = () => {

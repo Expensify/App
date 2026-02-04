@@ -280,6 +280,7 @@ function BaseTextInput({
 
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
+    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
 
     return (
         <>
@@ -291,7 +292,7 @@ function BaseTextInput({
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
-                    accessibilityLabel={label}
+                    accessibilityLabel={accessibilityLabel}
                     style={[
                         autoGrowHeight &&
                             !isAutoGrowHeightMarkdown &&
@@ -367,6 +368,7 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}

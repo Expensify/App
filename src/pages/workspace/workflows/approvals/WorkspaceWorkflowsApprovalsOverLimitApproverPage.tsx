@@ -110,7 +110,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 approver: {
                     ...currentApprover,
                     overLimitForwardsTo: '',
-                    approvalLimit: null,
                 },
                 approverIndex,
                 currentApprovalWorkflow: approvalWorkflow,

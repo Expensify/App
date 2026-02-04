@@ -1,10 +1,9 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
-import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import {useOnboardingValues} from '@components/OnyxListItemProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import useCurrentReportID from '@hooks/useCurrentReportID';
+import {useCurrentReportIDActions} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -17,9 +16,8 @@ import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
-import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import {endSpan, getSpan, startSpan} from '@src/libs/telemetry/activeSpans';
 import {navigationIntegration} from '@src/libs/telemetry/integrations';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,7 +91,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
-    const currentReportIDValue = useCurrentReportID();
+    const {updateCurrentReportID} = useCurrentReportIDActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -101,15 +99,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         selector: hasCompletedGuidedSetupFlowSelector,
         canBeMissing: true,
     });
-    const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
-        selector: wasInvitedToNewDotSelector,
-        canBeMissing: true,
-    });
-    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY, {canBeMissing: true});
-    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
-    const onboardingValues = useOnboardingValues();
+
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
@@ -126,33 +116,12 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
-        if (shouldShowRequire2FAPage) {
-            return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config);
-        }
-
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
         // If we have a transition URL, don't restore last visited path - let React Navigation handle it
         // This prevents reusing deep links after logout regardless of authentication status
         if (isTransitioning) {
             return undefined;
-        }
-
-        // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
-        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
-            return getAdaptedStateFromPath(
-                getOnboardingInitialPath({
-                    isUserFromPublicDomain: !!account.isFromPublicDomain,
-                    hasAccessiblePolicies: !!account.hasAccessibleDomainPolicies,
-                    currentOnboardingPurposeSelected,
-                    currentOnboardingCompanySize,
-                    onboardingInitialPath,
-                    onboardingValues,
-                }),
-                linkingConfig.config,
-            );
         }
 
         if (shouldOpenLastVisitedPath(lastVisitedPath) && authenticated) {
@@ -193,6 +162,14 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             },
         };
     }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
+
+    useEffect(() => {
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
+        });
+    }, []);
 
     useEffect(() => {
         if (firstRenderRef.current) {
@@ -250,7 +227,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         const currentRoute = navigationRef.getCurrentRoute();
         Firebase.log(`[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`);
 
-        currentReportIDValue?.updateCurrentReportID(state);
+        updateCurrentReportID(state);
         parseAndLogRoute(state);
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
@@ -259,6 +236,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     };
 
     const onReadyWithSentry = useCallback(() => {
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
         onReady();
         navigationIntegration.registerNavigationContainer(navigationRef);
     }, [onReady]);

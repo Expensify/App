@@ -20,13 +20,14 @@ function setEndAddress(endAddress: GpsDraftDetails['endAddress']) {
     });
 }
 
-function initGpsDraft() {
+function initGpsDraft(reportID: string) {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: [],
         isTracking: true,
         distanceInMeters: 0,
         startAddress: {value: '', type: 'coordinates'},
         endAddress: {value: '', type: 'coordinates'},
+        reportID,
     });
 }
 

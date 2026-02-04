@@ -50,9 +50,10 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
     };
 
     const goToNextStep = () => {
+        const defaultCardName = getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail);
         const cardToAssign: Partial<AssignCardData> = {
             email: assignCard?.cardToAssign?.invitingMemberEmail,
-            cardName: getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail),
+            customCardName: defaultCardName,
             invitingMemberEmail: '',
         };
 
@@ -60,7 +61,8 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
 
         if (assignCard?.cardToAssign?.encryptedCardNumber) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
-            cardToAssign.cardNumber = assignCard.cardToAssign.cardNumber;
+            cardToAssign.cardName = assignCard.cardToAssign.cardName;
+            cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
             cardToAssign.startDate = assignCard?.cardToAssign?.startDate ?? new Date().toISOString().split('T').at(0);
             cardToAssign.dateOption = assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
             setAssignCardStepAndData({
@@ -68,10 +70,11 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
                 cardToAssign,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams), {forceReplace: true});
         } else if (hasOnlyOneCardToAssign(filteredCardList)) {
-            cardToAssign.cardNumber = Object.keys(filteredCardList).at(0);
-            cardToAssign.encryptedCardNumber = Object.values(filteredCardList).at(0);
+            const onlyCard = filteredCardList.at(0);
+            cardToAssign.cardName = onlyCard?.cardName;
+            cardToAssign.encryptedCardNumber = onlyCard?.cardID;
             cardToAssign.startDate = assignCard?.cardToAssign?.startDate ?? new Date().toISOString().split('T').at(0);
             cardToAssign.dateOption = assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
             setAssignCardStepAndData({
@@ -79,14 +82,14 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
                 cardToAssign,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams), {forceReplace: true});
         } else {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CARD,
                 cardToAssign,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams), {forceReplace: true});
         }
     };
 
