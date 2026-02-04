@@ -252,6 +252,8 @@ describe('ReportActionCompose Integration Tests', () => {
                 jest.advanceTimersByTime(1);
             });
 
+            await waitForBatchedUpdatesWithAct();
+
             // Then the message should be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(1);
         });
@@ -266,6 +268,8 @@ describe('ReportActionCompose Integration Tests', () => {
 
             // When the message is submitted
             act(onSubmitAction);
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the message should NOT be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(0);
