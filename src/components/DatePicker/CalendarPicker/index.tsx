@@ -281,6 +281,8 @@ function CalendarPicker({
                                     accessibilityLabel={dateAccessibilityLabel}
                                     tabIndex={day ? 0 : -1}
                                     accessible={!!day}
+                                    accessibilityElementsHidden={!day}
+                                    importantForAccessibility={day ? 'auto' : 'no-hide-descendants'}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     role={CONST.ROLE.BUTTON}
                                 >
