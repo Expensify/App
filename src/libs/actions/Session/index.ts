@@ -659,7 +659,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 readyToShowAuthScreens: hybridApp?.useNewDotSignInPage ? !(hybridApp?.useNewDotSignInPage ?? false) : true,
             };
 
-            const onyxUpdates: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP | typeof ONYXKEYS.NVP_TRY_NEW_DOT | typeof ONYXKEYS.SHOULD_USE_STAGING_SERVER>> = [
+            const onyxUpdates: OnyxUpdate[] = [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.HYBRID_APP,
@@ -667,21 +667,12 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 },
             ];
 
-            const tryNewDotValue = newDotOnyxValues[ONYXKEYS.NVP_TRY_NEW_DOT];
-            if (tryNewDotValue !== undefined) {
+            for (const [key, value] of Object.entries(newDotOnyxValues)) {
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.NVP_TRY_NEW_DOT,
-                    value: tryNewDotValue,
-                });
-            }
-            const shouldUseStagingServer = newDotOnyxValues[ONYXKEYS.SHOULD_USE_STAGING_SERVER];
-            if (shouldUseStagingServer !== undefined) {
-                onyxUpdates.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
-                    value: shouldUseStagingServer,
-                });
+                    key,
+                    value: value ?? {},
+                } as OnyxUpdate);
             }
 
             // Batch all merges together so they're processed atomically by Onyx
