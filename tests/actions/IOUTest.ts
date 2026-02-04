@@ -7820,7 +7820,7 @@ describe('actions/IOU', () => {
                 introSelected: undefined,
                 activePolicyID: undefined,
                 quickAction: undefined,
-                recentWaypoints
+                recentWaypoints,
             });
             await waitForBatchedUpdates();
 
