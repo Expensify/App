@@ -1081,7 +1081,7 @@ In this example:
 
 ### [CLEAN-REACT-PATTERNS-3] Keep child components parent and sibling agnostic
 
-- **Search patterns**: Callback props with specific signatures like `(index: number) => void`, child components computing values from props only to pass to callbacks, refs used to access sibling data
+- **Search patterns**: Callback props with specific signatures like `(index: number) => void`, child components computing values from props only to pass to callbacks, refs used to access sibling data, useImperativeHandle
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
