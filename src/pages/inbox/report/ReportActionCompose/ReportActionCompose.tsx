@@ -596,7 +596,7 @@ function ReportActionCompose({
                             onCleared={submitForm}
                             disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                             setIsCommentEmpty={setIsCommentEmpty}
-                            handleSendMessage={handleSendMessage}
+                            onSendMessage={handleSendMessage}
                             shouldShowComposeInput={shouldShowComposeInput}
                             onFocus={onFocus}
                             onBlur={onBlur}

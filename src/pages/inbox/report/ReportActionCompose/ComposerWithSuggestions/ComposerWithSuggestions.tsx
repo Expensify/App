@@ -106,7 +106,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         setIsCommentEmpty: (isCommentEmpty: boolean) => void;
 
         /** Function to handle sending a message */
-        handleSendMessage: () => void;
+        onSendMessage: () => void;
 
         /** Whether the compose input should show */
         shouldShowComposeInput: OnyxEntry<boolean>;
@@ -216,7 +216,7 @@ function ComposerWithSuggestions({
     onPasteFile,
     disabled,
     setIsCommentEmpty,
-    handleSendMessage,
+    onSendMessage,
     shouldShowComposeInput,
     measureParentContainer = () => {},
     isScrollLikelyLayoutTriggered,
@@ -513,7 +513,7 @@ function ComposerWithSuggestions({
             // Submit the form when Enter is pressed
             if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !webEvent.shiftKey) {
                 webEvent.preventDefault();
-                handleSendMessage();
+                onSendMessage();
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
@@ -556,7 +556,7 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, handleSendMessage, lastReportAction, reportID, updateComment, selection.end],
+        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, onSendMessage, lastReportAction, reportID, updateComment, selection.end],
     );
 
     const onChangeText = useCallback(
