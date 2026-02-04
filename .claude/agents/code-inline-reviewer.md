@@ -1081,38 +1081,44 @@ In this example:
 
 ---
 
-### [CLEAN-REACT-PATTERNS-3] Keep child components parent and sibling agnostic
+### [CLEAN-REACT-PATTERNS-3] Design context-free component contracts
 
-- **Search patterns**: Callback props with specific signatures like `(index: number) => void`, child components computing values from props only to pass to callbacks, refs used to access sibling data, useImperativeHandle
+- **Search patterns**: Callback props with consumer-specific signatures like `(index: number) => void`, props used only to extract values for callbacks, refs used to access external component state, useImperativeHandle
 
 - **Condition**: Flag ONLY when BOTH of these are true:
 
-  1. A child component's API is shaped around a specific parent's implementation details
+  1. A component's interface is shaped around a specific consumer's implementation rather than abstract capabilities
   2. AND at least ONE of the following manifestations is present:
-     - The child computes values from props specifically to pass back to parent callbacks
-     - Callback signatures leak parent assumptions (e.g., routing by index, parent-specific data shapes)
-     - The child accesses sibling state/behavior through refs or callbacks
+     - The component receives data only to extract values for callbacks (doesn't use it for rendering)
+     - Callback signatures encode consumer-specific assumptions (e.g., `(index: number) => void` for navigation)
+     - The component accesses external state through refs or imperative handles
 
   **Signs of violation:**
-  - Callback like `navigateToX(index: number)` where child computes the index from props
-  - Child receives data (e.g., `transaction`) and extracts values only to pass to callbacks
-  - Child uses `getSiblingData()` or similar to reach into sibling components
-  - Component can't be reused in a different context without modification
+  - Callback signatures that encode consumer assumptions: `navigateToWaypoint(index: number)` instead of `onAddWaypoint()`
+  - Props passed only to extract values for callbacks, not for rendering (e.g., `transaction` passed just to compute `waypoints.length`)
+  - Imperative access to external state via refs or `useImperativeHandle`
+  - Component requires modification to work in a different context
 
   **DO NOT flag if:**
-  - Child passes back data it naturally owns (e.g., `onChange(value)` for an input, `onSelectItem(item)` for a list)
-  - Callback is fully-formed and child just invokes it (e.g., `onAddStop()`)
-  - Parent legitimately coordinates sibling state (parent holds state, passes to both children)
+  - Component signals events with data it naturally owns (e.g., `onChange(value)` for an input, `onSelectItem(item)` for a list)
+  - Callbacks are abstract actions the component can trigger (e.g., `onAddStop()`, `onSubmit()`)
+  - State coordination happens at a higher level with clear data flow
 
-- **Reasoning**: When child components expose APIs that depend on parent-specific logic or data shapes, if the component is used in a different context, then it must be rewritten or wrapped, reducing reuse and increasing coupling. Children should signal *what happened*, not compute *what the parent should do*.
+  **What makes a contract "abstract":**
+  - Callback describes *what happened* in component terms: `onAddStop`, `onSelect`, `onChange`
+  - Callback does NOT describe *what consumer should do*: `navigateToWaypoint(index)`, `updateParentState(value)`
+  - Props are used for rendering or internal logic, not just to compute callback arguments
+  - Component works without modification in a different context
 
-**Distinction from CLEAN-REACT-PATTERNS-2**: This rule is about action flow UP (child → parent) — "Don't make child compute what parent should do."
+- **Reasoning**: A component's contract should expose its capabilities abstractly, not encode assumptions about how it will be used. When interfaces leak consumer-specific details, the component becomes coupled to that context and requires modification for reuse. Good contracts signal *what the component can do*, not *what the consumer needs*.
 
-Good (child has context-free interface):
+**Distinction from CLEAN-REACT-PATTERNS-2**: PATTERNS-2 ensures components fetch their own data. This rule ensures components expose abstract capabilities, not consumer-specific interfaces.
 
-- Child signals "add stop was pressed"
-- Parent owns all implementation details (computing index, navigating)
-- Child is reusable anywhere that needs an "add stop" button
+Good (abstract contract):
+
+- Interface exposes capability: "user can add a stop"
+- Implementation details (index computation, navigation) stay with consumer
+- Component is reusable in any context needing an "add stop" action
 
 ```tsx
 <DistanceRequestFooter
@@ -1126,16 +1132,16 @@ Good (child has context-free interface):
 <Button onPress={onAddStop}>{translate('distance.addStop')}</Button>
 ```
 
-Bad (child API shaped around parent's implementation):
+Bad (contract leaks consumer assumptions):
 
-- Callback signature leaks parent assumption (routing by index)
-- Child computes index from `transaction` just to pass back to parent
-- Not reusable where navigation doesn't use index
+- Callback `navigateToWaypointEditPage(index: number)` encodes routing assumption
+- `transaction` prop exists only to compute index for callback
+- Requires modification if consumer navigates differently
 
 ```tsx
 type DistanceRequestFooterProps = {
     waypoints?: WaypointCollection;
-    navigateToWaypointEditPage: (index: number) => void;  // Parent-specific signature
+    navigateToWaypointEditPage: (index: number) => void;  // Encodes routing assumption
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
 };
@@ -1148,20 +1154,20 @@ type DistanceRequestFooterProps = {
     policy={policy}
 />
 
-// in DistanceRequestFooter - child computes value for parent
+// in DistanceRequestFooter - computes value for consumer's callback
 <Button
     onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
     text={translate('distance.addStop')}
 />
 ```
 
-Good (siblings are independent):
+Good (independent contracts):
 
-- Parent coordinates state between siblings
-- Each child is unaware of the other
+- Each component has a self-contained interface
+- State coordination happens at composition level
 
 ```tsx
-function Parent() {
+function EditProfile() {
     const [formData, setFormData] = useState<FormData>();
     return (
         <>
@@ -1172,10 +1178,10 @@ function Parent() {
 }
 ```
 
-Bad (sibling-coupled):
+Bad (coupled contracts):
 
-- SaveButton reaches into Form's internals via callback
-- Components can't be used independently
+- `SaveButton` interface requires knowledge of `Form`'s internals
+- Neither component works independently
 
 ```tsx
 function SaveButton({ getSiblingFormData }: { getSiblingFormData: () => FormData }) {
