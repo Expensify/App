@@ -910,8 +910,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Twoja przestrzeń',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Witaj w ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Użyj przycisku +, aby ${additionalText} wydatek.`,
-        askConcierge: 'Zadawaj pytania i otrzymuj całodobowe wsparcie w czasie rzeczywistym.',
-        conciergeSupport: 'Całodobowe wsparcie',
+        askConcierge: 'Zapytaj mnie o cokolwiek!',
+        conciergeSupport: 'Twój osobisty agent AI',
         create: 'utwórz',
         iouTypes: {
             pay: 'zapłać',
@@ -4951,6 +4951,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             chooseCardFeed: 'Wybierz źródło karty',
             ukRegulation:
                 'Expensify Limited jest agentem Plaid Financial Ltd., autoryzowanej instytucji płatniczej regulowanej przez Financial Conduct Authority na podstawie Payment Services Regulations 2017 (numer referencyjny firmy: 804718). Plaid świadczy Ci regulowane usługi dostępu do informacji o rachunku za pośrednictwem Expensify Limited jako swojego agenta.',
+            deletedFeed: 'Usunięty kanał',
             assignCardFailedError: 'Przypisanie karty nie powiodło się.',
             unassignCardFailedError: 'Odłączenie karty nie powiodło się.',
             cardAlreadyAssignedError: 'Ta karta jest już przypisana do użytkownika w innej przestrzeni roboczej.',

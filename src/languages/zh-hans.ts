@@ -899,8 +899,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: '你的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到 ${roomName}！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 + 按钮来${additionalText}一笔费用。`,
-        askConcierge: '随时提问并获得 24/7 实时支持。',
-        conciergeSupport: '24/7 支持',
+        askConcierge: '尽管问我任何问题！',
+        conciergeSupport: '您的专属AI助手',
         create: '创建',
         iouTypes: {
             pay: '支付',
@@ -4867,6 +4867,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             chooseCardFeed: '选择卡片数据源',
             ukRegulation:
                 'Expensify Limited 是 Plaid Financial Ltd. 的代理，后者是一家在《2017 年支付服务条例》下受金融行为监管局监管的授权支付机构（公司参考编号：804718）。Plaid 通过其代理 Expensify Limited 向您提供受监管的账户信息服务。',
+            deletedFeed: '已删除的动态',
             assignCardFailedError: '卡片分配失败。',
             unassignCardFailedError: '卡取消分配失败。',
             cardAlreadyAssignedError: '此卡已分配给另一个工作区中的用户。',

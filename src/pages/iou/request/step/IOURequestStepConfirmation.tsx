@@ -631,6 +631,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     isSelfTourViewed,
+                    personalDetails,
                 });
                 existingIOUReport = iouReport;
             }
@@ -666,6 +667,7 @@ function IOURequestStepConfirmation({
             parentReportAction,
             isTimeRequest,
             isSelfTourViewed,
+            personalDetails,
         ],
     );
 
