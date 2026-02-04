@@ -1,3 +1,4 @@
+import {areAllExpensifyCardsShipped} from '@selectors/Card';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
@@ -9,7 +10,6 @@ import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {areAllExpensifyCardsShipped} from '@selectors/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
