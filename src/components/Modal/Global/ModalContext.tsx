@@ -76,9 +76,10 @@ function ModalProvider({children}: {children: React.ReactNode}) {
                 const lastModalPromise = modalPromisesStack.current?.[lastModalId];
                 if (!lastModalPromise) {
                     Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} Missing modal promise while attempting to close modal with id ${lastModalId}. This should never happen.`);
+                } else {
+                    lastModalPromise.resolve(data);
+                    delete modalPromisesStack.current?.[lastModalId];
                 }
-                lastModalPromise.resolve(data);
-                delete modalPromisesStack.current?.[lastModalId];
             }
 
             return {
