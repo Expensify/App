@@ -42,7 +42,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
             }
 
             // Log an error to quickly identify and add forgotten screens to the Dynamic Routes configuration
-            Log.warn(`[DynamicRoute] Focused route ${focusedRoute.name} is not allowed to access dynamic route with suffix ${dynamicRouteSuffix}`);
+            Log.warn(`[getStateFromPath.ts][DynamicRoute] Focused route ${focusedRoute.name} is not allowed to access dynamic route with suffix ${dynamicRouteSuffix}`);
         }
     }
 

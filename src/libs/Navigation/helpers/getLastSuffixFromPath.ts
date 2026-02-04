@@ -1,3 +1,5 @@
+import Log from '@libs/__mocks__/Log';
+
 /**
  * Extracts the last segment from a URL path, removing query parameters and trailing slashes.
  *
@@ -8,6 +10,7 @@ function getLastSuffixFromPath(path: string | undefined): string {
     const pathWithoutParams = path?.split('?').at(0);
 
     if (!pathWithoutParams) {
+        Log.warn('[getLastSuffixFromPath.ts] Provided path is undefined or empty.');
         return '';
     }
 
