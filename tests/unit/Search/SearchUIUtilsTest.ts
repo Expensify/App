@@ -33,6 +33,7 @@ import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search'
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import DateUtils from '@src/libs/DateUtils';
 import {getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2950,6 +2951,64 @@ describe('SearchUIUtils', () => {
             };
 
             expect(SearchUIUtils.isTransactionYearGroupListItemType(yearItem)).toBe(true);
+        });
+
+        it('should apply date filter when expanding year group', () => {
+            // Test that adjustTimeRangeToDateFilters correctly applies a date filter
+            // when expanding a year group (e.g., date >= 2025-12-01)
+            const yearDateRange = DateUtils.getYearDateRange(2025);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-12-01',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, dateFilter);
+
+            // The start date should be adjusted to 2025-12-01 (the filter limit)
+            // instead of 2025-01-01 (the year start)
+            expect(result.start).toBe('2025-12-01');
+            // The end date should remain 2025-12-31 (the year end)
+            expect(result.end).toBe('2025-12-31');
+        });
+
+        it('should apply date filter with both start and end limits when expanding year group', () => {
+            // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
+            const yearDateRange = DateUtils.getYearDateRange(2025);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-06-15',
+                    },
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                        value: '2025-09-30',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, dateFilter);
+
+            // The start date should be adjusted to 2025-06-15 (the filter limit)
+            expect(result.start).toBe('2025-06-15');
+            // The end date should be adjusted to 2025-09-30 (the filter limit)
+            expect(result.end).toBe('2025-09-30');
+        });
+
+        it('should return original time range when no date filter is provided', () => {
+            const yearDateRange = DateUtils.getYearDateRange(2025);
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, undefined);
+
+            // Should return the original year date range unchanged
+            expect(result.start).toBe('2025-01-01');
+            expect(result.end).toBe('2025-12-31');
         });
 
         it('should return getQuarterSections result when type is EXPENSE and groupBy is quarter', () => {
