@@ -998,6 +998,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'カードを認証して支出を始めましょう。',
                 cta: '有効化',
             },
+            ctaFix: '修正',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `${feedName} 会社カード接続を修正` : '法人クレジットカードの接続を修正'),
+                subtitle: 'ワークスペース > 会社カード',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`, subtitle: 'ワークスペース > 会計'},
         },
         announcements: 'お知らせ',
         discoverSection: {

@@ -1007,6 +1007,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Validez votre carte et commencez à dépenser.',
                 cta: 'Activer',
             },
+            ctaFix: 'Corriger',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Corriger la connexion de la carte d'entreprise ${feedName}` : 'Corriger la connexion de la carte entreprise'),
+                subtitle: 'Espace de travail > Cartes d’entreprise',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Corriger la connexion ${integrationName}`, subtitle: 'Espace de travail > Comptabilité'},
         },
         announcements: 'Annonces',
         discoverSection: {

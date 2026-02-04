@@ -743,6 +743,7 @@ const translations: TranslationDeepObject<typeof en> = {
         timeSensitiveSection: {
             title: 'Requiere atención inmediata',
             cta: 'Reclamar',
+            ctaFix: 'Corrige',
             offer50off: {
                 title: '¡Obtén 50% de descuento en tu primer año!',
                 subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} restantes`,
@@ -750,6 +751,14 @@ const translations: TranslationDeepObject<typeof en> = {
             offer25off: {
                 title: '¡Obtén 25% de descuento en tu primer año!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'día' : 'días'} restantes`,
+            },
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Reconectar la tarjeta corporativa de ${feedName}` : 'Reconectar la tarjeta corporativa'),
+                subtitle: 'Espacio de trabajo > Tarjetas de empresa',
+            },
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `Reconectar con ${integrationName}`,
+                subtitle: 'Espacio de trabajo > Contabilidad',
             },
             addShippingAddress: {
                 title: 'Necesitamos tu dirección de envío',
