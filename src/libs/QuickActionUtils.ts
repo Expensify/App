@@ -1,10 +1,11 @@
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Beta, Policy, Report} from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type { OnyxEntry } from 'react-native-onyx';
 import getIconForAction from './getIconForAction';
 import {getPerDiemCustomUnit} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
@@ -99,6 +100,7 @@ const isQuickActionAllowed = (
     quickActionReport: Report | undefined,
     quickActionPolicy: Policy | undefined,
     isReportArchived: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
     isRestrictedToPreferredPolicy = false,
 ) => {
     if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM) {
@@ -117,7 +119,7 @@ const isQuickActionAllowed = (
         if (isReportHasManagerMCTest) {
             return false;
         }
-        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, isRestrictedToPreferredPolicy);
+        return canCreateRequest(quickActionReport, quickActionPolicy, iouType, isReportArchived, betas, isRestrictedToPreferredPolicy);
     }
     return true;
 };
