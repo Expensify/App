@@ -1033,7 +1033,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(translate, reportAction);
                     Clipboard.setString(displayMessage);
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
+                } else if (
+                    reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM ||
+                    reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM
+                ) {
                     Clipboard.setString(translate('report.actions.type.leftTheChat'));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
                     setClipboardMessage(getDynamicExternalWorkflowRoutedMessage(reportAction, translate));
