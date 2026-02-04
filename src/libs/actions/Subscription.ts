@@ -345,7 +345,7 @@ function applyExpensifyCode(expensifyCode: string) {
         expensifyCode,
     };
 
-    API.write(WRITE_COMMANDS.APPLY_EXPENSIFY_CODE, parameters, {
+    API.write(WRITE_COMMANDS.SET_PROMO_CODE, parameters, {
         optimisticData,
         successData,
         failureData,
