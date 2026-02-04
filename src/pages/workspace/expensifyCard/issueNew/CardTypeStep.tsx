@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
@@ -10,13 +11,15 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardFlow, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
+import {getApprovalWorkflow} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 
 type CardTypeStepProps = {
-    /** ID of the policy */
-    policyID: string | undefined;
+    /** The policy that the card will be issued under */
+    policy: OnyxEntry<Policy>;
 
     /** Array of step names */
     stepNames: readonly string[];
@@ -25,19 +28,25 @@ type CardTypeStepProps = {
     startStepIndex: number;
 };
 
-function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) {
+function CardTypeStep({policy, stepNames, startStepIndex}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'VirtualCard']);
+    const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const isEditing = issueNewCard?.isEditing;
 
     const submit = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>) => {
+        const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+        const defaultType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
+        const isSingleUseType = issueNewCard?.data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE;
+        const shouldUseDefaultLimitType = isSingleUseType && value === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL;
         setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE,
             data: {
                 cardType: value,
+                limitType: shouldUseDefaultLimitType ? defaultType : issueNewCard?.data?.limitType,
             },
             isEditing: false,
             policyID,

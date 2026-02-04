@@ -80,7 +80,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
             case CONST.EXPENSIFY_CARD.STEP.CARD_TYPE:
                 return (
                     <CardTypeStep
-                        policyID={policyID}
+                        policy={policy}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
                     />
