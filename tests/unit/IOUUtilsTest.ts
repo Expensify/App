@@ -192,9 +192,13 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateSplitAmountFromPercentage(8900, 7.7)).toBe(685);
         });
 
-        test('Clamps percentage between 0 and 100', () => {
-            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, -10)).toBe(0);
-            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 150)).toBe(20000);
+        test('Supports negative and over-100 percentages for multi-split scenarios', () => {
+            // Negative percentages (person owes money back to the group)
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, -10)).toBe(-2000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, -25)).toBe(-5000);
+            // Over-100 percentages (person pays more than their share)
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 150)).toBe(30000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 125)).toBe(25000);
         });
 
         test('Preserves negative sign for negative amounts (negative expense splits)', () => {
@@ -206,6 +210,14 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 0)).toBe(0);
             // Full amount should also be negative
             expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 100)).toBe(-20000);
+        });
+
+        test('Handles negative percentages with negative amounts (double negative)', () => {
+            // When both the amount and percentage are negative, the result is positive
+            // This represents someone owing money back on a refund
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, -25)).toBe(5000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-10000, -50)).toBe(5000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-10000, -33.3)).toBe(3330);
         });
     });
 
@@ -257,14 +269,33 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateSplitPercentagesFromAmounts([0, 0], 0)).toEqual([0, 0]);
         });
 
-        test('Uses absolute values of amounts and total', () => {
+        test('Preserves sign for negative amounts in multi-split scenario', () => {
+            const totalInCents = 10000;
+            const amounts = [-2500, 7500, 5000]; // -25% + 75% + 50% = 100%
+            const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
+
+            // First amount should be negative percentage
+            expect(percentages.at(0)).toBe(-25);
+            // Second amount should be positive
+            expect(percentages.at(1)).toBe(75);
+            // Third amount should be positive
+            expect(percentages.at(2)).toBe(50);
+            // Sum should be 100 (accounting for signs)
+            expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
+        });
+
+        test('Handles all negative amounts with negative total', () => {
             const totalInCents = -2300;
             const amounts = [-766, -766, -768];
             const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
 
+            // When both total and amounts are negative (same sign), percentages should be positive
+            expect(percentages.at(0)).toBeGreaterThan(0);
+            expect(percentages.at(1)).toBeGreaterThan(0);
+            expect(percentages.at(2)).toBeGreaterThan(0);
             // Equal amounts should have equal percentages
             expect(percentages.at(0)).toBe(percentages.at(1));
-            // Sum should be 100
+            // Sum should be 100 (positive)
             expect(Math.round(percentages.reduce((sum, p) => sum + p, 0) * 10) / 10).toBe(100);
         });
 
@@ -611,7 +642,7 @@ describe('Check valid amount for IOU/Expense request', () => {
     });
 
     test('Expense amount should be negative', () => {
-        const expenseReport = ReportUtils.buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+        const expenseReport = ReportUtils.buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]});
         const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {
                 amount: 100,
