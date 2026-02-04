@@ -311,7 +311,7 @@ function ReportActionCompose({
 
     const addAttachment = useCallback((file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
-        const clear = composerRef.current?.clear;
+        const clear = composerRef.current?.clearWorklet;
         if (!clear) {
             throw new Error('The composerRef.clear function is not set yet. This should never happen, and indicates a developer error.');
         }
@@ -449,9 +449,9 @@ function ReportActionCompose({
     // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
     // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
     const composerRefShared = useSharedValue<{
-        clear: (() => void) | undefined;
-        resetHeight: (() => void) | undefined;
-    }>({clear: undefined, resetHeight: undefined});
+        clearWorklet?: () => void;
+        resetHeight?: () => void;
+    }>({clearWorklet: undefined, resetHeight: undefined});
 
     const handleSendMessage = useCallback(() => {
         if (isSendDisabled || !debouncedValidate.flush()) {
@@ -464,7 +464,7 @@ function ReportActionCompose({
         setIsComposerFullSize(reportID, false);
 
         scheduleOnUI(() => {
-            const {clear: clearComposer} = composerRefShared.get();
+            const {clearWorklet: clearComposer} = composerRefShared.get();
 
             if (!clearComposer) {
                 throw new Error('The composerRefShared.clear function is not set yet. This should never happen, and indicates a developer error.');
@@ -586,8 +586,8 @@ function ReportActionCompose({
                             ref={(ref) => {
                                 composerRef.current = ref ?? undefined;
                                 composerRefShared.set({
-                                    clear: ref?.clear as (() => void) | undefined,
-                                    resetHeight: ref?.resetHeight as (() => void) | undefined,
+                                    clearWorklet: ref?.clearWorklet,
+                                    resetHeight: ref?.resetHeight,
                                 });
                             }}
                             suggestionsRef={suggestionsRef}

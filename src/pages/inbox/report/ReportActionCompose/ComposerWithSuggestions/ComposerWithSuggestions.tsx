@@ -161,7 +161,7 @@ type ComposerRef = {
      * Calling clear will immediately clear the input on the UI thread (its a worklet).
      * Once the composer ahs cleared onCleared will be called with the value that was cleared.
      */
-    clear: () => void;
+    clearWorklet: () => void;
     resetHeight: () => void;
 };
 
@@ -678,7 +678,7 @@ function ComposerWithSuggestions({
         textInputRef.current.blur();
     }, []);
 
-    const clear = useCallback(() => {
+    const clearWorklet = useCallback(() => {
         'worklet';
 
         forceClearInput(animatedRef);
@@ -757,16 +757,16 @@ function ComposerWithSuggestions({
             focus,
             replaceSelectionWithText,
             isFocused: () => !!textInputRef.current?.isFocused(),
-            clear,
             resetHeight: () => {
                 if (!defaultComposerHeightRef.current) {
                     return;
                 }
                 setComposerHeight(defaultComposerHeightRef.current);
             },
+            clearWorklet,
             getCurrentText,
         }),
-        [blur, clear, focus, replaceSelectionWithText, getCurrentText],
+        [blur, focus, replaceSelectionWithText, clearWorklet, resetHeight, getCurrentText],
     );
 
     useEffect(() => {
