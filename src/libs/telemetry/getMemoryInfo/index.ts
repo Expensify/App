@@ -2,7 +2,6 @@ import {Platform} from 'react-native';
 import type {MemoryInfo} from './types';
 
 const BYTES_PER_MB = 1024 * 1024;
-const BYTES_PER_GB = BYTES_PER_MB * 1024;
 
 // Only works in Chrome/Edge (Chromium browsers) - navigator.deviceMemory and performance.memory are not available in Firefox/Safari
 const getMemoryInfo = async (): Promise<MemoryInfo> => {
@@ -25,18 +24,7 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
             };
         }
 
-        if (window.navigator) {
-            try {
-                const deviceMemoryGB = (window.navigator as Navigator & {deviceMemory?: number}).deviceMemory;
-                if (deviceMemoryGB && deviceMemoryGB > 0) {
-                    totalMemoryBytes = deviceMemoryGB * BYTES_PER_GB;
-                }
-            } catch (error) {
-                // Gracefully degrade - deviceMemory requires HTTPS and is Chromium-only
-            }
-        }
-
-        // performance.memory is deprecated but still works in Chromium, not enumerable so we use direct access
+        // We prioritize this API as the source of truth for web memory measurements
         if (window.performance) {
             try {
                 const perfMemory = (
@@ -50,16 +38,16 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
                 ).memory;
 
                 if (perfMemory) {
-                    if (perfMemory.usedJSHeapSize && perfMemory.usedJSHeapSize > 0) {
-                        usedMemoryBytes = perfMemory.usedJSHeapSize;
-                    }
-
                     if (perfMemory.jsHeapSizeLimit && perfMemory.jsHeapSizeLimit > 0) {
                         maxMemoryBytes = perfMemory.jsHeapSizeLimit;
                     }
 
-                    if (!totalMemoryBytes && perfMemory.totalJSHeapSize && perfMemory.totalJSHeapSize > 0) {
+                    if (perfMemory.totalJSHeapSize && perfMemory.totalJSHeapSize > 0) {
                         totalMemoryBytes = perfMemory.totalJSHeapSize;
+                    }
+
+                    if (perfMemory.usedJSHeapSize && perfMemory.usedJSHeapSize > 0) {
+                        usedMemoryBytes = perfMemory.usedJSHeapSize;
                     }
                 }
             } catch (error) {

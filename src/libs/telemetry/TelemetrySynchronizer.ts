@@ -10,7 +10,7 @@ import {getActivePolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session, TryNewDot} from '@src/types/onyx';
-import './sendMemoryContext';
+import {cleanupMemoryTracking, initializeMemoryTracking} from './sendMemoryContext';
 
 /**
  * Connect to Onyx to retrieve information about the user's active policies.
@@ -78,3 +78,5 @@ function sendTryNewDotCohortTag() {
     }
     Sentry.setTag(CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT, cohort);
 }
+
+export {initializeMemoryTracking as initializeMemoryTrackingTelemetry, cleanupMemoryTracking as cleanupMemoryTrackingTelemetry};

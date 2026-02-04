@@ -1777,11 +1777,19 @@ const CONST = {
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         CONFIG: {
             SKELETON_MIN_DURATION: 10_000,
-            MEMORY_THRESHOLD_CRITICAL_PERCENTAGE: 90,
             MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
-            // Memory Thresholds (in MB)
-            MEMORY_THRESHOLD_WARNING: 120,
-            MEMORY_THRESHOLD_CRITICAL: 50,
+            
+            // Web Memory Thresholds (% of jsHeapSizeLimit)
+            MEMORY_THRESHOLD_WEB_CRITICAL: 90,  // > 90% heap usage
+            MEMORY_THRESHOLD_WEB_WARNING: 75,   // > 75% heap usage
+            
+            // Android Memory Thresholds (% of VM heap limit from getMaxMemory)
+            MEMORY_THRESHOLD_ANDROID_CRITICAL: 85, // > 85% of heap limit
+            MEMORY_THRESHOLD_ANDROID_WARNING: 70,  // > 70% of heap limit
+            
+            // iOS Memory Thresholds (absolute MB - no heap limit API available)
+            MEMORY_THRESHOLD_IOS_CRITICAL_MB: 800,  // > 800MB used (approaching jetsam)
+            MEMORY_THRESHOLD_IOS_WARNING_MB: 500,   // > 500MB used (monitor closely)
         },
     },
     PRIORITY_MODE: {
@@ -3011,7 +3019,7 @@ const CONST = {
             APPROVE: 'approve',
             TRACK: 'track',
         },
-        AMOUNT_MAX_LENGTH: 10,
+        AMOUNT_MAX_LENGTH: 8,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
         RECEIPT_STATE: {
             SCAN_READY: 'SCANREADY',

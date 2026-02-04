@@ -50,6 +50,7 @@ import StartupTimer from './libs/StartupTimer';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/telemetry/TelemetrySynchronizer';
+import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
@@ -129,6 +130,13 @@ function Expensify() {
 
     useDebugShortcut();
     usePriorityMode();
+
+    useEffect(() => {
+        initializeMemoryTrackingTelemetry();
+        return () => {
+            cleanupMemoryTrackingTelemetry();
+        };
+    }, []);
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 

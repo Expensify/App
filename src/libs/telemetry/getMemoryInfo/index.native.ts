@@ -24,15 +24,30 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
         const maxMemoryBytesRaw = maxMemory.status === 'fulfilled' ? maxMemory.value : null;
         const maxMemoryBytes = normalizeMemoryValue(maxMemoryBytesRaw);
 
+        // Calculate usage percentage based on the appropriate limit:
+        // - Android: Use maxMemoryBytes (VM heap limit from getMaxMemory)
+        // - iOS: null (no reliable API for jetsam limit - use absolute thresholds instead)
+        let usagePercentage: number | null = null;
+        if (Platform.OS === 'android' && usedMemoryBytes !== null && maxMemoryBytes !== null && maxMemoryBytes > 0) {
+            usagePercentage = parseFloat(((usedMemoryBytes / maxMemoryBytes) * 100).toFixed(2));
+        }
+
+        // Free memory calculations are based on device total RAM, not app limits
+        // These are informational only and should NOT be used for memory pressure detection
+        const freeMemoryBytes = totalMemoryBytes !== null && usedMemoryBytes !== null ? totalMemoryBytes - usedMemoryBytes : null;
+        const freeMemoryMB = freeMemoryBytes !== null ? Math.round(freeMemoryBytes / BYTES_PER_MB) : null;
+        const freeMemoryPercentage =
+            totalMemoryBytes !== null && usedMemoryBytes !== null && totalMemoryBytes > 0 ? parseFloat((((totalMemoryBytes - usedMemoryBytes) / totalMemoryBytes) * 100).toFixed(2)) : null;
+
         return {
             usedMemoryBytes,
             usedMemoryMB: usedMemoryBytes !== null ? Math.round(usedMemoryBytes / BYTES_PER_MB) : null,
             totalMemoryBytes,
             maxMemoryBytes,
-            usagePercentage: usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0 ? parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(2)) : null,
-            freeMemoryBytes: totalMemoryBytes !== null && usedMemoryBytes !== null ? totalMemoryBytes - usedMemoryBytes : null,
-            freeMemoryMB: totalMemoryBytes !== null && usedMemoryBytes !== null ? Math.round((totalMemoryBytes - usedMemoryBytes) / BYTES_PER_MB) : null,
-            freeMemoryPercentage: totalMemoryBytes !== null && usedMemoryBytes !== null ? parseFloat((((totalMemoryBytes - usedMemoryBytes) / totalMemoryBytes) * 100).toFixed(2)) : null,
+            usagePercentage,
+            freeMemoryBytes,
+            freeMemoryMB,
+            freeMemoryPercentage,
             platform: Platform.OS,
         };
     } catch (error) {
