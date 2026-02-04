@@ -21,15 +21,20 @@ import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} 
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
+    AddBudgetParams,
+    AddedOrDeletedPolicyReportFieldParams,
+    AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
+    DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
+    ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
     IntegrationSyncFailedParams,
@@ -82,6 +87,7 @@ import type {
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
     RemovedFromApprovalWorkflowParams,
+    RemovedPolicyCustomUnitSubRateParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
     RemoveMembersWarningPrompt,
@@ -145,9 +151,13 @@ import type {
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedBudgetParams,
     UpdatedCustomFieldParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
+    UpdatedPolicyAutoHarvestingParams,
+    UpdatedPolicyBudgetNotificationParams,
+    UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
@@ -158,23 +168,32 @@ import type {
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     UpdatedPolicyCustomUnitRateParams,
+    UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
+    UpdatedPolicyDefaultTitleParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
+    UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
+    UpdatedPolicyTagListParams,
+    UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
     UpdatedPolicyTaxParams,
+    UpdatedPolicyTimeEnabledParams,
+    UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
+    UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
@@ -910,8 +929,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Dein Bereich',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Willkommen in ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Verwende die +‑Taste, um eine Ausgabe zu ${additionalText}.`,
-        askConcierge: 'Stelle Fragen und erhalte rund um die Uhr Echtzeit-Support.',
-        conciergeSupport: 'Support rund um die Uhr',
+        askConcierge: 'Frag mich alles!',
+        conciergeSupport: 'Dein persönlicher KI-Agent',
         create: 'erstellen',
         iouTypes: {
             pay: 'bezahlen',
@@ -1003,6 +1022,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.',
                 cta: 'Aktivieren',
             },
+            ctaFix: 'Beheben',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `${feedName}-Firmenkartenverbindung reparieren` : 'Firmenkarte reparieren Verbindung der Firmenkarte reparieren'),
+                subtitle: 'Workspace > Unternehmenskarten',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `${integrationName}-Verbindung reparieren`, subtitle: 'Arbeitsbereich > Buchhaltung'},
         },
         announcements: 'Ankündigungen',
         discoverSection: {
@@ -3998,6 +4023,14 @@ ${
             defaultCategory: 'Standardkategorie',
             viewTransactions: 'Transaktionen anzeigen',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spesen von ${displayName}`,
+            reimbursementChoice: {
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direkt',
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Keine',
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: 'Indirekt',
+            },
+            budgetFrequency: {monthly: 'monatlich', yearly: 'jährlich'},
+            budgetFrequencyUnit: {monthly: 'Monat', yearly: 'Jahr'},
+            budgetTypeForNotificationMessage: {tag: 'Tag', category: 'Kategorie'},
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-Transaktionen werden automatisch in ein „Expensify Card Liability Account“ exportiert, das mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstellt wird.</muted-text-label>`,
         },
         receiptPartners: {
@@ -4985,6 +5018,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             chooseCardFeed: 'Kartenfeed auswählen',
             ukRegulation:
                 'Expensify Limited ist ein Vertreter von Plaid Financial Ltd., einem zugelassenen Zahlungsinstitut, das nach den Payment Services Regulations 2017 von der Financial Conduct Authority beaufsichtigt wird (Firm Reference Number: 804718). Plaid stellt Ihnen regulierte Kontoinformationsdienste über Expensify Limited als seinen Vertreter zur Verfügung.',
+            deletedFeed: 'Gelöschter Feed',
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
             unassignCardFailedError: 'Kartenaufhebung fehlgeschlagen.',
             cardAlreadyAssignedError: 'Diese Karte ist bereits einem Nutzenden in einem anderen Workspace zugeordnet.',
@@ -6630,7 +6664,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `hat den Schlagwortlistennamen in „${newName}“ geändert (zuvor „${oldName}“)`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `den Tag „${tagName}“ zur Liste „${tagListName}“ hinzugefügt`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) =>
-            `hat die Tagliste „${tagListName}“ aktualisiert, indem der Tag „${oldName}“ in „${newName}“ geändert wurde`,
+            `hat die Tag-Liste „${tagListName}“ aktualisiert, indem der Tag „${oldName}“ in „${newName}“ geändert wurde`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'aktiviert' : 'deaktiviert'} das Tag „${tagName}“ in der Liste „${tagListName}“`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `hat das Tag „${tagName}“ aus der Liste „${tagListName}“ entfernt`,
         deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `„${count}“ Tags aus der Liste „${tagListName}“ entfernt`,
@@ -6643,7 +6677,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `hat ${updatedField} der benutzerdefinierten Einheit ${customUnitName} von „${oldValue}“ auf „${newValue}“ geändert`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung bei Entfernungsraten`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `hat einen neuen „${customUnitName}“-Satz „${rateName}“ hinzugefügt`,
+        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `hat einen neuen ${customUnitName}-Satz „${rateName}“ hinzugefügt`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
             `hat den Satz des/der ${customUnitName} ${updatedField} „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
@@ -6656,13 +6690,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             if (oldValue) {
                 return `hat den erstattungsfähigen Steueranteil im Distanzsatz „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`;
             }
-            return `hat einen steuerlich rückforderbaren Anteil von „${newValue}“ zum Entfernungssatz „${customUnitRateName} hinzugefügt`;
+            return `eine steuerlich rückforderbare Komponente von „${newValue}“ zum Distanzsatz „${customUnitRateName}“ hinzugefügt`;
         },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
             return `${newValue ? 'aktiviert' : 'deaktiviert'} den ${customUnitName}-Satz „${customUnitRateName}“`;
         },
-        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `hat den „${customUnitName}“-Satz „${rateName}“ entfernt`,
-        addedReportField: (fieldType: string, fieldName?: string) => `${fieldType}-Berichtsfeld „${fieldName}“ hinzugefügt`,
+        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `hat den „${customUnitName}“-Satz „${rateName}“ entfernt`,
+        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType}-Berichtsfenster „${fieldName}“ hinzugefügt`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `Standardwert des Berichts­feldes „${fieldName}“ auf „${defaultValue}“ festlegen`,
         addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `die Option „${optionName}“ zum Berichtsfeld „${fieldName}“ hinzugefügt`,
@@ -6675,7 +6709,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             }
             return `${allEnabled ? 'aktiviert' : 'deaktiviert'} die Option „${optionName}“ für das Berichtsfeld „${fieldName}“, wodurch alle Optionen ${allEnabled ? 'aktiviert' : 'deaktiviert'}`;
         },
-        deleteReportField: (fieldType: string, fieldName?: string) => `${fieldType}-Berichtsfeld „${fieldName}“ entfernt`,
+        deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `${fieldType}-Berichts-Feld „${fieldName}“ entfernt`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `aktualisierte „Selbstgenehmigung verhindern“ auf „${newValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“ (zuvor „${oldValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“)`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
@@ -6685,12 +6719,12 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             return `hat das Einreichungsdatum des Monatsberichts auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`;
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
-            `„Weiterberechnung von Ausgaben an Kunden“ auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
-        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `„Standard für Barausgabe“ auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `„Standard-Berichtstitel erzwingen“ aktiviert ${value ? 'an' : 'aus'}`,
+            `„Spesen an Kunden weiterberechnen“ wurde auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `hat die Formel für den benutzerdefinierten Berichtsnamen in „${newValue}“ geändert (zuvor „${oldValue}“)`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `hat den Namen dieses Workspaces zu „${newName}“ geändert (zuvor „${oldName}“)`,
+        updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `„Standard für Barausgaben“ auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `„Standard-Berichtstitel erzwingen“ aktiviert ${value ? 'an' : 'aus'}`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription
                 ? `setze die Beschreibung dieses Arbeitsbereichs auf „${newDescription}“`
@@ -6855,6 +6889,131 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximale Ausgabenhöhe entfernt (zuvor „${oldValue}“)`,
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage festlegen`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Ausgabenalter auf „${newValue}“ Tage geändert (zuvor „${oldValue}“)`,
+        updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `${count} Kategorien aktualisiert`,
+        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `Tags in der Liste „${tagListName}“ aktualisiert`,
+        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
+            `Tag-Liste „${tagListsName}“ in ${isRequired ? 'erforderlich' : 'nicht erforderlich'} geändert`,
+        importTags: 'Tags aus einer Tabelle importiert',
+        deletedAllTags: 'alle Tags gelöscht',
+        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
+            `hat die Standardkategorie für ${customUnitName} in „${newValue}“ geändert ${oldValue ? `(zuvor „${oldValue}“)` : ''}`,
+        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `importierte Preise für benutzerdefinierte Einheit „${customUnitName}“`,
+        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
+            `hat Tarif „${customUnitName}“ mit Satz „${customUnitRateName}“ und Untersatz „${customUnitSubRateName}“ ${updatedField} auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
+        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
+            `entfernte „${customUnitName}“-Rate „${customUnitRateName}“ Unterrate „${removedSubRateName}“`,
+        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `mit Benachrichtigungsschwelle von „${notificationThreshold}%“` : '';
+            if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
+                return `${frequency} individuelles Budget „${individual}“ und ${frequency} gemeinsames Budget „${shared}“${thresholdSuffix} zum/zur ${entityType} „${entityName}“ hinzugefügt`;
+            }
+            if (typeof individual !== 'undefined') {
+                return `${frequency} individuelles Budget von „${individual}“${thresholdSuffix} zum ${entityType} „${entityName}“ hinzugefügt`;
+            }
+            return `${frequency} gemeinsames Budget „${shared}“${thresholdSuffix} zum ${entityType} „${entityName}“ hinzugefügt`;
+        },
+        updateBudget: ({
+            entityType,
+            entityName,
+            oldFrequency,
+            newFrequency,
+            oldIndividual,
+            newIndividual,
+            oldShared,
+            newShared,
+            oldNotificationThreshold,
+            newNotificationThreshold,
+        }: UpdatedBudgetParams) => {
+            const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
+            const sharedChanged = !!(newShared && oldShared !== newShared);
+            const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
+            const thresholdChanged = typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold;
+            const changesList: string[] = [];
+            if (frequencyChanged) {
+                changesList.push(`Budgetfrequenz auf „${newFrequency}“ geändert (zuvor „${oldFrequency}“)`);
+            }
+            if (sharedChanged) {
+                changesList.push(`hat das gesamte Arbeitsbereichsbudget auf „${newShared}“ geändert (zuvor „${oldShared}“)`);
+            }
+            if (individualChanged) {
+                changesList.push(`individuelles Budget auf „${newIndividual}“ geändert (zuvor „${oldIndividual}“)`);
+            }
+            if (thresholdChanged) {
+                changesList.push(`Benachrichtigungsschwelle auf „${newNotificationThreshold}%“ geändert (zuvor „${oldNotificationThreshold}%“)`);
+            }
+            if (!frequencyChanged && !sharedChanged && !individualChanged && !thresholdChanged) {
+                return `Budget für ${entityType} „${entityName}“ aktualisiert`;
+            }
+            if (changesList.length === 1) {
+                if (frequencyChanged) {
+                    return `Budgetfrequenz für ${entityType} „${entityName}“ auf „${newFrequency}“ geändert (zuvor „${oldFrequency}“)`;
+                }
+                if (sharedChanged) {
+                    return `Gesamtarbeitsbereichsbudget für den ${entityType} „${entityName}“ auf „${newShared}“ geändert (zuvor „${oldShared}“)`;
+                }
+                if (individualChanged) {
+                    return `hat das individuelle Budget für den/die/das ${entityType} „${entityName}“ auf „${newIndividual}“ geändert (zuvor „${oldIndividual}“)`;
+                }
+                return `Benachrichtigungsschwelle für ${entityType} „${entityName}“ auf „${newNotificationThreshold}%“ geändert (zuvor „${oldNotificationThreshold}%“)`;
+            }
+            return `Budget für ${entityType} „${entityName}“ aktualisiert: ${changesList.join('; ')}`;
+        },
+        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `mit Benachrichtigungsschwelle von „${notificationThreshold}%“` : '';
+            if (shared && individual) {
+                return `hat ${frequency} gemeinsames Budget von „${shared}“ und individuelles Budget von „${individual}“${thresholdSuffix} aus dem/der ${entityType} „${entityName}“ entfernt`;
+            }
+            if (shared) {
+                return `${frequency} geteiltes Budget „${shared}“${thresholdSuffix} aus dem ${entityType} „${entityName}“ entfernt`;
+            }
+            if (individual) {
+                return `${frequency} individuelles Budget von „${individual}“${thresholdSuffix} aus dem/der ${entityType} „${entityName}“ entfernt`;
+            }
+            return `Budget aus dem ${entityType} „${entityName}“ entfernt`;
+        },
+        updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
+            return `${enabled ? 'aktiviert' : 'deaktiviert'} Zeiterfassung`;
+        },
+        updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
+            return `Stundensatz auf „${newRate}“ geändert (zuvor „${oldRate}“)`;
+        },
+        addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
+        removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
+        updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: UpdatedPolicyReimbursementChoiceParams) =>
+            `Erstattungmethode zu „${newReimbursementChoice}“ geändert (vorher „${oldReimbursementChoice}“)`,
+        setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Vorabgenehmigung von Arbeitsbereich-Beitrittsanfragen`,
+        updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
+            `benutzerdefinierte Berichtstitelformel in „${newDefaultTitle}“ geändert (zuvor „${oldDefaultTitle}“)`,
+        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) =>
+            `hat die Inhaberschaft von ${policyName} von ${oldOwnerName} (${oldOwnerEmail}) übernommen`,
+        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `${enabled ? 'aktiviert' : 'deaktiviert'} geplante Einreichung`,
+        updatedIndividualBudgetNotification: ({
+            budgetAmount,
+            budgetFrequency,
+            budgetName,
+            budgetTypeForNotificationMessage,
+            summaryLink,
+            thresholdPercentage,
+            totalSpend,
+            unsubmittedSpend,
+            userEmail,
+            awaitingApprovalSpend,
+            approvedReimbursedClosedSpend,
+        }: UpdatedPolicyBudgetNotificationParams) =>
+            `Achtung! Dieser Workspace hat ein ${budgetFrequency}-Budget von „${budgetAmount}“ für den/die/das ${budgetTypeForNotificationMessage} „${budgetName}“. ${userEmail} liegt derzeit bei ${approvedReimbursedClosedSpend}, was über ${thresholdPercentage}% des Budgets liegt. Außerdem warten ${awaitingApprovalSpend} noch auf Genehmigung und ${unsubmittedSpend} wurden noch nicht eingereicht, für insgesamt ${totalSpend}.${summaryLink ? `<a href="${summaryLink}">Hier ist ein Bericht</a> mit all diesen Ausgaben für Ihre Unterlagen!` : ''}`,
+        updatedSharedBudgetNotification: ({
+            budgetAmount,
+            budgetFrequency,
+            budgetName,
+            budgetTypeForNotificationMessage,
+            summaryLink,
+            thresholdPercentage,
+            totalSpend,
+            unsubmittedSpend,
+            awaitingApprovalSpend,
+            approvedReimbursedClosedSpend,
+        }: UpdatedPolicyBudgetNotificationParams) =>
+            `Achtung! Dieser Workspace hat ein ${budgetFrequency}-Budget von „${budgetAmount}“ für den ${budgetTypeForNotificationMessage} „${budgetName}“. Du liegst derzeit bei ${approvedReimbursedClosedSpend}, was über ${thresholdPercentage}% des Budgets liegt. Außerdem warten ${awaitingApprovalSpend} auf Genehmigung und ${unsubmittedSpend} wurden noch nicht eingereicht, für insgesamt ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Hier ist ein Bericht</a> mit all diesen Ausgaben für Ihre Unterlagen!` : ''}`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `maximales Spesenalter entfernt (zuvor „${oldValue}“ Tage)`,
     },
     roomMembersPage: {
@@ -7260,6 +7419,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 leftTheChat: 'hat den Chat verlassen',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `Das Geschäftskonto ${maskedBankAccountNumber} wurde aufgrund eines Problems mit der Erstattung oder der Expensify Card-Abrechnung automatisch gesperrt. Bitte behebe das Problem in deinen <a href="${linkURL}">Workspace-Einstellungen</a>.`,
+                leftTheChatWithName: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} hat den Chat verlassen`,
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten, bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
