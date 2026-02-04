@@ -145,7 +145,7 @@ function isCardClosed(card: Card) {
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldFilterOutPersonalCards = false) {
     const feedCards: CardList = {};
     for (const card of Object.values(cardList ?? {})) {
-        if (!isCard(card) || (shouldFilterOutPersonalCards && !isPersonalCard(card))) {
+        if (!isCard(card) || (shouldFilterOutPersonalCards && isPersonalCard(card))) {
             continue;
         }
 
@@ -234,6 +234,12 @@ function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boo
     if (!cardName || cardName === '') {
         return '';
     }
+
+    // CSV imported cards use user-provided display names, not card numbers - return as-is
+    if (feed === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD) {
+        return cardName;
+    }
+
     const hasSpace = /\s/.test(cardName);
     const maskedString = cardName.replaceAll('X', '•');
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
@@ -483,6 +489,69 @@ function getCustomOrFormattedFeedName(translate: LocalizedTranslate, feed?: Comp
     // Fallback to feed key name for unknown feeds
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return customFeedName || formattedFeedName || feed;
+}
+
+/**
+ * Check if a card feed exists in the card feeds collection.
+ */
+function doesCardFeedExist(feed: CompanyCardFeed | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
+    if (!feed || !cardFeeds) {
+        return false;
+    }
+
+    for (const feedData of Object.values(cardFeeds)) {
+        const companyFeeds = getOriginalCompanyFeeds(feedData);
+        if (feed in companyFeeds) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Retrieve the custom nickname for a feed from the card feeds collection.
+ */
+function getCustomFeedNameFromFeeds(cardFeeds: OnyxCollection<CardFeeds> | undefined, feed: CompanyCardFeed | undefined): string | undefined {
+    if (!feed || !cardFeeds) {
+        return undefined;
+    }
+
+    for (const feedData of Object.values(cardFeeds)) {
+        const nickname = feedData?.settings?.companyCardNicknames?.[feed];
+        if (nickname) {
+            return nickname;
+        }
+    }
+
+    return undefined;
+}
+
+/**
+ * Get the feed name for display purposes.
+ * Returns "Deleted Feed" if the feed doesn't exist, otherwise returns the formatted feed name.
+ */
+function getFeedNameForDisplay(
+    translate: LocaleContextProps['translate'],
+    feed: CompanyCardFeed | undefined,
+    cardFeeds: OnyxCollection<CardFeeds> | undefined,
+    customFeedName?: string,
+    shouldAddCardsSuffix = true,
+): string {
+    // If feed is undefined or cardFeeds is not available, return empty string to avoid showing incorrect state
+    if (!feed || !cardFeeds) {
+        return '';
+    }
+
+    const feedExists = doesCardFeedExist(feed, cardFeeds);
+
+    if (!feedExists) {
+        return translate('workspace.companyCards.deletedFeed');
+    }
+
+    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
+
+    return getCustomOrFormattedFeedName(translate, feed, customName, shouldAddCardsSuffix) ?? '';
 }
 
 function getPlaidInstitutionIconUrl(feedName?: string) {
@@ -823,12 +892,20 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
 
 /**
  * Check if the given card is a personal card.
+ * Personal cards have no fundID, fundID === '0', or are CSV imported cards.
  *
  * @param card the card which needs to be checked
  * @returns true if the card is a personal card, false otherwise
  */
 function isPersonalCard(card?: Card) {
-    return !!card?.fundID && card.fundID !== '0';
+    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
+}
+
+/**
+ * Filter out personal (including cash) cards from the card list.
+ */
+function filterOutPersonalCards(cards: CardList | undefined): CardList {
+    return filterObject(cards ?? {}, (_key, card) => !isPersonalCard(card));
 }
 
 type SplitMaskedCardNumberResult = {
@@ -873,6 +950,33 @@ function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: On
     });
 }
 
+/**
+ * Generate a random cardID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
+ * There were approximately 24,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly 0.25 billionth of the space for these numbers,
+ * so we live with the 1 in 4 billion chance of a collision with an older ID until we can switch to 64-bit IDs.
+ *
+ */
+function generateCardID(): number {
+    return Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32);
+}
+
+/**
+ * Check if there are any assigned cards that should be displayed in the wallet page.
+ * This includes active Expensify cards, company cards (domain), and personal cards.
+ */
+function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
+    if (!cardList) {
+        return false;
+    }
+
+    return Object.values(cardList).some(
+        (card) =>
+            CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
+            (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
+            card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+    );
+}
+
 export {
     getAssignedCardSortKey,
     isExpensifyCard,
@@ -898,6 +1002,9 @@ export {
     getSelectedFeed,
     getPlaidCountry,
     getCustomOrFormattedFeedName,
+    doesCardFeedExist,
+    getCustomFeedNameFromFeeds,
+    getFeedNameForDisplay,
     isCardClosed,
     isPlaidSupportedCountry,
     getFilteredCardList,
@@ -934,11 +1041,14 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    filterOutPersonalCards,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
+    generateCardID,
+    hasDisplayableAssignedCards,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};
