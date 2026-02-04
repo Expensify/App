@@ -19,17 +19,17 @@ function sendMemoryContext() {
 
             /**
              * Memory Threshold Strategy (based on platform capabilities):
-             * 
+             *
              * WEB:
              *   - Has jsHeapSizeLimit API ✅
              *   - Use percentage: (usedMemory / jsHeapSizeLimit) * 100
              *   - Thresholds: >90% error, >75% warning
-             * 
+             *
              * ANDROID:
              *   - Has getMaxMemory() for VM heap limit ✅
              *   - Use percentage: (usedMemory / maxMemory) * 100
              *   - Thresholds: >85% error, >70% warning
-             * 
+             *
              * iOS:
              *   - NO API for jetsam limit ❌
              *   - Use absolute MB values (conservative approach)
@@ -70,11 +70,12 @@ function sendMemoryContext() {
             const timestamp = Date.now();
             const timestampISO = new Date(timestamp).toISOString();
 
-            const maxMB = memoryInfo.maxMemoryBytes ? Math.round(memoryInfo.maxMemoryBytes / (1024 * 1024)) : null;
-
             Sentry.addBreadcrumb({
                 category: 'system.memory',
-                message: `RAM Check: ${usedMemoryMB ?? '?'}MB / ${maxMB ?? '?'}MB limit`,
+                message:
+                    memoryInfo.platform === 'ios'
+                        ? `RAM Check: ${usedMemoryMB ?? '?'}MB used (iOS - no limit API)`
+                        : `RAM Check: ${usedMemoryMB ?? '?'}MB / ${memoryInfo.maxMemoryBytes ? Math.round(memoryInfo.maxMemoryBytes / (1024 * 1024)) : '?'}MB limit`,
                 level: logLevel,
                 timestamp: timestamp / 1000,
                 data: {
