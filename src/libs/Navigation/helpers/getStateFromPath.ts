@@ -1,5 +1,6 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
+import Log from '@libs/Log';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -33,10 +34,15 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
         const entryScreens: Screen[] = DYNAMIC_ROUTES[dynamicRoute as DynamicRouteKey]?.entryScreens ?? [];
 
         // Check if the focused route is allowed to access this dynamic route
-        if (focusedRoute?.name && entryScreens.includes(focusedRoute.name as Screen)) {
-            // Generate navigation state for the dynamic route
-            const verifyAccountState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey);
-            return verifyAccountState;
+        if (focusedRoute?.name) {
+            if (entryScreens.includes(focusedRoute.name as Screen)) {
+                // Generate navigation state for the dynamic route
+                const verifyAccountState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey);
+                return verifyAccountState;
+            }
+
+            // Log an error to quickly identify and add forgotten screens to the Dynamic Routes configuration
+            Log.warn(`[DynamicRoute] Focused route ${focusedRoute.name} is not allowed to access dynamic route with suffix ${dynamicRouteSuffix}`);
         }
     }
 
