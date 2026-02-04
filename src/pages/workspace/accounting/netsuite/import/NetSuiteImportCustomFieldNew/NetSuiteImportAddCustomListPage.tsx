@@ -18,7 +18,7 @@ function NetSuiteImportAddCustomListPage({policy, route}: WithPolicyConnectionsP
     return (
         <NetSuiteImportAddCustomListContent
             policy={policy}
-            route={route}
+            policyIDParam={route.params.policyID}
             draftValues={draftValues}
         />
     );
