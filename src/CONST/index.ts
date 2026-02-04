@@ -8214,7 +8214,7 @@ const CONST = {
         REANIMATED_MODAL: {
             BACKDROP: 'ReanimatedModal-Backdrop',
         },
-        NEW_CHAT_RHP: {
+        NEW_CHAT: {
             ADD_TO_GROUP: 'NewChatRHP-AddToGroup',
         },
     },
