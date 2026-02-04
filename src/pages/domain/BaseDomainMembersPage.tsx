@@ -163,16 +163,13 @@ function BaseDomainMembersPage({
         }
     };
 
-    const toggleUser = useCallback(
-        (member: MemberOption) => {
-            if (selectedMembers.includes(member.keyForList)) {
-                setSelectedMembers((prevSelected) => prevSelected.filter((accountID) => accountID !== member.keyForList));
-            } else {
-                setSelectedMembers((prevSelected) => [...prevSelected, member.keyForList]);
-            }
-        },
-        [selectedMembers],
-    );
+    const toggleUser = (member: MemberOption) => {
+        if (selectedMembers.includes(member.keyForList)) {
+            setSelectedMembers((prevSelected) => prevSelected.filter((accountID) => accountID !== member.keyForList));
+        } else {
+            setSelectedMembers((prevSelected) => [...prevSelected, member.keyForList]);
+        }
+    };
 
     const getCustomListHeader = () => {
         if (filteredData.length === 0) {
@@ -215,51 +212,29 @@ function BaseDomainMembersPage({
 
                 {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
 
-                {canSelectMultiple ? (
-                    <SelectionList
-                        data={filteredData}
-                        shouldShowRightCaret
-                        canSelectMultiple
-                        style={{
-                            containerStyle: styles.flex1,
-                            listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5],
-                            listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
-                        }}
-                        ListItem={TableListItem}
-                        onSelectRow={onSelectRow}
-                        onSelectAll={toggleAllUsers}
-                        onCheckboxPress={toggleUser}
-                        selectedItems={selectedMembers}
-                        onDismissError={onDismissError}
-                        showListEmptyContent={false}
-                        showScrollIndicator={false}
-                        addBottomSafeAreaPadding
-                        shouldHeaderBeInsideList
-                        customListHeader={getCustomListHeader()}
-                        customListHeaderContent={listHeaderContent}
-                        disableMaintainingScrollPosition
-                    />
-                ) : (
-                    <SelectionList
-                        data={filteredData}
-                        shouldShowRightCaret
-                        style={{
-                            containerStyle: styles.flex1,
-                            listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5],
-                            listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
-                        }}
-                        ListItem={TableListItem}
-                        onSelectRow={onSelectRow}
-                        onDismissError={onDismissError}
-                        showListEmptyContent={false}
-                        showScrollIndicator={false}
-                        addBottomSafeAreaPadding
-                        shouldHeaderBeInsideList
-                        customListHeader={getCustomListHeader()}
-                        customListHeaderContent={listHeaderContent}
-                        disableMaintainingScrollPosition
-                    />
-                )}
+                <SelectionList
+                    data={filteredData}
+                    shouldShowRightCaret
+                    style={{
+                        containerStyle: styles.flex1,
+                        listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5],
+                        listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
+                    }}
+                    ListItem={TableListItem}
+                    onSelectRow={onSelectRow}
+                    onDismissError={onDismissError}
+                    showListEmptyContent={false}
+                    showScrollIndicator={false}
+                    addBottomSafeAreaPadding
+                    shouldHeaderBeInsideList
+                    customListHeader={getCustomListHeader()}
+                    customListHeaderContent={listHeaderContent}
+                    disableMaintainingScrollPosition
+                    canSelectMultiple={canSelectMultiple}
+                    onSelectAll={canSelectMultiple ? toggleAllUsers : undefined}
+                    onCheckboxPress={canSelectMultiple ? toggleUser : undefined}
+                    selectedItems={canSelectMultiple ? selectedMembers : undefined}
+                />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
     );

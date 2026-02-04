@@ -1,26 +1,23 @@
-import { adminAccountIDsSelector, domainNameSelector, selectSecurityGroupsForAccount } from '@selectors/Domain';
-import { personalDetailsSelector } from '@selectors/PersonalDetails';
-import React, { useState } from 'react';
+import {adminAccountIDsSelector, domainNameSelector, selectSecurityGroupsForAccount} from '@selectors/Domain';
+import {personalDetailsSelector} from '@selectors/PersonalDetails';
+import React, {useState} from 'react';
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import { ModalActions } from '@components/Modal/Global/ModalContext';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { closeUserAccount } from '@libs/actions/Domain';
+import {closeUserAccount} from '@libs/actions/Domain';
 import Navigation from '@navigation/Navigation';
-import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
-import type { SettingsNavigatorParamList } from '@navigation/types';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
 
@@ -36,7 +33,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
-    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
@@ -58,10 +55,6 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
-    if (isLoadingOnyxValue(domainMetadata)) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
-    }
-
     const handleCloseAccount = async () => {
         if (!securityGroupsData || shouldForceCloseAccount === undefined) {
             return;
@@ -75,6 +68,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             danger: true,
             shouldShowCancelButton: true,
         });
+
         if (result.action !== ModalActions.CONFIRM) {
             setIsModalVisible(true);
             setShouldForceCloseAccount(undefined);

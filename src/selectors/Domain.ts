@@ -109,7 +109,7 @@ function isSecurityGroupEntry(entry: [string, unknown]): entry is [SecurityGroup
  * @returns A function that takes a domain and returns the filtered keys and security group data
  */
 function selectSecurityGroupsForAccount(accountID: number) {
-    return (domain: Domain | undefined): SecurityGroupsData => {
+    return (domain: OnyxEntry<Domain>): SecurityGroupsData => {
         if (!domain) {
             return {keys: [], securityGroups: {}};
         }
@@ -135,7 +135,7 @@ function selectSecurityGroupsForAccount(accountID: number) {
     };
 }
 
-const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.members ?? {};
+const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.member ?? {};
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 

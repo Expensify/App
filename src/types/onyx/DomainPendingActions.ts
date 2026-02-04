@@ -39,11 +39,6 @@ type DomainPendingAction = {
      * Pending action for the domain itself
      */
     pendingAction?: OnyxCommon.PendingAction;
-
-    /**
-     * Pending action for members
-     */
-    members?: Record<string, OnyxCommon.PendingAction>;
 };
 
 export default DomainPendingAction;

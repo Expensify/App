@@ -1,6 +1,6 @@
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupsForAccount} from '@selectors/Domain';
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -13,16 +13,15 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddMemberError, closeUserAccount} from '@libs/actions/Domain';
-import { getLatestError } from '@libs/ErrorUtils';
+import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
-import type { PlatformStackScreenProps } from '@navigation/PlatformStackNavigation/types';
-import type { DomainSplitNavigatorParamList } from '@navigation/types';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-
 
 type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS>;
 
@@ -31,11 +30,11 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Profile']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus','RemoveMembers']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'RemoveMembers']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
-    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true, selector: memberPendingActionSelector});
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true, selector: memberPendingActionSelector});
     const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: defaultSecurityGroupIDSelector});
     const [controlledSelectedMembers, controlledSetSelectedMembers] = useState<string[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -159,10 +158,12 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     };
 
     const getCustomRowProps = (accountID: number, email?: string) => {
-        const errorKey = email ?? accountID;
-        const errors = getLatestError(domainErrors?.memberErrors?.[errorKey]?.errors) ?? undefined;
-        const pendingAction = email ? domainPendingAction?.[email] : undefined;
-        return {errors, pendingAction};
+        const emailError = email ? getLatestError(domainErrors?.memberErrors?.[email]?.errors) : undefined;
+        const accountIDError = getLatestError(domainErrors?.memberErrors?.[accountID]?.errors);
+        const emailPendingAction = email ? domainPendingActions?.[email]?.pendingAction : undefined;
+        const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction;
+
+        return {errors: emailError ?? accountIDError, pendingAction: emailPendingAction ?? accountIDPendingAction};
     };
 
     return (

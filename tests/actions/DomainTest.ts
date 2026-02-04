@@ -365,7 +365,7 @@ describe('actions/Domain', () => {
         });
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const, {
-            members: {[email]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            member: {[email]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
         });
 
         clearDomainMemberError(domainAccountID, accountID, email);
@@ -383,7 +383,7 @@ describe('actions/Domain', () => {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             waitForCollectionCallback: false,
             callback: (pendingActions) => {
-                expect(pendingActions?.members?.[email]).toBeFalsy();
+                expect(pendingActions?.member?.[email]).toBeFalsy();
             },
         });
     });
