@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
+import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -475,6 +475,54 @@ describe('DateUtils', () => {
         it('should handle large hour values', () => {
             const result = DateUtils.formatCountdownTimer(mockTranslate, 23, 59, 59);
             expect(result).toBe('23h 59m 59s');
+        });
+    });
+
+    describe('normalizeDateToStartOfDay', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return midnight local time as UTC in DB format', () => {
+            const result = DateUtils.normalizeDateToStartOfDay('2024-01-15');
+            expect(result).toBe('2024-01-15 00:00:00.000');
+        });
+
+        it('should match getDBTime of startOfDay for the parsed date', () => {
+            const dateStr = '2022-11-07';
+            const result = DateUtils.normalizeDateToStartOfDay(dateStr);
+            const expected = DateUtils.getDBTime(startOfDay(new Date(`${dateStr}T00:00:00.000Z`)).valueOf());
+            expect(result).toBe(expected);
+        });
+    });
+
+    describe('normalizeDateToEndOfDay', () => {
+        const originalTZ = process.env.TZ;
+
+        beforeEach(() => {
+            process.env.TZ = 'UTC';
+        });
+
+        afterEach(() => {
+            process.env.TZ = originalTZ;
+        });
+
+        it('should return end of day local time as UTC in DB format', () => {
+            const result = DateUtils.normalizeDateToEndOfDay('2024-01-15');
+            expect(result).toBe('2024-01-15 23:59:59.999');
+        });
+
+        it('should match getDBTime of endOfDay for the parsed date', () => {
+            const dateStr = '2022-11-07';
+            const result = DateUtils.normalizeDateToEndOfDay(dateStr);
+            const expected = DateUtils.getDBTime(endOfDay(new Date(`${dateStr}T00:00:00.000Z`)).valueOf());
+            expect(result).toBe(expected);
         });
     });
 });
