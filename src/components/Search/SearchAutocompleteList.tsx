@@ -196,6 +196,7 @@ function SearchAutocompleteList({
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -224,8 +225,9 @@ function SearchAutocompleteList({
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            policyCollection: policies,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserEmail, policies]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -301,8 +303,6 @@ function SearchAutocompleteList({
     const recentCategoriesAutocompleteList = useMemo(() => {
         return getAutocompleteRecentCategories(allRecentCategories);
     }, [allRecentCategories]);
-
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
@@ -436,6 +436,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    policyCollection: policies,
                     currentUserAccountID,
                     currentUserEmail,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
@@ -469,6 +470,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    policyCollection: policies,
                     currentUserAccountID,
                     currentUserEmail,
                 }).recentReports.filter((chat) => {
@@ -646,6 +648,7 @@ function SearchAutocompleteList({
         betas,
         countryCode,
         loginList,
+        policies,
         currentUserAccountID,
         currentUserEmail,
         groupByAutocompleteList,

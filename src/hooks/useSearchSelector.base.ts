@@ -203,6 +203,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     countryCode,
                     loginList,
+                    policyCollection: allPolicies,
                     currentUserAccountID,
                     currentUserEmail,
                 });
@@ -311,6 +312,7 @@ function useSearchSelectorBase({
         includeUserToInvite,
         countryCode,
         loginList,
+        allPolicies,
         excludeLogins,
         includeRecentReports,
         maxRecentReportsToShow,
