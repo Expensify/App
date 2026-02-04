@@ -41,8 +41,6 @@ function ReceiptCell({transactionItem, isSelected, style}: {transactionItem: Tra
         previewSource = tryResolveUrlFromApiRoot(previewImageURI ?? '');
     }
 
-    console.log('testing testing');
-
     return (
         <View
             style={[
