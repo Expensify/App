@@ -906,8 +906,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName} へようこそ！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `+ ボタンを使って経費を${additionalText}します。`,
-        askConcierge: '質問して、24時間いつでもリアルタイムサポートを受けましょう。',
-        conciergeSupport: '24時間年中無休サポート',
+        askConcierge: '何でも聞いてください！',
+        conciergeSupport: 'あなた専用のAIエージェント',
         create: '作成',
         iouTypes: {
             pay: '支払う',
@@ -998,6 +998,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'カードを認証して支出を始めましょう。',
                 cta: '有効化',
             },
+            ctaFix: '修正',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `${feedName} 会社カード接続を修正` : '法人クレジットカードの接続を修正'),
+                subtitle: 'ワークスペース > 会社カード',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`, subtitle: 'ワークスペース > 会計'},
         },
         announcements: 'お知らせ',
         discoverSection: {

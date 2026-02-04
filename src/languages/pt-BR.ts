@@ -909,8 +909,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Seu espaço',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bem-vindo(a) a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Use o botão + para ${additionalText} uma despesa.`,
-        askConcierge: 'Faça perguntas e receba suporte em tempo real 24/7.',
-        conciergeSupport: 'Suporte 24 horas por dia, 7 dias por semana',
+        askConcierge: 'Pergunte-me qualquer coisa!',
+        conciergeSupport: 'Seu agente de IA pessoal',
         create: 'criar',
         iouTypes: {
             pay: 'pagar',
@@ -1001,6 +1001,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Valide seu cartão e comece a gastar.',
                 cta: 'Ativar',
             },
+            ctaFix: 'Corrigir',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Corrigir conexão do cartão corporativo ${feedName}` : 'Corrigir conexão do cartão corporativo'),
+                subtitle: 'Área de trabalho > Cartões corporativos',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Corrigir conexão com ${integrationName}`, subtitle: 'Espaço de trabalho > Contabilidade'},
         },
         announcements: 'Comunicados',
         discoverSection: {

@@ -8169,6 +8169,11 @@ const CONST = {
             VIEW_BUTTON: 'ReportPreview-ViewButton',
             ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
         },
+        REQUEST_CONFIRMATION_LIST: {
+            RESET_SPLIT_SHARES: 'RequestConfirmationList-ResetSplitShares',
+            RECEIPT_THUMBNAIL: 'RequestConfirmationList-ReceiptThumbnail',
+            PDF_RECEIPT_THUMBNAIL: 'RequestConfirmationList-PDFReceiptThumbnail',
+        },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
         },
@@ -8215,6 +8220,9 @@ const CONST = {
         },
         REANIMATED_MODAL: {
             BACKDROP: 'ReanimatedModal-Backdrop',
+        },
+        NEW_CHAT: {
+            SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
     },
 
