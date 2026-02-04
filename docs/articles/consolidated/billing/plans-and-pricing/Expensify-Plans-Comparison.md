@@ -43,5 +43,3 @@ The Expensify Card is **optional** on Collect.
 
 - Using the card does not change your Collect subscription price
 - If you use the card, you earn **1% cash back** on U.S. purchases
-
-#
