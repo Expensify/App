@@ -45,9 +45,9 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
     const getSortedAllReportActionsSelector = useCallback(
         (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
-            return getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true);
+            return getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true, undefined, reportID);
         },
-        [ifUserCanPerformWriteAction],
+        [ifUserCanPerformWriteAction, reportID],
     );
 
     const [sortedAllReportActions] = useOnyx(
@@ -93,9 +93,10 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
     const searchedReportActions = useMemo(() => {
         return (sortedAllReportActions ?? [])
+            .filter((reportAction) => reportAction?.reportActionID)
             .filter(
                 (reportAction) =>
-                    reportAction.reportActionID.includes(debouncedSearchValue) || getReportActionDebugText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
+                    reportAction.reportActionID?.includes(debouncedSearchValue) || getReportActionDebugText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
             )
             .map((reportAction) => ({
                 reportActionID: reportAction.reportActionID,

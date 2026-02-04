@@ -1,13 +1,10 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SettlementAccountSelector, {BankAccountListItemLeftElement} from '@components/SettlementAccountSelector';
+import type {BankAccountListItem} from '@components/SettlementAccountSelector';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
@@ -32,26 +29,12 @@ import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-type BankAccountListItem = ListItem & {value: number | undefined};
-
 type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
 
-function BankAccountListItemLeftElement({bankName}: {bankName: BankName}) {
-    const styles = useThemeStyles();
-    const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
-
-    return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
-            <Icon
-                src={icon}
-                width={iconSize}
-                height={iconSize}
-                additionalStyles={iconStyles}
-            />
-        </View>
-    );
-}
-
+/**
+ * Settlement account selection page for Expensify Card.
+ * Uses the SettlementAccountSelector component for the selection UI.
+ */
 function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -71,10 +54,15 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const paymentBankAccountAddressName = cardSettings?.paymentBankAccountAddressName;
     const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
 
-    const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountsList);
+    const getEligibleBankAccounts = () => {
+        if (isUkEuCurrencySupported) {
+            return getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency);
+        }
+        return getEligibleBankAccountsForCard(bankAccountsList);
+    };
+    const eligibleBankAccounts = getEligibleBankAccounts();
 
     const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
-
     const hasActiveAccountingConnection = !!(policy?.connections && Object.keys(policy.connections).length > 0);
 
     const fetchPolicyAccountingData = useCallback(() => {
@@ -106,9 +94,9 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         };
     });
 
-    const fallbackBankAccountOption = {
+    const fallbackBankAccountOption: BankAccountListItem = {
         value: paymentBankAccountID,
-        text: paymentBankAccountAddressName,
+        text: paymentBankAccountAddressName ?? '',
         leftElement: <BankAccountListItemLeftElement bankName={(paymentBankAccountAddressName ?? '') as BankName} />,
         alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
         keyForList: paymentBankAccountID?.toString() ?? '',
@@ -117,12 +105,12 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
 
     const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : [fallbackBankAccountOption];
 
-    const updateSettlementAccount = (value: number) => {
+    const handleSelectAccount = (value: number) => {
         updateSettlementAccountCard(domainName, defaultFundID, policyID, value, paymentBankAccountID);
         Navigation.goBack();
     };
 
-    const customListHeaderContent = useMemo(() => {
+    const getCustomListHeaderContent = () => {
         const connectionName = reconciliationConnection ?? '';
         const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
 
@@ -141,7 +129,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 )}
             </>
         );
-    }, [continuousReconciliation?.value, reconciliationConnection, environmentURL, paymentBankAccountNumber, translate, hasActiveAccountingConnection, policyID, styles]);
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -157,21 +145,18 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 <HeaderWithBackButton
                     title={translate('workspace.expensifyCard.settlementAccount')}
                     onBackButtonPress={() => {
-                        if (route.params?.backTo) {
+                        if (route.params && 'backTo' in route.params && route.params.backTo) {
                             Navigation.goBack(route.params.backTo);
                             return;
                         }
                         Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID));
                     }}
                 />
-                <SelectionList
-                    addBottomSafeAreaPadding
-                    data={listOptions}
-                    ListItem={RadioListItem}
-                    onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
-                    shouldSingleExecuteRowSelect
+                <SettlementAccountSelector
+                    listOptions={listOptions}
+                    onSelectAccount={handleSelectAccount}
+                    customHeaderContent={getCustomListHeaderContent()}
                     initiallyFocusedItemKey={paymentBankAccountID?.toString()}
-                    customListHeaderContent={customListHeaderContent}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

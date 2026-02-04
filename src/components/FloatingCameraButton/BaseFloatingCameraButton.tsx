@@ -5,7 +5,6 @@ import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
@@ -40,9 +39,6 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
     const reportID = useMemo(() => generateReportID(), []);
 
-    const {isBetaEnabled} = usePermissions();
-    const isNewDotHomeEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_HOME);
-
     const policyChatForActivePolicySelector = useCallback(
         (reports: OnyxCollection<OnyxTypes.Report>) => {
             if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
@@ -75,12 +71,13 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
                 styles.ph0,
                 // Prevent text selection on touch devices (e.g. on long press)
                 canUseTouchScreen() && styles.userSelectNone,
-                isNewDotHomeEnabled ? styles.floatingCameraButtonAboveFab : styles.floatingCameraButton,
+                styles.floatingCameraButton,
             ]}
             accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
             onPress={onPress}
             role={CONST.ROLE.BUTTON}
             testID="floating-camera-button"
+            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_CAMERA_BUTTON}
         >
             <View
                 style={styles.floatingActionButton}
