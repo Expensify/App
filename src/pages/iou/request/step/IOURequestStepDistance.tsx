@@ -351,6 +351,7 @@ function IOURequestStepDistance({
         introSelected,
         activePolicyID,
         reportNameValuePairs?.private_isArchived,
+        policyForMovingExpenses,
     ]);
 
     const getError = () => {
