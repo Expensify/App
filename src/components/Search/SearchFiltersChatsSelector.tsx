@@ -2,9 +2,8 @@ import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -13,7 +12,8 @@ import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import type {Option} from '@libs/OptionsListUtils';
+import type {OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {searchInServer} from '@userActions/Report';
@@ -101,7 +101,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     }, [defaultOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, currentUserAccountID, currentUserEmail, personalDetails]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [];
+        const newSections: SelectionListSections = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
@@ -127,7 +127,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         newSections.push({
             title: undefined,
             data: reportsFiltered,
-            shouldShow: chatOptions.recentReports.length > 0,
+            sectionIndex: 1,
         });
 
         const areResultsFound = didScreenTransitionEnd && formattedResults.section.data.length === 0 && reportsFiltered.length === 0;
@@ -156,7 +156,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     }, [debouncedSearchTerm]);
 
     const handleParticipantSelection = useCallback(
-        (selectedOption: Option) => {
+        (selectedOption: OptionWithKey) => {
             const optionReportID = selectedOption.reportID;
             if (!optionReportID) {
                 return;
@@ -197,23 +197,25 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const isLoadingNewOptions = !!isSearchingForReports;
     const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialReportIDs || !personalDetails;
 
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
+
     return (
         <SelectionList
-            canSelectMultiple
             sections={sections}
-            ListItem={InviteMemberListItem}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            headerMessage={headerMessage}
-            textInputValue={searchTerm}
-            footerContent={footerContent}
-            showScrollIndicator
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onChangeText={(value) => {
-                setSearchTerm(value);
-            }}
             onSelectRow={handleParticipantSelection}
+            ListItem={InviteMemberListItem}
+            footerContent={footerContent}
+            canSelectMultiple
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            textInputOptions={textInputOptions}
             isLoadingNewOptions={isLoadingNewOptions}
             showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowTextInput
         />
     );
 }

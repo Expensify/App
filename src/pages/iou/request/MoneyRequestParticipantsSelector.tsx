@@ -298,7 +298,7 @@ function MoneyRequestParticipantsSelector({
             reportAttributesDerived,
         );
 
-        newSections.push(formatResults.section);
+        newSections.push({...formatResults.section, title: undefined, shouldShow: true});
 
         newSections.push({
             title: translate('workspace.common.workspace'),
