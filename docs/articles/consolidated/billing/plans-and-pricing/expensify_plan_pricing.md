@@ -1,3 +1,4 @@
+
 ---
 title: Expensify Plan Pricing and Billing: Annual, Pay-Per-Use, and Localized Rates
 description: Understand how Expensify billing works, including annual vs pay-per-use pricing, seat behavior, and localized rates.
