@@ -457,6 +457,10 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
             result.status = normalizeStatusValues(result.status, translate, type);
         }
 
+        if (Array.isArray(result.status)) {
+            result.status = [...new Set(result.status)];
+        }
+
         const flatFilters = getFilters(result);
 
         // Add the full input and hash to the results

@@ -32,7 +32,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -132,6 +132,47 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         setShowPopupButton(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const normalizeInputOnBlur = useCallback(() => {
+        if (!textInputValue) {
+            return;
+        }
+
+        const parsedQuery = buildSearchQueryJSON(textInputValue, undefined, translate);
+        if (!parsedQuery) {
+            return;
+        }
+
+        const normalizedQueryText = buildUserReadableQueryString(
+            parsedQuery,
+            personalDetails,
+            reports,
+            taxRates,
+            nonPersonalAndWorkspaceCards,
+            allFeeds,
+            policies,
+            currentUserAccountID,
+            true,
+            translate,
+        );
+
+        if (normalizedQueryText === textInputValue) {
+            return;
+        }
+
+        setTextInputValue(normalizedQueryText);
+        setAutocompleteQueryValue(normalizedQueryText);
+    }, [
+        allFeeds,
+        currentUserAccountID,
+        nonPersonalAndWorkspaceCards,
+        personalDetails,
+        policies,
+        reports,
+        taxRates,
+        textInputValue,
+        translate,
+    ]);
 
     const handleSearchAction = useCallback(
         (value: string) => {
@@ -375,6 +416,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 }}
                                 autoFocus={false}
                                 onFocus={onFocus}
+                                onBlur={normalizeInputOnBlur}
                                 wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                                 wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                                 autocompleteListRef={listRef}
@@ -451,7 +493,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             }}
                             autoFocus={false}
                             onFocus={showAutocompleteList}
-                            onBlur={hideAutocompleteList}
+                            onBlur={() => {
+                                hideAutocompleteList();
+                                normalizeInputOnBlur();
+                            }}
                             wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                             wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                             outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
