@@ -8223,16 +8223,12 @@ const translations = {
             email: 'Email address',
             errors: {
                 addMember: 'Unable to add this member. Please try again.',
+                unlockAccount: 'Unable request account unlock. Please try again.',
             },
             closeAccount: 'Close account',
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Are you sure? This will lock <strong>${email}'s</strong> account. <br /><br /> Our team will then review the account and remove any unauthorized access. To regain access, they'll need to work with Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
-        },
-        lockAccount: {
-            errors: {
-                unlockAccount: 'Unable request account unlock. Please try again.',
-            },
         },
     },
 };

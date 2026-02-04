@@ -1019,7 +1019,7 @@ function requestUnlockAccount(domainAccountID: number, accountID: number) {
             value: {
                 lockAccountErrors: {
                     [accountID]: {
-                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.lockAccount.errors.unlockAccount'),
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.errors.unlockAccount'),
                     },
                 },
             },

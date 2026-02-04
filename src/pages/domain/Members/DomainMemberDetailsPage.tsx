@@ -4,7 +4,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getLatestError, getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -24,7 +24,6 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const unlockDomainError = getLatestErrorMessage(domainErrors?.lockAccountErrors?.[accountID]?.errors);
 
-    console.log(domain);
     const isAccountLocked = domain?.[`${CONST.DOMAIN.EXPENSIFY_LOCKED_ACCOUNT_PREFIX}${accountID}`] ?? false;
     const {showConfirmModal} = useConfirmModal();
 
@@ -44,15 +43,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             domainAccountID={domainAccountID}
             accountID={accountID}
         >
-            {!isAccountLocked ? (
-                <MenuItem
-                    key="ReportSuspiciousActivity"
-                    title={translate('lockAccountPage.reportSuspiciousActivity')}
-                    icon={icons.Flag}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID))}
-                    shouldShowRightIcon
-                />
-            ) : (
+            {isAccountLocked ? (
                 <MenuItem
                     key="UnlockAccount"
                     title={translate('lockAccountPage.unlockAccount')}
@@ -60,6 +51,14 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     onPress={showUnlockAccountModal}
                     brickRoadIndicator={unlockDomainError ? 'error' : undefined}
                     errorText={unlockDomainError}
+                />
+            ) : (
+                <MenuItem
+                    key="ReportSuspiciousActivity"
+                    title={translate('lockAccountPage.reportSuspiciousActivity')}
+                    icon={icons.Flag}
+                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID))}
+                    shouldShowRightIcon
                 />
             )}
         </BaseDomainMemberDetailsComponent>
