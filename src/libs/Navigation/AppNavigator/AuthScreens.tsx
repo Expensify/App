@@ -86,7 +86,7 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadHomePage = () => require<ReactComponentModule>('../../../pages/HomePage').default;
+const loadHomePage = () => require<ReactComponentModule>('../../../pages/home/HomePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
@@ -529,16 +529,16 @@ function AuthScreens() {
                     SCREENS.SEARCH.ROOT,
                 ]}
             >
-                {/* This has to be the first navigator in auth screens. */}
-                <RootStack.Screen
-                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                    options={getFullscreenNavigatorOptions}
-                    getComponent={loadReportSplitNavigator}
-                />
+                {/* SCREENS.HOME has to be the first navigator in auth screens. */}
                 <RootStack.Screen
                     name={SCREENS.HOME}
                     options={rootNavigatorScreenOptions.fullScreenTabPage}
                     getComponent={loadHomePage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    options={getFullscreenNavigatorOptions}
+                    getComponent={loadReportSplitNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}

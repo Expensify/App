@@ -89,6 +89,7 @@ describe('MoneyRequest', () => {
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
             isSelfTourViewed: false,
+            personalDetails: {},
         };
 
         afterEach(() => {
