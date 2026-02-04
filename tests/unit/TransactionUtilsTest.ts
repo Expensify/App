@@ -44,6 +44,7 @@ const FAKE_OPEN_REPORT_ID = 'FAKE_OPEN_REPORT_ID';
 const FAKE_OPEN_REPORT_SECOND_USER_ID = 'FAKE_OPEN_REPORT_SECOND_USER_ID';
 const FAKE_PROCESSING_REPORT_ID = 'FAKE_PROCESSING_REPORT_ID';
 const FAKE_APPROVED_REPORT_ID = 'FAKE_APPROVED_REPORT_ID';
+const FAKE_CHAT_REPORT_ID = '12345';
 const openReport = {
     reportID: FAKE_OPEN_REPORT_ID,
     ownerAccountID: CURRENT_USER_ID,
@@ -70,11 +71,19 @@ const secondUserOpenReport = {
     stateNum: CONST.REPORT.STATE_NUM.OPEN,
     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
 };
+const chatReport = {
+    reportID: FAKE_CHAT_REPORT_ID,
+    ownerAccountID: CURRENT_USER_ID,
+    type: CONST.REPORT.TYPE.CHAT,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+};
 const reportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`]: openReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_PROCESSING_REPORT_ID}`]: processingReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_APPROVED_REPORT_ID}`]: approvedReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_CHAT_REPORT_ID}`]: chatReport,
 } as OnyxCollection<Report>;
 const defaultDistanceRatePolicyID1: Record<string, Rate> = {
     customUnitRateID1: {
@@ -717,7 +726,7 @@ describe('TransactionUtils', () => {
     describe('isExpenseSplit', () => {
         it('should return false when transaction is assigned to a chat/DM report (not an expense report)', () => {
             const transaction = generateTransaction({
-                reportID: '12345',
+                reportID: FAKE_CHAT_REPORT_ID,
                 comment: {
                     source: CONST.IOU.TYPE.SPLIT,
                     originalTransactionID: 'original123',
