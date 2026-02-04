@@ -86,11 +86,15 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         }
     }, [topmostFullScreenRoute?.name]);
 
-    const handleFinishStep = useCallback(() => {
+    const handleCleanupAndGoBack = useCallback(() => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
         clearCorpayBankAccountFields();
         goBack();
     }, [goBack]);
+
+    const handleFinishStep = useCallback(() => {
+        handleCleanupAndGoBack();
+    }, [handleCleanupAndGoBack]);
 
     const {
         componentToRender: SubStep,
@@ -111,17 +115,13 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
 
         // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
-            clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-            clearCorpayBankAccountFields();
-            goBack();
+            handleCleanupAndGoBack();
             return true;
         }
 
         // Clicking back on the success screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
-            clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-            clearCorpayBankAccountFields();
-            goBack();
+            handleCleanupAndGoBack();
             return true;
         }
         prevScreen();
