@@ -45,8 +45,10 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, createPersonalDetailsLookupByAccountID, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
-import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
+import type {getReportName} from './ReportNameUtils';
+import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 
@@ -1682,7 +1684,6 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
 function getMemberChangeMessageElements(
     translate: LocalizedTranslate,
     reportAction: OnyxEntry<ReportAction>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportNameCallback: typeof getReportName,
 ): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
@@ -1719,7 +1720,6 @@ function getMemberChangeMessageElements(
     });
 
     const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`]) || originalMessage?.roomName;
         if (roomName && originalMessage) {
             const preposition = isInviteAction ? ` ${translate('workspace.invite.to')} ` : ` ${translate('workspace.invite.from')} `;

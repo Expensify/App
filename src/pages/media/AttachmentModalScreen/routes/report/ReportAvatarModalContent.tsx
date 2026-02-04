@@ -1,7 +1,8 @@
 import React, {useMemo} from 'react';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
-import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import {getDefaultGroupAvatar, getPolicyName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
@@ -22,7 +23,6 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}) : getDefaultGroupAvatar(report?.reportID),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 headerTitle: getReportName(report),
                 isWorkspaceAvatar: false,
             };
@@ -30,7 +30,6 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
             return {
                 source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 headerTitle: getReportName(report),
                 isWorkspaceAvatar: false,
             };
@@ -38,7 +37,6 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
             return {
                 source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 headerTitle: getReportName(report),
                 isWorkspaceAvatar: false,
             };

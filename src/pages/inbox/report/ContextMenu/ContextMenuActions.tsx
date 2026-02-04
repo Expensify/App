@@ -138,7 +138,6 @@ import {
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
@@ -755,8 +754,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const taskPreviewMessage = getTaskCreatedMessage(translate, reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    const logMessage = getMemberChangeMessageFragment(translate, reportAction, getReportNameDeprecated).html ?? '';
+                    const logMessage = getMemberChangeMessageFragment(translate, reportAction, getReportName).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(translate, reportAction)));

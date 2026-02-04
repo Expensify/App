@@ -100,6 +100,7 @@ import {
     isTaskAction,
     isTransactionThread,
 } from './ReportActionsUtils';
+import {generateArchivedReportName, getReportName} from './ReportNameUtils';
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
@@ -115,8 +116,6 @@ import {
     getPolicyName,
     getReportDescription,
     getReportMetadata,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -382,7 +381,6 @@ function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, report
         }
 
         const reportID = report.reportID;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const displayName = getReportName(report);
         const miniReport: MiniReport = {
             reportID,
@@ -844,8 +842,9 @@ function getOptionData({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = getReportName(lastActionReport) || lastActionOriginalMessage?.roomName;
+            const roomName =
+                getReportName(lastActionReport, lastActionReport?.reportID && reportAttributes ? {[lastActionReport.reportID]: reportAttributes} : undefined) ||
+                lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1043,8 +1042,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
+    const reportName = getReportName(report, report?.reportID && reportAttributes ? {[report.reportID]: reportAttributes} : undefined);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1146,8 +1144,7 @@ function getWelcomeMessage(
 function getRoomWelcomeMessage(translate: LocalizedTranslate, report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report);
+    let reportName = getReportName(report);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
@@ -1156,6 +1153,7 @@ function getRoomWelcomeMessage(translate: LocalizedTranslate, report: OnyxEntry<
     }
 
     if (isReportArchived) {
+        reportName = generateArchivedReportName(reportName).trim();
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfArchivedRoom', reportName, reportDetailsLink);
     } else if (isDomainRoom(report)) {
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryDomainRoom', report?.reportName ?? '');
