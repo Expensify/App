@@ -1,5 +1,5 @@
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isMoneyRequest, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report, ReportActions} from '@src/types/onyx';
+import type {IntroSelected, Report, ReportActions} from '@src/types/onyx';
 import {openReport, saveReportDraftComment} from './Report';
 
 /**
@@ -195,13 +195,13 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     callback();
 
                     // We are already on the parent one expense report, so just call the API to fetch report data
-                    openReport(parentReportID);
+                    openReport(parentReportID, undefined);
                 });
             } else {
                 callback();
 
                 // We are already on the parent one expense report, so just call the API to fetch report data
-                openReport(parentReportID);
+                openReport(parentReportID, undefined);
             }
             return;
         }
