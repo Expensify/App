@@ -38,8 +38,8 @@ const AUTHENTICATION_METHOD = {
     NONE: '',
 } as const;
 
-const MQ_VALUES = {
+const MARQETA_VALUES = {
     AUTHENTICATION_METHOD,
 } as const;
 
-export default MQ_VALUES;
+export default MARQETA_VALUES;

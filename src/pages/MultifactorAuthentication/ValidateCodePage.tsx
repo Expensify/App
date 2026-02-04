@@ -19,7 +19,6 @@ import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
-import Navigation from '@navigation/Navigation';
 import {clearAccountMessages} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -179,8 +178,6 @@ function MultifactorAuthenticationValidateCodePage() {
 
     const onGoBackPress = () => {
         cancel();
-        // Close the RHP instead of returning to the invisible biometrics test screen
-        Navigation.dismissModal();
     };
 
     return (

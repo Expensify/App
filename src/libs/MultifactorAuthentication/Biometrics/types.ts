@@ -14,12 +14,12 @@ type MultifactorAuthenticationMethodCode = ValueOf<typeof SECURE_STORE_VALUES.AU
  */
 type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
 
-type MarqetaAuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['MQ_VALUE'];
+type MarqetaAuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['MARQETA_VALUE'];
 
 type AuthTypeInfo = {
     code: MultifactorAuthenticationMethodCode;
     name: AuthTypeName;
-    mqValue: MarqetaAuthTypeName;
+    marqetaValue: MarqetaAuthTypeName;
 };
 
 type OutcomePaths = {

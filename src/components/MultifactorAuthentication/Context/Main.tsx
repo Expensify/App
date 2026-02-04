@@ -4,7 +4,7 @@ import {getOutcomePath, getOutcomePaths} from '@components/MultifactorAuthentica
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import type {OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {ChallengeType, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
 import {requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
@@ -29,6 +29,23 @@ const MultifactorAuthenticationContext = createContext<MultifactorAuthentication
 type MultifactorAuthenticationContextProviderProps = {
     children: ReactNode;
 };
+
+/**
+ * Identifies the challenge type based on its properties.
+ * Registration challenges (require prior validateCode verification) have 'user' and 'rp'.
+ * Authorization challenges (no prior verification) have 'allowCredentials' and 'rpId'.
+ */
+function getChallengeType(challenge: unknown): ChallengeType | undefined {
+    if (typeof challenge === 'object' && challenge !== null) {
+        if ('user' in challenge && 'rp' in challenge) {
+            return CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.REGISTRATION;
+        }
+        if ('allowCredentials' in challenge && 'rpId' in challenge) {
+            return CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.AUTHENTICATION;
+        }
+    }
+    return undefined;
+}
 
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
     const {state, dispatch} = useMultifactorAuthenticationState();
@@ -93,7 +110,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // 4. Check if registration is required (local credentials not known to server yet)
+        // 3. Check if registration is required (local credentials not known to server yet)
         const isRegistrationRequired = !(await biometrics.areLocalCredentialsKnownToServer()) && !isRegistrationComplete;
 
         if (isRegistrationRequired) {
@@ -113,9 +130,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     return;
                 }
 
-                // Validate that we received a registration challenge (has 'user' and 'rp' properties)
-                const isRegistrationChallengeValid = 'user' in challenge && 'rp' in challenge;
-                if (!isRegistrationChallengeValid) {
+                // IMPORTANT: Validate that we received a registration challenge.
+                // This check is safe here because the backend only issues registration challenges AFTER
+                // validateCode verification. The prior validation gate guarantees that if we receive
+                // a challenge of type 'registration', it's genuinely from the registration path. This security guarantee
+                // does NOT apply to authorization challenges (which skip validateCode verification). If the WebAuthN spec
+                // ever changes the structure of these challenges, update getChallengeType() accordingly.
+                const challengeType = getChallengeType(challenge);
+                if (challengeType !== CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.REGISTRATION) {
                     dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
                     return;
                 }
@@ -124,10 +146,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 return;
             }
 
-            // Check if soft prompt is needed (device support already verified above)
-            const shouldNavigateToPromptPage = !softPromptApproved;
-
-            if (shouldNavigateToPromptPage) {
+            // Check if a soft prompt is needed
+            if (!softPromptApproved) {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS), {forceReplace: true});
                 return;
             }
@@ -146,7 +166,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 // Call backend to register the public key
                 const registrationResponse = await processRegistration({
                     publicKey: result.publicKey,
-                    authenticationMethod: result.authenticationMethod.mqValue,
+                    authenticationMethod: result.authenticationMethod.marqetaValue,
                     challenge: registrationChallenge.challenge,
                 });
 
@@ -165,7 +185,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // 5. Authorize the user if that has not already been done
+        // 4. Authorize the user if that has not already been done
         if (!isAuthorizationComplete) {
             if (!Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'))) {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
@@ -180,9 +200,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     return;
                 }
 
-                // Validate that we received an authentication challenge (has 'allowCredentials' and 'rpId' properties)
-                const isAuthenticationChallengeValid = 'allowCredentials' in challenge && 'rpId' in challenge;
-                if (!isAuthenticationChallengeValid) {
+                // Validate that we received an authentication challenge
+                const challengeType = getChallengeType(challenge);
+                if (challengeType !== CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.AUTHENTICATION) {
                     dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
                     return;
                 }
@@ -219,7 +239,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     // Call backend with signed challenge
                     const scenarioAPIResponse = await processScenario(scenario, {
                         signedChallenge: result.signedChallenge,
-                        authenticationMethod: result.authenticationMethod.mqValue,
+                        authenticationMethod: result.authenticationMethod.marqetaValue,
                         ...payload,
                     });
 
@@ -240,7 +260,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
-        // 6. All steps completed - success
+        // 5. All steps completed - success
         Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome), {forceReplace: true});
         dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
     }, [biometrics, dispatch, isOffline, state]);
@@ -270,15 +290,20 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     }, [
         // Error states - need to handle failures and navigate to outcome screens
         state.error,
+
         // Core flow state - which scenario is active
         state.scenario,
+
         // User interactions - soft prompt approval triggers biometric registration
         state.softPromptApproved,
+
         // Magic code entry - required before registration challenge can be requested
         state.validateCode,
+
         // Challenge responses from backend - trigger next steps in registration/authorization
         state.registrationChallenge,
         state.authorizationChallenge,
+
         // Completion flags - determine whether to continue or finish the flow
         state.isRegistrationComplete,
         state.isAuthorizationComplete,

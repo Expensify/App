@@ -29,7 +29,7 @@ function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthentication
     const styles = useThemeStyles();
     const {state} = useMultifactorAuthenticationState();
     const onGoBackPress = () => {
-        Navigation.dismissModal();
+        Navigation.closeRHPFlow();
     };
 
     const data = MULTIFACTOR_AUTHENTICATION_OUTCOME_MAP[route.params.outcomeType];

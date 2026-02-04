@@ -1,10 +1,8 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LoadingIndicator from '@components/LoadingIndicator';
 import {useMultifactorAuthentication, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
@@ -28,33 +26,33 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
 
     const {animation, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
 
-    const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+    const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
 
     const onConfirm = () => {
         dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
     };
 
-    const showConfirmModal = () => {
+    const showCancelModal = () => {
         if (isOffline) {
             Navigation.closeRHPFlow();
         } else {
-            setConfirmModalVisibility(true);
+            setCancelModalVisibility(true);
         }
     };
 
-    const hideConfirmModal = () => {
-        setConfirmModalVisibility(false);
+    const hideCancelModal = () => {
+        setCancelModalVisibility(false);
     };
 
     const cancelFlow = () => {
-        if (isConfirmModalVisible) {
-            hideConfirmModal();
+        if (isCancelModalVisible) {
+            hideCancelModal();
         }
         cancel();
     };
 
     const focusTrapConfirmModal = () => {
-        setConfirmModalVisibility(true);
+        setCancelModalVisibility(true);
         return false;
     };
 
@@ -71,7 +69,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
         >
             <HeaderWithBackButton
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
-                onBackButtonPress={showConfirmModal}
+                onBackButtonPress={showCancelModal}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
@@ -81,25 +79,20 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                     subtitle={subtitle}
                 />
                 <FixedFooter style={[styles.flexColumn, styles.gap3]}>
-                    {shouldDisplayConfirmButton ? (
-                        <Button
-                            success
-                            large
-                            onPress={onConfirm}
-                            text={translate('common.buttonConfirm')}
-                        />
-                    ) : (
-                        <View style={[styles.w100, styles.h10]}>
-                            <LoadingIndicator />
-                        </View>
-                    )}
+                    <Button
+                        success
+                        large
+                        isLoading={!shouldDisplayConfirmButton}
+                        onPress={onConfirm}
+                        text={translate('common.buttonConfirm')}
+                    />
                 </FixedFooter>
 
                 <MultifactorAuthenticationTriggerCancelConfirmModal
                     scenario={state.scenario}
-                    isVisible={isConfirmModalVisible}
+                    isVisible={isCancelModalVisible}
                     onConfirm={cancelFlow}
-                    onCancel={hideConfirmModal}
+                    onCancel={hideCancelModal}
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

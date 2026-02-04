@@ -46,6 +46,11 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
     let title: TranslationPaths = contentData.title;
     let subtitle: TranslationPaths | undefined = contentData.subtitle;
 
+    // Customize title and subtitle based on the user's scenario:
+    // 1. Returning User (isReturningUser): User already has biometrics registered on server and just opened the app.
+    //    Show "Let's authenticate you" to guide into the authorization flow.
+    // 2. New User Registration Complete (isRegistrationComplete): User just finished registering biometrics in this session.
+    //    Show "Now let's authenticate you" to transition from registration to authorization.
     if (isReturningUser) {
         title = 'multifactorAuthentication.letsAuthenticateYou';
         subtitle = undefined;
@@ -54,6 +59,9 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
         subtitle = undefined;
     }
 
+    // Display confirm button only for new users during their first biometric registration.
+    // Hide it for: users who already approved the soft prompt, users who finished registration,
+    // or returning users with existing server credentials. The button prompts users to enable biometrics.
     const shouldDisplayConfirmButton = !state.softPromptApproved && !state.isRegistrationComplete && !serverHasCredentials;
 
     return {

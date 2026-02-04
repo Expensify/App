@@ -161,7 +161,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
             ? {
                   code: authTypeEntry.CODE,
                   name: authTypeEntry.NAME,
-                  mqValue: authTypeEntry.MQ_VALUE,
+                  marqetaValue: authTypeEntry.MARQETA_VALUE,
               }
             : undefined;
 
@@ -176,6 +176,10 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         // Store public key
         const publicKeyResult = await PublicKeyStore.set(accountID, publicKey);
         if (!publicKeyResult.value) {
+            // Delete the private key if public key storage fails to maintain a consistent key pair state.
+            // If only the private key exists without a matching public key, the device will be unable to
+            // complete authorization later (public key mismatch with server). Clean up to force re-registration
+            // on the next attempt when both keys can be successfully stored.
             await PrivateKeyStore.delete(accountID);
             onResult({
                 success: false,
@@ -232,7 +236,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
             ? {
                   code: authTypeEntry.CODE,
                   name: authTypeEntry.NAME,
-                  mqValue: authTypeEntry.MQ_VALUE,
+                  marqetaValue: authTypeEntry.MARQETA_VALUE,
               }
             : undefined;
 
