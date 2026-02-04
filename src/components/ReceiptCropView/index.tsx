@@ -630,7 +630,7 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
             <Animated.View
                 style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.w100]}
                 onLayout={onContainerLayout}
-                ref={(el) => ControlSelection.blockElement(el as HTMLElement | null)}
+                ref={(el: View | null) => ControlSelection.blockElement(el as HTMLElement | null)}
             >
                 <View style={[styles.flex1, styles.w100]}>
                     <Image
