@@ -858,7 +858,7 @@ function getLastMessageTextForReport({
         const transactions = getReportTransactions(reportID);
         const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
         if (scanningTransactions.length > 0) {
-            return translateLocal('iou.receiptScanning', {count: scanningTransactions.length});
+            return translate('iou.receiptScanning', {count: scanningTransactions.length});
         }
 
         if (report?.total && report?.total !== 0 && report?.currency) {
@@ -867,7 +867,7 @@ function getLastMessageTextForReport({
 
         // Returning 'No activity yet' as message preview if report doesn't have any transaction.
         if (report?.total === 0) {
-            return translateLocal('report.noActivityYet');
+            return translate('report.noActivityYet');
         }
     }
 
