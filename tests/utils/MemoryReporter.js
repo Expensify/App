@@ -11,8 +11,9 @@ class MemoryReporter {
     constructor(globalConfig, options) {
         this.results = [];
         const requestedOutput = options?.output;
+        const envOutput = process.env.JEST_MEMORY_OUTPUT || process.env.MEMORY_REPORTER_OUTPUT;
         // Default name matches Jest shard so we can disambiguate artifacts.
-        this.output = requestedOutput || 'jest-memory.json';
+        this.output = requestedOutput || envOutput || 'jest-memory.json';
     }
 
     onTestStart(test) {

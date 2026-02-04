@@ -44,11 +44,14 @@ jobs:
           key: ${{ runner.os }}-jest
 
       - name: Jest tests
-        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=2 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }} --reporters=default --reporters=./tests/utils/MemoryReporter.js --reporterOptions=output=jest-memory-${{ matrix.chunk }}.json
+        env:
+          JEST_MEMORY_OUTPUT: jest-memory-${{ matrix.chunk }}.json
+        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=2 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }} --reporters=default --reporters=./tests/utils/MemoryReporter.js
 
       - name: Upload memory artifact
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: jest-memory-${{ matrix.chunk }}
           path: jest-memory-${{ matrix.chunk }}.json
@@ -101,7 +104,8 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Download memory artifacts
-        uses: actions/download-artifact@v4
+        # v4.2.1
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
         continue-on-error: true
         with:
           pattern: jest-memory-*
