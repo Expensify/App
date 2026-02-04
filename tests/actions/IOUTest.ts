@@ -3428,6 +3428,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 isSelfTourViewed: false,
+                personalDetails: {},
             });
 
             await waitForBatchedUpdates();
