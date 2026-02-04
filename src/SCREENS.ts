@@ -117,6 +117,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
+        DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -468,6 +469,10 @@ const SCREENS = {
     },
 
     SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',
+
+    SEARCH_ROUTER: {
+        ROOT: 'Search_Router_Root',
+    },
 
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',

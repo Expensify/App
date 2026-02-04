@@ -685,6 +685,7 @@ const translations = {
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
         attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
+        imageDimensionsTooLarge: 'Image dimensions are too large to process. Please use a smaller image.',
         tooManyFiles: (fileLimit: number) => `You can only upload up to ${fileLimit} files at a time.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
         someFilesCantBeUploaded: "Some files can't be uploaded",
@@ -756,10 +757,10 @@ const translations = {
             biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
         },
         revoke: {
-            revoke: 'Revoke',
+            remove: 'Remove',
             title: 'Face/fingerprint & passkeys',
-            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device',
-            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device",
+            explanation: 'Face/fingerprint or passkey verification are enabled on one or more devices. Revoking access will require a magic code for the next verification on any device.',
+            confirmationPrompt: "Are you sure? You'll need a magic code for the next verification on any device.",
             cta: 'Revoke access',
             noDevices: "You don't have any devices registered for face/fingerprint or passkey verification. If you register any, you will be able to revoke that access here.",
             dismiss: 'Got it',
@@ -923,8 +924,8 @@ const translations = {
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the + button to ${additionalText} an expense.`,
-        askConcierge: ' Ask questions and get 24/7 realtime support.',
-        conciergeSupport: '24/7 support',
+        askConcierge: ' Ask me anything!',
+        conciergeSupport: 'Your personal AI agent',
         create: 'create',
         iouTypes: {
             pay: 'pay',
@@ -997,6 +998,7 @@ const translations = {
         timeSensitiveSection: {
             title: 'Time sensitive',
             cta: 'Claim',
+            ctaFix: 'Fix',
             offer50off: {
                 title: 'Get 50% off your first year!',
                 subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} remaining`,
@@ -1004,6 +1006,14 @@ const translations = {
             offer25off: {
                 title: 'Get 25% off your first year!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
+            },
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
+                subtitle: 'Workspace > Company cards',
+            },
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
+                subtitle: 'Workspace > Accounting',
             },
             addShippingAddress: {
                 title: 'We need your shipping address',
@@ -2306,6 +2316,7 @@ const translations = {
         submissionFrequencyDateOfMonth: 'Date of month',
         disableApprovalPromptDescription: 'Disabling approvals will erase all existing approval workflows.',
         addApprovalsTitle: 'Approvals',
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver is ${approvers}`,
         addApprovalButton: 'Add approval workflow',
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
@@ -2506,7 +2517,7 @@ const translations = {
             title: 'Add rule',
             expenseContains: 'If expense contains:',
             applyUpdates: 'Then apply these updates:',
-            merchantHint: 'Type * to create a rule that applies to all merchants',
+            merchantHint: 'Type . to create a rule that applies to all merchants',
             addToReport: 'Add to a report named',
             createReport: 'Create report if necessary',
             applyToExistingExpenses: 'Apply to existing matching expenses',
@@ -4912,6 +4923,7 @@ const translations = {
             cardNumber: 'Card number',
             commercialFeed: 'Commercial feed',
             feedName: (feedName: string) => `${feedName} cards`,
+            deletedFeed: 'Deleted feed',
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
@@ -5395,7 +5407,8 @@ const translations = {
             existingTagError: 'A tag with this name already exists',
             invalidTagNameError: 'Tag name cannot be 0. Please choose a different value.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again',
-            importedFromAccountingSoftware: 'The tags below are imported from your',
+            importedFromAccountingSoftware: 'Tags are managed in your',
+            employeesSeeTagsAs: 'Employees see tags as',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             tagRules: 'Tag rules',
@@ -7158,7 +7171,7 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
                     `there was a problem syncing with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Please fix the issue in <a href="${workspaceAccountingLink}">workspace settings</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
-                    `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>`,
+                    `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
