@@ -124,8 +124,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
     const childTransactions = getChildTransactions(allTransactions, allReports, transactionID);
     const splitFieldDataFromChildTransactions = childTransactions.map((childTransaction) => {
-        const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
-        return initSplitExpenseItemData(childTransaction, transactionReport);
+        const childTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction?.reportID}`];
+        return initSplitExpenseItemData(childTransaction, childTransactionReport);
     });
     const splitFieldDataFromOriginalTransaction = initSplitExpenseItemData(transaction, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`]);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
