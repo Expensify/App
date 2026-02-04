@@ -28,7 +28,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getApprovalWorkflow} from './PolicyUtils';
 import StringUtils from './StringUtils';
 
 const COMPANY_CARD_FEED_ICON_NAMES = [
@@ -284,7 +283,11 @@ function getMCardNumberString(cardNumber: string): string {
  * When approvals are configured (not optional), defaults to SMART; otherwise MONTHLY.
  */
 function getDefaultExpensifyCardLimitType(policy?: OnyxEntry<Policy>): ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> {
-    const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    let approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    }
+    const areApprovalsConfigured = approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     return areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
 }
 
