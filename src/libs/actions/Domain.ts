@@ -960,24 +960,12 @@ function clearDomainMemberError(domainAccountID: number, accountID: number, emai
  * Sends a request to remove a user from a domain and close their account
  * @param domainAccountID Account ID of a domain
  * @param domain Domain name
- * @param accountID AccountID of a user to be removed
  * @param targetEmail Email of a user to be removed
  * @param securityGroupsData Data of a security group user is in
  * @param overrideProcessingReports "Force" flag. If true user will be removed regardless of if they have outstanding reports
  */
-function closeUserAccount(domainAccountID: number, domain: string, accountID: number, targetEmail: string, securityGroupsData: UserSecurityGroupData, overrideProcessingReports = false) {
+function closeUserAccount(domainAccountID: number, domain: string, targetEmail: string, securityGroupsData: UserSecurityGroupData, overrideProcessingReports = false) {
     const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: (securityGroupsData?.key
-                ? {
-                      [securityGroupsData.key]: {
-                          shared: {[accountID]: null},
-                      },
-                  }
-                : {}) as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,

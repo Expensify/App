@@ -241,7 +241,7 @@ describe('actions/Domain', () => {
                 },
             };
 
-            closeUserAccount(domainAccountID, domainName, accountID, targetEmail, securityGroupsData);
+            closeUserAccount(domainAccountID, domainName, targetEmail, securityGroupsData);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
@@ -293,10 +293,9 @@ describe('actions/Domain', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainName = 'test.com';
-            const accountID = 456;
             const targetEmail = 'user@test.com';
 
-            closeUserAccount(domainAccountID, domainName, accountID, targetEmail, undefined, true);
+            closeUserAccount(domainAccountID, domainName, targetEmail, undefined, true);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_DOMAIN_MEMBER, {domain: domainName, targetEmail, overrideProcessingReports: true}, expect.any(Object));
 
