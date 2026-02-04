@@ -392,7 +392,9 @@ function hasSubscriptionRedDotError(
     billingStatus: OnyxEntry<BillingStatus>,
     ownerBillingGraceEndPeriodParam?: OnyxEntry<number>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriodParam)?.isError ?? false;
+    return (
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriodParam)?.isError ?? false
+    );
 }
 
 /**
@@ -408,7 +410,10 @@ function hasSubscriptionGreenDotInfo(
     billingStatus: OnyxEntry<BillingStatus>,
     ownerBillingGraceEndPeriodParam?: OnyxEntry<number>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriodParam)?.isError === false;
+    return (
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriodParam)?.isError ===
+        false
+    );
 }
 
 /**

@@ -55,7 +55,15 @@ function getBillingStatus({
 
     const amountOwed = getAmountOwed();
 
-    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, ownerBillingGraceEndPeriod);
+    const subscriptionStatus = getSubscriptionStatus(
+        stripeCustomerId,
+        retryBillingSuccessful,
+        billingDisputePending,
+        retryBillingFailed,
+        fundList,
+        billingStatus,
+        ownerBillingGraceEndPeriod,
+    );
 
     const endDate = ownerBillingGraceEndPeriod;
 
