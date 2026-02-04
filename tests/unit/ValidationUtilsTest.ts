@@ -558,6 +558,7 @@ describe('ValidationUtils', () => {
             expect(isInvalidMerchantValue('none')).toBe(false);
             expect(isInvalidMerchantValue('Unknown Merchant')).toBe(false);
             expect(isInvalidMerchantValue('X Æ A test')).toBe(false);
+            expect(isInvalidMerchantValue(undefined)).toBe(false);
         });
 
         test('Invalid merchant name', () => {
