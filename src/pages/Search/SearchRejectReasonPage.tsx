@@ -60,7 +60,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 Navigation.isNavigationReady().then(() => Navigation.goBack(urlToNavigateBack as Route));
             }
         },
-        [context, allPolicies, allReports, route.name, selectedTransactionsForReject, isDelegateAccessRestricted, currentUserAccountID, showDelegateNoAccessModal],
+        [context, allPolicies, allReports, route.name, selectedTransactionsForReject, isDelegateAccessRestricted, currentUserAccountID, showDelegateNoAccessModal, betas],
     );
 
     const validate = useCallback(
