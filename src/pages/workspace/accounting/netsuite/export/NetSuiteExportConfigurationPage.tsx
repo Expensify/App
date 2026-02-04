@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -76,9 +76,17 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.select.label');
     }
 
-    const selectedTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.taxPostingAccount);
+    const filteredTaxAccountsList = useMemo(() => (taxAccountsList ?? []).filter(({country}) => country === selectedSubsidiary?.country), [taxAccountsList, selectedSubsidiary?.country]);
 
-    const selectedProvTaxPostingAccount = findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.provincialTaxPostingAccount);
+    const selectedTaxPostingAccount = useMemo(
+        () => findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.taxPostingAccount),
+        [filteredTaxAccountsList, config?.taxPostingAccount],
+    );
+
+    const selectedProvTaxPostingAccount = useMemo(
+        () => findSelectedTaxAccountWithDefaultSelect(filteredTaxAccountsList, config?.provincialTaxPostingAccount),
+        [filteredTaxAccountsList, config?.provincialTaxPostingAccount],
+    );
 
     const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {
