@@ -4963,6 +4963,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             chooseCardFeed: 'Kies kaartfeed',
             ukRegulation:
                 'Expensify Limited is een tussenpersoon van Plaid Financial Ltd., een erkende betalingsinstelling die wordt gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (firmreferentienummer: 804718). Plaid levert u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn tussenpersoon.',
+            deletedFeed: 'Verwijderde feed',
             assignCardFailedError: 'Toewijzing van kaart mislukt.',
             unassignCardFailedError: 'Toewijzing van kaart ongedaan maken is mislukt.',
             cardAlreadyAssignedError: 'Deze kaart is al toegewezen aan een gebruiker in een andere werkruimte.',

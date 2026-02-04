@@ -4985,6 +4985,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             chooseCardFeed: 'Kartenfeed auswählen',
             ukRegulation:
                 'Expensify Limited ist ein Vertreter von Plaid Financial Ltd., einem zugelassenen Zahlungsinstitut, das nach den Payment Services Regulations 2017 von der Financial Conduct Authority beaufsichtigt wird (Firm Reference Number: 804718). Plaid stellt Ihnen regulierte Kontoinformationsdienste über Expensify Limited als seinen Vertreter zur Verfügung.',
+            deletedFeed: 'Gelöschter Feed',
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
             unassignCardFailedError: 'Kartenaufhebung fehlgeschlagen.',
             cardAlreadyAssignedError: 'Diese Karte ist bereits einem Nutzenden in einem anderen Workspace zugeordnet.',
