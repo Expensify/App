@@ -704,6 +704,7 @@ const translations = {
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
         attachmentImageResized: 'This image has been resized for previewing. Download for full resolution.',
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
+        imageDimensionsTooLarge: 'Image dimensions are too large to process. Please use a smaller image.',
         tooManyFiles: (fileLimit: number) => `You can only upload up to ${fileLimit} files at a time.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
         someFilesCantBeUploaded: "Some files can't be uploaded",
@@ -942,8 +943,8 @@ const translations = {
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the + button to ${additionalText} an expense.`,
-        askConcierge: ' Ask questions and get 24/7 realtime support.',
-        conciergeSupport: '24/7 support',
+        askConcierge: ' Ask me anything!',
+        conciergeSupport: 'Your personal AI agent',
         create: 'create',
         iouTypes: {
             pay: 'pay',
@@ -1016,6 +1017,7 @@ const translations = {
         timeSensitiveSection: {
             title: 'Time sensitive',
             cta: 'Claim',
+            ctaFix: 'Fix',
             offer50off: {
                 title: 'Get 50% off your first year!',
                 subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} remaining`,
@@ -1023,6 +1025,14 @@ const translations = {
             offer25off: {
                 title: 'Get 25% off your first year!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
+            },
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
+                subtitle: 'Workspace > Company cards',
+            },
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
+                subtitle: 'Workspace > Accounting',
             },
             addShippingAddress: {
                 title: 'We need your shipping address',
@@ -2319,6 +2329,7 @@ const translations = {
         submissionFrequencyDateOfMonth: 'Date of month',
         disableApprovalPromptDescription: 'Disabling approvals will erase all existing approval workflows.',
         addApprovalsTitle: 'Approvals',
+        accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver is ${approvers}`,
         addApprovalButton: 'Add approval workflow',
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
@@ -2519,7 +2530,7 @@ const translations = {
             title: 'Add rule',
             expenseContains: 'If expense contains:',
             applyUpdates: 'Then apply these updates:',
-            merchantHint: 'Type * to create a rule that applies to all merchants',
+            merchantHint: 'Type . to create a rule that applies to all merchants',
             addToReport: 'Add to a report named',
             createReport: 'Create report if necessary',
             applyToExistingExpenses: 'Apply to existing matching expenses',
@@ -4942,6 +4953,7 @@ const translations = {
             cardNumber: 'Card number',
             commercialFeed: 'Commercial feed',
             feedName: (feedName: string) => `${feedName} cards`,
+            deletedFeed: 'Deleted feed',
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
@@ -5424,7 +5436,8 @@ const translations = {
             existingTagError: 'A tag with this name already exists',
             invalidTagNameError: 'Tag name cannot be 0. Please choose a different value.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again',
-            importedFromAccountingSoftware: 'The tags below are imported from your',
+            importedFromAccountingSoftware: 'Tags are managed in your',
+            employeesSeeTagsAs: 'Employees see tags as',
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             tagRules: 'Tag rules',
