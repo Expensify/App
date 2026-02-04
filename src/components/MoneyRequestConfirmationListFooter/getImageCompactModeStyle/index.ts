@@ -1,8 +1,6 @@
 import type GetImageCompactModeStyle from './types';
 
-const getImageCompactModeStyle: GetImageCompactModeStyle = (maxWidth, availableWidth, aspectRatio) => {
-    const cappedRatio = aspectRatio ? Math.min(aspectRatio, 1) : 1;
-
+const getImageCompactModeStyle: GetImageCompactModeStyle = (maxWidth) => {
     return {
         maxWidth,
         minHeight: 180,
@@ -11,7 +9,6 @@ const getImageCompactModeStyle: GetImageCompactModeStyle = (maxWidth, availableW
         width: '100%',
         marginHorizontal: 0,
         height: 'auto',
-        aspectRatio: cappedRatio,
     };
 };
 
