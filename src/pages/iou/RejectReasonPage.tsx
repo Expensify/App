@@ -3,7 +3,7 @@ import React, {useCallback, useContext, useEffect} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -32,7 +32,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {removeTransaction} = useSearchContext();
     const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false, selector: getReportPolicyID});
     const policy = usePolicy(reportPolicyID);
-    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
+    const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);

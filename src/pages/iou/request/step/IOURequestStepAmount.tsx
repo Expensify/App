@@ -182,6 +182,8 @@ function IOURequestStepAmount({
         Navigation.goBack(backTo);
     };
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(amount));
@@ -254,6 +256,7 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         isSelfTourViewed,
+                        personalDetails,
                     });
                     return;
                 }
@@ -278,6 +281,7 @@ function IOURequestStepAmount({
                         introSelected,
                         activePolicyID,
                         quickAction,
+                        recentWaypoints,
                     });
                     return;
                 }

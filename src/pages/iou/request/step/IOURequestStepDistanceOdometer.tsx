@@ -411,6 +411,7 @@ function IOURequestStepDistanceOdometer({
                         introSelected,
                         activePolicyID,
                         quickAction,
+                        recentWaypoints,
                     });
                     return;
                 }
@@ -441,6 +442,7 @@ function IOURequestStepDistanceOdometer({
                     transactionViolations,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    recentWaypoints,
                 });
                 return;
             }
