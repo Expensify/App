@@ -559,10 +559,10 @@ function peg$parse(input, options) {
   var peg$f78 = function() { return "groupCategory"; };
   var peg$f79 = function() { return "groupTag"; };
   var peg$f80 = function() { return "groupMerchant"; };
-  var peg$f81 = function() { return "groupMonth"; };
-  var peg$f82 = function() { return "groupWeek"; };
-  var peg$f83 = function() { return "groupYear"; };
-  var peg$f84 = function() { return "groupQuarter"; };
+  var peg$f81 = function() { return "groupmonth"; };
+  var peg$f82 = function() { return "groupweek"; };
+  var peg$f83 = function() { return "groupyear"; };
+  var peg$f84 = function() { return "groupquarter"; };
   var peg$f85 = function() { return "eq"; };
   var peg$f86 = function() { return "neq"; };
   var peg$f87 = function() { return "gte"; };
