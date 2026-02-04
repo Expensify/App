@@ -669,6 +669,7 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'パスワード保護されたPDFはサポートされていません',
         attachmentImageResized: 'この画像はプレビュー用にサイズ変更されています。フル解像度版をダウンロードしてください。',
         attachmentImageTooLarge: 'この画像は大きすぎるため、アップロード前にプレビューできません。',
+        imageDimensionsTooLarge: '画像のサイズが大きすぎて処理できません。小さい画像を使用してください。',
         tooManyFiles: (fileLimit: number) => `一度にアップロードできるファイルは最大${fileLimit}件までです。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
         someFilesCantBeUploaded: '一部のファイルをアップロードできません',
