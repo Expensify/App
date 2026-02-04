@@ -2199,8 +2199,7 @@ const translations: TranslationDeepObject<typeof en> = {
         travelCVV: {
             title: 'トラベルCVV',
             subtitle: '出張を予約するときにこれを使用してください',
-            description: 'このカードは、航空運賃、鉄道、レンタカー、場合によってはホテルなどの経費を、1つの口座にまとめて集約します。',
-            instructions: '最後の4桁の入力を求められます。下のボタンを使って表示できます。',
+            description: 'このカードをExpensify Travelでの予約に使用してください。チェックアウト時には「Travel Card」と表示されます。',
         },
     },
     cardPage: {

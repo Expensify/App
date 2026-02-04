@@ -2208,8 +2208,7 @@ const translations: TranslationDeepObject<typeof en> = {
         travelCVV: {
             title: 'CVV di viaggio',
             subtitle: 'Usa questo quando prenoti viaggi',
-            description: 'Questa carta consolida spese come voli aerei, treni, noleggi auto e talvolta hotel in un unico conto.',
-            instructions: 'Ti verranno richieste le ultime 4 cifre. Puoi visualizzarle qui sotto usando il pulsante.',
+            description: 'Usa questa carta per le tue prenotazioni con Expensify Travel. Verrà visualizzata come “Travel Card” al momento del pagamento.',
         },
     },
     cardPage: {

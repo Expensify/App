@@ -2212,8 +2212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         travelCVV: {
             title: 'Reise-CVV',
             subtitle: 'Verwenden Sie dies bei der Buchung von Reisen',
-            description: 'Diese Karte fasst Ausgaben wie Flugtickets, Bahnfahrten, Mietwagen und manchmal auch Hotels in einem einzigen Konto zusammen.',
-            instructions: 'Du wirst nach den letzten 4 Ziffern gefragt. Du kannst sie unten über den Button anzeigen.',
+            description: 'Verwende diese Karte für deine Expensify Travel-Buchungen. Sie wird beim Bezahlen als “Travel Card” angezeigt.',
         },
     },
     cardPage: {

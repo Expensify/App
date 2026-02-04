@@ -112,7 +112,7 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 
 /**
  * Gets the user's Travel Invoicing card from the card list.
- * Returns the first card with isTravelCard NVP set to true.
+ * Returns the first card with feedCountry set to PROGRAM_TRAVEL_US.
  */
 function getTravelInvoicingCard(cardList: Record<string, WorkspaceCardsList | undefined> | undefined) {
     if (!cardList) {
@@ -125,7 +125,7 @@ function getTravelInvoicingCard(cardList: Record<string, WorkspaceCardsList | un
         .filter((workspaceCards): workspaceCards is WorkspaceCardsList => !!workspaceCards)
         .flatMap((workspaceCards) => Object.values(workspaceCards))
         .filter((card): card is Card => typeof card !== 'string' && typeof card?.cardID === 'number');
-    const travelCard = allCards.find((card) => card.nameValuePairs?.isTravelCard);
+    const travelCard = allCards.find((card) => card.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US);
     // If no travel card is found and testing is enabled, return the first available card
     if (!travelCard && isTravelCVVTestingEnabled()) {
         return allCards.find((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);

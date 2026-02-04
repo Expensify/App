@@ -2169,12 +2169,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} 将失去对此企业银行账户的访问权限。我们仍会完成任何正在处理中的付款。`,
         reachOutForHelp: '它正在与 Expensify Card 一起使用。若需要取消共享，请<concierge-link>联系 Concierge</concierge-link>。',
         unshareErrorModalTitle: '无法取消共享银行账户',
-        travelCVV: {
-            title: '旅行 CVV',
-            subtitle: '预订差旅时使用此选项',
-            description: '此卡将机票、火车、租车，有时还包括酒店等费用合并到一个账户中。',
-            instructions: '系统将要求您提供最后 4 位数字。您可以使用下面的按钮查看它们。',
-        },
+        travelCVV: {title: '旅行 CVV', subtitle: '预订差旅时使用此选项', description: '使用此卡预订 Expensify Travel 行程。结账时它会显示为“Travel Card”。'},
     },
     cardPage: {
         expensifyCard: 'Expensify 卡',

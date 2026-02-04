@@ -83,9 +83,8 @@ function TravelCVVPage() {
                         />
                     </View>
 
-                    <View style={[styles.mt5, styles.mb12, styles.gap4]}>
+                    <View style={[styles.mt5, styles.mb12]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('walletPage.travelCVV.description')}</Text>
-                        <Text style={[styles.textNormal, styles.textSupporting]}>{translate('walletPage.travelCVV.instructions')}</Text>
                     </View>
 
                     <MenuItemWithTopDescription

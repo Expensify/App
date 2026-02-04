@@ -2248,8 +2248,7 @@ const translations = {
         travelCVV: {
             title: 'Travel CVV',
             subtitle: 'Use this when booking travel',
-            description: 'This card consolidates expenses like airfare, rail, car rentals, and sometimes hotels into a single account rather.',
-            instructions: "You'll be asked for the last 4 digits. You can reveal them below using the button.",
+            description: "Use this card for your Expensify Travel bookings. It'll show as “Travel Card” at checkout.",
         },
     },
     cardPage: {

@@ -2220,8 +2220,7 @@ const translations: TranslationDeepObject<typeof en> = {
         travelCVV: {
             title: 'Cryptogramme visuel de la carte de voyage (CVV)',
             subtitle: 'À utiliser lors de la réservation de voyages',
-            description: 'Cette carte regroupe les dépenses comme les billets d’avion, le train, les locations de voiture et parfois les hôtels dans un seul compte.',
-            instructions: 'On vous demandera les 4 derniers chiffres. Vous pouvez les afficher ci-dessous en utilisant le bouton.',
+            description: 'Utilisez cette carte pour vos réservations Expensify Travel. Elle apparaîtra comme “Travel Card” lors du paiement.',
         },
     },
     cardPage: {

@@ -2209,8 +2209,7 @@ const translations: TranslationDeepObject<typeof en> = {
         travelCVV: {
             title: 'Reis-CVV',
             subtitle: 'Gebruik dit bij het boeken van reizen',
-            description: 'Deze kaart bundelt uitgaven zoals vliegtickets, treinreizen, autoverhuur en soms hotels in één enkele rekening.',
-            instructions: 'Je wordt gevraagd om de laatste 4 cijfers. Je kunt ze hieronder weergeven met de knop.',
+            description: 'Gebruik deze kaart voor je Expensify Travel-boekingen. Hij wordt weergegeven als “Travel Card” bij het afrekenen.',
         },
     },
     cardPage: {

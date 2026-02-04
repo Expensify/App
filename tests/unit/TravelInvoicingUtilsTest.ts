@@ -237,7 +237,7 @@ describe('TravelInvoicingUtils', () => {
                         state: 3,
                         nameValuePairs: {
                             isVirtual: true,
-                            isTravelCard: false,
+                            feedCountry: 'OTHER_COUNTRY',
                         },
                     },
                 },
@@ -246,7 +246,7 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBeUndefined();
         });
 
-        it('Should return the travel card when isTravelCard is true', () => {
+        it('Should return the travel card when feedCountry is PROGRAM_TRAVEL_US', () => {
             const cardList = {
                 workspaceCards: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -255,7 +255,7 @@ describe('TravelInvoicingUtils', () => {
                         state: 3,
                         nameValuePairs: {
                             isVirtual: true,
-                            isTravelCard: true,
+                            feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                         },
                     },
                 },
@@ -274,7 +274,7 @@ describe('TravelInvoicingUtils', () => {
                         state: 3,
                         nameValuePairs: {
                             isVirtual: true,
-                            isTravelCard: false,
+                            feedCountry: 'OTHER_COUNTRY',
                         },
                     },
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -283,14 +283,14 @@ describe('TravelInvoicingUtils', () => {
                         state: 3,
                         nameValuePairs: {
                             isVirtual: true,
-                            isTravelCard: true,
+                            feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                         },
                     },
                 },
             } as unknown as Record<string, WorkspaceCardsList>;
             const result = getTravelInvoicingCard(cardList);
             expect(result).toBeDefined();
-            expect(result?.nameValuePairs?.isTravelCard).toBe(true);
+            expect(result?.nameValuePairs?.feedCountry).toBe(CONST.TRAVEL.PROGRAM_TRAVEL_US);
         });
         it('Should fallback to first available card when testing is enabled and no travel card exists', () => {
             isDevelopmentSpy.mockReturnValue(true);
@@ -304,7 +304,7 @@ describe('TravelInvoicingUtils', () => {
                         bank: 'Expensify Card',
                         nameValuePairs: {
                             isVirtual: true,
-                            isTravelCard: false,
+                            feedCountry: 'OTHER_COUNTRY',
                         },
                     },
                 },
@@ -325,7 +325,7 @@ describe('TravelInvoicingUtils', () => {
                     state: 3,
                     nameValuePairs: {
                         isVirtual: true,
-                        isTravelCard: true,
+                        feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US,
                     },
                 },
             },
@@ -340,7 +340,7 @@ describe('TravelInvoicingUtils', () => {
                     bank: 'Expensify Card',
                     nameValuePairs: {
                         isVirtual: true,
-                        isTravelCard: false,
+                        feedCountry: 'OTHER_COUNTRY',
                     },
                 },
             },
