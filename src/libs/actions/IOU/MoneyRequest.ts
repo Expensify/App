@@ -100,6 +100,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     isSelfTourViewed: boolean;
+    isFromDeepLink?: boolean;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -134,6 +135,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     privateIsArchived?: string;
     gpsCoordinates?: string;
     gpsDistance?: number;
+    isFromDeepLink?: boolean;
 };
 
 function createTransaction({
@@ -276,6 +278,7 @@ function handleMoneyRequestStepScanParticipants({
     isTestTransaction = false,
     locationPermissionGranted = false,
     isSelfTourViewed,
+    isFromDeepLink,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -427,9 +430,9 @@ function handleMoneyRequestStepScanParticipants({
         return;
     }
 
-    // If there was no reportID, then that means the user started this flow from the global + menu
+    // If there was no reportID, then that means the user started this flow from the global + menu or from shortcut
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
+    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, isFromDeepLink)) {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id);
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -501,6 +504,7 @@ function handleMoneyRequestStepDistanceNavigation({
     privateIsArchived,
     gpsCoordinates,
     gpsDistance,
+    isFromDeepLink,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
@@ -612,9 +616,9 @@ function handleMoneyRequestStepDistanceNavigation({
         return;
     }
 
-    // If there was no reportID, then that means the user started this flow from the global menu
+    // If there was no reportID, then that means the user started this flow from the global menu or from shortcut
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
+    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, isFromDeepLink)) {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id);
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;

@@ -2,6 +2,7 @@ import reportsSelector from '@selectors/Attributes';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
@@ -53,6 +54,7 @@ function IOURequestStepDistanceGPS({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const {initialURL} = useInitialURLState();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
@@ -113,6 +115,7 @@ function IOURequestStepDistanceGPS({
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             gpsCoordinates,
             gpsDistance: distance,
+            isFromDeepLink: !!initialURL,
         });
     };
 

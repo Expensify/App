@@ -19,6 +19,7 @@ import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -121,6 +122,7 @@ function IOURequestStepScan({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const {initialURL} = useInitialURLState();
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -291,6 +293,7 @@ function IOURequestStepScan({
                 isTestTransaction,
                 locationPermissionGranted,
                 isSelfTourViewed,
+                isFromDeepLink: !!initialURL,
             });
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- reportNameValuePairs?.private_isArchived is not needed
@@ -325,6 +328,7 @@ function IOURequestStepScan({
             introSelected,
             activePolicyID,
             isSelfTourViewed,
+            initialURL,
         ],
     );
 
