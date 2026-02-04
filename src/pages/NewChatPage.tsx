@@ -413,6 +413,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                     accessibilityLabel={item.text ?? ''}
                     accessibilityState={{checked: item.isSelected}}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.PARTICIPANT_TOGGLE}
                 >
                     <SelectCircle
                         isChecked={item.isSelected}

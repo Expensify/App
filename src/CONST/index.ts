@@ -8167,6 +8167,9 @@ const CONST = {
             VIEW_BUTTON: 'ReportPreview-ViewButton',
             ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
         },
+        NEW_CHAT: {
+            PARTICIPANT_TOGGLE: 'NewChat-ParticipantToggle',
+        },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
         },
