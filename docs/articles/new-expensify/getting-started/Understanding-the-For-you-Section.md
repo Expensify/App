@@ -43,9 +43,6 @@ The **For you** section can show items like:
 - **Export** – reports waiting to be exported
 - **Fix** – reports that need attention before they can move forward
 
-**ADD A SCREENSHOT HERE.**  
-Suggestion: For you section showing multiple items, such as Submit, Approve, and Pay.
-
 ---
 
 ## How roles affect what you see in the For you section
@@ -75,9 +72,6 @@ For example:
 - **Pay** takes you to approved reports waiting to be paid
 - **Export** takes you to reports waiting to be exported
 - **Fix** takes you to reports that need attention
-
-**ADD A SCREENSHOT HERE.**  
-Suggestion: Selecting a For you item and landing in the filtered Reports view.
 
 ---
 
