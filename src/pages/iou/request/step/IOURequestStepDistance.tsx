@@ -26,6 +26,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaypointItems from '@hooks/useWaypointItems';
 import {getIOURequestPolicyID, setMoneyRequestAmount, setSplitShares, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
@@ -49,6 +50,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -93,15 +95,22 @@ function IOURequestStepDistance({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const {initialURL} = useInitialURLState();
-    const waypoints = useMemo(
-        () =>
+
+    const transactionWaypoints = transaction?.comment?.waypoints;
+    const areTransactionWaypointsEmpty = !transactionWaypoints || Object.values(transactionWaypoints).every((w) => isEmptyObject(w));
+
+    const waypoints = useMemo(() => {
+        return (
             optimisticWaypoints ??
-            transaction?.comment?.waypoints ?? {
-                waypoint0: {keyForList: 'start_waypoint'},
-                waypoint1: {keyForList: 'stop_waypoint'},
-            },
-        [optimisticWaypoints, transaction?.comment?.waypoints],
-    );
+            (areTransactionWaypointsEmpty
+                ? {
+                      waypoint0: {keyForList: 'start_waypoint'},
+                      waypoint1: {keyForList: 'stop_waypoint'},
+                  }
+                : transactionWaypoints)
+        );
+    }, [optimisticWaypoints, transactionWaypoints, areTransactionWaypointsEmpty]);
+
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const backupWaypoints = transactionBackup?.pendingFields?.waypoints ? transactionBackup?.comment?.waypoints : undefined;
@@ -115,7 +124,6 @@ function IOURequestStepDistance({
         action,
         shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT,
     );
-    const waypointsList = Object.keys(waypoints);
     const previousWaypoints = usePrevious(waypoints);
     const numberOfWaypoints = Object.keys(waypoints).length;
     const numberOfPreviousWaypoints = Object.keys(previousWaypoints).length;
@@ -367,16 +375,18 @@ function IOURequestStepDistance({
         data: string[];
     };
 
+    const {waypointItems, getWaypoint, getWaypointKey, extractKey} = useWaypointItems(waypoints);
+
     const updateWaypoints = useCallback(
         ({data}: DataParams) => {
-            if (deepEqual(waypointsList, data)) {
+            if (deepEqual(waypointItems, data)) {
                 return;
             }
 
             const newWaypoints: WaypointCollection = {};
             let emptyWaypointIndex = -1;
-            for (const [index, waypoint] of data.entries()) {
-                newWaypoints[`waypoint${index}`] = waypoints[waypoint] ?? {};
+            for (const [index, item] of data.entries()) {
+                newWaypoints[`waypoint${index}`] = getWaypoint(item) ?? {};
                 // Find waypoint that BECOMES empty after dragging
                 if (isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
                     emptyWaypointIndex = index;
@@ -391,7 +401,7 @@ function IOURequestStepDistance({
                 setOptimisticWaypoints(null);
             });
         },
-        [transactionID, transaction, waypoints, waypointsList, action],
+        [transactionID, transaction, waypoints, action, waypointItems, getWaypoint],
     );
 
     const submitWaypoints = useCallback(() => {
@@ -467,7 +477,7 @@ function IOURequestStepDistance({
         ({item, drag, isActive, getIndex}: RenderItemParams<string>) => (
             <DistanceRequestRenderItem
                 waypoints={waypoints}
-                item={item}
+                item={getWaypointKey(item)}
                 onSecondaryInteraction={drag}
                 isActive={isActive}
                 getIndex={getIndex}
@@ -475,7 +485,7 @@ function IOURequestStepDistance({
                 disabled={isLoadingRoute}
             />
         ),
-        [isLoadingRoute, navigateToWaypointEditPage, waypoints],
+        [isLoadingRoute, navigateToWaypointEditPage, waypoints, getWaypointKey],
     );
 
     return (
@@ -489,8 +499,8 @@ function IOURequestStepDistance({
             <>
                 <View style={styles.flex1}>
                     <DraggableList
-                        data={waypointsList}
-                        keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}
+                        data={waypointItems}
+                        keyExtractor={extractKey}
                         onDragEnd={updateWaypoints}
                         ref={scrollViewRef}
                         renderItem={renderItem}
