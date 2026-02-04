@@ -12472,7 +12472,6 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
         }
     }
 
-    // Report is exported if the last successful export happened after the last reset
     return lastSuccessfulExportCreated > lastResetCreated;
 }
 
