@@ -36,7 +36,7 @@ function IOURequestStepOdometerImage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isDraggingOver} = useContext(DragAndDropContext);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'Meter']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd']);
     const isTransactionDraft = shouldUseTransactionDraft(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -128,7 +128,9 @@ function IOURequestStepOdometerImage({
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>{!(isDraggingOver ?? isDraggingOverWrapper) && desktopUploadView()}</View>
                     <DragAndDropConsumer onDrop={handleDrop}>
                         <DropZoneUI
-                            icon={lazyIcons.Meter}
+                            icon={icon}
+                            iconWidth={variables.iconSection}
+                            iconHeight={variables.iconSection}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={title}
                             dropTextStyles={styles.receiptDropText}
