@@ -8211,6 +8211,9 @@ const CONST = {
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
         },
+        REANIMATED_MODAL: {
+            BACKDROP: 'ReanimatedModal-Backdrop',
+        },
     },
 
     DOMAIN: {
