@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -199,29 +199,31 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
     const prevIsAnonymousUser = useRef(false);
 
-    useEffect(() => {
-        // Don't update if there is a reportID in the params already
-        if (route.params.reportID) {
-            const reportActionID = route?.params?.reportActionID;
-            const isValidReportActionID = reportActionID && isNumeric(reportActionID);
-            if (reportActionID && !isValidReportActionID) {
-                Navigation.isNavigationReady().then(() => navigation.setParams({reportActionID: ''}));
+    useFocusEffect(
+        useCallback(() => {
+            // Don't update if there is a reportID in the params already
+            if (route.params.reportID) {
+                const reportActionID = route?.params?.reportActionID;
+                const isValidReportActionID = reportActionID && isNumeric(reportActionID);
+                if (reportActionID && !isValidReportActionID) {
+                    Navigation.isNavigationReady().then(() => navigation.setParams({reportActionID: ''}));
+                }
+                return;
             }
-            return;
-        }
 
-        const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom)?.reportID;
+            const lastAccessedReportID = findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), 'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom)?.reportID;
 
-        // It's possible that reports aren't fully loaded yet
-        // in that case the reportID is undefined
-        if (!lastAccessedReportID) {
-            return;
-        }
-        Navigation.isNavigationReady().then(() => {
-            Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
-            navigation.setParams({reportID: lastAccessedReportID});
-        });
-    }, [isBetaEnabled, navigation, route.params]);
+            // It's possible that reports aren't fully loaded yet
+            // in that case the reportID is undefined
+            if (!lastAccessedReportID) {
+                return;
+            }
+            Navigation.isNavigationReady().then(() => {
+                Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
+                navigation.setParams({reportID: lastAccessedReportID});
+            });
+        }, [isBetaEnabled, navigation, route.params]),
+    );
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
