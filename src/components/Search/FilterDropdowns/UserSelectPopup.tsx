@@ -81,7 +81,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             if (optionData) {
                 acc.push({
                     ...optionData,
-                    keyForList: optionData.reportID,
+                    keyForList: optionData.keyForList ?? optionData.reportID,
                 });
             }
 

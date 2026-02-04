@@ -31,7 +31,7 @@ const defaultListOptions = {
 };
 
 function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): OptionData {
-    return {...option, isSelected: true, keyForList: option.reportID};
+    return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
 }
 
 type SearchFiltersParticipantsSelectorProps = {
