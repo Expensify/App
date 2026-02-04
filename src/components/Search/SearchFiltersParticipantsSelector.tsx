@@ -52,7 +52,7 @@ function getOptionDataFromAttendee(attendee: Attendee): OptionData {
         accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
         // eslint-disable-next-line rulesdir/no-default-id-values
         reportID: '-1',
-        keyForList: attendee.displayName,
+        keyForList: `${attendee.accountID ?? attendee.email}`,
         selected: true,
         icons: attendee.avatarUrl
             ? [
