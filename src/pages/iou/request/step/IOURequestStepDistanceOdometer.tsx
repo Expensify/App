@@ -556,6 +556,7 @@ function IOURequestStepDistanceOdometer({
                         <PressableWithFeedback
                             accessible={false}
                             accessibilityRole="button"
+                            sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
                             onPress={() => handleCaptureImage('start')}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
@@ -595,6 +596,7 @@ function IOURequestStepDistanceOdometer({
                         <PressableWithFeedback
                             accessible={false}
                             accessibilityRole="button"
+                            sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
                             onPress={() => handleCaptureImage('end')}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),

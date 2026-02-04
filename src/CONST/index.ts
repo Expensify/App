@@ -8026,6 +8026,10 @@ const CONST = {
             NEW_WORKSPACE: 'FABMenu-NewWorkspace',
             QUICK_ACTION: 'FABMenu-QuickAction',
         },
+        ODOMETER_EXPENSE: {
+            CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
+            CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
+        },
         ATTACHMENT_CAROUSEL: {
             PREVIOUS_BUTTON: 'AttachmentCarousel-PreviousButton',
             NEXT_BUTTON: 'AttachmentCarousel-NextButton',
