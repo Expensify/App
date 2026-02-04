@@ -1,5 +1,5 @@
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {SearchContextProps} from '@components/Search/types';
@@ -72,7 +72,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
-import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams} from './index';
+import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams, UpdateMoneyRequestDataKeys} from './index';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -1081,9 +1081,9 @@ function updateSplitTransactions({
         }) ?? [];
     changesInReportTotal -= splitExpensesTotal;
 
-    const successData = [] as OnyxUpdate[];
-    const failureData = [] as OnyxUpdate[];
-    const optimisticData = [] as OnyxUpdate[];
+    const successData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys>> = [];
+    const failureData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys>> = [];
+    const optimisticData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys>> = [];
 
     // The split transactions can be in different reports, so we need to calculate the total for each report.
     const reportTotals = new Map<string, number>();
@@ -1202,7 +1202,7 @@ function updateSplitTransactions({
             policyRecentlyUsedCurrencies,
         });
 
-        let updateMoneyRequestParamsOnyxData: OnyxData<OnyxKey> = {};
+        let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
         const currentSplit = splits.at(index);
 
         // For existing split transactions, update the field change messages
