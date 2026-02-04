@@ -163,17 +163,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
 
         setTextInputValue(normalizedQueryText);
         setAutocompleteQueryValue(normalizedQueryText);
-    }, [
-        allFeeds,
-        currentUserAccountID,
-        nonPersonalAndWorkspaceCards,
-        personalDetails,
-        policies,
-        reports,
-        taxRates,
-        textInputValue,
-        translate,
-    ]);
+    }, [allFeeds, currentUserAccountID, nonPersonalAndWorkspaceCards, personalDetails, policies, reports, taxRates, textInputValue, translate]);
     const handleKeyPress = useCallback((e: TextInputKeyPressEvent) => {
         const keyEvent = e as unknown as KeyboardEvent;
 
