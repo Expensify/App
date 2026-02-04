@@ -24,6 +24,7 @@ import type {GpsPoint} from './index';
 import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
+    getRecentWaypoints,
     requestMoney,
     resetSplitShares,
     setCustomUnitRateID,
@@ -57,6 +58,7 @@ type CreateTransactionParams = {
     billable?: boolean;
     reimbursable?: boolean;
     isSelfTourViewed: boolean;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type InitialTransactionParams = {
@@ -77,7 +79,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     reportAttributesDerived?: Record<string, ReportAttributes>;
     transactions: Transaction[];
     initialTransaction: InitialTransactionParams;
-    personalDetails?: PersonalDetailsList;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserLogin?: string;
     currentUserAccountID: number;
     backTo?: Route;
@@ -108,7 +110,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     transactionID: string;
     transaction?: Transaction;
     reportAttributesDerived?: Record<string, ReportAttributes>;
-    personalDetails?: PersonalDetailsList;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
     waypoints?: WaypointCollection;
     customUnitRateID: string;
     manualDistance?: number;
@@ -155,7 +157,10 @@ function createTransaction({
     billable,
     reimbursable = true,
     isSelfTourViewed,
+    personalDetails,
 }: CreateTransactionParams) {
+    const recentWaypoints = getRecentWaypoints();
+
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -187,6 +192,7 @@ function createTransaction({
                 introSelected,
                 activePolicyID,
                 quickAction,
+                recentWaypoints,
             });
         } else {
             requestMoney({
@@ -218,6 +224,7 @@ function createTransaction({
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 isSelfTourViewed,
+                personalDetails,
             });
         }
     }
@@ -363,6 +370,7 @@ function handleMoneyRequestStepScanParticipants({
                             billable: false,
                             reimbursable: true,
                             isSelfTourViewed,
+                            personalDetails,
                         });
                     },
                     (errorData) => {
@@ -385,6 +393,7 @@ function handleMoneyRequestStepScanParticipants({
                             files,
                             participant,
                             isSelfTourViewed,
+                            personalDetails,
                         });
                     },
                 );
@@ -407,6 +416,7 @@ function handleMoneyRequestStepScanParticipants({
                 files,
                 participant,
                 isSelfTourViewed,
+                personalDetails,
             });
             return;
         }
@@ -494,6 +504,7 @@ function handleMoneyRequestStepDistanceNavigation({
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
+    const recentWaypoints = getRecentWaypoints();
 
     if (transaction?.splitShares && !isManualDistance) {
         resetSplitShares(transaction);
@@ -558,6 +569,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     introSelected,
                     activePolicyID,
                     quickAction,
+                    recentWaypoints,
                 });
                 return;
             }
@@ -590,6 +602,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                recentWaypoints,
             });
             return;
         }

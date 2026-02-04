@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -52,6 +53,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -63,6 +66,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
                 if (!isUnreported) {
                     return false;
+                }
+
+                // Check if the transaction belongs to the current user by verifying card ownership
+                if (item?.cardID) {
+                    const card = cardList?.[item.cardID];
+                    if (card?.accountID !== currentUserAccountID) {
+                        return false;
+                    }
                 }
 
                 const transactionAmount = getTransactionDetails(item)?.amount ?? 0;
@@ -88,7 +99,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 return true;
             });
         },
-        [policy, report],
+        [policy, report, cardList, currentUserAccountID],
     );
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
