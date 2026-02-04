@@ -1691,7 +1691,7 @@ type CodingRuleFilter = {
     left: string;
 
     /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
-    operator: string;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
     /** The right side of the filter condition (e.g., 'Snoop') */
     right: string;
@@ -1744,6 +1744,12 @@ type CodingRule = {
 
     /** When this rule was created */
     created?: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Model of policy data */
@@ -2175,4 +2181,5 @@ export type {
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    NetSuiteConnectionData,
 };
