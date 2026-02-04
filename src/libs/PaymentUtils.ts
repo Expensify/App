@@ -240,8 +240,7 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
     }
 
     // When user explicitly selects "Pay Elsewhere" / "Mark as Paid", don't require payment method selection since payment happens outside of Expensify
-    const isExplicitElsewherePayment = paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-    const shouldSelectPaymentMethod = !isExplicitElsewherePayment && (isPaymentMethod || !isEmpty(latestBankItems));
+    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(latestBankItems));
 
     return {
         paymentType,
