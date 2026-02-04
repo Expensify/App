@@ -44,6 +44,7 @@ function DeviceAwarePressableWrapper({canUseTouchScreen, children, style}: Devic
         <PressableWithoutFeedback
             accessible={false}
             style={style}
+            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.WRAPPER}
         >
             {children}
         </PressableWithoutFeedback>

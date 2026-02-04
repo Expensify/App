@@ -8051,6 +8051,7 @@ const CONST = {
             THUMBNAIL: 'VideoPlayer-Thumbnail',
             MUTE_BUTTON: 'VideoPlayer-MuteButton',
             VIDEO: 'VideoPlayer-Video',
+            WRAPPER: 'VideoPlayer-Wrapper',
         },
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
