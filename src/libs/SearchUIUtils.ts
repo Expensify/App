@@ -3877,6 +3877,15 @@ function isDatePreset(value: string | number | undefined): value is SearchDatePr
     return Object.values(CONST.SEARCH.DATE_PRESETS).some((datePreset) => datePreset === value);
 }
 
+/**
+ * Adjusts a time range based on date filters, intersecting preset ranges with additional constraints.
+ * When combining date presets (e.g., `date:on=last_month`) with constraints (e.g., `date:>=2025-04-01`),
+ * takes the intersection to narrow the range rather than overwriting it.
+ *
+ * @param timeRange - The base time range to adjust (e.g., a year/month/quarter range)
+ * @param dateFilter - Optional date filter containing preset and/or constraint filters
+ * @returns Adjusted time range that respects all date filters (intersected, not overwritten)
+ */
 function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, dateFilter: QueryFilters[0] | undefined): {start: string; end: string} {
     if (!dateFilter?.filters) {
         return timeRange;
@@ -3909,7 +3918,7 @@ function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, d
             limitsStart = constraintStart;
         }
     }
-    
+
     startLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
     if (startLimitFilter?.value) {
         const date = parse(String(startLimitFilter.value), 'yyyy-MM-dd', new Date());
