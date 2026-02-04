@@ -63,6 +63,7 @@ import {
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
     getUpdateRoomDescriptionMessage,
+    hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
@@ -72,6 +73,7 @@ import {
     isClosedAction,
     isCreatedTaskReportAction,
     isDeletedParentAction,
+    isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isInviteOrRemovedAction,
     isMarkAsClosedAction,
@@ -685,7 +687,7 @@ function getLastMessageTextForReport({
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
         lastMessageTextFromReport = translate('parentReportAction.hiddenMessage');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        lastMessageTextFromReport = getMarkedReimbursedMessage(lastReportAction);
+        lastMessageTextFromReport = getMarkedReimbursedMessage(translate, lastReportAction);
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translate('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
@@ -721,12 +723,17 @@ function getLastMessageTextForReport({
         }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(lastReportAction) ?? {};
+        const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+        const isPendingAdd = lastReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
         if (automaticAction) {
             lastMessageTextFromReport = Parser.htmlToText(translate('iou.automaticallyApproved'));
+        } else if (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && isPendingAdd) {
+            lastMessageTextFromReport = translate('iou.queuedToApproveViaDEW');
         } else {
             lastMessageTextFromReport = translate('iou.approvedMessage');
         }
-    } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction)) {
+    } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction) || isDynamicExternalWorkflowApproveFailedAction(lastReportAction)) {
         lastMessageTextFromReport = getOriginalMessage(lastReportAction)?.message ?? translate('iou.error.genericCreateFailureMessage');
     } else if (isUnapprovedAction(lastReportAction)) {
         lastMessageTextFromReport = translate('iou.unapproved');
@@ -1719,6 +1726,7 @@ function canCreateOptimisticPersonalDetailOption({
 function getUserToInviteOption({
     searchValue,
     personalDetails,
+    searchInputValue,
     loginsToExclude = {},
     selectedOptions = [],
     showChatPreviewLine = false,
@@ -1738,6 +1746,9 @@ function getUserToInviteOption({
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
     const isInOptionToExclude = loginsToExclude[addSMSDomainIfPhoneNumber(searchValue).toLowerCase()];
+    const trimmedSearchInputValue = searchInputValue?.trim();
+    const shouldUseSearchInputValue = shouldAcceptName && !!trimmedSearchInputValue && !isValidEmail && !isValidPhoneNumber;
+    const displayValue = shouldUseSearchInputValue ? trimmedSearchInputValue : searchValue;
 
     // Angle brackets are not valid characters for user names
     const hasInvalidCharacters = shouldAcceptName && (searchValue.includes('<') || searchValue.includes('>'));
@@ -1760,10 +1771,19 @@ function getUserToInviteOption({
     });
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    userToInvite.text = userToInvite.text || searchValue;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    userToInvite.alternateText = userToInvite.alternateText || searchValue;
+
+    if (shouldUseSearchInputValue) {
+        userToInvite.text = displayValue;
+        userToInvite.displayName = displayValue;
+        userToInvite.alternateText = displayValue;
+    } else {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        userToInvite.text = userToInvite.text || displayValue;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        userToInvite.displayName = userToInvite.displayName || displayValue;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        userToInvite.alternateText = userToInvite.alternateText || displayValue;
+    }
 
     // If user doesn't exist, use a fallback avatar
     userToInvite.icons = [
@@ -2187,6 +2207,7 @@ function getValidOptions(
         excludeHiddenThreads = false,
         canShowManagerMcTest = false,
         searchString,
+        searchInputValue,
         maxElements,
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
@@ -2388,6 +2409,7 @@ function getValidOptions(
             {
                 excludeLogins: loginsToExclude,
                 shouldAcceptName,
+                searchInputValue,
             },
         );
     }
@@ -2532,11 +2554,24 @@ function getFilteredRecentAttendees(
         });
     }
 
-    const filteredRecentAttendees = recentAttendees
+    // Deduplicate recentAttendees: use email for regular users, displayName for name-only attendees
+    const seenAttendees = new Set<string>();
+    const deduplicatedRecentAttendees = recentAttendees.filter((attendee) => {
+        const key = attendee.email || attendee.displayName || '';
+        if (seenAttendees.has(key)) {
+            return false;
+        }
+        seenAttendees.add(key);
+        return true;
+    });
+
+    const filteredRecentAttendees = deduplicatedRecentAttendees
         .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
         .map((attendee) => ({
             ...attendee,
-            login: attendee.email ? attendee.email : attendee.displayName,
+            // Use || instead of ?? to handle empty string email for name-only attendees
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            login: attendee.email || attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
         .map((attendee) => getParticipantsOption(attendee, personalDetails));
@@ -2587,7 +2622,7 @@ function getMemberInviteOptions(
 ): Options {
     return getValidOptions(
         {personalDetails, reports: []},
-        allPolicies,
+        undefined,
         undefined,
         nvpDismissedProductTraining,
         loginList,
@@ -2916,6 +2951,7 @@ function filterOptions(
     config?: FilterUserToInviteConfig,
 ): Options {
     const trimmedSearchInput = searchInputValue.trim();
+    const searchInputValueForInvite = config?.searchInputValue ?? trimmedSearchInput;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
@@ -2937,7 +2973,10 @@ function filterOptions(
         currentUserAccountID,
         personalDetailsCollection,
         countryCode,
-        config,
+        {
+            ...config,
+            searchInputValue: searchInputValueForInvite,
+        },
     );
     const workspaceChats = filterWorkspaceChats(options.workspaceChats ?? [], searchTerms);
 
@@ -3059,7 +3098,10 @@ function shouldUseBoldText(report: SearchOptionData): boolean {
 }
 
 function getManagerMcTestParticipant(currentUserAccountID: number, personalDetails?: OnyxEntry<PersonalDetailsList>): Participant | undefined {
-    const managerMcTestPersonalDetails = Object.values(personalDetails ?? allPersonalDetails ?? {}).find((personalDetail) => personalDetail?.login === CONST.EMAIL.MANAGER_MCTEST);
+    // Use O(1) cache lookup when using global personal details, fall back to O(n) search for custom personal details
+    const managerMcTestPersonalDetails = personalDetails
+        ? Object.values(personalDetails).find((personalDetail) => personalDetail?.login === CONST.EMAIL.MANAGER_MCTEST)
+        : getPersonalDetailByEmail(CONST.EMAIL.MANAGER_MCTEST);
     const managerMcTestReport =
         managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
     return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
