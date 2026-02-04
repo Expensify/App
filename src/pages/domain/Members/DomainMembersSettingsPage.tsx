@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -23,6 +24,7 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         canBeMissing: true,
@@ -44,7 +46,7 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
                 wrapperStyle={[styles.ph5]}
                 switchAccessibilityLabel={translate('domain.members.forceTwoFactorAuth')}
                 isActive={!!domainSettings?.twoFactorAuthRequired}
-                disabled={!!domainSettings?.samlEnabled}
+                disabled={!!domainSettings?.samlEnabled || isOffline}
                 onToggle={(value) => {
                     if (!domainName) {
                         return;
