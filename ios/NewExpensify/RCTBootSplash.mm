@@ -137,10 +137,11 @@ RCT_EXPORT_MODULE();
 }
 
 - (NSDictionary *)constantsToExport {
-  UIWindow *window = RCTKeyWindow();
+  __block UIWindow *window = nil;
   __block bool darkModeEnabled = false;
 
   RCTUnsafeExecuteOnMainQueueSync(^{
+    window = RCTKeyWindow();
     darkModeEnabled = window != nil && window.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark;
   });
 
