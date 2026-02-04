@@ -1966,7 +1966,7 @@ function MoneyReportHeader({
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                         wrapperStyle={[styles.pAbsolute, styles.r0]}
-                        sentryLabel={CONST.SENTRY_LABEL.REPORT.GENERATE_PDF_MODAL_CLOSE}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_HEADER_GENERATE_PDF_MODAL_CLOSE_BUTTON}
                     >
                         <Icon
                             src={expensifyIcons.Close}
