@@ -218,29 +218,43 @@ platforms:
         description: "Learn about billing."
         
         sections:
-          - href: subscription-and-plan-management
-            title: Managing Plans and Subscriptions
+          - href: subscription-setup-and-billing-ownership
+            title: Subscription Setup & Billing Ownership
             articles:
+              - href: How-to-read-your-Expensify-billing-receipt
+                title: How to read your Expensify billing receipt
               - href: what-billing-ownership-means-in-expensify
                 title: What billing ownership means in Expensify
-              - href: Managing-subscriptions-in-Expensify
-                title: Managing subscriptions in Expensify
-              - href: Deleting-workspaces-in-Expensify
-                title: Deleting a workspace in Expensify
-              - href: How-to-Manage-Billing-and-Subscriptions-in-Expensify-Classic
-                title: Manage Billing & Subscriptions in Expensify Classic
-              - href: How-to-Manage-Subscriptions-and-Billing-in-New-Expensify
-                title: How to manage subscriptions and billing in New Expensify
           
           - href: plans-and-pricing
-            title: Plans and Pricing
+            title: Plans & Pricing
             articles:
-              - href: expensify_plan_overview
-                title: "Expensify Plans Overview: Collect vs Control"
-              - href: expensify_plan_pricing
-                title: "Expensify Plan Pricing and Billing: Annual, Pay-Per-Use, and Localized Rates"
               - href: expensify_card_pricing_benefits
                 title: "Expensify Card: How Pricing Discounts and Cash Back Work"
               - href: expensify_legacy_pricing
                 title: "Expensify Legacy Pricing: Who Qualifies and What It Means"
+              - href: expensify_plan_overview
+                title: "Expensify Plans Overview: Collect vs Control"
+              - href: expensify_plan_pricing
+                title: "Expensify Plan Pricing and Billing: Annual, Pay-Per-Use, and Localized Rates"
+              - href: Expensify-Plans-Comparison
+                title: "Expensify Plans & Pricing: Collect vs Control"
+          
+          - href: subscription-management
+            title: Subscription Management
+            articles:
+              - href: How-to-Manage-Billing-and-Subscriptions-in-Expensify-Classic
+                title: Manage Billing & Subscriptions in Expensify Classic
+              - href: How-to-Manage-Subscriptions-and-Billing-in-New-Expensify
+                title: How to manage subscriptions and billing in New Expensify
+              - href: Managing-subscriptions-in-Expensify
+                title: Managing subscriptions in Expensify
+              - href: Deleting-workspaces-in-Expensify
+                title: Deleting a workspace in Expensify
+          
+          - href: other-billing-scenarios
+            title: Other Billing Scenarios
+            articles:
+              - href: Understanding-Out-of-Date-Billing-in-Expensify
+                title: How to fix out-of-date billing in Expensify
 
