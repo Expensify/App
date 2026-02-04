@@ -914,8 +914,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Utilisez le bouton + pour ${additionalText} une dépense.`,
-        askConcierge: 'Posez des questions et obtenez une assistance en temps réel 24 h/24 et 7 j/7.',
-        conciergeSupport: 'Assistance 24 h/24, 7 j/7',
+        askConcierge: 'Posez-moi vos questions !',
+        conciergeSupport: 'Votre agent IA personnel',
         create: 'créer',
         iouTypes: {
             pay: 'payer',

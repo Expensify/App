@@ -909,8 +909,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Jouw ruimte',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welkom bij ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Gebruik de +-knop om een uitgave te ${additionalText}.`,
-        askConcierge: 'Stel vragen en krijg 24/7 realtime ondersteuning.',
-        conciergeSupport: '24/7 ondersteuning',
+        askConcierge: 'Vraag me alles!',
+        conciergeSupport: 'Jouw persoonlijke AI-agent',
         create: 'maken',
         iouTypes: {
             pay: 'betalen',
