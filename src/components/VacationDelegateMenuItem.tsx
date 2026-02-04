@@ -33,17 +33,9 @@ type VacationDelegateSectionProps = {
      * Should navigate the user to the vacation delegate selection screen.
      */
     onPress: () => void;
-
-    /**
-     * Optional additional title/description displayed above the section
-     */
-    additionalDescription?: string;
-
-    /** Optional styles for container element */
-    containerStyles?: StyleProp<ViewStyle>;
 };
 
-function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCloseError, onPress, additionalDescription, containerStyles}: VacationDelegateSectionProps) {
+function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCloseError, onPress}: VacationDelegateSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
@@ -52,45 +44,35 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
     const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
     const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
-    return (
-        <View style={[containerStyles]}>
-            {!!additionalDescription && (
-                <>
-                    <Text style={[styles.mh5]}>{translate('statusPage.setVacationDelegate')}</Text>
-                    {hasVacationDelegate && <Text style={[styles.mh5, styles.mt6, styles.mutedTextLabel]}>{additionalDescription}</Text>}
-                </>
-            )}
-
-            {hasVacationDelegate ? (
-                <OfflineWithFeedback
-                    pendingAction={pendingAction}
-                    errors={errors}
-                    errorRowStyles={styles.mh5}
-                    onClose={onCloseError}
-                >
-                    <MenuItem
-                        title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
-                        description={fallbackVacationDelegateLogin}
-                        avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                        icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        numberOfLinesDescription={1}
-                        shouldShowRightIcon
-                        onPress={onPress}
-                        containerStyle={styles.pr2}
-                    />
-                </OfflineWithFeedback>
-            ) : (
-                <View style={[styles.mt1]}>
-                    <MenuItem
-                        description={translate('statusPage.vacationDelegate')}
-                        shouldShowRightIcon
-                        onPress={onPress}
-                        containerStyle={styles.pr2}
-                    />
-                </View>
-            )}
-        </View>
+    return hasVacationDelegate ? (
+        <>
+            <Text style={[styles.mh5, styles.mt5, styles.mutedTextLabel]}>{translate('statusPage.vacationDelegate')}</Text>
+            <OfflineWithFeedback
+                pendingAction={pendingAction}
+                errors={errors}
+                errorRowStyles={styles.mh5}
+                onClose={onCloseError}
+            >
+                <MenuItem
+                    title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
+                    description={fallbackVacationDelegateLogin}
+                    avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                    icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
+                    iconType={CONST.ICON_TYPE_AVATAR}
+                    numberOfLinesDescription={1}
+                    shouldShowRightIcon
+                    onPress={onPress}
+                    containerStyle={styles.pr2}
+                />
+            </OfflineWithFeedback>
+        </>
+    ) : (
+        <MenuItem
+            description={translate('statusPage.vacationDelegate')}
+            shouldShowRightIcon
+            onPress={onPress}
+            containerStyle={styles.pr2}
+        />
     );
 }
 

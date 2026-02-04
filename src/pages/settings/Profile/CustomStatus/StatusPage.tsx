@@ -255,15 +255,16 @@ function StatusPage() {
                         />
                     )}
                 </View>
-                <VacationDelegateMenuItem
-                    vacationDelegate={vacationDelegate}
-                    errors={vacationDelegate?.errors}
-                    pendingAction={vacationDelegate?.pendingAction}
-                    onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
-                    additionalDescription={translate('statusPage.vacationDelegate')}
-                    containerStyles={[styles.mb2, styles.mt6]}
-                />
+                <View style={[styles.mb2, styles.mt6]}>
+                    <Text style={[styles.mh5, styles.mb1]}>{translate('statusPage.setVacationDelegate')}</Text>
+                    <VacationDelegateMenuItem
+                        vacationDelegate={vacationDelegate}
+                        errors={vacationDelegate?.errors}
+                        pendingAction={vacationDelegate?.pendingAction}
+                        onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
+                    />
+                </View>
             </FormProvider>
         </ScreenWrapper>
     );
