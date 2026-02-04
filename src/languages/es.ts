@@ -4,7 +4,14 @@ import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
-import type {CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, RoutedDueToDEWParams, SplitDateRangeParams, ViolationsRterParams} from './params';
+import type {
+    CreatedReportForUnapprovedTransactionsParams,
+    PaidElsewhereParams,
+    RoutedDueToDEWParams,
+    SplitDateRangeParams,
+    SubscriptionSettingsSummaryParams,
+    ViolationsRterParams,
+} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */

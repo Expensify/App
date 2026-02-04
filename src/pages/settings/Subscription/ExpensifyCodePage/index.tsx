@@ -13,32 +13,28 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {applyExpensifyCode} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SubscriptionExpensifyCodeForm';
 
-type ExpensifyCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE>;
-
-function ExpensifyCodePage({}: ExpensifyCodePageProps) {
+function ExpensifyCodePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [subscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [subscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
 
     const defaultValues = {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
     };
 
     useEffect(() => {
-        if (hasSubmitted && subscription?.expensifyCode) {
-            Navigation.goBack();
+        if (!hasSubmitted || !subscription?.expensifyCode) {
+            return;
         }
+        Navigation.goBack();
     }, [hasSubmitted, subscription?.expensifyCode]);
 
     const validate = useCallback(
