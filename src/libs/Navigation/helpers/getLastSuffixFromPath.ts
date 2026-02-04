@@ -1,4 +1,4 @@
-import Log from '@libs/__mocks__/Log';
+import Log from '@libs/Log';
 
 /**
  * Extracts the last segment from a URL path, removing query parameters and trailing slashes.
