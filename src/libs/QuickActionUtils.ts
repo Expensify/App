@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Beta, Policy, Report} from '@src/types/onyx';
@@ -5,7 +6,6 @@ import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type { OnyxEntry } from 'react-native-onyx';
 import getIconForAction from './getIconForAction';
 import {getPerDiemCustomUnit} from './PolicyUtils';
 import {canCreateRequest} from './ReportUtils';
