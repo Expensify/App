@@ -22,6 +22,9 @@ import variables from '@styles/variables';
 /** Inner dot radius for line chart data points */
 const DOT_RADIUS = 6;
 
+/** Extra hover area beyond the dot radius for easier touch targeting */
+const DOT_HOVER_EXTRA_RADIUS = 2;
+
 /** Extra pixel spacing between the plot boundary and the first/last data point */
 const LINE_CHART_DOMAIN_PADDING = 16;
 
@@ -113,7 +116,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
         const dx = args.cursorX - args.targetX;
         const dy = args.cursorY - args.targetY;
-        return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS;
+        return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
     }, []);
 
     const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
