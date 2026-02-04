@@ -1,5 +1,6 @@
 import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
+import type {PrivateIsArchivedMap} from '@selectors/ReportNameValuePairs';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
@@ -93,7 +94,8 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const options = createOptionList(personalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, reports);
+const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
+const options = createOptionList(personalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, reports);
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -156,7 +158,7 @@ describe('OptionsListUtils', () => {
             ValidOptionsConfig,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -172,7 +174,7 @@ describe('OptionsListUtils', () => {
             ValidOptionsConfig,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID);
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
         });
     });
 
