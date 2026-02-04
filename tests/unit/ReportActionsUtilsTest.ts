@@ -1529,6 +1529,26 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it('should return true for REIMBURSED action from OldDot', () => {
+            // Given a REIMBURSED action created from OldDot (no isNewDot flag)
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'Reimbursed via ACH',
+                    },
+                ],
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
