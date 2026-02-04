@@ -1002,6 +1002,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Valideer je kaart en begin met uitgeven.',
                 cta: 'Activeren',
             },
+            ctaFix: 'Repareren',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Verbinding bedrijfskaart ${feedName} herstellen` : 'Verbinding van bedrijfskaart repareren'),
+                subtitle: 'Werkruimte > Bedrijfspassen',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Verbinding met ${integrationName} repareren`, subtitle: 'Werkruimte > Boekhouding'},
         },
         announcements: 'Aankondigingen',
         discoverSection: {

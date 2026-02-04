@@ -1003,6 +1003,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.',
                 cta: 'Aktivieren',
             },
+            ctaFix: 'Beheben',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `${feedName}-Firmenkartenverbindung reparieren` : 'Firmenkarte reparieren Verbindung der Firmenkarte reparieren'),
+                subtitle: 'Workspace > Unternehmenskarten',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `${integrationName}-Verbindung reparieren`, subtitle: 'Arbeitsbereich > Buchhaltung'},
         },
         announcements: 'Ankündigungen',
         discoverSection: {

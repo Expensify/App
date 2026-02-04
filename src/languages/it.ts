@@ -1002,6 +1002,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Convalida la tua carta e inizia a spendere.',
                 cta: 'Attiva',
             },
+            ctaFix: 'Correggi',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Correggi la connessione della carta aziendale ${feedName}` : 'Correggi connessione carta aziendale'),
+                subtitle: 'Spazio di lavoro > Carte aziendali',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Correggi connessione ${integrationName}`, subtitle: 'Spazio di lavoro > Contabilità'},
         },
         announcements: 'Annunci',
         discoverSection: {
