@@ -4029,16 +4029,14 @@ ${
                 'Vous ne pouvez pas rétrograder votre forfait avec un abonnement facturé. Pour discuter ou apporter des modifications à votre abonnement, contactez votre chargé de compte ou Concierge pour obtenir de l’aide.',
             defaultCategory: 'Catégorie par défaut',
             viewTransactions: 'Afficher les transactions',
-            youCantDowngradeInvoicing:
-                'Vous ne pouvez pas rétrograder votre forfait sur un abonnement facturé. Pour discuter ou apporter des modifications à votre abonnement, contactez votre gestionnaire de compte ou Concierge pour obtenir de l’aide.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Aucun',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: 'Indirect',
             },
-            budgetFrequency: {monthly: 'mensuel', yearly: 'Annuel'},
+            budgetFrequency: {monthly: 'mensuel', yearly: 'annuel'},
             budgetFrequencyUnit: {monthly: 'mois', yearly: 'année'},
-            budgetTypeForNotificationMessage: {tag: 'étiquette', category: 'catégorie'},
+            budgetTypeForNotificationMessage: {tag: 'tag', category: 'catégorie'},
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la carte Expensify seront automatiquement exportées vers un « compte de passif de carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
         },
@@ -6680,7 +6678,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `a changé le nom de la liste de tags en « ${newName} » (précédemment « ${oldName} »)`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `a ajouté le tag « ${tagName} » à la liste « ${tagListName} »`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) =>
-            `a mis à jour la liste de catégories « ${tagListName} » en remplaçant la catégorie « ${oldName} » par « ${newName} »`,
+            `a mis à jour la liste de tags « ${tagListName} » en remplaçant le tag « ${oldName} » par « ${newName} »`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'activé' : 'Désactivé'} l’étiquette « ${tagName} » sur la liste « ${tagListName} »`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `a supprimé la balise « ${tagName} » de la liste « ${tagListName} »`,
         deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `a supprimé les balises « ${count} » de la liste « ${tagListName} »`,
@@ -6693,7 +6691,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `a modifié le ${customUnitName} ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `Suivi fiscal ${newValue ? 'activé' : 'Désactivé'} sur les taux de distance`,
-        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `a ajouté un nouveau tarif ${customUnitName} « ${rateName} »`,
+        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `a ajouté un nouveau taux ${customUnitName} « ${rateName} »`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
             `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
@@ -6704,15 +6702,15 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
         updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
             if (oldValue) {
-                return `a modifié la part récupérable de taxe sur le taux de distance « ${customUnitRateName} » à « ${newValue} » (auparavant « ${oldValue} »)`;
+                return `a modifié la part de taxe récupérable sur le taux de distance « ${customUnitRateName} » à « ${newValue} » (auparavant « ${oldValue} »)`;
             }
-            return `a ajouté une part de taxe récupérable de « ${newValue} » au taux de distance « ${customUnitRateName}`;
+            return `a ajouté une partie de taxe récupérable de « ${newValue} » au taux de distance « ${customUnitRateName} »`;
         },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
             return `${newValue ? 'Activé' : 'Désactivé'} le taux de ${customUnitName} « ${customUnitRateName} »`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `a supprimé le tarif « ${customUnitName} » « ${rateName} »`,
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `ajout du champ de rapport ${fieldType} « ${fieldName} »`,
+        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `a supprimé le taux « ${customUnitName} » « ${rateName} »`,
+        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `définir la valeur par défaut du champ de note de frais « ${fieldName} » sur « ${defaultValue} »`,
         addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `a ajouté l’option « ${optionName} » au champ de note de frais « ${fieldName} »`,
@@ -6725,7 +6723,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             }
             return `${allEnabled ? 'Activé' : 'Désactivé'} l’option « ${optionName} » pour le champ de note de frais « ${fieldName} », rendant toutes les options ${allEnabled ? 'Activé' : 'Désactivé'}`;
         },
-        deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `${fieldType} de rapport "${fieldName}" supprimé`,
+        deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `a supprimé le champ de note de frais ${fieldType} « ${fieldName} »`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `mis à jour « Empêcher l’auto-approbation » vers « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
@@ -6738,7 +6736,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             `a mis à jour « Refacturer les dépenses aux clients » sur « ${newValue} » (auparavant « ${oldValue} »)`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `mis à jour « Dépense en espèces par défaut » en « ${newValue} » (précédemment « ${oldValue} »)`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `a activé « Imposer les titres de note de frais par défaut » ${value ? 'activé' : 'désactivé'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `a activé « Appliquer les titres de note de frais par défaut » ${value ? 'activé' : 'désactivé'}`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `a modifié la formule du nom de note de frais personnalisée en « ${newValue} » (auparavant « ${oldValue} »)`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `a mis à jour le nom de cet espace de travail en « ${newName} » (auparavant « ${oldName} »)`,
@@ -6906,33 +6904,28 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `définir l’ancienneté maximale des dépenses à « ${newValue} » jours`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximal de dépense modifié à « ${newValue} » jours (auparavant « ${oldValue} »)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `âge maximal de dépense supprimé (auparavant « ${oldValue} » jours)`,
-        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'Activé' : 'Désactivé'} rapports avec paiement automatique approuvé`,
-        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `définir le seuil de paiement automatique des rapports approuvés sur « ${newLimit} »`,
-        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
-            `a modifié le seuil des rapports approuvés en paiement automatique à « ${newLimit} » (auparavant « ${oldLimit} »)`,
-        removedAutoPayApprovedReportsLimit: 'supprimé le seuil des rapports approuvés pour le paiement automatique',
         updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `${count} catégories mises à jour`,
-        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `mis à jour les tags sur la liste « ${tagListName} »`,
+        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `a mis à jour les tags dans la liste « ${tagListName} »`,
         updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
-            `liste de tags « ${tagListsName} » modifiée en ${isRequired ? 'Obligatoire' : 'Non requis'}`,
-        importTags: 'tags importées depuis une feuille de calcul',
-        deletedAllTags: 'Tous les tags ont été supprimés',
+            `a modifié la liste de tags « ${tagListsName} » en ${isRequired ? 'obligatoire' : 'non obligatoire'}`,
+        importTags: 'tags importés depuis une feuille de calcul',
+        deletedAllTags: 'a supprimé tous les tags',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
-            `a modifié la catégorie par défaut de ${customUnitName} en « ${newValue} » ${oldValue ? `(auparavant « ${oldValue} »)` : ''}`,
-        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `tarifs importés pour l’unité personnalisée « ${customUnitName} »`,
+            `a modifié la catégorie par défaut pour ${customUnitName} en « ${newValue} » ${oldValue ? `(auparavant « ${oldValue} »)` : ''}`,
+        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `taux importés pour l’unité personnalisée « ${customUnitName} »`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
-            `a modifié le taux « ${customUnitName} », le sous-taux « ${customUnitRateName} » « ${customUnitSubRateName} » ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
+            `a modifié le taux « ${customUnitName} », le sous-taux « ${customUnitRateName} », le sous-taux « ${customUnitSubRateName} » ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
-            `supprimé le taux « ${customUnitName} », le sous-taux « ${customUnitRateName} » « ${removedSubRateName} »`,
+            `a supprimé le taux « ${customUnitName} », le sous-taux « ${customUnitRateName} », le sous-taux « ${removedSubRateName} »`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
-            const thresholdSuffix = typeof notificationThreshold === 'number' ? `avec un seuil de notification de « ${notificationThreshold}% »` : '';
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `avec un seuil de notification de « ${notificationThreshold}% »` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
-                return `ajout de ${frequency} budget individuel « ${individual} » et de ${frequency} budget partagé « ${shared} »${thresholdSuffix} au ${entityType} « ${entityName} »`;
+                return `a ajouté ${frequency} budget individuel de « ${individual} » et ${frequency} budget partagé de « ${shared} »${thresholdSuffix} au ${entityType} « ${entityName} »`;
             }
             if (typeof individual !== 'undefined') {
-                return `ajouté ${frequency} budget individuel de « ${individual} »${thresholdSuffix} au/à la ${entityType} « ${entityName} »`;
+                return `a ajouté un budget individuel ${frequency} de « ${individual} »${thresholdSuffix} à l’${entityType} « ${entityName} »`;
             }
-            return `ajouté ${frequency} budget partagé « ${shared} »${thresholdSuffix} au ${entityType} « ${entityName} »`;
+            return `a ajouté un budget partagé ${frequency} de « ${shared} »${thresholdSuffix} à l’${entityType} « ${entityName} »`;
         },
         updateBudget: ({
             entityType,
@@ -6952,62 +6945,63 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             const thresholdChanged = typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold;
             const changesList: string[] = [];
             if (frequencyChanged) {
-                changesList.push(`fréquence du budget modifiée en « ${newFrequency} » (auparavant « ${oldFrequency} »)`);
+                changesList.push(`a modifié la fréquence du budget en « ${newFrequency} » (auparavant « ${oldFrequency} »)`);
             }
             if (sharedChanged) {
-                changesList.push(`a modifié le budget total de l’espace de travail à « ${newShared} » (auparavant « ${oldShared} »)`);
+                changesList.push(`a modifié le budget total de l'espace de travail en « ${newShared} » (précédemment « ${oldShared} »)`);
             }
             if (individualChanged) {
-                changesList.push(`a modifié le budget individuel en « ${newIndividual} » (précédemment « ${oldIndividual} »)`);
+                changesList.push(`a modifié le budget individuel en « ${newIndividual} » (auparavant « ${oldIndividual} »)`);
             }
             if (thresholdChanged) {
-                changesList.push(`seuil de notification modifié à « ${newNotificationThreshold}% » (auparavant « ${oldNotificationThreshold}% »)`);
+                changesList.push(`a modifié le seuil de notification à « ${newNotificationThreshold}% » (auparavant « ${oldNotificationThreshold}% »)`);
             }
             if (!frequencyChanged && !sharedChanged && !individualChanged && !thresholdChanged) {
                 return `budget mis à jour pour le/la ${entityType} « ${entityName} »`;
             }
             if (changesList.length === 1) {
                 if (frequencyChanged) {
-                    return `fréquence de budget modifiée pour le/la ${entityType} « ${entityName} » en « ${newFrequency} » (auparavant « ${oldFrequency} »)`;
+                    return `a modifié la fréquence de budget pour le ${entityType} « ${entityName} » en « ${newFrequency} » (auparavant « ${oldFrequency} »)`;
                 }
                 if (sharedChanged) {
                     return `a modifié le budget total de l’espace de travail pour le ${entityType} « ${entityName} » à « ${newShared} » (auparavant « ${oldShared} »)`;
                 }
                 if (individualChanged) {
-                    return `budget individuel modifié pour le/la ${entityType} « ${entityName} » à « ${newIndividual} » (auparavant « ${oldIndividual} »)`;
+                    return `a modifié le budget individuel pour le/la ${entityType} « ${entityName} » en « ${newIndividual} » (auparavant « ${oldIndividual} »)`;
                 }
-                return `seuil de notification modifié pour le ${entityType} « ${entityName} » en « ${newNotificationThreshold}% » (auparavant « ${oldNotificationThreshold}% »)`;
+                return `a modifié le seuil de notification pour le ${entityType} « ${entityName} » à « ${newNotificationThreshold}% » (auparavant « ${oldNotificationThreshold}% »)`;
             }
             return `budget mis à jour pour le/la ${entityType} « ${entityName} » : ${changesList.join('; ')}`;
         },
         deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `avec un seuil de notification de « ${notificationThreshold}% »` : '';
             if (shared && individual) {
-                return `a supprimé le budget partagé ${frequency} de « ${shared} » et le budget individuel de « ${individual} »${thresholdSuffix} du ${entityType} « ${entityName} »`;
+                return `a supprimé un budget partagé de ${frequency} « ${shared} » et un budget individuel de « ${individual} »${thresholdSuffix} du ${entityType} « ${entityName} »`;
             }
             if (shared) {
-                return `a supprimé le budget partagé ${frequency} « ${shared} »${thresholdSuffix} du/de la ${entityType} « ${entityName} »`;
+                return `a supprimé le budget partagé ${frequency} « ${shared} »${thresholdSuffix} de l’${entityType} « ${entityName} »`;
             }
             if (individual) {
-                return `supprimé le budget individuel ${frequency} de « ${individual} »${thresholdSuffix} du ${entityType} « ${entityName} »`;
+                return `a supprimé le budget individuel ${frequency} de « ${individual} »${thresholdSuffix} de l’${entityType} « ${entityName} »`;
             }
-            return `budget supprimé du/de la ${entityType} « ${entityName} »`;
+            return `a supprimé le budget de ${entityType} « ${entityName} »`;
         },
         updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
-            return `Suivi du temps ${enabled ? 'activé' : 'Désactivé'}`;
+            return `Suivi du temps ${enabled ? 'activé' : 'désactivé'}`;
         },
         updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
-            return `taux horaire modifié en « ${newRate} » (auparavant « ${oldRate} »)`;
+            return `a modifié le taux horaire à « ${newRate} » (auparavant « ${oldRate} »)`;
         },
-        addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `« ${prohibitedExpense} » a été ajouté aux dépenses interdites`,
-        removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `« ${prohibitedExpense} » a été supprimé des dépenses interdites`,
+        addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a ajouté « ${prohibitedExpense} » aux dépenses interdites`,
+        removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
         updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: UpdatedPolicyReimbursementChoiceParams) =>
-            `mode de remboursement modifié en « ${newReimbursementChoice} » (auparavant « ${oldReimbursementChoice} »)`,
-        setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} pré-approbation des demandes de rejoindre l’espace de travail`,
+            `a modifié le mode de remboursement en « ${newReimbursementChoice} » (auparavant « ${oldReimbursementChoice} »)`,
+        setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} pré-approbation des demandes de rejoindre l’espace de travail`,
         updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
-            `formule du nom de rapport personnalisé modifiée en « ${newDefaultTitle} » (auparavant « ${oldDefaultTitle} »)`,
-        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) => `a pris la propriété de ${policyName} à ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `Soumission planifiée ${enabled ? 'activé' : 'Désactivé'}`,
+            `a modifié la formule du nom de note de frais personnalisée en « ${newDefaultTitle} » (précédemment « ${oldDefaultTitle} »)`,
+        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) =>
+            `a pris la responsabilité de ${policyName} à la place de ${oldOwnerName} (${oldOwnerEmail})`,
+        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `Soumission planifiée pour ${enabled ? 'activé' : 'désactivé'}`,
         updatedIndividualBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -7021,7 +7015,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
-            `Attention ! Cet espace de travail a un budget ${budgetFrequency} ${budgetTypeForNotificationMessage} de « ${budgetAmount} » pour la catégorie « ${budgetName} ». ${userEmail} est actuellement à ${approvedReimbursedClosedSpend}, ce qui dépasse ${thresholdPercentage}% du budget. Il y a aussi ${awaitingApprovalSpend} en attente d’approbation, et ${unsubmittedSpend} qui n’a pas encore été soumis, pour un total de ${totalSpend}.${summaryLink ? `<a href="${summaryLink}">Voici un rapport</a> avec toutes ces dépenses pour vos archives !` : ''}`,
+            `Attention ! Cet espace de travail a un budget ${budgetFrequency} de « ${budgetAmount} » pour le/la ${budgetTypeForNotificationMessage} « ${budgetName} ». ${userEmail} est actuellement à ${approvedReimbursedClosedSpend}, ce qui dépasse ${thresholdPercentage}% du budget. Il y a aussi ${awaitingApprovalSpend} en attente d’approbation, et ${unsubmittedSpend} qui n’a pas encore été soumise, pour un total de ${totalSpend}.${summaryLink ? `<a href="${summaryLink}">Voici une note de frais</a> avec toutes ces dépenses pour vos dossiers !` : ''}`,
         updatedSharedBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -7034,7 +7028,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
-            `Attention ! Cet espace de travail a un budget ${budgetFrequency} ${budgetTypeForNotificationMessage} de « ${budgetAmount} » pour la catégorie « ${budgetName} ». Vous êtes actuellement à ${approvedReimbursedClosedSpend}, ce qui dépasse ${thresholdPercentage}% du budget. Il y a également ${awaitingApprovalSpend} en attente d’approbation, et ${unsubmittedSpend} qui n’a pas encore été soumis, pour un total de ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Voici un rapport</a> avec toutes ces dépenses pour vos dossiers !` : ''}`,
+            `Attention ! Cet espace de travail a un budget ${budgetFrequency} de « ${budgetAmount} » pour le/la ${budgetTypeForNotificationMessage} « ${budgetName} ». Vous en êtes actuellement à ${approvedReimbursedClosedSpend}, ce qui dépasse ${thresholdPercentage}% du budget. Il y a aussi ${awaitingApprovalSpend} en attente d’approbation et ${unsubmittedSpend} qui n’a pas encore été soumis, pour un total de ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Voici une note de frais</a> avec toutes ces dépenses pour vos dossiers !` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -7439,6 +7433,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 leftTheChat: 'a quitté la discussion',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `le compte bancaire professionnel ${maskedBankAccountNumber} a été automatiquement verrouillé en raison d’un problème avec le remboursement ou le règlement de la carte Expensify. Veuillez corriger ce problème dans vos <a href="${linkURL}">paramètres d’espace de travail</a>.`,
+                leftTheChatWithName: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} a quitté la discussion`,
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',

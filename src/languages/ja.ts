@@ -3993,8 +3993,6 @@ ${
             viewTransactions: '取引を表示',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName} さんの経費`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card の取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">当社のインテグレーション</a>によって作成される「Expensify Card 負債勘定」に自動的にエクスポートされます。</muted-text-label>`,
-            youCantDowngradeInvoicing:
-                '請求書払いのサブスクリプションでは、プランをダウングレードできません。サブスクリプションについて相談したり変更したりする場合は、アカウントマネージャーまたはConciergeまでお問い合わせください。',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'ダイレクト',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'なし',
@@ -6599,7 +6597,7 @@ ${reportName}
         },
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `タグリスト名を「${newName}」（以前は「${oldName}」）に変更しました`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `タグ「${tagName}」をリスト「${tagListName}」に追加しました`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `タグリスト「${tagListName}」のタグ「${oldName}」を「${newName}」に変更して更新しました`,
+        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `タグリスト「${tagListName}」でタグ「${oldName}」を「${newName}」に変更して更新しました`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? '有効' : '無効'} リスト「${tagListName}」のタグ「${tagName}」`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `タグ「${tagName}」をリスト「${tagListName}」から削除しました`,
         deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `リスト「${tagListName}」からタグ「${count}」個を削除しました`,
@@ -6623,14 +6621,14 @@ ${reportName}
         },
         updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
             if (oldValue) {
-                return `距離レート「${customUnitRateName}」の税控除可能部分を「${newValue}」に変更しました（以前は「${oldValue}」）`;
+                return `距離レート「${customUnitRateName}」の税還付可能部分を「${newValue}」（以前は「${oldValue}」）に変更しました`;
             }
-            return `距離単価「${customUnitRateName}」に税還付対象分「${newValue}」を追加しました`;
+            return `距離単価「${customUnitRateName}」に対して、税金還付対象額「${newValue}」を追加しました`;
         },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
             return `${newValue ? '有効' : '無効'} の ${customUnitName} レート「${customUnitRateName}」`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `「${customUnitName}」のレート「${rateName}」を削除しました`,
+        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `「${customUnitName}」レート「${rateName}」を削除しました`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType}レポートフィールド「${fieldName}」を追加しました`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `レポートフィールド「${fieldName}」のデフォルト値を「${defaultValue}」に設定する`,
@@ -6644,7 +6642,7 @@ ${reportName}
             }
             return `レポート項目「${fieldName}」のオプション「${optionName}」を${allEnabled ? '有効' : '無効'}にし、すべてのオプションを${allEnabled ? '有効' : '無効'}にしました`;
         },
-        deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `${fieldType} レポートフィールド「${fieldName}」を削除しました`,
+        deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `${fieldType}レポートフィールド「${fieldName}」を削除しました`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `「自分で承認を防止」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
@@ -6655,7 +6653,7 @@ ${reportName}
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `「クライアントへの経費再請求」を「${newValue}」に更新しました（以前は「${oldValue}」）`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `「現金経費のデフォルト」を「${newValue}」（以前は「${oldValue}」）に更新しました`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `「デフォルトのレポートタイトルを適用」を有効にしました ${value ? 'オン' : 'オフ'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `「デフォルトのレポートタイトルを適用」を有効にしました ${value ? 'オン' : 'オフ'}`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `カスタムレポート名の数式を「${newValue}」に変更しました（以前は「${oldValue}」）`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `このワークスペースの名前を「${newName}」（以前は「${oldName}」）に更新しました`,
@@ -6816,33 +6814,28 @@ ${reportName}
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を「${newValue}」日に設定`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費期限を「${newValue}」日に変更しました（以前は「${oldValue}」日）`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `最大経費日数を削除（以前は「${oldValue}」日）`,
-        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 件の自動支払い承認済みレポート`,
-        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `自動支払い承認レポートの閾値を「${newLimit}」に設定`,
-        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
-            `自動支払い承認済みレポートのしきい値を「${newLimit}」（以前は「${oldLimit}」）に変更しました`,
-        removedAutoPayApprovedReportsLimit: '自動支払い承認済みレポートのしきい値を削除しました',
-        updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `${count} 件のカテゴリを更新しました`,
+        updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `${count} 個のカテゴリーを更新しました`,
         updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `リスト「${tagListName}」のタグを更新しました`,
         updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
             `タグリスト「${tagListsName}」を${isRequired ? '必須' : '必須ではありません'}に変更しました`,
-        importTags: 'スプレッドシートからインポートされたタグ',
+        importTags: 'スプレッドシートからタグをインポートしました',
         deletedAllTags: 'すべてのタグを削除しました',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
-            `${customUnitName} のデフォルトカテゴリを「${newValue}」に変更しました ${oldValue ? `（以前の値：「${oldValue}」）` : ''}`,
+            `${customUnitName}のデフォルトカテゴリを「${newValue}」に変更しました ${oldValue ? `（以前の値 "${oldValue}"）` : ''}`,
         importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `カスタム単位「${customUnitName}」のレートをインポートしました`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
-            `「${customUnitName}」レート「${customUnitRateName}」のサブレート「${customUnitSubRateName}」の${updatedField}を「${newValue}」に変更しました（以前は「${oldValue}」）`,
+            `「${customUnitName}」のレート「${customUnitRateName}」、サブレート「${customUnitSubRateName}」の${updatedField}を「${newValue}」（以前は「${oldValue}」）に変更しました`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
-            `「${customUnitName}」レート「${customUnitRateName}」のサブラテ「${removedSubRateName}」を削除しました`,
+            `「${customUnitName}」のレート「${customUnitRateName}」からサブレート「${removedSubRateName}」を削除しました`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
-            const thresholdSuffix = typeof notificationThreshold === 'number' ? `通知しきい値「${notificationThreshold}%」付き` : '';
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `通知しきい値「${notificationThreshold}%」で` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
-                return `${entityType}「${entityName}」に、個人用予算「${individual}」を${frequency}件、共有予算「${shared}」を${frequency}件${thresholdSuffix}追加しました`;
+                return `${entityType}「${entityName}」に、個人予算「${individual}」を${frequency}件と、共有予算「${shared}」を${frequency}件${thresholdSuffix}追加しました`;
             }
             if (typeof individual !== 'undefined') {
                 return `${entityType}「${entityName}」に、${frequency} 個人予算「${individual}」${thresholdSuffix}を追加しました`;
             }
-            return `${entityType}「${entityName}」に「${shared}」の共有予算（${frequency}）${thresholdSuffix}を追加しました`;
+            return `${frequency}の共有予算「${shared}」${thresholdSuffix}を${entityType}「${entityName}」に追加しました`;
         },
         updateBudget: ({
             entityType,
@@ -6865,7 +6858,7 @@ ${reportName}
                 changesList.push(`予算の頻度を「${newFrequency}」（以前は「${oldFrequency}」）に変更しました`);
             }
             if (sharedChanged) {
-                changesList.push(`ワークスペースの合計予算を「${newShared}」（以前は「${oldShared}」）に変更しました`);
+                changesList.push(`ワークスペースの合計予算を「${newShared}」に変更しました（以前は「${oldShared}」）`);
             }
             if (individualChanged) {
                 changesList.push(`個人予算を「${newIndividual}」（以前は「${oldIndividual}」）に変更しました`);
@@ -6878,33 +6871,33 @@ ${reportName}
             }
             if (changesList.length === 1) {
                 if (frequencyChanged) {
-                    return `${entityType}「${entityName}」の予算頻度を「${newFrequency}」（以前は「${oldFrequency}」）に変更しました`;
+                    return `${entityType}「${entityName}」の予算頻度を「${newFrequency}」に変更しました（以前は「${oldFrequency}」）`;
                 }
                 if (sharedChanged) {
-                    return `${entityType}「${entityName}」のワークスペース合計予算を「${oldShared}」から「${newShared}」に変更しました`;
+                    return `${entityType}「${entityName}」のワークスペース合計予算を「${newShared}」（以前は「${oldShared}」）に変更しました`;
                 }
                 if (individualChanged) {
                     return `${entityType}「${entityName}」の個別予算を「${newIndividual}」（以前は「${oldIndividual}」）に変更しました`;
                 }
                 return `${entityType}「${entityName}」の通知しきい値を「${newNotificationThreshold}%」（以前は「${oldNotificationThreshold}%」）に変更しました`;
             }
-            return `${entityType}「${entityName}」の予算を更新しました: ${changesList.join('; ')}`;
+            return `${entityType}「${entityName}」の予算を更新しました：${changesList.join('; ')}`;
         },
         deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
-            const thresholdSuffix = typeof notificationThreshold === 'number' ? `通知しきい値「${notificationThreshold}%」付き` : '';
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `通知しきい値「${notificationThreshold}%」で` : '';
             if (shared && individual) {
-                return `${entityType}「${entityName}」から、共有予算「${shared}」の${frequency}と個人予算「${individual}」${thresholdSuffix}を削除しました`;
+                return `${entityType}「${entityName}」から、共有予算（${frequency}）「${shared}」と個人予算「${individual}」${thresholdSuffix}を削除しました`;
             }
             if (shared) {
-                return `${entityType}「${entityName}」から、"${shared}" の共有予算（頻度: ${frequency}${thresholdSuffix}）を削除しました`;
+                return `${entityType}「${entityName}」から「${shared}」の${frequency}共有予算${thresholdSuffix}を削除しました`;
             }
             if (individual) {
-                return `${entityType}「${entityName}」から、${individual} の個別予算「${frequency}」${thresholdSuffix}を削除しました`;
+                return `${entityType}「${entityName}」から、${thresholdSuffix} を持つ「${individual}」の個人予算（${frequency}）を削除しました`;
             }
             return `${entityType}「${entityName}」から予算を削除しました`;
         },
         updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
-            return `${enabled ? '有効' : '無効'} タイムトラッキング`;
+            return `${enabled ? '有効' : '無効'} 時間追跡`;
         },
         updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
             return `時給を「${newRate}」（以前は「${oldRate}」）に変更しました`;
@@ -6912,12 +6905,12 @@ ${reportName}
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費から「${prohibitedExpense}」を削除しました`,
         updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: UpdatedPolicyReimbursementChoiceParams) =>
-            `払い戻し方法を「${newReimbursementChoice}」（以前は「${oldReimbursementChoice}」）に変更しました`,
+            `精算方法を「${newReimbursementChoice}」（以前は「${oldReimbursementChoice}」）に変更しました`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} ワークスペース参加リクエストの事前承認`,
         updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
-            `カスタムレポート名の数式を「${newDefaultTitle}」（以前は「${oldDefaultTitle}」）に変更しました`,
+            `カスタムレポート名の数式を「${newDefaultTitle}」に変更しました（以前は「${oldDefaultTitle}」）`,
         updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) => `${oldOwnerName}（${oldOwnerEmail}）から${policyName}の所有権を引き継ぎました`,
-        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `${enabled ? '有効' : '無効'} の送信を予約済み`,
+        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `${enabled ? '有効' : '無効'} の送信を予約しました`,
         updatedIndividualBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -6931,7 +6924,7 @@ ${reportName}
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
-            `お知らせです！このワークスペースには、カテゴリ「${budgetName}」向けに「${budgetAmount}」の${budgetFrequency} ${budgetTypeForNotificationMessage}予算が設定されています。${userEmail} は現在 ${approvedReimbursedClosedSpend} を使用しており、これは予算の ${thresholdPercentage}% を超えています。さらに、承認待ちの金額が ${awaitingApprovalSpend} あり、まだ提出されていない金額が ${unsubmittedSpend} あるため、合計は ${totalSpend} になります。${summaryLink ? `<a href="${summaryLink}">こちらがレポートです</a>。これらすべての経費が記録されていますので、控えとして保管してください！` : ''}`,
+            `お知らせです！このワークスペースには、${budgetTypeForNotificationMessage}「${budgetName}」に対して、${budgetFrequency}あたり「${budgetAmount}」の予算が設定されています。${userEmail} は現在 ${approvedReimbursedClosedSpend} を利用しており、これは予算の ${thresholdPercentage}% を超えています。さらに承認待ちが ${awaitingApprovalSpend}、未申請が ${unsubmittedSpend} あり、合計で ${totalSpend} になります。${summaryLink ? `<a href="${summaryLink}">こちらがレポートです</a>。これらすべての経費の記録としてご利用ください！` : ''}`,
         updatedSharedBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -6944,7 +6937,7 @@ ${reportName}
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
-            `お知らせです！このワークスペースには「${budgetName}」カテゴリ向けに、${budgetFrequency}の${budgetTypeForNotificationMessage}予算「${budgetAmount}」が設定されています。現在の金額は${approvedReimbursedClosedSpend}で、予算の${thresholdPercentage}%を超えています。さらに、承認待ちの金額が${awaitingApprovalSpend}、まだ提出されていない金額が${unsubmittedSpend}あり、合計で${totalSpend}となります。${summaryLink ? `<a href="${summaryLink}">こちらがレポートです</a>。記録用の経費がすべて含まれています！` : ''}`,
+            `お知らせです！このワークスペースには、${budgetTypeForNotificationMessage}「${budgetName}」に対して、${budgetFrequency}の予算額「${budgetAmount}」が設定されています。現在の金額は${approvedReimbursedClosedSpend}で、予算の${thresholdPercentage}%を超えています。さらに承認待ちの金額が${awaitingApprovalSpend}あり、まだ提出されていない金額が${unsubmittedSpend}あるため、合計は${totalSpend}になります。${summaryLink ? `<a href="${summaryLink}">こちらがレポートです</a>。これらすべての経費が記録用にまとめられています！` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -7348,6 +7341,7 @@ ${reportName}
                 leftTheChat: 'チャットを退出しました',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `Reimbursement または Expensify Card の清算に問題が発生したため、ビジネス銀行口座 ${maskedBankAccountNumber} は自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
+                leftTheChatWithName: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}がチャットから退出しました`,
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',

@@ -4000,16 +4000,14 @@ ${
                 'Nie możesz obniżyć planu w subskrypcji rozliczanej fakturą. Aby omówić lub wprowadzić zmiany w swojej subskrypcji, skontaktuj się z opiekunem konta lub Concierge po pomoc.',
             defaultCategory: 'Domyślna kategoria',
             viewTransactions: 'Wyświetl transakcje',
-            youCantDowngradeInvoicing:
-                'Nie możesz zmienić swojego planu na niższy w ramach subskrypcji rozliczanej fakturą. Aby omówić lub wprowadzić zmiany w swojej subskrypcji, skontaktuj się ze swoim opiekunem klienta lub Concierge, aby uzyskać pomoc.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Bezpośredni',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'Brak',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: 'Pośredni',
             },
             budgetFrequency: {monthly: 'miesięcznie', yearly: 'rocznie'},
-            budgetFrequencyUnit: {monthly: 'Miesiąc', yearly: 'Rok'},
-            budgetTypeForNotificationMessage: {tag: 'tag', category: 'Kategoria'},
+            budgetFrequencyUnit: {monthly: 'miesiąc', yearly: 'rok'},
+            budgetTypeForNotificationMessage: {tag: 'znacznik', category: 'kategoria'},
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje kartą Expensify będą automatycznie eksportowane do „Konta zobowiązań karty Expensify” utworzonego za pomocą <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
         },
@@ -6624,7 +6622,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `zmienił nazwę listy tagów na „${newName}” (poprzednio „${oldName}”)`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `dodano znacznik „${tagName}” do listy „${tagListName}”`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `zaktualizował listę tagów „${tagListName}”, zmieniając tag „${oldName}” na „${newName}”`,
+        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `zaktualizowano listę znaczników „${tagListName}”, zmieniając znacznik „${oldName}” na „${newName}”`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'włączone' : 'Wyłączone'} tag "${tagName}" na liście "${tagListName}"`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `usunięto tag „${tagName}” z listy „${tagListName}”`,
         deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `usunięto tagi „${count}” z listy „${tagListName}”`,
@@ -6637,7 +6635,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `zmienił(a) ${updatedField} jednostki ${customUnitName} na „${newValue}” (wcześniej „${oldValue}”)`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'włączone' : 'wyłączone'} śledzenie podatku dla stawek za dystans`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `dodano nową stawkę „${rateName}” dla jednostki „${customUnitName}”`,
+        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `dodano nową stawkę ${customUnitName} „${rateName}”`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
             `zmienił(a) stawkę ${customUnitName} ${updatedField} „${customUnitRateName}” na „${newValue}” (wcześniej „${oldValue}”)`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
@@ -6648,14 +6646,14 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
             if (oldValue) {
-                return `zmieniono zwrotną podatkowo część stawki za dystans „${customUnitRateName}” na „${newValue}” (wcześniej „${oldValue}”)`;
+                return `zmienił zwrotną część podatku w stawce za dystans „${customUnitRateName}” na „${newValue}” (wcześniej „${oldValue}”)`;
             }
-            return `dodano część podatku podlegającą zwrotowi w wysokości „${newValue}” do stawki za dystans „${customUnitRateName}`;
+            return `dodano odzyskiwalną część podatku w wysokości „${newValue}” do stawki za dystans „${customUnitRateName}”`;
         },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
             return `${newValue ? 'włączone' : 'wyłączone'} stawkę jednostki niestandardowej ${customUnitName} „${customUnitRateName}”`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `usunął/-ęła stawkę "${rateName}" jednostki "${customUnitName}"`,
+        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `usunięto stawkę „${rateName}” jednostki „${customUnitName}”`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `dodano pole raportu ${fieldType} „${fieldName}”`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `ustaw domyślną wartość pola raportu „${fieldName}” na „${defaultValue}”`,
         addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `dodano opcję „${optionName}” do pola raportu „${fieldName}”`,
@@ -6681,7 +6679,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             `zaktualizowano „Refakturowanie wydatków klientom” na „${newValue}” (wcześniej „${oldValue}”)`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `zaktualizowano „Domyślne wydatki gotówkowe” na „${newValue}” (wcześniej „${oldValue}”)`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `włączył(a) „Wymuszaj domyślne tytuły raportów” ${value ? 'włączony' : 'wyłączone'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `włączył(-a) „Wymuszanie domyślnych tytułów raportów” ${value ? 'włączone' : 'wyłączone'}`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `zmieniono formułę nazwy raportu niestandardowego na „${newValue}” (wcześniej „${oldValue}”)`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `zaktualizowano nazwę tego obszaru roboczego na „${newName}” (wcześniej „${oldName}”)`,
@@ -6846,32 +6844,27 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `ustaw maksymalny wiek wydatku na „${newValue}” dni`,
         changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `zmieniono maksymalny wiek wydatku na „${newValue}” dni (wcześniej „${oldValue}”)`,
         removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `usunięto maksymalny wiek wydatku (wcześniej „${oldValue}” dni)`,
-        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'Włączone' : 'wyłączone'} automatycznie opłacone zatwierdzone raporty`,
-        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `ustaw próg automatycznej płatności zatwierdzonych raportów na „${newLimit}”`,
-        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
-            `zmienił próg automatycznej płatności dla zatwierdzonych raportów na „${newLimit}” (wcześniej „${oldLimit}”)`,
-        removedAutoPayApprovedReportsLimit: 'usunął próg dla automatycznego opłacania zatwierdzonych raportów',
-        updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `zaktualizowano ${count} kategorii`,
-        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `zaktualizował(a) tagi na liście „${tagListName}”`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `zmieniono listę tagów „${tagListsName}” na ${isRequired ? 'Wymagane' : 'Niewymagane'}`,
-        importTags: 'zaimportowane tagi z arkusza kalkulacyjnego',
-        deletedAllTags: 'usunięto wszystkie tagi',
+        updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `zaktualizowano ${count} kategorie`,
+        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `zaktualizowano tagi na liście „${tagListName}”`,
+        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `zmieniono listę tagów „${tagListsName}” na ${isRequired ? 'wymagane' : 'niewymagane'}`,
+        importTags: 'zaimportowano tagi z arkusza kalkulacyjnego',
+        deletedAllTags: 'usunął(-ę) wszystkie tagi',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
-            `zmienił domyślną kategorię ${customUnitName} na „${newValue}” ${oldValue ? `(uprzednio „${oldValue}”)` : ''}`,
-        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `zaimportowane stawki dla niestandardowej jednostki „${customUnitName}”`,
+            `zmienił(a) domyślną kategorię jednostki ${customUnitName} na „${newValue}” ${oldValue ? `(uprzednio „${oldValue}”)` : ''}`,
+        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `zaimportowano stawki dla niestandardowej jednostki „${customUnitName}”`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
-            `zmieniono stawkę „${customUnitName}” „${customUnitRateName}” podstawkę „${customUnitSubRateName}” ${updatedField} na „${newValue}” (wcześniej „${oldValue}”)`,
+            `zmieniono stawkę „${customUnitName}” stawka „${customUnitRateName}” stawka podrzędna „${customUnitSubRateName}” ${updatedField} na „${newValue}” (wcześniej „${oldValue}”)`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
-            `usunięto „${customUnitName}”, stawkę „${customUnitRateName}”, podstawkę „${removedSubRateName}”`,
+            `usunięto stawkę „${customUnitName}” o nazwie „${customUnitRateName}” i podstawkę „${removedSubRateName}”`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
-            const thresholdSuffix = typeof notificationThreshold === 'number' ? `z progiem powiadomień wynoszącym „${notificationThreshold}%"` : '';
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `z progiem powiadomień wynoszącym „${notificationThreshold}%”` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `dodano ${frequency} indywidualny budżet „${individual}” oraz ${frequency} współdzielony budżet „${shared}”${thresholdSuffix} do ${entityType} „${entityName}”`;
             }
             if (typeof individual !== 'undefined') {
                 return `dodano ${frequency} indywidualny budżet „${individual}”${thresholdSuffix} do ${entityType} „${entityName}”`;
             }
-            return `dodano ${frequency} wspólny budżet „${shared}”${thresholdSuffix} do ${entityType} „${entityName}”`;
+            return `dodano ${frequency} współdzielony budżet „${shared}”${thresholdSuffix} do ${entityType} „${entityName}”`;
         },
         updateBudget: ({
             entityType,
@@ -6894,10 +6887,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 changesList.push(`zmieniono częstotliwość budżetu na „${newFrequency}” (wcześniej „${oldFrequency}”)`);
             }
             if (sharedChanged) {
-                changesList.push(`zmieniono całkowity budżet przestrzeni roboczej na „${newShared}” (wcześniej „${oldShared}”)`);
+                changesList.push(`zmieniono łączny budżet przestrzeni roboczej na „${newShared}” (wcześniej „${oldShared}”)`);
             }
             if (individualChanged) {
-                changesList.push(`zmienił indywidualny budżet na „${newIndividual}” (wcześniej „${oldIndividual}”)`);
+                changesList.push(`zmieniono indywidualny budżet na „${newIndividual}” (wcześniej „${oldIndividual}”)`);
             }
             if (thresholdChanged) {
                 changesList.push(`zmieniono próg powiadomień na „${newNotificationThreshold}%” (wcześniej „${oldNotificationThreshold}%”)`);
@@ -6910,19 +6903,19 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     return `zmieniono częstotliwość budżetu dla ${entityType} „${entityName}” na „${newFrequency}” (wcześniej „${oldFrequency}”)`;
                 }
                 if (sharedChanged) {
-                    return `zmienił łączny budżet przestrzeni roboczej dla ${entityType} „${entityName}” na „${newShared}” (wcześniej „${oldShared}”)`;
+                    return `zmieniono łączny budżet przestrzeni roboczej dla ${entityType} „${entityName}” na „${newShared}” (wcześniej „${oldShared}”)`;
                 }
                 if (individualChanged) {
-                    return `zmienił indywidualny budżet dla ${entityType} „${entityName}” na „${newIndividual}” (wcześniej „${oldIndividual}”)`;
+                    return `zmieniono indywidualny budżet dla ${entityType} „${entityName}” na „${newIndividual}” (wcześniej „${oldIndividual}”)`;
                 }
                 return `zmieniono próg powiadomień dla ${entityType} „${entityName}” na „${newNotificationThreshold}%” (wcześniej „${oldNotificationThreshold}%”)`;
             }
-            return `zaktualizowany budżet dla ${entityType} „${entityName}”: ${changesList.join('; ')}`;
+            return `zaktualizowano budżet dla ${entityType} „${entityName}”: ${changesList.join('; ')}`;
         },
         deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `z progiem powiadomień wynoszącym „${notificationThreshold}%”` : '';
             if (shared && individual) {
-                return `usunięto ${frequency} wspólny budżet „${shared}” oraz indywidualny budżet „${individual}”${thresholdSuffix} z ${entityType} „${entityName}”`;
+                return `usunięto ${frequency} współdzielony budżet „${shared}” oraz indywidualny budżet „${individual}”${thresholdSuffix} z ${entityType} „${entityName}”`;
             }
             if (shared) {
                 return `usunięto ${frequency} współdzielony budżet „${shared}”${thresholdSuffix} z ${entityType} „${entityName}”`;
@@ -6933,7 +6926,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             return `usunięto budżet z ${entityType} „${entityName}”`;
         },
         updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
-            return `${enabled ? 'Włączone' : 'Wyłączone'} śledzenie czasu`;
+            return `${enabled ? 'włączone' : 'wyłączone'} śledzenie czasu`;
         },
         updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
             return `zmieniono stawkę godzinową na „${newRate}” (wcześniej „${oldRate}”)`;
@@ -6942,11 +6935,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
         updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: UpdatedPolicyReimbursementChoiceParams) =>
             `zmieniono metodę zwrotu kosztów na „${newReimbursementChoice}” (wcześniej „${oldReimbursementChoice}”)`,
-        setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'Włączone' : 'Wyłączone'} wstępna akceptacja próśb o dołączenie do przestrzeni roboczej`,
+        setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wstępna akceptacja próśb o dołączenie do przestrzeni workspace`,
         updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
-            `zmieniono formułę nazwy raportu niestandardowego na „${newDefaultTitle}” (wcześniej „${oldDefaultTitle}”)`,
-        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) => `przejął(-ęła) własność ${policyName} od ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `${enabled ? 'Włączone' : 'Wyłączone'} zaplanowane przesłanie`,
+            `zmieniono formułę nazwy niestandardowego raportu na „${newDefaultTitle}” (wcześniej „${oldDefaultTitle}”)`,
+        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) => `przejął(a) własność ${policyName} od ${oldOwnerName} (${oldOwnerEmail})`,
+        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `Zaplanowane przesłanie ${enabled ? 'włączone' : 'wyłączone'}`,
         updatedIndividualBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -6960,7 +6953,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
-            `Uwaga! Ta przestrzeń robocza ma budżet ${budgetFrequency} ${budgetTypeForNotificationMessage} w wysokości „${budgetAmount}” dla kategorii „${budgetName}”. ${userEmail} jest obecnie na poziomie ${approvedReimbursedClosedSpend}, co przekracza ${thresholdPercentage}% budżetu. Jest też ${awaitingApprovalSpend} oczekujące na zatwierdzenie oraz ${unsubmittedSpend}, które nie zostało jeszcze przesłane, co daje łączną kwotę ${totalSpend}.${summaryLink ? `<a href="${summaryLink}">Oto raport</a> ze wszystkimi tymi wydatkami do Twojej dokumentacji!` : ''}`,
+            `Uwaga! Ta przestrzeń robocza ma ${budgetFrequency} budżet w wysokości „${budgetAmount}” dla ${budgetTypeForNotificationMessage} „${budgetName}”. ${userEmail} jest obecnie na poziomie ${approvedReimbursedClosedSpend}, co przekracza ${thresholdPercentage}% budżetu. Jest też ${awaitingApprovalSpend} oczekujące na zatwierdzenie oraz ${unsubmittedSpend}, które nie zostały jeszcze przesłane, co daje łączną kwotę ${totalSpend}.${summaryLink ? `<a href="${summaryLink}">Oto raport</a> ze wszystkimi tymi wydatkami do Twojej dokumentacji!` : ''}`,
         updatedSharedBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -6973,7 +6966,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
-            `Uwaga! Ten obszar roboczy ma ${budgetFrequency} budżet ${budgetTypeForNotificationMessage} w wysokości „${budgetAmount}” dla kategorii „${budgetName}”. Obecnie masz ${approvedReimbursedClosedSpend}, co przekracza ${thresholdPercentage}% budżetu. Dodatkowo ${awaitingApprovalSpend} czeka na zatwierdzenie, a ${unsubmittedSpend} nie zostało jeszcze przesłane, co daje łącznie ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Oto raport</a> zawierający wszystkie te wydatki do Twojej dokumentacji!` : ''}`,
+            `Uwaga! Ta przestrzeń robocza ma ${budgetFrequency} budżet w wysokości „${budgetAmount}” dla ${budgetTypeForNotificationMessage} „${budgetName}”. Obecnie wykorzystano ${approvedReimbursedClosedSpend}, co przekracza ${thresholdPercentage}% budżetu. Dodatkowo ${awaitingApprovalSpend} czeka na zatwierdzenie, a ${unsubmittedSpend} nie zostało jeszcze przesłane, co daje łącznie ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Oto raport</a> ze wszystkimi tymi wydatkami do Twoich dokumentów!` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -7377,6 +7370,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 leftTheChat: 'opuścił czat',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `firmowe konto bankowe ${maskedBankAccountNumber} zostało automatycznie zablokowane z powodu problemu z rozliczeniem zwrotów lub rozliczeniem karty Expensify. Napraw problem w <a href="${linkURL}">ustawieniach swojego workspace</a>.`,
+                leftTheChatWithName: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} opuścił czat`,
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',
