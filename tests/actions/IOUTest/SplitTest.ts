@@ -1643,6 +1643,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -1804,6 +1805,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -1970,6 +1972,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
 
@@ -2146,6 +2149,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
 

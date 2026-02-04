@@ -90,6 +90,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {},
         };
 
         afterEach(() => {

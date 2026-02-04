@@ -203,6 +203,7 @@ function SubmitDetailsPage({
                 quickAction,
                 isSelfTourViewed,
                 betas,
+                personalDetails,
             });
         }
     };

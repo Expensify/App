@@ -59,6 +59,7 @@ type CreateTransactionParams = {
     reimbursable?: boolean;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type InitialTransactionParams = {
@@ -79,7 +80,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     reportAttributesDerived?: Record<string, ReportAttributes>;
     transactions: Transaction[];
     initialTransaction: InitialTransactionParams;
-    personalDetails?: PersonalDetailsList;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserLogin?: string;
     currentUserAccountID: number;
     backTo?: Route;
@@ -111,7 +112,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     transactionID: string;
     transaction?: Transaction;
     reportAttributesDerived?: Record<string, ReportAttributes>;
-    personalDetails?: PersonalDetailsList;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
     waypoints?: WaypointCollection;
     customUnitRateID: string;
     manualDistance?: number;
@@ -160,6 +161,7 @@ function createTransaction({
     reimbursable = true,
     isSelfTourViewed,
     betas,
+    personalDetails,
 }: CreateTransactionParams) {
     const recentWaypoints = getRecentWaypoints();
 
@@ -228,6 +230,7 @@ function createTransaction({
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 isSelfTourViewed,
+                personalDetails,
             });
         }
     }
@@ -375,6 +378,7 @@ function handleMoneyRequestStepScanParticipants({
                             reimbursable: true,
                             isSelfTourViewed,
                             betas,
+                            personalDetails,
                         });
                     },
                     (errorData) => {
@@ -398,6 +402,7 @@ function handleMoneyRequestStepScanParticipants({
                             participant,
                             isSelfTourViewed,
                             betas,
+                            personalDetails,
                         });
                     },
                 );
@@ -421,6 +426,7 @@ function handleMoneyRequestStepScanParticipants({
                 participant,
                 isSelfTourViewed,
                 betas,
+                personalDetails,
             });
             return;
         }

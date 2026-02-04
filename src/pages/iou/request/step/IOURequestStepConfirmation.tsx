@@ -633,6 +633,7 @@ function IOURequestStepConfirmation({
                     quickAction,
                     isSelfTourViewed,
                     betas,
+                    personalDetails,
                 });
                 existingIOUReport = iouReport;
             }
@@ -669,6 +670,7 @@ function IOURequestStepConfirmation({
             isTimeRequest,
             isSelfTourViewed,
             betas,
+            personalDetails,
         ],
     );
 

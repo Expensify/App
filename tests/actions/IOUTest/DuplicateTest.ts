@@ -707,6 +707,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {},
             });
 
             await waitForBatchedUpdates();
@@ -765,6 +766,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {},
             });
 
             await waitForBatchedUpdates();
@@ -823,6 +825,7 @@ describe('actions/Duplicate', () => {
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: {},
             });
 
             await waitForBatchedUpdates();
