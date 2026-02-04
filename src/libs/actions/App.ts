@@ -17,7 +17,7 @@ import Performance from '@libs/Performance';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -238,6 +238,7 @@ AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
         Log.info('Flushing logs as app is going inactive', true, {}, true);
         saveCurrentPathBeforeBackground();
+        cancelAllSpans();
     }
     appState = nextAppState;
 });
@@ -496,6 +497,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     activePolicyID: string | undefined;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    shouldCreateControlPolicy?: boolean;
 };
 
 /**
@@ -517,6 +519,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         activePolicyID,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        shouldCreateControlPolicy,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -540,6 +543,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             currentUserAccountIDParam,
             currentUserEmailParam,
             allReportsParam: allReports,
+            shouldCreateControlPolicy,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
     });
@@ -558,6 +562,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
+    shouldCreateControlPolicy?: boolean;
 };
 
 /**
@@ -576,6 +581,7 @@ function savePolicyDraftByNewWorkspace({
     currentUserAccountIDParam,
     currentUserEmailParam,
     allReportsParam,
+    shouldCreateControlPolicy,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -591,6 +597,7 @@ function savePolicyDraftByNewWorkspace({
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
+        shouldCreateControlPolicy,
     });
 }
 
@@ -686,7 +693,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }
 
             if (shouldNavigateToHomepage) {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             }
 
             if (preservedUserSession) {

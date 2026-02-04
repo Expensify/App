@@ -57,8 +57,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
-import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
@@ -171,7 +171,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
     const removeUsers = () => {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
-        removeFromGroupChat(report.reportID, accountIDsToRemove);
+        removeFromGroupChat(report, accountIDsToRemove);
         setSearchValue('');
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {

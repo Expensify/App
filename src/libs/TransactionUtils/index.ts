@@ -1,9 +1,8 @@
 import {format, isValid, parse} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
-import lodashHas from 'lodash/has';
 import lodashSet from 'lodash/set';
-import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
@@ -47,7 +46,8 @@ import {
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
-import type {IOURequestType} from '@userActions/IOU';
+import {isInvalidMerchantValue} from '@libs/ValidationUtils';
+import type {IOURequestType, UpdateMoneyRequestDataKeys} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -169,7 +169,7 @@ function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Tra
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
         return (
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
             transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
@@ -185,7 +185,7 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
 
 function isDistanceTypeRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
 
@@ -214,7 +214,7 @@ function hasGPSWaypoints(transaction: OnyxEntry<Transaction>) {
 
 function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
     }
 
@@ -224,7 +224,7 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
 
 function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
     }
 
@@ -234,7 +234,7 @@ function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
 
 function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType') && !isUpdatedMergeTransaction) {
+    if (transaction && Object.hasOwn(transaction, 'iouRequestType') && !isUpdatedMergeTransaction) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     }
 
@@ -250,7 +250,7 @@ function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedM
 
 function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
     }
 
@@ -265,7 +265,7 @@ function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
 
 function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
@@ -279,7 +279,7 @@ function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     }
 
@@ -291,7 +291,7 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
 
 function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
     }
 
@@ -412,7 +412,7 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
 
 function isManualRequest(transaction: Transaction): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
         return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     }
 
@@ -593,12 +593,9 @@ function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean 
 
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
-        return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.modifiedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+        return isInvalidMerchantValue(transaction.modifiedMerchant);
     }
-    const isMerchantEmpty =
-        transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === CONST.TRANSACTION.DEFAULT_MERCHANT || transaction?.merchant === '';
-
-    return isMerchantEmpty;
+    return isInvalidMerchantValue(transaction?.merchant);
 }
 
 /**
@@ -1440,11 +1437,16 @@ function isPosted(transaction: Transaction): boolean {
  * Note that this does not include receipts that are being scanned in the background for auditing / smart scan everything, because there should be no indication to the user that the receipt is being scanned.
  */
 function isScanning(transaction: OnyxEntry<Transaction>): boolean {
-    return isPartialTransaction(transaction) && hasReceipt(transaction) && isReceiptBeingScanned(transaction);
+    // Performance optimization: Check the receipt state first (cheapest check) before doing more expensive checks
+    if (!isReceiptBeingScanned(transaction)) {
+        return false;
+    }
+
+    return isPartialTransaction(transaction) && hasReceipt(transaction);
 }
 
 function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    return [CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
+    return transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_READY || transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
 
 /**
@@ -1527,10 +1529,6 @@ function getTransactionViolations(
         transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter(
             (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
         ) ?? [];
-
-    if (!CONST.IS_ATTENDEES_REQUIRED_ENABLED) {
-        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
-    }
 
     return violations;
 }
@@ -1968,8 +1966,7 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy) &&
-            (CONST.IS_ATTENDEES_REQUIRED_ENABLED || violation.name !== CONST.VIOLATIONS.MISSING_ATTENDEES),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
     );
 }
 
@@ -2257,7 +2254,7 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
  *
  */
 function removeTransactionFromDuplicateTransactionViolation(
-    onyxData: OnyxData<OnyxKey>,
+    onyxData: OnyxData<UpdateMoneyRequestDataKeys>,
     transactionID: string,
     transactions: OnyxCollection<Transaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
@@ -2588,11 +2585,6 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 }
 
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
-    const isAddedToReport = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
-    if (isAddedToReport) {
-        return false;
-    }
-
     if (!originalTransaction) {
         return !!transaction?.comment?.originalTransactionID && transaction?.comment?.source === 'split';
     }

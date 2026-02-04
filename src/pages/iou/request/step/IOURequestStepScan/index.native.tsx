@@ -338,7 +338,7 @@ function IOURequestStepScan({
                 if (backTo) {
                     Navigation.navigate(backTo as Route);
                 } else {
-                    Navigation.navigate(ROUTES.HOME);
+                    Navigation.navigate(ROUTES.INBOX);
                 }
             } else {
                 navigateBack();

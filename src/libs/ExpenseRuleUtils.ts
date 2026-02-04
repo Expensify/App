@@ -3,6 +3,7 @@ import type {TranslationParameters, TranslationPaths} from '@src/languages/types
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, TaxRate} from '@src/types/onyx';
 import {getDecodedCategoryName} from './CategoryUtils';
+import Parser from './Parser';
 import {getCleanedTagName} from './PolicyUtils';
 import StringUtils from './StringUtils';
 
@@ -43,7 +44,8 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
         addChange('category', getDecodedCategoryName(rule.category));
     }
     if (rule.comment) {
-        addChange('comment', rule.comment);
+        const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
+        addChange('comment', commentMarkdown);
     }
     if (rule.merchant) {
         addChange('merchant', rule.merchant);
@@ -54,7 +56,7 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
     if (rule.tag) {
         addChange('tag', getCleanedTagName(rule.tag));
     }
-    if (rule.tax?.field_id_TAX) {
+    if (rule.tax?.field_id_TAX?.value) {
         addChange('tax', rule.tax.field_id_TAX.value);
     }
     if (rule.report) {
@@ -67,10 +69,13 @@ function formatExpenseRuleChanges(rule: ExpenseRule, translate: LocaleContextPro
 }
 
 function extractRuleFromForm(form: ExpenseRuleForm, taxRate?: TaxRate) {
+    // Convert markdown comment to HTML for storage
+    const commentHTML = form.comment ? Parser.replace(form.comment) : undefined;
+
     const rule: ExpenseRule = {
         billable: form.billable,
         category: form.category,
-        comment: form.comment,
+        comment: commentHTML,
         createReport: form.createReport,
         merchant: form.merchant,
         merchantToMatch: form.merchantToMatch,

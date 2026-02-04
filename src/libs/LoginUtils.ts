@@ -105,7 +105,7 @@ function handleSAMLLoginError(errorMessage: string, shouldClearSignInData: boole
     }
 
     setAccountError(errorMessage);
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack(ROUTES.INBOX);
 }
 
 function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
