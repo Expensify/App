@@ -283,8 +283,8 @@ function ComposerWithSuggestions({
 
     const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
-    const [composerHeight, setComposerHeight] = useState(0);
-    const defaultComposerHeightRef = useRef<number | null>(null);
+    const [composerHeightAfterClear, setComposerHeightAfterClear] = useState<number | null>(null);
+    const emptyComposerHeightRef = useRef<number | null>(null);
 
     const textInputRef = useRef<TextInput | null>(null);
 
@@ -684,6 +684,13 @@ function ComposerWithSuggestions({
         forceClearInput(animatedRef);
     }, [animatedRef]);
 
+    const resetHeight = useCallback(() => {
+        if (!emptyComposerHeightRef.current) {
+            return;
+        }
+        setComposerHeightAfterClear(emptyComposerHeightRef.current);
+    }, []);
+
     const getCurrentText = useCallback(() => {
         return commentRef.current;
     }, []);
@@ -757,13 +764,8 @@ function ComposerWithSuggestions({
             focus,
             replaceSelectionWithText,
             isFocused: () => !!textInputRef.current?.isFocused(),
-            resetHeight: () => {
-                if (!defaultComposerHeightRef.current) {
-                    return;
-                }
-                setComposerHeight(defaultComposerHeightRef.current);
-            },
             clearWorklet,
+            resetHeight,
             getCurrentText,
         }),
         [blur, focus, replaceSelectionWithText, clearWorklet, resetHeight, getCurrentText],
@@ -830,11 +832,12 @@ function ComposerWithSuggestions({
             const inputHeight = e.nativeEvent.contentSize.height;
             const totalHeight = inputHeight + paddingTopAndBottom;
 
-            if (defaultComposerHeightRef.current === null && inputHeight > 0 && !valueRef.current.includes('\n')) {
-                defaultComposerHeightRef.current = inputHeight;
-                setComposerHeight(inputHeight);
             // Once we cleared the input and the composer finished rendering, we need to reset the manual height value.
             // After that, the composer will adjust it's height based on it's parent flex layout.
+            setComposerHeightAfterClear(null);
+
+            if (emptyComposerHeightRef.current === null && totalHeight > 0 && !valueRef.current.includes('\n')) {
+                emptyComposerHeightRef.current = totalHeight;
             }
 
             const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
@@ -867,7 +870,7 @@ function ComposerWithSuggestions({
     return (
         <>
             <View
-                style={[containerComposeStyles, styles.textInputComposeBorder]}
+                style={[containerComposeStyles, styles.textInputComposeBorder, composerHeightAfterClear != null && styles.textInputComposeAfterClear]}
                 onTouchEndCapture={() => {
                     isTouchEndedRef.current = true;
                 }}
@@ -882,7 +885,11 @@ function ComposerWithSuggestions({
                     onChangeText={onChangeText}
                     onKeyPress={handleKeyPress}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, composerHeight ? {height: composerHeight} : null]}
+                    style={[
+                        styles.textInputCompose,
+                        isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose,
+                        composerHeightAfterClear != null && {height: composerHeightAfterClear},
+                    ]}
                     maxLines={maxComposerLines}
                     onFocus={handleFocus}
                     onBlur={onBlur}
