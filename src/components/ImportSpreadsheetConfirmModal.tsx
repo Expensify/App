@@ -30,7 +30,7 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
         : '';
 
     useEffect(() => {
-        if (!isVisible || !titleText || !promptText) {
+        if (!isVisible || !titleText || !promptText || !spreadsheet?.importFinalModal) {
             return;
         }
         showConfirmModal({
