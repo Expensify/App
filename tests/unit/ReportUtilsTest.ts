@@ -98,6 +98,7 @@ import {
     isMoneyRequestReportEligibleForMerge,
     isPayer,
     isReportDeleted,
+    isReportIneligibleForMoveExpenses,
     isReportOutstanding,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
@@ -3868,7 +3869,15 @@ describe('ReportUtils', () => {
         it('should return canUnholdRequest as true for a held duplicate transaction', async () => {
             const chatReport: Report = {reportID: '1'};
             const reportPreviewReportActionID = '8';
-            const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 'USD', undefined, reportPreviewReportActionID);
+            const expenseReport = buildOptimisticExpenseReport({
+                chatReportID: chatReport.reportID,
+                policyID: '123',
+                payeeAccountID: currentUserAccountID,
+                total: 122,
+                currency: 'USD',
+                betas: [CONST.BETAS.ALL],
+                parentReportActionID: reportPreviewReportActionID,
+            });
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -4355,7 +4364,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return true when the report has outstanding violations', async () => {
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]});
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -4670,7 +4679,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false when the report is the single transaction thread', async () => {
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]});
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -6413,6 +6422,191 @@ describe('ReportUtils', () => {
             const result = canAddTransaction(report, isReportArchived.current);
 
             // Then the result is false
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isReportIneligibleForMoveExpenses', () => {
+        it('should return false when policy is undefined', () => {
+            const report: Report = {
+                ...createRandomReport(30000, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const result = isReportIneligibleForMoveExpenses(report, undefined);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when instant submit is not enabled', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3000),
+                autoReporting: false,
+            };
+            const report: Report = {
+                ...createRandomReport(30001, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when submit and close is not enabled', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3001),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const report: Report = {
+                ...createRandomReport(30002, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when report has reimbursable transactions', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3002),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30003, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+            const transaction = {
+                transactionID: '30003',
+                reportID: report.reportID,
+                reimbursable: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when report has no transactions', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3003),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30004, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return true when instant submit, submit and close, and only non-reimbursable transactions', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3004),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30005, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+            const transaction = {
+                transactionID: '30005',
+                reportID: report.reportID,
+                reimbursable: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(true);
+        });
+
+        it('should return false for draft reports even when instant submit, submit and close, and only non-reimbursable transactions', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3006),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30007, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+            const transaction = {
+                transactionID: '30007',
+                reportID: report.reportID,
+                reimbursable: false,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when report has mixed reimbursable and non-reimbursable transactions', async () => {
+            const testPolicy: Policy = {
+                ...createRandomPolicy(3005),
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const report: Report = {
+                ...createRandomReport(30006, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+            };
+            const transaction1 = {
+                transactionID: '30006a',
+                reportID: report.reportID,
+                reimbursable: false,
+            };
+            const transaction2 = {
+                transactionID: '30006b',
+                reportID: report.reportID,
+                reimbursable: true,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
+
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
+
             expect(result).toBe(false);
         });
     });
@@ -9278,7 +9472,7 @@ describe('ReportUtils', () => {
 
             const total = 100;
             const currency = CONST.CURRENCY.USD;
-            const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency);
+            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID: undefined, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
             expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
     });
