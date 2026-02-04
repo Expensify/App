@@ -20,15 +20,6 @@ const NAME_ROUTE_MAPPING = {
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: CONST.POLICY.CONNECTIONS.ROUTE.CERTINIA,
 };
 
-const CONNECTION_NAME_TO_EXPORTED_TO_SEARCH_VALUE: Record<ConnectionName, string> = {
-    [CONST.POLICY.CONNECTIONS.NAME.XERO]: 'xero',
-    [CONST.POLICY.CONNECTIONS.NAME.QBO]: 'qbo',
-    [CONST.POLICY.CONNECTIONS.NAME.QBD]: 'qbd',
-    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: 'netsuite',
-    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: 'intacct',
-    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: 'certinia',
-};
-
 function getConnectionNameFromRouteParam(routeParam: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) {
     return ROUTE_NAME_MAPPING[routeParam];
 }
@@ -38,11 +29,11 @@ function getRouteParamForConnection(connectionName: ConnectionName) {
 }
 
 function getSearchValueForConnection(connectionName: ConnectionName): string {
-    return CONNECTION_NAME_TO_EXPORTED_TO_SEARCH_VALUE[connectionName];
+    return CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
 }
 
 function getPredefinedConnectionNamesForSearch(): ConnectionName[] {
-    return Object.keys(CONNECTION_NAME_TO_EXPORTED_TO_SEARCH_VALUE) as ConnectionName[];
+    return Object.values(CONST.POLICY.CONNECTIONS.NAME);
 }
 
 export {getConnectionNameFromRouteParam, getRouteParamForConnection, getSearchValueForConnection, getPredefinedConnectionNamesForSearch};

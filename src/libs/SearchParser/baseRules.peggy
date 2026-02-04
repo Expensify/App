@@ -132,8 +132,8 @@ bankAccount             = "bank-account"i &wordBoundary             { return "ba
 reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
 base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
 exportedTo
-  = "exportedTo"i
-  / "exported-to"i { return "exportedTo"; }
+  = "exportedTo"i &wordBoundary { return "exportedTo"; }
+  / "exported-to"i &wordBoundary { return "exportedTo"; }
 exchangeRate            = "exchange-rate"i &wordBoundary            { return "exchangeRate"; }
 reimbursableTotal       = "reimbursable-total"i &wordBoundary       { return "reimbursableTotal"; }
 nonReimbursableTotal    = "non-reimbursable-total"i &wordBoundary   { return "nonReimbursableTotal"; }

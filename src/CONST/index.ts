@@ -7402,7 +7402,7 @@ const CONST = {
         },
         TODO_BADGE_MAX_COUNT: 50,
         TOP_SEARCH_LIMIT: 10,
-        PREDEFINED_INTEGRATION_FILTER_VALUES: ['xero', 'qbo', 'qbd', 'netsuite', 'intacct', 'certinia'],
+        PREDEFINED_INTEGRATION_FILTER_VALUES: ['Xero', 'QuickBooks Online', 'QuickBooks Desktop', 'NetSuite', 'Sage Intacct', 'Certinia'],
     },
     SEARCH_SELECTOR: {
         SELECTION_MODE_SINGLE: 'single',
