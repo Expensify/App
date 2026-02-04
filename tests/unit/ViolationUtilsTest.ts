@@ -806,13 +806,13 @@ describe('getViolationsOnyxData', () => {
             } as Report;
         });
 
-        (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should add missingAttendees violation when no attendees are present', () => {
+        it('should add missingAttendees violation when no attendees are present', () => {
             transaction.comment = {attendees: []};
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
             expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
-        (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should add missingAttendees violation when only owner is an attendee', () => {
+        it('should add missingAttendees violation when only owner is an attendee', () => {
             transaction.comment = {
                 attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
             };
@@ -860,7 +860,7 @@ describe('getViolationsOnyxData', () => {
         describe('optimistic / offline scenarios (iouReport is undefined)', () => {
             // In offline scenarios, iouReport is undefined so we can't get ownerAccountID.
             // The code falls back to using getCurrentUserEmail() to identify the owner by login/email.
-            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should correctly calculate violation when iouReport is undefined but attendees have matching email', () => {
+            it('should correctly calculate violation when iouReport is undefined but attendees have matching email', () => {
                 // When iouReport is undefined, we use getCurrentUserEmail() as fallback
                 // If only the current user (matching MOCK_CURRENT_USER_EMAIL) is an attendee, violation should show
                 transactionViolations = [];
@@ -900,7 +900,7 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
 
-            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should preserve violation when only owner attendee remains (offline)', () => {
+            it('should preserve violation when only owner attendee remains (offline)', () => {
                 // If violation existed and only owner attendee remains, violation stays
                 transactionViolations = [missingAttendeesViolation];
                 transaction.comment = {
@@ -928,7 +928,7 @@ describe('getViolationsOnyxData', () => {
                 jest.restoreAllMocks();
             });
 
-            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)("should add missingAttendees violation when no attendees are present (can't identify owner)", () => {
+            it("should add missingAttendees violation when no attendees are present (can't identify owner)", () => {
                 transactionViolations = [];
                 transaction.comment = {attendees: []};
                 const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
@@ -936,7 +936,7 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
 
-            (!CONST.IS_ATTENDEES_REQUIRED_ENABLED ? it.skip : it)('should add missingAttendees violation when only 1 attendee exists (assumed to be owner)', () => {
+            it('should add missingAttendees violation when only 1 attendee exists (assumed to be owner)', () => {
                 transactionViolations = [];
                 transaction.comment = {
                     attendees: [{email: 'anyone@example.com', displayName: 'Someone', avatarUrl: ''}],
@@ -1592,6 +1592,7 @@ describe('getIsViolationFixed', () => {
             const result = getIsViolationFixed('violations.missingAttendees', {
                 ...defaultParams,
                 isAttendeeTrackingEnabled: true,
+                isControlPolicy: true,
                 category: 'Meals',
                 policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
                 iouAttendees: [],
@@ -1603,6 +1604,7 @@ describe('getIsViolationFixed', () => {
             const result = getIsViolationFixed('violations.missingAttendees', {
                 ...defaultParams,
                 isAttendeeTrackingEnabled: true,
+                isControlPolicy: true,
                 category: 'Meals',
                 policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
                 iouAttendees: [createAttendee('user@example.com')],
@@ -1614,9 +1616,24 @@ describe('getIsViolationFixed', () => {
             const result = getIsViolationFixed('violations.missingAttendees', {
                 ...defaultParams,
                 isAttendeeTrackingEnabled: true,
+                isControlPolicy: true,
                 category: 'Meals',
                 policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
                 iouAttendees: [createAttendee('user@example.com'), createAttendee('other@example.com')],
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return true (violation fixed) when policy is not Control type, even if category requires attendees', () => {
+            // This covers the downgrade scenario: after downgrading from Control to Collect,
+            // the category may still have areAttendeesRequired: true but we should not enforce it
+            const result = getIsViolationFixed('violations.missingAttendees', {
+                ...defaultParams,
+                isAttendeeTrackingEnabled: true,
+                isControlPolicy: false,
+                category: 'Meals',
+                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
+                iouAttendees: [],
             });
             expect(result).toBe(true);
         });
