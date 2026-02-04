@@ -8218,8 +8218,6 @@ const CONST = {
         },
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
-        },
-        NEW_CHAT_RHP: {
             ADD_TO_GROUP: 'NewChatRHP-AddToGroup',
         },
     },

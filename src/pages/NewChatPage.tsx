@@ -407,7 +407,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 <PressableWithFeedback
                     sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.SELECT_PARTICIPANT}
                     onPress={() => toggleOption(item)}
-                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT_RHP.ADD_TO_GROUP}
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.ADD_TO_GROUP}
                     disabled={item.isDisabled}
                     role={CONST.ROLE.CHECKBOX}
                     accessibilityLabel={item.text ?? ''}
