@@ -318,39 +318,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             )}
                         </PressableWithFeedback>
                         <PressableWithFeedback
-                            onPress={navigateToSearch}
-                            role={CONST.ROLE.TAB}
-                            accessibilityLabel={translate('common.reports')}
-                            accessibilityState={searchAccessibilityState}
-                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
-                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
-                        >
-                            {({hovered}) => (
-                                <>
-                                    <View>
-                                        <Icon
-                                            src={expensifyIcons.MoneySearch}
-                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.SEARCH, hovered)}
-                                            width={variables.iconBottomBar}
-                                            height={variables.iconBottomBar}
-                                        />
-                                    </View>
-                                    <Text
-                                        numberOfLines={2}
-                                        style={[
-                                            styles.textSmall,
-                                            styles.textAlignCenter,
-                                            styles.mt1Half,
-                                            selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
-                                            styles.navigationTabBarLabel,
-                                        ]}
-                                    >
-                                        {translate('common.reports')}
-                                    </Text>
-                                </>
-                            )}
-                        </PressableWithFeedback>
-                        <PressableWithFeedback
                             onPress={navigateToChats}
                             role={CONST.ROLE.TAB}
                             accessibilityLabel={translate('common.inbox')}
@@ -388,6 +355,39 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                                         ]}
                                     >
                                         {translate('common.inbox')}
+                                    </Text>
+                                </>
+                            )}
+                        </PressableWithFeedback>
+                        <PressableWithFeedback
+                            onPress={navigateToSearch}
+                            role={CONST.ROLE.TAB}
+                            accessibilityLabel={translate('common.reports')}
+                            accessibilityState={searchAccessibilityState}
+                            style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+                        >
+                            {({hovered}) => (
+                                <>
+                                    <View>
+                                        <Icon
+                                            src={expensifyIcons.MoneySearch}
+                                            fill={getIconFill(selectedTab === NAVIGATION_TABS.SEARCH, hovered)}
+                                            width={variables.iconBottomBar}
+                                            height={variables.iconBottomBar}
+                                        />
+                                    </View>
+                                    <Text
+                                        numberOfLines={2}
+                                        style={[
+                                            styles.textSmall,
+                                            styles.textAlignCenter,
+                                            styles.mt1Half,
+                                            selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
+                                            styles.navigationTabBarLabel,
+                                        ]}
+                                    >
+                                        {translate('common.reports')}
                                     </Text>
                                 </>
                             )}
@@ -490,36 +490,6 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     </Text>
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    onPress={navigateToSearch}
-                    role={CONST.ROLE.TAB}
-                    accessibilityLabel={translate('common.reports')}
-                    accessibilityState={searchAccessibilityState}
-                    wrapperStyle={styles.flex1}
-                    style={styles.navigationTabBarItem}
-                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
-                >
-                    <View>
-                        <Icon
-                            src={expensifyIcons.MoneySearch}
-                            fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                    </View>
-                    <Text
-                        numberOfLines={1}
-                        style={[
-                            styles.textSmall,
-                            styles.textAlignCenter,
-                            styles.mt1Half,
-                            selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
-                            styles.navigationTabBarLabel,
-                        ]}
-                    >
-                        {translate('common.reports')}
-                    </Text>
-                </PressableWithFeedback>
-                <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.inbox')}
@@ -555,6 +525,36 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         ]}
                     >
                         {translate('common.inbox')}
+                    </Text>
+                </PressableWithFeedback>
+                <PressableWithFeedback
+                    onPress={navigateToSearch}
+                    role={CONST.ROLE.TAB}
+                    accessibilityLabel={translate('common.reports')}
+                    accessibilityState={searchAccessibilityState}
+                    wrapperStyle={styles.flex1}
+                    style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+                >
+                    <View>
+                        <Icon
+                            src={expensifyIcons.MoneySearch}
+                            fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
+                            width={variables.iconBottomBar}
+                            height={variables.iconBottomBar}
+                        />
+                    </View>
+                    <Text
+                        numberOfLines={1}
+                        style={[
+                            styles.textSmall,
+                            styles.textAlignCenter,
+                            styles.mt1Half,
+                            selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
+                            styles.navigationTabBarLabel,
+                        ]}
+                    >
+                        {translate('common.reports')}
                     </Text>
                 </PressableWithFeedback>
                 <PressableWithFeedback
