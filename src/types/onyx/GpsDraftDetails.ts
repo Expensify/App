@@ -31,6 +31,9 @@ type GpsDraftDetails = {
 
     /** Is GPS trip in progress */
     isTracking: boolean;
+
+    /** reportID of the ongoing GPS trip */
+    reportID: string;
 };
 
 export default GpsDraftDetails;

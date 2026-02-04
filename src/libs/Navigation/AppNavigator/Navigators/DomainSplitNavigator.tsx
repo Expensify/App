@@ -30,7 +30,7 @@ function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<Auth
                 <Split.Navigator
                     persistentScreens={[SCREENS.DOMAIN.INITIAL]}
                     sidebarScreen={SCREENS.DOMAIN.INITIAL}
-                    defaultCentralScreen={SCREENS.DOMAIN.SAML}
+                    defaultCentralScreen={SCREENS.DOMAIN.ADMINS}
                     parentRoute={route}
                     screenOptions={splitNavigatorScreenOptions.centralScreen}
                 >

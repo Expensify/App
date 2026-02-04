@@ -54,6 +54,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card number */
     cardNumber?: string;
 
+    /** Encrypted card number */
+    encryptedCardNumber?: string;
+
     /** Current fraud state of the card */
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
 
@@ -68,6 +71,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Last updated time */
     lastScrape?: string;
+
+    /** Whether transactions from the card should be marked reimbursable by default */
+    reimbursable?: boolean;
 
     /** Last update result */
     lastScrapeResult?: number;
@@ -221,6 +227,21 @@ type ExpensifyCardDetails = {
     cvv: string;
 };
 
+/**
+ * Unified type for unassigned cards that normalizes the difference between
+ * direct feeds (Plaid/OAuth) and commercial/custom feeds (Visa/Mastercard/Amex).
+ *
+ * For direct feeds: cardName === cardID (both are the card name string)
+ * For commercial feeds: cardName is the masked card number, cardID is the encrypted value
+ */
+type UnassignedCard = {
+    /** The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234") */
+    cardName: string;
+
+    /** The identifier sent to backend - equals cardName for direct feeds, encrypted value for commercial feeds */
+    cardID: string;
+};
+
 /** List of assignable cards */
 type AssignableCardsList = Record<string, string>;
 
@@ -291,41 +312,52 @@ type WorkspaceCardsList = CardList & {
 };
 
 /**
+ *
+ */
+type CardAssignmentData = {
+    /**
+     * The masked card number displayed to users (e.g., "XXXX1234" or "VISA - 1234").
+     */
+    cardName: string;
+
+    /**
+     * The card identifier sent to backend.
+     * For direct feeds (Plaid/OAuth): equals cardName
+     * For commercial feeds (Visa/Mastercard/Amex): encrypted value
+     */
+    encryptedCardNumber: string;
+
+    /** User-defined name for the card (e.g., "John's card") */
+    customCardName?: string;
+
+    /** Cardholder personal details */
+    cardholder?: PersonalDetails | null;
+
+    /** Errors */
+    errors?: OnyxCommon.Errors;
+
+    /**
+     *
+     */
+    errorFields?: OnyxCommon.ErrorFields;
+
+    /** Pending action */
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
+/**
  * Pending action for a company card assignment
  */
-type FailedCompanyCardAssignment = {
+type FailedCompanyCardAssignment = CardAssignmentData & {
     /** The domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
 
     /** The name of the feed */
     feed: CompanyCardFeedWithDomainID;
-
-    /** Cardholder personal details */
-    cardholder?: PersonalDetails;
-
-    /** The name of the card */
-    cardName: string;
-
-    /** The card number */
-    cardNumber: string;
-
-    /** Card related error messages */
-    errors?: OnyxCommon.Errors;
-
-    /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
-
-    /**
-     * The type of action that's pending
-     */
-    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /** Pending action for a company card assignment */
 type FailedCompanyCardAssignments = Record<string, FailedCompanyCardAssignment>;
-
-/** Card list with only available card */
-type FilteredCardList = Record<string, string>;
 
 export default Card;
 export type {
@@ -335,10 +367,11 @@ export type {
     IssueNewCardStep,
     IssueNewCardData,
     WorkspaceCardsList,
-    CardLimitType,
-    FilteredCardList,
-    ProvisioningCardData,
-    AssignableCardsList,
+    CardAssignmentData,
     FailedCompanyCardAssignment,
     FailedCompanyCardAssignments,
+    CardLimitType,
+    ProvisioningCardData,
+    AssignableCardsList,
+    UnassignedCard,
 };

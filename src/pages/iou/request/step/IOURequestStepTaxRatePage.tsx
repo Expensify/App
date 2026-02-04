@@ -5,6 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -41,8 +42,8 @@ function IOURequestStepTaxRatePage({
     report,
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
+    const {policy} = usePolicyForTransaction({transaction, report, action, iouType});
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
@@ -74,6 +75,7 @@ function IOURequestStepTaxRatePage({
         }
 
         const taxAmount = getTaxAmount(policy, currentTransaction, taxes.code, getAmount(currentTransaction, false, true));
+        const taxValue = getTaxValue(policy, currentTransaction, taxes.code) ?? '';
 
         if (isEditingSplitBill) {
             setDraftSplitTransaction(currentTransaction.transactionID, splitDraftTransaction, {
@@ -91,6 +93,7 @@ function IOURequestStepTaxRatePage({
                 transactionThreadReport: report,
                 parentReport,
                 taxCode: newTaxCode,
+                taxValue,
                 taxAmount: convertToBackendAmount(taxAmount ?? 0),
                 policy,
                 policyTagList: policyTags,
