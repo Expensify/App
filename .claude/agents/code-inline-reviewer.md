@@ -1079,6 +1079,117 @@ In this example:
 
 ---
 
+### [CLEAN-REACT-PATTERNS-3] Keep child components parent and sibling agnostic
+
+- **Search patterns**: Callback props with specific signatures like `(index: number) => void`, child components computing values from props only to pass to callbacks, refs used to access sibling data
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A child component's API is shaped around a specific parent's implementation details
+  - The child computes values from props specifically to pass back to parent callbacks
+  - OR callback signatures leak parent assumptions (e.g., routing by index, parent-specific data shapes)
+  - OR the child accesses sibling state/behavior through refs or callbacks
+
+  **Signs of violation:**
+  - Callback like `navigateToX(index: number)` where child computes the index from props
+  - Child receives data (e.g., `transaction`) and extracts values only to pass to callbacks
+  - Child uses `getSiblingData()` or similar to reach into sibling components
+  - Component can't be reused in a different context without modification
+
+  **DO NOT flag if:**
+  - Child passes back data it naturally owns (e.g., `onChange(value)` for an input, `onSelectItem(item)` for a list)
+  - Callback is fully-formed and child just invokes it (e.g., `onAddStop()`)
+  - Parent legitimately coordinates sibling state (parent holds state, passes to both children)
+
+- **Reasoning**: When child components expose APIs that depend on parent-specific logic or data shapes, if the component is used in a different context, then it must be rewritten or wrapped, reducing reuse and increasing coupling. Children should signal *what happened*, not compute *what the parent should do*.
+
+**Important distinction from "[CLEAN-REACT-PATTERNS-2] Let components own their behavior and effects"**: That rule says children should own their *state* (fetch their own data). This rule says parents should own *actions* (children invoke fully-formed callbacks). The child owns what it *is*, the parent owns what *happens* when the child acts.
+
+Good (child has context-free interface):
+
+- Child signals "add stop was pressed"
+- Parent owns all implementation details (computing index, navigating)
+- Child is reusable anywhere that needs an "add stop" button
+
+```tsx
+<DistanceRequestFooter
+    onAddStop={() => {
+        const nextIndex = Object.keys(transaction?.comment?.waypoints ?? {}).length;
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(..., nextIndex.toString(), ...));
+    }}
+/>
+
+// in DistanceRequestFooter
+<Button onPress={onAddStop}>{translate('distance.addStop')}</Button>
+```
+
+Bad (child API shaped around parent's implementation):
+
+- Callback signature leaks parent assumption (routing by index)
+- Child computes index from `transaction` just to pass back to parent
+- Not reusable where navigation doesn't use index
+
+```tsx
+type DistanceRequestFooterProps = {
+    waypoints?: WaypointCollection;
+    navigateToWaypointEditPage: (index: number) => void;  // Parent-specific signature
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+};
+
+// in IOURequestStepDistance
+<DistanceRequestFooter
+    waypoints={waypoints}
+    navigateToWaypointEditPage={navigateToWaypointEditPage}
+    transaction={transaction}
+    policy={policy}
+/>
+
+// in DistanceRequestFooter - child computes value for parent
+<Button
+    onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
+    text={translate('distance.addStop')}
+/>
+```
+
+Good (siblings are independent):
+
+- Parent coordinates state between siblings
+- Each child is unaware of the other
+
+```tsx
+function Parent() {
+    const [formData, setFormData] = useState<FormData>();
+    return (
+        <>
+            <Form onChangeFormData={setFormData} />
+            <SaveButton onSave={() => API.save(formData)} />
+        </>
+    );
+}
+```
+
+Bad (sibling-coupled):
+
+- SaveButton reaches into Form's internals via callback
+- Components can't be used independently
+
+```tsx
+function SaveButton({ getSiblingFormData }: { getSiblingFormData: () => FormData }) {
+    const handleSave = () => {
+        const formData = getSiblingFormData(); // Reaches into sibling
+        API.save(formData);
+    };
+    return <Button onPress={handleSave}>Save</Button>;
+}
+
+// Parent wires siblings together
+<Form ref={formRef} />
+<SaveButton getSiblingFormData={() => formRef.current?.getData()} />
+```
+
+---
+
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**
