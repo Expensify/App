@@ -147,6 +147,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
     shouldSkipContentHeaderHeightOffset,
+    sentryLabelSelectAllButton,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -292,12 +293,25 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         };
     }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
 
+    const wasIncrementPageCancelledRef = useRef(false);
+
     const incrementPage = useCallback(() => {
         if (flattenedSections.allOptions.length <= CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage) {
+            wasIncrementPageCancelledRef.current = true;
             return;
         }
         setCurrentPage((prev) => prev + 1);
+        wasIncrementPageCancelledRef.current = false;
     }, [flattenedSections.allOptions.length, currentPage]);
+
+    useEffect(() => {
+        if (!wasIncrementPageCancelledRef.current) {
+            return;
+        }
+        incrementPage();
+        // We only really want to recall `incrementPage` after the data has been updated.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [flattenedSections.allOptions.length]);
 
     const slicedSections = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -632,6 +646,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                                sentryLabel={sentryLabelSelectAllButton}
                             >
                                 <Text style={[styles.textStrong, styles.ph3, selectAllStyle]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>
@@ -853,6 +868,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
         // Reset the current page to 1 when the user types something
         setCurrentPage(1);
+        wasIncrementPageCancelledRef.current = false;
     }, [textInputValue, prevTextInputValue]);
 
     useEffect(() => {
