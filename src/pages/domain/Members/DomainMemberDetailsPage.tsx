@@ -1,11 +1,10 @@
-import {adminAccountIDsSelector, domainNameSelector, selectSecurityGroupsForAccount} from '@selectors/Domain';
+import {domainNameSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,14 +32,9 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
-    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
-        selector: adminAccountIDsSelector,
-    });
-
-    const [securityGroupsData] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
-        selector: selectSecurityGroupsForAccount(accountID),
+        selector: selectSecurityGroupForAccount(accountID),
     });
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -52,11 +46,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const memberLogin = personalDetails?.login ?? '';
 
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
-
     const handleCloseAccount = async () => {
-        if (!securityGroupsData || shouldForceCloseAccount === undefined) {
+        if (!userSecurityGroup || shouldForceCloseAccount === undefined) {
             return;
         }
 
@@ -74,7 +65,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             setShouldForceCloseAccount(undefined);
             return;
         }
-        closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, securityGroupsData, shouldForceCloseAccount);
+        closeUserAccount(domainAccountID, domainName ?? '', memberLogin, userSecurityGroup, shouldForceCloseAccount);
         setShouldForceCloseAccount(undefined);
         Navigation.dismissModal();
     };
@@ -93,11 +84,11 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         <Button
             text={translate('domain.members.closeAccount', {count: 1})}
             onPress={() => setIsModalVisible(true)}
-            isDisabled={!isAdmin}
             icon={icons.RemoveMembers}
             style={styles.mb5}
         />
     );
+
     return (
         <>
             <BaseDomainMemberDetailsComponent

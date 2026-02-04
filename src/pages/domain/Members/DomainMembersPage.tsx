@@ -1,4 +1,4 @@
-import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupsForAccount} from '@selectors/Domain';
+import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAddMemberError, closeUserAccount} from '@libs/actions/Domain';
+import {clearDomainMemberError, closeUserAccount} from '@libs/actions/Domain';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -85,8 +85,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         for (const accountIDString of controlledSelectedMembers) {
             const accountID = Number(accountIDString);
             const memberLogin = personalDetails?.[accountID]?.login ?? '';
-            const securityGroupsData = selectSecurityGroupsForAccount(accountID)(domain);
-            closeUserAccount(domainAccountID, domainName ?? '', accountID, memberLogin, securityGroupsData, shouldForceCloseAccount);
+            const securityGroupData = selectSecurityGroupForAccount(accountID)(domain);
+            closeUserAccount(domainAccountID, domainName ?? '', memberLogin, securityGroupData, shouldForceCloseAccount);
         }
 
         setShouldForceCloseAccount(undefined);
@@ -175,16 +175,13 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 searchPlaceholder={translate('domain.members.findMember')}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, item.accountID))}
                 headerIcon={illustrations.Profile}
-                headerContent={getHeaderButtons()}
                 getCustomRowProps={getCustomRowProps}
-                canSelectMultiple
-                controlledSelectedMembers={controlledSelectedMembers}
-                controlledSetSelectedMembers={controlledSetSelectedMembers}
+                headerContent={getHeaderButtons()}
                 onDismissError={(item) => {
                     if (!defaultSecurityGroupID) {
                         return;
                     }
-                    clearAddMemberError(domainAccountID, item.accountID, item.login, defaultSecurityGroupID);
+                    clearDomainMemberError(domainAccountID, item.accountID, item.login, defaultSecurityGroupID);
                 }}
             />
             <DecisionModal
@@ -206,7 +203,5 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         </>
     );
 }
-
-DomainMembersPage.displayName = 'DomainMembersPage';
 
 export default DomainMembersPage;
