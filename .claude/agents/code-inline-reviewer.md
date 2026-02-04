@@ -996,6 +996,8 @@ function ReportScreen({ params: { reportID }}) {
 
 - **Reasoning**: When parent components compute and pass behavioral state to children, if a child's requirements change, then parent components must change as well, increasing coupling and causing behavior to leak across concerns. Letting components own their behavior keeps logic local, allows independent evolution, and follows the principle: "If removing a child breaks parent behavior, coupling exists."
 
+**Distinction from CLEAN-REACT-PATTERNS-3**: This rule is about data flow DOWN (parent → child) — "Don't pass data the child can get itself."
+
 Good (component owns its behavior):
 
 - Component receives only IDs and handlers
@@ -1083,12 +1085,13 @@ In this example:
 
 - **Search patterns**: Callback props with specific signatures like `(index: number) => void`, child components computing values from props only to pass to callbacks, refs used to access sibling data, useImperativeHandle
 
-- **Condition**: Flag ONLY when ALL of these are true:
+- **Condition**: Flag ONLY when BOTH of these are true:
 
-  - A child component's API is shaped around a specific parent's implementation details
-  - The child computes values from props specifically to pass back to parent callbacks
-  - OR callback signatures leak parent assumptions (e.g., routing by index, parent-specific data shapes)
-  - OR the child accesses sibling state/behavior through refs or callbacks
+  1. A child component's API is shaped around a specific parent's implementation details
+  2. AND at least ONE of the following manifestations is present:
+     - The child computes values from props specifically to pass back to parent callbacks
+     - Callback signatures leak parent assumptions (e.g., routing by index, parent-specific data shapes)
+     - The child accesses sibling state/behavior through refs or callbacks
 
   **Signs of violation:**
   - Callback like `navigateToX(index: number)` where child computes the index from props
@@ -1103,7 +1106,7 @@ In this example:
 
 - **Reasoning**: When child components expose APIs that depend on parent-specific logic or data shapes, if the component is used in a different context, then it must be rewritten or wrapped, reducing reuse and increasing coupling. Children should signal *what happened*, not compute *what the parent should do*.
 
-**Important distinction from "[CLEAN-REACT-PATTERNS-2] Let components own their behavior and effects"**: That rule says children should own their *state* (fetch their own data). This rule says parents should own *actions* (children invoke fully-formed callbacks). The child owns what it *is*, the parent owns what *happens* when the child acts.
+**Distinction from CLEAN-REACT-PATTERNS-2**: This rule is about action flow UP (child → parent) — "Don't make child compute what parent should do."
 
 Good (child has context-free interface):
 
