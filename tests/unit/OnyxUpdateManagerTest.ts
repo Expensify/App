@@ -51,11 +51,24 @@ const update8 = OnyxUpdateMockUtils.createUpdate(8);
 
 describe('OnyxUpdateManager', () => {
     let lastUpdateIDAppliedToClient = 1;
+    let lastUpdateConnection: ReturnType<typeof Onyx.connect> | undefined;
+
     beforeAll(() => {
-        Onyx.connect({
+        lastUpdateConnection = Onyx.connect({
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
             callback: (value) => (lastUpdateIDAppliedToClient = value ?? 1),
         });
+    });
+
+    afterAll(() => {
+        if (lastUpdateConnection) {
+            Onyx.disconnect(lastUpdateConnection);
+        }
+
+        OnyxUpdates.resetMock();
+        OnyxUpdateManager.disconnectForTesting();
+        jest.resetModules();
+        return Onyx.clear();
     });
 
     beforeEach(async () => {

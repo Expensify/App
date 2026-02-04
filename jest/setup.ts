@@ -105,7 +105,16 @@ jest.mock('react-native-reanimated', () => ({
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
+jest.mock(
+    'react-native-worklets',
+    () => ({
+        scheduleOnUI: jest.fn((worklet: (...args: unknown[]) => unknown, ...args: unknown[]) => worklet?.(...args)),
+        scheduleOnRN: jest.fn((worklet: (...args: unknown[]) => unknown, ...args: unknown[]) => worklet?.(...args)),
+        runOnUISync: jest.fn((worklet: (...args: unknown[]) => unknown, ...args: unknown[]) => worklet?.(...args)),
+    }),
+    // Treat as virtual; the native package isn't available in the Jest runtime.
+    {virtual: true},
+);
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
 
@@ -280,18 +289,29 @@ jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
 
-jest.mock('@shopify/react-native-skia', () => ({
-    useFont: jest.fn(() => null),
-    matchFont: jest.fn(() => null),
-    listFontFamilies: jest.fn(() => []),
-}));
+jest.mock(
+    '@shopify/react-native-skia',
+    () => ({
+        useFont: jest.fn(() => null),
+        matchFont: jest.fn(() => null),
+        listFontFamilies: jest.fn(() => []),
+    }),
+    // The real package isn't installed in the Jest environment; mock it virtually so resolution succeeds.
+    {virtual: true},
+);
 
-jest.mock('victory-native', () => ({
-    Bar: jest.fn(() => null),
-    CartesianChart: jest.fn(
-        ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
-    ),
-}));
+jest.mock(
+    'victory-native',
+    () => ({
+        Bar: jest.fn(() => null),
+        CartesianChart: jest.fn(
+            ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) =>
+                children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
+        ),
+    }),
+    // Mock virtually so Jest doesn't need the native victory package installed locally.
+    {virtual: true},
+);
 
 // Provide a default global fetch mock for tests that do not explicitly set it up
 // This avoids ReferenceError: fetch is not defined in CI when coverage is enabled

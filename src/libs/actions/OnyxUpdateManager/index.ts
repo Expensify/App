@@ -35,17 +35,21 @@ import {
 // Therefore, SaveResponseInOnyx.js can't import and use this file directly.
 
 let lastUpdateIDAppliedToClient: number = CONST.DEFAULT_NUMBER_ID;
+let lastUpdateConnection: ReturnType<typeof Onyx.connectWithoutView> | undefined;
+let isLoadingApp = false;
+let isLoadingConnection: ReturnType<typeof Onyx.connectWithoutView> | undefined;
+let onyxUpdatesFromServerConnection: ReturnType<typeof Onyx.connectWithoutView> | undefined;
+
 // `lastUpdateIDAppliedToClient` is not dependent on any changes on the UI,
 // so it is okay to use `connectWithoutView` here.
-Onyx.connectWithoutView({
+lastUpdateConnection = Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (value) => (lastUpdateIDAppliedToClient = value ?? CONST.DEFAULT_NUMBER_ID),
 });
 
-let isLoadingApp = false;
 // `isLoadingApp` is not dependent on any changes on the UI,
 // so it is okay to use `connectWithoutView` here.
-Onyx.connectWithoutView({
+isLoadingConnection = Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_APP,
     callback: (value) => {
         isLoadingApp = value ?? false;
@@ -231,10 +235,14 @@ function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdates
 }
 
 export default () => {
+    if (onyxUpdatesFromServerConnection) {
+        return;
+    }
+
     console.debug('[OnyxUpdateManager] Listening for updates from the server');
     // `Onyx updates` are not dependent on any changes on the UI,
     // so it is okay to use `connectWithoutView` here.
-    Onyx.connectWithoutView({
+    onyxUpdatesFromServerConnection = Onyx.connectWithoutView({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value) => {
             handleMissingOnyxUpdates(value);
@@ -242,4 +250,26 @@ export default () => {
     });
 };
 
-export {handleMissingOnyxUpdates, queryPromiseWrapper as queryPromise, resetDeferralLogicVariables};
+const disconnectForTesting = () => {
+    if (onyxUpdatesFromServerConnection) {
+        Onyx.disconnect(onyxUpdatesFromServerConnection);
+        onyxUpdatesFromServerConnection = undefined;
+    }
+
+    if (lastUpdateConnection) {
+        Onyx.disconnect(lastUpdateConnection);
+        lastUpdateConnection = undefined;
+    }
+
+    if (isLoadingConnection) {
+        Onyx.disconnect(isLoadingConnection);
+        isLoadingConnection = undefined;
+    }
+
+    clearDeferredOnyxUpdates({shouldResetGetMissingOnyxUpdatesPromise: true, shouldUnpauseSequentialQueue: false});
+    resolveQueryPromiseWrapper?.();
+    queryPromiseWrapper = createQueryPromiseWrapper();
+    isFetchingForPendingUpdates = false;
+};
+
+export {handleMissingOnyxUpdates, queryPromiseWrapper as queryPromise, resetDeferralLogicVariables, disconnectForTesting};

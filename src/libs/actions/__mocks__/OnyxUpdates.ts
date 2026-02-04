@@ -10,16 +10,29 @@ const {doesClientNeedToBeUpdated, saveUpdateInformation, INTERNAL_DO_NOT_USE_app
 
 type OnyxUpdatesMock = typeof OnyxUpdatesImport & {
     apply: jest.Mock<Promise<Response | void>, [OnyxUpdatesFromServer]>;
+    resetMock: () => void;
 };
 
 let lastUpdateIDAppliedToClient: number | undefined = 0;
-// Use connectWithoutView because this is a mock for testing and does not involve any UI updates.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (val) => (lastUpdateIDAppliedToClient = val),
-});
+let lastUpdateConnection: ReturnType<typeof Onyx.connectWithoutView> | undefined;
+
+const ensureConnection = () => {
+    if (lastUpdateConnection) {
+        return;
+    }
+
+    // Use connectWithoutView because this is a mock for testing and does not involve any UI updates.
+    lastUpdateConnection = Onyx.connectWithoutView({
+        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+        callback: (val) => (lastUpdateIDAppliedToClient = val),
+    });
+};
+
+ensureConnection();
 
 const apply = jest.fn(({lastUpdateID, request, response}: OnyxUpdatesFromServer): Promise<void | Response> | undefined => {
+    ensureConnection();
+
     if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
@@ -31,9 +44,19 @@ const apply = jest.fn(({lastUpdateID, request, response}: OnyxUpdatesFromServer)
     return Promise.resolve();
 });
 
+const resetMock = () => {
+    lastUpdateIDAppliedToClient = 0;
+
+    if (lastUpdateConnection) {
+        Onyx.disconnect(lastUpdateConnection);
+        lastUpdateConnection = undefined;
+    }
+};
+
 export {
     // Mocks
     apply,
+    resetMock,
 
     // Actual OnyxUpdates implementation
     doesClientNeedToBeUpdated,

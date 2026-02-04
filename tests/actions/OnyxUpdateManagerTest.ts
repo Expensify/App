@@ -5,6 +5,8 @@ import type {AppActionsMock} from '@libs/actions/__mocks__/App';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as AppImport from '@libs/actions/App';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
+import * as OnyxUpdates from '@userActions/OnyxUpdates';
+import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as OnyxUpdateManagerExports from '@libs/actions/OnyxUpdateManager';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
@@ -45,6 +47,7 @@ jest.mock('@src/libs/SearchUIUtils', () => ({
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
+const OnyxUpdatesMocked = OnyxUpdates as OnyxUpdatesMock;
 
 const TEST_USER_ACCOUNT_ID = 1;
 const REPORT_ID = 'testReport1';
@@ -130,12 +133,25 @@ OnyxUpdateManager();
 
 describe('actions/OnyxUpdateManager', () => {
     let reportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    let reportActionsConnection: ReturnType<typeof Onyx.connect> | undefined;
+
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        Onyx.connect({
+        reportActionsConnection = Onyx.connect({
             key: ONYX_KEY,
             callback: (val) => (reportActions = val),
         });
+    });
+
+    afterAll(() => {
+        if (reportActionsConnection) {
+            Onyx.disconnect(reportActionsConnection);
+        }
+
+        OnyxUpdatesMocked.resetMock();
+        OnyxUpdateManagerExports.disconnectForTesting();
+        jest.resetModules();
+        return Onyx.clear();
     });
 
     beforeEach(async () => {
