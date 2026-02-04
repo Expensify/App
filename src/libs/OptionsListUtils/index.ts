@@ -148,6 +148,7 @@ import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PrivateIsArchivedMap} from '@src/selectors/ReportNameValuePairs';
 import type {
     Beta,
     DismissedProductTraining,
@@ -1272,6 +1273,7 @@ function processReport(
 function createOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number,
+    privateIsArchivedMap: PrivateIsArchivedMap,
     reports?: OnyxCollection<Report>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -1295,19 +1297,25 @@ function createOptionList(
         }
     }
 
-    const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => ({
-        item: personalDetail,
-        ...createOption(
-            [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
-            personalDetails,
-            reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
-            currentUserAccountID,
-            {
-                showPersonalDetails: true,
-            },
-            reportAttributesDerived,
-        ),
-    }));
+    const allPersonalDetailsOptions = Object.values(personalDetails ?? {}).map((personalDetail) => {
+        const report = reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+        const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
+
+        return {
+            item: personalDetail,
+            ...createOption(
+                [personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                personalDetails,
+                report,
+                currentUserAccountID,
+                {
+                    showPersonalDetails: true,
+                },
+                reportAttributesDerived,
+                privateIsArchived,
+            ),
+        };
+    });
 
     span.setAttributes({
         personalDetails: allPersonalDetailsOptions.length,
@@ -2440,7 +2448,7 @@ type SearchOptionsConfig = {
     loginList: OnyxEntry<Login>;
     currentUserAccountID: number;
     currentUserEmail: string;
-    personalDetails?: OnyxEntry<PersonalDetailsList>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 /**
@@ -2464,6 +2472,7 @@ function getSearchOptions({
     loginList,
     currentUserAccountID,
     currentUserEmail,
+    personalDetails,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2497,6 +2506,7 @@ function getSearchOptions({
             includeUserToInvite,
             shouldShowGBR,
             shouldUnreadBeBold,
+            personalDetails,
         },
         countryCode,
     );

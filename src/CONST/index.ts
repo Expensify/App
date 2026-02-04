@@ -8136,6 +8136,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
             UNAPPROVE: 'MoreMenu-Unapprove',

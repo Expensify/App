@@ -1831,6 +1831,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -1990,6 +1991,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -2154,6 +2156,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
 
@@ -2328,6 +2331,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
 
