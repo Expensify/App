@@ -707,6 +707,7 @@ function IOURequestStepConfirmation({
                     },
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    quickAction,
                 });
             } else {
                 submitPerDiemExpenseIOUActions({

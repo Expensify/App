@@ -1,262 +1,91 @@
 /* eslint-disable max-lines */
-import {eachDayOfInterval, format} from 'date-fns';
-import {fastMerge} from 'expensify-common';
+import { eachDayOfInterval, format } from 'date-fns';
+import { fastMerge } from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
-import {InteractionManager} from 'react-native';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import { InteractionManager } from 'react-native';
+import type { NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxUpdate } from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type { ValueOf } from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
-import type {PaymentMethod} from '@components/KYCWall/types';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type { PaymentMethod } from '@components/KYCWall/types';
+import type { SearchQueryJSON } from '@components/Search/types';
 import * as API from '@libs/API';
-import type {
-    AddReportApproverParams,
-    ApproveMoneyRequestParams,
-    AssignReportToMeParams,
-    CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
-    CreateDistanceRequestParams,
-    CreatePerDiemRequestParams,
-    CreateWorkspaceParams,
-    DeleteMoneyRequestParams,
-    DetachReceiptParams,
-    MarkTransactionViolationAsResolvedParams,
-    PayInvoiceParams,
-    PayMoneyRequestParams,
-    RejectMoneyRequestParams,
-    ReopenReportParams,
-    ReplaceReceiptParams,
-    RequestMoneyParams,
-    RetractReportParams,
-    SetNameValuePairParams,
-    ShareTrackedExpenseParams,
-    SubmitReportParams,
-    TrackExpenseParams,
-    UnapproveExpenseReportParams,
-    UpdateMoneyRequestParams,
-} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertAmountToDisplayString, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import type { AddReportApproverParams, ApproveMoneyRequestParams, AssignReportToMeParams, CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams, CreateDistanceRequestParams, CreatePerDiemRequestParams, CreateWorkspaceParams, DeleteMoneyRequestParams, DetachReceiptParams, MarkTransactionViolationAsResolvedParams, PayInvoiceParams, PayMoneyRequestParams, RejectMoneyRequestParams, ReopenReportParams, ReplaceReceiptParams, RequestMoneyParams, RetractReportParams, SetNameValuePairParams, ShareTrackedExpenseParams, SubmitReportParams, TrackExpenseParams, UnapproveExpenseReportParams, UpdateMoneyRequestParams } from '@libs/API/parameters';
+import { WRITE_COMMANDS } from '@libs/API/types';
+import { convertAmountToDisplayString, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals } from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
-import type {MinimalTransaction} from '@libs/Formula';
+import { getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey } from '@libs/ErrorUtils';
+import { readFileAsync } from '@libs/fileDownload/FileUtils';
+import type { MinimalTransaction } from '@libs/Formula';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
-import {
-    calculateAmount as calculateIOUAmount,
-    formatCurrentUserToAttendee,
-    isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
-    navigateToStartMoneyRequestStep,
-    updateIOUOwnerAndTotal,
-} from '@libs/IOUUtils';
+import { getGPSRoutes, getGPSWaypoints } from '@libs/GPSDraftDetailsUtils';
+import { calculateAmount as calculateIOUAmount, formatCurrentUserToAttendee, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, updateIOUOwnerAndTotal } from '@libs/IOUUtils';
 import isFileUploadable from '@libs/isFileUploadable';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import { formatPhoneNumber } from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
-import {validateAmount} from '@libs/MoneyRequestUtils';
+import { validateAmount } from '@libs/MoneyRequestUtils';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {isOffline} from '@libs/Network/NetworkStore';
+import Navigation, { navigationRef } from '@libs/Navigation/Navigation';
+import { isOffline } from '@libs/Network/NetworkStore';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
+import { buildNextStepNew, buildOptimisticNextStep } from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import { getManagerMcTestParticipant, getPersonalDetailsForAccountIDs } from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
+import { getCustomUnitID } from '@libs/PerDiemRequestUtils';
 import Performance from '@libs/Performance';
-import {getAccountIDsByLogins, getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {
-    arePaymentsEnabled,
-    getDistanceRateCustomUnit,
-    getMemberAccountIDsForWorkspace,
-    getPerDiemCustomUnit,
-    getPerDiemRateCustomUnitRate,
-    getPolicy,
-    getSubmitToAccountID,
-    hasDependentTags,
-    hasDynamicExternalWorkflow,
-    isControlPolicy,
-    isDelayedSubmissionEnabled,
-    isPaidGroupPolicy,
-    isPolicyAdmin,
-    isSubmitAndClose,
-} from '@libs/PolicyUtils';
-import {
-    getAllReportActions,
-    getIOUActionForReportID,
-    getLastVisibleAction,
-    getLastVisibleMessage,
-    getOriginalMessage,
-    getReportAction,
-    getReportActionHtml,
-    getReportActionMessage,
-    getReportActionText,
-    getTrackExpenseActionableWhisper,
-    hasPendingDEWApprove,
-    isActionableTrackExpense,
-    isCreatedAction,
-    isDeletedAction,
-    isMoneyRequestAction,
-    isReportPreviewAction,
-} from '@libs/ReportActionsUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
-import {
-    buildOptimisticActionableTrackExpenseWhisper,
-    buildOptimisticAddCommentReportAction,
-    buildOptimisticApprovedReportAction,
-    buildOptimisticCancelPaymentReportAction,
-    buildOptimisticChangeApproverReportAction,
-    buildOptimisticChatReport,
-    buildOptimisticCreatedReportAction,
-    buildOptimisticCreatedReportForUnapprovedAction,
-    buildOptimisticDetachReceipt,
-    buildOptimisticExpenseReport,
-    buildOptimisticIOUReport,
-    buildOptimisticIOUReportAction,
-    buildOptimisticMarkedAsResolvedReportAction,
-    buildOptimisticModifiedExpenseReportAction,
-    buildOptimisticMoneyRequestEntities,
-    buildOptimisticMovedTransactionAction,
-    buildOptimisticRejectReportAction,
-    buildOptimisticRejectReportActionComment,
-    buildOptimisticReopenedReportAction,
-    buildOptimisticReportPreview,
-    buildOptimisticRetractedReportAction,
-    buildOptimisticSelfDMReport,
-    buildOptimisticSubmittedReportAction,
-    buildOptimisticUnapprovedReportAction,
-    canBeAutoReimbursed,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    findSelfDMReportID,
-    generateReportID,
-    getAllHeldTransactions as getAllHeldTransactionsReportUtils,
-    getApprovalChain,
-    getChatByParticipants,
-    getDisplayedReportID,
-    getMoneyRequestSpendBreakdown,
-    getNextApproverAccountID,
-    getOutstandingChildRequest,
-    getParsedComment,
-    getPersonalDetailsForAccountID,
-    getReportNotificationPreference,
-    getReportOrDraftReport,
-    getReportRecipientAccountIDs,
-    getReportTransactions,
-    getTransactionDetails,
-    hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
-    hasOutstandingChildRequest,
-    hasViolations as hasViolationsReportUtils,
-    isArchivedReport,
-    isClosedReport as isClosedReportUtil,
-    isDeprecatedGroupDM,
-    isDraftReport,
-    isExpenseReport,
-    isGroupChat,
-    isIndividualInvoiceRoom,
-    isInvoiceReport as isInvoiceReportReportUtils,
-    isInvoiceRoom,
-    isIOUReport,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
-    isOneOnOneChat,
-    isOneTransactionReport,
-    isOneTransactionThread,
-    isOpenExpenseReport as isOpenExpenseReportReportUtils,
-    isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
-    isOpenReport,
-    isOptimisticPersonalDetail,
-    isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
-    isPayer as isPayerReportUtils,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
-    isProcessingReport,
-    isReportApproved,
-    isReportManager,
-    isSelectedManagerMcTest,
-    isSelfDM,
-    isSettled,
-    isTestTransactionReport,
-    isTrackExpenseReport,
-    prepareOnboardingOnyxData,
-    shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
-    shouldEnableNegative,
-    updateReportPreview,
-} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
-import {
-    allHavePendingRTERViolation,
-    buildOptimisticTransaction,
-    getAmount,
-    getCategoryTaxCodeAndAmount,
-    getChildTransactions,
-    getClearedPendingFields,
-    getCurrency,
-    getDistanceInMeters,
-    getMerchant,
-    getOriginalTransactionWithSplitInfo,
-    getUpdatedTransaction,
-    hasAnyTransactionWithoutRTERViolation,
-    hasDuplicateTransactions,
-    hasSubmissionBlockingViolations,
-    isCustomUnitRateIDForP2P,
-    isDistanceRequest as isDistanceRequestTransactionUtils,
-    isDuplicate,
-    isFetchingWaypointsFromServer,
-    isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
-    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
-    isMapDistanceRequest,
-    isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
-    isOnHold,
-    isPending,
-    isPendingCardOrScanningTransaction,
-    isPerDiemRequest as isPerDiemRequestTransactionUtils,
-    isScanning,
-    isScanRequest as isScanRequestTransactionUtils,
-    removeTransactionFromDuplicateTransactionViolation,
-} from '@libs/TransactionUtils';
+import { getAccountIDsByLogins, getLoginByAccountID } from '@libs/PersonalDetailsUtils';
+import { addSMSDomainIfPhoneNumber } from '@libs/PhoneNumber';
+import { arePaymentsEnabled, getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, getPerDiemRateCustomUnitRate, getPolicy, getSubmitToAccountID, hasDependentTags, hasDynamicExternalWorkflow, isControlPolicy, isDelayedSubmissionEnabled, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose } from '@libs/PolicyUtils';
+import { getAllReportActions, getIOUActionForReportID, getLastVisibleAction, getLastVisibleMessage, getOriginalMessage, getReportAction, getReportActionHtml, getReportActionMessage, getReportActionText, getTrackExpenseActionableWhisper, hasPendingDEWApprove, isActionableTrackExpense, isCreatedAction, isDeletedAction, isMoneyRequestAction, isReportPreviewAction } from '@libs/ReportActionsUtils';
+import type { OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails } from '@libs/ReportUtils';
+import { buildOptimisticActionableTrackExpenseWhisper, buildOptimisticAddCommentReportAction, buildOptimisticApprovedReportAction, buildOptimisticCancelPaymentReportAction, buildOptimisticChangeApproverReportAction, buildOptimisticChatReport, buildOptimisticCreatedReportAction, buildOptimisticCreatedReportForUnapprovedAction, buildOptimisticDetachReceipt, buildOptimisticExpenseReport, buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildOptimisticMarkedAsResolvedReportAction, buildOptimisticModifiedExpenseReportAction, buildOptimisticMoneyRequestEntities, buildOptimisticMovedTransactionAction, buildOptimisticRejectReportAction, buildOptimisticRejectReportActionComment, buildOptimisticReopenedReportAction, buildOptimisticReportPreview, buildOptimisticRetractedReportAction, buildOptimisticSelfDMReport, buildOptimisticSubmittedReportAction, buildOptimisticUnapprovedReportAction, canBeAutoReimbursed, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, findSelfDMReportID, generateReportID, getAllHeldTransactions as getAllHeldTransactionsReportUtils, getApprovalChain, getChatByParticipants, getDisplayedReportID, getMoneyRequestSpendBreakdown, getNextApproverAccountID, getOutstandingChildRequest, getParsedComment, getPersonalDetailsForAccountID, getReportNotificationPreference, getReportOrDraftReport, getReportRecipientAccountIDs, getReportTransactions, getTransactionDetails, hasHeldExpenses as hasHeldExpensesReportUtils, hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils, hasOutstandingChildRequest, hasViolations as hasViolationsReportUtils, isArchivedReport, isClosedReport as isClosedReportUtil, isDeprecatedGroupDM, isDraftReport, isExpenseReport, isGroupChat, isIndividualInvoiceRoom, isInvoiceReport as isInvoiceReportReportUtils, isInvoiceRoom, isIOUReport, isMoneyRequestReport as isMoneyRequestReportReportUtils, isOneOnOneChat, isOneTransactionReport, isOneTransactionThread, isOpenExpenseReport as isOpenExpenseReportReportUtils, isOpenInvoiceReport as isOpenInvoiceReportReportUtils, isOpenReport, isOptimisticPersonalDetail, isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils, isPayer as isPayerReportUtils, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isProcessingReport, isReportApproved, isReportManager, isSelectedManagerMcTest, isSelfDM, isSettled, isTestTransactionReport, isTrackExpenseReport, prepareOnboardingOnyxData, shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils, shouldEnableNegative, updateReportPreview } from '@libs/ReportUtils';
+import { buildCannedSearchQuery, getCurrentSearchQueryJSON } from '@libs/SearchQueryUtils';
+import { getSuggestedSearches } from '@libs/SearchUIUtils';
+import playSound, { SOUNDS } from '@libs/Sound';
+import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
+import { startSpan } from '@libs/telemetry/activeSpans';
+import { allHavePendingRTERViolation, buildOptimisticTransaction, getAmount, getCategoryTaxCodeAndAmount, getChildTransactions, getClearedPendingFields, getCurrency, getDistanceInMeters, getMerchant, getOriginalTransactionWithSplitInfo, getUpdatedTransaction, hasAnyTransactionWithoutRTERViolation, hasDuplicateTransactions, hasSubmissionBlockingViolations, isCustomUnitRateIDForP2P, isDistanceRequest as isDistanceRequestTransactionUtils, isDuplicate, isFetchingWaypointsFromServer, isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils, isManualDistanceRequest as isManualDistanceRequestTransactionUtils, isMapDistanceRequest, isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils, isOnHold, isPending, isPendingCardOrScanningTransaction, isPerDiemRequest as isPerDiemRequestTransactionUtils, isScanning, isScanRequest as isScanRequestTransactionUtils, removeTransactionFromDuplicateTransactionViolation } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
-import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
-import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
-import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
-import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
-import type {GuidedSetupData} from '@userActions/Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
-import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
-import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
-import {removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
-import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
-import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
-import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
+import { clearByKey as clearPdfByOnyxKey } from '@userActions/CachedPDFPaths';
+import { buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData } from '@userActions/Policy/Member';
+import { buildPolicyData, generatePolicyID } from '@userActions/Policy/Policy';
+import type { BuildPolicyDataKeys } from '@userActions/Policy/Policy';
+import { buildOptimisticPolicyRecentlyUsedTags } from '@userActions/Policy/Tag';
+import type { GuidedSetupData } from '@userActions/Report';
+import { buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData } from '@userActions/Report';
+import { clearAllRelatedReportActionErrors } from '@userActions/ReportActions';
+import { mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints } from '@userActions/Transaction';
+import { removeDraftTransaction, removeDraftTransactions } from '@userActions/TransactionEdit';
+import { getOnboardingMessages } from '@userActions/Welcome/OnboardingFlow';
+import type { OnboardingCompanySize } from '@userActions/Welcome/OnboardingFlow';
+import type { IOUAction, IOUActionParams, IOUType } from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import type { Route } from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Accountant, Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
-import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-import type {QuickActionName} from '@src/types/onyx/QuickAction';
+import type { Accountant, Attendee, Participant, Split, SplitExpense } from '@src/types/onyx/IOU';
+import type { ErrorFields, Errors, PendingAction, PendingFields } from '@src/types/onyx/OnyxCommon';
+import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
+import type { CurrentUserPersonalDetails } from '@src/types/onyx/PersonalDetails';
+import type { QuickActionName } from '@src/types/onyx/QuickAction';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
-import type {ReportNextStep} from '@src/types/onyx/Report';
+import type { ReportNextStep } from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { OnyxData } from '@src/types/onyx/Request';
+import type { Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection } from '@src/types/onyx/Transaction';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
+
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -6737,6 +6566,7 @@ type PerDiemExpenseInformationForSelfDM = {
     transactionParams: PerDiemExpenseTransactionParams;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type PerDiemExpenseInformationForSelfDMResult = {
@@ -6752,7 +6582,7 @@ type PerDiemExpenseInformationForSelfDMResult = {
  * Gathers all the data needed to submit a per diem expense from self DM.
  */
 function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDiemExpenseInformationForSelfDM): PerDiemExpenseInformationForSelfDMResult {
-    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam} = perDiemExpenseInformation;
+    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction} = perDiemExpenseInformation;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
@@ -6845,6 +6675,21 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
             },
         );
     }
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: {
+            action: CONST.QUICK_ACTIONS.PER_DIEM,
+            chatReportID: chatReport?.reportID,
+            isFirstQuickAction: isEmptyObject(quickAction),
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: quickAction ?? null,
+    });
 
     const optimisticTransactionID = NumberUtils.rand64();
     const optimisticTransaction = buildOptimisticTransaction({
@@ -7038,7 +6883,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
  * Submit a per diem expense from self DM
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
-    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam} = submitPerDiemExpenseInformation;
+    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction} = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable} = transactionParams;
 
     if (
@@ -7058,6 +6903,7 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         transactionParams,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        quickAction,
     });
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policy, customUnit.customUnitRateID);
