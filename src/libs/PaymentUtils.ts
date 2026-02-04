@@ -218,14 +218,18 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
 };
 
 /**
- * Get the appropriate payment type, selected policy, and whether a payment method should be selected
+ * Get the appropriate payment type, policy from context (policy related to payment type), policy from payment method, and whether a payment method should be selected
  * based on the provided payment method, active admin policies, and latest bank items.
  */
 function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined, policyID?: string | undefined) {
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
     const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
-    // payment method is equal to policyID when user selects "Pay via workspace" option
-    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyID || activePolicy.id === paymentMethod);
+
+    // Policy related to the context ie: Policy related to opened chat
+    const policyFromContext = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyID);
+
+    // Policy that is part of payment method ie: Policy when user presses on 'Pay via workspace' option
+    const policyFromPaymentMethod = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
 
     let paymentType;
     switch (paymentMethod) {
@@ -242,7 +246,8 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
 
     return {
         paymentType,
-        selectedPolicy,
+        policyFromContext,
+        policyFromPaymentMethod,
         shouldSelectPaymentMethod,
     };
 }
