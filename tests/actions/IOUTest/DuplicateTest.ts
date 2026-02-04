@@ -843,6 +843,67 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.customUnit?.distanceUnit).toEqual(mockDistanceTransaction.comment?.customUnit?.distanceUnit);
             expect(duplicatedTransaction?.comment?.customUnit?.quantity).toEqual(DISTANCE_MI);
         });
+
+        it('should not carry over transactionThreadReportID and reportID from the original transaction', async () => {
+            // Given a transaction with existing transactionThreadReportID and reportID
+            // This simulates a split expense that was removed from a report but still has these IDs
+            const existingTransactionThreadReportID = 'existing-thread-123';
+            const existingReportID = 'existing-report-456';
+
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockTransactionWithReportIDs = {
+                ...mockTransaction,
+                amount: mockTransaction.amount * -1,
+                transactionThreadReportID: existingTransactionThreadReportID,
+                reportID: existingReportID,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            await Onyx.clear();
+
+            // When duplicating the transaction
+            duplicateExpenseTransaction({
+                transaction: mockTransactionWithReportIDs,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+            });
+
+            await waitForBatchedUpdates();
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            // Then the duplicated transaction should exist
+            expect(duplicatedTransaction).toBeDefined();
+            expect(duplicatedTransaction?.transactionID).toBeDefined();
+
+            // And the duplicated transaction should NOT have the original's transactionThreadReportID
+            // This prevents reportID collisions when the backend tries to create a new transaction thread
+            expect(duplicatedTransaction?.transactionThreadReportID).not.toBe(existingTransactionThreadReportID);
+
+            // And the duplicated transaction should NOT have the original's reportID
+            // The new transaction should be associated with a new report, not the original one
+            expect(duplicatedTransaction?.reportID).not.toBe(existingReportID);
+        });
     });
 
     describe('resolveDuplicate', () => {
