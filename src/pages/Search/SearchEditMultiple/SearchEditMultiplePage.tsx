@@ -171,6 +171,7 @@ function SearchEditMultiplePage() {
                   description: description || translate('common.tag'),
                   title: tagTitle,
                   route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP.getRoute(tagListIndex),
+                  disabled: false,
               };
           })
         : [];
