@@ -44,7 +44,7 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
                 onAmountChange={onSplitExpenseValueChange}
                 prefixContainerStyle={[styles.pv0, styles.h100]}
                 prefixStyle={styles.lineHeightUndefined}
-                inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                inputStyle={[styles.lineHeightUndefined]}
                 containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                 touchableInputWrapperStyle={[styles.ml3]}
                 maxLength={formattedOriginalAmount.length + 1}

@@ -90,8 +90,9 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            personalDetails,
         });
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {

@@ -183,6 +183,7 @@ function useSearchSelectorBase({
     const computedSearchTerm = useMemo(() => {
         return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     }, [debouncedSearchTerm, countryCode]);
+    const trimmedSearchInput = debouncedSearchTerm.trim();
 
     const baseOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -205,53 +206,41 @@ function useSearchSelectorBase({
                     loginList,
                     currentUserAccountID,
                     currentUserEmail,
+                    personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(
-                    optionsWithContacts,
-                    allPolicies,
-                    draftComments,
-                    nvpDismissedProductTraining,
-                    loginList,
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {
-                        betas: betas ?? [],
-                        includeP2P: true,
-                        includeSelectedOptions: false,
-                        excludeLogins,
-                        includeRecentReports,
-                        maxElements: maxResults,
-                        maxRecentReportElements: maxRecentReportsToShow,
-                        searchString: computedSearchTerm,
-                        includeUserToInvite,
-                        personalDetails,
-                    },
-                    countryCode,
-                    reportAttributesDerived?.reports,
-                );
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
+                    betas: betas ?? [],
+                    includeP2P: true,
+                    includeSelectedOptions: false,
+                    excludeLogins,
+                    includeRecentReports,
+                    maxElements: maxResults,
+                    maxRecentReportElements: maxRecentReportsToShow,
+                    searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
+                    includeUserToInvite,
+                    personalDetails,
+                },
+            
+                countryCode,
+                reportAttributesDerived?.reports,
+            );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(
-                    optionsWithContacts,
-                    allPolicies,
-                    draftComments,
-                    nvpDismissedProductTraining,
-                    loginList,
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {
-                        ...getValidOptionsConfig,
-                        betas: betas ?? [],
-                        searchString: computedSearchTerm,
-                        maxElements: maxResults,
-                        maxRecentReportElements: maxRecentReportsToShow,
-                        includeUserToInvite,
-                        excludeLogins,
-                        personalDetails,
-                    },
-                    countryCode,
-                    reportAttributesDerived?.reports,
-                );
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
+                    ...getValidOptionsConfig,
+                    betas: betas ?? [],
+                    searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
+                    maxElements: maxResults,
+                    maxRecentReportElements: maxRecentReportsToShow,
+                    includeUserToInvite,
+                    excludeLogins,
+                    personalDetails,
+                },
+                countryCode,
+                reportAttributesDerived?.reports,
+            );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
                 return getValidOptions(
                     optionsWithContacts,
@@ -271,6 +260,7 @@ function useSearchSelectorBase({
                         includeThreads: true,
                         includeReadOnly: false,
                         searchString: computedSearchTerm,
+                        searchInputValue: trimmedSearchInput,
                         maxElements: maxResults,
                         includeUserToInvite,
                         personalDetails,
@@ -279,63 +269,49 @@ function useSearchSelectorBase({
                     reportAttributesDerived?.reports,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(
-                    optionsWithContacts,
-                    allPolicies,
-                    draftComments,
-                    nvpDismissedProductTraining,
-                    loginList,
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {
-                        betas,
-                        selectedOptions,
-                        includeMultipleParticipantReports: true,
-                        showChatPreviewLine: true,
-                        forcePolicyNamePreview: true,
-                        includeThreads: true,
-                        includeMoneyRequests: true,
-                        includeTasks: true,
-                        excludeLogins,
-                        loginsToExclude: excludeLogins,
-                        includeOwnedWorkspaceChats: true,
-                        includeSelfDM: true,
-                        searchString: computedSearchTerm,
-                        maxElements: maxResults,
-                        includeUserToInvite,
-                        personalDetails,
-                    },
-                    countryCode,
-                    reportAttributesDerived?.reports,
-                );
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
+                    betas,
+                    selectedOptions,
+                    includeMultipleParticipantReports: true,
+                    showChatPreviewLine: true,
+                    forcePolicyNamePreview: true,
+                    includeThreads: true,
+                    includeMoneyRequests: true,
+                    includeTasks: true,
+                    excludeLogins,
+                    loginsToExclude: excludeLogins,
+                    includeOwnedWorkspaceChats: true,
+                    includeSelfDM: true,
+                    searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
+                    maxElements: maxResults,
+                    includeUserToInvite,
+                    personalDetails,
+                },
+                countryCode,
+                reportAttributesDerived?.reports,
+            );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(
-                    optionsWithContacts,
-                    allPolicies,
-                    draftComments,
-                    nvpDismissedProductTraining,
-                    loginList,
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {
-                        ...getValidOptionsConfig,
-                        betas: betas ?? [],
-                        includeP2P: true,
-                        includeSelectedOptions: false,
-                        excludeLogins,
-                        loginsToExclude: excludeLogins,
-                        includeRecentReports,
-                        maxElements: maxResults,
-                        maxRecentReportElements: maxRecentReportsToShow,
-                        searchString: computedSearchTerm,
-                        includeUserToInvite,
-                        includeCurrentUser,
-                        shouldAcceptName: true,
-                        personalDetails,
-                    },
-                    countryCode,
-                    reportAttributesDerived?.reports,
-                );
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
+                    ...getValidOptionsConfig,
+                    betas: betas ?? [],
+                    includeP2P: true,
+                    includeSelectedOptions: false,
+                    excludeLogins,
+                    loginsToExclude: excludeLogins,
+                    includeRecentReports,
+                    maxElements: maxResults,
+                    maxRecentReportElements: maxRecentReportsToShow,
+                    searchString: computedSearchTerm,
+                    searchInputValue: trimmedSearchInput,
+                    includeUserToInvite,
+                    includeCurrentUser,
+                    shouldAcceptName: true,
+                    personalDetails,
+                },
+                countryCode,
+                reportAttributesDerived?.reports,
+            );
             default:
                 return getEmptyOptions();
         }
@@ -361,6 +337,7 @@ function useSearchSelectorBase({
         currentUserEmail,
         personalDetails,
         reportAttributesDerived?.reports,
+        trimmedSearchInput,
     ]);
 
     const isOptionSelected = useMemo(() => {

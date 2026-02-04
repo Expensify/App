@@ -110,7 +110,7 @@ type SearchAutocompleteListProps = {
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
 
     /** All cards */
-    allCards: CardList;
+    allCards: CardList | undefined;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListHandle>;
@@ -183,7 +183,7 @@ function SearchAutocompleteList({
     personalDetails,
     reports,
     allFeeds,
-    allCards,
+    allCards = CONST.EMPTY_OBJECT,
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
@@ -224,8 +224,21 @@ function SearchAutocompleteList({
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            personalDetails,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    }, [
+        areOptionsInitialized,
+        options,
+        draftComments,
+        nvpDismissedProductTraining,
+        betas,
+        autocompleteQueryValue,
+        countryCode,
+        loginList,
+        currentUserAccountID,
+        currentUserEmail,
+        personalDetails,
+    ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -242,6 +255,10 @@ function SearchAutocompleteList({
                 return [];
         }
     }, [currentType]);
+
+    const viewAutocompleteList = useMemo(() => {
+        return Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
+    }, []);
 
     const statusAutocompleteList = useMemo(() => {
         let suggestedStatuses;
@@ -434,6 +451,7 @@ function SearchAutocompleteList({
                     shouldShowGBR: true,
                     currentUserAccountID,
                     currentUserEmail,
+                    personalDetails,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
@@ -467,6 +485,7 @@ function SearchAutocompleteList({
                     shouldShowGBR: true,
                     currentUserAccountID,
                     currentUserEmail,
+                    personalDetails,
                 }).recentReports.filter((chat) => {
                     if (!chat.text) {
                         return false;
@@ -494,6 +513,12 @@ function SearchAutocompleteList({
                     (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
                 );
                 return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
+            }
+            case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW: {
+                const filteredViews = viewAutocompleteList.filter(
+                    (viewValue) => viewValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(viewValue.toLowerCase()),
+                );
+                return filteredViews.map((viewValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW, text: viewValue}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
@@ -639,6 +664,7 @@ function SearchAutocompleteList({
         currentUserAccountID,
         currentUserEmail,
         groupByAutocompleteList,
+        viewAutocompleteList,
         statusAutocompleteList,
         feedAutoCompleteList,
         cardAutocompleteList,
@@ -646,6 +672,7 @@ function SearchAutocompleteList({
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
+        personalDetails,
     ]);
 
     const sortedRecentSearches = useMemo(() => {

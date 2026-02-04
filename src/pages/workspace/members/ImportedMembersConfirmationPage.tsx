@@ -86,8 +86,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         }
         setIsImporting(true);
         const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
-        importPolicyMembers(policyID, membersWithRole);
-    }, [importedSpreadsheetMemberData, newMembers, policyID, role]);
+        importPolicyMembers(policy, membersWithRole);
+    }, [importedSpreadsheetMemberData, newMembers, policy, role]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
