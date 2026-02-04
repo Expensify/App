@@ -607,6 +607,12 @@ type OriginalMessagePolicyChangeLog = {
     /** The name of the enabled/disabled feature */
     featureName?: string;
 
+    /** The name of the tag list being updated */
+    tagListsName?: string;
+
+    /** Whether the tag list is required */
+    isRequired?: boolean;
+
     /** The new reimburser details */
     reimburser?: {
         /** The email of the new reimburser */
