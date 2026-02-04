@@ -1601,7 +1601,18 @@ describe('OptionsListUtils', () => {
         it('should sort personal details alphabetically and return expected structure', () => {
             // Given a set of personalDetails
             // When we call getMemberInviteOptions
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, []);
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                PERSONAL_DETAILS,
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
 
             // Then personal details should be sorted alphabetically
             expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
@@ -1625,6 +1636,92 @@ describe('OptionsListUtils', () => {
             // Then the excluded login should not be in the results
             const excludedUser = results.personalDetails.find((detail) => detail.login === 'reedrichards@expensify.com');
             expect(excludedUser).toBeUndefined();
+        });
+
+        it('should handle undefined personalDetailsCollection gracefully', () => {
+            // Given a set of personalDetails and undefined personalDetailsCollection
+            // When we call getMemberInviteOptions with undefined personalDetailsCollection
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
+
+            // Then personal details should still be returned and sorted alphabetically
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        });
+
+        it('should handle empty personalDetailsCollection gracefully', () => {
+            // Given a set of personalDetails and empty personalDetailsCollection
+            // When we call getMemberInviteOptions with empty personalDetailsCollection
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                {},
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
+
+            // Then personal details should still be returned and sorted alphabetically
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        });
+
+        it('should handle null personalDetailsCollection gracefully', () => {
+            // Given a set of personalDetails and null personalDetailsCollection
+            // When we call getMemberInviteOptions with null personalDetailsCollection
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                {},
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
+
+            // Then personal details should still be returned and sorted alphabetically
+            expect(results.personalDetails.length).toBeGreaterThan(0);
+            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
+        });
+
+        it('should exclude specified logins', () => {
+            // Given a set of personalDetails and logins to exclude
+            const excludeLogins = {'tchalla@expensify.com': true};
+
+            // When we call getMemberInviteOptions with excludeLogins
+            const results = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                PERSONAL_DETAILS,
+                [],
+                excludeLogins,
+                false,
+                COUNTRY_CODE,
+            );
+
+            // Then Black Panther should not be in the results
+            const blackPanther = results.personalDetails.find((detail) => detail.text === 'Black Panther');
+            expect(blackPanther).toBeUndefined();
         });
     });
 
@@ -2137,7 +2234,18 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options if search value does not match any personal details (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, []);
+            const options = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                PERSONAL_DETAILS,
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
             // When we call filterAndOrderOptions with a search value that does not match any personal details
             const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
 
@@ -2147,7 +2255,18 @@ describe('OptionsListUtils', () => {
 
         it('should return one personal detail if search value matches an email (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, []);
+            const options = getMemberInviteOptions(
+                OPTIONS.personalDetails,
+                nvpDismissedProductTraining,
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                PERSONAL_DETAILS,
+                [],
+                {},
+                false,
+                COUNTRY_CODE,
+            );
             // When we call filterAndOrderOptions with a search value that matches an email
             const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID);
 
