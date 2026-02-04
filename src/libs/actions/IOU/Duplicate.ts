@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, RequestMoneyInformation} from '.';
+import type {CreateDistanceRequestInformation, CreateTrackExpenseParams, PerDiemExpenseInformation, RequestMoneyInformation} from '.';
 import {
     createDistanceRequest,
     getAllReportActionsFromIOU,
@@ -37,6 +37,7 @@ import {
     getRecentWaypoints,
     getUserAccountID,
     requestMoney,
+    submitPerDiemExpense,
     trackExpense,
 } from '.';
 
@@ -602,6 +603,19 @@ function duplicateExpenseTransaction({
                 recentWaypoints,
             };
             return createDistanceRequest(distanceParams);
+        }
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
+            const perDiemParams: PerDiemExpenseInformation = {
+                ...params,
+                transactionParams: {
+                    ...(params.transactionParams ?? {}),
+                    comment: transactionDetails?.comment ?? '',
+                    customUnit: transaction?.comment?.customUnit ?? {},
+                },
+                hasViolations: false,
+                customUnitPolicyID,
+            };
+            return submitPerDiemExpense(perDiemParams);
         }
         default:
             return requestMoney(params);

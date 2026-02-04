@@ -1319,6 +1319,7 @@ const translations: TranslationDeepObject<typeof en> = {
 
             return `${formatList(fragments)} a través de <a href="${policyRulesRoute}">reglas del espacio de trabajo</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
     },
     transactionMerge: {
         listPage: {

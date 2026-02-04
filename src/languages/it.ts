@@ -1559,6 +1559,7 @@ const translations: TranslationDeepObject<typeof en> = {
             });
             return `${formatList(fragments)} tramite le <a href="${policyRulesRoute}">regole dello spazio di lavoro</a>`;
         },
+        duplicateNonDefaultWorkspacePerDiemError: 'Non puoi duplicare le spese di diaria tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse tra gli spazi di lavoro.',
     },
     transactionMerge: {
         listPage: {
