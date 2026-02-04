@@ -222,7 +222,7 @@ function ComposerWithSuggestions({
     isScrollLikelyLayoutTriggered,
     raiseIsScrollLikelyLayoutTriggered,
     onClear: onClearProp = () => {},
-    onLayout: onLayoutProps,
+    onLayout: onLayoutProp,
 
     // Refs
     suggestionsRef,
@@ -773,14 +773,6 @@ function ComposerWithSuggestions({
         onValueChange(value);
     }, [onValueChange, value]);
 
-    const onLayout = useCallback(
-        (e: LayoutChangeEvent) => {
-            onLayoutProps?.(e);
-            setComposerHeight(0);
-        },
-        [onLayoutProps],
-    );
-
     const onClear = useCallback(
         (text: string) => {
             mobileInputScrollPosition.current = 0;
@@ -909,7 +901,7 @@ function ComposerWithSuggestions({
                     value={value}
                     testID="composer"
                     shouldCalculateCaretPosition
-                    onLayout={onLayout}
+                    onLayout={onLayoutProp}
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
