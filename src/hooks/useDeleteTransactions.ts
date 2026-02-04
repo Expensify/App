@@ -204,6 +204,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             report,
             reportActions,
             transactionViolations,
+            betas,
         ],
     );
 
