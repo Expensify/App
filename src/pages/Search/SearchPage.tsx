@@ -292,7 +292,7 @@ function SearchPage({route}: SearchPageProps) {
     const policyIDsWithVBBA = useMemo(() => {
         const result = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy?.achAccount?.bankAccountID) {
+            if (!policy || !policy.achAccount?.bankAccountID) {
                 continue;
             }
 

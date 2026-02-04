@@ -1544,13 +1544,13 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string)
 function areAllGroupPoliciesExpenseChatDisabled(policies: OnyxCollection<Policy> | null) {
     let foundGroupPolicy = false;
     for (const policy of Object.values(policies ?? {})) {
-        if (!isPaidGroupPolicy(policy)) {
+        if (!policy || !isPaidGroupPolicy(policy)) {
             continue;
         }
 
         foundGroupPolicy = true;
 
-        if (policy?.isPolicyExpenseChatEnabled) {
+        if (policy.isPolicyExpenseChatEnabled) {
             return false;
         }
     }

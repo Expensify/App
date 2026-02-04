@@ -22,4 +22,27 @@ describe('hasMultipleOutputCurrenciesSelector', () => {
 
         expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(true);
     });
+
+    it('returns false when policies object is empty', () => {
+        const policies: OnyxCollection<Policy> = {};
+
+        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
+    });
+
+    it('returns false when there are only personal policies', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), outputCurrency: 'USD'},
+            policy2: {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), outputCurrency: 'EUR'},
+        };
+
+        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
+    });
+
+    it('returns false when there is only a single paid group policy', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), outputCurrency: 'USD'},
+        };
+
+        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
+    });
 });
