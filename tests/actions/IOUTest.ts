@@ -3186,6 +3186,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 personalDetails: testPersonalDetails,
+                betas: [CONST.BETAS.ALL],
             });
 
             expect(iouReport).toBeDefined();
@@ -3256,6 +3257,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 personalDetails: testPersonalDetails,
+                betas: [CONST.BETAS.ALL],
             });
 
             expect(iouReport).toBeDefined();
@@ -3297,6 +3299,7 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 quickAction: undefined,
                 personalDetails: {},
+                betas: [CONST.BETAS.ALL],
             });
 
             // Should still create the expense even with empty personalDetails
@@ -3357,6 +3360,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 recentWaypoints,
+                betas: [CONST.BETAS.ALL],
             });
             await waitForBatchedUpdates();
 
@@ -3450,6 +3454,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 isSelfTourViewed: false,
                 personalDetails: {},
+                betas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
