@@ -57,8 +57,8 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -68,7 +68,18 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, policies, currentUserAccountID, true, translate);
+    const queryText = buildUserReadableQueryString({
+        queryJSON,
+        PersonalDetails: personalDetails,
+        reports,
+        taxRates,
+        cardList: nonPersonalAndWorkspaceCards,
+        cardFeeds: allFeeds,
+        policies,
+        currentUserAccountID,
+        autoCompleteWithSpace: true,
+        translate,
+    });
 
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT, {canBeMissing: true});
     const shouldShowQuery = searchContext?.shouldShowSearchQuery ?? false;
@@ -115,9 +126,19 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [queryText, shouldShowQuery]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, policies, currentUserAccountID);
+        const substitutionsMap = buildSubstitutionsMap(
+            originalInputQuery,
+            personalDetails,
+            reports,
+            taxRates,
+            nonPersonalAndWorkspaceCards,
+            allFeeds,
+            policies,
+            currentUserAccountID,
+            translate,
+        );
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, nonPersonalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID]);
+    }, [allFeeds, nonPersonalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
@@ -144,18 +165,18 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             return;
         }
 
-        const normalizedQueryText = buildUserReadableQueryString(
-            parsedQuery,
-            personalDetails,
+        const normalizedQueryText = buildUserReadableQueryString({
+            queryJSON: parsedQuery,
+            PersonalDetails: personalDetails,
             reports,
             taxRates,
-            nonPersonalAndWorkspaceCards,
-            allFeeds,
+            cardList: nonPersonalAndWorkspaceCards,
+            cardFeeds: allFeeds,
             policies,
             currentUserAccountID,
-            true,
+            autoCompleteWithSpace: true,
             translate,
-        );
+        });
 
         if (normalizedQueryText === textInputValue) {
             return;

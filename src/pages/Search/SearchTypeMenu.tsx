@@ -101,18 +101,18 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(
-                    jsonQuery,
-                    personalDetails,
+                title = buildUserReadableQueryString({
+                    queryJSON: jsonQuery,
+                    PersonalDetails: personalDetails,
                     reports,
                     taxRates,
-                    nonPersonalAndWorkspaceCards,
-                    allFeeds,
-                    allPolicies,
+                    cardList: nonPersonalAndWorkspaceCards,
+                    cardFeeds: allFeeds,
+                    policies: allPolicies,
                     currentUserAccountID,
-                    undefined,
+                    autoCompleteWithSpace: false,
                     translate,
-                );
+                });
             }
 
             const isItemFocused = Number(key) === hash;

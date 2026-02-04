@@ -109,18 +109,18 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                savedSearchTitle = buildUserReadableQueryString(
-                    jsonQuery,
-                    personalDetails,
+                savedSearchTitle = buildUserReadableQueryString({
+                    queryJSON: jsonQuery,
+                    PersonalDetails: personalDetails,
                     reports,
                     taxRates,
-                    nonPersonalAndWorkspaceCards,
-                    allFeeds,
-                    allPolicies,
+                    cardList: nonPersonalAndWorkspaceCards,
+                    cardFeeds: allFeeds,
+                    policies: allPolicies,
                     currentUserAccountID,
-                    undefined,
+                    autoCompleteWithSpace: false,
                     translate,
-                );
+                });
             }
 
             const isItemFocused = Number(key) === hash;

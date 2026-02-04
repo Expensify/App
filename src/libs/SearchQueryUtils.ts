@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
     ASTNode,
     QueryFilter,
@@ -36,8 +36,6 @@ import arraysEqual from '@src/utils/arraysEqual';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -1105,6 +1103,7 @@ function getFilterDisplayValue(
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
+    translate: LocalizedTranslate,
 ) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -1121,8 +1120,7 @@ function getFilterDisplayValue(
         if (Number.isNaN(cardID)) {
             return filterValue;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getCardDescription(cardList?.[cardID], translateLocal) || filterValue;
+        return getCardDescription(cardList?.[cardID], translate) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1136,7 +1134,7 @@ function getFilterDisplayValue(
         return getCleanedTagName(filterValue);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate);
         return cardFeedsForDisplay[filterValue]?.name ?? filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
@@ -1145,33 +1143,35 @@ function getFilterDisplayValue(
     return filterValue;
 }
 
-type GetDisplayQueryFiltersForKeyParams = {
-    key: string;
-    queryFilter: QueryFilter[];
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined;
-    reports: OnyxCollection<OnyxTypes.Report>;
-    taxRates: Record<string, string[]>;
-    cardList: OnyxTypes.CardList | undefined;
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
-    policies: OnyxCollection<OnyxTypes.Policy>;
-    currentUserAccountID: number;
-    translate?: LocaleContextProps['translate'];
-    type?: SearchDataTypes;
-};
+type StatusOption = TupleToUnion<ReturnType<typeof getStatusOptions>>;
+type AllStatusOption = TupleToUnion<ReturnType<typeof getAllStatusOptions>>;
 
-function getDisplayQueryFiltersForKey({
-    key,
-    queryFilter,
-    personalDetails,
-    reports,
-    taxRates,
-    cardList,
-    cardFeeds,
-    policies,
-    currentUserAccountID,
-    translate,
-    type,
-}: GetDisplayQueryFiltersForKeyParams) {
+function getStatusTranslationMaps(key: string, translate?: LocalizedTranslate, type?: SearchDataTypes) {
+    if (key !== CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS || !translate || !type) {
+        return;
+    }
+
+    const statusOptions = getStatusOptions(translate, type);
+    const statusOptionMap = new Map<string, StatusOption>(statusOptions.map((option) => [String(option.value), option]));
+    const allStatusOptions = getAllStatusOptions(translate);
+    const allStatusOptionMap = new Map<string, AllStatusOption>(allStatusOptions.map((option) => [String(option.value), option]));
+
+    return {statusOptionMap, allStatusOptionMap};
+}
+
+function getDisplayQueryFiltersForKey(
+    key: string,
+    queryFilter: QueryFilter[],
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    taxRates: Record<string, string[]>,
+    cardList: OnyxTypes.CardList | undefined,
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    policies: OnyxCollection<OnyxTypes.Policy>,
+    currentUserAccountID: number,
+    translate: LocalizedTranslate,
+    type?: SearchDataTypes,
+) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
         const taxRateNames = taxRateIDs
@@ -1194,7 +1194,7 @@ function getDisplayQueryFiltersForKey({
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
         return queryFilter.reduce((acc, filter) => {
             const feedKey = filter.value.toString();
-            const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
+            const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate);
             const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
             const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
             const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
@@ -1221,19 +1221,16 @@ function getDisplayQueryFiltersForKey({
                 if (Number.isNaN(cardID)) {
                     acc.push({operator: filter.operator, value: cardID});
                 } else {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID], translateLocal) || cardID});
+                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID], translate) || cardID});
                 }
             }
             return acc;
         }, [] as QueryFilter[]);
     }
 
-    const shouldTranslateStatus = key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type;
-    const statusOptions = shouldTranslateStatus ? getStatusOptions(translate, type) : undefined;
-    const statusOptionMap = statusOptions ? new Map<string, TupleToUnion<typeof statusOptions>>(statusOptions.map((option) => [String(option.value), option])) : undefined;
-    const allStatusOptions = shouldTranslateStatus ? getAllStatusOptions(translate) : undefined;
-    const allStatusOptionMap = allStatusOptions ? new Map<string, TupleToUnion<typeof allStatusOptions>>(allStatusOptions.map((option) => [String(option.value), option])) : undefined;
+    const statusOptionMaps = getStatusTranslationMaps(key, translate, type);
+    const statusOptionMap = statusOptionMaps?.statusOptionMap;
+    const allStatusOptionMap = statusOptionMaps?.allStatusOptionMap;
 
     return queryFilter.map((filter) => {
         const filterValue = filter.value.toString();
@@ -1250,7 +1247,7 @@ function getDisplayQueryFiltersForKey({
 
         return {
             operator: filter.operator,
-            value: getFilterDisplayValue(key, getUserFriendlyValue(filterValue), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
+            value: getFilterDisplayValue(key, getUserFriendlyValue(filterValue), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, translate),
         };
     });
 }
@@ -1341,18 +1338,29 @@ function formatDefaultRawFilterSegment(
  * We try to replace every numeric id value with a display version of this value,
  * So: user IDs get turned into emails, report ids into report names etc.
  */
-function buildUserReadableQueryString(
-    queryJSON: SearchQueryJSON,
-    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    taxRates: Record<string, string[]>,
-    cardList: OnyxTypes.CardList | undefined,
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    currentUserAccountID: number,
+function buildUserReadableQueryString({
+    queryJSON,
+    PersonalDetails,
+    reports,
+    taxRates,
+    cardList,
+    cardFeeds,
+    policies,
+    currentUserAccountID,
     autoCompleteWithSpace = false,
-    translate?: LocaleContextProps['translate'],
-) {
+    translate,
+}: {
+    queryJSON: SearchQueryJSON;
+    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    taxRates: Record<string, string[]>;
+    cardList: OnyxTypes.CardList | undefined;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    autoCompleteWithSpace: boolean;
+    translate: LocalizedTranslate;
+}) {
     const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     const translateStatusValue = (statusValue: string): string => {
@@ -1415,10 +1423,10 @@ function buildUserReadableQueryString(
                 continue;
             }
 
-            const displayQueryFilters = getDisplayQueryFiltersForKey({
-                key: rawFilter.key,
-                queryFilter: queryFilters,
-                personalDetails: PersonalDetails,
+            const displayQueryFilters = getDisplayQueryFiltersForKey(
+                rawFilter.key,
+                queryFilters,
+                PersonalDetails,
                 reports,
                 taxRates,
                 cardList,
@@ -1427,7 +1435,7 @@ function buildUserReadableQueryString(
                 currentUserAccountID,
                 translate,
                 type,
-            });
+            );
 
             if (!displayQueryFilters.length) {
                 continue;
@@ -1464,10 +1472,10 @@ function buildUserReadableQueryString(
 
     for (const filterObject of filters) {
         const key = filterObject.key;
-        const displayQueryFilters = getDisplayQueryFiltersForKey({
+        const displayQueryFilters = getDisplayQueryFiltersForKey(
             key,
-            queryFilter: filterObject.filters,
-            personalDetails: PersonalDetails,
+            filterObject.filters,
+            PersonalDetails,
             reports,
             taxRates,
             cardList,
@@ -1476,7 +1484,7 @@ function buildUserReadableQueryString(
             currentUserAccountID,
             translate,
             type,
-        });
+        );
 
         if (!displayQueryFilters.length) {
             continue;
