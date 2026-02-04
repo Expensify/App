@@ -1,5 +1,5 @@
-import type DomainErrors from '@src/types/onyx/DomainErrors';
 import {hasDomainAdminsErrors, hasDomainAdminsSettingsErrors, hasDomainErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
+import type DomainErrors from '@src/types/onyx/DomainErrors';
 
 const adminID = 1;
 describe('DomainUtils', () => {
