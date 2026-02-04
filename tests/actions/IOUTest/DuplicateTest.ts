@@ -844,18 +844,23 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.customUnit?.quantity).toEqual(DISTANCE_MI);
         });
 
-        it('should not carry over transactionThreadReportID and reportID from the original transaction', async () => {
-            // Given a transaction with existing transactionThreadReportID and reportID
-            // This simulates a split expense that was removed from a report but still has these IDs
-            const existingTransactionThreadReportID = 'existing-thread-123';
-            const existingReportID = 'existing-report-456';
+        it('should not carry over linkedTrackedExpenseReportAction from the original transaction', async () => {
+            // Given a transaction with linkedTrackedExpenseReportAction set
+            // This simulates a split expense that was removed from a report
+            const existingLinkedReportActionChildReportID = 'existing-linked-child-789';
 
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
-            const mockTransactionWithReportIDs = {
+            const mockTransactionWithLinkedAction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
-                transactionThreadReportID: existingTransactionThreadReportID,
-                reportID: existingReportID,
+                // This is the field that causes the collision - its childReportID gets used as existingTransactionThreadReportID
+                // in getMoneyRequestInformation, causing the backend to try to create a report with an existing ID
+                linkedTrackedExpenseReportAction: {
+                    reportActionID: 'linked-action-123',
+                    childReportID: existingLinkedReportActionChildReportID,
+                    actionName: 'IOU',
+                    created: '2024-01-01 00:00:00',
+                } as ReportAction,
                 comment: {
                     ...restOfComment,
                 },
@@ -865,7 +870,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
-                transaction: mockTransactionWithReportIDs,
+                transaction: mockTransactionWithLinkedAction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
@@ -896,13 +901,10 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction).toBeDefined();
             expect(duplicatedTransaction?.transactionID).toBeDefined();
 
-            // And the duplicated transaction should NOT have the original's transactionThreadReportID
-            // This prevents reportID collisions when the backend tries to create a new transaction thread
-            expect(duplicatedTransaction?.transactionThreadReportID).not.toBe(existingTransactionThreadReportID);
-
-            // And the duplicated transaction should NOT have the original's reportID
-            // The new transaction should be associated with a new report, not the original one
-            expect(duplicatedTransaction?.reportID).not.toBe(existingReportID);
+            // And the duplicated transaction should NOT have the original's linkedTrackedExpenseReportAction
+            // This is critical - linkedTrackedExpenseReportAction.childReportID gets used as existingTransactionThreadReportID,
+            // which would cause the backend to try to create a report with an already existing ID
+            expect(duplicatedTransaction?.linkedTrackedExpenseReportAction?.childReportID).not.toBe(existingLinkedReportActionChildReportID);
         });
     });
 
