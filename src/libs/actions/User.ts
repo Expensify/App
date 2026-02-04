@@ -1703,7 +1703,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         value: JSON.stringify(rulesForAPI),
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1711,7 +1711,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1719,7 +1719,7 @@ function deleteExpenseRules(expenseRules: ExpenseRule[], selectedRuleKeys: strin
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1793,7 +1793,7 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         value: JSON.stringify(rulesForAPI),
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1801,7 +1801,7 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
@@ -1809,7 +1809,7 @@ function saveExpenseRule(expenseRules: ExpenseRule[], newRule: ExpenseRule, exis
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXPENSE_RULES>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_EXPENSE_RULES,
