@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {PressableWithFeedback} from '@components/Pressable';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
@@ -354,7 +355,15 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                             disabled={items.length === 0}
                             shouldSelectOnPressEnter
                         />
-                        <Text style={[styles.textLabelSupporting, styles.ph3, styles.userSelectNone]}>{translate('workspace.common.selectAll')}</Text>
+                        <PressableWithFeedback
+                            style={[styles.userSelectNone, styles.alignItemsCenter]}
+                            onPress={toggleAllItems}
+                            accessible={false}
+                            tabIndex={-1}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        >
+                            <Text style={[styles.textLabelSupporting, styles.ph3]}>{translate('workspace.common.selectAll')}</Text>
+                        </PressableWithFeedback>
                     </View>
                     <SelectionList
                         data={featuresToCopy}
