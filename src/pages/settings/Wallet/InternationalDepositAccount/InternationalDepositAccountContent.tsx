@@ -7,6 +7,7 @@ import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubStep from '@hooks/useSubStep';
+import {clearCorpayBankAccountFields} from '@libs/actions/BankAccounts';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -87,6 +88,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
 
     const handleFinishStep = useCallback(() => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+        clearCorpayBankAccountFields();
         goBack();
     }, [goBack]);
 
@@ -109,6 +111,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
             clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+            clearCorpayBankAccountFields();
             goBack();
             return true;
         }
@@ -116,6 +119,7 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         // Clicking back on the success screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
             clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+            clearCorpayBankAccountFields();
             goBack();
             return true;
         }
