@@ -35,9 +35,9 @@ function ExpensifyCodePage() {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM> => {
-            return getFieldRequiredErrors(values, [INPUT_IDS.EXPENSIFY_CODE]);
+            return getFieldRequiredErrors(values, [INPUT_IDS.EXPENSIFY_CODE], translate);
         },
-        [],
+        [translate],
     );
 
     const handleSubmit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>) => {
