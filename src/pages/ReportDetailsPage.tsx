@@ -26,6 +26,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
+import useChildReport from '@hooks/useChildReport';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -276,6 +277,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         return parentReportAction;
     }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const requestParentReportActionChildReport = useChildReport(requestParentReportAction);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' &&
@@ -879,6 +881,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             deleteTrackExpense({
                 chatReportID: moneyRequestReport?.reportID,
                 chatReport: moneyRequestReport,
+                transactionThread: requestParentReportActionChildReport,
                 transactionID: iouTransactionID,
                 reportAction: requestParentReportAction,
                 iouReport,
@@ -896,28 +899,29 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             removeTransaction(iouTransactionID);
         }
     }, [
-        ancestors,
         caseID,
         requestParentReportAction,
+        iouTransactionID,
         report,
+        parentReport,
         isReportArchived,
         currentUserPersonalDetails.accountID,
-        iouTransactionID,
+        hasOutstandingChildTask,
+        parentReportAction,
+        ancestors,
+        moneyRequestReport,
+        requestParentReportActionChildReport,
+        iouReport,
+        chatIOUReport,
         duplicateTransactions,
         duplicateTransactionViolations,
         isSingleTransactionView,
-        moneyRequestReport,
-        removeTransaction,
-        allTransactionViolations,
         isMoneyRequestReportArchived,
-        iouReport,
-        chatIOUReport,
+        isChatIOUReportArchived,
+        allTransactionViolations,
         deleteTransactions,
         currentSearchHash,
-        isChatIOUReportArchived,
-        hasOutstandingChildTask,
-        parentReportAction,
-        parentReport,
+        removeTransaction,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
