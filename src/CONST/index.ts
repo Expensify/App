@@ -8214,6 +8214,10 @@ const CONST = {
         REANIMATED_MODAL: {
             BACKDROP: 'ReanimatedModal-Backdrop',
         },
+        SHARE_DETAILS: {
+            DISMISS_KEYBOARD_HEADER: 'ShareDetails-DismissKeyboardHeader',
+            DISMISS_KEYBOARD_ATTACHMENT: 'ShareDetails-DismissKeyboardAttachment',
+        },
     },
 
     DOMAIN: {

@@ -177,6 +177,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         >
             <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
                 <PressableWithoutFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAILS.DISMISS_KEYBOARD_HEADER}
                     onPress={() => {
                         KeyboardUtils.dismiss();
                     }}
@@ -222,6 +223,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         </ScrollView>
                     </View>
                     <PressableWithoutFeedback
+                        sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAILS.DISMISS_KEYBOARD_ATTACHMENT}
                         onPress={() => {
                             KeyboardUtils.dismiss();
                         }}
