@@ -215,7 +215,7 @@ function SearchAutocompleteList({
         }
     })();
 
-    const viewAutocompleteList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value))
+    const viewAutocompleteList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
     const statusAutocompleteList = (() => {
         let suggestedStatuses;
         switch (currentType) {
@@ -809,6 +809,7 @@ function SearchAutocompleteList({
                 shouldScrollToFocusedIndex={!isInitialRender}
                 disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
                 addBottomSafeAreaPadding
+                textInputOptions={{value: autocompleteQueryValue}}
             />
         )
     );
