@@ -8250,7 +8250,7 @@ ${amount} para ${merchant} - ${date}`,
         reportLevelExport: 'Todos los datos - a nivel de informe',
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',
-        conciergeWillSend: 'Concierge te enviará el archivo en breve.',
+        conciergeWillSend: (email: string) => `Concierge enviará el archivo en breve a ${email} y a tu bandeja de entrada de Expensify.`,
     },
     openAppFailureModal: {
         title: 'Algo salió mal...',

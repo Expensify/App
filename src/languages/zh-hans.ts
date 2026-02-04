@@ -7881,7 +7881,7 @@ ${reportName}
         reportLevelExport: '全部数据 - 报告级别',
         expenseLevelExport: '全部数据 - 报销级别',
         exportInProgress: '正在导出',
-        conciergeWillSend: 'Concierge 将很快把文件发送给你。',
+        conciergeWillSend: (email: string) => `Concierge 将很快把文件发送给你到 ${email} 和你的 Expensify 收件箱。`,
     },
     domain: {
         notVerified: '未验证',

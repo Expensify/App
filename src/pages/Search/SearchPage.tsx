@@ -277,7 +277,7 @@ function SearchPage({route}: SearchPageProps) {
 
             const result = await showConfirmModal({
                 title: translate('export.exportInProgress'),
-                prompt: translate('export.conciergeWillSend'),
+                prompt: translate('export.conciergeWillSend', currentUserPersonalDetails?.email ?? ''),
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
             });

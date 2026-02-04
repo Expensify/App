@@ -835,7 +835,7 @@ function MoneyRequestReportActionsList({
                 onCancel={() => setIsExportWithTemplateModalVisible(false)}
                 isVisible={isExportWithTemplateModalVisible}
                 title={translate('export.exportInProgress')}
-                prompt={translate('export.conciergeWillSend')}
+                prompt={translate('export.conciergeWillSend', session?.email ?? '')}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />

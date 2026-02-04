@@ -8093,7 +8093,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         reportLevelExport: 'Tutti i dati - livello report',
         expenseLevelExport: 'Tutti i dati - livello spesa',
         exportInProgress: 'Esportazione in corso',
-        conciergeWillSend: 'Concierge ti invierà il file a breve.',
+        conciergeWillSend: (email: string) => `Concierge invierà il file a breve a ${email} e alla tua posta in arrivo di Expensify.`,
     },
     domain: {
         notVerified: 'Non verificato',

@@ -8062,7 +8062,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
         reportLevelExport: 'Todos os dados - nível de relatório',
         expenseLevelExport: 'Todos os dados - nível de despesa',
         exportInProgress: 'Exportação em andamento',
-        conciergeWillSend: 'Concierge enviará o arquivo para você em breve.',
+        conciergeWillSend: (email: string) => `Concierge enviará o arquivo para você em breve a ${email} e sua caixa de entrada do Expensify.`,
     },
     domain: {
         notVerified: 'Não verificado',

@@ -8029,7 +8029,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         reportLevelExport: 'すべてのデータ - レポートレベル',
         expenseLevelExport: 'すべてのデータ - 経費レベル',
         exportInProgress: 'エクスポートを実行中',
-        conciergeWillSend: 'Concierge がまもなくファイルを送信します。',
+        conciergeWillSend: (email: string) => `Concierge がまもなくファイルを ${email} とあなたの Expensify 受信箱に送信します。`,
     },
     domain: {
         notVerified: '未確認',

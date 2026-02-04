@@ -8075,7 +8075,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
         reportLevelExport: 'Alle gegevens - rapportniveau',
         expenseLevelExport: 'Alle gegevens - onkostenniveau',
         exportInProgress: 'Export wordt uitgevoerd',
-        conciergeWillSend: 'Concierge stuurt je het bestand zo meteen.',
+        conciergeWillSend: (email: string) => `Concierge stuurt je het bestand zo meteen aan ${email} en je Expensify-postvak.`,
     },
     domain: {
         notVerified: 'Niet geverifieerd',

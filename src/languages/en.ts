@@ -8102,7 +8102,7 @@ const translations = {
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         exportInProgress: 'Export in progress',
-        conciergeWillSend: 'Concierge will send you the file shortly.',
+        conciergeWillSend: (email: string) => `Concierge will send the file shortly to ${email} and your Expensify Inbox.`,
     },
     domain: {
         notVerified: 'Not verified',

@@ -8115,7 +8115,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
         reportLevelExport: 'Toutes les données - niveau rapport',
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Exportation en cours',
-        conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
+        conciergeWillSend: (email: string) => `Concierge vous enverra le fichier sous peu à ${email} et à votre boîte de réception Expensify.`,
     },
     domain: {
         notVerified: 'Non vérifié',

@@ -423,7 +423,7 @@ function MoneyReportHeader({
     const showExportProgressModal = useCallback(() => {
         return showConfirmModal({
             title: translate('export.exportInProgress'),
-            prompt: translate('export.conciergeWillSend'),
+            prompt: translate('export.conciergeWillSend', session?.email ?? ''),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });

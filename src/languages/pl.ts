@@ -8060,7 +8060,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
         reportLevelExport: 'Wszystkie dane – poziom raportu',
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
         exportInProgress: 'Trwa eksport',
-        conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
+        conciergeWillSend: (email: string) => `Concierge wkrótce wyśle plik na adres ${email} oraz do skrzynki odbiorczej Expensify.`,
     },
     domain: {
         notVerified: 'Niezweryfikowano',
