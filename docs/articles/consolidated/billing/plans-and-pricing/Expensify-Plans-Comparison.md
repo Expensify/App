@@ -1,3 +1,4 @@
+
 ---
 title: Expensify Plans & Pricing: Collect vs Control
 description: Learn how Expensify plans and pricing work so you can choose the right plan and understand how billing is calculated.
