@@ -10,8 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearIssueNewCardFlow, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getApprovalWorkflow} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,8 +38,7 @@ function CardTypeStep({policy, stepNames, startStepIndex}: CardTypeStepProps) {
     const isEditing = issueNewCard?.isEditing;
 
     const submit = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>) => {
-        const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-        const defaultType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
+        const defaultType = getDefaultExpensifyCardLimitType(policy);
         const isSingleUseType = issueNewCard?.data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE;
         const shouldUseDefaultLimitType = isSingleUseType && value === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL;
         setIssueNewCardStepAndData({
