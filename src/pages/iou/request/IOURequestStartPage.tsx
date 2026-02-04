@@ -196,7 +196,7 @@ function IOURequestStartPage({
         [
             transaction?.iouRequestType,
             transaction?.isFromGlobalCreate,
-            transaction?.isFromGlobalCreate,
+            transaction?.isFromFloatingActionButton,
             reportID,
             policy,
             personalPolicy,
