@@ -367,21 +367,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const {closeSidePanel} = useSidePanel();
 
-    useEffect(() => {
-        if (
-            !isFocused ||
-            !reportIDFromRoute ||
-            report?.reportID ||
-            reportMetadata?.isLoadingInitialReportActions ||
-            reportMetadata?.isOptimisticReport ||
-            isLoadingApp ||
-            userLeavingStatus
-        ) {
-            return;
-        }
-
-        Navigation.goBack();
-    }, [isFocused, reportIDFromRoute, report?.reportID, reportMetadata?.isLoadingInitialReportActions, reportMetadata?.isOptimisticReport, isLoadingApp, userLeavingStatus]);
+    // Removed the effect that called Navigation.goBack() when the report was temporarily missing.
+    // That caused User B to be dropped back to workspace chat on first open (report not yet in Onyx).
+    // We now rely on existing loading + not-found states instead of popping navigation during sync.
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
