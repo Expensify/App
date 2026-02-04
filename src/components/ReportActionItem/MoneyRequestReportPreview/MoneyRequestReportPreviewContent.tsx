@@ -173,6 +173,7 @@ function MoneyRequestReportPreviewContent({
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
@@ -278,6 +279,7 @@ function MoneyRequestReportPreviewContent({
                         currentUserAccountID,
                         activePolicy,
                         policy,
+                        ownerBillingGraceEndPeriod,
                     });
                 }
             }
@@ -310,7 +312,7 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
+            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true, ownerBillingGraceEndPeriod);
         }
     };
 
@@ -576,8 +578,8 @@ function MoneyRequestReportPreviewContent({
     ]);
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(expensifyIcons, iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType),
-        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
+        () => getAddExpenseDropdownOptions(expensifyIcons, iouReport?.reportID, policy, chatReportID, iouReport?.parentReportID, lastDistanceExpenseType, ownerBillingGraceEndPeriod),
+        [chatReportID, iouReport?.parentReportID, iouReport?.reportID, policy, lastDistanceExpenseType, expensifyIcons, ownerBillingGraceEndPeriod],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -594,7 +596,7 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep);
+                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, ownerBillingGraceEndPeriod);
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}

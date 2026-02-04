@@ -482,8 +482,9 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 
 /**
  * Whether the user's billable actions should be restricted.
+ * @param ownerBillingGraceEndPeriodParam - Optional parameter to use instead of module-level value (for pure function usage).
  */
-function shouldRestrictUserBillableActions(policyID: string): boolean {
+function shouldRestrictUserBillableActions(policyID: string, ownerBillingGraceEndPeriodParam?: OnyxEntry<number>): boolean {
     const currentDate = new Date();
 
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -504,14 +505,17 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
         }
     }
 
+    // Use provided parameter or fallback to Onyx.connect() value for backward compatibility
+    const gracePeriodEnd = ownerBillingGraceEndPeriodParam ?? ownerBillingGraceEndPeriod;
+
     // If it reached here it means that the user is actually the workspace's owner.
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
     if (
         isPolicyOwner(policy, currentUserAccountID) &&
-        ownerBillingGraceEndPeriod &&
+        gracePeriodEnd &&
         amountOwed !== undefined &&
         amountOwed > 0 &&
-        isAfter(currentDate, fromUnixTime(ownerBillingGraceEndPeriod))
+        isAfter(currentDate, fromUnixTime(gracePeriodEnd))
     ) {
         return true;
     }

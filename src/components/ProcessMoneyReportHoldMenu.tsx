@@ -78,6 +78,7 @@ function ProcessMoneyReportHoldMenu({
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
@@ -102,6 +103,7 @@ function ProcessMoneyReportHoldMenu({
                 isASAPSubmitBetaEnabled,
                 moneyRequestReportNextStep,
                 full,
+                ownerBillingGraceEndPeriod,
             );
         } else if (chatReport && paymentType) {
             if (startAnimation) {
@@ -117,6 +119,7 @@ function ProcessMoneyReportHoldMenu({
                 full,
                 activePolicy,
                 policy,
+                ownerBillingGraceEndPeriod,
             });
         }
         onClose();
