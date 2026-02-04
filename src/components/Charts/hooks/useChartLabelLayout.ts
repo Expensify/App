@@ -80,11 +80,20 @@ function leftExtentAt45(labelWidth: number, lineHeight: number): number {
  * Pick the smallest rotation (0 → 45 → 90) where labels don't overlap,
  * preferring rotation over skip interval.
  */
-function pickRotation(maxLabelWidth: number, lineHeight: number, tickSpacing: number, labelArea: number, dataCount: number, minTruncatedWidth: number, firstTickOffset?: number): number {
+function pickRotation(
+    maxLabelWidth: number,
+    firstLabelWidth: number,
+    lineHeight: number,
+    tickSpacing: number,
+    labelArea: number,
+    dataCount: number,
+    minTruncatedWidth: number,
+    firstTickOffset?: number,
+): number {
     // 0°: labels fit horizontally without truncation and first label won't be clipped
     const ew0 = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
     const fits0 = ew0 + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelArea, ew0) >= dataCount;
-    const firstLabelClipped = firstTickOffset !== undefined && maxLabelWidth > firstTickOffset;
+    const firstLabelClipped = firstTickOffset !== undefined && firstLabelWidth > firstTickOffset;
     if (fits0 && !firstLabelClipped) {
         return LABEL_ROTATIONS.HORIZONTAL;
     }
@@ -126,7 +135,8 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
         );
 
         // 1. Pick rotation
-        const rotation = pickRotation(maxLabelLength, lineHeight, tickSpacing, labelAreaWidth, data.length, minTruncatedWidth, firstTickOffset);
+        const firstLabelWidth = labelWidths.at(0) ?? 0;
+        const rotation = pickRotation(maxLabelLength, firstLabelWidth, lineHeight, tickSpacing, labelAreaWidth, data.length, minTruncatedWidth, firstTickOffset);
 
         // 2. Truncate labels (only at 45°)
         //    Tick-spacing constraint: labelWidth * sin(45°) + padding <= tickSpacing
