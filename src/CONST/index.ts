@@ -8222,7 +8222,7 @@ const CONST = {
                 CHOOSE_FILES: 'Scan-ChooseFiles',
                 SHUTTER: 'Scan-Shutter',
             },
-        }
+        },
     },
 
     DOMAIN: {
