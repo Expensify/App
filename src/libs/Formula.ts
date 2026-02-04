@@ -926,11 +926,11 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
         case 'email':
             return personalDetails.login ?? '';
         // userid/customfield1 returns employeeUserID from policy.employeeList
-        // TODO: Check policy.glCodes once backend adds it (issue #568268)
         case 'userid':
         case 'customfield1': {
             const email = personalDetails.login;
-            if (!email || !policy?.employeeList) {
+            const isGlCodesEnabled = policy?.glCodes === true;
+            if (!isGlCodesEnabled || !email || !policy?.employeeList) {
                 return '';
             }
             // eslint-disable-next-line rulesdir/no-default-id-values
@@ -940,7 +940,8 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
         case 'payrollid':
         case 'customfield2': {
             const email = personalDetails.login;
-            if (!email || !policy?.employeeList) {
+            const isGlCodesEnabled = policy?.glCodes === true;
+            if (!isGlCodesEnabled || !email || !policy?.employeeList) {
                 return '';
             }
             // eslint-disable-next-line rulesdir/no-default-id-values

@@ -2,6 +2,9 @@
 
 exports[`PresetAvatarCatalog matches snapshot for a default avatar 1`] = `
 <View
+  accessibilityElementsHidden={true}
+  accessible={false}
+  importantForAccessibility="no-hide-descendants"
   style={[]}
   testID=""
 >

@@ -362,3 +362,99 @@ Examples:
 - [PopoverWithMeasuredContent optimization for mobile](https://github.com/Expensify/App/pull/68223) - returns early to avoid unnecessary calculations
 - [Reduce confirm modal initial render count](https://github.com/Expensify/App/pull/67518) - returns early to reduce first load cost
 - [Do not render PopoverMenu until it gets opened](https://github.com/Expensify/App/pull/67877) - adds a wrapper to control if `PopoverMenu` should be rendered
+
+# Proposing Performance Improvements
+
+We are actively looking for contributions that improve the performance of the App, specifically regarding unnecessary re-renders, slow method executions, and user perceived latency.
+
+If you haven't already, check out our [Contributing Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md).
+
+👉 **Before posting the proposal, please read through this whole process for important context and instructions.** Proposals that do not follow these guidelines cannot be accepted.
+
+___
+
+### Instructions for Submission
+1.  Copy the template below.
+2.  Fill out the details strictly following the guide.
+3.  Post it in `#expensify-open-source` with the title `[Performance Proposal] <Component_Name>`.
+
+___
+
+```
+# [Performance Proposal] <Component_Name>
+
+## 1. Component and Flow Description
+
+**Component/Flow:** Describe the specific UI component or user flow being optimized.
+- [Add details here]
+
+**Preconditions:** List any specific setup required before reproducing the steps (e.g., "Workspace must have chat history").
+- [Add details here]
+
+**Reproduction Steps:** Provide a numbered list of steps to reproduce the performance issue (similar to a QA test case).
+- [Add details here]
+
+## 2. Required Tools
+*I have verified these metrics using (check all that apply):*
+- [ ] React DevTools Profiler
+- [ ] Chrome Performance Tab
+- [ ] JS Flame charts
+- [ ] Hermes / Release Profiler traces
+- [ ] Sentry (If you have access)
+
+## 3. Before/After Metrics
+*Please fill out the metrics below. If a metric is not applicable, write N/A.*
+
+*Perceived Latency:*
+  - Before:
+  - After:
+  - Improvement:
+
+*Device Used:* (e.g. iPhone 13, Pixel 6, Chrome on M1 Mac) - Note: Don't use CPU throttling for these measurements!
+  - Device CPU: ___
+  - Device RAM: ___
+*Evidence:* (Attach screenshots of the profiler or logs for both Before and After below this section)*
+
+## 4. Prerequisites & Eligibility
+*To ensure proposals are measurable and based on realistic scenarios, you must meet the following criteria:*
+
+- [ ] **Test Environment:** I tested on a high-traffic account (instructions to create this [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts)).
+- [ ] **Thresholds:** My proposal reduces Perceived Latency by at least 100ms
+
+## 5. Pattern Detection & Prevention
+*Is the code logic being optimized something that should be prevented from being added to the app in the future (e.g., via an ESLint rule)?*
+- [ ] Yes (Proposal: _________________)
+- [ ] No (It's a valid pattern, just unoptimized here)
+
+*Other*
+- [ ] **App-wide Audit:** I have checked for other places in the app that have this same performance problem and fixed them.
+- [ ] **Shared Refactor:** This fixes a shared utility/component (e.g., `Avatar.ts`) used across the app.
+- [ ] **Localized Fix:** This only affects this specific view.
+
+
+## 6. Automated Tests & QA
+*Tests are required by default. If you cannot add them, explain why.*
+- [ ] **Unit Tests:** Added to prevent regression.
+- [ ] **Reassure Tests:** Added (Required for execution time improvements).
+- [ ] **Exception:** I cannot add automated tests because: _________________
+- [ ] **Manual Verification:** I have included manual verification steps (Required).
+
+## 7. Other Considerations & UX Risks
+*Performance improvements should not change user experience and product design.*
+- [ ] This change preserves existing UX (No visual/behavioral changes).
+- [ ] This change alters UX (Description: _________________).
+```
+
+---
+
+### Compensation
+* **Bounty:** Accepted and merged performance improvements are eligible for a flat **$250 bounty**.
+* **Scope:** We prefer smaller, atomic PRs. However, if multiple proposals are submitted for closely related logic that could have been one PR, we reserve the right to consolidate them.
+
+___
+
+### Review Process
+1.  **Peer Review:** Wait for **2 Expert Contributors** to approve your proposal.
+2.  **Internal Review:** Once approved by experts, comment `Proposal ready for final review - cc: perf-review` in slack to notify Internal Engineers that the proposal is ready a final review.
+    - Note: Internal Engineers can set up notifications for `perf-review` keyword as mentioned in [this Internal SO](https://stackoverflowteams.com/c/expensify/questions/23081/23082#23082).
+3.  **Approval:** **2 Internal Engineers** must approve before a GH issue is created.

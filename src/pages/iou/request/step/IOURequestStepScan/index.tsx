@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {InteractionManager, PanResponder, StyleSheet, View} from 'react-native';
@@ -28,6 +28,7 @@ import useIOUUtils from '@hooks/useIOUUtils';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -92,7 +93,6 @@ function IOURequestStepScan({
     const [isQueriedPermissionState, setIsQueriedPermissionState] = useState(false);
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -115,17 +115,10 @@ function IOURequestStepScan({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
 
-    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
-
-    const transactions = useMemo(() => {
-        const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
-        return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
-    }, [initialTransaction, optimisticTransactions]);
+    const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const isTabActive = useIsFocused();
@@ -348,7 +341,7 @@ function IOURequestStepScan({
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
-                allBetas,
+                isSelfTourViewed,
             });
         },
         [
@@ -381,7 +374,7 @@ function IOURequestStepScan({
             transactionViolations,
             introSelected,
             activePolicyID,
-            allBetas,
+            isSelfTourViewed,
         ],
     );
 
@@ -411,7 +404,7 @@ function IOURequestStepScan({
             return;
         }
 
-        if (!isMultiScanEnabled) {
+        if (!isMultiScanEnabled && isStartingScan) {
             removeDraftTransactions(true);
         }
 
