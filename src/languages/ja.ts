@@ -8217,7 +8217,10 @@ ${reportName}
             findMember: 'メンバーを検索',
             addMember: 'メンバーを追加',
             email: 'メールアドレス',
-            closeAccount: 'アカウントを閉じる',
+            closeAccount: () => ({
+                one: 'アカウントを閉じる',
+                other: 'アカウントを閉じる',
+            }),
             closeAccountPrompt: '本当によろしいですか？この操作は元に戻せません。',
             forceCloseAccount: 'アカウントを強制的に閉鎖',
             safeCloseAccount: 'アカウントを安全に閉じる',
@@ -8228,6 +8231,6 @@ ${reportName}
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
             },
         },
-    },,
+    },
 };
 export default translations;
