@@ -14,6 +14,15 @@ class MemoryReporter {
         const envOutput = process.env.JEST_MEMORY_OUTPUT || process.env.MEMORY_REPORTER_OUTPUT;
         // Default name matches Jest shard so we can disambiguate artifacts.
         this.output = requestedOutput || envOutput || 'jest-memory.json';
+        this.outputPath = path.resolve(process.cwd(), this.output);
+
+        // Ensure the output file exists even if Jest aborts early (OOM, crash, etc.).
+        fs.mkdirSync(path.dirname(this.outputPath), {recursive: true});
+        this.flush();
+    }
+
+    flush() {
+        fs.writeFileSync(this.outputPath, JSON.stringify(this.results, null, 2));
     }
 
     onTestStart(test) {
@@ -30,11 +39,13 @@ class MemoryReporter {
             rssMB,
             deltaMB,
         });
+
+        // Persist incrementally so we still get partial data if the run crashes later.
+        this.flush();
     }
 
     onRunComplete() {
-        const outputPath = path.resolve(process.cwd(), this.output);
-        fs.writeFileSync(outputPath, JSON.stringify(this.results, null, 2));
+        this.flush();
         // Also print a concise line so it appears in raw logs for quick inspection.
         const maxRss = this.results.reduce((max, r) => Math.max(max, r.rssMB), 0);
         // eslint-disable-next-line no-console

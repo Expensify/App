@@ -107,11 +107,56 @@ jest.mock('react-native-reanimated', () => ({
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock(
     'react-native-worklets',
-    () => ({
-        scheduleOnUI: jest.fn((worklet: (...args: unknown[]) => unknown, ...args: unknown[]) => worklet?.(...args)),
-        scheduleOnRN: jest.fn((worklet: (...args: unknown[]) => unknown, ...args: unknown[]) => worklet?.(...args)),
-        runOnUISync: jest.fn((worklet: (...args: unknown[]) => unknown, ...args: unknown[]) => worklet?.(...args)),
-    }),
+    () => {
+        // Keep this mock lightweight but compatible with `react-native-reanimated/mock`,
+        // which imports several Worklets helpers (e.g. createSerializable).
+        const serializableCache = new WeakMap<object, unknown>();
+        const serializableMappingCache = {
+            set: (value: object, serializableRef?: unknown) => serializableCache.set(value, serializableRef ?? value),
+            get: (value: object) => serializableCache.get(value),
+        };
+
+        // Mirror enum values from `react-native-worklets` (ReactNative=1, UI=2, Worker=3).
+        const RuntimeKind = {ReactNative: 1, UI: 2, Worker: 3};
+        // Ensure it's defined for code paths that read it.
+        // eslint-disable-next-line no-underscore-dangle
+        globalThis.__RUNTIME_KIND = globalThis.__RUNTIME_KIND ?? RuntimeKind.ReactNative;
+
+        const runDirect =
+            <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue) =>
+            (...args: Args): ReturnValue =>
+                worklet?.(...args);
+
+        const schedule =
+            <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue, ...args: Args): ReturnValue =>
+                worklet?.(...args);
+
+        return {
+            // Serialization helpers used by Reanimated at module init time
+            createSerializable: jest.fn(<T>(value: T) => value),
+            serializableMappingCache,
+
+            // Runtime helpers
+            RuntimeKind,
+            getRuntimeKind: jest.fn(() => globalThis.__RUNTIME_KIND),
+
+            // Worklet helpers
+            isWorkletFunction: jest.fn(() => true),
+
+            // Threading helpers (execute synchronously in Jest)
+            runOnUI: jest.fn(runDirect),
+            runOnUIAsync: jest.fn(runDirect),
+            runOnJS: jest.fn(runDirect),
+            executeOnUIRuntimeSync: jest.fn(runDirect),
+            scheduleOnUI: jest.fn(schedule),
+            scheduleOnRN: jest.fn(schedule),
+            runOnUISync: jest.fn(<Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue, ...args: Args) => worklet?.(...args)),
+
+            // Misc exports that might be imported by Reanimated, no-op in Jest
+            callMicrotasks: jest.fn(),
+            unstable_eventLoopTask: jest.fn((task: () => unknown) => task?.()),
+        };
+    },
     // Treat as virtual; the native package isn't available in the Jest runtime.
     {virtual: true},
 );
