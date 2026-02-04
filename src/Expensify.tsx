@@ -1,6 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import * as Sentry from '@sentry/react-native';
-import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
@@ -120,9 +119,6 @@ function Expensify() {
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
-    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -331,11 +327,6 @@ function Expensify() {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
-    useEffect(() => {
-        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
-    }, []);
-
     useEffect(() => {
         if (isLoadingOnyxValue(sessionMetadata)) {
             return;
@@ -345,10 +336,7 @@ function Expensify() {
             setInitialUrl(url as Route);
 
             if (url) {
-                if (conciergeReportID === undefined) {
-                    Log.info('[Deep link] conciergeReportID is undefined when processing initial URL', false, {url});
-                }
-                openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated, conciergeReportID);
+                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -362,7 +350,7 @@ function Expensify() {
                 Log.info('[Deep link] conciergeReportID is undefined when processing URL change', false, {url: state.url});
             }
             const isCurrentlyAuthenticated = hasAuthToken();
-            openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated, conciergeReportID);
+            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID);
         });
 
         return () => {
