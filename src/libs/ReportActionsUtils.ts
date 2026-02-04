@@ -1193,6 +1193,9 @@ function isReportActionVisible(
         return false;
     }
 
+    // Actions with pendingAction are optimistic or in-flight, so their visibility may differ
+    // from what's cached in visibleReportActions (which reflects persisted Onyx data).
+    // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
         return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
     }
