@@ -669,6 +669,7 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'Met wachtwoord beveiligde PDF wordt niet ondersteund',
         attachmentImageResized: 'Deze afbeelding is voor de voorbeeldweergave verkleind. Download voor volledige resolutie.',
         attachmentImageTooLarge: 'Deze afbeelding is te groot om een voorbeeld te tonen vóór het uploaden.',
+        imageDimensionsTooLarge: 'De afmetingen van de afbeelding zijn te groot om te verwerken. Gebruik een kleinere afbeelding.',
         tooManyFiles: (fileLimit: number) => `Je kunt maximaal ${fileLimit} bestanden tegelijk uploaden.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Bestanden zijn groter dan ${maxUploadSizeInMB} MB. Probeer het opnieuw.`,
         someFilesCantBeUploaded: 'Sommige bestanden kunnen niet worden geüpload',
@@ -4962,6 +4963,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             chooseCardFeed: 'Kies kaartfeed',
             ukRegulation:
                 'Expensify Limited is een tussenpersoon van Plaid Financial Ltd., een erkende betalingsinstelling die wordt gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (firmreferentienummer: 804718). Plaid levert u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn tussenpersoon.',
+            deletedFeed: 'Verwijderde feed',
             assignCardFailedError: 'Toewijzing van kaart mislukt.',
             unassignCardFailedError: 'Toewijzing van kaart ongedaan maken is mislukt.',
             cardAlreadyAssignedError: 'Deze kaart is al toegewezen aan een gebruiker in een andere werkruimte.',

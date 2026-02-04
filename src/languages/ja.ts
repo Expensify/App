@@ -669,6 +669,7 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'パスワード保護されたPDFはサポートされていません',
         attachmentImageResized: 'この画像はプレビュー用にサイズ変更されています。フル解像度版をダウンロードしてください。',
         attachmentImageTooLarge: 'この画像は大きすぎるため、アップロード前にプレビューできません。',
+        imageDimensionsTooLarge: '画像のサイズが大きすぎて処理できません。小さい画像を使用してください。',
         tooManyFiles: (fileLimit: number) => `一度にアップロードできるファイルは最大${fileLimit}件までです。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
         someFilesCantBeUploaded: '一部のファイルをアップロードできません',
@@ -4932,6 +4933,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             chooseCardFeed: 'カードフィードを選択',
             ukRegulation:
                 'Expensify Limited は Plaid Financial Ltd. の代理人であり、Plaid Financial Ltd. は 2017 年決済サービス規則（Payment Services Regulations 2017）に基づき金融行為監督機構（Financial Conduct Authority）の規制を受ける認可決済機関です（会社登録番号：804718）。Plaid は、その代理人である Expensify Limited を通じて、お客様に規制対象である口座情報サービスを提供します。',
+            deletedFeed: '削除済みフィード',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
             cardAlreadyAssignedError: 'このカードは、別のワークスペースのユーザーにすでに割り当てられています。',
