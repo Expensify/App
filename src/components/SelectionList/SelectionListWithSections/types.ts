@@ -36,10 +36,14 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 
     /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
+
+    /** Callback to fire when Tab is pressed at the end of the list (for cycling back to text input) */
+    onTabOut?: () => void;
 };
 
 type SelectionListWithSectionsHandle = {
     focusTextInput: () => void;
+    updateAndScrollToFocusedIndex: (index: number, shouldScroll?: boolean) => void;
 };
 
 type SectionHeader = {

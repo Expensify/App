@@ -65,6 +65,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldScrollToFocusedIndex = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    onTabOut,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
@@ -171,12 +172,20 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         innerTextInputRef.current?.focus();
     }, []);
 
+    const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
+        setFocusedIndex(index);
+        if (shouldScroll) {
+            scrollToIndex(index);
+        }
+    };
+
     useImperativeHandle(
         ref,
         () => ({
             focusTextInput,
+            updateAndScrollToFocusedIndex,
         }),
-        [focusTextInput],
+        [focusTextInput, updateAndScrollToFocusedIndex],
     );
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
@@ -187,6 +196,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         shouldBubble: !getFocusedItem(),
         shouldStopPropagation,
         isActive: !disableKeyboardShortcuts && isScreenFocused && focusedIndex >= 0 && !disableEnterShortcut,
+    });
+
+    // Cycle back to text input when Tab is pressed at the last item
+    const isAtLastItem = focusedIndex >= flattenedData.length - 1;
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.TAB, () => onTabOut?.(), {
+        isActive: !disableKeyboardShortcuts && isScreenFocused && isAtLastItem && !!onTabOut,
     });
 
     const textInputKeyPress = (event: TextInputKeyPressEvent) => {
@@ -308,7 +323,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         ref={listRef}
                         extraData={flattenedData.length}
                         getItemType={getItemType}
-                        initialScrollIndex={initialFocusedIndex}
+                        initialScrollIndex={shouldScrollToFocusedIndex ? initialFocusedIndex : undefined}
                         keyExtractor={(item) => ('flatListKey' in item ? item.flatListKey : item.keyForList)}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}

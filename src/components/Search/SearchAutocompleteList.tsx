@@ -1,7 +1,8 @@
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useState} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps, ValidListItem} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
@@ -97,6 +98,9 @@ type SearchAutocompleteListProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
+
+    /** Ref for external textInput (for Tab key cycling) */
+    textInputRef?: RefObject<AnimatedTextInputRef | null>;
 };
 
 const defaultListOptions = {
@@ -152,6 +156,7 @@ function SearchAutocompleteList({
     allFeeds,
     allCards = CONST.EMPTY_OBJECT,
     ref,
+    textInputRef,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -195,10 +200,40 @@ function SearchAutocompleteList({
     })();
 
     const [isInitialRender, setIsInitialRender] = useState(true);
+    const prevQueryRef = useRef(autocompleteQueryValue);
+    const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+
+    // Callback ref to set both inner ref and forward to external ref
+    const setListRef = (instance: SelectionListWithSectionsHandle | null) => {
+        innerListRef.current = instance;
+        if (typeof ref === 'function') {
+            ref(instance);
+        } else if (ref) {
+            // eslint-disable-next-line no-param-reassign
+            (ref as React.MutableRefObject<SelectionListWithSectionsHandle | null>).current = instance;
+        }
+    };
 
     useEffect(() => {
         setIsInitialRender(false);
     }, []);
+
+    // Reset focus when query changes to prevent stale focus on wrong items
+    useEffect(() => {
+        if (isInitialRender) {
+            return;
+        }
+
+        const queryChanged = prevQueryRef.current !== autocompleteQueryValue;
+        prevQueryRef.current = autocompleteQueryValue;
+
+        if (queryChanged) {
+            // When query changes, focus on the search query item (index 0) and scroll to top
+            // onHighlightFirstItem will switch focus to the first result when there's a good match
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+        }
+    }, [autocompleteQueryValue, isInitialRender]);
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
@@ -780,6 +815,16 @@ function SearchAutocompleteList({
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
 
+    // Get the first focusable item from the first section with data
+    const firstFocusableItemKey = (() => {
+        for (const section of sections) {
+            if (section.data && section.data.length > 0) {
+                return section.data.at(0)?.keyForList;
+            }
+        }
+        return undefined;
+    })();
+
     useEffect(() => {
         const targetText = autocompleteQueryValue;
 
@@ -804,12 +849,12 @@ function SearchAutocompleteList({
                     sectionTitleStyles: styles.mhn2,
                 }}
                 shouldSingleExecuteRowSelect
-                ref={ref}
-                initiallyFocusedItemKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
+                ref={setListRef}
+                initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstFocusableItemKey : undefined}
                 shouldScrollToFocusedIndex={!isInitialRender}
                 disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
                 addBottomSafeAreaPadding
-                textInputOptions={{value: autocompleteQueryValue}}
+                onTabOut={() => textInputRef?.current?.focus()}
             />
         )
     );

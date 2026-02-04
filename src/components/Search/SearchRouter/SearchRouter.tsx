@@ -438,7 +438,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {
         onRouterClose();
     });
-    const updateAndScrollToFocusedIndex = useCallback(() => {}, []);
+    const updateAndScrollToFocusedIndex = useCallback(() => listRef.current?.updateAndScrollToFocusedIndex(1, true), []);
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
 
@@ -488,6 +488,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     reports={reports}
                     allFeeds={allFeeds}
                     allCards={nonPersonalAndWorkspaceCards}
+                    textInputRef={textInputRef}
                 />
             )}
             {!shouldShowList && (
