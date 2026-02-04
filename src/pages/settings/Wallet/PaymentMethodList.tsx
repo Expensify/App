@@ -180,14 +180,14 @@ function PaymentMethodList({
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
-    const nonExpensifyCardDomains = shouldShowAssignedCards
+    const cardDomains = shouldShowAssignedCards
         ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-              .filter((card) => !isExpensifyCard(card) && !!card.domainName)
+              .filter((card) => !!card.domainName)
               .map((card) => card.domainName)
         : [];
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
-        selector: createPoliciesForDomainCardsSelector(nonExpensifyCardDomains),
+        selector: createPoliciesForDomainCardsSelector(cardDomains),
     });
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);

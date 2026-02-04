@@ -668,6 +668,7 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'PDF protegido por senha não é compatível',
         attachmentImageResized: 'Esta imagem foi redimensionada para visualização. Baixe para ver em resolução total.',
         attachmentImageTooLarge: 'Esta imagem é grande demais para ser visualizada antes do envio.',
+        imageDimensionsTooLarge: 'As dimensões da imagem são muito grandes para processar. Por favor, use uma imagem menor.',
         tooManyFiles: (fileLimit: number) => `Você só pode enviar até ${fileLimit} arquivos por vez.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Os arquivos excedem ${maxUploadSizeInMB} MB. Tente novamente.`,
         someFilesCantBeUploaded: 'Alguns arquivos não podem ser enviados',
@@ -4952,6 +4953,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             chooseCardFeed: 'Escolher feed do cartão',
             ukRegulation:
                 'A Expensify Limited é um agente da Plaid Financial Ltd., uma instituição de pagamento autorizada e regulada pela Financial Conduct Authority sob as Payment Services Regulations 2017 (Número de Referência da Empresa: 804718). A Plaid fornece a você serviços regulados de informações de conta por meio da Expensify Limited como sua agente.',
+            deletedFeed: 'Feed Excluído',
             assignCardFailedError: 'Atribuição do cartão falhou.',
             unassignCardFailedError: 'Falha ao desatribuir o cartão.',
             cardAlreadyAssignedError: 'Este cartão já está atribuído a um usuário em outro workspace.',
