@@ -6477,7 +6477,12 @@ function changeReportPolicyAndInviteSubmitter({
         return;
     }
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
-    const {optimisticData, successData, failureData, membersChats} = buildAddMembersToWorkspaceOnyxData(
+    const {
+        optimisticData: optimisticAddMembersData,
+        successData: successAddMembersData,
+        failureData: failureAddMembersData,
+        membersChats,
+    } = buildAddMembersToWorkspaceOnyxData(
         {[submitterEmail]: report.ownerAccountID},
         policy,
         policyMemberAccountIDs,
@@ -6510,9 +6515,10 @@ function changeReportPolicyAndInviteSubmitter({
         undefined,
         membersChats.reportCreationData[submitterEmail],
     );
-    optimisticData.push(...optimisticChangePolicyData);
-    successData.push(...successChangePolicyData);
-    failureData.push(...failureChangePolicyData);
+
+    const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
+    const successData = [...successAddMembersData, ...successChangePolicyData];
+    const failureData = [...failureAddMembersData, ...failureChangePolicyData];
 
     const params = {
         reportID: report.reportID,

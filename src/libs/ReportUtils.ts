@@ -13460,4 +13460,5 @@ export type {
     PrepareOnboardingOnyxDataParams,
     SelfDMParameters,
     OptimisticReportAction,
+    OptimisticAnnounceChat,
 };

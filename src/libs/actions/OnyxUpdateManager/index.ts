@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -201,12 +201,12 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
     return Promise.resolve();
 }
 
-function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>): void {
+function updateAuthTokenIfNecessary<TKey extends OnyxKey>(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer<TKey>>): void {
     // Consolidate all of the given Onyx updates
-    const onyxUpdates: OnyxUpdate[] = [];
+    const onyxUpdates: Array<OnyxUpdate<TKey>> = [];
     if (onyxUpdatesFromServer?.updates) {
         for (const updateEvent of onyxUpdatesFromServer.updates) {
-            onyxUpdates.push(...updateEvent.data);
+            onyxUpdates.push(...(updateEvent.data as Array<OnyxUpdate<TKey>>));
         }
     }
     onyxUpdates.push(...(onyxUpdatesFromServer?.response?.onyxData ?? []));
