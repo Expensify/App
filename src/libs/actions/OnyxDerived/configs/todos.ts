@@ -86,10 +86,11 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.BANK_ACCOUNT_LIST,
         ONYXKEYS.SESSION,
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
     ],
-    compute: ([allReports, allPolicies, allReportNameValuePairs, allTransactions, allReportActions, allReportMetadata, bankAccountList, session]) => {
+    compute: ([allReports, allPolicies, allReportNameValuePairs, allTransactions, allReportActions, allReportMetadata, bankAccountList, session, personalDetailsList]) => {
         const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        const login = session?.email ?? '';
+        const login = personalDetailsList?.[userAccountID]?.login ?? session?.email ?? '';
 
         const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID} = createTodosReportsAndTransactions({
             allReports,

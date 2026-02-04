@@ -2,7 +2,7 @@
 import {render} from '@testing-library/react-native';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxMultiSetInput} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -12,6 +12,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import {createRandomReport} from '../utils/collections/reports';
@@ -563,7 +564,7 @@ describe('OnyxDerived', () => {
             };
         };
 
-        const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Policy => {
+        const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): OnyxEntry<Policy> => {
             return {
                 id: policyID,
                 name: 'Test Policy',
@@ -854,6 +855,129 @@ describe('OnyxDerived', () => {
                 todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
                 expect(todos?.transactionsByReportID[reportID]).toHaveLength(1);
                 expect(todos?.transactionsByReportID[reportID]?.at(0)?.transactionID).toBe(transactionID);
+            });
+        });
+
+        describe('uses primary login from personalDetailsList', () => {
+            const SECONDARY_LOGIN = '+15555551234'; // Phone number as secondary login
+            const PRIMARY_LOGIN = 'primary@example.com'; // Primary email
+
+            const createMockAchAccount = (reimburserLogin: string): ACHAccount => ({
+                reimburser: reimburserLogin,
+                bankAccountID: 1,
+                accountNumber: '1234567890',
+                routingNumber: '1234567890',
+                addressName: 'Test Address',
+                bankName: 'Test Bank',
+            });
+
+            const createPayableReport = (): Report =>
+                createMockReport('pay_report', {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                    total: -100,
+                    isWaitingOnBankAccount: false,
+                });
+
+            beforeEach(async () => {
+                await Onyx.clear();
+            });
+
+            it('uses primary login from personalDetailsList instead of session email for role checks', async () => {
+                const policy = createMockPolicy(POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: createMockAchAccount(PRIMARY_LOGIN),
+                });
+
+                const payReport = createPayableReport();
+                const transaction = createMockTransaction('trans_pay', 'pay_report');
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: SECONDARY_LOGIN, // User signed in with secondary login (phone)
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [CURRENT_USER_ACCOUNT_ID]: {
+                            accountID: CURRENT_USER_ACCOUNT_ID,
+                            login: PRIMARY_LOGIN, // Primary login stored in personal details
+                            displayName: 'Test User',
+                        },
+                    },
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                // The report should appear in reportsToPay because primary login matches reimburser
+                expect(todos?.reportsToPay).toHaveLength(1);
+                expect(todos?.reportsToPay.at(0)?.reportID).toBe('pay_report');
+            });
+
+            it('falls back to session email when personalDetailsList is not available', async () => {
+                const policy = createMockPolicy(POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: createMockAchAccount(CURRENT_USER_EMAIL),
+                });
+
+                const payReport = createPayableReport();
+                const transaction = createMockTransaction('trans_pay', 'pay_report');
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: CURRENT_USER_EMAIL,
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    // No PERSONAL_DETAILS_LIST set - should fall back to session email
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                // The report should still appear in reportsToPay using session email fallback
+                expect(todos?.reportsToPay).toHaveLength(1);
+                expect(todos?.reportsToPay.at(0)?.reportID).toBe('pay_report');
+            });
+
+            it('does not show pay todo when secondary login does not match reimburser and personalDetailsList is missing', async () => {
+                const policy = createMockPolicy(POLICY_ID, {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    achAccount: createMockAchAccount(PRIMARY_LOGIN),
+                });
+
+                const payReport = createPayableReport();
+                const transaction = createMockTransaction('trans_pay', 'pay_report');
+                
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        email: SECONDARY_LOGIN, // Secondary login that doesn't match reimburser
+                        accountID: CURRENT_USER_ACCOUNT_ID,
+                    },
+                    // No PERSONAL_DETAILS_LIST - will fall back to session email which doesn't match
+                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                } as OnyxMultiSetInput);
+
+                await waitForBatchedUpdates();
+
+                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
+
+                // The report should NOT appear in reportsToPay because secondary login doesn't match
+                expect(todos?.reportsToPay).toHaveLength(0);
             });
         });
     });
