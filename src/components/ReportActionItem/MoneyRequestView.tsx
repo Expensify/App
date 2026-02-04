@@ -332,7 +332,10 @@ function MoneyRequestView({
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const hasMultipleSplits = useMemo(() => {
-        const children = getChildTransactions(allTransactions, allReports, transaction?.comment?.originalTransactionID);
+        if (!transaction?.comment?.originalTransactionID) {
+            return false;
+        }
+        const children = getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID);
         return children.length > 1;
     }, [allTransactions, allReports, transaction?.comment?.originalTransactionID]);
     const isSplitAvailable =

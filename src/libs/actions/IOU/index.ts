@@ -12806,8 +12806,10 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
-    if (isExpenseSplit) {
-        const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
+    const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
+    const hasMultipleSplits = relatedTransactions.length > 1;
+
+    if (isExpenseSplit && hasMultipleSplits) {
         const transactionDetails = getTransactionDetails(originalTransaction);
         // Mark existing child transactions as manually edited (locked) since we're editing existing splits
         const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction, {isManuallyEdited: true}));
