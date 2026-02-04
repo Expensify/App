@@ -83,8 +83,7 @@ const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 ```typescript
 // First subscription provides data for second
 const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-const policyID = report?.policyID ?? '0'; // Use '0' or undefined, NOT empty string
-const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
 ```
 
 #### Onyx.connect (Non-React Contexts)
