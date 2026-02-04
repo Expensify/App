@@ -1,6 +1,7 @@
 import React, {useEffect, useMemo} from 'react';
 import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
 import useOnyx from '@hooks/useOnyx';
+import Navigation from '@libs/Navigation/Navigation';
 import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
@@ -65,8 +66,10 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
         }
 
         if (reimbursementAccount?.isSuccess) {
-            onSubmit();
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                onSubmit();
+            });
         }
 
         return () => {
