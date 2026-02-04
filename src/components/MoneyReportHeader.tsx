@@ -1959,7 +1959,6 @@ function MoneyReportHeader({
                         }}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
-                        sentryLabel={CONST.SENTRY_LABEL.HEADER.CLOSE_BUTTON}
                         wrapperStyle={[styles.pAbsolute, styles.r0]}
                         sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
                     >

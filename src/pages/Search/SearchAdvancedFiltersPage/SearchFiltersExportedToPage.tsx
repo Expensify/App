@@ -39,9 +39,9 @@ function SearchFiltersExportedToPage() {
     const policy = policyIDs?.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDs.at(0)}`] : undefined;
 
     const predefinedConnectionNamesList = getPredefinedConnectionNamesForSearch();
-    const predefinedConnectionNamesSet = new Set<string>(predefinedConnectionNamesList);
 
     const items = useMemo((): SearchMultipleSelectionPickerItem[] => {
+        const predefinedConnectionNamesSet = new Set<string>(predefinedConnectionNamesList);
         const defaultExportOptionIcon = (
             <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <Icon
@@ -101,7 +101,7 @@ function SearchFiltersExportedToPage() {
         customItems.sort((a, b) => localeCompare(a.name, b.name));
 
         return [...integrationItems, ...customItems, ...standardItems];
-    }, [integrationsExportTemplates, csvExportLayouts, policy, expensifyIcons, styles, StyleUtils, theme, translate, predefinedConnectionNamesList]);
+    }, [integrationsExportTemplates, csvExportLayouts, policy, expensifyIcons, styles, StyleUtils, theme, translate, predefinedConnectionNamesList, localeCompare]);
 
     const initiallySelectedItems = useMemo((): SearchMultipleSelectionPickerItem[] | undefined => {
         const selectedValues = searchAdvancedFiltersForm?.exportedTo ?? [];
