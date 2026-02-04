@@ -911,8 +911,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Usa il pulsante + per ${additionalText} una spesa.`,
-        askConcierge: 'Fai domande e ottieni assistenza in tempo reale 24/7.',
-        conciergeSupport: 'Assistenza 24/7',
+        askConcierge: 'Chiedimi qualsiasi cosa!',
+        conciergeSupport: 'Il tuo agente IA personale',
         create: 'crea',
         iouTypes: {
             pay: 'paga',
@@ -1003,6 +1003,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Convalida la tua carta e inizia a spendere.',
                 cta: 'Attiva',
             },
+            ctaFix: 'Correggi',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Correggi la connessione della carta aziendale ${feedName}` : 'Correggi connessione carta aziendale'),
+                subtitle: 'Spazio di lavoro > Carte aziendali',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Correggi connessione ${integrationName}`, subtitle: 'Spazio di lavoro > Contabilità'},
         },
         announcements: 'Annunci',
         discoverSection: {
@@ -4968,6 +4974,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             chooseCardFeed: 'Scegli il feed carta',
             ukRegulation:
                 'Expensify Limited è un agente di Plaid Financial Ltd., un istituto di pagamento autorizzato regolato dalla Financial Conduct Authority ai sensi del Payment Services Regulations 2017 (Numero di riferimento dell’impresa: 804718). Plaid ti fornisce servizi regolamentati di informazione sui conti tramite Expensify Limited in qualità di suo agente.',
+            deletedFeed: 'Feed eliminato',
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
             unassignCardFailedError: 'Assegnazione della carta non riuscita.',
             cardAlreadyAssignedError: 'Questa carta è già assegnata a un utente in un altro spazio di lavoro.',

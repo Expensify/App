@@ -925,8 +925,8 @@ const translations = {
         yourSpace: 'Your space',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => ` Use the + button to ${additionalText} an expense.`,
-        askConcierge: ' Ask questions and get 24/7 realtime support.',
-        conciergeSupport: '24/7 support',
+        askConcierge: ' Ask me anything!',
+        conciergeSupport: 'Your personal AI agent',
         create: 'create',
         iouTypes: {
             pay: 'pay',
@@ -999,6 +999,7 @@ const translations = {
         timeSensitiveSection: {
             title: 'Time sensitive',
             cta: 'Claim',
+            ctaFix: 'Fix',
             offer50off: {
                 title: 'Get 50% off your first year!',
                 subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} remaining`,
@@ -1006,6 +1007,14 @@ const translations = {
             offer25off: {
                 title: 'Get 25% off your first year!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
+            },
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
+                subtitle: 'Workspace > Company cards',
+            },
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
+                subtitle: 'Workspace > Accounting',
             },
             addShippingAddress: {
                 title: 'We need your shipping address',
@@ -4910,6 +4919,7 @@ const translations = {
             cardNumber: 'Card number',
             commercialFeed: 'Commercial feed',
             feedName: (feedName: string) => `${feedName} cards`,
+            deletedFeed: 'Deleted feed',
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',

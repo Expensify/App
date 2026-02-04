@@ -673,8 +673,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Tu espacio',
         welcomeToRoom: ({roomName}) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}) => ` Usa el botón + para ${additionalText} un gasto`,
-        askConcierge: ' Haz preguntas y obtén soporte en tiempo real las 24/7.',
-        conciergeSupport: 'Soporte 24/7',
+        askConcierge: ' ¡Pregúntame lo que quieras!',
+        conciergeSupport: 'Tu agente personal de IA',
         create: 'crear',
         iouTypes: {
             pay: 'pagar',
@@ -744,6 +744,7 @@ const translations: TranslationDeepObject<typeof en> = {
         timeSensitiveSection: {
             title: 'Requiere atención inmediata',
             cta: 'Reclamar',
+            ctaFix: 'Corrige',
             offer50off: {
                 title: '¡Obtén 50% de descuento en tu primer año!',
                 subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} restantes`,
@@ -751,6 +752,14 @@ const translations: TranslationDeepObject<typeof en> = {
             offer25off: {
                 title: '¡Obtén 25% de descuento en tu primer año!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'día' : 'días'} restantes`,
+            },
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Reconectar la tarjeta corporativa de ${feedName}` : 'Reconectar la tarjeta corporativa'),
+                subtitle: 'Espacio de trabajo > Tarjetas de empresa',
+            },
+            fixAccountingConnection: {
+                title: ({integrationName}: {integrationName: string}) => `Reconectar con ${integrationName}`,
+                subtitle: 'Espacio de trabajo > Contabilidad',
             },
             addShippingAddress: {
                 title: 'Necesitamos tu dirección de envío',
@@ -4658,6 +4667,7 @@ ${amount} para ${merchant} - ${date}`,
             cardNumber: 'Número de la tarjeta',
             commercialFeed: 'Fuente comercial',
             feedName: (feedName) => `Tarjetas ${feedName}`,
+            deletedFeed: 'Feed eliminado',
             directFeed: 'Fuente directa',
             whoNeedsCardAssigned: '¿Quién necesita una tarjeta?',
             chooseTheCardholder: 'Elige el titular de la tarjeta',

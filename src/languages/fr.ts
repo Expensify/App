@@ -915,8 +915,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Utilisez le bouton + pour ${additionalText} une dépense.`,
-        askConcierge: 'Posez des questions et obtenez une assistance en temps réel 24 h/24 et 7 j/7.',
-        conciergeSupport: 'Assistance 24 h/24, 7 j/7',
+        askConcierge: 'Posez-moi vos questions !',
+        conciergeSupport: 'Votre agent IA personnel',
         create: 'créer',
         iouTypes: {
             pay: 'payer',
@@ -1008,6 +1008,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Validez votre carte et commencez à dépenser.',
                 cta: 'Activer',
             },
+            ctaFix: 'Corriger',
+            fixCompanyCardConnection: {
+                title: ({feedName}: {feedName: string}) => (feedName ? `Corriger la connexion de la carte d'entreprise ${feedName}` : 'Corriger la connexion de la carte entreprise'),
+                subtitle: 'Espace de travail > Cartes d’entreprise',
+            },
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `Corriger la connexion ${integrationName}`, subtitle: 'Espace de travail > Comptabilité'},
         },
         announcements: 'Annonces',
         discoverSection: {
@@ -4995,6 +5001,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             chooseCardFeed: 'Choisir le flux de carte',
             ukRegulation:
                 'Expensify Limited agit en tant qu’agent de Plaid Financial Ltd., établissement de paiement agréé et réglementé par la Financial Conduct Authority en vertu du Payment Services Regulations 2017 (numéro de référence de l’entreprise : 804718). Plaid vous fournit, par l’intermédiaire d’Expensify Limited en tant que son agent, des services réglementés d’information sur les comptes.',
+            deletedFeed: 'Flux supprimé',
             assignCardFailedError: 'L’assignation de la carte a échoué.',
             unassignCardFailedError: 'L’annulation de l’assignation de la carte a échoué.',
             cardAlreadyAssignedError: 'Cette carte est déjà assignée à un utilisateur dans un autre espace de travail.',
