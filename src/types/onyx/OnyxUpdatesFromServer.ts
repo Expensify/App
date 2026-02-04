@@ -1,10 +1,10 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Request from './Request';
 import type Response from './Response';
 
 /** Model of a onyx server update */
-type OnyxServerUpdate = OnyxUpdate & {
+type OnyxServerUpdate<TKey extends OnyxKey = OnyxKey> = OnyxUpdate<TKey> & {
     /** Whether the update should notify UI */
     shouldNotify?: boolean;
 
@@ -13,16 +13,16 @@ type OnyxServerUpdate = OnyxUpdate & {
 };
 
 /** Model of a onyx update event */
-type OnyxUpdateEvent = {
+type OnyxUpdateEvent<TKey extends OnyxKey = OnyxKey> = {
     /** Type of the update event received from the server */
     eventType: string;
 
     /** Collections of data updates */
-    data: OnyxServerUpdate[];
+    data: Array<OnyxServerUpdate<TKey>>;
 };
 
 /** Model of onyx server updates */
-type OnyxUpdatesFromServer = {
+type OnyxUpdatesFromServer<TKey extends OnyxKey = OnyxKey> = {
     /** Delivery method of onyx updates */
     type: 'https' | 'pusher' | 'airship';
 
@@ -36,13 +36,13 @@ type OnyxUpdatesFromServer = {
     shouldFetchPendingUpdates?: boolean;
 
     /** Request data sent to the server */
-    request?: Request;
+    request?: Request<TKey>;
 
     /** Response data from server */
-    response?: Response;
+    response?: Response<TKey>;
 
     /** Collection of onyx updates */
-    updates?: OnyxUpdateEvent[];
+    updates?: Array<OnyxUpdateEvent<TKey>>;
 };
 
 /**

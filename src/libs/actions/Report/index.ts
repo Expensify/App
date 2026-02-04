@@ -201,6 +201,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    AnyRequest,
     BankAccountList,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -1067,18 +1068,17 @@ function openReport(
           };
 
     const optimisticData: Array<
-        | OnyxUpdate<
-              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-              | typeof ONYXKEYS.COLLECTION.REPORT
-              | typeof ONYXKEYS.COLLECTION.TRANSACTION
-              | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-              | typeof ONYXKEYS.NVP_INTRO_SELECTED
-              | typeof ONYXKEYS.COLLECTION.POLICY
-              | typeof ONYXKEYS.NVP_ONBOARDING
-              | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-          >
-        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.NVP_INTRO_SELECTED
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.NVP_ONBOARDING
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2411,7 +2411,7 @@ function editReportComment(
                 if (addCommentIndex > -1) {
                     return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
                 }
-                return resolveDuplicationConflictAction(persistedRequests, createUpdateCommentMatcher(reportActionID));
+                return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },
         },
     );
@@ -3434,21 +3434,21 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
+function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, conciergeReportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.popToSidebar();
     } else {
         Navigation.goBack();
     }
-    navigateToConciergeChat(conciergeReportIDOnyxConnect, false);
+    navigateToConciergeChat(conciergeReportID, false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
 }
 
-function clearCreateChatError(report: OnyxEntry<Report>) {
+function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: string | undefined) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
@@ -3456,7 +3456,7 @@ function clearCreateChatError(report: OnyxEntry<Report>) {
         return;
     }
 
-    navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true);
+    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, undefined, true);
 }
 
 /**
