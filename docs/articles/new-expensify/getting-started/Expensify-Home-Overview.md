@@ -20,9 +20,6 @@ Home is the default view when you sign in.
 - **Web:** Click the **Home** icon in the navigation tabs on the left to return to Home at any time.
 - **Mobile:** Tap the **Home** icon in the navigation tabs on the bottom to return to Home.
 
-**ADD A SCREENSHOT HERE.**  
-Suggestion: Home view on web with the Home icon highlighted in the left navigation.
-
 ---
 
 ## What Home shows
@@ -45,14 +42,9 @@ The **For you** section highlights items that may need your attention like:
 - “2 reports to approve”
 - “Pay 3 reports”
 
-Each item links you to the right place in Expensify, such as the relevant report, where you can complete the action. 
+Each item links you to where you can complete the action, such as a specific report or workspace.
 
 If there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
-
-Learn more about the For you section. [LINK]
-
-**ADD A SCREENSHOT HERE.**  
-Suggestion: For you section showing example report to-dos.
 
 ---
 
@@ -60,10 +52,7 @@ Suggestion: For you section showing example report to-dos.
 
 The **Discover** section helps you get familiar with things you can do in Expensify.
 
-It includes a short demo that introduces key areas of the app and shows how different parts fit together. This can be helpful when you’re getting started or returning after some time away.
-
-**ADD A SCREENSHOT HERE.**  
-Suggestion: Discover section with demo preview.
+This section includes a short demo that introduces key areas of the app and shows how different parts fit together. This can be helpful when you’re getting started or returning after some time away.
 
 ---
 
@@ -71,10 +60,7 @@ Suggestion: Discover section with demo preview.
 
 The **Announcements** section shows recent Expensify product updates.
 
-It helps you stay informed about what’s new or recently changed in New Expensify. 
-
-**ADD A SCREENSHOT HERE.**  
-Suggestion: Announcements section showing recent product updates.
+This section helps you stay informed about what’s new or recently changed in New Expensify. 
 
 ---
 
@@ -86,11 +72,11 @@ Home helps you get oriented when you sign in. It shows whether anything needs at
 
 ## Is Home the same as Inbox?
 
-No. Home provides an overview of what needs attention and what’s new. Inbox is where conversations and action-related items are managed.
+No, they serve different purposes. Home provides an overview of what needs attention and what’s new. Inbox is where conversations and action-related items are managed.
 
 ## Can actions be completed from Home?
 
-No. Home links you to other parts of Expensify where actions are completed.
+Not directly. Home links you to other parts of Expensify where actions are completed.
 
 ## Why does the For you section sometimes appear empty?
 
