@@ -16,7 +16,7 @@ function MultifactorAuthenticationBiometricsTestPage() {
     const {translate} = useLocalize();
 
     useEffect(() => {
-        if (!isOffline) {
+        if (isOffline) {
             return;
         }
 
