@@ -8214,6 +8214,9 @@ const CONST = {
         REANIMATED_MODAL: {
             BACKDROP: 'ReanimatedModal-Backdrop',
         },
+        NEW_CHAT: {
+            SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
+        },
     },
 
     DOMAIN: {
