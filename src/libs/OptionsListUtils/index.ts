@@ -2342,25 +2342,6 @@ function getValidOptions(
             reportAttributesDerived,
         );
 
-        if (maxRecentReportElements) {
-            recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
-        }
-        recentReportOptions = prepareReportOptionsForDisplay(
-            recentReportOptions,
-            policiesCollection,
-            currentUserAccountID,
-            {
-                ...getValidReportsConfig,
-                selectedOptions,
-                shouldBoldTitleByDefault,
-                shouldSeparateSelfDMChat,
-                shouldSeparateWorkspaceChat,
-                shouldShowGBR,
-                personalDetails,
-            },
-            reportAttributesDerived,
-        );
-
         workspaceChats = prepareReportOptionsForDisplay(
             workspaceChats,
             policiesCollection,

@@ -411,6 +411,22 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_MANAGER_MCTEST: OnyxCollection<Report> = {
+        ...REPORTS,
+        '18': {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '18',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1003: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Manager McTest',
+            type: CONST.REPORT.TYPE.CHAT,
+        },
+    };
+
     const activePolicyID = 'DEF456';
 
     // And a set of personalDetails some with existing reports and some without
@@ -651,6 +667,7 @@ describe('OptionsListUtils', () => {
     const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS = createMockReportAttributesDerived(REPORTS_WITH_CHRONOS);
     const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS = createMockReportAttributesDerived(REPORTS_WITH_RECEIPTS);
     const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM = createMockReportAttributesDerived(REPORTS_WITH_WORKSPACE_ROOMS);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_MANAGER_MCTEST = createMockReportAttributesDerived(REPORTS_WITH_MANAGER_MCTEST);
 
     let OPTIONS_WITH_CONCIERGE: OptionList;
     let OPTIONS_WITH_CHRONOS: OptionList;
@@ -685,11 +702,41 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
 
         OPTIONS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED);
-        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_CONCIERGE, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE);
-        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_CHRONOS, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS);
-        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_RECEIPTS, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS);
-        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_WORKSPACE_ROOMS, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM);
-        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_MANAGER_MCTEST);
+        OPTIONS_WITH_CONCIERGE = createOptionList(
+            PERSONAL_DETAILS_WITH_CONCIERGE,
+            CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            REPORTS_WITH_CONCIERGE,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
+        );
+        OPTIONS_WITH_CHRONOS = createOptionList(
+            PERSONAL_DETAILS_WITH_CHRONOS,
+            CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            REPORTS_WITH_CHRONOS,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS,
+        );
+        OPTIONS_WITH_RECEIPTS = createOptionList(
+            PERSONAL_DETAILS_WITH_RECEIPTS,
+            CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            REPORTS_WITH_RECEIPTS,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS,
+        );
+        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(
+            PERSONAL_DETAILS,
+            CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            REPORTS_WITH_WORKSPACE_ROOMS,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM,
+        );
+        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(
+            PERSONAL_DETAILS_WITH_MANAGER_MCTEST,
+            CURRENT_USER_ACCOUNT_ID,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            REPORTS_WITH_MANAGER_MCTEST,
+            MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_MANAGER_MCTEST,
+        );
     });
 
     describe('getSearchOptions()', () => {
@@ -2022,7 +2069,13 @@ describe('OptionsListUtils', () => {
             const searchText = 'spider';
             // Given a set of options with chat rooms
             const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM = createMockReportAttributesDerived(REPORTS_WITH_CHAT_ROOM);
-            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_CHAT_ROOM, MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM);
+            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(
+                PERSONAL_DETAILS,
+                CURRENT_USER_ACCOUNT_ID,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                REPORTS_WITH_CHAT_ROOM,
+                MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM,
+            );
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
                 options: OPTIONS_WITH_CHAT_ROOMS,

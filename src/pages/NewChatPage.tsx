@@ -407,6 +407,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (item.isSelected) {
             return (
                 <PressableWithFeedback
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.SELECT_PARTICIPANT}
                     onPress={() => toggleOption(item)}
                     disabled={item.isDisabled}
                     role={CONST.ROLE.CHECKBOX}
