@@ -105,7 +105,7 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         onPress: () => void;
 
         /** IDs of newly added transactions */
-        newTransactionIDs?: string[];
+        newTransactionIDs?: Set<string>;
     };
 
 export type {MoneyRequestReportPreviewContentProps, MoneyRequestReportPreviewProps, MoneyRequestReportPreviewStyleType};

@@ -94,6 +94,8 @@ import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
 const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) => c?.reports;
+const MAX_SCROLL_TO_INDEX_RETRIES = 5;
+const SCROLL_TO_INDEX_RETRY_DELAY = 100;
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -463,14 +465,14 @@ function MoneyRequestReportPreviewContent({
     const numberOfScrollToIndexFailed = useRef(0);
     const onScrollToIndexFailed: (info: {index: number; highestMeasuredFrameIndex: number; averageItemLength: number}) => void = ({index}) => {
         // There is a probability of infinite loop so we want to make sure that it is not called more than 5 times.
-        if (numberOfScrollToIndexFailed.current > 4) {
+        if (numberOfScrollToIndexFailed.current >= MAX_SCROLL_TO_INDEX_RETRIES) {
             return;
         }
 
         // Sometimes scrollToIndex might be called before the item is rendered so we will re-call scrollToIndex after a small delay.
         setTimeout(() => {
             carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
-        }, 100);
+        }, SCROLL_TO_INDEX_RETRY_DELAY);
         numberOfScrollToIndexFailed.current++;
     };
 
@@ -482,7 +484,7 @@ function MoneyRequestReportPreviewContent({
 
     useFocusEffect(
         useCallback(() => {
-            const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.includes(transaction.transactionID));
+            const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
 
             if (index < 0) {
                 return;

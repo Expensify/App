@@ -126,7 +126,7 @@ function MoneyRequestReportPreview({
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, transactions);
     const isFocused = useIsFocused();
     // We only want to highlight the new expenses if the screen is focused.
-    const newTransactionIDs = isFocused ? newTransactions.map((transaction) => transaction.transactionID) : [];
+    const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -148,7 +148,7 @@ function MoneyRequestReportPreview({
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
-            shouldHighlight={newTransactionIDs.includes(item.transactionID)}
+            shouldHighlight={newTransactionIDs?.has(item.transactionID)}
         />
     );
 
