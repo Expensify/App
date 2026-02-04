@@ -87,7 +87,7 @@ jobs:
           
           # Pad build number components for Android version code (prefix 10 for E/App)
           IFS='.' read -r MAJOR MINOR PATCH <<< "$SHORT_VERSION"
-          ANDROID_VERSION_CODE="10$(printf '%02d' $MAJOR)$(printf '%02d' $MINOR)$(printf '%02d' $PATCH)$(printf '%02d' $BUILD_NUMBER)"
+          ANDROID_VERSION_CODE="10$(printf '%02d' "$MAJOR")$(printf '%02d' "$MINOR")$(printf '%02d' "$PATCH")$(printf '%02d' "$BUILD_NUMBER")"
           
           echo "Updating Android build.gradle with versionName=$TARGET, versionCode=$ANDROID_VERSION_CODE"
           sed -i '' "s/versionName \"[0-9.-]*\"/versionName \"$TARGET\"/" android/app/build.gradle
