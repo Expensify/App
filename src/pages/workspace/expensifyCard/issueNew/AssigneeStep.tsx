@@ -65,7 +65,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         includeRecentReports: true,
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const currency = useCurrencyForExpensifyCard({policyID});
     const isEditing = issueNewCard?.isEditing;
 
