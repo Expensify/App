@@ -286,7 +286,17 @@ function SearchPage({route}: SearchPageProps) {
             }
             clearSelectedTransactions(undefined, true);
         },
-        [isOffline, areAllMatchingItemsSelected, showConfirmModal, translate, clearSelectedTransactions, queryJSON, selectedTransactionReportIDs, selectedTransactionsKeys],
+        [
+            isOffline,
+            areAllMatchingItemsSelected,
+            showConfirmModal,
+            translate,
+            clearSelectedTransactions,
+            queryJSON,
+            selectedTransactionReportIDs,
+            selectedTransactionsKeys,
+            currentUserPersonalDetails?.email,
+        ],
     );
 
     const policyIDsWithVBBA = useMemo(() => {
