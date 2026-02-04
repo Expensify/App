@@ -1,8 +1,10 @@
 import React, {useState} from 'react';
+import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LoadingIndicator from '@components/LoadingIndicator';
 import {useMultifactorAuthentication, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
 import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
@@ -79,13 +81,18 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                     subtitle={subtitle}
                 />
                 <FixedFooter style={[styles.flexColumn, styles.gap3]}>
-                    <Button
-                        success
-                        large
-                        isLoading={!shouldDisplayConfirmButton}
-                        onPress={onConfirm}
-                        text={translate('common.buttonConfirm')}
-                    />
+                    {shouldDisplayConfirmButton ? (
+                        <Button
+                            success
+                            large
+                            onPress={onConfirm}
+                            text={translate('common.buttonConfirm')}
+                        />
+                    ) : (
+                        <View style={[styles.w100, styles.h10]}>
+                            <LoadingIndicator />
+                        </View>
+                    )}
                 </FixedFooter>
 
                 <MultifactorAuthenticationTriggerCancelConfirmModal

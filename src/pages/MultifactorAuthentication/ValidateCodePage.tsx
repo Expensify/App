@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import {useMultifactorAuthentication, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import type {MultifactorAuthenticationValidateCodeResendButtonHandle} from '@components/MultifactorAuthentication/ValidateCodeResendButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -19,6 +20,7 @@ import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
+import Navigation from '@navigation/Navigation';
 import {clearAccountMessages} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -46,6 +48,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const {cancel} = useMultifactorAuthentication();
+    const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
 
     const {state, dispatch} = useMultifactorAuthenticationState();
     const {continuableError} = state;
@@ -176,15 +179,44 @@ function MultifactorAuthenticationValidateCodePage() {
         dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
     };
 
-    const onGoBackPress = () => {
+    const showCancelModal = () => {
+        if (isOffline) {
+            Navigation.closeRHPFlow();
+        } else {
+            setCancelModalVisibility(true);
+        }
+    };
+
+    const hideCancelModal = () => {
+        setCancelModalVisibility(false);
+    };
+
+    const cancelFlow = () => {
+        if (isCancelModalVisible) {
+            hideCancelModal();
+        }
         cancel();
     };
 
+    const focusTrapConfirmModal = () => {
+        setCancelModalVisibility(true);
+        return false;
+    };
+
     return (
-        <ScreenWrapper testID={MultifactorAuthenticationValidateCodePage.displayName}>
+        <ScreenWrapper
+            testID={MultifactorAuthenticationValidateCodePage.displayName}
+            focusTrapSettings={{
+                focusTrapOptions: {
+                    allowOutsideClick: focusTrapConfirmModal,
+                    clickOutsideDeactivates: focusTrapConfirmModal,
+                    escapeDeactivates: focusTrapConfirmModal,
+                },
+            }}
+        >
             <HeaderWithBackButton
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
-                onBackButtonPress={onGoBackPress}
+                onBackButtonPress={showCancelModal}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
@@ -219,6 +251,12 @@ function MultifactorAuthenticationValidateCodePage() {
                     text={translate('common.verify')}
                     isLoading={isValidateCodeFormSubmitting}
                     isDisabled={isOffline}
+                />
+                <MultifactorAuthenticationTriggerCancelConfirmModal
+                    scenario={state.scenario}
+                    isVisible={isCancelModalVisible}
+                    onConfirm={cancelFlow}
+                    onCancel={hideCancelModal}
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
