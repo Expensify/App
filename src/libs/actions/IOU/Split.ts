@@ -1388,8 +1388,11 @@ function updateSplitTransactions({
                 errors: null,
             },
         });
-        const splitExpensesInSameReport = transactionData.splitExpenses.filter((itemTransaction) => itemTransaction.reportID === transactionData.reportID);
-        if (!splitExpensesInSameReport.length) {
+        const singleSplitExpense = transactionData.splitExpenses.at(0) ?? undefined;
+        const isExpenseMovingToDifferentReport = !!singleSplitExpense?.reportID && singleSplitExpense.reportID !== transactionData.reportID;
+        const isLastTransactionInReport =
+            isExpenseMovingToDifferentReport || Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === transactionData.reportID).length === 0;
+        if (isLastTransactionInReport) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionData.reportID}`,
