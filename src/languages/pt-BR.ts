@@ -8139,6 +8139,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         expenseLevelExport: 'Todos os dados - nível de despesa',
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'O Concierge enviará o arquivo para você em breve.',
+        conciergeWillNotifyOnExportFailure: 'O Concierge enviará uma mensagem se algum relatório não for exportado.',
     },
     domain: {
         notVerified: 'Não verificado',

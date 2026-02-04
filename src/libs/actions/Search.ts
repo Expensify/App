@@ -713,6 +713,105 @@ function exportToIntegrationOnSearch(hash: number, reportID: string | undefined,
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData, successData});
 }
 
+function exportMultipleReportsToIntegration(hash: number, reportIDs: string[], connectionName: ConnectionName, currentSearchKey?: SearchKey) {
+    if (!reportIDs.length) {
+        return;
+    }
+
+    const optimisticActions: Record<string, OptimisticExportIntegrationAction> = {};
+    const successActions: Record<string, OptimisticExportIntegrationAction> = {};
+    const optimisticReportActions: Record<string, string> = {};
+
+    for (const reportID of reportIDs) {
+        const optimisticAction = buildOptimisticExportIntegrationAction(connectionName);
+        const successAction: OptimisticExportIntegrationAction = {...optimisticAction, pendingAction: null};
+        const optimisticReportActionID = optimisticAction.reportActionID;
+
+        optimisticActions[reportID] = optimisticAction;
+        successActions[reportID] = successAction;
+        optimisticReportActions[reportID] = optimisticReportActionID;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: ONYXKEYS.COLLECTION.REPORT_METADATA,
+            value: Object.fromEntries(reportIDs.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: true}])),
+        },
+    ];
+
+    for (const reportID of reportIDs) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActions[reportID]]: optimisticActions[reportID],
+            },
+        });
+    }
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: ONYXKEYS.COLLECTION.REPORT_METADATA,
+            value: Object.fromEntries(reportIDs.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+        },
+    ];
+
+    for (const reportID of reportIDs) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActions[reportID]]: successActions[reportID],
+            },
+        });
+    }
+
+    if (currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: Object.fromEntries(reportIDs.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null])),
+            },
+        });
+    }
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: ONYXKEYS.COLLECTION.REPORT_METADATA,
+            value: Object.fromEntries(reportIDs.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+        },
+    ];
+
+    for (const reportID of reportIDs) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActions[reportID]]: null,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+        });
+    }
+
+    const params = {
+        reportIDList: reportIDs,
+        connectionName,
+        type: 'MANUAL',
+        optimisticReportActions: JSON.stringify(optimisticReportActions),
+    } satisfies ReportExportParams;
+
+    API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData, successData});
+}
+
 function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], currentSearchKey?: SearchKey) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
@@ -1366,6 +1465,7 @@ export {
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
+    exportMultipleReportsToIntegration,
     getPayOption,
     isValidBulkPayOption,
     handleBulkPayItemSelected,

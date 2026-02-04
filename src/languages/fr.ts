@@ -8203,6 +8203,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
+        conciergeWillNotifyOnExportFailure: 'Concierge vous enverra un message si certains rapports ne sont pas exportés.',
     },
     domain: {
         notVerified: 'Non vérifié',

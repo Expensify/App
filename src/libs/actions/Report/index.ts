@@ -5017,6 +5017,61 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
+function markAsManuallyExportedMultipleReports(reportIDs: string[], connectionName: ConnectionName) {
+    const label = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const reportData: Array<{reportID: string; label: string; optimisticReportActionID: string}> = [];
+
+    // Process each report ID
+    for (const reportID of reportIDs) {
+        const action = buildOptimisticExportIntegrationAction(connectionName, true);
+        const optimisticReportActionID = action.reportActionID;
+
+        reportData.push({
+            reportID,
+            label,
+            optimisticReportActionID,
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: action,
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        });
+    }
+
+    const params = {
+        markedManually: true,
+        data: JSON.stringify(reportData),
+    } satisfies MarkAsExportedParams;
+
+    API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
+}
+
 function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     let reportIDParam = reportID;
     const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -6683,6 +6738,7 @@ export {
     leaveGroupChat,
     leaveRoom,
     markAsManuallyExported,
+    markAsManuallyExportedMultipleReports,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
     createChildReport,

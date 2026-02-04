@@ -8189,6 +8189,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
         exportInProgress: 'Export wird ausgeführt',
         conciergeWillSend: 'Concierge wird dir die Datei in Kürze senden.',
+        conciergeWillNotifyOnExportFailure: 'Concierge wird dir eine Nachricht senden, wenn Berichte nicht exportiert werden.',
     },
     domain: {
         notVerified: 'Nicht verifiziert',

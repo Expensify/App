@@ -8103,6 +8103,7 @@ ${reportName}
         expenseLevelExport: 'すべてのデータ - 経費レベル',
         exportInProgress: 'エクスポート処理中',
         conciergeWillSend: 'Conciergeがまもなくファイルを送信します。',
+        conciergeWillNotifyOnExportFailure: 'レポートのエクスポートに失敗した場合、Concierge からメッセージが届きます。',
     },
     domain: {
         notVerified: '未確認',
