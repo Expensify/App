@@ -241,7 +241,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
-
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
 
@@ -272,7 +272,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
-        undefined,
+        policyTags,
         currentUserAccountID,
         allPersonalDetails,
         undefined,

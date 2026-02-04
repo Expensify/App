@@ -191,7 +191,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, shouldAllowNameOnlyOptions, searchTerm, currentUserEmail, currentUserAccountID, policyTags]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, shouldAllowNameOnlyOptions, searchTerm, currentUserEmail, currentUserAccountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -204,7 +204,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            undefined,
+            policyTags,
             currentUserAccountID,
             personalDetails,
             true,
@@ -265,7 +265,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID, policyTags]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);

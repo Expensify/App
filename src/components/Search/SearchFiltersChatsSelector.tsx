@@ -115,7 +115,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
-            undefined,
+            policyTags,
             currentUserAccountID,
             personalDetails,
             false,
@@ -154,6 +154,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         selectedReportIDs,
         translate,
         currentUserAccountID,
+        policyTags,
     ]);
 
     useEffect(() => {

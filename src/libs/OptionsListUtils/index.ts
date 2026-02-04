@@ -698,6 +698,7 @@ function getLastMessageTextForReport({
             movedFromReport,
             movedToReport,
             policyTags,
+            policy,
         });
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
@@ -943,8 +944,8 @@ function createOption(
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         result.lastMessageText = getLastMessageTextForReport({
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translate: translateLocal,
             report,
             lastActorDetails,
