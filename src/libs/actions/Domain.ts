@@ -967,7 +967,7 @@ function closeUserAccount(domainAccountID: number, domain: string, accountID: nu
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                members: {[targetEmail]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         },
     ];
@@ -977,7 +977,7 @@ function closeUserAccount(domainAccountID: number, domain: string, accountID: nu
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                members: {[targetEmail]: null},
+                member: {[targetEmail]: null},
             },
         },
     ];
@@ -1001,7 +1001,7 @@ function closeUserAccount(domainAccountID: number, domain: string, accountID: nu
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                members: {[targetEmail]: null},
+                member: {[targetEmail]: null},
             },
         },
     ];
@@ -1024,7 +1024,7 @@ function clearDomainMemberError(domainAccountID: number, accountID: number, emai
     });
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        members: {[email]: null},
+        member: {[email]: null},
     });
 }
 
