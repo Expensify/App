@@ -115,6 +115,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -133,6 +134,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             bankAccountList,
             isActionLoadingSet,
             allReportMetadata,
+            cardFeeds,
         }) as [TransactionListItemType[], number];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -150,6 +152,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         isActionLoadingSet,
         bankAccountList,
         allReportMetadata,
+        cardFeeds,
     ]);
 
     const selectedItemsLength = useMemo(() => {
@@ -170,8 +173,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
+    // Search transactions - handles both refresh (offset 0) and pagination (current offset + pageSize)
     const searchTransactions = useCallback(
-        (pageSize = 0) => {
+        (pageSize = 0, isRefresh = false) => {
             if (!groupItem.transactionsQueryJSON) {
                 return;
             }
@@ -179,7 +183,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             search({
                 queryJSON: groupItem.transactionsQueryJSON,
                 searchKey: undefined,
-                offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
+                offset: isRefresh ? 0 : (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
                 isLoading: !!transactionsSnapshot?.search?.isLoading,
             });
@@ -205,15 +209,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!newTransactionID || !isExpanded) {
             return;
         }
-        searchTransactions();
+        searchTransactions(0, true);
     }, [newTransactionID, isExpanded, searchTransactions]);
 
     const handleToggle = useCallback(() => {
-        setIsExpanded(!isExpanded);
-        if (isExpanded) {
-            setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
-        }
-    }, [isExpanded]);
+        setIsExpanded((prev) => {
+            const newExpandedState = !prev;
+
+            if (newExpandedState) {
+                // Refresh transactions when expanding
+                searchTransactions(0, true);
+            } else {
+                setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
+            }
+
+            return newExpandedState;
+        });
+    }, [searchTransactions]);
 
     const onPress = useCallback(() => {
         if (isExpenseReportType || transactions.length === 0) {
@@ -248,11 +260,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
-        } else if (groupItem.transactionsQueryJSON && !isExpanded) {
-            searchTransactions();
         }
         handleToggle();
-    }, [isEmpty, shouldDisplayEmptyView, groupItem.transactionsQueryJSON, isExpanded, handleToggle, onPress, searchTransactions]);
+    }, [isEmpty, shouldDisplayEmptyView, handleToggle, onPress]);
 
     const getHeader = useCallback(
         (hovered: boolean) => {
@@ -500,6 +510,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 onLongPress={onLongPress}
                 onPress={onPress}
                 disabled={isDisabled && !isItemSelected}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested

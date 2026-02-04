@@ -38,6 +38,7 @@ import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getOnyxValue from '../../utils/getOnyxValue';
@@ -2448,7 +2449,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 53;
+            const expectedPropertyCount = 54;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2580,6 +2581,16 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getCardSections result when type is EXPENSE and groupBy is card', () => {
+            const mockCardFeeds = {
+                policy1: {
+                    settings: {
+                        companyCards: {
+                            [CONST.BANK_NAMES.CHASE]: {} as CustomCardFeedData,
+                            [CONST.BANK_NAMES.AMERICAN_EXPRESS]: {} as CustomCardFeedData,
+                        },
+                    },
+                } as OnyxTypes.CardFeeds,
+            };
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -2590,6 +2601,7 @@ describe('SearchUIUtils', () => {
                     formatPhoneNumber,
                     bankAccountList: {},
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
+                    cardFeeds: mockCardFeeds,
                     allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);
@@ -5041,6 +5053,110 @@ describe('SearchUIUtils', () => {
             const response2 = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response2.export).toBe(true);
         });
+
+        test('Should show Top Categories when areCategoriesEnabled is true', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(true);
+        });
+
+        test('Should hide Top Categories when areCategoriesEnabled is false', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
+
+        test('Should not show Top Categories when areCategoriesEnabled is undefined', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: undefined,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
+
+        test('Should not show Top Categories for free policies even if categories are enabled', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
+
+        test('Should show Top Categories if at least one policy has categories enabled', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policyOne: {
+                    id: 'policyOne',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+                policyTwo: {
+                    id: 'policyTwo',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(true);
+        });
+
+        test('Should hide Top Categories if all policies have categories disabled', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                policyOne: {
+                    id: 'policyOne',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+                policyTwo: {
+                    id: 'policyTwo',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areCategoriesEnabled: false,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.topCategories).toBe(false);
+        });
     });
 
     describe('Test getColumnsToShow', () => {
@@ -6138,13 +6254,11 @@ describe('SearchUIUtils', () => {
     });
 
     describe('view autocomplete values', () => {
-        test('should include all view values (table, bar, line, pie)', () => {
+        test('should include all view values (table, bar)', () => {
             const viewValues = Object.values(CONST.SEARCH.VIEW);
             expect(viewValues).toContain('table');
             expect(viewValues).toContain('bar');
-            expect(viewValues).toContain('line');
-            expect(viewValues).toContain('pie');
-            expect(viewValues).toHaveLength(4);
+            expect(viewValues).toHaveLength(2);
         });
 
         test('should correctly map view values to user-friendly values', () => {
@@ -6152,7 +6266,7 @@ describe('SearchUIUtils', () => {
             const userFriendlyValues = viewValues.map((value) => getUserFriendlyValue(value));
 
             // All view values should be mapped (they may be the same or different)
-            expect(userFriendlyValues).toHaveLength(4);
+            expect(userFriendlyValues).toHaveLength(2);
             expect(userFriendlyValues.every((value) => typeof value === 'string')).toBe(true);
         });
     });
