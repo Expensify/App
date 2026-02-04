@@ -6,7 +6,7 @@ import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
 function shouldUseDefaultExpensePolicy(iouType: IOUType, defaultExpensePolicy: OnyxInputOrEntry<Policy>, isFromDeepLink = false) {
     return (
-        (iouType === CONST.IOU.TYPE.CREATE || isFromDeepLink) &&
+        (iouType === CONST.IOU.TYPE.CREATE || (iouType === CONST.IOU.TYPE.SUBMIT && isFromDeepLink)) &&
         isPaidGroupPolicy(defaultExpensePolicy) &&
         defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
         !shouldRestrictUserBillableActions(defaultExpensePolicy.id)

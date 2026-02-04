@@ -16,7 +16,6 @@ import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import Icon from '@components/Icon';
-import {useInitialURLState} from '@components/InitialURLContextProvider';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
@@ -117,7 +116,6 @@ function IOURequestStepScan({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
-    const {initialURL} = useInitialURLState();
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
@@ -344,7 +342,6 @@ function IOURequestStepScan({
                 isTestTransaction,
                 locationPermissionGranted,
                 isSelfTourViewed,
-                isFromDeepLink: !!initialURL,
             });
         },
         [
@@ -379,7 +376,6 @@ function IOURequestStepScan({
             activePolicyID,
             reportNameValuePairs?.private_isArchived,
             isSelfTourViewed,
-            initialURL,
         ],
     );
 
