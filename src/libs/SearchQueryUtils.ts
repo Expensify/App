@@ -1262,7 +1262,7 @@ function buildUserReadableQueryString(
     currentUserAccountID: number,
     autoCompleteWithSpace = false,
 ) {
-    const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
+    const {type, status, groupBy, view, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -1337,6 +1337,10 @@ function buildUserReadableQueryString(
         }
 
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
+    }
+
+    if (view) {
+        title += ` view:${getUserFriendlyValue(view)}`;
     }
 
     if (limit !== undefined) {
