@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 // TODO: Remove this disable once SearchUIUtils is refactored (see dedicated refactor issue)
-import {endOfMonth, format, startOfMonth, startOfYear, subMonths} from 'date-fns';
+import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subDays, subMonths} from 'date-fns';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -2576,8 +2576,10 @@ function getYearSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
-            const yearStart = `${yearGroup.year}-01-01`;
-            const yearEnd = `${yearGroup.year}-12-31`;
+            const {start: yearStart, end: yearEnd} = adjustTimeRangeToDateFilters(
+                DateUtils.getYearDateRange(yearGroup.year),
+                queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
+            );
             if (queryJSON && yearGroup.year !== undefined) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
@@ -3884,52 +3886,41 @@ function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, d
     }
 
     const {start: timeRangeStart, end: timeRangeEnd} = timeRange;
-    const startLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
-    const endLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
     const equalToFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
 
     let limitsStart: string | undefined;
     let limitsEnd: string | undefined;
-
-    if (startLimitFilter?.value) {
-        const value = String(startLimitFilter.value);
-        if (isDatePreset(value)) {
-            const presetRange = getDateRangeForPreset(value);
-            limitsStart = presetRange.start || undefined;
-        } else {
-            limitsStart = value;
-        }
-    }
-
-    if (endLimitFilter?.value) {
-        const value = String(endLimitFilter.value);
-        if (isDatePreset(value)) {
-            const presetRange = getDateRangeForPreset(value);
-            limitsEnd = presetRange.end || undefined;
-        } else {
-            limitsEnd = value;
-        }
-    }
-
+    // Date presets come with the equals operator, so we need to check if the value is a date preset
     if (equalToFilter?.value) {
         const value = String(equalToFilter.value);
         if (isDatePreset(value)) {
             const presetRange = getDateRangeForPreset(value);
-            if (presetRange.start && presetRange.end) {
-                if (!limitsStart) {
-                    limitsStart = presetRange.start;
-                }
-                if (!limitsEnd) {
-                    limitsEnd = presetRange.end;
-                }
-                if (limitsStart && presetRange.start > limitsStart) {
-                    limitsStart = presetRange.start;
-                }
-                if (limitsEnd && presetRange.end < limitsEnd) {
-                    limitsEnd = presetRange.end;
-                }
-            }
+            limitsStart = presetRange.start || undefined;
+            limitsEnd = presetRange.end || undefined;
+        } else {
+            limitsStart = value;
+            limitsEnd = value;
         }
+    }
+
+    let startLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
+    if (startLimitFilter?.value) {
+        limitsStart = String(startLimitFilter.value);
+    }
+    startLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
+    if (startLimitFilter?.value) {
+        const date = parse(String(startLimitFilter.value), 'yyyy-MM-dd', new Date());
+        limitsStart = format(addDays(date, 1), 'yyyy-MM-dd');
+    }
+
+    let endLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
+    if (endLimitFilter?.value) {
+        limitsEnd = String(endLimitFilter.value);
+    }
+    endLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN);
+    if (endLimitFilter?.value) {
+        const date = parse(String(endLimitFilter.value), 'yyyy-MM-dd', new Date());
+        limitsEnd = format(subDays(date, 1), 'yyyy-MM-dd');
     }
 
     let adjustedStart = timeRangeStart;
@@ -3941,6 +3932,9 @@ function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, d
     if (limitsEnd && limitsEnd < timeRangeEnd) {
         adjustedEnd = limitsEnd;
     }
+
+    console.log('cristi - adjustedStart', adjustedStart);
+    console.log('cristi - adjustedEnd', adjustedEnd);
 
     return {
         start: adjustedStart,
