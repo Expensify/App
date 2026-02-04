@@ -3902,22 +3902,44 @@ function adjustTimeRangeToDateFilters(timeRange: {start: string; end: string}, d
 
     let startLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
     if (startLimitFilter?.value) {
-        limitsStart = String(startLimitFilter.value);
+        const constraintStart = String(startLimitFilter.value);
+        if (limitsStart) {
+            limitsStart = limitsStart > constraintStart ? limitsStart : constraintStart;
+        } else {
+            limitsStart = constraintStart;
+        }
     }
+    
     startLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
     if (startLimitFilter?.value) {
         const date = parse(String(startLimitFilter.value), 'yyyy-MM-dd', new Date());
-        limitsStart = format(addDays(date, 1), 'yyyy-MM-dd');
+        const constraintStart = format(addDays(date, 1), 'yyyy-MM-dd');
+        if (limitsStart) {
+            limitsStart = limitsStart > constraintStart ? limitsStart : constraintStart;
+        } else {
+            limitsStart = constraintStart;
+        }
     }
 
     let endLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
     if (endLimitFilter?.value) {
-        limitsEnd = String(endLimitFilter.value);
+        const constraintEnd = String(endLimitFilter.value);
+        if (limitsEnd) {
+            limitsEnd = limitsEnd < constraintEnd ? limitsEnd : constraintEnd;
+        } else {
+            limitsEnd = constraintEnd;
+        }
     }
+
     endLimitFilter = dateFilter.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN);
     if (endLimitFilter?.value) {
         const date = parse(String(endLimitFilter.value), 'yyyy-MM-dd', new Date());
-        limitsEnd = format(subDays(date, 1), 'yyyy-MM-dd');
+        const constraintEnd = format(subDays(date, 1), 'yyyy-MM-dd');
+        if (limitsEnd) {
+            limitsEnd = limitsEnd < constraintEnd ? limitsEnd : constraintEnd;
+        } else {
+            limitsEnd = constraintEnd;
+        }
     }
 
     let adjustedStart = timeRangeStart;
