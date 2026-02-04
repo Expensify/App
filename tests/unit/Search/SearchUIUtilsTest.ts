@@ -3059,6 +3059,54 @@ describe('SearchUIUtils', () => {
             expect(result.end).toBe('2025-06-20');
         });
 
+        it('should apply date filter when expanding quarter group', () => {
+            // Test that adjustTimeRangeToDateFilters correctly applies a date filter
+            // when expanding a quarter group (e.g., date >= 2025-09-15)
+            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 3);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-09-15',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(quarterDateRange, dateFilter);
+
+            // The start date should be adjusted to 2025-09-15 (the filter limit)
+            // instead of 2025-07-01 (the quarter start)
+            expect(result.start).toBe('2025-09-15');
+            // The end date should remain 2025-09-30 (the quarter end)
+            expect(result.end).toBe('2025-09-30');
+        });
+
+        it('should apply date filter with both start and end limits when expanding quarter group', () => {
+            // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
+            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 2);
+            const dateFilter = {
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filters: [
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                        value: '2025-05-10',
+                    },
+                    {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                        value: '2025-06-20',
+                    },
+                ],
+            };
+
+            const result = SearchUIUtils.adjustTimeRangeToDateFilters(quarterDateRange, dateFilter);
+
+            // The start date should be adjusted to 2025-05-10 (the filter limit)
+            expect(result.start).toBe('2025-05-10');
+            // The end date should be adjusted to 2025-06-20 (the filter limit)
+            expect(result.end).toBe('2025-06-20');
+        });
+
         it('should return getQuarterSections result when type is EXPENSE and groupBy is quarter', () => {
             const transactionQuarterGroupListItems: TransactionQuarterGroupListItemType[] = [
                 {
