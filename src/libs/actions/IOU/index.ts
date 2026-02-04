@@ -11204,7 +11204,19 @@ function completePaymentOnboarding(
 }
 
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
-    const {paymentType, chatReport, iouReport, introSelected, iouReportCurrentNextStepDeprecated, currentUserAccountID, paymentPolicyID, full = true, activePolicy, policy, ownerBillingGraceEndPeriod} = params;
+    const {
+        paymentType,
+        chatReport,
+        iouReport,
+        introSelected,
+        iouReportCurrentNextStepDeprecated,
+        currentUserAccountID,
+        paymentPolicyID,
+        full = true,
+        activePolicy,
+        policy,
+        ownerBillingGraceEndPeriod,
+    } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, ownerBillingGraceEndPeriod)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;

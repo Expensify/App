@@ -510,13 +510,7 @@ function shouldRestrictUserBillableActions(policyID: string, ownerBillingGraceEn
 
     // If it reached here it means that the user is actually the workspace's owner.
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
-    if (
-        isPolicyOwner(policy, currentUserAccountID) &&
-        gracePeriodEnd &&
-        amountOwed !== undefined &&
-        amountOwed > 0 &&
-        isAfter(currentDate, fromUnixTime(gracePeriodEnd))
-    ) {
+    if (isPolicyOwner(policy, currentUserAccountID) && gracePeriodEnd && amountOwed !== undefined && amountOwed > 0 && isAfter(currentDate, fromUnixTime(gracePeriodEnd))) {
         return true;
     }
 
