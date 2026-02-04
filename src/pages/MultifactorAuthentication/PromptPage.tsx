@@ -27,7 +27,7 @@ function MultifactorAuthenticationPromptPage() {
 
     const onConfirm = () => {
         // Temporary navigation, expected behavior: let the MultifactorAuthentication know that the soft prompt was accepted
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_NOTIFICATION.getRoute(CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE.SUCCESS));
+        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE.SUCCESS));
     };
 
     const showConfirmModal = () => {
@@ -45,11 +45,25 @@ function MultifactorAuthenticationPromptPage() {
 
         hideConfirmModal();
         // Temporary navigation, expected behavior: trigger the failure from the MultifactorAuthenticationContext
-        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_NOTIFICATION.getRoute(CONST.MULTIFACTOR_AUTHENTICATION_NOTIFICATION_TYPE.FAILURE));
+        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(CONST.MULTIFACTOR_AUTHENTICATION_OUTCOME_TYPE.FAILURE));
+    };
+
+    const focusTrapConfirmModal = () => {
+        setConfirmModalVisibility(true);
+        return false;
     };
 
     return (
-        <ScreenWrapper testID={MultifactorAuthenticationPromptPage.displayName}>
+        <ScreenWrapper
+            testID={MultifactorAuthenticationPromptPage.displayName}
+            focusTrapSettings={{
+                focusTrapOptions: {
+                    allowOutsideClick: focusTrapConfirmModal,
+                    clickOutsideDeactivates: focusTrapConfirmModal,
+                    escapeDeactivates: focusTrapConfirmModal,
+                },
+            }}
+        >
             <HeaderWithBackButton
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
                 onBackButtonPress={showConfirmModal}
