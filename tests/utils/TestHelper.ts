@@ -67,15 +67,6 @@ function setupApp() {
             authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
         });
     });
-
-    afterAll(() => {
-        // Disconnect Pusher when test suite finishes to prevent memory leaks
-        try {
-            Pusher.disconnect();
-        } catch (error) {
-            // Ignore errors if Pusher is not initialized or already disconnected
-        }
-    });
 }
 
 function getNvpDismissedProductTraining(): OnyxEntry<DismissedProductTraining> {
