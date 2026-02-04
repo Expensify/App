@@ -120,9 +120,9 @@ function TransactionPreviewContent({
     const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const connectionLink = transaction?.cardID ? `${environmentURL}/${ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(transaction.cardID.toString())}` : undefined;
-    const violationMessage = firstViolation
-        ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL, connectionLink, cardList)
-        : undefined;
+    const cardID = firstViolation?.data?.cardID;
+    const card = cardID ? cardList?.[cardID] : undefined;
+    const violationMessage = firstViolation ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card) : undefined;
 
     const previewText = useMemo(
         () =>

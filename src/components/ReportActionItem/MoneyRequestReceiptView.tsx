@@ -177,7 +177,9 @@ function MoneyRequestReceiptView({
             const isReceiptImageViolation = receiptImageViolationNames.has(violation.name);
             const isRTERViolation = violation.name === CONST.VIOLATIONS.RTER;
             if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, cardList);
+                const cardID = violation.data?.cardID;
+                const card = cardID ? cardList?.[cardID] : undefined;
+                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card);
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
                     imageViolations.push(violationMessage);
