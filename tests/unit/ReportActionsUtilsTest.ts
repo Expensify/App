@@ -1680,6 +1680,13 @@ describe('ReportActionsUtils', () => {
 
             expect(result).toBe('created this report for any held expenses from deleted report #123456');
         });
+
+        it('should handle undefined reportID and report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage(undefined, 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('');
+        });
     });
 
     describe('isDynamicExternalWorkflowSubmitFailedAction', () => {
