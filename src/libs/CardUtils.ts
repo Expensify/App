@@ -406,7 +406,7 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
  */
 function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
     const lowerFeedKey = feedKey.toLowerCase();
-    return lowerFeedKey.startsWith('csv') || lowerFeedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === 'Expensify Card';
+    return lowerFeedKey.startsWith('csv') || lowerFeedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === CONST.EXPENSIFY_CARD.BANK;
 }
 
 function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
