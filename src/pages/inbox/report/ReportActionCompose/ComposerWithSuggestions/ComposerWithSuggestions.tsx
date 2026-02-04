@@ -217,7 +217,10 @@ function ComposerWithSuggestions({
     disabled,
     setIsCommentEmpty,
     onEnterKeyPress,
+    shouldShowComposeInput,
+    measureParentContainer = () => {},
     isScrollLikelyLayoutTriggered,
+    raiseIsScrollLikelyLayoutTriggered,
     onClear: onClearProp = () => {},
     onLayout: onLayoutProps,
 
@@ -885,7 +888,10 @@ function ComposerWithSuggestions({
                     onChangeText={onChangeText}
                     onKeyPress={handleKeyPress}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, composerHeight ? {height: composerHeight} : null]}
+                    style={[
+                        styles.textInputCompose,
+                        isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose /* composerHeight ? {height: composerHeight} : null */,
+                    ]}
                     maxLines={maxComposerLines}
                     onFocus={handleFocus}
                     onBlur={onBlur}
