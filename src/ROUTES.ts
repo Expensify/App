@@ -85,11 +85,6 @@ const DYNAMIC_ROUTES = {
     },
 } as const satisfies DynamicRoutes;
 
-const MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES = {
-    FACTOR: 'multifactor-authentication/factor',
-    PROMPT: 'multifactor-authentication/prompt',
-} as const;
-
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
