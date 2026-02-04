@@ -1056,9 +1056,9 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
             }
             // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
-                Navigation.dismissModal();
+                Navigation.dismissToPreviousRHP();
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: true});
                 });
                 return;
             }
@@ -12846,7 +12846,7 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
 
 function initSplitExpenseItemData(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
-    {amount, transactionID, reportID, created, isManuallyEdited}: {amount?: number; transactionID?: string; reportID?: string; created?: string; isManuallyEdited?: boolean} = {},
+    {amount, transactionID, reportID, created}: {amount?: number; transactionID?: string; reportID?: string; created?: string} = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
     const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
@@ -12862,7 +12862,6 @@ function initSplitExpenseItemData(
         statusNum: currentReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         reimbursable: transactionDetails?.reimbursable,
-        isManuallyEdited: isManuallyEdited ?? false,
     };
 }
 
@@ -12882,8 +12881,7 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     if (isExpenseSplit) {
         const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
-        // Mark existing child transactions as manually edited (locked) since we're editing existing splits
-        const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction, {isManuallyEdited: true}));
+        const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,
             transactionParams: {
@@ -12911,18 +12909,9 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     const transactionDetails = getTransactionDetails(transaction);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
-    // New splits start as unedited (isManuallyEdited: false) so they participate in auto-redistribution
     const splitExpenses = [
-        initSplitExpenseItemData(transaction, {
-            amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
-            transactionID: NumberUtils.rand64(),
-            isManuallyEdited: false,
-        }),
-        initSplitExpenseItemData(transaction, {
-            amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
-            transactionID: NumberUtils.rand64(),
-            isManuallyEdited: false,
-        }),
+        initSplitExpenseItemData(transaction, {amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false), transactionID: NumberUtils.rand64()}),
+        initSplitExpenseItemData(transaction, {amount: calculateIOUAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true), transactionID: NumberUtils.rand64()}),
     ];
 
     const draftTransaction = buildOptimisticTransaction({
@@ -12986,54 +12975,22 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
 
 /**
  * Append a new split expense entry to the draft transaction's splitExpenses array
- * and auto-redistribute amounts among all unedited splits.
  */
 function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
     if (!transaction || !draftTransaction) {
         return;
     }
 
-    const newTransactionID = NumberUtils.rand64();
-    const newSplit = initSplitExpenseItemData(transaction, {
-        amount: 0,
-        transactionID: newTransactionID,
-        reportID: draftTransaction?.reportID,
-        isManuallyEdited: false,
-    });
-
-    const existingSplits = draftTransaction.comment?.splitExpenses ?? [];
-    const updatedSplitExpenses = [...existingSplits, newSplit];
-
-    // Get total amount and currency for redistribution
-    const total = getAmount(draftTransaction, undefined, undefined, true, true);
-    const currency = getCurrency(draftTransaction);
-    const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
-
-    // Calculate sum of manually edited splits
-    const editedSum = updatedSplitExpenses.filter((split) => split.isManuallyEdited).reduce((sum, split) => sum + split.amount, 0);
-
-    // Find all unedited splits (including the new one)
-    const uneditedSplits = updatedSplitExpenses.filter((split) => !split.isManuallyEdited);
-    const uneditedCount = uneditedSplits.length;
-
-    // Redistribute remaining amount among unedited splits
-    const remaining = total - editedSum;
-    const lastUneditedIndex = uneditedCount - 1;
-    let uneditedIndex = 0;
-
-    const redistributedSplitExpenses = updatedSplitExpenses.map((split) => {
-        if (split.isManuallyEdited) {
-            return split;
-        }
-        const isLast = uneditedIndex === lastUneditedIndex;
-        const newAmount = calculateIOUAmount(lastUneditedIndex, remaining, currency, isLast, true);
-        uneditedIndex += 1;
-        return {...split, amount: newAmount};
-    });
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
         comment: {
-            splitExpenses: redistributedSplitExpenses,
+            splitExpenses: [
+                ...(draftTransaction.comment?.splitExpenses ?? []),
+                initSplitExpenseItemData(transaction, {
+                    amount: 0,
+                    transactionID: NumberUtils.rand64(),
+                    reportID: draftTransaction?.reportID,
+                }),
+            ],
             splitsStartDate: null,
             splitsEndDate: null,
         },
@@ -13072,8 +13029,6 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => ({
         ...splitExpense,
         amount: calculateIOUAmount(splitCount - 1, total, currency, index === lastIndex, true),
-        // Reset isManuallyEdited since user explicitly requested even distribution
-        isManuallyEdited: false,
     }));
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -13188,57 +13143,19 @@ function updateSplitExpenseAmountField(draftTransaction: OnyxEntry<OnyxTypes.Tra
         return;
     }
 
-    const splitExpenses = draftTransaction.comment?.splitExpenses ?? [];
-    const originalTransactionID = draftTransaction.comment?.originalTransactionID;
-    const total = getAmount(draftTransaction, undefined, undefined, true, true);
-    const currency = getCurrency(draftTransaction);
-
-    // Mark the edited split and update its amount
-    const splitWithUpdatedAmount = splitExpenses.map((splitExpense) => {
+    const updatedSplitExpenses = draftTransaction.comment?.splitExpenses?.map((splitExpense) => {
         if (splitExpense.transactionID === currentItemTransactionID) {
             return {
                 ...splitExpense,
                 amount,
-                isManuallyEdited: true,
             };
         }
         return splitExpense;
     });
 
-    // Find unedited splits (excluding the one being edited)
-    const uneditedSplits = splitWithUpdatedAmount.filter((split) => !split.isManuallyEdited);
-
-    // If no unedited splits remain, just save the updated amounts without redistribution
-    if (uneditedSplits.length === 0) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
-            comment: {
-                splitExpenses: splitWithUpdatedAmount,
-            },
-        });
-        return;
-    }
-
-    // Sum amounts of manually edited splits (the updated split is already marked as edited)
-    const editedSum = splitWithUpdatedAmount.filter((split) => split.isManuallyEdited).reduce((sum, split) => sum + split.amount, 0);
-
-    // Redistribute remaining amount among unedited splits
-    const remaining = total - editedSum;
-    const lastUneditedIndex = uneditedSplits.length - 1;
-    let uneditedIndex = 0;
-
-    const redistributedSplitExpenses = splitWithUpdatedAmount.map((split) => {
-        if (split.isManuallyEdited) {
-            return split;
-        }
-        const isLast = uneditedIndex === lastUneditedIndex;
-        const newAmount = calculateIOUAmount(lastUneditedIndex, remaining, currency, isLast, true);
-        uneditedIndex += 1;
-        return {...split, amount: newAmount};
-    });
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${draftTransaction?.comment?.originalTransactionID}`, {
         comment: {
-            splitExpenses: redistributedSplitExpenses,
+            splitExpenses: updatedSplitExpenses,
         },
     });
 }
