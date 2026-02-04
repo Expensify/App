@@ -3456,7 +3456,7 @@ function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: stri
         return;
     }
 
-    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, true);
+    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, undefined, true);
 }
 
 /**
