@@ -4993,6 +4993,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             chooseCardFeed: 'Choisir le flux de carte',
             ukRegulation:
                 'Expensify Limited agit en tant qu’agent de Plaid Financial Ltd., établissement de paiement agréé et réglementé par la Financial Conduct Authority en vertu du Payment Services Regulations 2017 (numéro de référence de l’entreprise : 804718). Plaid vous fournit, par l’intermédiaire d’Expensify Limited en tant que son agent, des services réglementés d’information sur les comptes.',
+            deletedFeed: 'Flux supprimé',
             assignCardFailedError: 'L’assignation de la carte a échoué.',
             unassignCardFailedError: 'L’annulation de l’assignation de la carte a échoué.',
             cardAlreadyAssignedError: 'Cette carte est déjà assignée à un utilisateur dans un autre espace de travail.',

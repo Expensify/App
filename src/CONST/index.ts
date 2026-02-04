@@ -8070,6 +8070,7 @@ const CONST = {
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
             USER_SELECTION_CHECKBOX: 'Search-UserSelectionCheckbox',
+            TRANSACTION_GROUP_LIST_ITEM: 'Search-TransactionGroupListItem',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
