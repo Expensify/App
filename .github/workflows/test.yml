@@ -44,7 +44,14 @@ jobs:
           key: ${{ runner.os }}-jest
 
       - name: Jest tests
-        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=2 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
+        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=2 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }} --reporters=default --reporters=./tests/utils/MemoryReporter.js --reporterOptions=output=jest-memory-${{ matrix.chunk }}.json
+
+      - name: Upload memory artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@c7d193f32edb3c5b26950aacbe4aaf96e3c6a1e9 # v4.3.0
+        with:
+          name: jest-memory-${{ matrix.chunk }}
+          path: jest-memory-${{ matrix.chunk }}.json
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}
@@ -80,6 +87,31 @@ jobs:
           name: jest-${{ matrix.chunk }}
           disable_search: true
           fail_ci_if_error: true
+
+  jest-memory-summary:
+    name: Jest memory summary
+    needs: jest
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Download memory artifacts
+        uses: actions/download-artifact@3c8623c72862da8d75e2084bb0466a00d2008dcd # v4.1.4
+        continue-on-error: true
+        with:
+          pattern: jest-memory-*
+          path: memory-artifacts
+          merge-multiple: true
+
+      - name: Summarize memory usage
+        run: |
+          mkdir -p memory-artifacts
+          node tests/utils/summarizeMemory.js memory-artifacts
 
   storybookTests:
     if: ${{ github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
