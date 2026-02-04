@@ -235,6 +235,7 @@ function TaskAssigneeSelectorModal() {
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
+                        disableMaintainingScrollPosition
                         shouldUpdateFocusedIndex
                         shouldShowTextInput
                     />
