@@ -256,7 +256,11 @@ When a PR adds or modifies user-facing copy that requires translation, the Autho
 | 2 | **Get Spanish translation** using [JaimeGPT](https://chatgpt.com/g/g-2dgOQl5VM-english-to-spanish-translator-aka-jaimegpt) |
 | 3 | **Gather screenshots** showing where the proposed copy appears in the product |
 | 4 | **Post in [`#expensify-open-source`](https://expensify.enterprise.slack.com/archives/C01GTK53T8Q)** with all the above for internal approval |
-| 5 | **Link the Slack message** in your PR for reference |
+| 5 | **React to your own message** with the 🇪🇸 (`:es:`) emoji to trigger the translation review automation |
+| 6 | **Link the Slack message** in your PR Author Checklist for reference |
+
+> [!TIP]
+> Reacting with the 🇪🇸 emoji to your Slack message automatically posts your translation request to an internal thread where Expensify's translation team will review and confirm it.
 
 > [!IMPORTANT]
 > Translation approval from Expensify internal team is required before the PR can be merged.
