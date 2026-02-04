@@ -13,13 +13,14 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {openExternalLink} from '@libs/actions/Link';
-import {clearToggleTravelInvoicingErrors, clearTravelInvoicingSettlementAccountErrors, setTravelInvoicingSettlementAccount, toggleTravelInvoicing} from '@libs/actions/TravelInvoicing';
+import {clearToggleTravelInvoicingErrors, clearTravelInvoicingSettlementAccountErrors, toggleTravelInvoicing} from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasInProgressUSDVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import {
+    getIsTravelInvoicingEnabled,
     getTravelInvoicingCardSettingsKey,
     getTravelLimit,
     getTravelSettlementAccount,
@@ -102,8 +103,17 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // Only show error indicator if we have settlement account errors AND it's not a toggle operation
     const hasSettlementAccountError = !isTogglePendingAction && isSettlementAccountPendingAction && Object.keys(cardSettings?.errors ?? {}).length > 0;
 
+    // Bank account eligibility for toggle handler
+    const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
+    const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
+
+    // Determine if Travel Invoicing is enabled based on settings object existence
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
+
     /**
-     * Handle toggle change for Central Invoicing
+     * Handle toggle change for Central Invoicing.
+     * When turning ON, calls toggleTravelInvoicing(true) first to provision domain, then navigates to settlement account.
+     * When turning OFF, shows confirmation modal and then clears settings via toggleTravelInvoicing.
      */
     const handleToggle = (isEnabled: boolean) => {
         if (!isEnabled) {
@@ -115,33 +125,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             }
             // Show confirmation modal before disabling
             setIsDisableConfirmModalVisible(true);
-            return;
-        }
-        // Enable flow - call action directly
-        toggleTravelInvoicing(policyID, workspaceAccountID, true);
-    };
-
-    /**
-     * Confirm disable action
-     */
-    const handleConfirmDisable = () => {
-        setIsDisableConfirmModalVisible(false);
-        toggleTravelInvoicing(policyID, workspaceAccountID, false);
-    };
-
-    // Bank account eligibility for toggle handler
-    const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
-    const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
-
-    /**
-     * Handle toggle change for Central Invoicing.
-     * When turning ON, triggers bank account flow if needed.
-     * When turning OFF, unassigns the settlement account.
-     */
-    const handleToggle = (isEnabled: boolean) => {
-        if (!isEnabled) {
-            // Turning OFF - unassign the settlement account by setting paymentBankAccountID to 0
-            setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, 0, cardSettings?.paymentBankAccountID);
             return;
         }
 
@@ -158,8 +141,18 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             return;
         }
 
-        // Bank accounts exist - go to settlement account selection
+        // Bank accounts exist - navigate to settlement account selection
+        // toggleTravelInvoicing(true) will be called after account is selected
+        // (backend requires settlement account to be set before enabling)
         Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
+    };
+
+    /**
+     * Confirm disable action - clears settings via toggleTravelInvoicing
+     */
+    const handleConfirmDisable = () => {
+        setIsDisableConfirmModalVisible(false);
+        toggleTravelInvoicing(policyID, workspaceAccountID, false);
     };
 
     const getCentralInvoicingSubtitle = () => {
@@ -174,17 +167,12 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             title: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.title'),
             subtitle: getCentralInvoicingSubtitle(),
             switchAccessibilityLabel: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subtitle'),
-            // isActive: isTravelInvoicingEnabled,
-            // onToggle: handleToggle,
-            // disabled: isLoading,
-            // pendingAction: togglePendingAction,
-            // errors: toggleErrors,
-            // onCloseError: () => clearToggleTravelInvoicingErrors(workspaceAccountID),
-            isActive: hasSettlementAccount,
+            isActive: isTravelInvoicingEnabled,
             onToggle: handleToggle,
-            // pendingAction: policy?.pendingFields?.autoReporting ?? policy?.pendingFields?.autoReportingFrequency,
-            // errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
-            // onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+            disabled: isLoading,
+            pendingAction: togglePendingAction,
+            errors: toggleErrors,
+            onCloseError: () => clearToggleTravelInvoicingErrors(workspaceAccountID),
             subMenuItems: (
                 <>
                     <View style={[styles.dFlex, styles.flexRow, styles.mt6, styles.gap4, styles.alignItemsCenter]}>

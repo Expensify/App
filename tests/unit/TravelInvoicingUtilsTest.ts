@@ -29,19 +29,21 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('Should return false when paymentBankAccountID is not set', () => {
+        it('Should return true when cardSettings object exists', () => {
+            // The existence of the settings object indicates Travel Invoicing is enabled
             const cardSettings = {} as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
-            expect(result).toBe(false);
+            expect(result).toBe(true);
         });
 
-        it('Should return false when paymentBankAccountID is 0', () => {
+        it('Should return true when cardSettings exists even if settlement account is not set', () => {
+            // Settings object existence is the indicator, not the bank account ID
             const cardSettings = {paymentBankAccountID: 0} as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
-            expect(result).toBe(false);
+            expect(result).toBe(true);
         });
 
-        it('Should return true when paymentBankAccountID is set to a valid value', () => {
+        it('Should return true when cardSettings exists with we have a valid settlement account set', () => {
             const cardSettings = {paymentBankAccountID: 12345} as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
             expect(result).toBe(true);

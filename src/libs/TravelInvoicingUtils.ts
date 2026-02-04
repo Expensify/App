@@ -7,13 +7,12 @@ import {getLastFourDigits} from './BankAccountUtils';
 
 /**
  * Checks whether Travel Invoicing is enabled based on the card settings.
- * Travel Invoicing is considered enabled if the PROGRAM_TRAVEL_US feed has a valid paymentBankAccountID.
+ * Travel Invoicing is considered enabled if the PROGRAM_TRAVEL_US settings object exists.
+ * The mere existence of the travel feed settings indicates the feature is "on".
  */
 function getIsTravelInvoicingEnabled(cardSettings: OnyxEntry<ExpensifyCardSettings>): boolean {
-    if (!cardSettings) {
-        return false;
-    }
-    return !!cardSettings.paymentBankAccountID;
+    // The existence of the settings object acts as the boolean for whether Travel Invoicing is enabled
+    return !!cardSettings;
 }
 
 /**

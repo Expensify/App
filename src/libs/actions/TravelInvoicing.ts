@@ -123,40 +123,46 @@ function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number,
 
 /**
  * Toggles Travel Invoicing on or off for a workspace.
- * When enabling: provisions travel cards for all travel-enabled users
- * When disabling: validates no outstanding balance exists first (done at the component level)
+ * When enabling: sets loading state, backend returns settings on success
+ * When disabling: clears the settings object entirely (backend returns null onyx data)
  */
 function toggleTravelInvoicing(policyID: string, workspaceAccountID: number, enabled: boolean) {
     const domainName = getDomainNameForPolicy(policyID);
     const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
-    // Note: The toggle state should be controlled by a dedicated field from the backend (e.g., isCentralInvoicingEnabled)
-    // The backend should return onyxData to update this field on success
-    // We only set loading and pending states here - the actual enabled state comes from the backend
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+    // When enabling: use MERGE to set loading state, backend returns full settings
+    // When disabling: use SET null to clear entire settings object
+    const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: enabled ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: cardSettingsKey,
-            value: {
-                isLoading: true,
-                pendingAction: enabled ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                errors: null,
-            },
+            value: enabled
+                ? {
+                      isLoading: true,
+                      pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                      errors: null,
+                  }
+                : null,
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+    const successData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: enabled ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: cardSettingsKey,
-            value: {
-                isLoading: false,
-                pendingAction: null,
-            },
+            value: enabled
+                ? {
+                      isLoading: false,
+                      pendingAction: null,
+                  }
+                : null,
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+    // On failure: restore state with error
+    // For enable failure: clear loading state and show error
+    // For disable failure: need to restore settings with error (backend should return original data)
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
