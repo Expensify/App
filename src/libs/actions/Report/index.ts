@@ -201,6 +201,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    AnyRequest,
     BankAccountList,
     IntroSelected,
     InvitedEmailsToAccountIDs,
@@ -1085,18 +1086,17 @@ function openReport(
           };
 
     const optimisticData: Array<
-        | OnyxUpdate<
-              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-              | typeof ONYXKEYS.COLLECTION.REPORT
-              | typeof ONYXKEYS.COLLECTION.TRANSACTION
-              | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-              | typeof ONYXKEYS.NVP_INTRO_SELECTED
-              | typeof ONYXKEYS.COLLECTION.POLICY
-              | typeof ONYXKEYS.NVP_ONBOARDING
-              | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-          >
-        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.NVP_INTRO_SELECTED
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.NVP_ONBOARDING
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2117,13 +2117,14 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
 
 /** Deletes a comment from the report, basically sets it as empty string */
 function deleteReportComment(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
     reportAction: ReportAction,
     ancestors: Ancestor[],
     isReportArchived: boolean | undefined,
     isOriginalReportArchived: boolean | undefined,
     currentEmail: string,
 ) {
+    const reportID = report?.reportID;
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
 
@@ -2154,7 +2155,6 @@ function deleteReportComment(
 
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const optimisticLastReportData = optimisticReportLastData(originalReportID, optimisticReportActions as ReportActions, canUserPerformWriteAction, isOriginalReportArchived);
 
@@ -2221,28 +2221,26 @@ function deleteReportComment(
         optimisticData.push(...getOptimisticDataForAncestors(ancestors, optimisticReport?.lastVisibleActionCreated ?? '', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
     }
 
+    // This is a workaround, so we need to fix this properly in the future
     // Force LHN re-evaluation for empty child thread by triggering an Onyx update
     if (reportAction.childReportID && childVisibleActionCount === 0) {
         const childReportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`;
-        const childReport = allReports?.[childReportKey];
 
-        if (childReport) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: childReportKey,
-                value: {
-                    lastMessageText: '',
-                },
-            });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: childReportKey,
+            value: {
+                lastMessageText: '',
+            },
+        });
 
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: childReportKey,
-                value: {
-                    lastMessageText: childReport.lastMessageText ?? '',
-                },
-            });
-        }
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: childReportKey,
+            value: {
+                lastMessageText: '',
+            },
+        });
     }
 
     const parameters: DeleteCommentParams = {
@@ -2357,7 +2355,7 @@ function editReportComment(
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReportID, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentUserLogin);
+        deleteReportComment(originalReport, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentUserLogin);
         return;
     }
 
@@ -2447,7 +2445,7 @@ function editReportComment(
                 if (addCommentIndex > -1) {
                     return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
                 }
-                return resolveDuplicationConflictAction(persistedRequests, createUpdateCommentMatcher(reportActionID));
+                return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },
         },
     );
@@ -3470,21 +3468,21 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
+function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, conciergeReportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.popToSidebar();
     } else {
         Navigation.goBack();
     }
-    navigateToConciergeChat(conciergeReportIDOnyxConnect, false);
+    navigateToConciergeChat(conciergeReportID, false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
 }
 
-function clearCreateChatError(report: OnyxEntry<Report>) {
+function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: string | undefined) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
@@ -3492,7 +3490,7 @@ function clearCreateChatError(report: OnyxEntry<Report>) {
         return;
     }
 
-    navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true);
+    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, undefined, true);
 }
 
 /**
@@ -5975,6 +5973,7 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean, 
 
 function buildOptimisticChangePolicyData(
     report: Report,
+    parentReport: OnyxEntry<Report>,
     policy: Policy,
     currentUserAccountID: number,
     email: string,
@@ -6190,7 +6189,6 @@ function buildOptimisticChangePolicyData(
         });
 
         // Update the expense chat report
-        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldWorkspaceChatReportID}`];
         const lastMessageText = getLastVisibleMessage(oldWorkspaceChatReportID, isReportLastVisibleArchived, {
             [oldReportPreviewActionID]: updatedReportPreviewAction as ReportAction,
         })?.lastMessageText;
@@ -6212,7 +6210,7 @@ function buildOptimisticChangePolicyData(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${oldWorkspaceChatReportID}`,
-            value: chatReport,
+            value: parentReport,
         });
     }
 
@@ -6436,6 +6434,7 @@ function buildOptimisticChangePolicyData(
  */
 function changeReportPolicy(
     report: Report,
+    parentReport: OnyxEntry<Report>,
     policy: Policy,
     accountID: number,
     email: string,
@@ -6451,6 +6450,7 @@ function changeReportPolicy(
 
     const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(
         report,
+        parentReport,
         policy,
         accountID,
         email,
@@ -6476,18 +6476,31 @@ function changeReportPolicy(
 /**
  * Invites the submitter to the new report policy, changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat
  */
-function changeReportPolicyAndInviteSubmitter(
-    report: Report,
-    policy: Policy,
-    currentUserAccountID: number,
-    email: string,
-    hasViolationsParam: boolean,
-    isChangePolicyTrainingModalDismissed: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    employeeList: PolicyEmployeeList | undefined,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    isReportLastVisibleArchived: boolean | undefined,
-) {
+function changeReportPolicyAndInviteSubmitter({
+    report,
+    parentReport,
+    policy,
+    currentUserAccountID,
+    email,
+    hasViolationsParam,
+    isChangePolicyTrainingModalDismissed,
+    isASAPSubmitBetaEnabled,
+    employeeList,
+    formatPhoneNumber,
+    isReportLastVisibleArchived,
+}: {
+    report: Report;
+    parentReport: OnyxEntry<Report>;
+    policy: Policy;
+    currentUserAccountID: number;
+    email: string;
+    hasViolationsParam: boolean;
+    isChangePolicyTrainingModalDismissed: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    employeeList: PolicyEmployeeList | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    isReportLastVisibleArchived: boolean | undefined;
+}) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
     }
@@ -6521,6 +6534,7 @@ function changeReportPolicyAndInviteSubmitter(
         optimisticMovedReportAction,
     } = buildOptimisticChangePolicyData(
         report,
+        parentReport,
         policy,
         currentUserAccountID,
         email,
