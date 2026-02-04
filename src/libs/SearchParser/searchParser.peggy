@@ -29,10 +29,16 @@
 // per-parser initializer (code executed before every parse)
 {  
   const GROUP_BY_DEFAULT_SORT = {
-    from: "from",
-    card: "card",
-    "withdrawal-id": "withdrawn",
-    category: "category",
+    from: "groupFrom",
+    card: "groupCard",
+    "withdrawal-id": "groupWithdrawn",
+    category: "groupCategory",
+    tag: "groupTag",
+    merchant: "groupMerchant",
+    month: "groupmonth",
+    week: "groupweek",
+    year: "groupyear",
+    quarter: "groupquarter",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -40,6 +46,12 @@
     card: "asc",
     "withdrawal-id": "desc",
     category: "asc",
+    tag: "asc",
+    merchant: "asc",
+    month: "desc",
+    week: "desc",
+    year: "desc",
+    quarter: "desc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
@@ -49,13 +61,14 @@
     status: "",
     sortBy: "date",
     sortOrder: "desc",
+    view: "table",
   };
   let rawFilterList = [];
   let userProvidedSortBy = false;
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view"
   ]);
 
   function isDefaultSortValue(sortBy) {
@@ -262,7 +275,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns / limit)
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns / limit / view)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

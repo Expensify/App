@@ -1,14 +1,14 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useContext, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
+import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingViewContextProvider';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ForceFullScreenViewProps from './types';
 
 function ForceFullScreenView({children, shouldForceFullScreen = false}: ForceFullScreenViewProps) {
     const route = useRoute();
     const styles = useThemeStyles();
-    const {addRouteKey, removeRouteKey} = useContext(FullScreenBlockingViewContext);
+    const {addRouteKey, removeRouteKey} = useFullScreenBlockingViewActions();
 
     useEffect(() => {
         if (!shouldForceFullScreen) {
