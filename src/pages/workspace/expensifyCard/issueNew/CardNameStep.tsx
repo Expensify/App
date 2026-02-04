@@ -46,7 +46,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE], translate);
         const length = values.cardTitle.length;
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
             addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', length, CONST.STANDARD_LENGTH_LIMIT));
