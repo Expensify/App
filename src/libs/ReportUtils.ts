@@ -10977,7 +10977,11 @@ function getAncestors(
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForParentReportAction(report: Report | undefined, lastVisibleActionCreated: string, type: string): Array<OnyxUpdate | null> {
+function getOptimisticDataForParentReportAction(
+    report: Report | undefined,
+    lastVisibleActionCreated: string,
+    type: string,
+): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> | null> {
     if (!report || isEmptyObject(report)) {
         return [];
     }

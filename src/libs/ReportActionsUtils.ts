@@ -3,7 +3,7 @@ import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
 import isEmpty from 'lodash/isEmpty';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -1375,7 +1375,7 @@ function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [],
 /**
  * @returns The latest report action in the `onyxData` or `null` if one couldn't be found
  */
-function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNullable<OnyxEntry<ReportAction>> | null {
+function getLatestReportActionFromOnyxData<TKey extends OnyxKey>(onyxData: Array<OnyxUpdate<TKey>> | null): NonNullable<OnyxEntry<ReportAction>> | null {
     const reportActionUpdate = onyxData?.find((onyxUpdate) => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
 
     if (!reportActionUpdate) {
