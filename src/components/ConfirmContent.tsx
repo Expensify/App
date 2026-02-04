@@ -111,7 +111,7 @@ function ConfirmContent({
     confirmText = '',
     cancelText = '',
     prompt = '',
-    success = true,
+    success = false,
     danger = false,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
