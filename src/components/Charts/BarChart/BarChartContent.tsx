@@ -11,7 +11,7 @@ import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LABEL_OFFSET, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {LABEL_ROTATIONS, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import {DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -58,7 +58,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
     const [barAreaWidth, setBarAreaWidth] = useState(0);
-    const [containerHeight, setContainerHeight] = useState(0);
     const defaultBarColor = DEFAULT_CHART_COLOR;
 
     // prepare data for display
@@ -86,17 +85,14 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     );
 
     const handleLayout = useCallback((event: LayoutChangeEvent) => {
-        const {width, height} = event.nativeEvent.layout;
-        setChartWidth(width);
-        setContainerHeight(height);
+        setChartWidth(event.nativeEvent.layout.width);
     }, []);
 
-    const {labelRotation, labelSkipInterval, truncatedLabels, maxLabelLength} = useChartLabelLayout({
+    const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
         data,
         font,
-        chartWidth,
-        barAreaWidth,
-        containerHeight,
+        tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
+        labelAreaWidth: barAreaWidth,
     });
 
     const domainPadding = useMemo(() => {
@@ -196,9 +192,9 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     // This keeps bar area at ~250px while giving labels their needed vertical space
     const dynamicChartStyle = useMemo(
         () => ({
-            height: CHART_CONTENT_MIN_HEIGHT + (maxLabelLength ?? 0),
+            height: CHART_CONTENT_MIN_HEIGHT + (xAxisLabelHeight ?? 0),
         }),
-        [maxLabelLength],
+        [xAxisLabelHeight],
     );
 
     if (isLoading || !font) {
@@ -220,7 +216,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 titleIcon={titleIcon}
             />
             <View
-                style={[styles.barChartChartContainer, labelRotation === -LABEL_ROTATIONS.VERTICAL ? dynamicChartStyle : undefined]}
+                style={[styles.barChartChartContainer, dynamicChartStyle]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (

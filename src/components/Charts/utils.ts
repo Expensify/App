@@ -51,4 +51,15 @@ function measureTextWidth(text: string, font: SkFont): number {
     return font.getGlyphWidths(glyphIDs).reduce((sum, w) => sum + w, 0);
 }
 
-export {getChartColor, DEFAULT_CHART_COLOR, measureTextWidth};
+/**
+ * Post-rotation horizontal translation to center a rotated label on its tick mark.
+ *
+ * Text baselines sit closer to glyph tops (ascent > descent), so rotating around
+ * the baseline end creates asymmetric horizontal extent. This returns the correction
+ * to apply as a translateX AFTER rotation.
+ */
+function rotatedLabelCenterCorrection(ascent: number, descent: number, angleRad: number): number {
+    return ((ascent - descent) * Math.sin(angleRad)) / 2;
+}
+
+export {getChartColor, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection};

@@ -6,12 +6,12 @@ type UseChartLabelFormatsProps = {
     data: ChartDataPoint[];
     yAxisUnit?: string;
     yAxisUnitPosition?: YAxisUnitPosition;
-    labelSkipInterval: number;
-    labelRotation: number;
-    truncatedLabels: string[];
+    labelSkipInterval?: number;
+    labelRotation?: number;
+    truncatedLabels?: string[];
 };
 
-export default function useChartLabelFormats({data, yAxisUnit, yAxisUnitPosition = 'left', labelSkipInterval, labelRotation, truncatedLabels}: UseChartLabelFormatsProps) {
+export default function useChartLabelFormats({data, yAxisUnit, yAxisUnitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels}: UseChartLabelFormatsProps) {
     const formatYAxisLabel = useCallback(
         (value: number) => {
             const formatted = value.toLocaleString();
@@ -37,7 +37,7 @@ export default function useChartLabelFormats({data, yAxisUnit, yAxisUnitPosition
             // Use pre-truncated labels
             // If rotation is vertical (-90), we usually want full labels
             // because they have more space vertically.
-            const sourceToUse = labelRotation === -LABEL_ROTATIONS.VERTICAL ? data.map((p) => p.label) : truncatedLabels;
+            const sourceToUse = labelRotation === -LABEL_ROTATIONS.VERTICAL || !truncatedLabels ? data.map((p) => p.label) : truncatedLabels;
 
             return sourceToUse.at(index) ?? '';
         },

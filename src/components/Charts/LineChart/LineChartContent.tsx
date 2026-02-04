@@ -11,9 +11,9 @@ import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import {CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LABEL_OFFSET, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
-import {LABEL_ROTATIONS, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {DEFAULT_CHART_COLOR, measureTextWidth} from '@components/Charts/utils';
+import {DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +21,12 @@ import variables from '@styles/variables';
 
 /** Inner dot radius for line chart data points */
 const DOT_RADIUS = 6;
+
+/** Extra pixel spacing between the plot boundary and the first/last data point */
+const LINE_CHART_DOMAIN_PADDING = 16;
+
+/** Gap between the x-axis line and the top of label glyphs */
+const X_AXIS_LABEL_GAP = 2;
 
 type LineChartProps = CartesianChartProps & {
     /** Callback when a data point is pressed */
@@ -33,8 +39,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
-    const [containerHeight, setContainerHeight] = useState(0);
-    const [plotAreaWidth, setPlotAreaWidth] = useState(0);
+    const [chartBoundsInfo, setChartBoundsInfo] = useState({plotAreaWidth: 0, firstTickOffset: 0});
 
     const yAxisDomain = useDynamicYDomain(data);
 
@@ -59,21 +64,31 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     );
 
     const handleLayout = useCallback((event: LayoutChangeEvent) => {
-        const {width, height} = event.nativeEvent.layout;
-        setChartWidth(width);
-        setContainerHeight(height);
+        setChartWidth(event.nativeEvent.layout.width);
     }, []);
 
     const handleChartBoundsChange = useCallback((bounds: ChartBounds) => {
-        setPlotAreaWidth(bounds.right - bounds.left);
+        setChartBoundsInfo({
+            plotAreaWidth: bounds.right - bounds.left,
+            firstTickOffset: bounds.left + LINE_CHART_DOMAIN_PADDING,
+        });
     }, []);
 
-    const {labelRotation, labelSkipInterval, truncatedLabels, maxLabelLength} = useChartLabelLayout({
+    const {plotAreaWidth, firstTickOffset} = chartBoundsInfo;
+
+    const tickSpacing = useMemo(() => {
+        if (plotAreaWidth === 0 || data.length <= 1) {
+            return 0;
+        }
+        return (plotAreaWidth - 2 * LINE_CHART_DOMAIN_PADDING) / (data.length - 1);
+    }, [plotAreaWidth, data.length]);
+
+    const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
         data,
         font,
-        chartWidth,
-        barAreaWidth: plotAreaWidth,
-        containerHeight,
+        tickSpacing,
+        labelAreaWidth: plotAreaWidth,
+        firstTickOffset,
     });
 
     // Measure label widths for custom positioning in `renderOutside`
@@ -87,13 +102,10 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     // Convert hook's degree rotation to radians for Skia rendering
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
-    const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
+    const {formatYAxisLabel} = useChartLabelFormats({
         data,
         yAxisUnit,
         yAxisUnitPosition,
-        labelSkipInterval,
-        labelRotation,
-        truncatedLabels,
     });
 
     const checkIsOverDot = useCallback((args: HitTestArgs) => {
@@ -112,11 +124,8 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
 
     // Victory's built-in x-axis labels center each label under its tick mark,
-    // which works well for bar charts where bars have width and natural spacing.
-    // For line charts, data points sit at the edges of the plot area, so centered
-    // labels get clipped or overflow the chart bounds. We render labels manually
-    // via `renderOutside` so we can right-align each label's last character at its
-    // tick position and clamp edge labels within the canvas.
+    // which works for bar charts but clips labels on line charts where data points
+    // sit at the edges. We render labels via `renderOutside` with custom positioning.
     const renderCustomXLabels = useCallback(
         (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
             if (!font) {
@@ -124,9 +133,9 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
             }
 
             const fontMetrics = font.getMetrics();
-            const lineHeight = Math.abs(fontMetrics.ascent) + Math.abs(fontMetrics.descent);
-            const fontSize = font.getSize();
-            const labelY = args.chartBounds.bottom + 2 + fontSize;
+            const ascent = Math.abs(fontMetrics.ascent);
+            const descent = Math.abs(fontMetrics.descent);
+            const labelY = args.chartBounds.bottom + X_AXIS_LABEL_GAP + font.getSize();
 
             return truncatedLabels.map((label, i) => {
                 if (i % labelSkipInterval !== 0) {
@@ -136,15 +145,11 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 const tickX = args.xScale(i);
                 const labelWidth = labelWidths.at(i) ?? 0;
 
-                // Last character anchored at tickX, clamped to canvas edges.
-                const idealX = tickX - labelWidth;
-                const clampedX = Math.max(0, Math.min(args.canvasSize.width - labelWidth, idealX));
-
                 if (angleRad === 0) {
                     return (
                         <SkiaText
                             key={`x-label-${label}`}
-                            x={clampedX}
+                            x={tickX - labelWidth}
                             y={labelY}
                             text={label}
                             font={font}
@@ -153,18 +158,21 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                     );
                 }
 
-                // At 90° the rotated label's horizontal footprint is lineHeight;
-                // shift by half to center it on the tick mark.
-                const centeringOffset = labelRotation === -LABEL_ROTATIONS.VERTICAL ? lineHeight / 2 : 0;
-                const origin = vec(clampedX + labelWidth + centeringOffset, labelY);
+                const textX = tickX - labelWidth;
+                const origin = vec(tickX, labelY);
+
+                // Rotate around the anchor, then translate to correct for ascent/descent
+                // asymmetry (ascent > descent shifts the visual center left of the anchor).
+                const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
+
                 return (
                     <Group
                         key={`x-label-${label}`}
                         origin={origin}
-                        transform={[{rotate: -angleRad}]}
+                        transform={[{translateX: correction}, {rotate: -angleRad}]}
                     >
                         <SkiaText
-                            x={clampedX}
+                            x={textX}
                             y={labelY}
                             text={label}
                             font={font}
@@ -174,14 +182,14 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 );
             });
         },
-        [font, truncatedLabels, labelSkipInterval, labelWidths, angleRad, labelRotation, theme.textSupporting],
+        [font, truncatedLabels, labelSkipInterval, labelWidths, angleRad, theme.textSupporting],
     );
 
     const dynamicChartStyle = useMemo(
         () => ({
-            height: CHART_CONTENT_MIN_HEIGHT + (maxLabelLength ?? 0),
+            height: CHART_CONTENT_MIN_HEIGHT + (xAxisLabelHeight ?? 0),
         }),
-        [maxLabelLength],
+        [xAxisLabelHeight],
     );
 
     if (isLoading || !font) {
@@ -203,27 +211,22 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 titleIcon={titleIcon}
             />
             <View
-                style={[styles.lineChartChartContainer, labelRotation === -LABEL_ROTATIONS.VERTICAL ? dynamicChartStyle : undefined]}
+                style={[styles.lineChartChartContainer, dynamicChartStyle]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
                     <CartesianChart
                         xKey="x"
-                        padding={CHART_PADDING}
+                        padding={{top: CHART_PADDING, left: CHART_PADDING, right: CHART_PADDING, bottom: (xAxisLabelHeight ?? 0) + CHART_PADDING}}
                         yKeys={['y']}
-                        domainPadding={16}
+                        domainPadding={LINE_CHART_DOMAIN_PADDING}
                         actionsRef={actionsRef}
                         customGestures={customGestures}
                         onChartBoundsChange={handleChartBoundsChange}
                         renderOutside={renderCustomXLabels}
                         xAxis={{
-                            font,
                             tickCount: data.length,
-                            labelColor: 'transparent',
                             lineWidth: X_AXIS_LINE_WIDTH,
-                            formatXLabel: formatXAxisLabel,
-                            labelRotate: labelRotation,
-                            labelOverflow: 'visible',
                         }}
                         yAxis={[
                             {
