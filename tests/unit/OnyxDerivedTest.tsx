@@ -960,7 +960,7 @@ describe('OnyxDerived', () => {
 
                 const payReport = createPayableReport();
                 const transaction = createMockTransaction('trans_pay', 'pay_report');
-                
+
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {
                         email: SECONDARY_LOGIN, // Secondary login that doesn't match reimburser
