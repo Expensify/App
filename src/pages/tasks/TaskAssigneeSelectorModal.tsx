@@ -232,6 +232,7 @@ function TaskAssigneeSelectorModal() {
                         onSelectRow={selectReport}
                         shouldSingleExecuteRowSelect
                         textInputOptions={textInputOptions}
+                        initialScrollIndex={0}
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
