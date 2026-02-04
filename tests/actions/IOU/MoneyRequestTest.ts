@@ -292,6 +292,8 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             files: [fakeReceiptFile],
             shouldGenerateTransactionThreadReport: false,
+            receiverPolicy: undefined,
+            chatReceiverPolicy: undefined,
             isSelfTourViewed: false,
         };
 
@@ -719,6 +721,8 @@ describe('MoneyRequest', () => {
             setDistanceRequestData: jest.fn(),
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
+            receiverPolicy: undefined,
+            chatReceiverPolicy: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
