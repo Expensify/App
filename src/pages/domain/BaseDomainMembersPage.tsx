@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -177,7 +177,7 @@ function BaseDomainMembersPage({
         }
         return (
             <CustomListHeader
-                canSelectMultiple
+                canSelectMultiple={canSelectMultiple}
                 leftHeaderText={headerTitle}
             />
         );
