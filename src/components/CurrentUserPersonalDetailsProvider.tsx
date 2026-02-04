@@ -1,4 +1,4 @@
-import React, {createContext, useCallback} from 'react';
+import React, {createContext, useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
@@ -15,17 +15,22 @@ const CurrentUserPersonalDetailsContext = createContext<CurrentUserPersonalDetai
 
 function CurrentUserPersonalDetailsProvider({children}: {children: React.ReactNode}) {
     const session = useSession();
-    const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const sessionRef = useRef(session);
+
+    // Keep a ref of session to make the selector perfectly synchronized
+    // with the current Onyx state during the same render phase.
+    useEffect(() => {
+        sessionRef.current = session;
+    }, [session?.accountID]);
+
     const userAccountSelector = useCallback(
         (allPersonalDetails: OnyxEntry<PersonalDetailsList>): CurrentUserPersonalDetails => {
-            const personalDetailsForUser = (allPersonalDetails?.[userAccountID] ?? {}) as CurrentUserPersonalDetails;
-            personalDetailsForUser.accountID = userAccountID;
-            personalDetailsForUser.email = session?.email;
-            return personalDetailsForUser;
+            const userAccountID = sessionRef.current?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+            return allPersonalDetails?.[userAccountID] as CurrentUserPersonalDetails;
         },
-        [session?.email, userAccountID],
+        [],
     );
-    const [currentUserPersonalDetails = defaultCurrentUserPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: userAccountSelector, canBeMissing: true});
+    const [currentUserPersonalDetails = defaultCurrentUserPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: userAccountSelector, canBeMissing: true}, [session?.accountID]);
 
     return <CurrentUserPersonalDetailsContext.Provider value={currentUserPersonalDetails}>{children}</CurrentUserPersonalDetailsContext.Provider>;
 }
