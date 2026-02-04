@@ -82,7 +82,7 @@ function getMakeDefaultPaymentOnyxData(
     previousPaymentMethod?: PaymentMethod,
     currentPaymentMethod?: PaymentMethod,
     isOptimisticData = true,
-): OnyxUpdate[] {
+): Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST>> {
     const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST>> = [
         isOptimisticData
             ? {
