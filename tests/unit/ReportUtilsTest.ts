@@ -97,6 +97,7 @@ import {
     isHarvestCreatedExpenseReport,
     isMoneyRequestReportEligibleForMerge,
     isPayer,
+    isReportDeleted,
     isReportOutstanding,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
@@ -11573,6 +11574,36 @@ describe('ReportUtils', () => {
                 expect(logWarnSpy).toHaveBeenCalledWith('policyExpenseReportID is not valid during expense categorizing');
                 expect(Navigation.navigate).not.toHaveBeenCalled();
             });
+        });
+    });
+
+    describe('isReportDeleted', () => {
+        it('should return true when report is undefined', () => {
+            expect(isReportDeleted(undefined)).toBe(true);
+        });
+
+        it('should return true when report has no reportID', () => {
+            const report = {
+                ...createRandomReport(1, undefined),
+                reportID: '',
+            };
+            expect(isReportDeleted(report)).toBe(true);
+        });
+
+        it('should return true when report has pendingAction DELETE', () => {
+            const report = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+            expect(isReportDeleted(report)).toBe(true);
+        });
+
+        it('should return false when report has valid reportID and no DELETE pendingAction', () => {
+            const report = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {preview: null},
+            };
+            expect(isReportDeleted(report)).toBe(false);
         });
     });
 });

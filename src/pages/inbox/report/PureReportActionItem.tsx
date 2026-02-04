@@ -190,6 +190,7 @@ import {
     isCompletedTaskReport,
     isExpenseReport,
     isHarvestCreatedExpenseReport as isHarvestCreatedExpenseReportUtils,
+    isReportDeleted,
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
@@ -1649,10 +1650,13 @@ function PureReportActionItem({
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
             const {originalID} = getOriginalMessage(action) ?? {};
-            const reportName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`]);
+            const originalReportOfUnapprovedTransactions = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
+            const reportName = getReportName(originalReportOfUnapprovedTransactions);
             children = (
                 <ReportActionItemBasicMessage>
-                    <RenderHTML html={`<comment><muted-text>${getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate)}</muted-text></comment>`} />
+                    <RenderHTML
+                        html={`<comment><muted-text>${getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isReportDeleted(originalReportOfUnapprovedTransactions), translate)}</muted-text></comment>`}
+                    />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionableMentionWhisper(action)) {

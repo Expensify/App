@@ -85,6 +85,7 @@ type CreatedReportForUnapprovedTransactionsParams = {
     reportUrl: string;
     reportName: string;
     reportID: string | undefined;
+    isReportDeleted: boolean;
 };
 
 type MovedTransactionParams = {
