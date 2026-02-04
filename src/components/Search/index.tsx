@@ -905,8 +905,10 @@ function Search({
             }
 
             if (isTransactionMonthGroupListItemType(item)) {
+                // Extract the existing date filter to check for year-to-date or other date limits
+                const existingDateFilter = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
+                const {start: monthStart, end: monthEnd} = adjustTimeRangeToDateFilters(DateUtils.getMonthDateRange(item.year, item.month), existingDateFilter);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
-                const {start: monthStart, end: monthEnd} = DateUtils.getMonthDateRange(item.year, item.month);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [

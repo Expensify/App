@@ -2480,9 +2480,11 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
                 continue;
             }
             let transactionsQueryJSON: SearchQueryJSON | undefined;
+            const {start: monthStart, end: monthEnd} = adjustTimeRangeToDateFilters(
+                DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month),
+                queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE),
+            );
             if (queryJSON && monthGroup.year && monthGroup.month) {
-                // Create date range for the month (first day to last day of the month)
-                const {start: monthStart, end: monthEnd} = DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month);
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
                 newFlatFilters.push({
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
