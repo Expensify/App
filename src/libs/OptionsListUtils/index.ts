@@ -1112,6 +1112,7 @@ function getReportDisplayOption(
  */
 function getPolicyExpenseReportOption(
     participant: Participant | SearchOptionData,
+    privateIsArchived: string | undefined,
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
@@ -1132,6 +1133,7 @@ function getPolicyExpenseReportOption(
             forcePolicyNamePreview: false,
         },
         reportAttributesDerived,
+        privateIsArchived,
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
@@ -2711,6 +2713,7 @@ function formatSectionsFromSearchTerm(
     selectedOptions: SearchOptionData[],
     filteredRecentReports: SearchOptionData[],
     filteredPersonalDetails: SearchOptionData[],
+    privateIsArchivedMap: Record<string, string | undefined>,
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
@@ -2727,8 +2730,9 @@ function formatSectionsFromSearchTerm(
                 data: shouldGetOptionDetails
                     ? selectedOptions.map((participant) => {
                           const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                          const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                           return isReportPolicyExpenseChat
-                              ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                              ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, reportAttributesDerived)
                               : getParticipantsOption(participant, personalDetails);
                       })
                     : selectedOptions,
@@ -2755,8 +2759,9 @@ function formatSectionsFromSearchTerm(
             data: shouldGetOptionDetails
                 ? selectedParticipantsWithoutDetails.map((participant) => {
                       const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
+                      const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                       return isReportPolicyExpenseChat
-                          ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                          ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, reportAttributesDerived)
                           : getParticipantsOption(participant, personalDetails);
                   })
                 : selectedParticipantsWithoutDetails,

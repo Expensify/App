@@ -23,6 +23,7 @@ import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -239,6 +240,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
     const allPersonalDetails = usePersonalDetails();
@@ -271,6 +273,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
+        privateIsArchivedMap,
         currentUserAccountID,
         allPersonalDetails,
         undefined,
@@ -412,6 +415,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                     accessibilityLabel={item.text ?? ''}
                     accessibilityState={{checked: item.isSelected}}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
+                    sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.PARTICIPANT_TOGGLE}
                 >
                     <SelectCircle
                         isChecked={item.isSelected}

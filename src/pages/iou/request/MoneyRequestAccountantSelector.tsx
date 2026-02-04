@@ -13,6 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
@@ -71,6 +72,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -158,6 +160,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             [],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
             true,
@@ -190,8 +193,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
@@ -219,6 +223,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         translate,
         loginList,
         countryCode,
+        privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
     ]);
