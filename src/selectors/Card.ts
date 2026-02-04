@@ -30,14 +30,6 @@ const filterOutPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 };
 
 /**
- * Filter to keep only personal cards from the card list.
- * Personal cards have fundID === '0' or no fundID.
- */
-const filterPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
-    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
-};
-
-/**
  * Selects the Expensify Card feed from the card list and returns the first one.
  */
 const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
@@ -60,4 +52,4 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
         .filter((card) => isCard(card) && isExpensifyCard(card))
         .every((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
-export {filterCardsHiddenFromSearch, filterOutPersonalCards, filterPersonalCards, defaultExpensifyCardSelector, cardByIdSelector, areAllExpensifyCardsShipped};
+export {filterCardsHiddenFromSearch, filterOutPersonalCards, defaultExpensifyCardSelector, cardByIdSelector, areAllExpensifyCardsShipped};

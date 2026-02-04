@@ -554,6 +554,7 @@ type RequestMoneyInformation = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     isSelfTourViewed: boolean;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type MoneyRequestInformationParams = {
@@ -1056,9 +1057,9 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
             }
             // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
-                Navigation.dismissModal();
+                Navigation.dismissToPreviousRHP();
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: true});
                 });
                 return;
             }
@@ -5942,6 +5943,28 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     successData?.push(...(convertTrackedExpenseInformation.successData ?? []));
     failureData?.push(...(convertTrackedExpenseInformation.failureData ?? []));
 
+    if (transactionThreadReportID) {
+        const transactionThreadReport = getReportOrDraftReport(transactionThreadReportID);
+
+        optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            value: {
+                parentReportActionID: iouParams.reportActionID,
+                parentReportID: iouParams.reportID,
+            },
+        });
+
+        failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            value: {
+                parentReportActionID: transactionThreadReport?.parentReportActionID,
+                parentReportID: transactionThreadReport?.parentReportID,
+            },
+        });
+    }
+
     if (workspaceParams) {
         const params = {
             amount,
@@ -6364,6 +6387,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         quickAction,
         policyRecentlyUsedCurrencies,
         isSelfTourViewed,
+        personalDetails,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6463,6 +6487,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        personalDetails,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -6513,7 +6538,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID,
-                    transactionThreadReportID,
+                    transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                     isLinkedTrackedExpenseReportArchived,
                 },
                 chatParams: {
