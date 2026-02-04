@@ -427,7 +427,7 @@ function MoneyReportHeader({
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    }, [showConfirmModal, translate, session?.email]);
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
@@ -1948,6 +1948,7 @@ function MoneyReportHeader({
                         }}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_PDF_MODAL_CLOSE_BUTTON}
                         wrapperStyle={[styles.pAbsolute, styles.r0]}
                     >
                         <Icon
