@@ -9,6 +9,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -22,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
+import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -35,7 +37,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'InvoiceBlue', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard']);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard', 'Luggage']);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -55,6 +57,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
     const {isOffline} = useNetwork();
     const [width, setWidth] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
 
     const features: Feature[] = useMemo(() => {
         return [
@@ -83,9 +86,9 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 enabledByDefault: true,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
-                title: translate('workspace.moreFeatures.invoices.title'),
-                icon: illustrations.InvoiceBlue,
+                id: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
+                title: translate('workspace.moreFeatures.travel.title'),
+                icon: illustrations.Luggage,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
@@ -120,12 +123,12 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         illustrations.Accounting,
         illustrations.CompanyCard,
         illustrations.Workflows,
-        illustrations.InvoiceBlue,
         illustrations.Rules,
         illustrations.Car,
         illustrations.HandCard,
         illustrations.Tag,
         illustrations.PerDiem,
+        illustrations.Luggage,
         translate,
         userReportedIntegration,
     ]);
@@ -152,76 +155,85 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
 
-    const handleContinue = useCallback(() => {
+    const handleContinue = useCallback(async () => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
             return;
         }
 
-        const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-        const newUserReportedIntegration = selectedFeatures.some((feature) => feature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) ? userReportedIntegration : undefined;
-        const featuresMap = features.map((feature) => ({
-            ...feature,
-            enabled: selectedFeatures.includes(feature.id),
-        }));
+        try {
+            setIsLoading(true);
 
-        // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
-        // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
-        const {adminsChatReportID, policyID} = shouldCreateWorkspace
-            ? createWorkspace({
-                  policyOwnerEmail: undefined,
-                  makeMeAdmin: true,
-                  policyName: '',
-                  policyID: generatePolicyID(),
-                  engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                  currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
-                  file: undefined,
-                  shouldAddOnboardingTasks: false,
-                  companySize: onboardingCompanySize,
-                  userReportedIntegration: newUserReportedIntegration,
-                  featuresMap,
-                  introSelected,
-                  activePolicyID,
-                  currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                  currentUserEmailParam: currentUserPersonalDetails.email ?? '',
-                  shouldAddGuideWelcomeMessage: false,
-              })
-            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+            const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
+            const newUserReportedIntegration = selectedFeatures.some((feature) => feature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) ? userReportedIntegration : undefined;
+            const featuresMap = features.map((feature) => ({
+                ...feature,
+                enabled: selectedFeatures.includes(feature.id),
+            }));
 
-        if (shouldCreateWorkspace) {
-            setOnboardingAdminsChatReportID(adminsChatReportID);
-            setOnboardingPolicyID(policyID);
+            // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
+            // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
+            const {adminsChatReportID, policyID} = shouldCreateWorkspace
+                ? createWorkspace({
+                      policyOwnerEmail: undefined,
+                      makeMeAdmin: true,
+                      policyName: '',
+                      policyID: generatePolicyID(),
+                      engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                      currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
+                      file: undefined,
+                      shouldAddOnboardingTasks: false,
+                      companySize: onboardingCompanySize,
+                      userReportedIntegration: newUserReportedIntegration,
+                      featuresMap,
+                      introSelected,
+                      activePolicyID,
+                      currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                      currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                      shouldAddGuideWelcomeMessage: false,
+                  })
+                : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+
+            if (shouldCreateWorkspace) {
+                setOnboardingAdminsChatReportID(adminsChatReportID);
+                setOnboardingPolicyID(policyID);
+            }
+
+            await completeOnboarding({
+                engagementChoice: onboardingPurposeSelected,
+                onboardingMessage: onboardingMessages[onboardingPurposeSelected],
+                adminsChatReportID,
+                onboardingPolicyID: policyID,
+                companySize: onboardingCompanySize,
+                userReportedIntegration: newUserReportedIntegration,
+                firstName: currentUserPersonalDetails?.firstName,
+                lastName: currentUserPersonalDetails?.lastName,
+                selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
+                shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
+                shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
+            });
+
+            // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                setOnboardingAdminsChatReportID();
+                setOnboardingPolicyID();
+            });
+
+            // We need to wait the policy is created before navigating out the onboarding flow
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                policyID,
+                adminsChatReportID,
+                // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
+                // See https://github.com/Expensify/App/issues/57167 for more details
+                (session?.email ?? '').includes('+'),
+            );
+        } catch (error) {
+            Log.warn('[BaseOnboardingInterestedFeatures] Error completing onboarding', {error});
+        } finally {
+            setIsLoading(false);
         }
-
-        completeOnboarding({
-            engagementChoice: onboardingPurposeSelected,
-            onboardingMessage: onboardingMessages[onboardingPurposeSelected],
-            adminsChatReportID,
-            onboardingPolicyID: policyID,
-            companySize: onboardingCompanySize,
-            userReportedIntegration: newUserReportedIntegration,
-            firstName: currentUserPersonalDetails?.firstName,
-            lastName: currentUserPersonalDetails?.lastName,
-            selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
-            shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
-        });
-
-        // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setOnboardingAdminsChatReportID();
-            setOnboardingPolicyID();
-        });
-
-        // We need to wait the policy is created before navigating out the onboarding flow
-        navigateAfterOnboardingWithMicrotaskQueue(
-            isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            policyID,
-            adminsChatReportID,
-            // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
-            // See https://github.com/Expensify/App/issues/57167 for more details
-            (session?.email ?? '').includes('+'),
-        );
     }, [
         isBetaEnabled,
         isSmallScreenWidth,
@@ -366,6 +378,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                     text={translate('common.continue')}
                     onPress={handleContinue}
                     isDisabled={isOffline}
+                    isLoading={isLoading}
                     pressOnEnter
                 />
             </FixedFooter>

@@ -13,7 +13,6 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
         }
 
         setAttachmentLoaded?.(source as AttachmentSource, false);
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const imageLoadedSuccessfully = useCallback(

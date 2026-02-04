@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {replaceAllDigits, stripCommaFromAmount, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
+import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -49,8 +49,9 @@ function PercentageForm({value: amount, errorText, onInputChange, label, allowEx
                 return;
             }
 
-            const strippedAmount = stripCommaFromAmount(newAmountWithoutSpaces);
-            onInputChange?.(strippedAmount);
+            // Convert comma to period for internal representation (commas are used as decimal separators in some locales like Spanish)
+            const normalizedAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
+            onInputChange?.(normalizedAmount);
         },
         [allowExceedingHundred, allowDecimal, onInputChange],
     );

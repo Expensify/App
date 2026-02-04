@@ -27,7 +27,7 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+import {isMobileChrome} from '@libs/Browser';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
@@ -129,7 +129,7 @@ function BaseTextInput({
 
         input.current.focus();
         // We only want this to run on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animateLabel = useCallback(
@@ -257,27 +257,6 @@ function BaseTextInput({
         }
     };
 
-    /**
-     * Forces Safari to recalculate text layout when input height changes.
-     * Safari's Shadow DOM doesn't reflow text automatically when container height
-     * changes, causing text to remain stuck on the previous number of lines.
-     * https://github.com/Expensify/App/issues/76785
-     */
-    useEffect(() => {
-        if (!input.current || !(isSafari() || isMobileSafari()) || textInputHeight === 0) {
-            return;
-        }
-
-        const element = input.current;
-        const originalWhiteSpace = element.style.whiteSpace;
-
-        element.style.whiteSpace = 'nowrap';
-        // Force layout calculation on the next frame
-        requestAnimationFrame(() => {
-            element.style.whiteSpace = originalWhiteSpace || '';
-        });
-    }, [textInputHeight]);
-
     const togglePasswordVisibility = useCallback(() => {
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
@@ -310,6 +289,7 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
+    const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
     return (
         <>
             <View
@@ -321,7 +301,7 @@ function BaseTextInput({
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
-                    accessibilityLabel={label}
+                    accessibilityLabel={accessibilityLabel}
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
@@ -468,6 +448,7 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                accessibilityLabel={inputProps.accessibilityLabel}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -500,15 +481,10 @@ function BaseTextInput({
                                     />
                                 </View>
                             )}
-                            {inputProps.isLoading !== undefined && !shouldShowClearButton && (
+                            {!!inputProps.isLoading && !shouldShowClearButton && (
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
-                                    style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff),
-                                        styles.ml1,
-                                        loadingSpinnerStyle,
-                                        StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
-                                    ]}
+                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (

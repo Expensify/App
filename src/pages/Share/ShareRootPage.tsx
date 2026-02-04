@@ -29,11 +29,11 @@ function showErrorAlert(title: string, message: string) {
     Alert.alert(title, message, [
         {
             onPress: () => {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             },
         },
     ]);
-    Navigation.navigate(ROUTES.HOME);
+    Navigation.navigate(ROUTES.INBOX);
 }
 
 function ShareRootPage() {
@@ -147,7 +147,7 @@ function ShareRootPage() {
     useEffect(() => {
         clearShareData();
         handleProcessFiles();
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const shareTabInputRef = useRef<AnimatedTextInputRef | null>(null);
@@ -180,7 +180,7 @@ function ShareRootPage() {
                 <HeaderWithBackButton
                     title={translate('share.shareToExpensify')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.INBOX)}
                 />
                 {isFileReady ? (
                     <OnyxTabNavigator

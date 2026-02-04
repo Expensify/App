@@ -21,13 +21,12 @@ if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
   cd "$ROOT_DIR" || exit 1
 fi
 
+# Setup Skia WASM
+echo -e "\n${GREEN}Setting up Skia WASM!${NC}"
+npx setup-skia-web
+
+# Clean up web/static created by setup-skia-web
+rm -rf "$ROOT_DIR/web/static"
+
 # Apply packages using patch-package
 scripts/applyPatches.sh
-
-# Install node_modules in subpackage, unless we're in a CI/CD environment,
-# where the node_modules for subpackage are cached separately.
-# See `.github/actions/composite/setupNode/action.yml` for more context.
-if [[ -z ${CI+x} ]]; then
-  cd desktop || exit 1
-  npm install
-fi

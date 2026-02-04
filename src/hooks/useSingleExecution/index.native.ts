@@ -10,7 +10,6 @@ export default function useSingleExecution() {
     const [isExecuting, setIsExecuting] = useState(false);
     const isExecutingRef = useRef<boolean | undefined>(undefined);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     isExecutingRef.current = isExecuting;
 
     const singleExecution = useCallback(

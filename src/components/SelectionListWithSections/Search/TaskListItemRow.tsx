@@ -23,6 +23,7 @@ import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {canActionTask, completeTask} from '@libs/actions/Task';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 import AvatarWithTextCell from './AvatarWithTextCell';
 import DateCell from './DateCell';
 import UserInfoCell from './UserInfoCell';
@@ -111,7 +112,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             style={[styles.w100]}
             isDisabled={!isTaskActionable}
             onPress={callFunctionIfActionIsAllowed(() => {
-                completeTask(taskItem, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, taskItem.reportID);
+                completeTask(taskItem as Report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, taskItem.reportID);
             })}
         />
     );

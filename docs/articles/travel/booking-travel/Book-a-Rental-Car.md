@@ -8,12 +8,11 @@ keywords: [New Expensify, book rental car, car rental, trip room, travel itinera
 
 Book rental cars quickly and easily through Expensify’s integrated travel portal. This guide walks you through searching for a rental, booking it, and accessing your trip information in New Expensify.
 
-# How to access the travel tool
+## Where to find Expensify Travel
 
-From the left-hand menu, select **Reports > Trips**.  
-Click the green **+** button in the bottom-left corner, then choose **Book travel**.
+Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
 
-If this option isn’t available, reach out to your Account Manager or Concierge to schedule a travel demo and enable travel for your account.
+If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
 # How to book a rental car
 
@@ -33,7 +32,7 @@ If this option isn’t available, reach out to your Account Manager or Concierge
 6. Select an existing trip or create a new one to assign the booking.
 7. Confirm your payment method and click **Reserve**.
 
-# What happens next
+## What happens after booking with Expensify Travel 
 
 - Your company’s travel policy may require approval before the reservation is confirmed.
 - You’ll receive a confirmation email once your booking is complete.
@@ -54,7 +53,7 @@ Insurance offerings vary by provider. You’ll see available options and add-ons
 
 Yes! Use filters to select your preferred rental provider.
 
-## Where can I view my car rental itinerary while on the go?
+## Where can I view my trip itinerary?
 
 When a traveler books a trip in Expensify Travel, a **trip itinerary** is automatically created in New Expensify. 
 To view your trip:

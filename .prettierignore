@@ -1,7 +1,6 @@
 # The GH actions don't seem to compile and verify themselves well when Prettier is applied to them
 .github/actions/javascript/**/index.js
 .well-known
-desktop/dist/**/*.js
 dist/**/*.js
 .rock
 assets/animations

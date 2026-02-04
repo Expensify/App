@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -70,7 +70,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
         [translate, reimbursable, policy?.connections?.quickbooksDesktop],
     );
 
-    const sections = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
+    const filteredData = useMemo(() => data.filter((item) => item.isShown), [data]);
 
     const selectExportEntity = useCallback(
         (row: MenuItem) => {
@@ -99,7 +99,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksDesktopOutOfPocketExpenseEntitySelectPage"
-            sections={sections}
+            data={filteredData}
             listItem={RadioListItem}
             onBackButtonPress={goBack}
             onSelectRow={(selection: SelectorType) => selectExportEntity(selection as MenuItem)}

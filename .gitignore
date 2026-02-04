@@ -57,7 +57,6 @@ yarn-error.log
 
 # Bundled code
 dist/
-desktop-build/
 
 # BUCK
 buck-out/
@@ -157,6 +156,10 @@ modules/*/lib/
 
 # Claude local settings
 .claude/settings.local.json
+
+# Playwright MCP
+.playwright/
+.playwright-mcp/
 
 # cspell cache
 .cspellcache

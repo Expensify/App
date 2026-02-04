@@ -1,5 +1,4 @@
 type UpdateCompanyCardNameParams = {
-    authToken?: string | null;
     cardID: number;
     cardName: string;
 };

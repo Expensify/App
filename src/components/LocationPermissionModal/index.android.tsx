@@ -33,7 +33,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             setShowModal(true);
             setHasError(status === RESULTS.BLOCKED);
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
