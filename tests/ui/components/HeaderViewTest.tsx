@@ -8,7 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
-import HeaderView from '@pages/home/HeaderView';
+import HeaderView from '@pages/inbox/HeaderView';
 import {joinRoom} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportType from '@userActions/Report';
