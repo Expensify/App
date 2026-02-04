@@ -73,6 +73,7 @@ import {
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import {
     getBillable,
     getCurrency,
@@ -243,6 +244,7 @@ function MoneyRequestView({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isZeroExpensesBetaEnabled = isBetaEnabled(CONST.BETAS.ZERO_EXPENSES);
+    const isP2PDistanceRequest = isCustomUnitRateIDForP2P(transaction);
 
     const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
@@ -350,12 +352,12 @@ function MoneyRequestView({
         !isGPSDistanceRequest &&
         isEditable &&
         canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy) &&
-        isPolicyAccessible(policy, currentUserEmailParam);
+        (isPolicyAccessible(policy, currentUserEmailParam) || isP2PDistanceRequest);
 
     const canEditDistanceRate =
         isEditable &&
         canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy) &&
-        isPolicyAccessible(policy, currentUserEmailParam);
+        (isPolicyAccessible(policy, currentUserEmailParam) || isP2PDistanceRequest);
 
     const canEditReport =
         isEditable &&
