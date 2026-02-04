@@ -33,17 +33,6 @@ function ExpensifyCodePage() {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
     };
 
-    useEffect(() => {
-        if (!hasSubmitted || !isExpensifyCodeApplied) {
-            return;
-        }
-        Navigation.goBack();
-    }, [hasSubmitted, isExpensifyCodeApplied]);
-
-    if (isExpensifyCodeApplied) {
-        return <NotFoundPage />;
-    }
-
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM> => {
             return getFieldRequiredErrors(values, [INPUT_IDS.EXPENSIFY_CODE]);
@@ -57,6 +46,17 @@ function ExpensifyCodePage() {
         clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM);
         setHasSubmitted(true);
     }, []);
+
+    useEffect(() => {
+        if (!hasSubmitted || !isExpensifyCodeApplied) {
+            return;
+        }
+        Navigation.goBack();
+    }, [hasSubmitted, isExpensifyCodeApplied]);
+
+    if (isExpensifyCodeApplied) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper

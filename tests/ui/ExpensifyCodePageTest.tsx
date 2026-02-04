@@ -18,6 +18,8 @@ import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@libs/Localize', () => jest.requireActual('@libs/Localize'));
+
 jest.mock('@userActions/Subscription', () => ({
     applyExpensifyCode: jest.fn(),
 }));
@@ -33,7 +35,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
 });
 
 jest.mock('@pages/ErrorPage/NotFoundPage', () => {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- typeof import() needed for jest.requireActual generic
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     const {View, Text} = jest.requireActual<typeof import('react-native')>('react-native');
     function MockErrorPage() {
         return (
@@ -119,7 +121,7 @@ describe('ExpensifyCodePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         const input = screen.getByTestId('expensify-code-input');
-        fireEvent.changeText(input, 'HAPPYDAYS100OFF');
+        fireEvent.changeText(input, 'HappyDays100Off');
         await waitForBatchedUpdatesWithAct();
 
         const applyButton = screen.getByRole('button', {name: TestHelper.translateLocal('subscription.expensifyCode.apply')});
@@ -127,7 +129,7 @@ describe('ExpensifyCodePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(applyExpensifyCode).toHaveBeenCalledTimes(1);
-        expect(applyExpensifyCode).toHaveBeenCalledWith('HAPPYDAYS100OFF');
+        expect(applyExpensifyCode).toHaveBeenCalledWith('HappyDays100Off');
     });
 
     it('show NotFoundPage when subscription already has expensifyCode', async () => {
@@ -175,12 +177,12 @@ describe('ExpensifyCodePage', () => {
         await waitForBatchedUpdatesWithAct();
 
         const input = screen.getByTestId('expensify-code-input');
-        fireEvent.changeText(input, 'INVALIDCODE');
+        fireEvent.changeText(input, 'InvalidCode');
         const applyButton = screen.getByRole('button', {name: TestHelper.translateLocal('subscription.expensifyCode.apply')});
         fireEvent.press(applyButton);
         await waitForBatchedUpdatesWithAct();
 
-        expect(applyExpensifyCode).toHaveBeenCalledWith('INVALIDCODE');
+        expect(applyExpensifyCode).toHaveBeenCalledWith('InvalidCode');
 
         expect(screen.getByRole('button', {name: TestHelper.translateLocal('subscription.expensifyCode.apply')})).toBeOnTheScreen();
         expect(Navigation.goBack).not.toHaveBeenCalled();
