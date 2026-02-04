@@ -45,9 +45,9 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
     const getSortedAllReportActionsSelector = useCallback(
         (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
-            return getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true, undefined, reportID);
+            return getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true);
         },
-        [ifUserCanPerformWriteAction, reportID],
+        [ifUserCanPerformWriteAction],
     );
 
     const [sortedAllReportActions] = useOnyx(

@@ -55,7 +55,6 @@ function KYCWall({
     source,
     shouldShowPersonalBankAccountOption = false,
     ref,
-    currency,
 }: KYCWallProps) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
@@ -124,10 +123,10 @@ function KYCWall({
         setPositionAddPaymentMenu(position);
     }, [getAnchorPosition]);
 
-    const canLinkExistingBusinessBankAccount = getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true).length > 0;
-
     const selectPaymentMethod = useCallback(
         (paymentMethod?: PaymentMethod, policy?: Policy) => {
+            const canLinkExistingBusinessBankAccount = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
+
             if (paymentMethod) {
                 onSelectPaymentMethod(paymentMethod);
             }
@@ -201,22 +200,22 @@ function KYCWall({
             }
         },
         [
+            bankAccountList,
             onSelectPaymentMethod,
             iouReport,
             addDebitCardRoute,
             reimbursementAccount?.achData?.state,
-            canLinkExistingBusinessBankAccount,
             addBankAccountRoute,
             chatReport,
             policies,
-            introSelected,
-            formatPhoneNumber,
-            lastPaymentMethod,
             reportPreviewAction,
             currentUserEmail,
             employeeEmail,
             reportTransactions,
             isCustomReportNamesBetaEnabled,
+            introSelected,
+            formatPhoneNumber,
+            lastPaymentMethod,
         ],
     );
 
