@@ -72,7 +72,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './index';
-import type {MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams} from './index';
+import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, OneOnOneIOUReport, StartSplitBilActionParams} from './index';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -711,7 +711,7 @@ function completeSplitBill(
     const unmodifiedTransaction = getAllTransactions()[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     // Save optimistic updated transaction and action
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -736,7 +736,7 @@ function completeSplitBill(
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys | typeof ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -749,7 +749,7 @@ function completeSplitBill(
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -896,7 +896,11 @@ function completeSplitBill(
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
-        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
+        const {
+            optimisticData: oneOnOneOptimisticData = [],
+            successData: oneOnOneSuccessData = [],
+            failureData: oneOnOneFailureData = [],
+        } = buildOnyxDataForMoneyRequest({
             isNewChatReport: isNewOneOnOneChatReport,
             isOneOnOneSplit: true,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
@@ -1272,6 +1276,13 @@ function updateSplitTransactions({
             return transactionID === undeletedTransaction?.transactionID;
         }) as ReportAction;
 
+        // For a reverse split operation (i.e. deleting one transaction from a 2-split), the other split(undeleted)
+        // transaction also gets marked for deletion optimistically. This causes the undeleted split to remain visible,
+        // resulting in 3 transactions(deleted, undeleted, and original) being shown at the same time when offline.
+        // Since original transaction will be reverted and both splits will eventually be deleted, we remove
+        // the undeleted split entirely instead of marking it for deletion.
+        const forceDeleteSplitTransactionID = isReverseSplitOperation ? splitExpenses.at(0)?.transactionID : undefined;
+
         const {
             optimisticData: deleteExpenseOptimisticData,
             failureData: deleteExpenseFailureData,
@@ -1285,7 +1296,7 @@ function updateSplitTransactions({
             undefined,
             undefined,
             undefined,
-            isReportArchived,
+            isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
         );
 
         optimisticData.push(...(deleteExpenseOptimisticData ?? []));
