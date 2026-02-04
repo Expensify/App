@@ -381,6 +381,7 @@ type PureReportActionItemProps = {
         activePolicy: OnyxEntry<OnyxTypes.Policy>,
         isRestrictedToPreferredPolicy?: boolean,
         preferredPolicyID?: string,
+        ownerBillingGraceEndPeriod?: OnyxEntry<number>,
     ) => void;
 
     /** Function to resolve actionable report mention whisper */
@@ -452,6 +453,9 @@ type PureReportActionItemProps = {
 
     /** Report metadata for the report */
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
+
+    /** The end date of the owner's grace period for billing */
+    ownerBillingGraceEndPeriod?: OnyxEntry<number>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -526,6 +530,7 @@ function PureReportActionItem({
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
+    ownerBillingGraceEndPeriod,
 }: PureReportActionItemProps) {
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
@@ -924,6 +929,7 @@ function PureReportActionItem({
                             activePolicy,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
+                            ownerBillingGraceEndPeriod,
                         );
                     },
                 },
@@ -943,6 +949,9 @@ function PureReportActionItem({
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
+                                undefined,
+                                undefined,
+                                ownerBillingGraceEndPeriod,
                             );
                         },
                     },
@@ -958,6 +967,9 @@ function PureReportActionItem({
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
+                                undefined,
+                                undefined,
+                                ownerBillingGraceEndPeriod,
                             );
                         },
                     },
