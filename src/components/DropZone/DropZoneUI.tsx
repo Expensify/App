@@ -12,7 +12,7 @@ type DropZoneUIProps = {
 
     /** Icon width to display in the drop zone */
     iconWidth?: number;
-    
+
     /** Icon height to display in the drop zone */
     iconHeight?: number;
 
@@ -32,7 +32,7 @@ type DropZoneUIProps = {
     dropWrapperStyles?: StyleProp<ViewStyle>;
 };
 
-function DropZoneUI({icon, iconWidth=100, iconHeight=100, dropTitle, dropStyles, dropTextStyles, dropWrapperStyles, dashedBorderStyles}: DropZoneUIProps) {
+function DropZoneUI({icon, iconWidth = 100, iconHeight = 100, dropTitle, dropStyles, dropTextStyles, dropWrapperStyles, dashedBorderStyles}: DropZoneUIProps) {
     const styles = useThemeStyles();
 
     return (
