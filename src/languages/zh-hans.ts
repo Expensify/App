@@ -664,6 +664,7 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: '不支持受密码保护的 PDF',
         attachmentImageResized: '此图片已调整大小用于预览。下载以获取完整分辨率。',
         attachmentImageTooLarge: '此图片过大，无法在上传前预览。',
+        imageDimensionsTooLarge: '图片尺寸过大，无法处理。请使用较小的图片。',
         tooManyFiles: (fileLimit: number) => `您一次最多只能上传 ${fileLimit} 个文件。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `文件超过 ${maxUploadSizeInMB} MB。请重试。`,
         someFilesCantBeUploaded: '某些文件无法上传',

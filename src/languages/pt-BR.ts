@@ -668,6 +668,7 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'PDF protegido por senha não é compatível',
         attachmentImageResized: 'Esta imagem foi redimensionada para visualização. Baixe para ver em resolução total.',
         attachmentImageTooLarge: 'Esta imagem é grande demais para ser visualizada antes do envio.',
+        imageDimensionsTooLarge: 'As dimensões da imagem são muito grandes para processar. Por favor, use uma imagem menor.',
         tooManyFiles: (fileLimit: number) => `Você só pode enviar até ${fileLimit} arquivos por vez.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Os arquivos excedem ${maxUploadSizeInMB} MB. Tente novamente.`,
         someFilesCantBeUploaded: 'Alguns arquivos não podem ser enviados',
