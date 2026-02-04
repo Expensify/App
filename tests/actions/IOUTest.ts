@@ -10424,6 +10424,15 @@ describe('actions/IOU', () => {
     });
 
     describe('addSplitExpenseField', () => {
+        const expenseReport = {
+            reportID: '456',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: 100,
+            currency: 'USD',
+        };
+
         it('should add new split expense field to draft transaction', async () => {
             const transaction: Transaction = {
                 transactionID: '123',
@@ -10468,7 +10477,7 @@ describe('actions/IOU', () => {
                 reportID: '456',
             };
 
-            addSplitExpenseField(transaction, draftTransaction);
+            addSplitExpenseField(transaction, draftTransaction, expenseReport);
             await waitForBatchedUpdates();
 
             const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
@@ -10531,7 +10540,7 @@ describe('actions/IOU', () => {
             };
 
             // Action: Add a new split expense field
-            addSplitExpenseField(cardTransaction, draftTransaction);
+            addSplitExpenseField(cardTransaction, draftTransaction, expenseReport);
             await waitForBatchedUpdates();
 
             const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${cardTransaction.transactionID}`);
