@@ -44,7 +44,7 @@ describe('TagUtils', () => {
         });
 
         it('returns single element for tag without colons', () => {
-            expect(splitTag('singletag')).toEqual(['singletag']);
+            expect(splitTag('single tag')).toEqual(['single tag']);
         });
 
         it('returns empty strings for consecutive colons', () => {
