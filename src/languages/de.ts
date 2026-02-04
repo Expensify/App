@@ -669,6 +669,7 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'Passwortgeschützte PDF wird nicht unterstützt',
         attachmentImageResized: 'Dieses Bild wurde für die Vorschau verkleinert. Für die volle Auflösung herunterladen.',
         attachmentImageTooLarge: 'Dieses Bild ist zu groß, um vor dem Hochladen eine Vorschau anzuzeigen.',
+        imageDimensionsTooLarge: 'Die Bildabmessungen sind zu groß zum Verarbeiten. Bitte verwenden Sie ein kleineres Bild.',
         tooManyFiles: (fileLimit: number) => `Sie können jeweils nur bis zu ${fileLimit} Dateien hochladen.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Dateien überschreiten ${maxUploadSizeInMB} MB. Bitte versuche es erneut.`,
         someFilesCantBeUploaded: 'Einige Dateien können nicht hochgeladen werden',
