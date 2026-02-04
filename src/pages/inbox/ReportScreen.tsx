@@ -214,24 +214,25 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 return;
             }
 
-        const lastAccessedReportID = findLastAccessedReport(
-            !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
-            undefined,
-            undefined,
-            archivedReportsIdSet,
-        )?.reportID;
+            const lastAccessedReportID = findLastAccessedReport(
+                !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                'openOnAdminRoom' in route.params && !!route.params.openOnAdminRoom,
+                undefined,
+                undefined,
+                archivedReportsIdSet,
+            )?.reportID;
 
-        // It's possible that reports aren't fully loaded yet
-        // in that case the reportID is undefined
-        if (!lastAccessedReportID) {
-            return;
-        }
-        Navigation.isNavigationReady().then(() => {
-            Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
-            navigation.setParams({reportID: lastAccessedReportID});
-        });
-    }, [archivedReportsIdSet, isBetaEnabled, navigation, route.params]);
+            // It's possible that reports aren't fully loaded yet
+            // in that case the reportID is undefined
+            if (!lastAccessedReportID) {
+                return;
+            }
+            Navigation.isNavigationReady().then(() => {
+                Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
+                navigation.setParams({reportID: lastAccessedReportID});
+            });
+        }, [archivedReportsIdSet, isBetaEnabled, navigation, route.params]),
+    );
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
