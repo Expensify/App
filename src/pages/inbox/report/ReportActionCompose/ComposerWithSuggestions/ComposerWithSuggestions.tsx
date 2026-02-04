@@ -82,7 +82,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         onValueChange: (value: string) => void;
 
         /** Callback when the composer got cleared on the UI thread */
-        onCleared?: (text: string) => void;
+        onClear?: (text: string) => void;
 
         /** Whether the composer is full size */
         isComposerFullSize: boolean;
@@ -106,7 +106,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         setIsCommentEmpty: (isCommentEmpty: boolean) => void;
 
         /** Function to handle sending a message */
-        onSendMessage: () => void;
+        onEnterKeyPress: () => void;
 
         /** Whether the compose input should show */
         shouldShowComposeInput: OnyxEntry<boolean>;
@@ -216,12 +216,9 @@ function ComposerWithSuggestions({
     onPasteFile,
     disabled,
     setIsCommentEmpty,
-    onSendMessage,
-    shouldShowComposeInput,
-    measureParentContainer = () => {},
+    onEnterKeyPress,
     isScrollLikelyLayoutTriggered,
-    raiseIsScrollLikelyLayoutTriggered,
-    onCleared = () => {},
+    onClear: onClearProp = () => {},
     onLayout: onLayoutProps,
 
     // Refs
@@ -513,7 +510,7 @@ function ComposerWithSuggestions({
             // Submit the form when Enter is pressed
             if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !webEvent.shiftKey) {
                 webEvent.preventDefault();
-                onSendMessage();
+                onEnterKeyPress();
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
@@ -556,7 +553,7 @@ function ComposerWithSuggestions({
                 }
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, onSendMessage, lastReportAction, reportID, updateComment, selection.end],
+        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, onEnterKeyPress, lastReportAction, reportID, updateComment, selection.end],
     );
 
     const onChangeText = useCallback(
@@ -785,10 +782,10 @@ function ComposerWithSuggestions({
         (text: string) => {
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
-            onCleared(text);
+            onClearProp(text);
             updateComment('', true);
         },
-        [onCleared, updateComment],
+        [onClearProp, updateComment],
     );
 
     useEffect(() => {

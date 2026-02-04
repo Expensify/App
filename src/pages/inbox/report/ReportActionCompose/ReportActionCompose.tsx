@@ -593,10 +593,10 @@ function ReportActionCompose({
                             isComposerFullSize={isComposerFullSize}
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                             onPasteFile={(files) => validateAttachments({files})}
-                            onCleared={submitForm}
+                            onClear={submitForm}
                             disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                             setIsCommentEmpty={setIsCommentEmpty}
-                            onSendMessage={handleSendMessage}
+                            onEnterKeyPress={handleSendMessage}
                             shouldShowComposeInput={shouldShowComposeInput}
                             onFocus={onFocus}
                             onBlur={onBlur}
