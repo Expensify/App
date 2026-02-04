@@ -242,7 +242,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
         });
 
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, '', [], undefined, '0', true);
+        openReport(reportID, '', [], undefined, undefined, '0', true);
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {

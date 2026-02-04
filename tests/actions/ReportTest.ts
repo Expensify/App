@@ -931,7 +931,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         for (let i = 0; i < 5; i++) {
-            Report.openReport(REPORT_ID, undefined, ['test@user.com'], {
+            Report.openReport(REPORT_ID, undefined, [{login: 'test@user.com'}], undefined, {
                 reportID: REPORT_ID,
             });
         }
@@ -986,7 +986,7 @@ describe('actions/Report', () => {
         expect(transaction).toBeTruthy();
 
         // Call openReport with transaction object to trigger the legacy preview flow
-        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
+        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, undefined, false, undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
@@ -1024,13 +1024,12 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
-
         for (let i = 0; i < 8; i++) {
             let reportID = REPORT_ID;
             if (i > 4) {
                 reportID = `${i}`;
             }
-            Report.openReport(reportID, undefined, ['test@user.com'], {
+            Report.openReport(reportID, undefined, [{login: 'test@user.com'}], undefined, {
                 reportID: REPORT_ID,
             });
         }
@@ -1701,11 +1700,11 @@ describe('actions/Report', () => {
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
-
         Report.openReport(
             REPORT_ID,
             undefined,
-            ['test@user.com'],
+            [{login: 'test@user.com'}],
+            undefined,
             {
                 parentReportID: REPORT_ID,
                 parentReportActionID: reportActionID,

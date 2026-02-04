@@ -115,7 +115,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const oneTransactionID = reportTransactions.at(0)?.transactionID;
-
     const reportID = report?.reportID;
     const doesReportIDLookValid = isValidReportIDFromPath(reportID);
     const ownerAccountID = report?.ownerAccountID;
@@ -183,7 +182,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
-        openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined);
+        openReport(reportIDFromRoute, '', [], undefined, undefined, undefined, false);
         isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:

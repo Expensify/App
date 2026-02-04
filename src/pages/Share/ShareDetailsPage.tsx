@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ParticipantInfo} from '@libs/actions/Report';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -144,15 +145,17 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             validateFileName,
             (file) => {
                 if (isDraft) {
-                    openReport(
-                        report.reportID,
-                        '',
-                        displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
-                        report,
-                        undefined,
-                        undefined,
-                        undefined,
-                    );
+                    const participants: ParticipantInfo[] =
+                        displayReport.participantsList
+                            ?.filter((u) => u.accountID !== personalDetail.accountID)
+                            .map((u) => ({
+                                login: u.login ?? '',
+                                accountID: u.accountID,
+                                personalDetails: personalDetails?.[u.accountID] ?? undefined,
+                            })) ?? [];
+
+                    const ownerPersonalDetails = report?.ownerAccountID && personalDetails?.[report?.ownerAccountID] ? personalDetails[report?.ownerAccountID] : undefined;
+                    openReport(report.reportID, '', participants, ownerPersonalDetails, report, undefined, undefined, undefined);
                 }
                 if (report.reportID) {
                     addAttachmentWithComment(report, report.reportID, ancestors, file, message, personalDetail.timezone);
