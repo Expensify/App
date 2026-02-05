@@ -966,7 +966,6 @@ function MoneyRequestConfirmationListFooter({
                         disabled={!shouldDisplayReceipt}
                         disabledStyle={styles.cursorDefault}
                         style={styles.h100}
-                        sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_CONFIRMATION_RECEIPT_THUMBNAIL}
                     >
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -995,7 +994,6 @@ function MoneyRequestConfirmationListFooter({
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RECEIPT_THUMBNAIL}
                         disabledStyle={styles.cursorDefault}
                         style={[styles.h100, styles.flex1]}
-                        sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_CONFIRMATION_RECEIPT_THUMBNAIL}
                     >
                         <ReceiptImage
                             isThumbnail={isThumbnail}
