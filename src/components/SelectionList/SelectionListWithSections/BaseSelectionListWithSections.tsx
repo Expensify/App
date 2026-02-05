@@ -65,7 +65,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldScrollToFocusedIndex = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
-    shouldPreventItemFocus = false,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
@@ -90,23 +89,26 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         hasKeyBeenPressed.current = true;
     };
 
-    const scrollToIndex = useCallback((index: number) => {
-        if (index < 0 || index >= flattenedData.length || !listRef.current) {
-            return;
-        }
-        const item = flattenedData.at(index);
-        if (!item) {
-            return;
-        }
-        try {
-            listRef.current.scrollToIndex({index});
-        } catch (error) {
-            // FlashList may throw if layout for this index doesn't exist yet
-            // This can happen when data changes rapidly (e.g., during search filtering)
-            // The layout will be computed on next render, so we can safely ignore this
-            Log.warn('SelectionListWithSections: error scrolling to index', {error});
-        }
-    }, [flattenedData]);
+    const scrollToIndex = useCallback(
+        (index: number) => {
+            if (index < 0 || index >= flattenedData.length || !listRef.current) {
+                return;
+            }
+            const item = flattenedData.at(index);
+            if (!item) {
+                return;
+            }
+            try {
+                listRef.current.scrollToIndex({index});
+            } catch (error) {
+                // FlashList may throw if layout for this index doesn't exist yet
+                // This can happen when data changes rapidly (e.g., during search filtering)
+                // The layout will be computed on next render, so we can safely ignore this
+                Log.warn('SelectionListWithSections: error scrolling to index', {error});
+            }
+        },
+        [flattenedData],
+    );
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
@@ -172,20 +174,33 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         innerTextInputRef.current?.focus();
     }, []);
 
-    const updateAndScrollToFocusedIndex = useCallback((index: number, shouldScroll = true) => {
-        setFocusedIndex(index);
-        if (shouldScroll) {
-            scrollToIndex(index);
-        }
-    }, [setFocusedIndex, scrollToIndex]);
+    const updateAndScrollToFocusedIndex = useCallback(
+        (index: number, shouldScroll = true) => {
+            setFocusedIndex(index);
+            if (shouldScroll) {
+                scrollToIndex(index);
+            }
+        },
+        [setFocusedIndex, scrollToIndex],
+    );
+
+    /**
+     * Handles isTextInputFocusedRef value when using external TextInput, so external TextInput does not lose focus when typing in it.
+     */
+    const updateExternalTextInputFocus = useCallback((isTextInputFocused: boolean) => {
+        isTextInputFocusedRef.current = isTextInputFocused;
+    }, []);
 
     useImperativeHandle(
         ref,
         () => ({
             focusTextInput,
             updateAndScrollToFocusedIndex,
+            updateExternalTextInputFocus,
+            getFocusedOption: getFocusedItem,
         }),
-        [focusTextInput, updateAndScrollToFocusedIndex],
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- getFocusedItem reads from refs and state, not needed in deps
+        [focusTextInput, updateAndScrollToFocusedIndex, updateExternalTextInputFocus],
     );
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
@@ -290,7 +305,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
-                        shouldSyncFocus={!shouldPreventItemFocus && !isTextInputFocusedRef.current && hasKeyBeenPressed.current}
+                        shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                         shouldHighlightSelectedItem
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}

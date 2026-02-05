@@ -36,16 +36,15 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 
     /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
-
-    /** Whether to prevent list items from receiving browser focus during keyboard navigation.
-     * When true, items are only visually highlighted but focus stays on the text input.
-     * Useful when you want Tab to skip list items entirely. */
-    shouldPreventItemFocus?: boolean;
 };
 
-type SelectionListWithSectionsHandle = {
+type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     focusTextInput: () => void;
     updateAndScrollToFocusedIndex: (index: number, shouldScroll?: boolean) => void;
+    /** Updates the internal text input focus state - use when using an external text input */
+    updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
+    /** Returns the currently focused option in the list */
+    getFocusedOption: () => TItem | undefined;
 };
 
 type SectionHeader = {

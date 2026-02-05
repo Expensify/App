@@ -1,7 +1,8 @@
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps, ValidListItem} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
@@ -83,6 +84,9 @@ type SearchAutocompleteListProps = {
     /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
     onHighlightFirstItem?: () => void;
 
+    /** Ref for the external text input */
+    textInputRef?: RefObject<AnimatedTextInputRef | null>;
+
     /** Personal details */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
@@ -147,6 +151,7 @@ function SearchAutocompleteList({
     onListItemPress,
     shouldSubscribeToArrowKeyEvents = true,
     onHighlightFirstItem,
+    textInputRef,
     personalDetails,
     reports,
     allFeeds,
@@ -229,6 +234,25 @@ function SearchAutocompleteList({
             innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
         }
     }, [autocompleteQueryValue, isInitialRender]);
+
+    // Track external text input focus to prevent list items from stealing focus while typing
+    useEffect(() => {
+        if (!textInputRef?.current) {
+            return;
+        }
+
+        // Update the list's internal focus tracking when the external input focus changes
+        const updateFocus = () => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            innerListRef.current?.updateExternalTextInputFocus?.(textInputRef.current?.isFocused() ?? false);
+        };
+
+        // Initial update
+        updateFocus();
+
+        // Note: We can't easily subscribe to focus/blur events on the ref, so we update on query changes
+        // which happen when the user types (meaning input is focused)
+    }, [textInputRef, autocompleteQueryValue]);
 
     const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
@@ -849,7 +873,6 @@ function SearchAutocompleteList({
                 shouldScrollToFocusedIndex={!isInitialRender}
                 disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
                 addBottomSafeAreaPadding
-                shouldPreventItemFocus
             />
         )
     );
