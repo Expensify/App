@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isQuickActionAllowed} from '@libs/QuickActionUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
@@ -45,6 +46,33 @@ describe('QuickActionUtils', () => {
 
                 // Then it should return false
                 expect(result).toBe(false);
+            });
+
+            it('forwards betas to canCreateRequest and respects the result', () => {
+                const quickAction = {
+                    action: CONST.QUICK_ACTIONS.REQUEST_MANUAL,
+                    isFirstQuickAction: false,
+                };
+                const ACCOUNT_ONE = 1;
+                const ACCOUNT_TWO = 2;
+                const report: Report = {
+                    reportID: 'forward-betas',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ONE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [ACCOUNT_TWO]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+                const betas = [CONST.BETAS.NEWDOT_MANAGER_MCTEST];
+                const canCreateRequestSpy = jest.spyOn(ReportUtils, 'canCreateRequest').mockReturnValue(false);
+
+                const result = isQuickActionAllowed(quickAction, report, undefined, false, betas, false);
+
+                expect(result).toBe(false);
+                expect(canCreateRequestSpy).toHaveBeenCalledWith(report, undefined, CONST.IOU.TYPE.SUBMIT, false, betas, false);
+                expect(canCreateRequestSpy).toHaveBeenCalledTimes(1);
+
+                canCreateRequestSpy.mockRestore();
             });
         });
 

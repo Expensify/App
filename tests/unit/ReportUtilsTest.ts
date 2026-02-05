@@ -2991,6 +2991,28 @@ describe('ReportUtils', () => {
                 const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20, 21], [CONST.BETAS.ALL]);
                 expect(moneyRequestOptions.length).toBe(0);
             });
+
+            it('participants include Manager McTest but beta is disabled', () => {
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport([currentUserAccountID, CONST.ACCOUNT_ID.MANAGER_MCTEST]),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, CONST.ACCOUNT_ID.MANAGER_MCTEST], []);
+
+                expect(moneyRequestOptions).toHaveLength(0);
+            });
+
+            it('includes only submit option when Manager McTest beta is enabled', () => {
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport([currentUserAccountID, CONST.ACCOUNT_ID.MANAGER_MCTEST]),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, CONST.ACCOUNT_ID.MANAGER_MCTEST], [CONST.BETAS.NEWDOT_MANAGER_MCTEST]);
+
+                expect(moneyRequestOptions).toEqual([CONST.IOU.TYPE.SUBMIT]);
+            });
         });
 
         describe('return only iou split option if', () => {
