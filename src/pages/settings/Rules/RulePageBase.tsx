@@ -19,7 +19,7 @@ import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
-import {splitTag} from '@libs/TagUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -111,6 +111,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${activePolicyID}`, {canBeMissing: true, selector: getTagLists});
     const hasPolicyTags = policyTags.some(({tags}) => Object.values(tags).some(({enabled}) => enabled));
+    const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const [allTaxRates] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
@@ -167,7 +168,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     : undefined,
                 ...(hasPolicyTags
                     ? policyTags.map(({name, orderWeight, tags}) => {
-                          const tag = Object.values(tags).find(({name: tagName}) => tagName === splitTag(form?.tag ?? '').at(orderWeight));
+                          const tag = Object.values(tags).find(({name: tagName}) => tagName === formTags.at(orderWeight));
                           return {
                               description: name,
                               title: tag ? getCleanedTagName(tag.name) : undefined,

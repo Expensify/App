@@ -22,7 +22,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
-import {splitTag} from '@libs/TagUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -140,6 +140,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         }
         return policyTags.length > 0;
     };
+    const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const hasTaxes = () => {
         if (!policy?.tax?.trackingEnabled) {
@@ -282,7 +283,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     : undefined,
                 ...(hasTags()
                     ? policyTags.map(({name, orderWeight, tags}) => {
-                          const tag = Object.values(tags).find(({name: tagName}) => tagName === splitTag(form?.tag ?? '').at(orderWeight));
+                          const tag = Object.values(tags).find(({name: tagName}) => tagName === formTags.at(orderWeight));
                           return {
                               description: name,
                               title: tag ? getCleanedTagName(tag.name) : undefined,

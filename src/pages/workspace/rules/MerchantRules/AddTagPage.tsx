@@ -7,7 +7,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCleanedTagName, getTagLists} from '@libs/PolicyUtils';
-import {splitTag, trimTag} from '@libs/TagUtils';
+import {trimTag} from '@libs/TagUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -23,6 +24,7 @@ function AddTagPage({route}: AddTagPageProps) {
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true, selector: getTagLists});
     const tagList = policyTags.find((item) => item.orderWeight === orderWeight);
+    const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const tagItems = useMemo(() => {
         const tags: Array<{name: string; value: string}> = [];
@@ -37,12 +39,12 @@ function AddTagPage({route}: AddTagPageProps) {
         return tags;
     }, [tagList?.tags]);
 
-    const selectedTagItem = tagItems.find(({value}) => value === splitTag(form?.tag ?? '').at(orderWeight));
+    const selectedTagItem = tagItems.find(({value}) => value === formTags.at(orderWeight));
 
     const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
-        const newTags = splitTag(form?.tag ?? '');
+        const newTags = [...formTags];
         newTags[orderWeight] = value ?? '';
         updateDraftMerchantRule({tag: trimTag(newTags.join(':'))});
     };

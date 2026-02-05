@@ -1,4 +1,4 @@
-import {isTagMissing, splitTag, trimTag} from '@libs/TagUtils';
+import {isTagMissing, trimTag} from '@libs/TagUtils';
 import CONST from '@src/CONST';
 
 describe('TagUtils', () => {
@@ -26,33 +26,6 @@ describe('TagUtils', () => {
             expect(isTagMissing('NONE')).toBe(false);
             expect(isTagMissing(' none')).toBe(false);
             expect(isTagMissing('none ')).toBe(false);
-        });
-    });
-
-    describe('splitTag', () => {
-        it('splits simple tag by colon', () => {
-            expect(splitTag('tag1:tag2:tag3')).toEqual(['tag1', 'tag2', 'tag3']);
-        });
-
-        it('does not split escaped colons', () => {
-            expect(splitTag('tag1\\:name:tag2')).toEqual(['tag1\\:name', 'tag2']);
-            expect(splitTag('tag1\\\\:name:tag2')).toEqual(['tag1\\\\:name', 'tag2']);
-        });
-
-        it('handles multiple escaped colons', () => {
-            expect(splitTag('a\\:b\\:c:d')).toEqual(['a\\:b\\:c', 'd']);
-        });
-
-        it('returns single element for tag without colons', () => {
-            expect(splitTag('single tag')).toEqual(['single tag']);
-        });
-
-        it('returns empty strings for consecutive colons', () => {
-            expect(splitTag('tag1::tag2')).toEqual(['tag1', '', 'tag2']);
-        });
-
-        it('returns empty array for empty string', () => {
-            expect(splitTag('')).toEqual(['']);
         });
     });
 
