@@ -298,7 +298,6 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Startseite',
         inbox: 'Posteingang',
         yourReviewIsRequired: 'Ihre Überprüfung ist erforderlich',
-        // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: 'Erfolgreich',
         group: 'Gruppe',
         profile: 'Profil',
