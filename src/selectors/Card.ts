@@ -1,7 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {isCard, isCardHiddenFromSearch, isPersonalCard} from '@libs/CardUtils';
+import {isCard, isCardHiddenFromSearch, isExpensifyCard, isPersonalCard} from '@libs/CardUtils';
 import {filterObject} from '@libs/ObjectUtils';
+import CONST from '@src/CONST';
 import type {CardList, NonPersonalAndWorkspaceCardListDerivedValue} from '@src/types/onyx';
 
 /**
@@ -31,8 +33,8 @@ const filterOutPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 /**
  * Selects the Expensify Card feed from the card list and returns the first one.
  */
-const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
-    const cards = getCardFeedsForDisplay({}, allCards);
+const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>, translate: LocalizedTranslate) => {
+    const cards = getCardFeedsForDisplay({}, allCards, translate);
     return Object.values(cards)?.at(0);
 };
 
@@ -41,4 +43,14 @@ const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspac
  */
 const cardByIdSelector = (cardID: string) => (cardList: OnyxEntry<CardList>) => cardList?.[cardID];
 
-export {filterCardsHiddenFromSearch, filterOutPersonalCards, defaultExpensifyCardSelector, cardByIdSelector};
+/**
+ * Checks if all Expensify cards have been shipped (state is not STATE_NOT_ISSUED).
+ * Only considers valid Expensify cards - ignores personal cards, company cards, and invalid entries.
+ * Returns true if there are no Expensify cards pending issue, or if there are no Expensify cards at all.
+ */
+const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
+    Object.values(cardList ?? {})
+        .filter((card) => isCard(card) && isExpensifyCard(card))
+        .every((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
+
+export {filterCardsHiddenFromSearch, filterOutPersonalCards, defaultExpensifyCardSelector, cardByIdSelector, areAllExpensifyCardsShipped};
