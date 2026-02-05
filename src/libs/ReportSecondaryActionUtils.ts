@@ -110,11 +110,12 @@ function isSplitAction(
     }
 
     const isScanning = hasReceiptTransactionUtils(reportTransaction) && isReceiptBeingScanned(reportTransaction);
-    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
 
     if (isScanning && !amount) {
         return false;
     }
+
+    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
 
     if (!amount && !isExpenseSplit) {
         return false;
