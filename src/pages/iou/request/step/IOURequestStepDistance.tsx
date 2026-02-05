@@ -95,6 +95,7 @@ function IOURequestStepDistance({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const transactionWaypoints = transaction?.comment?.waypoints;
     const areTransactionWaypointsEmpty = !transactionWaypoints || Object.values(transactionWaypoints).every((w) => isEmptyObject(w));
@@ -321,6 +322,7 @@ function IOURequestStepDistance({
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             policyForMovingExpenses,
+            betas,
         });
     }, [
         iouType,
@@ -352,6 +354,9 @@ function IOURequestStepDistance({
         activePolicyID,
         reportNameValuePairs?.private_isArchived,
         policyForMovingExpenses,
+        personalPolicy?.autoReporting,
+        reportID,
+        betas,
     ]);
 
     const getError = () => {

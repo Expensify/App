@@ -87,6 +87,7 @@ function IOURequestStepDistanceManual({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -200,6 +201,7 @@ function IOURequestStepDistanceManual({
                 activePolicyID,
                 privateIsArchived: reportNameValuePairs?.private_isArchived,
                 policyForMovingExpenses,
+                betas,
             });
         },
         [
@@ -238,6 +240,8 @@ function IOURequestStepDistanceManual({
             policyCategories,
             parentReportNextStep,
             recentWaypoints,
+            currentUserPersonalDetails.accountID,
+            betas,
         ],
     );
 
@@ -245,12 +249,7 @@ function IOURequestStepDistanceManual({
         const value = numberFormRef.current?.getNumber() ?? '';
         const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserAccountIDParam).at(0));
 
-        if (isBetaEnabled(CONST.BETAS.ZERO_EXPENSES)) {
-            if (!value.length || parseFloat(value) < 0) {
-                setFormError(translate('iou.error.invalidDistance'));
-                return;
-            }
-        } else if (!value.length || parseFloat(value) <= 0) {
+        if (!value.length || parseFloat(value) < 0) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
@@ -261,7 +260,7 @@ function IOURequestStepDistanceManual({
         }
 
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam, isBetaEnabled]);
+    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {
