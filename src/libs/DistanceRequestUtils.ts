@@ -182,7 +182,7 @@ function getDistanceForDisplay(
         return translate('iou.fieldPending');
     }
 
-    if (!distanceInMeters) {
+    if (distanceInMeters == null) {
         return '';
     }
 
@@ -227,7 +227,7 @@ function getDistanceMerchant(
         return translate('iou.fieldPending');
     }
 
-    if (!distanceInMeters) {
+    if (distanceInMeters == null) {
         return '';
     }
 
