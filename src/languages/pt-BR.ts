@@ -7177,11 +7177,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
         has: 'Tem',
         groupBy: 'Agrupar por',
-        view: {
-            label: 'Visualizar',
-            table: 'Tabela',
-            bar: 'Bar',
-        },
+        view: {label: 'Visualizar', table: 'Tabela', bar: 'Bar', line: 'Linha'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cartões',
@@ -7217,6 +7213,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             selectAllMatchingItems: 'Selecione todos os itens correspondentes',
             allMatchingItemsSelected: 'Todos os itens correspondentes selecionados',
         },
+        spendOverTime: 'Gastos ao longo do tempo',
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',

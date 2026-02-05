@@ -7180,6 +7180,7 @@ const CONST = {
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
+            LINE: 'line',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -7396,6 +7397,7 @@ const CONST = {
             TOP_SPENDERS: 'topSpenders',
             TOP_CATEGORIES: 'topCategories',
             TOP_MERCHANTS: 'topMerchants',
+            SPEND_OVER_TIME: 'spendOverTime',
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {

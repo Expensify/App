@@ -7176,11 +7176,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         has: 'Ma',
         groupBy: 'Grupuj według',
-        view: {
-            label: 'Pokaż',
-            table: 'Tabela',
-            bar: 'Bar',
-        },
+        view: {label: 'Pokaż', table: 'Tabela', bar: 'Bar', line: 'Linia'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Od',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Karty',
@@ -7216,6 +7212,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
             allMatchingItemsSelected: 'Zaznaczono wszystkie pasujące elementy',
         },
+        spendOverTime: 'Wydatki w czasie',
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',

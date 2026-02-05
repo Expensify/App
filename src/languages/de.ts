@@ -7226,11 +7226,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
         has: 'Hat',
         groupBy: 'Gruppieren nach',
-        view: {
-            label: 'Anzeigen',
-            table: 'Tabelle',
-            bar: 'Leiste',
-        },
+        view: {label: 'Anzeigen', table: 'Tabelle', bar: 'Leiste', line: 'Zeile'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Karten',
@@ -7266,6 +7262,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             selectAllMatchingItems: 'Alle passenden Einträge auswählen',
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
+        spendOverTime: 'Ausgaben im Zeitverlauf',
     },
     genericErrorPage: {
         title: 'Ups, da ist etwas schiefgelaufen!',

@@ -7206,11 +7206,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         },
         has: 'Ha',
         groupBy: 'Raggruppa per',
-        view: {
-            label: 'Visualizza',
-            table: 'Tabella',
-            bar: 'Bar',
-        },
+        view: {label: 'Visualizza', table: 'Tabella', bar: 'Bar', line: 'Riga'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Da',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
@@ -7246,6 +7242,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             selectAllMatchingItems: 'Seleziona tutti gli elementi corrispondenti',
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti sono stati selezionati',
         },
+        spendOverTime: 'Spesa nel tempo',
     },
     genericErrorPage: {
         title: 'Oops, qualcosa è andato storto!',
