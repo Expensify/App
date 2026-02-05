@@ -21,15 +21,20 @@ import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} 
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type en from './en';
 import type {
+    AddBudgetParams,
+    AddedOrDeletedPolicyReportFieldParams,
+    AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
+    DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
     ExportIntegrationSelectedParams,
+    ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
     IntegrationSyncFailedParams,
@@ -82,6 +87,7 @@ import type {
     RailTicketParams,
     ReceiptPartnersUberSubtitleParams,
     RemovedFromApprovalWorkflowParams,
+    RemovedPolicyCustomUnitSubRateParams,
     RemovedTheRequestParams,
     RemoveMemberPromptParams,
     RemoveMembersWarningPrompt,
@@ -145,9 +151,13 @@ import type {
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedBudgetParams,
     UpdatedCustomFieldParams,
     UpdatedPolicyApprovalRuleParams,
     UpdatedPolicyAuditRateParams,
+    UpdatedPolicyAutoHarvestingParams,
+    UpdatedPolicyBudgetNotificationParams,
+    UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryGLCodeParams,
@@ -158,23 +168,32 @@ import type {
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     UpdatedPolicyCustomUnitRateParams,
+    UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
+    UpdatedPolicyDefaultTitleParams,
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
-    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFieldWithValueParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
+    UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
+    UpdatedPolicyTagListParams,
+    UpdatedPolicyTagListRequiredParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
     UpdatedPolicyTaxParams,
+    UpdatedPolicyTimeEnabledParams,
+    UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
+    UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdateRoleParams,
@@ -351,6 +370,10 @@ const translations: TranslationDeepObject<typeof en> = {
         acceptTermsAndPrivacy: `我接受<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>`,
         acceptTermsAndConditions: `我接受<a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">条款和条件</a>`,
         acceptTermsOfService: `我接受<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify 服务条款</a>`,
+        downloadFailedEmptyReportDescription: () => ({
+            one: '您无法导出空报告。',
+            other: () => '您无法导出空报告。',
+        }),
         remove: '移除',
         admin: '管理员',
         owner: '所有者',
@@ -664,6 +687,7 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: '不支持受密码保护的 PDF',
         attachmentImageResized: '此图片已调整大小用于预览。下载以获取完整分辨率。',
         attachmentImageTooLarge: '此图片过大，无法在上传前预览。',
+        imageDimensionsTooLarge: '图片尺寸过大，无法处理。请使用较小的图片。',
         tooManyFiles: (fileLimit: number) => `您一次最多只能上传 ${fileLimit} 个文件。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `文件超过 ${maxUploadSizeInMB} MB。请重试。`,
         someFilesCantBeUploaded: '某些文件无法上传',
@@ -898,8 +922,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: '你的空间',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `欢迎来到 ${roomName}！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `使用 + 按钮来${additionalText}一笔费用。`,
-        askConcierge: '随时提问并获得 24/7 实时支持。',
-        conciergeSupport: '24/7 支持',
+        askConcierge: '尽管问我任何问题！',
+        conciergeSupport: '您的专属AI助手',
         create: '创建',
         iouTypes: {
             pay: '支付',
@@ -987,6 +1011,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: '验证您的银行卡并开始消费。',
                 cta: '启用',
             },
+            ctaFix: '修复',
+            fixCompanyCardConnection: {title: ({feedName}: {feedName: string}) => (feedName ? `修复 ${feedName} 公司卡连接` : '修复公司卡连接'), subtitle: '工作区 > 公司卡片'},
+            fixAccountingConnection: {title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`, subtitle: '工作区 > 会计'},
         },
         announcements: '公告',
         discoverSection: {
@@ -1236,8 +1263,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '确定要删除此报销吗？',
             other: '确定要删除这些报销吗？',
         }),
-        deleteReport: '删除报表',
-        deleteReportConfirmation: '确定要删除此报表吗？',
+        deleteReport: () => ({
+            one: '删除报告',
+            other: '删除报告',
+        }),
+        deleteReportConfirmation: () => ({
+            one: '您确定要删除此报告吗？',
+            other: '您确定要删除这些报告吗？',
+        }),
         settledExpensify: '已支付',
         done: '完成',
         settledElsewhere: '在其他地方支付',
@@ -3916,6 +3949,14 @@ ${
             youCantDowngradeInvoicing: '对于已按发票结算的订阅，您无法将方案降级。若要咨询或更改订阅，请联系您的客户经理或 Concierge 获取帮助。',
             defaultCategory: '默认类别',
             viewTransactions: '查看交易',
+            reimbursementChoice: {
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: '直达',
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: '无',
+                [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL]: '间接',
+            },
+            budgetFrequency: {monthly: '每月', yearly: '每年'},
+            budgetFrequencyUnit: {monthly: '月', yearly: '年'},
+            budgetTypeForNotificationMessage: {tag: '标签', category: '类别'},
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName} 的报销费用`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card 交易将通过<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>自动导出到一个名为“Expensify Card Liability Account”的账户中。</muted-text-label>`,
         },
@@ -4866,6 +4907,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             chooseCardFeed: '选择卡片数据源',
             ukRegulation:
                 'Expensify Limited 是 Plaid Financial Ltd. 的代理，后者是一家在《2017 年支付服务条例》下受金融行为监管局监管的授权支付机构（公司参考编号：804718）。Plaid 通过其代理 Expensify Limited 向您提供受监管的账户信息服务。',
+            deletedFeed: '已删除的动态',
             assignCardFailedError: '卡片分配失败。',
             unassignCardFailedError: '卡取消分配失败。',
             cardAlreadyAssignedError: '此卡已分配给另一个工作区中的用户。',
@@ -6464,9 +6506,9 @@ ${reportName}
             }
             return !oldValue ? `已为类别“${categoryName}”添加描述提示“${newValue}”` : `已将“${categoryName}”类别的描述提示更改为“${newValue}”（之前为“${oldValue}”）`;
         },
-        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `将标签列表名称更改为“${newName}”（原为“${oldName}”）`,
-        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `已将标签“${tagName}”添加到列表“${tagListName}”中`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `通过将标签“${oldName}”更名为“${newName}”，更新了标签列表“${tagListName}”`,
+        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `已将标签列表名称更改为“${newName}”（原为“${oldName}”）`,
+        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `已将标签“${tagName}”添加到列表“${tagListName}”`,
+        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `通过将标签“${oldName}”更改为“${newName}”更新了标签列表“${tagListName}”`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? '已启用' : '已禁用'} 列表“${tagListName}”上的标签“${tagName}”`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `已从列表“${tagListName}”中移除标签“${tagName}”`,
         deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `已从列表“${tagListName}”中移除“${count}”个标签`,
@@ -6479,7 +6521,7 @@ ${reportName}
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `已将${customUnitName}的${updatedField}更改为“${newValue}”（之前为“${oldValue}”）`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? '已启用' : '已禁用'} 距离费率的税务跟踪`,
-        addCustomUnitRate: (customUnitName: string, rateName: string) => `添加了新的“${customUnitName}”费率“${rateName}”`,
+        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已添加新的 ${customUnitName} 费率“${rateName}”`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
             `将 ${customUnitName} 的 ${updatedField} 费率“${customUnitRateName}”更改为“${newValue}”（之前为“${oldValue}”）`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
@@ -6490,15 +6532,15 @@ ${reportName}
         },
         updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
             if (oldValue) {
-                return `已将距离费率“${customUnitRateName}”中的可退税部分更改为“${newValue}”（原为“${oldValue}”）`;
+                return `已将距离费率“${customUnitRateName}”的可退税部分更改为“${newValue}”（之前为“${oldValue}”）`;
             }
-            return `已在距离费率 “${customUnitRateName}” 中新增可退税部分 “${newValue}”`;
+            return `已将“${newValue}”的可退税部分添加到距离费率“${customUnitRateName}”中`;
         },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
             return `${newValue ? '已启用' : '已禁用'}${customUnitName}费率“${customUnitRateName}”`;
         },
-        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `已移除自定义单位“${customUnitName}”的费率“${rateName}”`,
-        addedReportField: (fieldType: string, fieldName?: string) => `已添加 ${fieldType} 报告字段“${fieldName}”`,
+        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已删除“${customUnitName}”费率“${rateName}”`,
+        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `已添加${fieldType}报表字段“${fieldName}”`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
         addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `已将选项“${optionName}”添加到报表字段“${fieldName}”`,
         removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `已从报表字段“${fieldName}”中移除选项“${optionName}”`,
@@ -6510,7 +6552,7 @@ ${reportName}
             }
             return `将报表字段“${fieldName}”的选项“${optionName}”设置为${allEnabled ? '已启用' : '已禁用'}，使所有选项均为${allEnabled ? '已启用' : '已禁用'}`;
         },
-        deleteReportField: (fieldType: string, fieldName?: string) => `已移除${fieldType}报表字段“${fieldName}”`,
+        deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `已移除 ${fieldType} 报告字段“${fieldName}”`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `已将“禁止自我审批”更新为“${newValue === 'true' ? '已启用' : '已禁用'}”（之前为“${oldValue === 'true' ? '已启用' : '已禁用'}”）`,
         updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
@@ -6521,7 +6563,7 @@ ${reportName}
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将“向客户重新计费报销”更新为“${newValue}”（之前为“${oldValue}”）`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将“现金报销默认值”更新为“${newValue}”（之前为“${oldValue}”）`,
-        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `已将“强制使用默认报表标题”切换为 ${value ? '开在' : '关关闭'}`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParams) => `已将“强制使用默认报表标题”设置为开启 ${value ? '开' : '关'}`,
         changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将自定义报表名称公式更改为“${newValue}”（先前为“${oldValue}”）`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `已将此工作区的名称更新为“${newName}”（原为“${oldName}”）`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
@@ -6670,11 +6712,133 @@ ${reportName}
         changedReceiptRequiredAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已将所需收据金额更改为“${newValue}”（之前为“${oldValue}”）`,
         removedReceiptRequiredAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除所需收据金额（先前为“${oldValue}”）`,
         setMaxExpenseAmount: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最高报销金额设置为“${newValue}”`,
-        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最高报销金额更改为“${newValue}”（之前为“${oldValue}”）`,
-        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除最高报销金额（原为“${oldValue}”）`,
-        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销单天数设置为“${newValue}”天`,
-        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将费用最久可提交天数更改为“${newValue}”天（之前为“${oldValue}”天）`,
-        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除报销单最大天数限制（原为“${oldValue}”天）`,
+        changedMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最高报销金额更改为 “${newValue}”（之前为 “${oldValue}”）`,
+        removedMaxExpenseAmount: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除最⾼报销金额（原为“${oldValue}”）`,
+        setMaxExpenseAge: ({newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销天数设置为“${newValue}”天`,
+        changedMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将最大报销单据天数更改为 “${newValue}” 天（之前为 “${oldValue}”）`,
+        removedMaxExpenseAge: ({oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `已移除费用最长期限（之前为“${oldValue}”天）`,
+        updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `已更新 ${count} 个类别`,
+        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `已更新列表“${tagListName}”上的标签`,
+        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `将标签列表“${tagListsName}”更改为 ${isRequired ? '必填' : '非必填'}`,
+        importTags: '已从电子表格导入标签',
+        deletedAllTags: '已删除所有标签',
+        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
+            `已将${customUnitName}的默认类别更改为“${newValue}” ${oldValue ? `（原为“${oldValue}”）` : ''}`,
+        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `已导入自定义单位“${customUnitName}”的费率`,
+        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
+            `已将“${customUnitName}”费率“${customUnitRateName}”子费率“${customUnitSubRateName}”的${updatedField}修改为“${newValue}”（之前为“${oldValue}”）`,
+        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
+            `已移除“${customUnitName}”费率“${customUnitRateName}”子费率“${removedSubRateName}”`,
+        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `，通知阈值为“${notificationThreshold}%”` : '';
+            if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
+                return `已向${entityType}“${entityName}”添加${frequency}个个人预算“${individual}”和${frequency}个共享预算“${shared}”${thresholdSuffix}`;
+            }
+            if (typeof individual !== 'undefined') {
+                return `已将${frequency}个个人预算“${individual}”${thresholdSuffix}添加到${entityType}“${entityName}”`;
+            }
+            return `已将 ${frequency} 共享预算“${shared}”${thresholdSuffix} 添加到 ${entityType}“${entityName}”中`;
+        },
+        updateBudget: ({
+            entityType,
+            entityName,
+            oldFrequency,
+            newFrequency,
+            oldIndividual,
+            newIndividual,
+            oldShared,
+            newShared,
+            oldNotificationThreshold,
+            newNotificationThreshold,
+        }: UpdatedBudgetParams) => {
+            const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
+            const sharedChanged = !!(newShared && oldShared !== newShared);
+            const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
+            const thresholdChanged = typeof newNotificationThreshold === 'number' && oldNotificationThreshold !== newNotificationThreshold;
+            const changesList: string[] = [];
+            if (frequencyChanged) {
+                changesList.push(`将预算频率更改为“${newFrequency}”（之前为“${oldFrequency}”）`);
+            }
+            if (sharedChanged) {
+                changesList.push(`将整个工作区预算更改为 “${newShared}”（之前为 “${oldShared}”）`);
+            }
+            if (individualChanged) {
+                changesList.push(`将个人预算更改为 “${newIndividual}”（之前为 “${oldIndividual}”）`);
+            }
+            if (thresholdChanged) {
+                changesList.push(`将通知阈值更改为“${newNotificationThreshold}%”（之前为“${oldNotificationThreshold}%”）`);
+            }
+            if (!frequencyChanged && !sharedChanged && !individualChanged && !thresholdChanged) {
+                return `已更新 ${entityType}“${entityName}”的预算`;
+            }
+            if (changesList.length === 1) {
+                if (frequencyChanged) {
+                    return `已将${entityType}“${entityName}”的预算频率更改为“${newFrequency}”（之前为“${oldFrequency}”）`;
+                }
+                if (sharedChanged) {
+                    return `将 ${entityType}“${entityName}”的工作区总预算更改为“${newShared}”（之前为“${oldShared}”）`;
+                }
+                if (individualChanged) {
+                    return `已将${entityType}“${entityName}”的个人预算更改为“${newIndividual}”（先前为“${oldIndividual}”）`;
+                }
+                return `将 ${entityType}“${entityName}”的通知阈值更改为“${newNotificationThreshold}%”（先前为“${oldNotificationThreshold}%”）`;
+            }
+            return `已更新 ${entityType}“${entityName}”的预算：${changesList.join('; ')}`;
+        },
+        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? `，通知阈值为“${notificationThreshold}%”` : '';
+            if (shared && individual) {
+                return `已从${entityType}“${entityName}”中移除${frequency}共享预算“${shared}”和个人预算“${individual}”${thresholdSuffix}`;
+            }
+            if (shared) {
+                return `已从${entityType}“${entityName}”中移除${frequency}共享预算“${shared}”${thresholdSuffix}`;
+            }
+            if (individual) {
+                return `已从${entityType}“${entityName}”中移除${frequency}个个人预算“${individual}”${thresholdSuffix}`;
+            }
+            return `已从${entityType}“${entityName}”中移除预算`;
+        },
+        updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
+            return `${enabled ? '已启用' : '已禁用'} 时间追踪`;
+        },
+        updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
+            return `将时薪更改为“${newRate}”（之前为“${oldRate}”）`;
+        },
+        addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已将“${prohibitedExpense}”添加到禁止报销的费用中`,
+        removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已从禁用报销类别中移除“${prohibitedExpense}”`,
+        updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: UpdatedPolicyReimbursementChoiceParams) =>
+            `将报销方式更改为“${newReimbursementChoice}”（原为“${oldReimbursementChoice}”）`,
+        setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 预先批准加入工作区的请求`,
+        updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) => `将自定义报表名称公式更改为“${newDefaultTitle}”（之前为“${oldDefaultTitle}”）`,
+        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) => `从 ${oldOwnerName}（${oldOwnerEmail}）接管了 ${policyName} 的所有权`,
+        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `已计划提交 ${enabled ? '已启用' : '已禁用'}`,
+        updatedIndividualBudgetNotification: ({
+            budgetAmount,
+            budgetFrequency,
+            budgetName,
+            budgetTypeForNotificationMessage,
+            summaryLink,
+            thresholdPercentage,
+            totalSpend,
+            unsubmittedSpend,
+            userEmail,
+            awaitingApprovalSpend,
+            approvedReimbursedClosedSpend,
+        }: UpdatedPolicyBudgetNotificationParams) =>
+            `注意！此工作区的「${budgetTypeForNotificationMessage}：${budgetName}」有一项${budgetFrequency}预算，金额为「${budgetAmount}」。${userEmail} 当前支出为 ${approvedReimbursedClosedSpend}，已超过预算的 ${thresholdPercentage}%。另外还有 ${awaitingApprovalSpend} 正在等待审批，以及 ${unsubmittedSpend} 尚未提交，总计为 ${totalSpend}。${summaryLink ? `<a href="${summaryLink}">这里有一份报表</a>，包含了所有这些报销，供你留档！` : ''}`,
+        updatedSharedBudgetNotification: ({
+            budgetAmount,
+            budgetFrequency,
+            budgetName,
+            budgetTypeForNotificationMessage,
+            summaryLink,
+            thresholdPercentage,
+            totalSpend,
+            unsubmittedSpend,
+            awaitingApprovalSpend,
+            approvedReimbursedClosedSpend,
+        }: UpdatedPolicyBudgetNotificationParams) =>
+            `提醒！此工作区的${budgetTypeForNotificationMessage}“${budgetName}”设有${budgetFrequency}预算“${budgetAmount}”。你当前已花费${approvedReimbursedClosedSpend}，已超过预算的${thresholdPercentage}%。另外还有${awaitingApprovalSpend}在等待审批，以及${unsubmittedSpend}尚未提交，总计${totalSpend}。${summaryLink ? `<a href="${summaryLink}">这里有一份报表</a>，包含了所有相关报销记录，供你留档保存！` : ''}`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -7073,6 +7237,7 @@ ${reportName}
                 leftTheChat: '已离开聊天',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `由于报销或 Expensify Card 结算出现问题，企业银行账户 ${maskedBankAccountNumber} 已被自动锁定。请在<a href="${linkURL}">工作区设置</a>中修复该问题。`,
+                leftTheChatWithName: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}离开了聊天`,
             },
             error: {
                 invalidCredentials: '凭证无效，请检查您的连接配置。',
@@ -7213,8 +7378,6 @@ ${reportName}
     },
     distance: {
         addStop: '添加站点',
-        deleteWaypoint: '删除途经点',
-        deleteWaypointConfirmation: '确定要删除此航点吗？',
         address: '地址',
         waypointDescription: {
             start: '开始',
