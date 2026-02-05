@@ -856,30 +856,40 @@ function importPolicyCategories(
     existingCategories?: OnyxEntry<PolicyCategories>,
 ) {
     const policyCategories = existingCategories ?? {};
+    const hasExistingCategories = Object.keys(policyCategories).length > 0;
 
-    const {added, updated} = categories.reduce(
-        (acc, category) => {
-            if (!category.name) {
-                return acc;
-            }
-
-            const existing = policyCategories[category.name];
-
-            if (!existing) {
-                acc.added++;
-            } else if (
-                existing.enabled !== category.enabled ||
-                (existing['GL Code'] ?? '') !== (category['GL Code'] ?? '')
-            ) {
-                acc.updated++;
-            }
-
+const {added, updated} = categories.reduce(
+    (acc, category) => {
+        if (!category.name) {
             return acc;
-        },
-        {added: 0, updated: 0},
-    );
+        }
+
+        // 🔑 fallback
+        if (!hasExistingCategories) {
+            acc.added++;
+            return acc;
+        }
+
+        const name = category.name.trim();
+        const existing = policyCategories[name];
+
+        if (!existing) {
+            acc.added++;
+        } else if (
+            existing.enabled !== category.enabled ||
+            (existing['GL Code'] ?? '') !== (category['GL Code'] ?? '')
+        ) {
+            acc.updated++;
+        }
+
+        return acc;
+    },
+    {added: 0, updated: 0},
+);
+
 
     const onyxData = updateImportSpreadsheetData({added, updated});
+
     const parameters = {
         policyID,
         // eslint-disable-next-line @typescript-eslint/naming-convention
