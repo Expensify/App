@@ -145,7 +145,6 @@ import {
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {generateAccountID} from '@libs/UserUtils';
-import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PrivateIsArchivedMap} from '@src/selectors/ReportNameValuePairs';
@@ -763,7 +762,10 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
         lastMessageTextFromReport = getJoinRequestMessage(translate, lastReportAction);
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
+    } else if (
+        lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM ||
+        lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM
+    ) {
         lastMessageTextFromReport = translate('report.actions.type.leftTheChat');
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
         lastMessageTextFromReport = translate('violations.resolvedDuplicates');
@@ -1491,12 +1493,10 @@ const recentReportComparator = (option: SearchOptionData) => {
  * Function uses a min heap to efficiently get the first sorted options.
  */
 function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option: T) => number | string, limit?: number, filter?: (option: T) => boolean | undefined, reversed = false): T[] {
-    Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     const heap = reversed ? new MaxHeap<T>(comparator) : new MinHeap<T>(comparator);
 
     // If a limit is 0 or negative, return an empty array
     if (limit !== undefined && limit <= 0) {
-        Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
         return [];
     }
 
@@ -1517,7 +1517,6 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
             heap.push(option);
         }
     }
-    Timing.end(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     return [...heap].reverse();
 }
 
@@ -2206,6 +2205,7 @@ function getValidOptions(
     currentUserEmail: string,
     {
         excludeLogins = {},
+        excludeFromSuggestionsOnly = {},
         includeSelectedOptions = false,
         includeRecentReports = true,
         recentAttendees,
@@ -2228,10 +2228,17 @@ function getValidOptions(
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
     // Gather shared configs:
+    // Hard exclusions: cannot be selected at all
     const loginsToExclude: Record<string, boolean> = {
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
         ...restrictedLogins,
+    };
+
+    // Soft exclusions: hidden from suggestions but can be manually entered (e.g., Guide/AM)
+    const loginsToExcludeFromSuggestions: Record<string, boolean> = {
+        ...loginsToExclude,
+        ...excludeFromSuggestionsOnly,
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -2241,7 +2248,9 @@ function getValidOptions(
             if (!option.login) {
                 continue;
             }
+            // Prevent re-inviting already selected users
             loginsToExclude[option.login] = true;
+            loginsToExcludeFromSuggestions[option.login] = true;
         }
     }
     const {includeP2P = true, shouldBoldTitleByDefault = true, includeDomainEmail = false, shouldShowGBR = false, ...getValidReportsConfig} = config;
@@ -2286,7 +2295,7 @@ function getValidOptions(
                     ...getValidReportsConfig,
                     includeP2P,
                     includeDomainEmail,
-                    loginsToExclude,
+                    loginsToExclude: loginsToExcludeFromSuggestions,
                     currentUserAccountID,
                 },
                 draftComment,
@@ -2334,7 +2343,7 @@ function getValidOptions(
         recentAttendees.filter((attendee) => {
             const login = attendee.login ?? attendee.displayName;
             if (login) {
-                loginsToExclude[login] = true;
+                loginsToExcludeFromSuggestions[login] = true;
                 return true;
             }
 
@@ -2354,10 +2363,10 @@ function getValidOptions(
     };
 
     if (includeP2P) {
-        let personalDetailLoginsToExclude = loginsToExclude;
+        let personalDetailLoginsToExclude = loginsToExcludeFromSuggestions;
         if (currentUserEmail) {
             personalDetailLoginsToExclude = {
-                ...loginsToExclude,
+                ...loginsToExcludeFromSuggestions,
                 [currentUserEmail]: !config.includeCurrentUser,
             };
         }
@@ -2476,9 +2485,6 @@ function getSearchOptions({
     currentUserEmail,
     personalDetails,
 }: SearchOptionsConfig): Options {
-    Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
-    Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
-
     const optionList = getValidOptions(
         options,
         allPolicies,
@@ -2513,7 +2519,6 @@ function getSearchOptions({
         countryCode,
     );
 
-    Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
 
     return optionList;
