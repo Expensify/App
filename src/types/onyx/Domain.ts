@@ -105,6 +105,29 @@ type DomainSecurityGroup = SecurityGroup & {
     shared: Record<string, 'read' | null>;
 };
 
-export {type SamlMetadata, type DomainSecurityGroup};
+/**
+ * Security group key prefix.
+ * @example `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1234567890`
+ */
+type SecurityGroupKey = `${typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${string}`;
+
+/**
+ * Combination of security group key and security groups that the user belongs to.
+ */
+type UserSecurityGroupData =
+    | {
+          /**
+           * The ID (key) of the security group the user belongs to.
+           */
+          key: SecurityGroupKey;
+
+          /**
+           * The security group data.
+           */
+          securityGroup: Partial<DomainSecurityGroup>;
+      }
+    | undefined;
+
+export {type SamlMetadata, type DomainSecurityGroup, type UserSecurityGroupData, type SecurityGroupKey};
 
 export default Domain;
