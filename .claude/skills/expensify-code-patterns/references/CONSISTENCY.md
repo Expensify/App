@@ -2,24 +2,29 @@
 
 Patterns for maintainable, consistent code in the Expensify App.
 
-## CONSISTENCY-1: Platform-Specific File Extensions
+## CONSISTENCY-1: Avoid platform-specific checks within components
 
-**Do**: Use platform-specific file extensions for platform differences
-**Avoid**: `Platform.OS` checks and conditionals within components
+**Rationale**: Mixing platform-specific logic within components increases maintenance overhead, complexity, and bug risk. Separating concerns through platform-specific file extensions (e.g., `index.web.tsx`, `index.native.tsx`) improves maintainability and testability.
+
+**Exceptions**: Logic already handled through platform-specific file extensions.
+
+Good:
 
 ```tsx
-// Do: Create platform-specific files
-// Button.desktop.tsx
+// Platform-specific file: Button.desktop.tsx
 function Button() {
   return <button style={desktopStyles} />;
 }
 
-// Button.native.tsx
+// Platform-specific file: Button.mobile.tsx
 function Button() {
   return <TouchableOpacity style={mobileStyles} />;
 }
+```
 
-// Avoid
+Bad:
+
+```tsx
 function Button() {
   const isAndroid = Platform.OS === 'android';
   return isAndroid ? (
@@ -30,19 +35,17 @@ function Button() {
 }
 ```
 
-**Why**: Platform-specific files are easier to maintain, test, and understand. Inline conditionals increase complexity and bug risk.
-
-**Review**: Flag `Platform.OS`, `isAndroid`, `isIOS`, `Platform.select` checks that lead to hardcoded platform values within a single component file.
-
 ---
 
-## CONSISTENCY-2: Named Constants Over Magic Values
+## CONSISTENCY-2: Avoid magic numbers and strings
 
-**Do**: Define named constants for non-obvious values
-**Avoid**: Hardcoded numbers and strings without explanation
+**Rationale**: Magic numbers and strings reduce code readability and maintainability. Replacing them with named constants or documented values improves clarity and makes future changes easier.
+
+**Exceptions**: Self-explanatory values (`0`, `1`, `true`, `false`, `Math.PI`); values in configuration or environment variables; values documented with clear comments; values defined as named constants in the same file or imported module.
+
+Good:
 
 ```tsx
-// Do
 const MAX_RETRY_ATTEMPTS = 3;
 const API_TIMEOUT_MS = 5000;
 
@@ -51,8 +54,11 @@ function fetchData() {
     return apiCall({ timeout: API_TIMEOUT_MS });
   }
 }
+```
 
-// Avoid
+Bad:
+
+```tsx
 function fetchData() {
   if (attempts < 3) {
     return apiCall({ timeout: 5000 });
@@ -60,21 +66,17 @@ function fetchData() {
 }
 ```
 
-**What's OK**: Self-explanatory values (`0`, `1`, `true`, `false`, `Math.PI`), values with inline comments, values in configuration files.
-
-**Why**: Named constants improve readability and make changes easier.
-
-**Review**: Flag non-obvious numeric literals (>1) and string literals without constants or comments.
-
 ---
 
-## CONSISTENCY-3: DRY - Extract Duplicate Logic
+## CONSISTENCY-3: Eliminate code duplication
 
-**Do**: Create reusable functions/components for repeated patterns
-**Avoid**: Copy-pasting similar logic across files
+**Rationale**: Code duplication increases maintenance overhead, raises bug risk, and complicates the codebase. Consolidating similar logic into reusable functions or components adheres to the DRY principle, making code easier to maintain and understand.
+
+**Exceptions**: Duplicated code serves distinct purposes or has different requirements; intentional duplication for performance or external constraints; duplication in test or mock code; temporary duplication with a plan for refactoring.
+
+Good:
 
 ```tsx
-// Do
 function formatCurrency(amount: number, currency: string) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -89,25 +91,43 @@ function TransactionList({ transactions }) {
 function SummaryCard({ total }) {
   return <Text>{formatCurrency(total, 'USD')}</Text>;
 }
-
-// Avoid: Same formatting logic duplicated in multiple components
 ```
 
-**Exceptions**: Test/mock code, intentional duplication for performance, temporary duplication with refactor plan.
+Bad:
 
-**Why**: Duplication increases maintenance burden and bug risk.
+```tsx
+function TransactionList({ transactions }) {
+  return transactions.map(t =>
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: t.currency,
+    }).format(t.amount)
+  );
+}
 
-**Review**: Flag repeated logic patterns that could be extracted to a shared utility or component.
+function SummaryCard({ total }) {
+  return (
+    <Text>
+      {new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(total)}
+    </Text>
+  );
+}
+```
 
 ---
 
-## CONSISTENCY-4: Remove Unused Props
+## CONSISTENCY-4: Eliminate unused and redundant props
 
-**Do**: Only define props that are used in the component
-**Avoid**: Keeping unused prop definitions in types/destructuring
+**Rationale**: Unused props increase component complexity and maintenance overhead. Simplifying component interfaces improves code clarity and makes the component API easier to understand.
+
+**Exceptions**: Props conditionally used or part of a larger interface; props prepared for future use or part of an ongoing refactor; prop necessary for functionality or future extensibility; prop redundant but serves a distinct purpose (e.g., backward compatibility).
+
+Good:
 
 ```tsx
-// Do
 type ButtonProps = {
   title: string;
   onPress: () => void;
@@ -121,57 +141,65 @@ function Button({ title, onPress, disabled = false }: ButtonProps) {
     </TouchableOpacity>
   );
 }
+```
 
-// Avoid
+Bad:
+
+```tsx
 type ButtonProps = {
   title: string;
   onPress: () => void;
-  unusedProp: string;      // Never used
-  anotherUnused: number;   // Never used
+  unusedProp: string; // Never used in component
+  anotherUnused: number; // Never used in component
 };
 
-function Button({ title, onPress }: ButtonProps) { /* ... */ }
+function Button({ title, onPress }: ButtonProps) {
+  return (
+    <TouchableOpacity onPress={onPress}>
+      <Text>{title}</Text>
+    </TouchableOpacity>
+  );
+}
 ```
-
-**Why**: Unused props bloat interfaces and confuse developers about what's actually needed.
-
-**Review**: Flag prop type definitions where props aren't used in the component implementation.
 
 ---
 
-## CONSISTENCY-5a: Justify ESLint Disables
+## CONSISTENCY-5: Justify ESLint rule disables
 
-**Do**: Add comment explaining why ESLint rule is disabled
-**Avoid**: Disabling rules without justification
+**Rationale**: ESLint rule disables without justification can mask underlying issues and reduce code quality. Clear documentation ensures team members understand exceptions, promoting better maintainability.
+
+**Exceptions**: Disablement is justified with a clear comment explaining why the rule is disabled.
+
+Good:
 
 ```tsx
-// Do
 // eslint-disable-next-line react-hooks/exhaustive-deps
-// Dependencies intentionally omitted - effect should only run on mount
+// Dependencies are intentionally omitted - this effect should only run on mount
 useEffect(() => {
   initializeComponent();
 }, []);
+```
 
-// Avoid
+Bad:
+
+```tsx
 // eslint-disable-next-line react-hooks/exhaustive-deps
 useEffect(() => {
   initializeComponent();
 }, []);
 ```
 
-**Why**: Unjustified disables can mask real issues and make code review harder.
-
-**Review**: Flag `eslint-disable*` comments without an accompanying explanation.
-
 ---
 
-## CONSISTENCY-5b: Proper Error Handling
+## CONSISTENCY-6: Ensure proper error handling
 
-**Do**: Log errors and provide user feedback for critical operations
-**Avoid**: Silent failures or missing error handling
+**Rationale**: Proper error handling prevents silent failures, enhances debuggability, and improves user experience. Failing to handle errors can lead to crashes, data loss, and confusion for both developers and users.
+
+**Exceptions**: Errors logged and handled properly with user feedback; errors intentionally suppressed with clear justification; error handling managed by a higher-level function or middleware; operation is non-critical and errors are acceptable to ignore.
+
+Good:
 
 ```tsx
-// Do
 async function submitForm(data: FormData) {
   try {
     await API.submit(data);
@@ -181,17 +209,14 @@ async function submitForm(data: FormData) {
     showErrorMessage('Failed to submit form. Please try again.');
   }
 }
+```
 
-// Avoid
+Bad:
+
+```tsx
 async function submitForm(data: FormData) {
   await API.submit(data);
   // No error handling - failures are silent
   showSuccessMessage('Form submitted successfully');
 }
 ```
-
-**Exceptions**: Non-critical operations, errors handled by higher-level middleware, intentionally suppressed with clear justification.
-
-**Why**: Silent failures make debugging difficult and leave users confused.
-
-**Review**: Flag API calls, auth operations, and data mutations without try/catch or .catch() handling.

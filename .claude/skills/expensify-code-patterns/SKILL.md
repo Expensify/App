@@ -9,13 +9,14 @@ description: >
 # Expensify Code Patterns
 
 Patterns for writing performant, maintainable React Native code in the Expensify App.
+These rules serve both as development guidance and as the basis for automated code review.
 
 ## Pattern Index
 
 | Category | Rules | Documentation |
 |----------|-------|---------------|
 | **Performance** | PERF-1 to PERF-13 | [PERFORMANCE.md](references/PERFORMANCE.md) |
-| **Consistency** | CONSISTENCY-1 to CONSISTENCY-5 | [CONSISTENCY.md](references/CONSISTENCY.md) |
+| **Consistency** | CONSISTENCY-1 to CONSISTENCY-6 | [CONSISTENCY.md](references/CONSISTENCY.md) |
 | **Components** | PATTERNS-1 to PATTERNS-5 | [COMPONENTS.md](references/COMPONENTS.md) |
 | **Onyx** | Selectors, providers, subscriptions | [ONYX.md](references/ONYX.md) |
 
@@ -25,8 +26,8 @@ Patterns for writing performant, maintainable React Native code in the Expensify
 Optimize rendering, reduce re-renders, prevent memory leaks.
 → [Full documentation](references/PERFORMANCE.md)
 
-### Consistency (CONSISTENCY-1 to CONSISTENCY-5)
-Platform handling, magic numbers, duplication, error handling.
+### Consistency (CONSISTENCY-1 to CONSISTENCY-6)
+Platform handling, magic numbers, duplication, unused props, ESLint justification, error handling.
 → [Full documentation](references/CONSISTENCY.md)
 
 ### Components (PATTERNS-1 to PATTERNS-5)

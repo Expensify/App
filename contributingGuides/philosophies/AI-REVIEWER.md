@@ -46,7 +46,7 @@ When adding or modifying rules in AI reviewer agent files, the corresponding doc
 **code-inline-reviewer (Smart Linter)**
 - Reviews source code PRs for specific, predefined violations
 - Creates inline comments on lines that violate rules
-- See `.claude/agents/code-inline-reviewer.md` for current rule definitions
+- See `.claude/skills/expensify-code-patterns/` for current rule definitions
 
 **Holistic Reviewer**
 - Provides general code review without predefined rules

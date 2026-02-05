@@ -2,110 +2,137 @@
 
 Patterns to optimize React Native rendering performance in the Expensify App.
 
-## PERF-1: No Spread in renderItem
+## PERF-1: No spread in renderItem
 
-**Do**: Pass props explicitly to components in `renderItem`
-**Avoid**: Creating new objects with spread operators in `renderItem`
+**Rationale**: `renderItem` executes for every visible list item on each render. Creating new objects with spread operators forces React to treat each item as changed, preventing reconciliation optimizations and causing unnecessary re-renders of child components.
+
+**Exceptions**: Spread outside renderItem; spread on arrays; object created once outside renderItem and reused; spread for local cloning not passed as prop.
+
+Good:
 
 ```tsx
-// Do
-<Component item={item} isSelected={isSelected} shouldAnimate={isHighlighted} />
-
-// Avoid
-<Component item={{...item, isSelected, shouldAnimate: isHighlighted}} />
+<Component
+  item={item}
+  isSelected={isSelected}
+  shouldAnimateInHighlight={isItemHighlighted}
+/>
 ```
 
-**Why**: `renderItem` executes for every visible list item on each render. Spread creates new objects, breaking React reconciliation.
+Bad:
 
-**Review**: Flag spread operators inside renderItem that create inline object literals passed as props.
+```tsx
+<Component
+  item={{
+      shouldAnimateInHighlight: isItemHighlighted,
+      isSelected: selected,
+      ...item,
+  }}
+/>
+```
 
 ---
 
-## PERF-2: Return Early Before Expensive Work
+## PERF-2: Return early before expensive work
 
-**Do**: Validate inputs before expensive operations
-**Avoid**: Computing results before checking if they're needed
+**Rationale**: Early returns prevent wasted computation. When a function performs expensive work (function calls, iterations, API/Onyx reads) before a simple check that could short-circuit, the computation is wasted when the check fails.
 
-```tsx
-// Do
-function clearErrors(reportID, action) {
-  if (!action?.reportActionID) return;
-  const originalID = getOriginalReportID(reportID, action);  // After check
-}
+**Exceptions**: Simple checks already come first; validation requires the computed result; expensive work must run for side effects.
 
-// Avoid
-function clearErrors(reportID, action) {
-  const originalID = getOriginalReportID(reportID, action);  // Before check
-  if (!action?.reportActionID) return;
+Good:
+
+```ts
+function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
+    if (!reportAction?.reportActionID) {
+        return;
+    }
+
+    const originalReportID = getOriginalReportID(reportID, reportAction);
+    // ...
 }
 ```
 
-**Why**: Prevents wasted computation when inputs are invalid.
+Bad:
 
-**Review**: Flag when simple checks (null, undefined, empty) appear after function calls that use those values.
+```ts
+function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
+    const originalReportID = getOriginalReportID(reportID, reportAction);
+
+    if (!reportAction?.reportActionID) {
+        return;
+    }
+    // ...
+}
+```
 
 ---
 
-## PERF-3: Use OnyxListItemProvider in renderItem
+## PERF-3: Use OnyxListItemProvider hooks in renderItem
 
-**Do**: Use hooks from `OnyxListItemProvider` for data in list items
-**Avoid**: Individual `useOnyx` calls in components rendered by `renderItem`
+**Rationale**: Individual `useOnyx` calls in renderItem create separate subscriptions for each list item, causing memory overhead and update cascades. `OnyxListItemProvider` hooks provide optimized data access patterns specifically designed for list rendering performance.
+
+Good:
 
 ```tsx
-// Do
 const personalDetails = usePersonalDetails();
+```
 
-// Avoid
+Bad:
+
+```tsx
 const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 ```
 
-**Why**: Individual `useOnyx` in renderItem creates separate subscriptions per item, causing memory overhead and update cascades.
-
-**Review**: Flag `useOnyx` calls in components that are rendered inside FlatList/SectionList renderItem.
-
 ---
 
-## PERF-5: Shallow Comparisons in React.memo
+## PERF-5: Use shallow comparisons in React.memo
 
-**Do**: Compare specific relevant properties
-**Avoid**: Deep equality checks on entire objects
+**Rationale**: Deep equality checks recursively compare all nested properties, creating performance overhead that often exceeds the re-render cost they aim to prevent. Shallow comparisons of specific relevant properties provide the same optimization benefits with minimal computational cost.
+
+Good:
 
 ```tsx
-// Do
-memo(ReportActionItem, (prev, next) =>
-  prev.report.reportID === next.report.reportID &&
-  prev.isSelected === next.isSelected
-)
-
-// Avoid
-memo(ReportActionItem, (prev, next) =>
-  deepEqual(prev.report, next.report)
+memo(ReportActionItem, (prevProps, nextProps) =>
+    prevProps.report.type === nextProps.report.type &&
+    prevProps.report.reportID === nextProps.report.reportID &&
+    prevProps.isSelected === nextProps.isSelected
 )
 ```
 
-**Why**: Deep equality recursively checks all properties, often exceeding the cost of re-rendering.
+Bad:
 
-**Review**: Flag `deepEqual` or similar deep comparison utilities in memo comparators.
+```tsx
+memo(ReportActionItem, (prevProps, nextProps) =>
+    deepEqual(prevProps.report, nextProps.report) &&
+    prevProps.isSelected === nextProps.isSelected
+)
+```
 
 ---
 
-## PERF-6: Derive State from Props
+## PERF-6: Derive state from props
 
-**Do**: Compute values directly during render
-**Avoid**: Syncing derived values with useEffect + setState
+**Rationale**: Computing derived values directly in the component body ensures they're always synchronized with props/state and avoids unnecessary re-renders from the extra state + useEffect cycle.
+
+Good:
 
 ```tsx
-// Do
 function Form() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const fullName = firstName + ' ' + lastName;  // Computed
-}
+  const [firstName, setFirstName] = useState('Taylor');
+  const [lastName, setLastName] = useState('Swift');
 
-// Avoid
+  // Calculated during rendering
+  const fullName = firstName + ' ' + lastName;
+}
+```
+
+Bad:
+
+```tsx
 function Form() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [firstName, setFirstName] = useState('Taylor');
+  const [lastName, setLastName] = useState('Swift');
+
+  // Redundant state and unnecessary Effect
   const [fullName, setFullName] = useState('');
   useEffect(() => {
     setFullName(firstName + ' ' + lastName);
@@ -113,199 +140,270 @@ function Form() {
 }
 ```
 
-**Why**: Direct computation ensures values are always synchronized and avoids extra render cycles.
-
-**Review**: Flag useEffect that updates state based on props/state when the value could be computed directly.
-
 ---
 
-## PERF-7: Reset Components via key Prop
+## PERF-7: Control component resets via key prop
 
-**Do**: Use `key` prop to reset component state when identity changes
-**Avoid**: Using useEffect to reset multiple state values
+**Rationale**: When a prop changes and you need to reset all component state, the `key` prop causes React to unmount and remount the component, automatically resetting all state without needing useEffect. More idiomatic and reliable.
+
+Good:
 
 ```tsx
-// Do
 function ProfilePage({ userId }) {
   return <ProfileView key={userId} userId={userId} />;
 }
 
-// Avoid
 function ProfileView({ userId }) {
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(0);
+  // Component resets when userId changes due to key prop
+}
+```
+
+Bad:
+
+```tsx
+function ProfilePage({ userId }) {
+  return <ProfileView userId={userId} />;
+}
+
+function ProfileView({ userId }) {
+  const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(0);
+
   useEffect(() => {
-    setComment('');
+    setComment(''); // Reset when userId changes
     setRating(0);
   }, [userId]);
 }
 ```
 
-**Why**: `key` causes React to unmount/remount, naturally resetting all state. More idiomatic and reliable.
-
-**Review**: Flag useEffect that resets all/most component state when a prop changes.
-
 ---
 
-## PERF-8: Handle Events in Event Handlers
+## PERF-8: Handle events in event handlers
 
-**Do**: Respond to user actions directly in event handlers
-**Avoid**: Using state + useEffect to respond to events
+**Rationale**: Event handlers provide immediate response and clearer code flow. useEffect adds unnecessary render cycles and makes the relationship between user action and response less clear.
+
+Good:
 
 ```tsx
-// Do
-function BuyButton({ onBuy }) {
+function BuyButton({ productId, onBuy }) {
   function handleClick() {
     onBuy();
-    showNotification('Purchased!');
+    showNotification('Item purchased!');
   }
-  return <Button onPress={handleClick}>Buy</Button>;
-}
 
-// Avoid
-function BuyButton({ onBuy }) {
+  return <button onClick={handleClick}>Buy</button>;
+}
+```
+
+Bad:
+
+```tsx
+function BuyButton({ productId, onBuy }) {
   const [isBuying, setIsBuying] = useState(false);
+
   useEffect(() => {
     if (isBuying) {
       onBuy();
-      showNotification('Purchased!');
+      showNotification('Item purchased!');
     }
   }, [isBuying, onBuy]);
-  return <Button onPress={() => setIsBuying(true)}>Buy</Button>;
+
+  return <button onClick={() => setIsBuying(true)}>Buy</button>;
 }
 ```
 
-**Why**: Event handlers provide immediate response. useEffect adds render cycles and obscures causality.
-
-**Review**: Flag useEffect that responds to state changes triggered by user events.
-
 ---
 
-## PERF-9: Avoid useEffect Chains
+## PERF-9: Avoid useEffect chains
 
-**Do**: Compute derived values directly or restructure logic
-**Avoid**: Multiple useEffects where one's state update triggers another
+**Rationale**: Chains of effects where one effect's state update triggers another effect create complex dependencies, timing issues, and unnecessary renders. Restructure to compute derived values directly.
+
+Good:
 
 ```tsx
-// Do
 function Form() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+
+  // Compute derived values directly
   const fullName = firstName + ' ' + lastName;
   const isValid = firstName.length > 0 && lastName.length > 0;
-}
 
-// Avoid
-function Form() {
-  const [firstName, setFirstName] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [isValid, setIsValid] = useState(false);
-  useEffect(() => setFullName(firstName + ' ' + lastName), [firstName, lastName]);
-  useEffect(() => setIsValid(fullName.length > 0), [fullName]);  // Chain!
+  return (
+    <form>
+      <input value={firstName} onChange={e => setFirstName(e.target.value)} />
+      <input value={lastName} onChange={e => setLastName(e.target.value)} />
+      {isValid && <button>Submit</button>}
+    </form>
+  );
 }
 ```
 
-**Why**: Chains create complex dependencies, timing issues, and unnecessary renders.
+Bad:
 
-**Review**: Flag multiple useEffects where one effect's setState triggers another effect.
+```tsx
+function Form() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [isValid, setIsValid] = useState(false);
+
+  // Chain of effects
+  useEffect(() => {
+    setFullName(firstName + ' ' + lastName);
+  }, [firstName, lastName]);
+
+  useEffect(() => {
+    setIsValid(fullName.length > 0);
+  }, [fullName]);
+}
+```
 
 ---
 
-## PERF-10: No useEffect for Parent Communication
+## PERF-10: Communicate with parent components without useEffect
 
-**Do**: Lift state up to parent, pass down as props
-**Avoid**: Using useEffect to call parent callbacks with state changes
+**Rationale**: Parent-child communication should not use useEffect. Lift the state up to the parent component and pass it down as props. This follows React's unidirectional data flow pattern, eliminates synchronization issues, reduces unnecessary renders, and makes the data flow clearer.
+
+**Exceptions**: Synchronizing with external systems (not parent-child communication).
+
+Good:
 
 ```tsx
-// Do
+// Lifting state up
 function Parent() {
   const [value, setValue] = useState('');
   return <Child value={value} onChange={setValue} />;
 }
-function Child({ value, onChange }) {
-  return <TextInput value={value} onChangeText={onChange} />;
-}
 
-// Avoid
+function Child({ value, onChange }) {
+  return <input value={value} onChange={e => onChange(e.target.value)} />;
+}
+```
+
+Bad:
+
+```tsx
+// Passing data via useEffect
 function Child({ onValueChange }) {
   const [value, setValue] = useState('');
+
   useEffect(() => {
     onValueChange(value);
   }, [value, onValueChange]);
-  return <TextInput value={value} onChangeText={setValue} />;
+
+  return <input value={value} onChange={e => setValue(e.target.value)} />;
 }
 ```
 
-**Why**: useEffect for parent communication breaks unidirectional data flow, causes sync issues, extra renders.
-
-**Review**: Flag useEffect that calls parent callbacks to communicate state changes.
-
 ---
 
-## PERF-11: Optimize Data Selection
+## PERF-11: Optimize data selection and handling
 
-**Do**: Use selectors to subscribe to specific fields
-**Avoid**: Subscribing to entire objects when only using some fields
+**Rationale**: Using broad data structures or performing unnecessary data operations causes excessive re-renders and degrades performance. Selecting specific fields and avoiding redundant operations reduces render cycles and improves efficiency.
+
+**Exceptions**: Specific fields already selected or data structure is static; filtering is necessary for correct functionality; function requires the entire object for valid operations.
+
+Good:
 
 ```tsx
-// Do
-const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`, {
-  selector: (user) => ({ name: user?.name, avatar: user?.avatar })
-});
-
-// Avoid
-const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`);
-// Re-renders when ANY user field changes
+function UserProfile({ userId }) {
+  const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`, {
+    selector: (user) => ({
+      name: user?.name,
+      avatar: user?.avatar,
+    }),
+  });
+  return <Text>{user?.name}</Text>;
+}
 ```
 
-**Why**: Without selectors, components re-render when unused fields change.
-
-**Review**: Flag useOnyx without selector when component only uses subset of returned data.
-
----
-
-## PERF-12: Prevent Memory Leaks
-
-**Do**: Clean up subscriptions, timers, listeners in useEffect return
-**Avoid**: Creating resources without cleanup
+Bad:
 
 ```tsx
-// Do
-useEffect(() => {
-  const intervalId = setInterval(updateTimer, 1000);
-  return () => clearInterval(intervalId);
-}, []);
-
-// Avoid
-useEffect(() => {
-  const intervalId = setInterval(updateTimer, 1000);
-  // Missing cleanup!
-}, []);
+function UserProfile({ userId }) {
+  const [user] = useOnyx(`${ONYXKEYS.USER}${userId}`);
+  // Component re-renders when any user field changes, even unused ones
+  return <Text>{user?.name}</Text>;
+}
 ```
 
-**Why**: Uncleaned resources persist after unmount, causing leaks and crashes.
+---
 
-**Review**: Flag setInterval, setTimeout, addEventListener, subscribe without corresponding cleanup.
+## PERF-12: Prevent memory leaks in components
+
+**Rationale**: Failing to clear resources (timeouts, intervals, event listeners, subscriptions) causes memory leaks, leading to increased memory consumption and potential crashes, especially in long-lived or frequently mounted/unmounted components.
+
+**Exceptions**: Resource cleared in cleanup function; resource managed by a library with automatic cleanup; operation guaranteed to complete before unmount.
+
+Good:
+
+```tsx
+function TimerComponent() {
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      updateTimer();
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  return <Text>Timer</Text>;
+}
+```
+
+Bad:
+
+```tsx
+function TimerComponent() {
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      updateTimer();
+    }, 1000);
+    // Missing cleanup - interval will continue after unmount
+  }, []);
+
+  return <Text>Timer</Text>;
+}
+```
 
 ---
 
-## PERF-13: Hoist Iterator-Independent Calls
+## PERF-13: Avoid iterator-independent function calls in array methods
 
-**Do**: Move function calls outside loops when they don't use iterator
-**Avoid**: Calling functions inside .map/.filter that return same result every iteration
+**Rationale**: Function calls inside iteration callbacks that don't use the iterator variable execute redundantly — producing the same result on every iteration. This creates O(n) overhead that scales with data size. Hoisting these calls outside the loop eliminates redundant computation.
 
-```tsx
-// Do
+**Exceptions**: Function uses iterator or its derived value (e.g. `func(item.process())`); function depends on iterator context (e.g. `item.value ?? getDefault()`); function creates new entities (e.g. `{ id: createID() }`); same applies when using index instead of iterator.
+
+Good:
+
+```ts
+// Hoist iterator-independent calls outside the loop
 const config = getConfig();
-const results = items.map((item) => item.value * config.multiplier);
 
-// Avoid
+const results = items.map((item) => item.value * config.multiplier);
+```
+
+```ts
+// Function receives iterator or iterator-derived value
+const formatted = items.map((item) => formatCurrency(item.amount));
+```
+
+```ts
+// Index used meaningfully
+const indexed = items.map((item, index) => ({ ...item, id: generateId(index) }));
+```
+
+Bad:
+
+```ts
+// getConfig() called on every iteration but doesn't use item
 const results = items.map((item) => {
-  const config = getConfig();  // Called N times, returns same result
+  const config = getConfig();
   return item.value * config.multiplier;
 });
 ```
-
-**Why**: Iterator-independent calls create O(n) overhead that scales with data size.
-
-**Review**: Flag function calls inside array callbacks that don't use the iterator variable or its derived values.
