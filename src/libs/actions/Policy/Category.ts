@@ -1844,5 +1844,4 @@ export {
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
-    updateImportSpreadsheetData
 };
