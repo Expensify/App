@@ -1,4 +1,4 @@
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback, useContext, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
@@ -38,6 +38,8 @@ function IOURequestStepOdometerImage({
     const {isDraggingOver} = useContext(DragAndDropContext);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd']);
     const isTransactionDraft = shouldUseTransactionDraft(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST);
+    const dropBlobUrlsRef = useRef<string[]>([]);
+    const shouldRevokeOnUnmountRef = useRef(true);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -51,9 +53,19 @@ function IOURequestStepOdometerImage({
         Navigation.goBack();
     }, []);
 
+    const revokeDropBlobUrls = useCallback(() => {
+        for (const url of dropBlobUrlsRef.current) {
+            if (url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+        }
+        dropBlobUrlsRef.current = [];
+    }, []);
+
     const handleImageSelected = useCallback(
         (file: FileObject) => {
             setMoneyRequestOdometerImage(transactionID, readingType, file as File, isTransactionDraft);
+            shouldRevokeOnUnmountRef.current = false;
             navigateBack();
         },
         [transactionID, readingType, isTransactionDraft, navigateBack],
@@ -77,14 +89,28 @@ function IOURequestStepOdometerImage({
             if (files.length === 0) {
                 return;
             }
+            revokeDropBlobUrls();
+            const blobUrls: string[] = [];
             for (const file of files) {
+                const blobUrl = URL.createObjectURL(file);
+                blobUrls.push(blobUrl);
                 // eslint-disable-next-line no-param-reassign
-                file.uri = URL.createObjectURL(file);
+                file.uri = blobUrl;
             }
+            dropBlobUrlsRef.current = blobUrls;
             validateFiles(files as FileObject[], Array.from(event.dataTransfer?.items ?? []));
         },
-        [validateFiles],
+        [revokeDropBlobUrls, validateFiles],
     );
+
+    useEffect(() => {
+        return () => {
+            if (!shouldRevokeOnUnmountRef.current) {
+                return;
+            }
+            revokeDropBlobUrls();
+        };
+    }, [revokeDropBlobUrls]);
 
     const desktopUploadView = () => (
         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1, styles.ph11]}>

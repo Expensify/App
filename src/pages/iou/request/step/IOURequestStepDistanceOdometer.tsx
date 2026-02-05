@@ -236,16 +236,37 @@ function IOURequestStepDistanceOdometer({
         if (typeof image === 'string') {
             return image;
         }
-        // Web: File object, create blob URL
+        // Web: File object, reuse existing blob URL if present
         if (image instanceof File) {
+            if (typeof image.uri === 'string' && image.uri.length > 0) {
+                return image.uri;
+            }
             return URL.createObjectURL(image);
         }
         // Native: Object with uri property (fallback)
         return image?.uri;
     }, []);
 
-    const startImageSource = getImageSource(odometerStartImage);
-    const endImageSource = getImageSource(odometerEndImage);
+    const startImageSource = useMemo(() => getImageSource(odometerStartImage), [getImageSource, odometerStartImage]);
+    const endImageSource = useMemo(() => getImageSource(odometerEndImage), [getImageSource, odometerEndImage]);
+
+    useEffect(() => {
+        return () => {
+            if (!startImageSource?.startsWith('blob:')) {
+                return;
+            }
+            URL.revokeObjectURL(startImageSource);
+        };
+    }, [startImageSource]);
+
+    useEffect(() => {
+        return () => {
+            if (!endImageSource?.startsWith('blob:')) {
+                return;
+            }
+            URL.revokeObjectURL(endImageSource);
+        };
+    }, [endImageSource]);
 
     const buttonText = (() => {
         if (shouldSkipConfirmation) {
