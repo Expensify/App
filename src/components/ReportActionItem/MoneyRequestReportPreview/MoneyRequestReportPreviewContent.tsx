@@ -616,6 +616,7 @@ function MoneyRequestReportPreviewContent({
                         hasViolations,
                         isASAPSubmitBetaEnabled,
                         iouReportNextStep,
+                        betas,
                         isFullApproval,
                     );
                 }}
@@ -897,30 +898,6 @@ function MoneyRequestReportPreviewContent({
                         </View>
                     </PressableWithoutFeedback>
                 </View>
-<<<<<<< HEAD
-=======
-                {isHoldMenuVisible && !!iouReport && !!requestType && (
-                    <ProcessMoneyReportHoldMenu
-                        nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                        requestType={requestType}
-                        fullAmount={fullAmount}
-                        onClose={() => setIsHoldMenuVisible(false)}
-                        isVisible={isHoldMenuVisible}
-                        paymentType={paymentType}
-                        chatReport={chatReport}
-                        moneyRequestReport={iouReport}
-                        transactionCount={numberOfRequests}
-                        hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                        startAnimation={() => {
-                            if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                                startApprovedAnimation();
-                            } else {
-                                startAnimation();
-                            }
-                        }}
-                    />
-                )}
->>>>>>> main
             </OfflineWithFeedback>
             {isHoldMenuVisible && !!iouReport && (
                 <ProcessMoneyReportHoldMenu

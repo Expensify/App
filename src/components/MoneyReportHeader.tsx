@@ -990,7 +990,7 @@ function MoneyReportHeader({
 
     const onApprove = (isFullApproval: boolean) => {
         startApprovedAnimation();
-        approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, isFullApproval);
+        approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, isFullApproval);
         if (currentSearchQueryJSON) {
             search({
                 searchKey: currentSearchKey,
