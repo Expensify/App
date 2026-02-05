@@ -72,10 +72,13 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
 
     const triangleWidth = variables.reportActionItemImagesMoreCornerTriangleWidth;
 
+    // Temporary for the design team to switch thumbnails size
+    const shouldUseSmallThumbnail = window.shouldUseSmallThumbnail ?? true;
+
     return (
         <View style={styles.reportActionItemImagesContainer}>
             <View style={[styles.reportActionItemImages, hoverStyle, ...layoutStyle]}>
-                {shownImages.map(({thumbnail, isThumbnail, image, isEmptyReceipt, transaction, isLocalFile, fileExtension, filename}, index) => {
+                {shownImages.map(({thumbnail, thumbnail320, isThumbnail, image, isEmptyReceipt, transaction, isLocalFile, fileExtension, filename}, index) => {
                     // Show a border to separate multiple images. Shown to the right for each except the last.
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                     const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
@@ -86,7 +89,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                         >
                             <View style={[styles.reportActionItemImage, borderStyle, hoverStyle]}>
                                 <ReportActionItemImage
-                                    thumbnail={thumbnail}
+                                    thumbnail={shouldUseSmallThumbnail ? thumbnail320 : thumbnail}
                                     fileExtension={fileExtension}
                                     image={image}
                                     isLocalFile={isLocalFile}
@@ -98,6 +101,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                                     shouldMapHaveBorderRadius={false}
                                     onPress={onPress}
                                     shouldUseFullHeight={shouldUseAspectRatio}
+                                    shouldUseThumbnailImage
                                 />
                             </View>
                         </ImageBehaviorContextProvider>
