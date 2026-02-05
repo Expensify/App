@@ -490,7 +490,7 @@ function MoneyRequestReportPreviewContent({
         if (itemInfo.index > 9) {
             return (
                 <View
-                    style={[styles.flex1, styles.p5, styles.justifyContentCenter]}
+                    style={[styles.p5, styles.justifyContentCenter]}
                     onLayout={(e) => setFooterWidth(e.nativeEvent.layout.width)}
                 >
                     <Text style={{color: colors.blue600}}>
@@ -696,6 +696,16 @@ function MoneyRequestReportPreviewContent({
 
     const renderSeparator = () => <View style={styles.transactionsCarouselGap} />;
 
+    const snapOffsets = useMemo(() => {
+        const itemWidth = reportPreviewStyles.transactionPreviewCarouselStyle.width;
+        const gap = styles.gap2.gap;
+
+        // Create snap points for each item
+        const offsets = carouselTransactions.map((_, index) => index * (itemWidth + gap));
+
+        return offsets;
+    }, [carouselTransactions.length, reportPreviewStyles.transactionPreviewCarouselStyle.width, styles.gap2.gap]);
+
     return (
         <View
             onLayout={onWrapperLayout}
@@ -847,7 +857,7 @@ function MoneyRequestReportPreviewContent({
                                             <FlashList
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
-                                                snapToInterval={reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap}
+                                                snapToOffsets={snapOffsets}
                                                 horizontal
                                                 ItemSeparatorComponent={renderSeparator}
                                                 data={carouselTransactions}
@@ -860,7 +870,7 @@ function MoneyRequestReportPreviewContent({
                                                 showsHorizontalScrollIndicator={false}
                                                 renderItem={renderItem}
                                                 onViewableItemsChanged={onViewableItemsChanged}
-                                                onEndReached={adjustScroll}
+                                                // onEndReached={adjustScroll}
                                                 viewabilityConfig={viewabilityConfig}
                                                 ListFooterComponent={<View style={styles.pl2} />}
                                                 ListHeaderComponent={<View style={styles.pr2} />}
