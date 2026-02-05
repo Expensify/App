@@ -1,4 +1,4 @@
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 
 /**
  * Represents the transport method for a passkey credential.
