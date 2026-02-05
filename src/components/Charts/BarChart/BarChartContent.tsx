@@ -107,8 +107,9 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         return {left: horizontalPadding, right: horizontalPadding + DOMAIN_PADDING.right, top: DOMAIN_PADDING.top, bottom: DOMAIN_PADDING.bottom};
     }, [chartWidth, data.length]);
 
-    const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
+    const {formatXAxisLabel, formatYAxisLabel, displayUnit} = useChartLabelFormats({
         data,
+        font,
         yAxisUnit,
         yAxisUnitPosition,
         labelSkipInterval,
@@ -179,10 +180,10 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         }
         const formatted = dataPoint.total.toLocaleString();
         let formattedAmount = formatted;
-        if (yAxisUnit) {
+        if (displayUnit) {
             // Add space for multi-character codes (e.g., "PLN 100") but not for symbols (e.g., "$100")
-            const separator = yAxisUnit.length > 1 ? ' ' : '';
-            formattedAmount = yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
+            const separator = displayUnit.length > 1 ? ' ' : '';
+            formattedAmount = yAxisUnitPosition === 'left' ? `${displayUnit}${separator}${formatted}` : `${formatted}${separator}${displayUnit}`;
         }
         const totalSum = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
         const percent = totalSum > 0 ? Math.round((Math.abs(dataPoint.total) / totalSum) * 100) : 0;
@@ -191,7 +192,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
             amount: formattedAmount,
             percentage: percent < 1 ? '<1%' : `${percent}%`,
         };
-    }, [activeDataIndex, data, yAxisUnit, yAxisUnitPosition]);
+    }, [activeDataIndex, data, displayUnit, yAxisUnitPosition]);
 
     const renderBar = useCallback(
         (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
