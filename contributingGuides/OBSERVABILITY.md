@@ -17,7 +17,8 @@ When users encounter issues in live sessions that we can't reproduce locally, bu
 
 ## Tools & implementation
 
-We use **Sentry** for observability across all platforms (Web, iOS, Android). Sentry collects traces, spans, and contextual data from user sessions to identify and diagnose production issues. For a better understanding of Sentry visit [Sentry docs](https://docs.sentry.io/).
+We use **Sentry** for observability across all platforms (Web, iOS, Android) and environments (production, staging, development). Sentry collects traces, spans, and contextual data from user sessions to identify and diagnose issues. For a better understanding of Sentry visit [Sentry docs](https://docs.sentry.io/). 
+For testing Sentry locally remember to set env variable `ENABLE_SENTRY_ON_DEV=true` in your local .env file. 
 
 ### Working with Spans
 
@@ -84,9 +85,8 @@ Process events before sending to Sentry:
 - **minDurationFilter** - Discards spans shorter than a specified duration
 - **scopeTagsEnricher** - Adds cohort and policy tags
 - **emailDomainFilter** - Removes accounts we don't want to send telemetry for
-- **firebasePerformanceFilter** - Filters noise
 
-Middlewares runs automatically. Add new middleware only for global filtering or enrichment (e.g., new PII protection).
+Middleware runs automatically. Add new middleware only for global filtering or enrichment (e.g., new PII protection).
 
 ## Metrics
 
