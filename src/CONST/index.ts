@@ -8178,7 +8178,6 @@ const CONST = {
             ADD_EXPENSE_TRACK_DISTANCE: 'MoreMenu-AddExpenseTrackDistance',
             ADD_EXPENSE_UNREPORTED: 'MoreMenu-AddExpenseUnreported',
             PAY: 'MoreMenu-Pay',
-            PDF_MODAL_CLOSE: 'MoreMenu-PDFModalClose',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
