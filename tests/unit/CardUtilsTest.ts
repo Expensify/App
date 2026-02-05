@@ -36,6 +36,7 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
@@ -524,6 +525,28 @@ describe('CardUtils', () => {
         it('Should return empty object if undefined is passed', () => {
             const companyFeeds = getCompanyFeeds(undefined);
             expect(companyFeeds).toStrictEqual({});
+        });
+    });
+
+    describe('isCSVFeedOrExpensifyCard', () => {
+        it('Should return true for CSV feed keys', () => {
+            expect(isCSVFeedOrExpensifyCard('csv#123456')).toBe(true);
+        });
+
+        it('Should return true for ccupload feed keys', () => {
+            expect(isCSVFeedOrExpensifyCard(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)).toBe(true);
+        });
+
+        it('Should return true for Expensify Card feed key', () => {
+            expect(isCSVFeedOrExpensifyCard('Expensify Card')).toBe(true);
+        });
+
+        it('Should return false for a direct bank feed', () => {
+            expect(isCSVFeedOrExpensifyCard('plaid.ins_19')).toBe(false);
+        });
+
+        it('Should return false for a custom feed', () => {
+            expect(isCSVFeedOrExpensifyCard(`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`)).toBe(false);
         });
     });
 

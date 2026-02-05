@@ -7498,9 +7498,7 @@ ${reportName}
         companySpend: '会社の支出',
     },
     distance: {
-        addStop: '停止を追加',
-        deleteWaypoint: '経由地を削除',
-        deleteWaypointConfirmation: 'このウェイポイントを削除してもよろしいですか？',
+        addStop: '経由地を追加',
         address: '住所',
         waypointDescription: {
             start: '開始',

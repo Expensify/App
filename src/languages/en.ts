@@ -7519,8 +7519,6 @@ const translations = {
     },
     distance: {
         addStop: 'Add stop',
-        deleteWaypoint: 'Delete waypoint',
-        deleteWaypointConfirmation: 'Are you sure you want to delete this waypoint?',
         address: 'Address',
         waypointDescription: {
             start: 'Start',

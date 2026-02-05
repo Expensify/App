@@ -7578,8 +7578,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
     },
     distance: {
         addStop: 'Stopp hinzufügen',
-        deleteWaypoint: 'Wegpunkt löschen',
-        deleteWaypointConfirmation: 'Bist du sicher, dass du diesen Wegpunkt löschen möchtest?',
         address: 'Adresse',
         waypointDescription: {
             start: 'Start',
