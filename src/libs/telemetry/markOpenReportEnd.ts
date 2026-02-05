@@ -1,4 +1,3 @@
-import Timing from '@libs/actions/Timing';
 import Performance from '@libs/Performance';
 import {isOneTransactionReport, isReportTransactionThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -26,16 +25,12 @@ function markOpenReportEnd(report: OnyxTypes.Report) {
     endSpan(spanId);
 
     Performance.markEnd(CONST.TIMING.OPEN_REPORT);
-    Timing.end(CONST.TIMING.OPEN_REPORT);
 
     Performance.markEnd(CONST.TIMING.OPEN_REPORT_THREAD);
-    Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
 
     Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-    Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
 
     Performance.markEnd(CONST.TIMING.OPEN_REPORT_SEARCH);
-    Timing.end(CONST.TIMING.OPEN_REPORT_SEARCH);
 }
 
 export default markOpenReportEnd;
