@@ -9,11 +9,13 @@ This article explains how to read your Expensify billing receipt, so you can und
 
 # Where to find your Expensify billing receipt
 
-You'll receive a billing receipt via email at the start of each month. It includes charges for all workspaces where you are the billing owner.
+## Where to find your billing receipt in Expensify Classic
 
-You can also view your billing history in your Expensify account:
+In **Expensify Classic**, you can find your Expensify billing receipt under **Settings > Account > Subscription**. 
 
-**Web:** `Settings > Workspaces > Subscription > View billing history`
+## Where to find your billing receipt in New Expensify
+
+In **New Expensify**, you can find your Expensify billing receipt under **Account > Subscription > View payment history**. 
 
 # What your Expensify billing receipt includes
 
@@ -42,8 +44,6 @@ You might see:
 - **Expensify Card discounts or cash back credits** — Applied automatically when eligible
 
 Each row shows the member type, quantity, price per member, and subtotal.
-
-**ADD A SCREENSHOT HERE.** Suggestion: Billing breakdown table showing member types and associated charges.
 
 ---
 
@@ -80,8 +80,6 @@ You'll see:
 
 If all activity occurred in one workspace, only that one will be listed.
 
-**ADD A SCREENSHOT HERE.** Suggestion: Activity breakdown section showing Workspace name, ID, and subtotal.
-
 ---
 
 # Discounts and cash back on your Expensify bill
@@ -92,20 +90,6 @@ You may see credits that reduce your total charges. These can include:
 - **ExpensifyApproved! discounts** for accounting firms in the partner program
 
 These credits appear in the **Billing breakdown** as negative line items.
-
-**ADD A SCREENSHOT HERE.** Suggestion: Line item showing Expensify Card discount or cash back credit.
-
----
-
-# Expensify Classic terminology differences
-
-If you're using Expensify Classic, you might notice slight label differences:
-
-- "Receipt" may appear as an **invoice**
-- Billing details may appear under **Billing History**
-- Section names might differ, but calculations and member logic are the same
-
-These are display-only differences.
 
 ---
 
@@ -131,29 +115,7 @@ These members are shown on your receipt for transparency but are not charged.
 
 If you acted as a Copilot — or someone acted as a Copilot for you — **both people are billed** when a billable action is taken. This ensures activity is tracked to both accounts.
 
-## How can I reduce my Expensify bill?
-
-You can:
-- Encourage use of the **Expensify Card** to earn discounts and cash back
-- Consolidate workspaces to reduce duplicate activity
-- Remove unneeded members or adjust roles to limit access
-
-## Where can I see a breakdown of active members?
-
-While the receipt shows member counts by type, you can get a **full active user breakdown** by visiting:
-
-**Web:** `Settings > Workspaces > Subscription > View billing history`
-
-Then click on a receipt to view active users for that billing cycle.
 
 ## Why does the receipt mention "You're missing out on $X savings"?
 
 This is a promotional message showing how much you could save by moving all spend to the Expensify Card. It does not affect your current charges.
-
-## Can I download past billing receipts?
-
-Yes. Go to:
-
-**Web:** `Settings > Workspaces > Subscription > View billing history`
-
-Click any receipt to download a copy.
