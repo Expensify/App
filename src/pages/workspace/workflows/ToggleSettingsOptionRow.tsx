@@ -195,7 +195,7 @@ function ToggleSettingOptionRow({
                         accessibilityLabel={title}
                         role="button"
                         accessible={false}
-                        disabled={!shouldMakeContentPressable}
+                        interactive={!!shouldMakeContentPressable}
                     >
                         {contentArea}
                     </PressableWithoutFeedback>

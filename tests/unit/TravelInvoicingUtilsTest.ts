@@ -12,8 +12,8 @@ import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 
 describe('TravelInvoicingUtils', () => {
     describe('PROGRAM_TRAVEL_US constant', () => {
-        it('Should be defined as TRAVEL_US', () => {
-            expect(CONST.TRAVEL.PROGRAM_TRAVEL_US).toBe('TRAVEL_US');
+        it('Should be defined as PROGRAM_TRAVEL_US', () => {
+            expect(CONST.TRAVEL.PROGRAM_TRAVEL_US).toBe('PROGRAM_TRAVEL_US');
         });
     });
 

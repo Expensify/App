@@ -529,16 +529,16 @@ function AuthScreens() {
                     SCREENS.SEARCH.ROOT,
                 ]}
             >
-                {/* This has to be the first navigator in auth screens. */}
-                <RootStack.Screen
-                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                    options={getFullscreenNavigatorOptions}
-                    getComponent={loadReportSplitNavigator}
-                />
+                {/* SCREENS.HOME has to be the first navigator in auth screens. */}
                 <RootStack.Screen
                     name={SCREENS.HOME}
                     options={rootNavigatorScreenOptions.fullScreenTabPage}
                     getComponent={loadHomePage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    options={getFullscreenNavigatorOptions}
+                    getComponent={loadReportSplitNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}

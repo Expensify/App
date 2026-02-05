@@ -3,6 +3,8 @@
 
 This document lists specific guidelines for all PR reviews and aims to clarify items in the PR template checklist.
 
+For a comprehensive guide on standards and best practices for both PR authors and reviewers, including PR title conventions and testing responsibilities, see [PR Authoring & Reviewing Best Practices](./PR_AUTHOR_REVIEWER_BEST_PRACTICES.md).
+
 # Check PR template
 
 1. Make sure the “Fixed Issues” section is formatted correctly. Links should be clickable and lead to the correct issue being fixed by this PR.

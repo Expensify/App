@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
@@ -86,6 +87,22 @@ function getTravelSettlementFrequency(cardSettings: OnyxEntry<ExpensifyCardSetti
     return cardSettings.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
 }
 
-export {getIsTravelInvoicingEnabled, hasTravelInvoicingSettlementAccount, getTravelLimit, getTravelSpend, getTravelSettlementAccount, getTravelSettlementFrequency};
+/**
+ * Gets the Onyx key for Travel Invoicing card settings.
+ * This function returns a properly typed key without requiring type assertions.
+ */
+function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${number}_${typeof CONST.TRAVEL.PROGRAM_TRAVEL_US}` {
+    return `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`;
+}
+
+export {
+    getIsTravelInvoicingEnabled,
+    hasTravelInvoicingSettlementAccount,
+    getTravelLimit,
+    getTravelSpend,
+    getTravelSettlementAccount,
+    getTravelSettlementFrequency,
+    getTravelInvoicingCardSettingsKey,
+};
 
 export type {TravelSettlementAccountInfo};

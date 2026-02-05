@@ -3,7 +3,7 @@ import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, View
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
-import type {SelectionListWithSectionsHandle} from './SelectionListWithSections/types';
+import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
 
 /**
  * Base props shared between SelectionList and SelectionListWithSections.
@@ -315,4 +315,5 @@ export type {
     ButtonOrCheckBoxRoles,
     SelectionListStyle,
     SelectionListWithSectionsHandle,
+    SelectionListWithSectionsProps,
 };

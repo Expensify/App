@@ -29,13 +29,16 @@
 // per-parser initializer (code executed before every parse)
 {  
   const GROUP_BY_DEFAULT_SORT = {
-    from: "from",
-    card: "card",
-    "withdrawal-id": "withdrawn",
-    category: "category",
-    tag: "tag",
+    from: "groupFrom",
+    card: "groupCard",
+    "withdrawal-id": "groupWithdrawn",
+    category: "groupCategory",
+    tag: "groupTag",
     merchant: "groupMerchant",
     month: "groupmonth",
+    week: "groupweek",
+    year: "groupyear",
+    quarter: "groupquarter",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -45,7 +48,10 @@
     category: "asc",
     tag: "asc",
     merchant: "asc",
-    month: "desc"
+    month: "desc",
+    week: "desc",
+    year: "desc",
+    quarter: "desc",
   };
 
   const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);

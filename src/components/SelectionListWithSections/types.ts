@@ -6,6 +6,7 @@ import type {
     LayoutChangeEvent,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    Role,
     ScrollViewProps,
     SectionListData,
     StyleProp,
@@ -35,10 +36,13 @@ import type {
     SearchMemberGroup,
     SearchMerchantGroup,
     SearchMonthGroup,
+    SearchQuarterGroup,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchWeekGroup,
     SearchWithdrawalIDGroup,
+    SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -120,6 +124,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
     shouldStopMouseLeavePropagation?: boolean;
+
+    /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
+    accessibilityRole?: Role;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -293,6 +300,9 @@ type TransactionListItemType = ListItem &
 
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
+
+        /** Whether the card feed has been deleted */
+        isCardFeedDeleted?: boolean;
 
         /** The original amount of the transaction */
         originalAmount?: number;
@@ -524,6 +534,27 @@ type TransactionMerchantGroupListItemType = TransactionGroupListItemType & {grou
 type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
         /** Final and formatted "tag" value used for displaying and sorting */
         formattedTag?: string;
+    };
+
+type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
+        /** Final and formatted "week" value used for displaying */
+        formattedWeek: string;
+    };
+
+type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
+        /** Final and formatted "year" value used for displaying */
+        formattedYear: string;
+
+        /** Key used for sorting */
+        sortKey: number;
+    };
+
+type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.QUARTER} & SearchQuarterGroup & {
+        /** Final and formatted "quarter" value used for displaying */
+        formattedQuarter: string;
+
+        /** Sort key for sorting */
+        sortKey: number;
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -1171,6 +1202,9 @@ export type {
     TransactionCategoryGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionYearGroupListItemType,
+    TransactionQuarterGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

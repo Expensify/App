@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -20,7 +21,7 @@ import type SCREENS from '@src/SCREENS';
 type AddMatchTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_MATCH_TYPE>;
 
 type MatchTypeItem = ListItem & {
-    value: string;
+    value: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 };
 
 function AddMatchTypePage({route}: AddMatchTypePageProps) {

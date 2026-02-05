@@ -532,6 +532,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
 
+        /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
+        isFromFloatingActionButton?: boolean;
+
         /** The transaction tax rate */
         taxRate?: string | undefined;
 

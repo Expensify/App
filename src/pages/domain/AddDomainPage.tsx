@@ -32,7 +32,7 @@ function AddDomainPage() {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.DOMAIN_NAME]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.DOMAIN_NAME], translate);
             const domainName = values[INPUT_IDS.DOMAIN_NAME];
             if (!domainName) {
                 return errors;

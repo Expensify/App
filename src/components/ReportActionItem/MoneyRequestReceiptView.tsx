@@ -33,6 +33,7 @@ import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasReceipt as hasReceiptTransactionUtils,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isManualDistanceRequest,
     isScanning,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
@@ -105,6 +106,7 @@ function MoneyRequestReceiptView({
         canEvict: false,
         canBeMissing: true,
     });
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const [isLoading, setIsLoading] = useState(true);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -223,7 +225,7 @@ function MoneyRequestReceiptView({
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -250,7 +252,7 @@ function MoneyRequestReceiptView({
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, true, true);
+            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, true, true);
         }
     };
 
@@ -265,6 +267,8 @@ function MoneyRequestReceiptView({
     }
 
     const showBorderlessLoading = isLoading && fillSpace;
+
+    const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
 
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
@@ -332,7 +336,14 @@ function MoneyRequestReceiptView({
                     contentContainerStyle={styles.flex1}
                 >
                     {hasReceipt && (
-                        <View style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}>
+                        <View
+                            style={[
+                                styles.getMoneyRequestViewImage(showBorderlessLoading),
+                                receiptStyle,
+                                showBorderlessLoading && styles.flex1,
+                                fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
+                            ]}
+                        >
                             <ReportActionItemImage
                                 shouldUseThumbnailImage={!fillSpace}
                                 shouldUseFullHeight={fillSpace}
