@@ -228,6 +228,7 @@ function WorkspacesListRow({
                     role={CONST.ROLE.BUTTON}
                     onPress={onPress}
                     style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}
+                    sentryLabel="WorkspacesListRow"
                 >
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                         <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>

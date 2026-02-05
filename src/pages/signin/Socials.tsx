@@ -67,6 +67,7 @@ function Socials() {
                     accessibilityLabel={translate(social.label)}
                     style={[styles.mr1, styles.mt1]}
                     shouldUseAutoHitSlop={false}
+                    sentryLabel={`Socials-${social.iconURL}`}
                 >
                     {({hovered, pressed}) => (
                         <Icon

@@ -49,6 +49,7 @@ function CopyTextToClipboard({
             accessible
             accessibilityLabel={translate('common.copyToClipboard')}
             accessibilityRole={accessibilityRole}
+            sentryLabel="CopyTextToClipboard"
             shouldHaveActiveBackground={shouldHaveActiveBackground}
             iconWidth={iconWidth}
             iconHeight={iconHeight}

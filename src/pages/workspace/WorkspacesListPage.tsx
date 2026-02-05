@@ -56,7 +56,6 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
-    getUserFriendlyWorkspaceType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
@@ -479,6 +478,7 @@ function WorkspacesListPage() {
                         accessible={false}
                         style={[styles.mh5]}
                         disabled={item.disabled}
+                        sentryLabel="WorkspacesListPage-row"
                     >
                         {({hovered}) => (
                             <WorkspacesListRow
