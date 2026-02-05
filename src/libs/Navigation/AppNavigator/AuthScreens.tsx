@@ -668,6 +668,7 @@ function AuthScreens() {
                     name={NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={TestDriveModalNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}

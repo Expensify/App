@@ -78,17 +78,22 @@ function useOnboardingFlowRouter() {
             // Should be removed once Test Drive modal route has its own navigation guard
             // Details: https://github.com/Expensify/App/pull/79898
             if (hasCompletedGuidedSetupFlowSelector(onboardingValues) && onboardingValues?.testDriveModalDismissed === false) {
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from test drive modal');
-                    startOnboardingFlow({
-                        onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
-                        isUserFromPublicDomain: false,
-                        hasAccessiblePolicies: false,
-                        currentOnboardingCompanySize: undefined,
-                        currentOnboardingPurposeSelected: undefined,
-                        onboardingValues,
+                const navigationState = navigationRef.getRootState();
+                const lastRoute = navigationState.routes.at(-1);
+                // Prevent duplicate navigation if the test drive modal is already shown
+                if (lastRoute?.name !== NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR) {
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Log.info('[Onboarding] User has not completed the guided setup flow, starting onboarding flow from test drive modal');
+                        startOnboardingFlow({
+                            onboardingInitialPath: ROUTES.TEST_DRIVE_MODAL_ROOT.route,
+                            isUserFromPublicDomain: false,
+                            hasAccessiblePolicies: false,
+                            currentOnboardingCompanySize: undefined,
+                            currentOnboardingPurposeSelected: undefined,
+                            onboardingValues,
+                        });
                     });
-                });
+                }
             }
             if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
                 const navigationState = navigationRef.getRootState();
