@@ -1,11 +1,8 @@
+import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
-/**
- * Represents the transport method for a passkey credential.
- * Values based on WebAuthn AuthenticatorTransport enum.
- * @see https://www.w3.org/TR/webauthn-3/#enum-transport
- */
-type PasskeyTransport = 'usb' | 'nfc' | 'ble' | 'smart-card' | 'hybrid' | 'internal';
+/** Represents the transport method for a passkey credential */
+type PasskeyTransport = ValueOf<typeof CONST.PASSKEY_TRANSPORT>;
 
 /** Represents a single credential stored locally for a passkey */
 type PasskeyCredential = {

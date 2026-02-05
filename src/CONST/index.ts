@@ -433,6 +433,19 @@ const CONST = {
     /** WebAuthn/Passkey credential type */
     PASSKEY_CREDENTIAL_TYPE: 'public-key',
 
+    /**
+     * WebAuthn AuthenticatorTransport values.
+     * @see https://www.w3.org/TR/webauthn-3/#enum-transport
+     */
+    PASSKEY_TRANSPORT: {
+        USB: 'usb',
+        NFC: 'nfc',
+        BLE: 'ble',
+        SMART_CARD: 'smart-card',
+        HYBRID: 'hybrid',
+        INTERNAL: 'internal',
+    },
+
     DESKTOP_SHORTCUT_ACCELERATOR: {
         PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
         PASTE_AS_PLAIN_TEXT: 'CmdOrCtrl+Shift+V',
