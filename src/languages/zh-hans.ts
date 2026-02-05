@@ -7044,6 +7044,7 @@ ${reportName}
             label: '查看',
             table: '表',
             bar: '栏',
+            line: '折线',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',

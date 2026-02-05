@@ -1,11 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
-import {BarChart} from '@components/Charts';
+import {LineChart} from '@components/Charts';
 import type {ChartDataPoint, YAxisUnitPosition} from '@components/Charts';
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {GroupedItem} from './types';
 
-type SearchBarChartProps = {
+type SearchLineChartProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
 
@@ -34,8 +34,7 @@ type SearchBarChartProps = {
     yAxisUnitPosition?: YAxisUnitPosition;
 };
 
-function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onItemPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchBarChartProps) {
-    // Transform grouped transaction data to BarChart format
+function SearchLineChart({data, title, titleIcon, getLabel, getFilterQuery, onItemPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchLineChartProps) {
     const chartData: ChartDataPoint[] = useMemo(() => {
         return data.map((item) => {
             const currency = item.currency ?? 'USD';
@@ -48,7 +47,7 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onIte
         });
     }, [data, getLabel]);
 
-    const handleBarPress = useCallback(
+    const handlePointPress = useCallback(
         (dataPoint: ChartDataPoint, index: number) => {
             if (!onItemPress) {
                 return;
@@ -66,18 +65,18 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onIte
     );
 
     return (
-        <BarChart
+        <LineChart
             data={chartData}
             title={title}
             titleIcon={titleIcon}
             isLoading={isLoading}
-            onBarPress={handleBarPress}
+            onPointPress={handlePointPress}
             yAxisUnit={yAxisUnit}
             yAxisUnitPosition={yAxisUnitPosition}
         />
     );
 }
 
-SearchBarChart.displayName = 'SearchBarChart';
+SearchLineChart.displayName = 'SearchLineChart';
 
-export default SearchBarChart;
+export default SearchLineChart;

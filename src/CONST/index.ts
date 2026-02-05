@@ -7180,6 +7180,7 @@ const CONST = {
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
+            LINE: 'line',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',

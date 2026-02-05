@@ -7180,6 +7180,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             label: 'Pokaż',
             table: 'Tabela',
             bar: 'Bar',
+            line: 'Linia',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Od',

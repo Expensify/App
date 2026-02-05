@@ -7230,6 +7230,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             label: 'Anzeigen',
             table: 'Tabelle',
             bar: 'Leiste',
+            line: 'Linie',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Von',

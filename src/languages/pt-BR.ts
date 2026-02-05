@@ -7181,6 +7181,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             label: 'Visualizar',
             table: 'Tabela',
             bar: 'Bar',
+            line: 'Linha',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',

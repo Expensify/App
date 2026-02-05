@@ -7243,6 +7243,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             label: 'Afficher',
             table: 'Table',
             bar: 'Bar',
+            line: 'Ligne',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',

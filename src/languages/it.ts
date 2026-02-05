@@ -7210,6 +7210,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             label: 'Visualizza',
             table: 'Tabella',
             bar: 'Bar',
+            line: 'Linea',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Da',

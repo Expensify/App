@@ -7151,6 +7151,7 @@ ${reportName}
             label: '表示',
             table: 'テーブル',
             bar: 'バー',
+            line: '折れ線',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
@@ -7185,7 +7186,7 @@ ${reportName}
         exportedTo: 'エクスポート先',
         exportAll: {
             selectAllMatchingItems: '一致する項目をすべて選択',
-            allMatchingItemsSelected: '一致するすべての項目を選択済み',
+            allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
     },
     genericErrorPage: {

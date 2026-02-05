@@ -7198,6 +7198,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             label: 'Bekijken',
             table: 'Tabel',
             bar: 'Balk',
+            line: 'Lijn',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'Van',

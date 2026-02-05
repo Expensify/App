@@ -3,15 +3,15 @@ import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {BarChartProps} from './BarChartContent';
+import type {LineChartProps} from './LineChartContent';
 
-function BarChart(props: BarChartProps) {
+function LineChart(props: LineChartProps) {
     const styles = useThemeStyles();
 
     return (
         <WithSkiaWeb
             opts={{locateFile: (file: string) => `/${file}`}}
-            getComponent={() => import('./BarChartContent')}
+            getComponent={() => import('./LineChartContent')}
             componentProps={props}
             fallback={
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.highlightBG, styles.br4, styles.p5]}>
@@ -22,6 +22,6 @@ function BarChart(props: BarChartProps) {
     );
 }
 
-BarChart.displayName = 'BarChart';
+LineChart.displayName = 'LineChart';
 
-export default BarChart;
+export default LineChart;

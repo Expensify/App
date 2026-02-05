@@ -7171,6 +7171,7 @@ const translations = {
             label: 'View',
             table: 'Table',
             bar: 'Bar',
+            line: 'Line',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
