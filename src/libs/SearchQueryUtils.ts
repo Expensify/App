@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
     ASTNode,
     QueryFilter,
@@ -35,8 +35,6 @@ import arraysEqual from '@src/utils/arraysEqual';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -599,7 +597,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, groupBy, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, status, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options?.sortBy ?? CONST.SEARCH.TABLE_COLUMNS.DATE}`);
@@ -613,6 +611,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (groupBy) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
+    }
+
+    // View is only valid when groupBy is set
+    if (view && groupBy) {
+        const sanitizedView = sanitizeSearchValue(view);
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW}:${sanitizedView}`);
     }
 
     if (status && typeof status === 'string') {
@@ -845,10 +849,13 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER
         ) {
             filtersForm[key as typeof filterKey] = filterValues.filter((id) => personalDetails?.[id]);
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
+            // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
+            filtersForm[key as typeof filterKey] = filterValues;
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
@@ -1012,6 +1019,11 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.groupBy) {
         filtersForm[FILTER_KEYS.GROUP_BY] = queryJSON.groupBy;
+
+        // View is only allowed when groupBy is set
+        if (queryJSON.view) {
+            filtersForm[FILTER_KEYS.VIEW] = queryJSON.view;
+        }
     }
 
     if (queryJSON.columns) {
@@ -1061,6 +1073,7 @@ function getFilterDisplayValue(
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
+    translate: LocalizedTranslate,
 ) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -1077,8 +1090,7 @@ function getFilterDisplayValue(
         if (Number.isNaN(cardID)) {
             return filterValue;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getCardDescription(cardList?.[cardID], translateLocal) || filterValue;
+        return getCardDescription(cardList?.[cardID], translate) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1092,7 +1104,7 @@ function getFilterDisplayValue(
         return getCleanedTagName(filterValue);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate);
         return cardFeedsForDisplay[filterValue]?.name ?? filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
@@ -1111,6 +1123,7 @@ function getDisplayQueryFiltersForKey(
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
+    translate: LocalizedTranslate,
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
@@ -1134,7 +1147,7 @@ function getDisplayQueryFiltersForKey(
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
         return queryFilter.reduce((acc, filter) => {
             const feedKey = filter.value.toString();
-            const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
+            const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate);
             const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
             const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
             const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
@@ -1161,8 +1174,7 @@ function getDisplayQueryFiltersForKey(
                 if (Number.isNaN(cardID)) {
                     acc.push({operator: filter.operator, value: cardID});
                 } else {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID], translateLocal) || cardID});
+                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID], translate) || cardID});
                 }
             }
             return acc;
@@ -1171,7 +1183,7 @@ function getDisplayQueryFiltersForKey(
 
     return queryFilter.map((filter) => ({
         operator: filter.operator,
-        value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID),
+        value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, translate),
     }));
 }
 
@@ -1237,17 +1249,29 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
  * We try to replace every numeric id value with a display version of this value,
  * So: user IDs get turned into emails, report ids into report names etc.
  */
-function buildUserReadableQueryString(
-    queryJSON: SearchQueryJSON,
-    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    taxRates: Record<string, string[]>,
-    cardList: OnyxTypes.CardList | undefined,
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    currentUserAccountID: number,
+function buildUserReadableQueryString({
+    queryJSON,
+    PersonalDetails,
+    reports,
+    taxRates,
+    cardList,
+    cardFeeds,
+    policies,
+    currentUserAccountID,
     autoCompleteWithSpace = false,
-) {
+    translate,
+}: {
+    queryJSON: SearchQueryJSON;
+    PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    taxRates: Record<string, string[]>;
+    cardList: OnyxTypes.CardList | undefined;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    autoCompleteWithSpace: boolean;
+    translate: LocalizedTranslate;
+}) {
     const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
@@ -1279,7 +1303,18 @@ function buildUserReadableQueryString(
                 continue;
             }
 
-            const displayQueryFilters = getDisplayQueryFiltersForKey(rawFilter.key, queryFilters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+            const displayQueryFilters = getDisplayQueryFiltersForKey(
+                rawFilter.key,
+                queryFilters,
+                PersonalDetails,
+                reports,
+                taxRates,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                translate,
+            );
 
             if (!displayQueryFilters.length) {
                 continue;
@@ -1316,7 +1351,18 @@ function buildUserReadableQueryString(
 
     for (const filterObject of filters) {
         const key = filterObject.key;
-        const displayQueryFilters = getDisplayQueryFiltersForKey(key, filterObject.filters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+        const displayQueryFilters = getDisplayQueryFiltersForKey(
+            key,
+            filterObject.filters,
+            PersonalDetails,
+            reports,
+            taxRates,
+            cardList,
+            cardFeeds,
+            policies,
+            currentUserAccountID,
+            translate,
+        );
 
         if (!displayQueryFilters.length) {
             continue;
@@ -1382,7 +1428,7 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     const selectedColumns = [queryJSON.columns ?? []].flat();
     const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
-    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
+    return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !queryJSON.groupBy && !hasCustomColumns;
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
