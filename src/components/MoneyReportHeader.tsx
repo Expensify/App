@@ -544,7 +544,7 @@ function MoneyReportHeader({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const kycWallRef = useContext(KYCWallContext);
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isReportInRHP = route.name !== SCREENS.REPORT;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
@@ -583,6 +583,7 @@ function MoneyReportHeader({
                     methodID,
                     paymentMethod,
                     activePolicy,
+                    betas,
                 });
             } else {
                 startAnimation();
@@ -595,6 +596,7 @@ function MoneyReportHeader({
                     currentUserAccountID: accountID,
                     activePolicy,
                     policy,
+                    betas,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -628,6 +630,7 @@ function MoneyReportHeader({
             currentSearchKey,
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
+            betas,
         ],
     );
 
@@ -656,7 +659,7 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, true);
+            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, true);
         }
     };
 
@@ -697,6 +700,7 @@ function MoneyReportHeader({
                     targetPolicy: defaultExpensePolicy ?? undefined,
                     targetPolicyCategories: activePolicyCategories,
                     targetReport: activePolicyExpenseChat,
+                    betas,
                     personalDetails,
                 });
             }
@@ -712,6 +716,7 @@ function MoneyReportHeader({
             policyRecentlyUsedCurrencies,
             policy?.id,
             isSelfTourViewed,
+            betas,
             personalDetails,
         ],
     );
@@ -1738,6 +1743,7 @@ function MoneyReportHeader({
             confirmApproval,
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
+            betas,
         });
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
