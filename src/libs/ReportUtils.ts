@@ -2266,7 +2266,7 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, reportM
 
 /**
  * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
- * So please use `Onyx.connect()` to get the necessary data when we remove the `Onyx.connect()`
+ * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
  */
 function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = false, policyID?: string, excludeReportID?: string): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
