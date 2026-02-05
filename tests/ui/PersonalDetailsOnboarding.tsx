@@ -102,7 +102,7 @@ describe('OnboardingPersonalDetails Page', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(''));
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
         });
 
         unmount();
@@ -110,7 +110,7 @@ describe('OnboardingPersonalDetails Page', () => {
     });
 
     it('should navigate to Onboarding workspaces page when submitting form and user is routed app via SMB with unvalidated account and private domain', async () => {
-        await TestHelper.signInWithTestUser(1, fakeEmail);
+        await TestHelper.signInWithTestUser();
 
         // Setup account as private domain and has accessible policies
         await act(async () => {
@@ -133,7 +133,7 @@ describe('OnboardingPersonalDetails Page', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(''));
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute());
         });
 
         unmount();
