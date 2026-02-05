@@ -2283,7 +2283,6 @@ function getValidOptions(
                 const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
                 searchText += participantsSearchText;
             }
-
             searchText = deburr(searchText.toLocaleLowerCase());
             return searchTerms.every((term) => searchText.includes(term));
         };
