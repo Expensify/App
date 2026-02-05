@@ -128,7 +128,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         isFocused: isScreenFocused,
     });
 
-    const getFocusedItem = (): TItem | undefined => {
+    const getFocusedItem = useCallback((): TItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {
             return;
         }
@@ -137,7 +137,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         return item as TItem;
-    };
+    }, [focusedIndex, flattenedData]);
 
     const selectRow = (item: TItem, indexToFocus?: number) => {
         if (!isScreenFocused) {
@@ -199,8 +199,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             updateExternalTextInputFocus,
             getFocusedOption: getFocusedItem,
         }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- getFocusedItem reads from refs and state, not needed in deps
-        [focusTextInput, updateAndScrollToFocusedIndex, updateExternalTextInputFocus],
+        [focusTextInput, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem],
     );
 
     // Disable `Enter` shortcut if the active element is a button or checkbox

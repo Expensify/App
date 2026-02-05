@@ -461,7 +461,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     isFullWidth={shouldUseNarrowLayout}
                     onSearchQueryChange={onSearchQueryChange}
                     onSubmit={() => {
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                         const focusedOption = listRef.current?.getFocusedOption?.();
 
                         if (!focusedOption) {
@@ -469,7 +468,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                             return;
                         }
 
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                         onListItemPress(focusedOption);
                     }}
                     caretHidden={shouldHideInputCaret}

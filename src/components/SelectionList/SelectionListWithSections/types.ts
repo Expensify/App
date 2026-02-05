@@ -41,9 +41,7 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     focusTextInput: () => void;
     updateAndScrollToFocusedIndex: (index: number, shouldScroll?: boolean) => void;
-    /** Updates the internal text input focus state - use when using an external text input */
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
-    /** Returns the currently focused option in the list */
     getFocusedOption: () => TItem | undefined;
 };
 
