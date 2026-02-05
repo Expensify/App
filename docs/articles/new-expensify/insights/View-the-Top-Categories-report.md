@@ -1,6 +1,6 @@
 ---
 title: View the Top Categories report
-description: Learn how Workspace Admins, Approvers, and Auditors can use the Top Categories report to understand category-level spending trends.
+description: Learn how to use the Top Categories report to understand category-level spending trends.
 keywords: [New Expensify, Top Categories, expense categories, category spending, monthly spending, Workspace Admin, Approver, Auditor, category insights, expense analytics, report by category]
 internalScope: Audience is Workspace Admins, Approvers, and Auditors. Covers using the Top Categories suggested search to view expense totals by category. Does not cover employee-level analysis or merchant-level grouping.
 ---
@@ -19,7 +19,9 @@ This report is a pre-built suggested search that uses filters to group your expe
 
 ## Who can use the Top Categories report
 
-The Top Categories report is available to Workspace Admins, Approvers, and Auditors on both web and mobile.
+The Top Categories report is available to all workspace members on web and mobile.
+ - **Workspace members** can view top categories for expenses on reports they’ve submitted or approved.
+ - **Workspace Admins** and **Auditors** can view top categories for all expenses on the workspace.
 
 ---
 
