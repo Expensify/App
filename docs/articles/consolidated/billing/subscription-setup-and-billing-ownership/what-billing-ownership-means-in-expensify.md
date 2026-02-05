@@ -1,11 +1,3 @@
-<!--
-🧪 Retrieval Readiness Scorecard – Article 1 of 3: "What billing ownership means in Expensify"
-AI readability: 9 – Clear language, scoped to a single concept (ownership and permissions)
-Metadata targeting: 9 – Focused on ownership-related queries and roles
-Retrieval precision: 9 – Clean match to queries about roles, permissions, and ownership logic
-AgentZero match rate: 9.5 – Strong match for both keyword and semantic queries (e.g., "Who is the billing owner?", "Why can't I manage billing?")
-Overall Retrieval Score: 9.1 / 10
--->
 
 ---
 title: What billing ownership means in Expensify
