@@ -10,6 +10,7 @@ import TimeModalPicker from '@components/TimeModalPicker';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -50,8 +51,16 @@ function IOURequestStepTime({
     report,
 }: IOURequestStepTimeProps) {
     const styles = useThemeStyles();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const iouPolicyID = getIOURequestPolicyID(transaction, report);
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: iouPolicyID,
+        action,
+        iouType,
+        isPerDiemRequest: true,
+    });
+
     const {translate} = useLocalize();
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
