@@ -31,6 +31,10 @@ on:
         type: boolean
         default: true
 
+concurrency:
+  group: 'testBuild'
+  cancel-in-progress: false
+
 jobs:
   prep:
     runs-on: ubuntu-latest
