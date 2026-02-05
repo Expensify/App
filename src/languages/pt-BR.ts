@@ -7514,8 +7514,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
     },
     distance: {
         addStop: 'Adicionar parada',
-        deleteWaypoint: 'Excluir ponto de rota',
-        deleteWaypointConfirmation: 'Tem certeza de que deseja excluir este ponto de referência?',
         address: 'Endereço',
         waypointDescription: {
             start: 'Iniciar',
