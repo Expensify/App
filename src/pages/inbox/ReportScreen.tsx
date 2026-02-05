@@ -940,9 +940,13 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         if (!!report?.lastReadTime || !isTaskReport(report)) {
             return;
         }
+        // Do not try to mark the report as read if the report has not been loaded and shared with the user
+        if (!reportMetadata?.hasOnceLoadedReportActions) {
+            return;
+        }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         readNewestAction(report?.reportID);
-    }, [report]);
+    }, [report, reportMetadata?.hasOnceLoadedReportActions]);
 
     // Reset the ref when navigating to a different report
     useEffect(() => {
