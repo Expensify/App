@@ -87,6 +87,7 @@ function IOURequestStepDistanceManual({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -141,6 +142,8 @@ function IOURequestStepDistanceManual({
         return isCreatingNewRequest ? translate('common.next') : translate('common.save');
     }, [shouldSkipConfirmation, translate, isCreatingNewRequest]);
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+
     const navigateToNextPage = useCallback(
         (amount: string) => {
             const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
@@ -162,6 +165,7 @@ function IOURequestStepDistanceManual({
                         currentUserEmailParam,
                         isASAPSubmitBetaEnabled,
                         parentReportNextStep,
+                        recentWaypoints,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -197,6 +201,7 @@ function IOURequestStepDistanceManual({
                 activePolicyID,
                 privateIsArchived: reportNameValuePairs?.private_isArchived,
                 selfDMReport,
+                betas,
             });
         },
         [
@@ -234,6 +239,8 @@ function IOURequestStepDistanceManual({
             reportID,
             parentReportNextStep,
             reportNameValuePairs?.private_isArchived,
+            recentWaypoints,
+            betas,
         ],
     );
 
@@ -241,12 +248,7 @@ function IOURequestStepDistanceManual({
         const value = numberFormRef.current?.getNumber() ?? '';
         const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserAccountIDParam).at(0));
 
-        if (isBetaEnabled(CONST.BETAS.ZERO_EXPENSES)) {
-            if (!value.length || parseFloat(value) < 0) {
-                setFormError(translate('iou.error.invalidDistance'));
-                return;
-            }
-        } else if (!value.length || parseFloat(value) <= 0) {
+        if (!value.length || parseFloat(value) < 0) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
@@ -257,7 +259,7 @@ function IOURequestStepDistanceManual({
         }
 
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam, isBetaEnabled]);
+    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {

@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -86,11 +85,8 @@ function IOURequestStartPage({
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: transactionDraftValuesSelector,
-        canBeMissing: true,
-    });
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((optimisticTransactions ?? []).length > 1);
+    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
@@ -188,6 +184,7 @@ function IOURequestStartPage({
                 policy,
                 personalPolicy,
                 isFromGlobalCreate: transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
+                isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
@@ -196,10 +193,12 @@ function IOURequestStartPage({
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
                 hasOnlyPersonalPolicies,
+                draftTransactions,
             });
         },
         [
             transaction?.iouRequestType,
+            transaction?.isFromGlobalCreate,
             transaction?.isFromGlobalCreate,
             reportID,
             policy,
@@ -211,6 +210,7 @@ function IOURequestStartPage({
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
+            draftTransactions,
         ],
     );
 
@@ -267,7 +267,6 @@ function IOURequestStartPage({
         },
     );
     const shouldShowTimeOption =
-        isBetaEnabled(CONST.BETAS.TIME_TRACKING) &&
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
         ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
 
@@ -371,7 +370,6 @@ function IOURequestStartPage({
                                                     />
                                                 ) : (
                                                     <IOURequestStepDestination
-                                                        shouldAutoFocusInput={false}
                                                         openedFromStartPage
                                                         ref={perDiemInputRef}
                                                         explicitPolicyID={moreThanOnePerDiemExist ? undefined : policiesWithPerDiemEnabledAndHasRates.at(0)?.id}

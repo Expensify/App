@@ -54,7 +54,6 @@ type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof S
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         openedFromStartPage?: boolean;
         explicitPolicyID?: string;
-        shouldAutoFocusInput?: boolean;
         ref: ForwardedRef<IOURequestStepDestinationRef>;
     };
 
@@ -66,7 +65,6 @@ function IOURequestStepDestination({
     transaction,
     openedFromStartPage = false,
     explicitPolicyID,
-    shouldAutoFocusInput = true,
     ref,
 }: IOURequestStepDestinationProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
@@ -210,7 +208,6 @@ function IOURequestStepDestination({
                 )}
                 {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && !!policy?.id && (
                     <DestinationPicker
-                        textInputAutoFocus={shouldAutoFocusInput}
                         ref={destinationSelectionListRef}
                         selectedDestination={selectedDestination}
                         policyID={policy.id}

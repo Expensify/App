@@ -1,13 +1,15 @@
+import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Session} from '@src/types/onyx';
+import type {NonPersonalAndWorkspaceCardListDerivedValue, Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useTodos from './useTodos';
@@ -31,6 +33,7 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areCompanyCardsEnabled: policy.areCompanyCardsEnabled,
         areExpensifyCardsEnabled: policy.areExpensifyCardsEnabled,
         achAccount: policy.achAccount,
+        areCategoriesEnabled: policy.areCategoriesEnabled,
     };
 
 const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
@@ -39,12 +42,17 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
 });
+
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = () => {
-    const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
+    const {translate} = useLocalize();
+    const cardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => defaultExpensifyCardSelector(allCards, translate);
+    const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: cardSelector}, [cardSelector]);
+
+    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
     const icons = useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']);
     const {isOffline} = useNetwork();
