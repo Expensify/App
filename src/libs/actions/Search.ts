@@ -797,7 +797,7 @@ function bulkDeleteReports(
     reportTransactions: Record<string, Transaction>,
     transactionsViolations: Record<string, TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
-    transactions: OnyxCollection<Transaction>,
+    transactions?: OnyxCollection<Transaction>,
 ) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
@@ -822,7 +822,7 @@ function bulkDeleteReports(
     }
 }
 
-function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], transactions: OnyxCollection<Transaction>) {
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], transactions?: OnyxCollection<Transaction>) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
 
     const optimisticData: OnyxUpdate[] = [...(loadingOptimisticData ?? [])];
