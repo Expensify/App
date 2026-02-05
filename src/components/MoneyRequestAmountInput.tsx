@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {Platform} from 'react-native';
-import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {BlurEvent, KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import getPlatform from '@libs/getPlatform';
 import useLocalize from '@hooks/useLocalize';
 import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
@@ -123,6 +123,9 @@ type MoneyRequestAmountInputProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
+
+    /** Determines which keyboard to open */
+    keyboardType?: KeyboardTypeOptions;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
 
 type Selection = {
@@ -259,7 +262,8 @@ function MoneyRequestAmountInput({
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
             onFocus={props.onFocus}
-            accessibilityLabel={Platform.OS === 'web' ? `${translate('iou.amount')} (${currency})` : undefined}
+            accessibilityLabel={getPlatform() === CONST.PLATFORM.WEB ? `${translate('iou.amount')} (${currency})` : undefined}
+            keyboardType={props.keyboardType}
         />
     );
 }

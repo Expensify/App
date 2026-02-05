@@ -28,6 +28,7 @@ function BasePicker<TPickerValue>({
     onInputChange,
     icon,
     label = '',
+    accessibilityLabel,
     isDisabled = false,
     errorText = '',
     hintText = '',
@@ -222,6 +223,7 @@ function BasePicker<TPickerValue>({
                             disableHighlight();
                             onBlur();
                         },
+                        accessibilityLabel,
                         ...additionalPickerEvents(enableHighlight, (inputValue, index) => {
                             onValueChange(inputValue, index);
                             disableHighlight();
