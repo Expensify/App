@@ -13,7 +13,7 @@ import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -163,19 +163,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
             const fontMetrics = font.getMetrics();
             const ascent = Math.abs(fontMetrics.ascent);
             const descent = Math.abs(fontMetrics.descent);
-
-            // Calculate labelY to maintain consistent LABEL_GAP from axis to closest point of text
-            // At 0°: closest point is top of text (baseline - ascent)
-            // At 45°: closest point is top-right corner, ascent projects as ascent * cos(45°)
-            // At 90°: text is vertical, closest point is at descent from baseline
-            let labelY: number;
-            if (angleRad === 0) {
-                labelY = args.chartBounds.bottom + LABEL_GAP + ascent;
-            } else if (angleRad >= Math.PI / 2) {
-                labelY = args.chartBounds.bottom + LABEL_GAP + descent;
-            } else {
-                labelY = args.chartBounds.bottom + LABEL_GAP + ascent * Math.cos(angleRad);
-            }
+            const labelY = args.chartBounds.bottom + LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad);
 
             return truncatedLabels.map((label, i) => {
                 if (i % labelSkipInterval !== 0) {

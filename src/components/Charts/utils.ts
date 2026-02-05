@@ -63,6 +63,24 @@ function rotatedLabelCenterCorrection(ascent: number, descent: number, angleRad:
 }
 
 /**
+ * Calculate the vertical offset from axis to text baseline that maintains
+ * a consistent visual gap regardless of label rotation.
+ *
+ * At 0°: gap to top of text (ascent above baseline)
+ * At 45°: gap to top-right corner after rotation (ascent projects as ascent * cos(45°))
+ * At 90°: gap to closest point of vertical text (descent from baseline)
+ */
+function rotatedLabelYOffset(ascent: number, descent: number, angleRad: number): number {
+    if (angleRad === 0) {
+        return ascent;
+    }
+    if (angleRad >= Math.PI / 2) {
+        return descent;
+    }
+    return ascent * Math.cos(angleRad);
+}
+
+/**
  * Calculate minimum horizontal domainPadding so that edge data points
  * (and their centered labels) aren't clipped by the chart boundary.
  *
@@ -78,4 +96,4 @@ function calculateMinDomainPadding(chartWidth: number, pointCount: number, inner
     return Math.ceil(chartWidth * minPaddingRatio);
 }
 
-export {getChartColor, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection, calculateMinDomainPadding};
+export {getChartColor, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection, rotatedLabelYOffset, calculateMinDomainPadding};
