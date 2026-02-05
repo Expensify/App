@@ -975,6 +975,230 @@ function ReportScreen({ params: { reportID }}) {
 
 ---
 
+### [CLEAN-REACT-PATTERNS-2] Let components own their behavior and effects
+
+- **Search patterns**: Large prop counts in JSX, props named `*Report`, `*Policy`, `*Transaction`, `*Actions`, `useOnyx`/context results passed directly as props
+
+- **Condition**: Flag when a parent component acts as a pure data intermediary — fetching or computing state only to pass it to children without using it for its own logic.
+
+  **Signs of violation:**
+  - Parent imports hooks/contexts only to satisfy child's data needs
+  - Props that are direct pass-throughs of hook results (e.g., `report={reportOnyx}`)
+  - Component receives props that are just passed through to children or that it could fetch itself
+  - Removing or commenting out the child would leave unused variables in the parent
+
+  **DO NOT flag if:**
+  - Props are minimal, domain-relevant identifiers (e.g., `reportID`, `transactionID`, `policyID`)
+  - Props are callback/event handlers for coordination (e.g., `onSelectRow`, `onLayout`, `onPress`)
+  - Props are structural/presentational that can't be derived internally (e.g., `style`, `testID`)
+  - Parent genuinely uses the data for its own rendering or logic
+  - Data is shared coordination state that parent legitimately owns (e.g., selection state managed by parent)
+
+- **Reasoning**: When parent components compute and pass behavioral state to children, if a child's requirements change, then parent components must change as well, increasing coupling and causing behavior to leak across concerns. Letting components own their behavior keeps logic local, allows independent evolution, and follows the principle: "If removing a child breaks parent behavior, coupling exists."
+
+**Distinction from CLEAN-REACT-PATTERNS-3**: This rule is about data flow DOWN (parent → child) — "Don't pass data the child can get itself."
+
+Good (component owns its behavior):
+
+- Component receives only IDs and handlers
+- Internally accesses stores, contexts, and computes values
+- Children follow the same pattern
+
+```tsx
+<OptionRowLHNData
+    reportID={reportID}
+    onSelectRow={onSelectRow}
+/>
+```
+
+```tsx
+function OptionRowLHNData({reportID, onSelectRow}) {
+   // Component fetches its own data
+   const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+   const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+   const [viewMode] = useOnyx(ONYXKEYS.NVP_VIEW_MODE);
+   // ... other data this component needs
+
+   return (
+        <View>
+            {/* Children own their state too */}
+            <Avatars reportID={reportID} />
+            <DisplayNames reportID={reportID} />
+            <Status reportID={reportID} />
+        </View>
+   );
+}
+```
+
+Bad (parent micromanages child's state):
+
+- Parent gathers, computes, and dictates the child's entire contextual awareness
+- Parent imports hooks/stores only because the child needs the information
+- Double coupling: parent → child's dependencies, child → prop names/types
+
+```tsx
+<OptionRowLHNData
+    reportID={reportID}
+    fullReport={item}
+    reportAttributes={itemReportAttributes}
+    oneTransactionThreadReport={itemOneTransactionThreadReport}
+    reportNameValuePairs={itemReportNameValuePairs}
+    reportActions={itemReportActions}
+    parentReportAction={itemParentReportAction}
+    iouReportReportActions={itemIouReportReportActions}
+    policy={itemPolicy}
+    invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
+    personalDetails={personalDetails ?? {}}
+    transaction={itemTransaction}
+    lastReportActionTransaction={lastReportActionTransaction}
+    receiptTransactions={transactions}
+    viewMode={optionMode}
+    isOptionFocused={!shouldDisableFocusOptions}
+    lastMessageTextFromReport={lastMessageTextFromReport}
+    onSelectRow={onSelectRow}
+    preferredLocale={preferredLocale}
+    hasDraftComment={hasDraftComment}
+    transactionViolations={transactionViolations}
+    onLayout={onLayoutItem}
+    shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
+    activePolicyID={activePolicyID}
+    onboardingPurpose={introSelected?.choice}
+    isFullscreenVisible={isFullscreenVisible}
+    isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
+    isScreenFocused={isScreenFocused}
+    localeCompare={localeCompare}
+    testID={index}
+    isReportArchived={isReportArchived}
+    lastAction={lastAction}
+    lastActionReport={lastActionReport}
+/>
+```
+
+In this example:
+- The parent fetches `fullReport`, `policy`, `transaction`, `reportActions`, `personalDetails`, `transactionViolations`, and routing/layout state
+- These dependencies exist only because the child needs them — the parent is a data intermediary
+- If `OptionRowLHNData` requirements change, the parent must change too
+
+---
+
+### [CLEAN-REACT-PATTERNS-3] Design context-free component contracts
+
+- **Search patterns**: Callback props with consumer-specific signatures like `(index: number) => void`, props used only to extract values for callbacks, refs used to access external component state, useImperativeHandle
+
+- **Condition**: Flag ONLY when BOTH of these are true:
+
+  1. A component's interface is shaped around a specific consumer's implementation rather than abstract capabilities
+  2. AND at least ONE of the following manifestations is present:
+     - The component receives data only to extract values for callbacks (doesn't use it for rendering)
+     - Callback signatures encode consumer-specific assumptions (e.g., `(index: number) => void` for navigation)
+     - The component accesses external state through refs or imperative handles
+
+  **Signs of violation:**
+  - Callback signatures that encode consumer assumptions: `navigateToWaypoint(index: number)` instead of `onAddWaypoint()`
+  - Props passed only to extract values for callbacks, not for rendering (e.g., `transaction` passed just to compute `waypoints.length`)
+  - Imperative access to external state via refs or `useImperativeHandle`
+  - Component requires modification to work in a different context
+
+  **DO NOT flag if:**
+  - Component signals events with data it naturally owns (e.g., `onChange(value)` for an input, `onSelectItem(item)` for a list)
+  - Callbacks are abstract actions the component can trigger (e.g., `onAddStop()`, `onSubmit()`)
+  - State coordination happens at a higher level with clear data flow
+
+  **What makes a contract "abstract":**
+  - Callback describes *what happened* in component terms: `onAddStop`, `onSelect`, `onChange`
+  - Callback does NOT describe *what consumer should do*: `navigateToWaypoint(index)`, `updateParentState(value)`
+  - Props are used for rendering or internal logic, not just to compute callback arguments
+  - Component works without modification in a different context
+
+- **Reasoning**: A component's contract should expose its capabilities abstractly, not encode assumptions about how it will be used. When interfaces leak consumer-specific details, the component becomes coupled to that context and requires modification for reuse. Good contracts signal *what the component can do*, not *what the consumer needs*.
+
+**Distinction from CLEAN-REACT-PATTERNS-2**: PATTERNS-2 ensures components fetch their own data. This rule ensures components expose abstract capabilities, not consumer-specific interfaces.
+
+Good (abstract contract):
+
+- Interface exposes capability: "user can add a stop"
+- Implementation details (index computation, navigation) stay with consumer
+- Component is reusable in any context needing an "add stop" action
+
+```tsx
+<DistanceRequestFooter
+    onAddStop={() => {
+        const nextIndex = Object.keys(transaction?.comment?.waypoints ?? {}).length;
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(..., nextIndex.toString(), ...));
+    }}
+/>
+
+// in DistanceRequestFooter
+<Button onPress={onAddStop}>{translate('distance.addStop')}</Button>
+```
+
+Bad (contract leaks consumer assumptions):
+
+- Callback `navigateToWaypointEditPage(index: number)` encodes routing assumption
+- `transaction` prop exists only to compute index for callback
+- Requires modification if consumer navigates differently
+
+```tsx
+type DistanceRequestFooterProps = {
+    waypoints?: WaypointCollection;
+    navigateToWaypointEditPage: (index: number) => void;  // Encodes routing assumption
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+};
+
+// in IOURequestStepDistance
+<DistanceRequestFooter
+    waypoints={waypoints}
+    navigateToWaypointEditPage={navigateToWaypointEditPage}
+    transaction={transaction}
+    policy={policy}
+/>
+
+// in DistanceRequestFooter - computes value for consumer's callback
+<Button
+    onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
+    text={translate('distance.addStop')}
+/>
+```
+
+Good (independent contracts):
+
+- Each component has a self-contained interface
+- State coordination happens at composition level
+
+```tsx
+function EditProfile() {
+    const [formData, setFormData] = useState<FormData>();
+    return (
+        <>
+            <Form onChangeFormData={setFormData} />
+            <SaveButton onSave={() => API.save(formData)} />
+        </>
+    );
+}
+```
+
+Bad (coupled contracts):
+
+- `SaveButton` interface requires knowledge of `Form`'s internals
+- Neither component works independently
+
+```tsx
+function SaveButton({ getSiblingFormData }: { getSiblingFormData: () => FormData }) {
+    const handleSave = () => {
+        const formData = getSiblingFormData(); // Reaches into sibling
+        API.save(formData);
+    };
+    return <Button onPress={handleSave}>Save</Button>;
+}
+
+// Parent wires siblings together
+<Form ref={formRef} />
+<SaveButton getSiblingFormData={() => formRef.current?.getData()} />
+```
+
+---
+
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**
