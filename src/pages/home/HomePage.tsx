@@ -13,6 +13,7 @@ import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePre
 import AnnouncementSection from './AnnouncementSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
+import TimeSensitiveSection from './TimeSensitiveSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -53,7 +54,9 @@ function HomePage() {
                 addBottomSafeAreaPadding
             >
                 <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
+                    {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
                     <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
+                        <TimeSensitiveSection />
                         <ForYouSection />
                         <DiscoverSection />
                     </View>
