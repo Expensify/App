@@ -47,7 +47,6 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
             value={preferredLocale}
             containerStyles={size === 'small' ? styles.pickerContainerSmall : {}}
             backgroundColor={theme.signInPage}
-            accessibilityLabel={translate('languagePage.language')}
         />
     );
 }
