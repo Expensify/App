@@ -558,6 +558,7 @@ function SearchList({
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
                             accessibilityState={{checked: isSelectAllChecked}}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_BUTTON}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textMicroSupporting, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
