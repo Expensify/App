@@ -18,9 +18,8 @@ import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@libs/Localize', () => jest.requireActual('@libs/Localize'));
-
 jest.mock('@pages/settings/Subscription/ExpensifyCodePage', () =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     jest.requireActual('@pages/settings/Subscription/ExpensifyCodePage/index.tsx'),
 );
 
@@ -35,6 +34,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         goBack: jest.fn(),
         getTopmostReportId: jest.fn(() => undefined),
         dismissModal: jest.fn(),
+        getActiveRoute: jest.fn(() => ''),
     };
 });
 
@@ -85,6 +85,7 @@ describe('ExpensifyCodePage', () => {
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {expensifyCode: null});
         });
         await waitForBatchedUpdatesWithAct();
     });
