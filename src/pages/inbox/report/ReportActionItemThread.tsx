@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenChildReport} from '@libs/actions/Report';
-import Timing from '@libs/actions/Timing';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,7 +56,6 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
             <PressableWithSecondaryInteraction
                 onPress={() => {
                     Performance.markStart(CONST.TIMING.OPEN_REPORT_THREAD);
-                    Timing.start(CONST.TIMING.OPEN_REPORT_THREAD);
                     navigateToAndOpenChildReport(childReport, reportAction, report);
                 }}
                 role={CONST.ROLE.BUTTON}
