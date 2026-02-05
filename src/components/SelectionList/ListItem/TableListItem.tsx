@@ -64,7 +64,7 @@ function TableListItem<TItem extends ListItem>({
             ]}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            containerStyle={isEmptyObject(item.errors) ? styles.mb2 : undefined}
+            containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
