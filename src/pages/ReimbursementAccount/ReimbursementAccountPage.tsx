@@ -191,6 +191,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const shouldShowContinueSetupButtonValue = useMemo(() => {
         return hasInProgressVBBA(achData, isNonUSDSetup);
     }, [achData, isNonUSDSetup]);
+
+    const hasACHData = achData !== undefined && Object.keys(achData ?? {}).length > 1;
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
      Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
@@ -198,7 +200,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
      which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
-    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+    const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(hasACHData && reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(shouldShowContinueSetupButtonValue);
     const [shouldShowConnectedVerifiedBankAccount, setShouldShowConnectedVerifiedBankAccount] = useState<boolean>(false);
 
@@ -291,7 +293,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             }
 
             if (!hasACHDataBeenLoaded) {
-                if (reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && reimbursementAccount?.isLoading === false) {
+                if (hasACHData && reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && reimbursementAccount?.isLoading === false) {
                     setHasACHDataBeenLoaded(true);
                 }
                 return;
@@ -464,7 +466,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         (isLoadingApp || (reimbursementAccount?.isLoading && !reimbursementAccount?.isCreateCorpayBankAccount)) &&
         (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
 
-    const shouldShowOfflineLoader = !(isOffline && OFFLINE_ACCESSIBLE_STEPS.some((value) => value === currentStep));
+    const shouldShowOfflineLoader = !(isOffline && hasACHData && OFFLINE_ACCESSIBLE_STEPS.some((value) => value === currentStep));
 
     const shouldShowPolicyName = topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const policyNameToDisplay = shouldShowPolicyName ? policyName : '';
