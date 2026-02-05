@@ -796,7 +796,7 @@ function clearDomainErrors(domainAccountID: number) {
  * Adds a member to a domain
  * @param domainAccountID Account ID of a domain
  * @param email Email of a user to be added
- * @param defaultSecurityGroupID Security group ip to be used for optimistic updates
+ * @param defaultSecurityGroupID Security group ID to be used for optimistic updates
  */
 function addMemberToDomain(domainAccountID: number, email: string, defaultSecurityGroupID: string) {
     const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
