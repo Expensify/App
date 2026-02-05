@@ -11,24 +11,15 @@ const shouldCreateSpanForRequest = (url: string): boolean => {
     return !filteredPhrases.some((phrase) => url.includes(phrase));
 };
 
-const tracingIntegration = Sentry.reactNativeTracingIntegration({
-    shouldCreateSpanForRequest,
-});
-
-/**
- * Disable browser tracing integration on Android and iOS because it crashes on mobile in release builds.
- * On the Web we need this to enable web health measurements such as INP, LCP, FCP, CLS.
- * We need to configure this integration manually so there is no data duplication in sentry created by having both the React Native and React Web integrations enabled.
- */
-const browserTracingIntegration =
-    Platform.OS === 'android' || Platform.OS === 'ios'
-        ? null
-        : SentryReact.browserTracingIntegration({
-              shouldCreateSpanForRequest: () => false, // Prevents duplicate network request spans
-              instrumentNavigation: false, // Prevents duplicate navigation transactions
-              instrumentPageLoad: false, // Prevents initial page load transaction duplication
+const tracingIntegration =
+    Platform.OS === 'web'
+        ? SentryReact.browserTracingIntegration({
+              shouldCreateSpanForRequest,
+          })
+        : Sentry.reactNativeTracingIntegration({
+              shouldCreateSpanForRequest,
           });
 
 const browserProfilingIntegration = SentryReact.browserProfilingIntegration();
 
-export {navigationIntegration, tracingIntegration, browserProfilingIntegration, browserTracingIntegration};
+export {navigationIntegration, tracingIntegration, browserProfilingIntegration};
