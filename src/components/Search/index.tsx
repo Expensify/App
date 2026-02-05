@@ -56,6 +56,7 @@ import {
     getSortedSections,
     getSuggestedSearches,
     getWideAmountIndicators,
+    isGroupedItemArray,
     isReportActionListItemType,
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
@@ -1394,17 +1395,16 @@ function Search({
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
-    // Other charts are not implemented yet
-    const shouldShowChartView = view === CONST.SEARCH.VIEW.BAR && !!validGroupBy;
+    const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE) && !!validGroupBy;
 
-    if (shouldShowChartView) {
+    if (shouldShowChartView && isGroupedItemArray(sortedData)) {
         return (
             <SearchScopeProvider>
                 <SearchChartView
                     queryJSON={queryJSON}
                     view={view}
                     groupBy={validGroupBy}
-                    data={sortedData as TransactionGroupListItemType[]}
+                    data={sortedData}
                     isLoading={shouldShowLoadingState}
                     onScroll={onSearchListScroll}
                 />

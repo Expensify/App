@@ -11,6 +11,7 @@ import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {
+    GroupedItem,
     QueryFilters,
     SearchAction,
     SearchColumnType,
@@ -345,6 +346,9 @@ function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.S
 }
 
 function formatBadgeText(count: number): string {
+    if (count === 0) {
+        return '';
+    }
     return count > CONST.SEARCH.TODO_BADGE_MAX_COUNT ? `${CONST.SEARCH.TODO_BADGE_MAX_COUNT}+` : count.toString();
 }
 
@@ -1082,6 +1086,15 @@ function isTransactionYearGroupListItemType(item: ListItem): item is Transaction
 
 function isTransactionQuarterGroupListItemType(item: ListItem): item is TransactionQuarterGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER;
+}
+
+/**
+ * Type guard that checks if a list of search items contains grouped transaction data.
+ * When a search has a groupBy parameter, all items share the same shape, so checking the first element is sufficient.
+ */
+function isGroupedItemArray(data: ListItem[]): data is GroupedItem[] {
+    const first = data.at(0);
+    return data.length === 0 || (first !== undefined && isTransactionGroupListItemType(first) && 'groupedBy' in first);
 }
 
 /**
@@ -4567,6 +4580,7 @@ export {
     isTransactionWeekGroupListItemType,
     isTransactionYearGroupListItemType,
     isTransactionQuarterGroupListItemType,
+    isGroupedItemArray,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
