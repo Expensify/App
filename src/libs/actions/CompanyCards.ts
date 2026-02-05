@@ -60,6 +60,10 @@ function clearAssignCardStepAndData() {
     Onyx.set(ONYXKEYS.ASSIGN_CARD, {});
 }
 
+function clearAssignCardErrors() {
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {errors: null});
+}
+
 function setAddNewCompanyCardStepAndData({data, isEditing, step}: NullishDeep<AddNewCompanyCardFlowData>) {
     Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data, isEditing, currentStep: step});
 }
@@ -1071,4 +1075,5 @@ export {
     setTransactionStartDate,
     setFeedStatementPeriodEndDay,
     clearErrorField,
+    clearAssignCardErrors,
 };
