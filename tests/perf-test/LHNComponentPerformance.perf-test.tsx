@@ -1,4 +1,5 @@
 import {screen} from '@testing-library/react-native';
+import type * as Navigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import {measureRenders} from 'reassure';
@@ -65,7 +66,22 @@ jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     isReady: () => true,
 }));
 jest.mock('@components/Icon/Expensicons');
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+
+    return {
+        ...actualNav,
+        useNavigationState: () => true,
+        useRoute: jest.fn(),
+        useFocusEffect: jest.fn(),
+        useIsFocused: () => true,
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: jest.fn(),
+        }),
+        createNavigationContainerRef: jest.fn(),
+    };
+});
 jest.mock('@src/hooks/useLHNEstimatedListSize/index.native.ts');
 
 const REPORTS_COUNT = 150;
