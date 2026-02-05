@@ -239,7 +239,6 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
             break;
     }
 
-
     // Policy related to the context ie: Policy related to opened chat
     const policyFromContext = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyID);
 
