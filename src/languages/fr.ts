@@ -7576,8 +7576,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
     },
     distance: {
         addStop: 'Ajouter un arrêt',
-        deleteWaypoint: 'Supprimer le point de passage',
-        deleteWaypointConfirmation: 'Êtes-vous sûr de vouloir supprimer ce point de passage ?',
         address: 'Adresse',
         waypointDescription: {
             start: 'Démarrer',
