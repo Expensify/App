@@ -3,6 +3,7 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {SetRequired} from 'type-fest';
 import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -80,10 +81,9 @@ import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from './SelectionListWithSections';
-import type {SectionListDataType} from './SelectionListWithSections/types';
-import UserListItem from './SelectionListWithSections/UserListItem';
+import UserListItem from './SelectionList/ListItem/UserListItem';
+import SelectionList from './SelectionList/SelectionListWithSections';
+import type {Section} from './SelectionList/SelectionListWithSections/types';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -222,7 +222,7 @@ type MoneyRequestConfirmationListProps = {
     showRemoveExpenseConfirmModal?: () => void;
 };
 
-type MoneyRequestConfirmationListItem = Participant | OptionData;
+type MoneyRequestConfirmationListItem = SetRequired<Participant, 'keyForList'> | OptionData;
 
 const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
 
@@ -719,8 +719,10 @@ function MoneyRequestConfirmationList({
                         transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
                         calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
                 }
+
                 return {
                     ...participantOption,
+                    keyForList: `${participantOption.keyForList ?? participantOption.accountID ?? participantOption.reportID}`,
                     isSelected: false,
                     isInteractive: false,
                     rightElement: (
@@ -740,6 +742,7 @@ function MoneyRequestConfirmationList({
             tabIndex: -1,
             isSelected: false,
             isInteractive: false,
+            keyForList: `${participantOption.keyForList ?? participantOption.accountID ?? participantOption.reportID}`,
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
@@ -832,19 +835,19 @@ function MoneyRequestConfirmationList({
     );
 
     const sections = useMemo(() => {
-        const options: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
+        const options: Array<Section<MoneyRequestConfirmationListItem>> = [];
         if (isTypeSplit) {
             options.push(
                 ...[
                     {
                         title: translate('moneyRequestConfirmationList.paidBy'),
                         data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
-                        shouldShow: true,
+                        sectionIndex: 0,
                     },
                     {
-                        CustomSectionHeader: getSplitSectionHeader,
+                        customHeader: getSplitSectionHeader(),
                         data: splitParticipants,
-                        shouldShow: true,
+                        sectionIndex: 1,
                     },
                 ],
             );
@@ -853,13 +856,13 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                shouldShowRightIcon: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
             }));
+
             options.push({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
-                shouldShow: true,
+                sectionIndex: 0,
             });
         }
 
@@ -1312,10 +1315,12 @@ function MoneyRequestConfirmationList({
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
                 shouldPreventDefaultFocusOnSelectRow
-                shouldShowListEmptyContent={false}
+                showListEmptyContent={false}
                 footerContent={footerContent}
-                listFooterContent={listFooterContent}
-                containerStyle={[styles.flexBasisAuto]}
+                listFooterComponent={listFooterContent}
+                style={{
+                    containerStyle: [styles.flexBasisAuto],
+                }}
                 removeClippedSubviews={false}
                 disableKeyboardShortcuts
             />

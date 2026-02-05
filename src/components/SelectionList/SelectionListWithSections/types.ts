@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {BaseSelectionListProps} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
@@ -6,6 +6,9 @@ import type CONST from '@src/CONST';
 type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
+
+    /** Custom header to display */
+    customHeader?: ReactElement;
 
     /** Array of items in the section */
     data: TItem[];
@@ -45,12 +48,11 @@ type SelectionListWithSectionsHandle = {
     focusTextInput: () => void;
 };
 
-type SectionHeader = {
+type SectionHeader<TItem extends ListItem> = {
     type: typeof CONST.SECTION_LIST_ITEM_TYPE.HEADER;
-    title: string;
     keyForList: string;
     isDisabled: boolean;
-};
+} & Pick<Section<TItem>, 'title' | 'customHeader'>;
 
 type SectionListItem<TItem extends ListItem> = TItem & {
     flatIndex: number;
@@ -59,6 +61,6 @@ type SectionListItem<TItem extends ListItem> = TItem & {
     flatListKey: string;
 };
 
-type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader;
+type FlattenedItem<TItem extends ListItem> = SectionListItem<TItem> | SectionHeader<TItem>;
 
 export type {Section, ListItem, SectionListItem, SelectionListWithSectionsProps, SelectionListWithSectionsHandle, SectionHeader, FlattenedItem};
