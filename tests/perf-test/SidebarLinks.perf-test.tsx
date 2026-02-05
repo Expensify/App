@@ -1,5 +1,5 @@
-import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import type * as Navigation from '@react-navigation/native';
+import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
@@ -350,8 +350,7 @@ describe('SidebarLinks', () => {
         const scenario = async () => {
             await screen.findByTestId('lhn-options-list');
             const firstReportID = '1';
-            const currentArchivedStatus =
-                reportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${firstReportID}`]?.private_isArchived;
+            const currentArchivedStatus = reportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${firstReportID}`]?.private_isArchived;
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${firstReportID}`, {
                 private_isArchived: currentArchivedStatus === 'true' ? 'false' : 'true',
             });
@@ -362,8 +361,7 @@ describe('SidebarLinks', () => {
     });
 
     test('[SidebarLinks LHN] scaling test – initial render with 500 reports', async () => {
-        const {reports, reportActions, reportNameValuePairs, policies, personalDetails, reportMetadata} =
-            createReportsWithActions(500);
+        const {reports, reportActions, reportNameValuePairs, policies, personalDetails, reportMetadata} = createReportsWithActions(500);
 
         const scenario = async () => {
             await screen.findByTestId('lhn-options-list');

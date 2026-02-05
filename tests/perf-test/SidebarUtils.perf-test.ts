@@ -4,11 +4,7 @@ import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {
-    getSortedReportActions,
-    getSortedReportActionsForDisplay,
-    shouldReportActionBeVisibleAsLastAction,
-} from '@libs/ReportActionsUtils';
+import {getSortedReportActions, getSortedReportActionsForDisplay, shouldReportActionBeVisibleAsLastAction} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
