@@ -40,7 +40,6 @@ function BasePicker<TPickerValue>({
     onBlur = () => {},
     additionalPickerEvents = () => {},
     ref,
-    accessibilityLabel,
 }: BasePickerProps<TPickerValue>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
