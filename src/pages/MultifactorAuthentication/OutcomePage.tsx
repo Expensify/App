@@ -84,6 +84,7 @@ function MultifactorAuthenticationOutcomePage({route}: MultifactorAuthentication
             </View>
             <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                 <Button
+                    large
                     success
                     style={styles.flex1}
                     onPress={onGoBackPress}
