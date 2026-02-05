@@ -49,12 +49,12 @@ The Top Categories report is powered by Expensify’s search query engine using 
 
 ## How to interpret the Top Categories report
 
-Each row represents a single expense category, sorted in descending order by total spend. Columns include:
+Each category entry represents a single expense category, ordered from highest to lowest total spend. The report shows:
 
 - **Number of expenses** in the category  
 - **Total amount spent** in that category  
 
-Click any row to view all expenses tied to that category.
+Select a category to review all expenses included in that grouping.
 
 ---
 
@@ -71,6 +71,19 @@ To create and save a custom report:
 3. Apply filters and click **Save search** to save your custom report.
 
 [Learn how to create custom reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify#How-to-use-Reports-search-query-commands)
+
+---
+
+## How to switch the Top Categories report to table view
+
+By default, the Top Categories report displays a bar chart. The table view shows expense categories sorted in descending order by total spend.
+
+To change the view:
+
+1. Click **View** in the top navigation tabs.
+2. Select **Table**.
+
+The table view shows expense categories as rows sorted in descending order by total spend.
 
 ---
 
