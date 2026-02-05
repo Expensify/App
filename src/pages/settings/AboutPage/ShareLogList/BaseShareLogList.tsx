@@ -110,6 +110,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                         onSelectRow={attachLogToReport}
                         shouldSingleExecuteRowSelect
                         shouldShowTextInput
+                        disableMaintainingScrollPosition
                         textInputOptions={textInputOptions}
                         showLoadingPlaceholder={!didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
