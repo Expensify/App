@@ -1403,6 +1403,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     modal: {
         backdropLabel: 'Fondo del Modal',
+        dismissDialog: 'Cerrar diálogo',
     },
     nextStep: {
         message: {
