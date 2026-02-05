@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -14,6 +14,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DecisionModal from './DecisionModal';
+import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
@@ -74,6 +75,7 @@ function ProcessMoneyReportHoldMenu({
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -81,7 +83,13 @@ function ProcessMoneyReportHoldMenu({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const onSubmit = (full: boolean) => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
         if (isApprove) {
             if (startAnimation) {
                 startAnimation();
@@ -94,13 +102,25 @@ function ProcessMoneyReportHoldMenu({
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 moneyRequestReportNextStep,
+                betas,
                 full,
             );
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, moneyRequestReportNextStep, undefined, full, activePolicy, policy);
+            payMoneyRequest({
+                paymentType,
+                chatReport,
+                iouReport: moneyRequestReport,
+                introSelected,
+                iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
+                currentUserAccountID: currentUserDetails.accountID,
+                full,
+                activePolicy,
+                policy,
+                betas,
+            });
         }
         onClose();
     };

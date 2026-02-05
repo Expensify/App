@@ -1,18 +1,17 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
+import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {GpsDraftDetails} from '@src/types/onyx';
 
 function Waypoints() {
     const styles = useThemeStyles();
@@ -64,50 +63,23 @@ export default Waypoints;
 
 const GPS_TOOLTIP_HORIZONTAL_PADDING = 40;
 
-function GPSTooltip({children}: React.PropsWithChildren) {
-    const [hasUserClosedTooltip, setHasUserClosedTooltip] = useState(false);
+const isTrackingSelector = (gpsDraftDetails: OnyxEntry<GpsDraftDetails>) => gpsDraftDetails?.isTracking;
 
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
-    const [firstCreatedGPSExpenseDate] = useOnyx(ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT, {canBeMissing: true});
+function GPSTooltip({children}: React.PropsWithChildren) {
+    const [isTracking] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
 
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const theme = useTheme();
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb']);
 
-    const showEducationalTooltip = !hasUserClosedTooltip && !firstCreatedGPSExpenseDate && gpsDraftDetails?.isTracking;
-
-    const renderTooltipContent = () => (
-        <View style={[styles.ph1, styles.pv2, styles.flexRow, styles.overflowHidden, styles.gap3, styles.alignItemsCenter]}>
-            <Icon
-                src={icons.Lightbulb}
-                fill={theme.tooltipHighlightText}
-                small
-            />
-            <Text style={[styles.fontSizeLabel, styles.flexShrink1, styles.productTrainingTooltipText, styles.fontWeightNormal]}>{translate('gps.tooltip')}</Text>
-
-            <PressableWithoutFeedback
-                onPress={() => setHasUserClosedTooltip(true)}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('common.close')}
-            >
-                <Icon
-                    fill={theme.icon}
-                    src={icons.Close}
-                    extraSmall
-                />
-            </PressableWithoutFeedback>
-        </View>
-    );
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP, !!isTracking);
 
     return (
         <EducationalTooltip
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shiftVertical={-12}
             maxWidth={windowWidth - GPS_TOOLTIP_HORIZONTAL_PADDING}
-            renderTooltipContent={renderTooltipContent}
-            shouldRender={showEducationalTooltip}
+            renderTooltipContent={renderProductTrainingTooltip}
+            shouldRender={shouldShowProductTrainingTooltip}
         >
             {children}
         </EducationalTooltip>

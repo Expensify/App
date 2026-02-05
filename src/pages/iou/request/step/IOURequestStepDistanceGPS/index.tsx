@@ -20,8 +20,8 @@ function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.p10, styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
-            <View style={[styles.gpsWebIllustrationContainer]}>
+        <View style={[styles.ph5, styles.pv10, styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
+            <View style={[styles.toddInCarIllustrationContainer]}>
                 <ImageSVG
                     src={ToddInCar}
                     contentFit="contain"

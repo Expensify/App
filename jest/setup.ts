@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
+import type {ReactNode} from 'react';
 import {useMemo} from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
@@ -12,7 +13,6 @@ import 'setimmediate';
 import * as MockedSecureStore from '@src/libs/MultifactorAuthentication/Biometrics/SecureStore/index.web';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
-import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
@@ -34,6 +34,12 @@ jest.mock('react-native-onyx/dist/storage', () => mockStorage);
 
 // Mock NativeEventEmitter as it is needed to provide mocks of libraries which include it
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
+
+// Mock expo-task-manager
+jest.mock('expo-task-manager', () => ({
+    defineTask: jest.fn(),
+    // Add other methods here if you use them
+}));
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
@@ -81,14 +87,6 @@ jest.mock('react-native-fs', () => ({
     CachesDirectoryPath: jest.fn(),
 }));
 
-jest.mock('react-native-sound', () => {
-    class SoundMock {
-        play = jest.fn();
-    }
-
-    return SoundMock;
-});
-
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
@@ -102,11 +100,12 @@ jest.mock('react-native-reanimated', () => ({
     useReducedMotion: jest.fn,
     useScrollViewOffset: jest.fn(() => 0),
     useAnimatedRef: jest.fn(() => jest.fn()),
-    LayoutAnimationConfig: jest.fn,
+    LayoutAnimationConfig: ({children}: {children: React.ReactNode}) => children,
     makeShareableCloneRecursive: jest.fn,
 }));
 
-setupMockReactNativeWorklets();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
 
@@ -279,6 +278,19 @@ jest.mock('@src/hooks/useWorkletStateMachine/runOnUISync', () => ({
 
 jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
+}));
+
+jest.mock('@shopify/react-native-skia', () => ({
+    useFont: jest.fn(() => null),
+    matchFont: jest.fn(() => null),
+    listFontFamilies: jest.fn(() => []),
+}));
+
+jest.mock('victory-native', () => ({
+    Bar: jest.fn(() => null),
+    CartesianChart: jest.fn(
+        ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
+    ),
 }));
 
 // Provide a default global fetch mock for tests that do not explicitly set it up
