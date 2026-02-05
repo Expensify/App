@@ -2004,12 +2004,18 @@ function markCommentAsUnread(reportID: string | undefined, reportAction: ReportA
     // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(actionCreationTime, 1);
 
+    const lastActorAccountID =
+        reportAction?.actorAccountID && reportAction.actorAccountID !== currentUserAccountID
+            ? reportAction.actorAccountID
+            : (latestReportActionFromOtherUsers?.actorAccountID ?? report?.lastActorAccountID);
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastReadTime,
+                ...(lastActorAccountID !== undefined && {lastActorAccountID}),
             },
         },
     ];
