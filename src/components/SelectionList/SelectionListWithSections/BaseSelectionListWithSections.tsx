@@ -39,6 +39,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     ListItem,
     textInputOptions,
     initiallyFocusedItemKey,
+    onLayout,
     onSelectRow,
     onDismissError,
     onScrollBeginDrag,
@@ -318,7 +319,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     };
 
     return (
-        <View style={[styles.flex1, addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}>
+        <View
+            style={[styles.flex1, addBottomSafeAreaPadding && paddingBottomStyle, style?.containerStyle]}
+            onLayout={onLayout}
+        >
             {textInputComponent()}
             {itemsCount === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
                 renderListEmptyContent()

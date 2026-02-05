@@ -42,6 +42,7 @@ import {
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, getUserFriendlyKey, getUserFriendlyValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import Timing from '@userActions/Timing';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -118,6 +119,12 @@ function isSearchQueryListItem(listItem: UserListItemProps<AutocompleteListItem>
 function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
     return `${filterKey}:${value}`;
 }
+
+const setPerformanceTimersEnd = () => {
+    Timing.end(CONST.TIMING.OPEN_SEARCH);
+    Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
+    endSpan('OPEN_SEARCH');
+};
 
 function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | SearchQueryListItemProps) {
     const styles = useThemeStyles();
@@ -213,10 +220,6 @@ function SearchAutocompleteList({
             (ref as React.MutableRefObject<SelectionListWithSectionsHandle | null>).current = instance;
         }
     };
-
-    useEffect(() => {
-        setIsInitialRender(false);
-    }, []);
 
     // Reset focus when query changes to prevent stale focus on wrong items
     useEffect(() => {
@@ -873,6 +876,12 @@ function SearchAutocompleteList({
                 shouldScrollToFocusedIndex={!isInitialRender}
                 disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
                 addBottomSafeAreaPadding
+                onLayout={() => {
+                    setPerformanceTimersEnd();
+                    setIsInitialRender(false);
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                    innerListRef.current?.updateExternalTextInputFocus?.(textInputRef?.current?.isFocused() ?? false);
+                }}
             />
         )
     );
