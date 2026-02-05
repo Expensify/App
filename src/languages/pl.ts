@@ -3026,8 +3026,7 @@ ${
         refreshAndTryAgain: 'Odśwież i spróbuj ponownie',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: (login: string) =>
-            `Nie mogliśmy dostarczyć wiadomości SMS na numer ${login}, więc tymczasowo go zawiesiliśmy. Spróbuj zweryfikować swój numer:`,
+        smsDeliveryFailureMessage: (login: string) => `Nie mogliśmy dostarczyć wiadomości SMS na numer ${login}, więc tymczasowo go zawiesiliśmy. Spróbuj zweryfikować swój numer:`,
         validationSuccess: 'Twój numer został zweryfikowany! Kliknij poniżej, aby wysłać nowy magiczny kod logowania.',
         validationFailed: ({
             timeData,

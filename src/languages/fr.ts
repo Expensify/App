@@ -3050,8 +3050,7 @@ ${
         refreshAndTryAgain: 'Actualisez et réessayez',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: (login: string) =>
-            `Nous n’avons pas pu envoyer de SMS à ${login}, nous l’avons donc suspendu temporairement. Veuillez essayer de valider votre numéro :`,
+        smsDeliveryFailureMessage: (login: string) => `Nous n’avons pas pu envoyer de SMS à ${login}, nous l’avons donc suspendu temporairement. Veuillez essayer de valider votre numéro :`,
         validationSuccess: 'Votre numéro a été validé ! Cliquez ci-dessous pour envoyer un nouveau code magique de connexion.',
         validationFailed: ({
             timeData,
