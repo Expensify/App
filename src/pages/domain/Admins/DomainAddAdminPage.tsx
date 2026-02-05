@@ -165,6 +165,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     onEndReached={onListEndReached}
                     addBottomSafeAreaPadding
                     shouldShowTextInput
+                    disableMaintainingScrollPosition
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
