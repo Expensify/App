@@ -5790,6 +5790,14 @@ const staticStyles = (theme: ThemeColors) =>
         barChartChartContainer: {
             minHeight: 250,
         },
+        lineChartContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            paddingTop: variables.qrShareHorizontalPadding,
+            paddingHorizontal: variables.qrShareHorizontalPadding,
+        },
+        lineChartChartContainer: {
+            minHeight: 250,
+        },
         discoverSectionImage: {
             width: '100%',
             height: undefined,
