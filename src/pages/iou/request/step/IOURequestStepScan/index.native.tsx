@@ -175,7 +175,7 @@ function IOURequestStepScan({
             .catch(() => {
                 setCameraPermissionStatus(RESULTS.UNAVAILABLE);
             });
-    }, []);
+    }, [translate]);
 
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
