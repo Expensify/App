@@ -10247,13 +10247,13 @@ function approveMoneyRequest(
 }
 
 function determineIouReportID(chatReport: OnyxEntry<OnyxTypes.Report>, expenseReport: OnyxEntry<OnyxTypes.Report>): string | undefined {
-    const iouReportActions = getAllReportActions(chatReport.iouReportID);
-    const expenseReportActions = getAllReportActions(expenseReport.reportID);
+    const iouReportActions = getAllReportActions(chatReport?.iouReportID);
+    const expenseReportActions = getAllReportActions(expenseReport?.reportID);
     const iouCreatedAction = Object.values(iouReportActions).find((action) => isCreatedAction(action));
     const expenseCreatedAction = Object.values(expenseReportActions).find((action) => isCreatedAction(action));
 
     // The report created later will become the iouReportID of the chat report
-    return (iouCreatedAction?.created ?? '') > (expenseCreatedAction?.created ?? '') ? chatReport.iouReportID : expenseReport.reportID;
+    return (iouCreatedAction?.created ?? '') > (expenseCreatedAction?.created ?? '') ? chatReport?.iouReportID : expenseReport?.reportID;
 }
 
 function reopenReport(
