@@ -3,10 +3,6 @@
         "playwright": {
             "command": "npx",
             "args": ["@playwright/mcp@latest", "--isolated"]
-        },
-        "figma": {
-            "url": "https://mcp.figma.com/mcp",
-            "type": "http"
         }
     }
 }
