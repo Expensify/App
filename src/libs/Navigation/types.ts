@@ -3103,7 +3103,6 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST | typeof SCREENS.HOME;
 
 type PublicScreenName =
-    | typeof SCREENS.HOME
     | typeof SCREENS.TRANSITION_BETWEEN_APPS
     | typeof SCREENS.VALIDATE_LOGIN
     | typeof SCREENS.CONNECTION_COMPLETE
