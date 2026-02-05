@@ -1,4 +1,4 @@
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback, useContext, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
@@ -21,6 +21,8 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import variables from '@styles/variables';
 import {setMoneyRequestOdometerReadingImage} from '@userActions/IOU';
+import CONST from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -35,24 +37,38 @@ function IOURequestStepOdometerImage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isDraggingOver} = useContext(DragAndDropContext);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'Meter']);
-    const isTransactionDraft = shouldUseTransactionDraft(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd']);
+    const actionValue: IOUAction = action ?? CONST.IOU.ACTION.CREATE;
+    const iouTypeValue: IOUType = iouType ?? CONST.IOU.TYPE.REQUEST;
+    const isTransactionDraft = shouldUseTransactionDraft(actionValue, iouTypeValue);
+    const dropBlobUrlsRef = useRef<string[]>([]);
+    const shouldRevokeOnUnmountRef = useRef(true);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const title = readingType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
-    const message = readingType === 'start' ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
-    const icon = readingType === 'start' ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
+    const title = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
+    const message = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
+    const icon = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
     const messageHTML = `<centered-text><muted-text-label>${message}</muted-text-label></centered-text>`;
 
     const navigateBack = useCallback(() => {
         Navigation.goBack();
     }, []);
 
+    const revokeDropBlobUrls = useCallback(() => {
+        for (const url of dropBlobUrlsRef.current) {
+            if (url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+        }
+        dropBlobUrlsRef.current = [];
+    }, []);
+
     const handleImageSelected = useCallback(
         (file: FileObject) => {
             setMoneyRequestOdometerReadingImage(transactionID, readingType, file as File, isTransactionDraft);
+            shouldRevokeOnUnmountRef.current = false;
             navigateBack();
         },
         [transactionID, readingType, isTransactionDraft, navigateBack],
@@ -76,14 +92,28 @@ function IOURequestStepOdometerImage({
             if (files.length === 0) {
                 return;
             }
+            revokeDropBlobUrls();
+            const blobUrls: string[] = [];
             for (const file of files) {
+                const blobUrl = URL.createObjectURL(file);
+                blobUrls.push(blobUrl);
                 // eslint-disable-next-line no-param-reassign
-                file.uri = URL.createObjectURL(file);
+                file.uri = blobUrl;
             }
+            dropBlobUrlsRef.current = blobUrls;
             validateFiles(files as FileObject[], Array.from(event.dataTransfer?.items ?? []));
         },
-        [validateFiles],
+        [revokeDropBlobUrls, validateFiles],
     );
+
+    useEffect(() => {
+        return () => {
+            if (!shouldRevokeOnUnmountRef.current) {
+                return;
+            }
+            revokeDropBlobUrls();
+        };
+    }, [revokeDropBlobUrls]);
 
     const desktopUploadView = () => (
         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1, styles.ph11]}>
@@ -127,7 +157,9 @@ function IOURequestStepOdometerImage({
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>{!(isDraggingOver ?? isDraggingOverWrapper) && desktopUploadView()}</View>
                     <DragAndDropConsumer onDrop={handleDrop}>
                         <DropZoneUI
-                            icon={lazyIcons.Meter}
+                            icon={icon}
+                            iconWidth={variables.iconSection}
+                            iconHeight={variables.iconSection}
                             dropStyles={styles.receiptDropOverlay(true)}
                             dropTitle={title}
                             dropTextStyles={styles.receiptDropText}

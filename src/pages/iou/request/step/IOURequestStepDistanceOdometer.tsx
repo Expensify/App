@@ -44,6 +44,7 @@ import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyE
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {OdometerImageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -237,16 +238,37 @@ function IOURequestStepDistanceOdometer({
         if (typeof image === 'string') {
             return image;
         }
-        // Web: File object, create blob URL
+        // Web: File object, reuse existing blob URL if present
         if (image instanceof File) {
+            if (typeof image.uri === 'string' && image.uri.length > 0) {
+                return image.uri;
+            }
             return URL.createObjectURL(image);
         }
         // Native: Object with uri property (fallback)
         return image?.uri;
     }, []);
 
-    const startImageSource = getImageSource(odometerStartImage);
-    const endImageSource = getImageSource(odometerEndImage);
+    const startImageSource = useMemo(() => getImageSource(odometerStartImage), [getImageSource, odometerStartImage]);
+    const endImageSource = useMemo(() => getImageSource(odometerEndImage), [getImageSource, odometerEndImage]);
+
+    useEffect(() => {
+        return () => {
+            if (!startImageSource?.startsWith('blob:')) {
+                return;
+            }
+            URL.revokeObjectURL(startImageSource);
+        };
+    }, [startImageSource]);
+
+    useEffect(() => {
+        return () => {
+            if (!endImageSource?.startsWith('blob:')) {
+                return;
+            }
+            URL.revokeObjectURL(endImageSource);
+        };
+    }, [endImageSource]);
 
     const buttonText = (() => {
         if (shouldSkipConfirmation) {
@@ -293,18 +315,17 @@ function IOURequestStepDistanceOdometer({
     };
 
     const handleCaptureImage = useCallback(
-        (imageType: 'start' | 'end') => {
-            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(transactionID, imageType, action, iouType));
+        (imageType: OdometerImageType) => {
+            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, imageType));
         },
-        [transactionID, action, iouType],
+        [action, iouType, transactionID],
     );
 
     const handleViewOdometerImage = useCallback(
-        (imageType: 'start' | 'end') => {
+        (imageType: OdometerImageType) => {
             if (!reportID || !transactionID) {
                 return;
             }
-            // Navigate to receipt modal with imageType parameter
             Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, false, undefined, imageType, action, iouType));
         },
         [reportID, transactionID, action, iouType],
@@ -568,11 +589,12 @@ function IOURequestStepDistanceOdometer({
                         <PressableWithFeedback
                             accessible={false}
                             accessibilityRole="button"
+                            sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
                             onPress={() => {
                                 if (odometerStartImage) {
-                                    handleViewOdometerImage('start');
+                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
                                 } else {
-                                    handleCaptureImage('start');
+                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
                                 }
                             }}
                             style={[
@@ -618,6 +640,14 @@ function IOURequestStepDistanceOdometer({
                                     handleViewOdometerImage('end');
                                 } else {
                                     handleCaptureImage('end');
+                                }
+                            }}
+                            sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
+                            onPress={() => {
+                                if (odometerEndImage) {
+                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                } else {
+                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END)
                                 }
                             }}
                             style={[
