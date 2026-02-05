@@ -643,29 +643,29 @@ function IOURequestStepScan({
                                         onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
                                     />
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
-                                    {canUseMultiScan ? (
-                                        <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
-                                            <PressableWithFeedback
-                                                role={CONST.ROLE.BUTTON}
-                                                accessibilityLabel={translate('receipt.flash')}
-                                                disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                                                onPress={() => setFlash((prevFlash) => !prevFlash)}
-                                            >
-                                                <Icon
-                                                    height={16}
-                                                    width={16}
-                                                    src={lazyIcons.Bolt}
-                                                    fill={flash ? theme.white : theme.icon}
-                                                />
-                                            </PressableWithFeedback>
-                                        </View>
-                                    ) : null}
                                     <Animated.View
                                         pointerEvents="none"
                                         style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
                                     />
                                 </View>
                             </GestureDetector>
+                            {canUseMultiScan ? (
+                                <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
+                                    <PressableWithFeedback
+                                        role={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={translate('receipt.flash')}
+                                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                                    >
+                                        <Icon
+                                            height={16}
+                                            width={16}
+                                            src={lazyIcons.Bolt}
+                                            fill={flash ? theme.white : theme.icon}
+                                        />
+                                    </PressableWithFeedback>
+                                </View>
+                            ) : null}
                         </View>
                     )}
                 </View>
