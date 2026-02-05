@@ -306,7 +306,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
-          CUSTOM_APP_REF: ${{ needs.prep.outputs.APP_REF }}
         with:
           variant: 'Adhoc'
           sign: true
@@ -321,6 +320,7 @@ jobs:
           keystore-path: '../tools/buildtools/upload-key.keystore'
           comment-bot: false
           rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
+          custom-ref: ${{ needs.prep.outputs.APP_REF }}
 
       - name: Set artifact URL output
         id: set-artifact-url
@@ -420,7 +420,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
-          CUSTOM_APP_REF: ${{ needs.prep.outputs.APP_REF }}
         with:
           destination: device
           re-sign: true
@@ -444,6 +443,7 @@ jobs:
               }
             ]
           comment-bot: false
+          custom-ref: ${{ needs.prep.outputs.APP_REF }}
 
       - name: Set artifact URL output
         id: set-artifact-url
