@@ -551,6 +551,7 @@ function PureReportActionItem({
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
+    const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`];
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -1305,7 +1306,6 @@ function PureReportActionItem({
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-            const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`];
             children = (
                 <ReportActionItemMessageWithExplain
                     message={modifiedExpenseMessage}
@@ -1320,7 +1320,6 @@ function PureReportActionItem({
 
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
             if (wasSubmittedViaHarvesting) {
-                const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`];
                 children = (
                     <ReportActionItemMessageWithExplain
                         message={translate('iou.automaticallySubmitted')}
