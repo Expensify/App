@@ -164,6 +164,7 @@ import {
     isExpensifyTeam,
     isInstantSubmitEnabled,
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
+    isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyMember,
@@ -1080,10 +1081,14 @@ Onyx.connectWithoutView({
 });
 
 let allPolicies: OnyxCollection<Policy>;
+let hasPolicies: boolean;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
+    callback: (value) => {
+        allPolicies = value;
+        hasPolicies = !isEmptyObject(value);
+    },
 });
 
 let allPolicyDrafts: OnyxCollection<Policy>;
@@ -1420,7 +1425,7 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
     const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
-    if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName && !parentReport?.policyName)) {
+    if ((!report?.policyName && !parentReport?.policyName && !hasPolicies && isEmptyObject(policies)) || isEmptyObject(report)) {
         return noPolicyFound;
     }
     const finalPolicy = (() => {
@@ -2983,6 +2988,7 @@ function hasOutstandingChildRequest(
  * @returns The dropdown options for the add expense button
  */
 function getAddExpenseDropdownOptions(
+    translate: LocalizedTranslate,
     icons: Record<'Location' | 'ReceiptPlus', IconAsset>,
     iouReportID: string | undefined,
     policy: OnyxEntry<Policy>,
@@ -2993,8 +2999,7 @@ function getAddExpenseDropdownOptions(
     return [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('iou.createExpense'),
+            text: translate('iou.createExpense'),
             icon: Plus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
             onSelected: () => {
@@ -3010,8 +3015,7 @@ function getAddExpenseDropdownOptions(
         },
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('iou.trackDistance'),
+            text: translate('iou.trackDistance'),
             icon: icons.Location,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
             onSelected: () => {
@@ -3027,8 +3031,7 @@ function getAddExpenseDropdownOptions(
         },
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('iou.addUnreportedExpense'),
+            text: translate('iou.addUnreportedExpense'),
             icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
@@ -6315,7 +6318,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
         if (isExpenseReport(report)) {
             return {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                reportName: translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName ?? ''}),
+                reportName: translateLocal('workspace.common.policyExpenseChatName', reportOwnerDisplayName ?? ''),
                 workspaceName: getPolicyName({report}),
             };
         }
@@ -7049,7 +7052,7 @@ function buildOptimisticEmptyReport(
 
 function getWorkspaceNameUpdatedMessage(translate: LocalizedTranslate, action: ReportAction) {
     const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
-    const message = oldName && newName ? translate('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : getReportActionText(action);
+    const message = oldName && newName ? translate('workspaceActions.renamedWorkspaceNameAction', oldName, newName) : getReportActionText(action);
     return Str.htmlEncode(message);
 }
 
@@ -12497,7 +12500,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     if (report && report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
-    return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role;
+    return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
 }
 
 /**

@@ -8069,6 +8069,7 @@ const CONST = {
             SEARCH_BUTTON: 'Search-SearchButton',
             USER_SELECTION_CHECKBOX: 'Search-UserSelectionCheckbox',
             TRANSACTION_GROUP_LIST_ITEM: 'Search-TransactionGroupListItem',
+            SELECT_ALL_BUTTON: 'Search-SelectAllButton',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
@@ -8232,6 +8233,7 @@ const CONST = {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
         WORKSPACE: {
+            TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
         },
     },
