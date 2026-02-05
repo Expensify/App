@@ -426,6 +426,7 @@ describe('TransactionUtils', () => {
         it('returns distance when the transaction has a distance custom unit', () => {
             const transaction = generateTransaction({
                 comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     },
@@ -439,6 +440,7 @@ describe('TransactionUtils', () => {
         it('returns per diem when the transaction has an international per diem custom unit', () => {
             const transaction = generateTransaction({
                 comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
                         name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
                     },
