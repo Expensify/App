@@ -16,8 +16,7 @@ import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import getRedirectedPath from './getRedirectedPath';
-import {isFullScreenName} from './isNavigatorName';
-import isPublicScreenName from './isPublicScreenName';
+import {isFullScreenName, isPublicScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
 

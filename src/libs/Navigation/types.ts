@@ -3102,6 +3102,15 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST | typeof SCREENS.HOME;
 
+type PublicScreenName =
+    | typeof SCREENS.HOME
+    | typeof SCREENS.TRANSITION_BETWEEN_APPS
+    | typeof SCREENS.VALIDATE_LOGIN
+    | typeof SCREENS.CONNECTION_COMPLETE
+    | typeof SCREENS.BANK_CONNECTION_COMPLETE
+    | typeof SCREENS.UNLINK_LOGIN
+    | typeof SCREENS.SAML_SIGN_IN;
+
 // There are three screens/navigators which can be displayed when the Workspaces tab is selected
 type WorkspacesTabNavigatorName = typeof SCREENS.WORKSPACES_LIST | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR;
 
@@ -3145,6 +3154,7 @@ export type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
+    PublicScreenName,
     PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
     ReportVerifyAccountNavigatorParamList,
