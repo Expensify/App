@@ -37,11 +37,11 @@ Tap **Reports** from the navigation tabs on the bottom, then tap the hamburger m
 
 ---
 
-## What information the Top Spenders report shows
+## What information the Top Spenders report displays
 
 The Top Spenders report is powered by a saved search query using Expensify's grouping and filtering engine. The report shows:
 
-- The **top expense submitters** for the last last month  
+- The **top expense submitters** for the last month  
 - The **total amount spent** by each person  
 - The **number of expenses** by each person
 ---
