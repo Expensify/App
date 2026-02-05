@@ -77,7 +77,7 @@ type CartesianActionsHandle = {
  */
 function useChartInteractions({ handlePress, checkIsOver, chartBottom, yZero }: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
-    const { state: chartInteractionState, isActive: isTooltipActiveState } = useChartInteractionState({ x: 0, y: { y: 0 } });
+    const {state: chartInteractionState, isActive: isTooltipActiveState} = useChartInteractionState();
 
     /** Ref passed to CartesianChart to allow manual touch injection */
     const actionsRef = useRef<CartesianActionsHandle>(null);
