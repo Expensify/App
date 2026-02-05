@@ -47,15 +47,7 @@ function getDisplayUnit(font: SkFont | null, currencySymbol: string | undefined,
     return currencyCode;
 }
 
-export default function useChartLabelFormats({
-    data,
-    font,
-    yAxisUnit,
-    yAxisUnitPosition = 'left',
-    labelSkipInterval,
-    labelRotation,
-    truncatedLabels,
-}: UseChartLabelFormatsProps) {
+export default function useChartLabelFormats({data, font, yAxisUnit, yAxisUnitPosition = 'left', labelSkipInterval, labelRotation, truncatedLabels}: UseChartLabelFormatsProps) {
     const {numberFormat} = useLocalize();
 
     // Derive currency code from data for fallback when font can't render the symbol
