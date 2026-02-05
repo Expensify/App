@@ -315,9 +315,9 @@ function IOURequestStepDistanceOdometer({
 
     const handleCaptureImage = useCallback(
         (imageType: OdometerImageType) => {
-            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(transactionID, imageType));
+            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, imageType));
         },
-        [transactionID],
+        [action, iouType, transactionID],
     );
 
     // Navigate to confirmation page helper - following Manual tab pattern

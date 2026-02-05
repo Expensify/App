@@ -22,6 +22,7 @@ import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/w
 import variables from '@styles/variables';
 import {setMoneyRequestOdometerImage} from '@userActions/IOU';
 import CONST from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -29,7 +30,7 @@ type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeo
 
 function IOURequestStepOdometerImage({
     route: {
-        params: {transactionID, readingType},
+        params: {transactionID, readingType, action, iouType},
     },
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
@@ -37,17 +38,17 @@ function IOURequestStepOdometerImage({
     const theme = useTheme();
     const {isDraggingOver} = useContext(DragAndDropContext);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd']);
-    const isTransactionDraft = shouldUseTransactionDraft(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.REQUEST);
+    const actionValue = (action ?? CONST.IOU.ACTION.CREATE) as IOUAction;
+    const iouTypeValue = (iouType ?? CONST.IOU.TYPE.REQUEST) as IOUType;
+    const isTransactionDraft = shouldUseTransactionDraft(actionValue, iouTypeValue);
     const dropBlobUrlsRef = useRef<string[]>([]);
     const shouldRevokeOnUnmountRef = useRef(true);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const title =
-        readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
-    const message =
-        readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
+    const title = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
+    const message = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
     const icon = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
     const messageHTML = `<centered-text><muted-text-label>${message}</muted-text-label></centered-text>`;
 
