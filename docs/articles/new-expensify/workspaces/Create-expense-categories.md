@@ -98,12 +98,12 @@ Bulk actions are also available using the checkboxes and **Selected** dropdown.
 
 # Add or Edit GL Codes or Payroll Codes
 
-Workspaces on the **Control** plan can assign optional **GL codes** and **payroll codes** to each category. GL codes are visible to Workspace Admins in the Categories table and can be exported for accounting purposes. Payroll codes are not visible in the table but can be edited in the category detail panel.
+Workspaces on the **Control** plan can assign optional **GL codes** and **payroll codes** to each category. These codes are not visible to members but can be exported for accounting purposes.
 
 To edit these fields:
 
 1. Go to **Workspaces > [Workspace Name] > Categories**.
-2. Click a category to open its detail panel.
+2. Click a category.
 3. To edit a GL code, click the **GL Code** field, update it, and click **Save**.
 4. To edit a payroll code, do the same in the **Payroll Code** field.
 
