@@ -114,6 +114,13 @@ describe('PaymentUtils', () => {
             expect(result.shouldSelectPaymentMethod).toBe(true);
         });
 
+        it('should set shouldSelectPaymentMethod to false when paymentMethod is explicitly ELSEWHERE (Mark as Paid)', () => {
+            const result = getActivePaymentType(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, [], [bankItem]);
+
+            expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+            expect(result.shouldSelectPaymentMethod).toBe(false);
+        });
+
         it('should find policyFromContext by policyID', () => {
             const result = getActivePaymentType(undefined, [randomPolicyA, randomPolicyB], undefined, randomPolicyA.id);
 
