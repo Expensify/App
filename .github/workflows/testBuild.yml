@@ -445,7 +445,7 @@ jobs:
 
       - name: Set artifact URL output
         id: set-artifact-url
-        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
+        run: echo "ARTIFACT_URL=$ARTIFACT_URL-$(printf '%05x%05x' $RANDOM $RANDOM)" >> "$GITHUB_OUTPUT"
 
   postGithubComment:
     runs-on: ubuntu-latest
