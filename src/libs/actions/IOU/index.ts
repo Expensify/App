@@ -44,6 +44,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {
@@ -1114,9 +1115,16 @@ function handleNavigateAfterExpenseCreate({
         return;
     }
     const queryString = buildCannedSearchQuery({type});
-    Navigation.dismissModal();
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+    Navigation.isNavigationReady().then(() => {
+        if (getIsNarrowLayout()) {
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+        } else {
+            Navigation.dismissModal();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+            });
+        }
     });
 }
 
