@@ -70,8 +70,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         return '';
     }, [nextStep, translate, currentUserAccountID, currentUserEmail]);
 
-    // iconFill is only available in deprecated format
-    const iconFill = (nextStep && isDeprecatedFormatNextStep(nextStep) ? nextStep.iconFill : undefined) ?? theme.icon;
+    const iconFill = nextStep?.iconFill ?? theme.icon;
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
