@@ -166,6 +166,7 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
     };
+    [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
         /** cardID of selected card */
@@ -321,6 +322,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
         policyID: string;
@@ -1538,6 +1542,10 @@ type DomainCardNavigatorParamList = {
     };
 };
 
+type SearchRouterParamsList = {
+    [SCREENS.SEARCH_ROUTER.ROOT]: undefined;
+};
+
 type TwoFactorAuthNavigatorParamList = {
     [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -2353,7 +2361,7 @@ type WorkspacesDomainModalNavigatorParamList = {
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: undefined;
+    [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: NavigatorScreenParams<SearchRouterParamsList>;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
@@ -3097,6 +3105,14 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof SCREENS.WORKSPACES_LIST | typeof SCREENS.HOME;
 
+type PublicScreenName =
+    | typeof SCREENS.TRANSITION_BETWEEN_APPS
+    | typeof SCREENS.VALIDATE_LOGIN
+    | typeof SCREENS.CONNECTION_COMPLETE
+    | typeof SCREENS.BANK_CONNECTION_COMPLETE
+    | typeof SCREENS.UNLINK_LOGIN
+    | typeof SCREENS.SAML_SIGN_IN;
+
 // There are three screens/navigators which can be displayed when the Workspaces tab is selected
 type WorkspacesTabNavigatorName = typeof SCREENS.WORKSPACES_LIST | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR;
 
@@ -3140,6 +3156,7 @@ export type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
+    PublicScreenName,
     PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
     ReportVerifyAccountNavigatorParamList,
