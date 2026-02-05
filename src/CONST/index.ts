@@ -8235,6 +8235,9 @@ const CONST = {
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
+        WORKSPACE: {
+            TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
+        },
     },
 
     DOMAIN: {

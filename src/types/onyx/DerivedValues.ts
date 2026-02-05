@@ -106,11 +106,6 @@ type CardFeedErrorState = {
     shouldShowRBR: boolean;
 
     /**
-     * Whether some failed card assignments.
-     */
-    hasFailedCardAssignments: boolean;
-
-    /**
      * Whether a specific feed within a workspace/domain has errors.
      */
     hasFeedErrors: boolean;

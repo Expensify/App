@@ -164,6 +164,7 @@ import {
     isExpensifyTeam,
     isInstantSubmitEnabled,
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
+    isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyMember,
@@ -6317,7 +6318,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
         if (isExpenseReport(report)) {
             return {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                reportName: translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName ?? ''}),
+                reportName: translateLocal('workspace.common.policyExpenseChatName', reportOwnerDisplayName ?? ''),
                 workspaceName: getPolicyName({report}),
             };
         }
@@ -7051,7 +7052,7 @@ function buildOptimisticEmptyReport(
 
 function getWorkspaceNameUpdatedMessage(translate: LocalizedTranslate, action: ReportAction) {
     const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
-    const message = oldName && newName ? translate('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : getReportActionText(action);
+    const message = oldName && newName ? translate('workspaceActions.renamedWorkspaceNameAction', oldName, newName) : getReportActionText(action);
     return Str.htmlEncode(message);
 }
 
@@ -12499,7 +12500,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     if (report && report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
-    return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role;
+    return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
 }
 
 /**
