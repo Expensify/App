@@ -15,6 +15,8 @@ The **Top Categories** report shows which expense categories had the highest tot
 
 This report is a pre-built suggested search that uses filters to group your expenses by category.
 
+![Top Categories bar chart]({{site.url}}/assets/images/top-categories.png){:width="100%"}
+
 ---
 
 ## Who can use the Top Categories report
