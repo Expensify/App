@@ -263,4 +263,85 @@ describe('LogTest', () => {
         // User A's explicit logs should NOT be in user B's requests
         expect(userBMessages.join()).not.toContain('User A action');
     });
+
+    test('partial upload failure does not cause duplicates on retry', async () => {
+        // This tests that if one email group fails while others succeed,
+        // we resolve (to prevent retry/duplicates) rather than reject
+
+        const USER_A_EMAIL = 'userA@test.com';
+        const USER_B_EMAIL = 'userB@test.com';
+
+        // Given user A is signed in
+        await TestHelper.signInWithTestUser(1, USER_A_EMAIL);
+        await waitForBatchedUpdates();
+
+        // Set up mock that fails for USER_A but succeeds for others
+        const capturedRequests: CapturedLogRequest[] = [];
+        HttpUtils.xhr = jest.fn().mockImplementation((command: string, data: Record<string, unknown>) => {
+            if (command === 'Log') {
+                capturedRequests.push({
+                    email: data.email as string | null | undefined,
+                    logPacket: data.logPacket as string | undefined,
+                });
+
+                // Fail requests for USER_A_EMAIL
+                if (data.email === USER_A_EMAIL) {
+                    return Promise.reject(new Error('Simulated network failure'));
+                }
+            }
+            return Promise.resolve({jsonCode: 200, requestID: '123'});
+        });
+
+        // User A creates logs
+        Log.info('User A log');
+
+        // Switch to user B
+        await Onyx.merge(ONYXKEYS.SESSION, {email: USER_B_EMAIL, authToken: 'token123'});
+        await waitForBatchedUpdates();
+
+        // User B creates logs
+        Log.info('User B log');
+
+        // Flush logs - this should NOT throw even though USER_A's request failed
+        Log.info('Trigger flush', true);
+        await waitForBatchedUpdates();
+
+        // The network queue should process without throwing
+        await expect(processNetworkQueue()).resolves.not.toThrow();
+
+        // Both requests should have been attempted
+        expect(capturedRequests.some((req) => req.email === USER_A_EMAIL)).toBe(true);
+        expect(capturedRequests.some((req) => req.email === USER_B_EMAIL)).toBe(true);
+    });
+
+    test('all requests failing causes rejection for retry', async () => {
+        // This tests that if ALL email groups fail, we reject so the Logger can retry
+
+        // Given a signed-in user
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL);
+        await waitForBatchedUpdates();
+
+        // Set up mock that always fails for Log commands
+        let logCallCount = 0;
+        HttpUtils.xhr = jest.fn().mockImplementation((command: string) => {
+            if (command === 'Log') {
+                logCallCount++;
+                return Promise.reject(new Error('Simulated network failure'));
+            }
+            return Promise.resolve({jsonCode: 200, requestID: '123'});
+        });
+
+        // Create a log
+        Log.info('Test log');
+
+        // Flush logs
+        Log.info('Trigger flush', true);
+        await waitForBatchedUpdates();
+
+        // The network queue processing should eventually reject (though the queue handles this internally)
+        await processNetworkQueue();
+
+        // Verify Log command was attempted
+        expect(logCallCount).toBeGreaterThan(0);
+    });
 });

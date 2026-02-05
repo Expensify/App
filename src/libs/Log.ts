@@ -99,8 +99,28 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
     clearTimeout(timeout);
     timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
-    // Return the first request's result (all requests will be sent in parallel)
-    return Promise.all(requests).then((results) => results.at(0) ?? {requestID: ''});
+    // Use allSettled to handle partial failures gracefully.
+    // If we used Promise.all, a single failed group would reject and cause the Logger
+    // to retry the entire original packet, duplicating already-uploaded groups.
+    // With allSettled: if ANY succeed we resolve (preventing duplicates), only rejecting
+    // if ALL fail (allowing the Logger to retry). This trades potential log loss on
+    // partial failure for guaranteed no duplicates.
+    return Promise.allSettled(requests).then((results) => {
+        const fulfilled = results.filter((r): r is PromiseFulfilledResult<{requestID: string}> => r.status === 'fulfilled');
+        const rejected = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+
+        if (fulfilled.length > 0) {
+            // At least one group succeeded - resolve to prevent retry/duplicates
+            if (rejected.length > 0) {
+                // Log warning about lost logs (rare: partial failure + multiple email groups)
+                console.warn(`[Log] ${rejected.length} of ${results.length} log groups failed to upload and will not be retried`);
+            }
+            return fulfilled[0].value;
+        }
+
+        // All requests failed - reject so Logger can retry the whole batch
+        throw rejected[0]?.reason ?? new Error('All log requests failed');
+    });
 }
 
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
