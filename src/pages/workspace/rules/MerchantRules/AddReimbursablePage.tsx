@@ -12,10 +12,12 @@ import type SCREENS from '@src/SCREENS';
 type AddReimbursablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE>;
 
 function AddReimbursablePage({route}: AddReimbursablePageProps) {
-    const policyID = route.params.policyID;
+    const {policyID, ruleID} = route.params;
+    const isEditing = ruleID !== ROUTES.NEW;
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+        const backRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
+        Navigation.goBack(backRoute);
     };
 
     const onSelect = (fieldID: string, value: boolean | 'true' | 'false' | null) => {

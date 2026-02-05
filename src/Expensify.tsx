@@ -1,6 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import * as Sentry from '@sentry/react-native';
-import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
@@ -55,8 +54,8 @@ import './libs/telemetry/TelemetrySynchronizer';
 import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
-import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
-import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
+import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
+import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
@@ -329,11 +328,6 @@ function Expensify() {
             appStateChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, []);
-
-    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
-    useEffect(() => {
-        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
 
     useEffect(() => {

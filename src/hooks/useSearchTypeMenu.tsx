@@ -49,6 +49,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Basket',
         'Bookmark',
         'Checkmark',
         'Pencil',
@@ -59,6 +60,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'MoneyHourglass',
         'CreditCardHourglass',
         'Bank',
+        'User',
+        'Folder',
     ] as const);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -106,7 +109,18 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, allPolicies, currentUserAccountID);
+                savedSearchTitle = buildUserReadableQueryString({
+                    queryJSON: jsonQuery,
+                    PersonalDetails: personalDetails,
+                    reports,
+                    taxRates,
+                    cardList: nonPersonalAndWorkspaceCards,
+                    cardFeeds: allFeeds,
+                    policies: allPolicies,
+                    currentUserAccountID,
+                    autoCompleteWithSpace: false,
+                    translate,
+                });
             }
 
             const isItemFocused = Number(key) === hash;
@@ -145,7 +159,20 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             savedSearchesMenuItems: menuItems,
             isSavedSearchActive: savedSearchFocused,
         };
-    }, [savedSearches, hash, getOverflowMenu, expensifyIcons.Bookmark, personalDetails, reports, taxRates, nonPersonalAndWorkspaceCards, allFeeds, allPolicies, currentUserAccountID]);
+    }, [
+        savedSearches,
+        hash,
+        getOverflowMenu,
+        expensifyIcons.Bookmark,
+        personalDetails,
+        reports,
+        taxRates,
+        nonPersonalAndWorkspaceCards,
+        allFeeds,
+        allPolicies,
+        currentUserAccountID,
+        translate,
+    ]);
 
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active

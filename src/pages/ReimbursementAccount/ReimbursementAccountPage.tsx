@@ -192,7 +192,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         }
 
         if (policyIDParam) {
-            openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
+            // When preserving the current step (e.g., coming back online), also preserve the draft
+            // to prevent losing user selections made while offline
+            openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam, preserveCurrentStep);
         }
     }
 
@@ -415,6 +417,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 if ([CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.SETUP].some((value) => value === achData?.state)) {
                     goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
+                } else if (CONST.BANK_ACCOUNT.STATE.PENDING === achData?.state) {
+                    Navigation.closeRHPFlow();
                 } else {
                     Navigation.goBack();
                 }

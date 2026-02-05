@@ -197,7 +197,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                 />
                 <ConfirmationPage
                     illustration={illustrations.ToddInCar}
-                    illustrationStyle={styles.uberConfirmationIllustrationContainer}
+                    illustrationStyle={styles.toddInCarIllustrationContainer}
                     heading={translate('workspace.receiptPartners.uber.readyToRoll')}
                     description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
                     shouldShowButton

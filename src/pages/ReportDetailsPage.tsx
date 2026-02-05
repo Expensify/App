@@ -132,8 +132,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -173,6 +173,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
 
@@ -325,13 +326,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const leaveChat = useCallback(() => {
         if (isRootGroupChat) {
-            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID);
+            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID);
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, isWorkspaceMemberLeavingWorkspaceRoom);
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID]);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, isWorkspaceMemberLeavingWorkspaceRoom);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -750,6 +751,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={chatRoomSubtitle}
                             accessible
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.WORKSPACE_LINK}
                             onPress={() => {
                                 let policyID = report?.policyID;
 
@@ -889,6 +891,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
                 allTransactionViolationsParam: allTransactionViolations,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
             });
         } else if (iouTransactionID) {
             deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, isSingleTransactionView);

@@ -6,8 +6,7 @@ const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
     shouldShowRBR: false,
     isFeedConnectionBroken: false,
     hasFeedErrors: false,
-    // hasWorkspaceErrors: false,
-    hasFailedCardAssignments: false,
+    hasWorkspaceErrors: false,
 };
 
 const DEFAULT_CARD_FEED_ERRORS: CardFeedErrors = {

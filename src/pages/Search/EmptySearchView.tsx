@@ -43,7 +43,7 @@ import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolatio
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -171,6 +171,7 @@ function EmptySearchViewContent({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
 
@@ -216,6 +217,7 @@ function EmptySearchViewContent({
             hasViolations,
             isASAPSubmitBetaEnabled,
             defaultChatEnabledPolicy,
+            betas,
             false,
             shouldDismissEmptyReportsConfirmation,
         );

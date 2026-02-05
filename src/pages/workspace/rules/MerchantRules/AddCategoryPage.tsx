@@ -13,7 +13,8 @@ import type SCREENS from '@src/SCREENS';
 type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY>;
 
 function AddCategoryPage({route}: AddCategoryPageProps) {
-    const policyID = route.params.policyID;
+    const {policyID, ruleID} = route.params;
+    const isEditing = ruleID !== ROUTES.NEW;
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -29,7 +30,7 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
             });
     }, [policyCategories]);
 
-    const backToRoute = ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
+    const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
         updateDraftMerchantRule({category: value});

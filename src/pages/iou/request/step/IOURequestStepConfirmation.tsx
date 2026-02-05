@@ -161,6 +161,8 @@ function IOURequestStepConfirmation({
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
     /*
@@ -550,7 +552,6 @@ function IOURequestStepConfirmation({
             const optimisticChatReportID = generateReportID();
             const optimisticCreatedReportActionID = rand64();
             const optimisticReportPreviewActionID = rand64();
-
             let existingIOUReport: Report | undefined;
 
             for (const [index, item] of transactions.entries()) {
@@ -616,6 +617,7 @@ function IOURequestStepConfirmation({
                         originalTransactionID: item.comment?.originalTransactionID,
                         source: item.comment?.source,
                         isLinkedTrackedExpenseReportArchived,
+                        isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
                         ...(isTimeRequest
                             ? {type: CONST.TRANSACTION.TYPE.TIME, count: item.comment?.units?.count, rate: item.comment?.units?.rate, unit: CONST.TIME_TRACKING.UNIT.HOUR}
                             : {}),
@@ -630,6 +632,8 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     isSelfTourViewed,
+                    betas,
+                    personalDetails,
                 });
                 existingIOUReport = iouReport;
             }
@@ -665,6 +669,8 @@ function IOURequestStepConfirmation({
             parentReportAction,
             isTimeRequest,
             isSelfTourViewed,
+            betas,
+            personalDetails,
         ],
     );
 
@@ -705,6 +711,7 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
+                    isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                 },
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -712,6 +719,7 @@ function IOURequestStepConfirmation({
                 hasViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
+                betas,
             });
         },
         [
@@ -728,8 +736,11 @@ function IOURequestStepConfirmation({
             hasViolations,
             policyRecentlyUsedCurrencies,
             quickAction,
+            betas,
         ],
     );
+
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
 
     const trackExpense = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
@@ -783,6 +794,7 @@ function IOURequestStepConfirmation({
                         isLinkedTrackedExpenseReportArchived,
                         odometerStart: isOdometerDistanceRequest ? item.comment?.odometerStart : undefined,
                         odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
+                        isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
                         gpsCoordinates: isGPSDistanceRequest ? getGPSCoordinates(gpsDraftDetails) : undefined,
                     },
                     accountantParams: {
@@ -795,6 +807,8 @@ function IOURequestStepConfirmation({
                     introSelected,
                     activePolicyID,
                     quickAction,
+                    recentWaypoints,
+                    betas,
                 });
             }
         },
@@ -821,6 +835,8 @@ function IOURequestStepConfirmation({
             introSelected,
             activePolicyID,
             quickAction,
+            recentWaypoints,
+            betas,
         ],
     );
 
@@ -864,6 +880,7 @@ function IOURequestStepConfirmation({
                     receipt: isManualDistanceRequest || isOdometerDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
                     odometerStart: isOdometerDistanceRequest ? transaction.comment?.odometerStart : undefined,
                     odometerEnd: isOdometerDistanceRequest ? transaction.comment?.odometerEnd : undefined,
+                    isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                     gpsCoordinates: isGPSDistanceRequest ? getGPSCoordinates(gpsDraftDetails) : undefined,
                 },
                 backToReport,
@@ -871,6 +888,8 @@ function IOURequestStepConfirmation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                recentWaypoints,
+                betas,
             });
         },
         [
@@ -898,6 +917,8 @@ function IOURequestStepConfirmation({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            recentWaypoints,
+            betas,
         ],
     );
 
@@ -999,6 +1020,7 @@ function IOURequestStepConfirmation({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        betas,
                     });
                 }
                 return;
@@ -1030,6 +1052,7 @@ function IOURequestStepConfirmation({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        betas,
                     });
                 }
                 return;
@@ -1051,6 +1074,7 @@ function IOURequestStepConfirmation({
                     policyTagList: policyTags,
                     policyCategories,
                     policyRecentlyUsedCategories,
+                    isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     policyRecentlyUsedTags,
                 });
                 return;
@@ -1170,6 +1194,7 @@ function IOURequestStepConfirmation({
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
             reportID,
+            betas,
         ],
     );
 
