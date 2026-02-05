@@ -194,8 +194,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
-            const focusedOption = getFocusedItem();
             if (confirmButtonOptions?.onConfirm) {
+                const focusedOption = getFocusedItem();
                 confirmButtonOptions?.onConfirm(e, focusedOption);
                 return;
             }
