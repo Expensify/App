@@ -298,7 +298,6 @@ const translations: TranslationDeepObject<typeof en> = {
         home: '主页',
         inbox: '收件箱',
         yourReviewIsRequired: '需要您的审核',
-        // @context Used in confirmation or result messages indicating that an action completed successfully, not the abstract noun “success.”
         success: '成功',
         group: '群组',
         profile: '个人资料',
