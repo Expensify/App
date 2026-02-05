@@ -1,13 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {Section} from '@components/SelectionListWithSections/types';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
@@ -37,7 +35,7 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
-type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
+type Sections = Array<Section<OptionData>>;
 
 function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProps) {
     const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
@@ -86,6 +84,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             sectionsArray.push({
                 title: undefined,
                 data: selectedOptionsForDisplay,
+                sectionIndex: 0,
             });
         }
 
@@ -94,6 +93,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             sectionsArray.push({
                 title: translate('common.recents'),
                 data: availableOptions.recentReports,
+                sectionIndex: 1,
             });
         }
 
@@ -102,6 +102,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             sectionsArray.push({
                 title: translate('common.contacts'),
                 data: availableOptions.personalDetails,
+                sectionIndex: 2,
             });
         }
 
@@ -110,6 +111,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             sectionsArray.push({
                 title: undefined,
                 data: [availableOptions.userToInvite],
+                sectionIndex: 3,
             });
         }
 
@@ -198,6 +200,13 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         [selectedOptions.length, inviteUsers, translate, styles],
     );
 
+    const textInputOptions = {
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -210,17 +219,16 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
                 onBackButtonPress={goBack}
             />
 
-            <SelectionList
+            <SelectionListWithSections
                 canSelectMultiple
                 sections={sections}
-                ListItem={InviteMemberListItem}
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                headerMessage={headerMessage}
                 onSelectRow={handleToggleSelection}
-                onConfirm={inviteUsers}
-                showScrollIndicator
+                ListItem={InviteMemberListItem}
+                confirmButtonOptions={{
+                    onConfirm: inviteUsers,
+                }}
+                shouldShowTextInput
+                textInputOptions={textInputOptions}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 footerContent={footerContent}
