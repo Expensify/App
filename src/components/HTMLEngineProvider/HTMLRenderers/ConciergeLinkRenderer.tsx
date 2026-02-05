@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToConciergeChat as navigateToConciergeChatAction} from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type ConciergeLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
@@ -40,6 +41,8 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
             style={[style as TextStyle, linkStyle]}
             onPress={navigateToConciergeChat}
             suppressHighlighting
+            accessible
+            role={CONST.ROLE.LINK}
         >
             <TNodeChildrenRenderer tnode={tnode} />
         </Text>

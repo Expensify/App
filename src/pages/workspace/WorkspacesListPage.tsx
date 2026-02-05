@@ -484,12 +484,12 @@ function WorkspacesListPage() {
                     shouldShowErrorMessages={item.policyID !== policyIDToDelete}
                     shouldHideOnDelete={false}
                 >
+                    {/* accessible={false} allows child elements (workspace row and 3-dot menu) to be individually focusable.
+                        onPress is handled by WorkspacesListRow to prevent double-firing on web due to event bubbling. */}
                     <PressableWithoutFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={accessibilityLabel}
+                        accessible={false}
                         style={[styles.mh5]}
                         disabled={item.disabled}
-                        onPress={item.action}
                     >
                         {({hovered}) => (
                             <WorkspacesListRow
@@ -510,6 +510,7 @@ function WorkspacesListPage() {
                                 isLoadingBill={isLoadingBill}
                                 resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
                                 isHovered={hovered}
+                                onPress={item.action}
                             />
                         )}
                     </PressableWithoutFeedback>

@@ -2,6 +2,7 @@ import React, {useCallback} from 'react';
 import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
+import CONST from '@src/CONST';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
 import type {PressableWithDelayToggleProps} from './Pressable/PressableWithDelayToggle';
@@ -22,7 +23,7 @@ function CopyTextToClipboard({
     text,
     textStyles,
     urlToCopy,
-    accessibilityRole,
+    accessibilityRole = CONST.ROLE.BUTTON,
     iconHeight,
     iconStyles,
     iconWidth,

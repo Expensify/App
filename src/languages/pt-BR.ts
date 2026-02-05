@@ -616,6 +616,15 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semana',
         year: 'Ano',
         quarter: 'Trimestre',
+        progressBar: ({progress}: {progress: number}) => `Progresso: ${progress} por cento`,
+        expensifyLogo: 'Logo da Expensify',
+    },
+    socials: {
+        podcast: 'Siga-nos no Podcast',
+        twitter: 'Siga-nos no Twitter',
+        instagram: 'Siga-nos no Instagram',
+        facebook: 'Siga-nos no Facebook',
+        linkedin: 'Siga-nos no LinkedIn',
     },
     supportalNoAccess: {
         title: 'Calma aí',
@@ -7291,6 +7300,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `De ${reportName}${workspaceName ? `em ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'Código QR',
         copy: 'Copiar URL',
         copied: 'Copiado!',
     },
