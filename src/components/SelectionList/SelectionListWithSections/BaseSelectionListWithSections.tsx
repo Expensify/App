@@ -203,7 +203,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         {
             captureOnInputs: true,
             shouldBubble: !getFocusedItem(),
-            isActive: !disableKeyboardShortcuts && isScreenFocused,
+            isActive: !disableKeyboardShortcuts && isScreenFocused && !confirmButtonOptions?.isDisabled,
         },
     );
 
