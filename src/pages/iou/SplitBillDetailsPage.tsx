@@ -116,7 +116,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
             betas,
             session?.email,
         );
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations]);
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">
