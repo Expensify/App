@@ -991,7 +991,7 @@ Onyx.connectWithoutView({
 const parsedReportActionMessageCache: Record<string, string> = {};
 
 let conciergeReportIDOnyxConnect: OnyxEntry<string>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => {
         conciergeReportIDOnyxConnect = value;
@@ -999,7 +999,7 @@ Onyx.connectWithoutView({
 });
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         // When signed out, val is undefined
@@ -1017,7 +1017,7 @@ Onyx.connectWithoutView({
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 let allPersonalDetailLogins: string[];
 let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         if (currentUserAccountID) {
@@ -1029,7 +1029,7 @@ Onyx.connectWithoutView({
 });
 
 let allReportsDraft: OnyxCollection<Report>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
     waitForCollectionCallback: true,
     callback: (value) => (allReportsDraft = value),
@@ -1037,7 +1037,7 @@ Onyx.connectWithoutView({
 
 let allPolicies: OnyxCollection<Policy>;
 let hasPolicies: boolean;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1047,7 +1047,7 @@ Onyx.connectWithoutView({
 });
 
 let allPolicyDrafts: OnyxCollection<Policy>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_DRAFTS,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicyDrafts = value),
@@ -1055,7 +1055,7 @@ Onyx.connectWithoutView({
 
 let allReports: OnyxCollection<Report>;
 let reportsByPolicyID: ReportByPolicyMap;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1091,14 +1091,14 @@ Onyx.connectWithoutView({
 });
 
 let betaConfiguration: OnyxEntry<BetaConfiguration> = {};
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.BETA_CONFIGURATION,
     callback: (value) => (betaConfiguration = value ?? {}),
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
 let reportsTransactions: Record<string, Transaction[]> = {};
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1124,7 +1124,7 @@ Onyx.connectWithoutView({
 });
 
 let allReportActions: OnyxCollection<ReportActions>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (actions) => {
@@ -1137,7 +1137,7 @@ Onyx.connectWithoutView({
 
 let allReportMetadata: OnyxCollection<ReportMetadata>;
 const allReportMetadataKeyValue: Record<string, ReportMetadata> = {};
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1158,7 +1158,7 @@ Onyx.connectWithoutView({
 });
 
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1170,7 +1170,7 @@ Onyx.connectWithoutView({
 });
 
 let allReportsViolations: OnyxCollection<ReportViolations>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1182,13 +1182,13 @@ Onyx.connectWithoutView({
 });
 
 let onboarding: OnyxEntry<Onboarding>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => (onboarding = value),
 });
 
 let delegateEmail = '';
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         delegateEmail = value?.delegatedAccess?.delegate ?? '';
@@ -1196,7 +1196,7 @@ Onyx.connectWithoutView({
 });
 
 let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'];
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         reportAttributesDerivedValue = value?.reports ?? {};
@@ -1204,7 +1204,7 @@ Onyx.connectWithoutView({
 });
 
 let cachedSelfDMReportID: OnyxEntry<string>;
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.SELF_DM_REPORT_ID,
     callback: (value) => (cachedSelfDMReportID = value),
 });
@@ -1212,7 +1212,7 @@ Onyx.connectWithoutView({
 let hiddenTranslation = '';
 let unavailableTranslation = '';
 
-Onyx.connectWithoutView({
+Onyx.connect({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
     initWithStoredValues: false,
     callback: (value) => {
