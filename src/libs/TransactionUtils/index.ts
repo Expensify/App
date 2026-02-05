@@ -19,7 +19,6 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import Permissions from '@libs/Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -54,7 +53,6 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    Beta,
     CardList,
     OnyxInputOrEntry,
     Policy,
@@ -132,12 +130,6 @@ type BuildOptimisticTransactionParams = {
     transactionParams: TransactionParams;
     isDemoTransactionParam?: boolean;
 };
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -619,24 +611,14 @@ function isPartialMerchant(merchant: string): boolean {
 }
 
 function isAmountMissing(transaction: OnyxEntry<Transaction>) {
-    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
-        return transaction?.amount === undefined && (!transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
-    }
-    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
+    return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
     if (!transaction) {
         return false;
     }
-    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
-        return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
-    }
-    return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '' && transaction?.modifiedAmount !== 0;
-}
-
-function isPartial(transaction: OnyxEntry<Transaction>): boolean {
-    return isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction);
+    return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
 }
 
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
@@ -648,10 +630,7 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
-        return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction);
-    }
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -2585,6 +2564,13 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 }
 
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
+    const isAddedToReport = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+    if (isAddedToReport) {
+        const report = getReportOrDraftReport(transaction.reportID);
+        if (report && report.type !== CONST.REPORT.TYPE.EXPENSE) {
+            return false;
+        }
+    }
     if (!originalTransaction) {
         return !!transaction?.comment?.originalTransactionID && transaction?.comment?.source === 'split';
     }
@@ -2785,7 +2771,6 @@ export {
     isAmountMissing,
     isMerchantMissing,
     isPartialMerchant,
-    isPartial,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
