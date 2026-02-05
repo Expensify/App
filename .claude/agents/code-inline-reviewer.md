@@ -1194,14 +1194,18 @@ function SaveButton({ getSiblingFormData }: { getSiblingFormData: () => FormData
 - **Search patterns**: `FullscreenLoadingIndicator`, `ActivityIndicator`
 
 - **Condition**: Flag ONLY when ANY of these patterns is found:
-  - `FullscreenLoadingIndicator` and `HeaderWithBackButton` (or other navigation like close button) render in the **same return statement/branch**
-  - `FullscreenLoadingIndicator` without `shouldUseGoBackButton` prop when **no navigation component** exists in the same return
+  - `FullscreenLoadingIndicator` and `HeaderWithBackButton` (or other navigation like close button) are **both visible simultaneously** (in the same JSX tree, not separated by conditionals)
+  - `FullscreenLoadingIndicator` without `shouldUseGoBackButton` prop when **no navigation component** is visible alongside it
   - `ActivityIndicator` as the **sole/main screen content** (flex:1 container, early return) without any navigation component
 
   **DO NOT flag if:**
-  - Loader and navigation are in **different return statements or ternary branches** (e.g., `{loading ? <Loader /> : <><Header />...</>}` or `if (loading) return <Loader />; return <Header />...`)
-  - Used inside `FullScreenLoaderContext` (renders loader as overlay on children)
-  - `ActivityIndicator` is inline (inside buttons, list items, cards, or small sections of a larger screen)
+
+  **For `FullscreenLoadingIndicator`:**
+  - Rendered by `FullScreenLoaderContext` provider
+  - Navigation visible in different conditional branches (separate return statement) AND has `shouldUseGoBackButton={true}`
+
+  **For `ActivityIndicator`:**
+  - Used within interactive UI elements (buttons, list items, cards) where user can still interact with surrounding navigation
 
 - **Reasoning**: If loading hangs, users need an escape route. When navigation (back button, close) is visible alongside the loader, users can escape - use `ActivityIndicator`. When no navigation is visible, users are trapped - use `FullscreenLoadingIndicator` with `shouldUseGoBackButton={true}` which shows an emergency "Go Back" button after timeout. This prop is being migrated to become default, so set it explicitly for now.
 
