@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BaseWidgetItem from '@components/BaseWidgetItem';
@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodos from '@hooks/useTodos';
 import Navigation from '@libs/Navigation/Navigation';
+import Performance from '@libs/Performance';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,6 +28,21 @@ function ForYouSection() {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {reportCounts} = useTodos();
     const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Send', 'ThumbsUp', 'Export']);
+    const hasMarkedTTI = useRef(false);
+
+    // Start tracking Home Page TTI on mount
+    useEffect(() => {
+        Performance.markStart(CONST.TIMING.HOME_PAGE_TTI);
+    }, []);
+
+    // Track Home Page TTI - when loading completes and todo counts are displayed
+    useEffect(() => {
+        if (isLoadingApp || hasMarkedTTI.current) {
+            return;
+        }
+        Performance.markEnd(CONST.TIMING.HOME_PAGE_TTI);
+        hasMarkedTTI.current = true;
+    }, [isLoadingApp]);
 
     const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
     const approveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE];

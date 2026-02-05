@@ -3,10 +3,30 @@ import {useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
+import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+
+/**
+ * Selector that filters reports to only include expense reports.
+ * This optimization reduces iteration overhead by filtering at the Onyx level
+ * rather than iterating all reports in the useMemo computation.
+ */
+const expenseReportSelector = (reports: OnyxCollection<Report>): OnyxCollection<Report> => {
+    if (!reports) {
+        return {};
+    }
+    const result: OnyxCollection<Report> = {};
+    for (const [key, report] of Object.entries(reports)) {
+        if (report?.type === CONST.REPORT.TYPE.EXPENSE) {
+            result[key] = report;
+        }
+    }
+    return result;
+};
 
 type TodoSearchResultsData = SearchResults['data'];
 
@@ -117,7 +137,8 @@ function buildSearchResultsData(
 }
 
 export default function useTodos() {
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    // Use selector to filter expense reports at Onyx level, reducing iteration overhead
+    const [expenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
@@ -129,14 +150,18 @@ export default function useTodos() {
     const {login = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const todos = useMemo(() => {
+        Performance.markStart(CONST.TIMING.TODO_COMPUTATION);
+
         const reportsToSubmit: Report[] = [];
         const reportsToApprove: Report[] = [];
         const reportsToPay: Report[] = [];
         const reportsToExport: Report[] = [];
         const transactionsByReportID: Record<string, Transaction[]> = {};
 
-        const reports = allReports ? Object.values(allReports) : [];
+        // expenseReports is pre-filtered by selector to only include expense reports
+        const reports = expenseReports ? Object.values(expenseReports) : [];
         if (reports.length === 0) {
+            Performance.markEnd(CONST.TIMING.TODO_COMPUTATION);
             return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
         }
 
@@ -150,7 +175,8 @@ export default function useTodos() {
         }
 
         for (const report of reports) {
-            if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
+            // Reports are pre-filtered to expense type by selector, only need to check reportID
+            if (!report?.reportID) {
                 continue;
             }
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -173,8 +199,9 @@ export default function useTodos() {
             }
         }
 
+        Performance.markEnd(CONST.TIMING.TODO_COMPUTATION);
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
-    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, currentUserAccountID, login, bankAccountList, allReportMetadata]);
+    }, [expenseReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, currentUserAccountID, login, bankAccountList, allReportMetadata]);
 
     const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID} = todos;
 
