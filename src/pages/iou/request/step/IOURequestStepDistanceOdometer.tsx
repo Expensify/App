@@ -647,7 +647,7 @@ function IOURequestStepDistanceOdometer({
                                 if (odometerEndImage) {
                                     handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
                                 } else {
-                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END)
+                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
                                 }
                             }}
                             style={[
