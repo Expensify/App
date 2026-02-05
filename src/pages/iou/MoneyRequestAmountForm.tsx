@@ -7,9 +7,7 @@ import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountI
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
-import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString, convertToFrontendAmountAsInteger, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -60,11 +58,7 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
 };
 
 const nonZeroExpenses = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
-const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean, isZeroAmountBetaEnabled: boolean) => {
-    if (!isZeroAmountBetaEnabled) {
-        return !amount.length || parseFloat(amount) < 0.01;
-    }
-
+const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean) => {
     if (!amount.length || parseFloat(amount) < 0) {
         return true;
     }
@@ -112,8 +106,6 @@ function MoneyRequestAmountForm({
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [isNegative, setIsNegative] = useState(false);
-
-    const {isBetaEnabled} = usePermissions();
 
     const [formError, setFormError] = useState<string>('');
 
@@ -165,12 +157,12 @@ function MoneyRequestAmountForm({
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(
-        ({paymentType}: PaymentActionParams) => {
+        (iouPaymentType?: PaymentMethodType | undefined) => {
             const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes('taxAmount');
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P, isBetaEnabled(CONST.BETAS.ZERO_EXPENSES)))) {
+            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
@@ -182,9 +174,9 @@ function MoneyRequestAmountForm({
 
             const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
 
-            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: paymentType});
+            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P, isBetaEnabled],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P],
     );
 
     const buttonText: string = useMemo(() => {
@@ -237,7 +229,7 @@ function MoneyRequestAmountForm({
                         medium={isExtraSmallScreenHeight}
                         large={!isExtraSmallScreenHeight}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        onPress={() => submitAndNavigateToNextPage({})}
+                        onPress={() => submitAndNavigateToNextPage()}
                         text={buttonText}
                         testID="next-button"
                     />

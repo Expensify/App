@@ -272,18 +272,18 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
-        it('should not highlight TOTAL filter with amounts exceeding 8 digits', () => {
-            const input = 'total:999999999';
+        it('should not highlight TOTAL filter with amounts exceeding AMOUNT_MAX_LENGTH digits', () => {
+            const input = 'total:99999999999';
 
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
-            // Total amounts with more than 8 digits fail validation
+            // Total amounts with more than AMOUNT_MAX_LENGTH digits fail validation
             expect(result).toEqual([]);
         });
 
         describe('view filter highlighting', () => {
             it('highlights valid view values', () => {
-                const validViews = ['table', 'bar', 'line', 'pie'];
+                const validViews = ['table', 'bar'];
 
                 for (const view of validViews) {
                     const input = `view:${view}`;
@@ -303,14 +303,14 @@ describe('SearchAutocompleteUtils', () => {
             });
 
             it('highlights view in complex query with other filters', () => {
-                const input = 'type:expense view:line category:Travel';
+                const input = 'type:expense view:bar category:Travel';
 
                 const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 
                 expect(result).toEqual([
                     {start: 5, type: 'mention-user', length: 7}, // type:expense
-                    {start: 18, type: 'mention-user', length: 4}, // view:line
-                    {start: 32, type: 'mention-user', length: 6}, // category:Travel
+                    {start: 18, type: 'mention-user', length: 3}, // view:bar
+                    {start: 31, type: 'mention-user', length: 6}, // category:Travel
                 ]);
             });
 
@@ -332,22 +332,6 @@ describe('SearchAutocompleteUtils', () => {
 
             it('highlights view:bar in query', () => {
                 const input = 'view:bar';
-
-                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
-
-                expect(result).toEqual([{start: 5, type: 'mention-user', length: 3}]);
-            });
-
-            it('highlights view:line in query', () => {
-                const input = 'view:line';
-
-                const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
-
-                expect(result).toEqual([{start: 5, type: 'mention-user', length: 4}]);
-            });
-
-            it('highlights view:pie in query', () => {
-                const input = 'view:pie';
 
                 const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList);
 

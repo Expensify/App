@@ -32,6 +32,7 @@ import type {
     WorkspaceCardFeedsStatus,
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
+import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
@@ -124,6 +125,7 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type {ReportFieldsViolations, ReportViolationName} from './ReportViolation';
 import type ReportViolations from './ReportViolation';
 import type Request from './Request';
+import type {AnyRequest} from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
@@ -255,6 +257,7 @@ export type {
     ReportFieldsViolations,
     ReportLayoutGroupBy,
     GroupedTransactions,
+    AnyRequest,
     Request,
     Response,
     ScreenShareRequest,
@@ -342,4 +345,5 @@ export type {
     DomainErrors,
     DomainPendingActions,
     DomainSecurityGroup,
+    CodingRuleMatchingTransaction,
 };
