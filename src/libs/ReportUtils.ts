@@ -10242,7 +10242,7 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
  * This checks both pendingAction and pendingFields.preview since deletion
  * can be tracked via either field depending on the deletion flow.
  */
-function isReportPendingDelete(report: OnyxEntry<Report>): boolean {
+function isReportPendingDelete(report: OnyxEntry<Pick<Report, 'pendingAction' | 'pendingFields'>>): boolean {
     return report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || report?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
