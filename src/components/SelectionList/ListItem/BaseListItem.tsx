@@ -47,6 +47,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldStopMouseLeavePropagation = true,
     shouldShowRightCaret = false,
+    accessibilityRole = getButtonRole(true),
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -85,6 +86,9 @@ function BaseListItem<TItem extends ListItem>({
 
     const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark;
 
+    const accessibilityState =
+        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
+
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -94,6 +98,7 @@ function BaseListItem<TItem extends ListItem>({
             contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback
+                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.BASE_LIST_ITEM}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
@@ -112,14 +117,20 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
+                accessibilityLabel={item.accessibilityLabel ?? [item.text, item.text !== item.alternateText ? item.alternateText : undefined].filter(Boolean).join(', ')}
+                role={accessibilityRole}
+                accessibilityState={accessibilityState}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
                 hoverStyle={!shouldDisableHoverStyle ? [!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
-                onMouseDown={(e) => e.preventDefault()}
+                onMouseDown={(e) => {
+                    if ((e?.target as HTMLElement)?.tagName === CONST.ELEMENT_NAME.INPUT) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
                 id={keyForList ?? ''}
                 style={[
                     pressableStyle,

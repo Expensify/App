@@ -13,13 +13,14 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [isLoading, setIsLoading] = useState(true);
     const authToken = session?.authToken ?? null;
 
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     /**
      * Handles in-app navigation for iframe links
      */
     const navigate = (event: MessageEvent<WalletStatementMessage>) => {
         const {data} = event;
         const {type, url} = data || {};
-        handleWalletStatementNavigation(type, url);
+        handleWalletStatementNavigation(conciergeReportID, type, url);
     };
 
     return (
@@ -32,6 +33,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                     height="100%"
                     width="100%"
                     seamless
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     frameBorder="0"
                     onLoad={() => {
                         setIsLoading(false);

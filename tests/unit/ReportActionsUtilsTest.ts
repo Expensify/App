@@ -11,9 +11,13 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoReimbursementMessage,
     getCardIssuedMessage,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
@@ -21,6 +25,7 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
+    getUpdateACHAccountMessage,
     isIOUActionMatchingTransactionList,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
@@ -28,6 +33,7 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -998,6 +1004,43 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
             expect(result).toBe(true);
         });
+
+        it('should return true for a report that has transactions from both sides when reportActions are unloaded', async () => {
+            const unloadedActionsReportID = '5';
+            const iouReport = {
+                type: CONST.REPORT.TYPE.IOU,
+                reportID: unloadedActionsReportID,
+            };
+            const transactionFromCurrentUser = {
+                ...createRandomTransaction(1),
+                reportID: unloadedActionsReportID,
+                amount: -100,
+            };
+            const transactionFromOtherUser = {
+                ...createRandomTransaction(2),
+                reportID: unloadedActionsReportID,
+                amount: 500,
+            };
+
+            // When: there are non-deleted transactions from both
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, transactionFromCurrentUser);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
+
+            // Then: should return true
+            let result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            expect(result).toBe(true);
+
+            // When: all transactions from the current user account have been deleted
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, {
+                ...transactionFromCurrentUser,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            });
+
+            // Then: should return false
+            result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            expect(result).toBe(false);
+        });
     });
 
     describe('getLastVisibleAction', () => {
@@ -1605,10 +1648,7 @@ describe('ReportActionsUtils', () => {
         it('should return the correct message with a valid report ID and report name', () => {
             const reportID = '12345';
             const reportName = 'Test Expense Report';
-            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
-                reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
-                reportName,
-            });
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, reportName);
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
 
@@ -2012,6 +2052,303 @@ describe('ReportActionsUtils', () => {
 
             // When checking if there's a pending DEW submit
             const result = ReportActionsUtils.hasPendingDEWSubmit(undefined, true);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isDynamicExternalWorkflowApproveFailedAction', () => {
+        it('should return true for DEW_APPROVE_FAILED action type', () => {
+            // Given a report action with DEW_APPROVE_FAILED action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    message: 'This report cannot be approved because of compliance issues.',
+                    automaticAction: false,
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a DEW approve failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
+
+            // Then it should return true because the action type is DEW_APPROVE_FAILED
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-DEW_APPROVE_FAILED action type', () => {
+            // Given a report action with APPROVED action type (not DEW_APPROVE_FAILED)
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    expenseReportID: '1',
+                    amount: 1,
+                    currency: CONST.CURRENCY.USD,
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a DEW approve failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
+
+            // Then it should return false because the action type is not DEW_APPROVE_FAILED
+            expect(result).toBe(false);
+        });
+
+        it('should return false for null action', () => {
+            // Given a null action
+
+            // When checking if the action is a DEW approve failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(null);
+
+            // Then it should return false because the action is null
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('getMostRecentActiveDEWApproveFailedAction', () => {
+        it('should return the DEW action when DEW_APPROVE_FAILED exists and no approval action exists', () => {
+            // Given report actions containing only a DEW_APPROVE_FAILED action
+            const actionId1 = '1';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        message: 'DEW approve failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED>,
+            };
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+            // Then it should return the DEW action because there's no subsequent approval action
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe(actionId1);
+        });
+
+        it('should return the DEW action when DEW_APPROVE_FAILED is more recent than APPROVED', () => {
+            // Given report actions where DEW_APPROVE_FAILED occurred after APPROVED
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        expenseReportID: actionId1,
+                        amount: 1,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>,
+                [actionId2]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId2,
+                    originalMessage: {
+                        message: 'DEW approve failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED>,
+            };
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+            // Then it should return the DEW action because it's more recent than the APPROVED action
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe(actionId2);
+        });
+
+        it('should return undefined when APPROVED is more recent than DEW_APPROVE_FAILED', () => {
+            // Given report actions where APPROVED occurred after DEW_APPROVE_FAILED
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        message: 'DEW approve failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED>,
+                [actionId2]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId2,
+                    originalMessage: {
+                        expenseReportID: actionId2,
+                        amount: 1,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>,
+            };
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+            // Then it should return undefined because a successful APPROVED action supersedes the DEW failure
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when FORWARDED is more recent than DEW_APPROVE_FAILED', () => {
+            // Given report actions where FORWARDED occurred after DEW_APPROVE_FAILED
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        message: 'DEW approve failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED>,
+                [actionId2]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId2,
+                    originalMessage: {
+                        expenseReportID: actionId2,
+                        amount: 1,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>,
+            };
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+            // Then it should return undefined because a successful FORWARDED action supersedes the DEW failure
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when no DEW_APPROVE_FAILED action exists', () => {
+            // Given report actions containing only an APPROVED action (no DEW failures)
+            const actionId1 = '1';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: actionId1,
+                    originalMessage: {
+                        expenseReportID: actionId1,
+                        amount: 1,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>,
+            };
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+            // Then it should return undefined because there are no DEW failures
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined for empty report actions', () => {
+            // Given an empty report actions object
+
+            // When getting the most recent active DEW approve failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWApproveFailedAction({});
+
+            // Then it should return undefined because there are no actions
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe('hasPendingDEWApprove', () => {
+        it('should return true when pendingExpenseAction is APPROVE and isDEWPolicy is true', () => {
+            // Given reportMetadata with pendingExpenseAction APPROVE and isDEWPolicy is true
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+            };
+
+            // When checking if there's a pending DEW approve
+            const result = ReportActionsUtils.hasPendingDEWApprove(reportMetadata, true);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return false when pendingExpenseAction is APPROVE but isDEWPolicy is false', () => {
+            // Given reportMetadata with pendingExpenseAction APPROVE but isDEWPolicy is false
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+            };
+
+            // When checking if there's a pending DEW approve with isDEWPolicy false
+            const result = ReportActionsUtils.hasPendingDEWApprove(reportMetadata, false);
+
+            // Then it should return false because the policy is not DEW
+            expect(result).toBe(false);
+        });
+
+        it('should return false when pendingExpenseAction is not APPROVE', () => {
+            // Given reportMetadata with pendingExpenseAction SUBMIT (not APPROVE)
+            const reportMetadata = {
+                pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+            };
+
+            // When checking if there's a pending DEW approve
+            const result = ReportActionsUtils.hasPendingDEWApprove(reportMetadata, true);
+
+            // Then it should return false because pendingExpenseAction is SUBMIT, not APPROVE
+            expect(result).toBe(false);
+        });
+
+        it('should return false when pendingExpenseAction is undefined', () => {
+            // Given reportMetadata without pendingExpenseAction
+            const reportMetadata = {};
+
+            // When checking if there's a pending DEW approve
+            const result = ReportActionsUtils.hasPendingDEWApprove(reportMetadata, true);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false when reportMetadata is undefined', () => {
+            // Given undefined reportMetadata
+
+            // When checking if there's a pending DEW approve
+            const result = ReportActionsUtils.hasPendingDEWApprove(undefined, true);
 
             // Then it should return false
             expect(result).toBe(false);
@@ -2532,6 +2869,126 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getUpdateACHAccountMessage', () => {
+        it('should return "set" message when setting the default bank account for the first time', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only new bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Business Checking',
+                    maskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('set the default business bank account to "Business Checking: XXXX1234"');
+        });
+
+        it('should return "set" message without bank name when bankAccountName is empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only new bank account maskedBankAccountNumber
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: '',
+                    maskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('set the default business bank account to "XXXX1234"');
+        });
+
+        it('should return "removed" message when removing the default bank account', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only old bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldBankAccountName: 'Business Checking',
+                    oldMaskedBankAccountNumber: 'XXXX5678',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('removed the default business bank account "Business Checking: XXXX5678"');
+        });
+
+        it('should return "removed" message without bank name when oldBankAccountName is empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with only old bank account maskedBankAccountNumber
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldBankAccountName: '',
+                    oldMaskedBankAccountNumber: 'XXXX5678',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('removed the default business bank account "XXXX5678"');
+        });
+
+        it('should return "changed" message when changing from one bank account to another', () => {
+            // Given an UPDATE_ACH_ACCOUNT action with both new and old bank account info
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Savings Account',
+                    maskedBankAccountNumber: 'XXXX5678',
+                    oldBankAccountName: 'Business Checking',
+                    oldMaskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('changed the default business bank account to "Savings Account: XXXX5678" (previously "Business Checking: XXXX1234")');
+        });
+
+        it('should return "changed" message with partial bank names when some names are empty', () => {
+            // Given an UPDATE_ACH_ACCOUNT action where new bank has a name but old bank does not
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    bankAccountName: 'Savings Account',
+                    maskedBankAccountNumber: 'XXXX5678',
+                    oldBankAccountName: '',
+                    oldMaskedBankAccountNumber: 'XXXX1234',
+                },
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getUpdateACHAccountMessage(translateLocal, action);
+
+            // Then it should return the correct message
+            expect(result).toBe('changed the default business bank account to "Savings Account: XXXX5678" (previously "XXXX1234")');
+        });
+    });
+
     describe('getWorkspaceCustomUnitRateUpdatedMessage', () => {
         it('should return the correct message when a rate is enabled', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
@@ -2823,6 +3280,157 @@ describe('ReportActionsUtils', () => {
 
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toBe(9999);
+        });
+    });
+
+    describe('getInvoiceCompanyNameUpdateMessage', () => {
+        it('should return the correct message when changing invoice company name with previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'New Company Name',
+                    oldValue: 'Old Company Name',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyNameUpdateMessage(translateLocal, action);
+            expect(result).toBe('changed the invoice company name to "New Company Name" (previously "Old Company Name")');
+        });
+
+        it('should return the correct message when setting invoice company name without previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'New Company Name',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyNameUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the invoice company name to "New Company Name"');
+        });
+    });
+
+    describe('getInvoiceCompanyWebsiteUpdateMessage', () => {
+        it('should return the correct message when changing invoice company website with previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'https://newwebsite.com',
+                    oldValue: 'https://oldwebsite.com',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
+            expect(result).toBe('changed the invoice company website to "https://newwebsite.com" (previously "https://oldwebsite.com")');
+        });
+
+        it('should return the correct message when setting invoice company website without previous value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newValue: 'https://newwebsite.com',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getInvoiceCompanyWebsiteUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the invoice company website to "https://newwebsite.com"');
+        });
+    });
+
+    describe('getAutoPayApprovedReportsEnabledMessage', () => {
+        it('should return enabled message when auto-pay is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoPayApprovedReportsEnabledMessage(translateLocal, action);
+            expect(result).toBe('enabled auto-pay approved reports');
+        });
+
+        it('should return disabled message when auto-pay is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoPayApprovedReportsEnabledMessage(translateLocal, action);
+            expect(result).toBe('disabled auto-pay approved reports');
+        });
+    });
+
+    describe('getAutoReimbursementMessage', () => {
+        it('should return set message when setting limit for the first time from zero', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldLimit: 0,
+                    newLimit: 50000,
+                    currency: 'USD',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoReimbursementMessage(translateLocal, action);
+            expect(result).toBe('set the auto-pay approved reports threshold to "$500.00"');
+        });
+
+        it('should return removed message when limit is set to zero', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldLimit: 100000,
+                    newLimit: 0,
+                    currency: 'USD',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoReimbursementMessage(translateLocal, action);
+            expect(result).toBe('removed the auto-pay approved reports threshold');
+        });
+
+        it('should return changed message when changing from one value to another', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldLimit: 50000,
+                    newLimit: 100000,
+                    currency: 'USD',
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getAutoReimbursementMessage(translateLocal, action);
+            expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
         });
     });
 });

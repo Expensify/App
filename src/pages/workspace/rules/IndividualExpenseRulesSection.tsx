@@ -64,7 +64,7 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, styles, envir
 
     return (
         <View style={[styles.flexRow, styles.renderHTML, styles.w100, styles.mt2]}>
-            <RenderHTML html={translate('workspace.rules.individualExpenseRules.subtitle', {categoriesPageLink, tagsPageLink})} />
+            <RenderHTML html={translate('workspace.rules.individualExpenseRules.subtitle', categoriesPageLink, tagsPageLink)} />
         </View>
     );
 }
@@ -155,12 +155,26 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         return prohibitedExpensesList.join(', ');
     }, [policy?.prohibitedExpenses, translate]);
 
+    const maxExpenseAmountNoItemizedReceiptText = useMemo(() => {
+        if (policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined) {
+            return '';
+        }
+
+        return convertToDisplayString(policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency);
+    }, [policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency]);
+
     const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
         {
             title: maxExpenseAmountNoReceiptText,
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.receiptRequiredAmount',
             action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
+        },
+        {
+            title: maxExpenseAmountNoItemizedReceiptText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmount',
+            action: () => Navigation.navigate(ROUTES.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt,
         },
         {
             title: maxExpenseAmountText,

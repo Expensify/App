@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import useReportTransactions from '@hooks/useReportTransactions';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
@@ -53,7 +54,6 @@ function KYCWall({
     source,
     shouldShowPersonalBankAccountOption = false,
     ref,
-    currency,
 }: KYCWallProps) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
@@ -70,6 +70,7 @@ function KYCWall({
     const reportPreviewAction = useParentReportAction(iouReport);
     const personalDetails = usePersonalDetails();
     const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
+    const reportTransactions = useReportTransactions(iouReport?.reportID);
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
@@ -119,10 +120,10 @@ function KYCWall({
         setPositionAddPaymentMenu(position);
     }, [getAnchorPosition]);
 
-    const canLinkExistingBusinessBankAccount = getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true).length > 0;
-
     const selectPaymentMethod = useCallback(
         (paymentMethod?: PaymentMethod, policy?: Policy) => {
+            const canLinkExistingBusinessBankAccount = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
+
             if (paymentMethod) {
                 onSelectPaymentMethod(paymentMethod);
             }
@@ -130,12 +131,12 @@ function KYCWall({
             if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: isIOUReport(iouReport)});
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-                Navigation.navigate(addDebitCardRoute ?? ROUTES.HOME);
+                Navigation.navigate(addDebitCardRoute ?? ROUTES.INBOX);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
                 if (iouReport && isIOUReport(iouReport)) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`];
                     if (adminPolicy) {
-                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport?.reportID, adminPolicy, formatPhoneNumber);
+                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport, adminPolicy, formatPhoneNumber, reportTransactions);
                         if (inviteResult?.policyExpenseChatReportID) {
                             setNavigationActionToMicrotaskQueue(() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
@@ -145,7 +146,7 @@ function KYCWall({
                                 Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
                             });
                         } else {
-                            const moveResult = moveIOUReportToPolicy(iouReport?.reportID, adminPolicy, true);
+                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, true, reportTransactions);
                             savePreferredPaymentMethod(iouReport.policyID, adminPolicy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[adminPolicy.id]);
 
                             if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
@@ -196,20 +197,21 @@ function KYCWall({
             }
         },
         [
+            bankAccountList,
             onSelectPaymentMethod,
             iouReport,
             addDebitCardRoute,
             reimbursementAccount?.achData?.state,
-            canLinkExistingBusinessBankAccount,
             addBankAccountRoute,
             chatReport,
             policies,
-            introSelected,
-            formatPhoneNumber,
-            lastPaymentMethod,
             reportPreviewAction,
             currentUserEmail,
             employeeEmail,
+            reportTransactions,
+            introSelected,
+            formatPhoneNumber,
+            lastPaymentMethod,
         ],
     );
 

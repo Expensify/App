@@ -21,7 +21,7 @@ type RootNavigatorScreenOptions = {
     basicModalNavigator: PlatformStackNavigationOptions;
     splitNavigator: PlatformStackNavigationOptions;
     fullScreen: PlatformStackNavigationOptions;
-    workspacesListPage: PlatformStackNavigationOptions;
+    fullScreenTabPage: PlatformStackNavigationOptions;
 };
 
 const commonScreenOptions: PlatformStackNavigationOptions = {
@@ -119,7 +119,7 @@ const useRootNavigatorScreenOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
             },
         },
-        workspacesListPage: {
+        fullScreenTabPage: {
             ...commonScreenOptions,
             // We need to turn off animation for the full screen to avoid delay when closing screens.
             animation: Animations.NONE,

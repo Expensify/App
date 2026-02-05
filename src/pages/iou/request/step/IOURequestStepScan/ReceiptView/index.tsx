@@ -39,7 +39,6 @@ function ReceiptView({route}: ReceiptViewProps) {
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
-    const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
     const [page, setPage] = useState<number>(-1);
     const {showConfirmModal} = useConfirmModal();
 
@@ -47,17 +46,20 @@ function ReceiptView({route}: ReceiptViewProps) {
         selector: transactionDraftReceiptsViewSelector,
         canBeMissing: true,
     });
+
+    // Derive currentReceipt from page - always in sync with carousel position
+    const currentReceipt = page >= 0 ? receipts.at(page) : undefined;
+
     const secondTransactionID = receipts.at(1)?.transactionID;
     const [secondTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`, {canBeMissing: true});
+
+    // Set initial page based on route transactionID
     useEffect(() => {
         if (!receipts || receipts.length === 0) {
             return;
         }
 
-        const activeReceipt = receipts.find((receipt) => receipt.transactionID === route?.params?.transactionID);
-        const activeReceiptIndex = receipts.findIndex((receipt) => receipt.transactionID === activeReceipt?.transactionID);
-
-        setCurrentReceipt(activeReceipt);
+        const activeReceiptIndex = receipts.findIndex((receipt) => receipt.transactionID === route?.params?.transactionID);
         setPage(activeReceiptIndex);
     }, [receipts, route?.params?.transactionID]);
 

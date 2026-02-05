@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -6,7 +7,6 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Report, Transaction} from '../../src/types/onyx';
@@ -44,6 +44,7 @@ const FAKE_OPEN_REPORT_ID = 'FAKE_OPEN_REPORT_ID';
 const FAKE_OPEN_REPORT_SECOND_USER_ID = 'FAKE_OPEN_REPORT_SECOND_USER_ID';
 const FAKE_PROCESSING_REPORT_ID = 'FAKE_PROCESSING_REPORT_ID';
 const FAKE_APPROVED_REPORT_ID = 'FAKE_APPROVED_REPORT_ID';
+const FAKE_CHAT_REPORT_ID = '12345';
 const openReport = {
     reportID: FAKE_OPEN_REPORT_ID,
     ownerAccountID: CURRENT_USER_ID,
@@ -70,12 +71,20 @@ const secondUserOpenReport = {
     stateNum: CONST.REPORT.STATE_NUM.OPEN,
     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
 };
-const reportCollectionDataSet: ReportCollectionDataSet = {
+const chatReport = {
+    reportID: FAKE_CHAT_REPORT_ID,
+    ownerAccountID: CURRENT_USER_ID,
+    type: CONST.REPORT.TYPE.CHAT,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+};
+const reportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`]: openReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_PROCESSING_REPORT_ID}`]: processingReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_APPROVED_REPORT_ID}`]: approvedReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
-};
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_CHAT_REPORT_ID}`]: chatReport,
+} as OnyxCollection<Report>;
 const defaultDistanceRatePolicyID1: Record<string, Rate> = {
     customUnitRateID1: {
         currency: 'USD',
@@ -426,6 +435,7 @@ describe('TransactionUtils', () => {
         it('returns distance when the transaction has a distance custom unit', () => {
             const transaction = generateTransaction({
                 comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
                         name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     },
@@ -439,6 +449,7 @@ describe('TransactionUtils', () => {
         it('returns per diem when the transaction has an international per diem custom unit', () => {
             const transaction = generateTransaction({
                 comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
                         name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
                     },
@@ -709,6 +720,84 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({pendingAction});
             const result = TransactionUtils.isTransactionPendingDelete(transaction);
             expect(result).toEqual(expected);
+        });
+    });
+
+    describe('isExpenseSplit', () => {
+        it('should return false when transaction is assigned to a chat/DM report (not an expense report)', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_CHAT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
+        });
+
+        it('should return true when transaction is in split report and has split comment', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return true when transaction is unreported and has split comment', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return true when transaction has no reportID and has split comment', () => {
+            const transaction = generateTransaction({
+                reportID: undefined,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return true when transaction is on expense report (regression: still treat as split)', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(true);
+        });
+
+        it('should return false when transaction comment source is not split', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.REQUEST,
+                    originalTransactionID: 'original123',
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
+        });
+
+        it('should return false when transaction comment is missing originalTransactionID', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                comment: {
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            });
+            expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
         });
     });
 
@@ -1551,6 +1640,141 @@ describe('TransactionUtils', () => {
         it('should return true when there are both reimbursable and non-reimbursable transactions', () => {
             const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: false})];
             expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+        });
+    });
+
+    describe('getChildTransactions', () => {
+        const originalTransactionID = 'original-123';
+
+        it('should return child transactions that have a valid report', () => {
+            const childTransaction = generateTransaction({
+                transactionID: 'child-1',
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    originalTransactionID,
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            });
+
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}child-1`]: childTransaction,
+            };
+
+            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.transactionID).toBe('child-1');
+        });
+
+        it('should return split child transactions even if their report was deleted', () => {
+            const childTransaction = generateTransaction({
+                transactionID: 'child-2',
+                reportID: 'deleted-report-id',
+                comment: {
+                    originalTransactionID,
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            });
+
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}child-2`]: childTransaction,
+            };
+
+            // Report doesn't exist in reportCollectionDataSet
+            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.transactionID).toBe('child-2');
+        });
+
+        it('should exclude orphaned transactions with reportID "0" from processing', () => {
+            const orphanedTransaction = generateTransaction({
+                transactionID: 'orphaned-1',
+                reportID: '0',
+                comment: {
+                    originalTransactionID,
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            });
+
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
+            };
+
+            // Orphaned split children should be excluded from getChildTransactions for processing
+            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+
+            expect(result).toHaveLength(0);
+        });
+
+        it('should exclude transactions with pendingAction DELETE', () => {
+            const deletingTransaction = generateTransaction({
+                transactionID: 'deleting-1',
+                reportID: FAKE_OPEN_REPORT_ID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                comment: {
+                    originalTransactionID,
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            });
+
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}deleting-1`]: deletingTransaction,
+            };
+
+            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+
+            expect(result).toHaveLength(0);
+        });
+
+        it('should only return transactions matching the originalTransactionID', () => {
+            const matchingChild = generateTransaction({
+                transactionID: 'matching-1',
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    originalTransactionID,
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            });
+
+            const nonMatchingChild = generateTransaction({
+                transactionID: 'non-matching-1',
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    originalTransactionID: 'different-original-id',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            });
+
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}matching-1`]: matchingChild,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}non-matching-1`]: nonMatchingChild,
+            };
+
+            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.transactionID).toBe('matching-1');
+        });
+
+        it('should include orphaned transactions when includeOrphaned=true', () => {
+            const orphanedTransaction = generateTransaction({
+                transactionID: 'orphaned-1',
+                reportID: '0',
+                comment: {
+                    originalTransactionID,
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            });
+
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
+            };
+
+            const result = TransactionUtils.getChildTransactions(transactions, reportCollectionDataSet, originalTransactionID, true);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.transactionID).toBe('orphaned-1');
         });
     });
 
