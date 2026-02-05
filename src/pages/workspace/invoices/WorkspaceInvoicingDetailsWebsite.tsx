@@ -41,7 +41,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
     const validate = (
         values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>,
     ): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_WEBSITE]);
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_WEBSITE], translate);
 
         if (values.companyWebsite) {
             const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
