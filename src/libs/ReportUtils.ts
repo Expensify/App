@@ -10826,7 +10826,7 @@ function hasActionWithErrorsForTransaction(reportID: string | undefined, transac
     if (!reportID) {
         return false;
     }
-    return Object.values(reportActions ?? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {})
+    return Object.values(reportActions ?? {})
         .filter(Boolean)
         .some((action) => {
             if (isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID) {
