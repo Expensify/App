@@ -48,6 +48,7 @@ import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {
     BankAccountList,
+    Beta,
     ExportTemplate,
     LastPaymentMethod,
     LastPaymentMethodType,
@@ -855,7 +856,15 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     }
 }
 
-function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: OnyxEntry<Policy>, transactionIDs: string[], currentUserAccountIDParam: number, hash?: number) {
+function rejectMoneyRequestInBulk(
+    reportID: string,
+    comment: string,
+    policy: OnyxEntry<Policy>,
+    transactionIDs: string[],
+    currentUserAccountIDParam: number,
+    betas: OnyxEntry<Beta[]>,
+    hash?: number,
+) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const successData: RejectMoneyRequestData['successData'] = [];
@@ -873,7 +882,7 @@ function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: Ony
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, undefined, true);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -904,6 +913,7 @@ function rejectMoneyRequestsOnSearch(
     allPolicies: OnyxCollection<Policy>,
     allReports: OnyxCollection<Report>,
     currentUserAccountIDParam: number,
+    betas: OnyxEntry<Beta[]>,
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -936,12 +946,12 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, hash);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, betas, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, {sharedRejectedToReportID});
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, {sharedRejectedToReportID});
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {
@@ -1262,7 +1272,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (!!selectedPolicy || shouldSelectPaymentMethod) {
+    if ((!!selectedPolicy || shouldSelectPaymentMethod) && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         triggerKYCFlow({
             event: undefined,
             iouPaymentType: paymentType,
