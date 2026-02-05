@@ -62,4 +62,20 @@ function rotatedLabelCenterCorrection(ascent: number, descent: number, angleRad:
     return ((ascent - descent) * Math.sin(angleRad)) / 2;
 }
 
-export {getChartColor, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection};
+/**
+ * Calculate minimum horizontal domainPadding so that edge data points
+ * (and their centered labels) aren't clipped by the chart boundary.
+ *
+ * @param chartWidth - Total chart width in pixels
+ * @param pointCount - Number of data points
+ * @param innerPadding - Padding ratio between points (0 for line charts, ~0.3 for bar charts)
+ */
+function calculateMinDomainPadding(chartWidth: number, pointCount: number, innerPadding = 0): number {
+    if (pointCount <= 1) {
+        return 0;
+    }
+    const minPaddingRatio = (1 - innerPadding) / (2 * (pointCount - 1 + innerPadding));
+    return Math.ceil(chartWidth * minPaddingRatio);
+}
+
+export {getChartColor, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection, calculateMinDomainPadding};

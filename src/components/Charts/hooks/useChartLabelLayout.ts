@@ -25,7 +25,6 @@ type LabelLayoutConfig = {
     font: SkFont | null;
     tickSpacing: number;
     labelAreaWidth: number;
-    firstTickOffset?: number;
 };
 
 /** Truncate `label` so its pixel width fits within `maxWidth`, adding ellipsis. */
@@ -69,41 +68,19 @@ function maxVisibleCount(areaWidth: number, itemWidth: number): number {
 }
 
 /**
- * Left extent of a rotated label at 45° from its anchor point.
- * At 45° cos and sin are equal (SIN_45), so extent = (labelWidth + lineHeight) * SIN_45.
- */
-function leftExtentAt45(labelWidth: number, lineHeight: number): number {
-    return (labelWidth + lineHeight) * SIN_45;
-}
-
-/**
  * Pick the smallest rotation (0 → 45 → 90) where labels don't overlap,
  * preferring rotation over skip interval.
  */
-function pickRotation(
-    maxLabelWidth: number,
-    firstLabelWidth: number,
-    lineHeight: number,
-    tickSpacing: number,
-    labelArea: number,
-    dataCount: number,
-    minTruncatedWidth: number,
-    firstTickOffset?: number,
-): number {
-    // 0°: labels fit horizontally without truncation and first label won't be clipped
+function pickRotation(maxLabelWidth: number, lineHeight: number, tickSpacing: number, labelArea: number, dataCount: number, minTruncatedWidth: number): number {
+    // 0°: labels fit horizontally without truncation
     const ew0 = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
-    const fits0 = ew0 + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelArea, ew0) >= dataCount;
-    const firstLabelClipped = firstTickOffset !== undefined && firstLabelWidth > firstTickOffset;
-    if (fits0 && !firstLabelClipped) {
+    if (ew0 + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelArea, ew0) >= dataCount) {
         return LABEL_ROTATIONS.HORIZONTAL;
     }
 
     // 45°: viable if MIN_TRUNCATED_CHARS + ellipsis fits between ticks
-    // and the minimum truncated label fits within firstTickOffset
     const minEw45 = minTruncatedWidth * SIN_45;
-    const fitsBetweenTicks = minEw45 + LABEL_PADDING <= tickSpacing;
-    const fitsFirstTick = firstTickOffset === undefined || leftExtentAt45(minTruncatedWidth, lineHeight) <= firstTickOffset;
-    if (fitsBetweenTicks && fitsFirstTick) {
+    if (minEw45 + LABEL_PADDING <= tickSpacing) {
         return LABEL_ROTATIONS.DIAGONAL;
     }
 
@@ -111,10 +88,10 @@ function pickRotation(
     return LABEL_ROTATIONS.VERTICAL;
 }
 
-function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTickOffset}: LabelLayoutConfig) {
+function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth}: LabelLayoutConfig) {
     return useMemo(() => {
-        if (!font || tickSpacing <= 0 || labelAreaWidth <= 0 || data.length === 0) {
-            return {labelRotation: 0, labelSkipInterval: 1, truncatedLabels: data.map((p) => p.label)};
+        if (!font || data.length === 0 || tickSpacing <= 0 || labelAreaWidth <= 0) {
+            return {labelRotation: 0, labelSkipInterval: 1, truncatedLabels: []};
         }
 
         const fontMetrics = font.getMetrics();
@@ -135,17 +112,13 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
         );
 
         // 1. Pick rotation
-        const firstLabelWidth = labelWidths.at(0) ?? 0;
-        const rotation = pickRotation(maxLabelLength, firstLabelWidth, lineHeight, tickSpacing, labelAreaWidth, data.length, minTruncatedWidth, firstTickOffset);
+        const rotation = pickRotation(maxLabelLength, lineHeight, tickSpacing, labelAreaWidth, data.length, minTruncatedWidth);
 
         // 2. Truncate labels (only at 45°)
         //    Tick-spacing constraint: labelWidth * sin(45°) + padding <= tickSpacing
-        //    First-label constraint: (labelWidth + lineHeight) * sin(45°) <= firstTickOffset
-        const tickSpacingLimit = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 : Infinity;
-        const firstTickLimit = rotation === LABEL_ROTATIONS.DIAGONAL && firstTickOffset !== undefined ? firstTickOffset / SIN_45 - lineHeight : Infinity;
+        const maxLabelWidth = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 : Infinity;
         const finalLabels = data.map((p, i) => {
-            const limit = i === 0 ? Math.min(tickSpacingLimit, firstTickLimit) : tickSpacingLimit;
-            return truncateLabel(p.label, labelWidths.at(i) ?? 0, limit, ellipsisWidth);
+            return truncateLabel(p.label, labelWidths.at(i) ?? 0, maxLabelWidth, ellipsisWidth);
         });
 
         // 3. Compute skip interval (only at 90°)
@@ -166,7 +139,7 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
             truncatedLabels: finalLabels,
             xAxisLabelHeight,
         };
-    }, [font, tickSpacing, labelAreaWidth, firstTickOffset, data]);
+    }, [font, tickSpacing, labelAreaWidth, data]);
 }
 
 export {LABEL_ROTATIONS, useChartLabelLayout};

@@ -13,7 +13,7 @@ import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,26 +22,8 @@ import variables from '@styles/variables';
 /** Inner padding between bars (0.3 = 30% of bar width) */
 const BAR_INNER_PADDING = 0.3;
 
-/** Safety buffer multiplier for domain padding calculation */
-const DOMAIN_PADDING_SAFETY_BUFFER = 1.1;
-
 /** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
 const BASE_DOMAIN_PADDING = {top: 32, bottom: 0, left: 0, right: 0};
-
-/**
- * Calculate minimum domainPadding required to prevent data points from crowding chart edges.
- *
- * For evenly-spaced data points, Victory maps indices [0..N-1] into the output range.
- * Without enough padding the first/last points sit too close to the View boundary
- * and their centered labels get clipped by overflow:hidden.
- */
-function calculateMinDomainPadding(chartWidth: number, pointCount: number, innerPadding: number): number {
-    if (pointCount <= 0) {
-        return 0;
-    }
-    const minPaddingRatio = (1 - innerPadding) / (2 * (pointCount - 1 + innerPadding));
-    return Math.ceil(chartWidth * minPaddingRatio * DOMAIN_PADDING_SAFETY_BUFFER);
-}
 
 type BarChartProps = CartesianChartProps & {
     /** Callback when a bar is pressed */

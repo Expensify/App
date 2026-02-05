@@ -13,7 +13,7 @@ import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelCenterCorrection} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,8 +25,8 @@ const DOT_RADIUS = 6;
 /** Extra hover area beyond the dot radius for easier touch targeting */
 const DOT_HOVER_EXTRA_RADIUS = 2;
 
-/** Extra pixel spacing between the plot boundary and the first/last data point */
-const LINE_CHART_DOMAIN_PADDING = 16;
+/** Base domain padding applied to all sides */
+const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
 
 /** Gap between the x-axis line and the top of label glyphs */
 const X_AXIS_LABEL_GAP = 2;
@@ -42,7 +42,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
-    const [chartBoundsInfo, setChartBoundsInfo] = useState({plotAreaWidth: 0, firstTickOffset: 0});
+    const [plotAreaWidth, setPlotAreaWidth] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
 
@@ -71,27 +71,51 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     }, []);
 
     const handleChartBoundsChange = useCallback((bounds: ChartBounds) => {
-        setChartBoundsInfo({
-            plotAreaWidth: bounds.right - bounds.left,
-            firstTickOffset: bounds.left + LINE_CHART_DOMAIN_PADDING,
-        });
+        setPlotAreaWidth(bounds.right - bounds.left);
     }, []);
 
-    const {plotAreaWidth, firstTickOffset} = chartBoundsInfo;
-
-    const tickSpacing = useMemo(() => {
-        if (plotAreaWidth === 0 || data.length <= 1) {
-            return 0;
+    // Calculate dynamic domain padding for centered labels
+    // Optimize by reducing wasted space when edge labels are shorter than tick spacing
+    const domainPadding = useMemo(() => {
+        if (chartWidth === 0 || data.length === 0) {
+            return BASE_DOMAIN_PADDING;
         }
-        return (plotAreaWidth - 2 * LINE_CHART_DOMAIN_PADDING) / (data.length - 1);
-    }, [plotAreaWidth, data.length]);
+
+        const geometricPadding = calculateMinDomainPadding(chartWidth, data.length);
+
+        // Without font, use geometric padding (safe fallback)
+        if (!font) {
+            return {...BASE_DOMAIN_PADDING, left: geometricPadding, right: geometricPadding};
+        }
+
+        // Measure edge labels to see if we can reduce padding
+        const firstLabelWidth = measureTextWidth(data.at(0)?.label ?? '', font);
+        const lastLabelWidth = measureTextWidth(data.at(-1)?.label ?? '', font);
+
+        // At 0° rotation, centered labels extend by half their width
+        const firstLabelNeeds = firstLabelWidth / 2;
+        const lastLabelNeeds = lastLabelWidth / 2;
+
+        // How much space is wasted on each side
+        const wastedLeft = geometricPadding - firstLabelNeeds;
+        const wastedRight = geometricPadding - lastLabelNeeds;
+        const canReduce = Math.min(wastedLeft, wastedRight);
+
+        // Only reduce if both sides have excess space (labels short enough for 0°)
+        // If canReduce <= 0, labels are too long and hook will use rotation/truncation
+        const horizontalPadding = canReduce > 0 ? geometricPadding - canReduce : geometricPadding;
+
+        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
+    }, [chartWidth, data, font]);
+
+    // For centered labels, tick spacing is evenly distributed across the plot area (same as BarChart)
+    const tickSpacing = plotAreaWidth > 0 && data.length > 0 ? plotAreaWidth / data.length : 0;
 
     const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
         data,
         font,
         tickSpacing,
         labelAreaWidth: plotAreaWidth,
-        firstTickOffset,
     });
 
     // Measure label widths for custom positioning in `renderOutside`
@@ -126,9 +150,9 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
     const tooltipData = useTooltipData(activeDataIndex, data, yAxisUnit, yAxisUnitPosition);
 
-    // Victory's built-in x-axis labels center each label under its tick mark,
-    // which works for bar charts but clips labels on line charts where data points
-    // sit at the edges. We render labels via `renderOutside` with custom positioning.
+    // Custom x-axis labels with hybrid positioning:
+    // - At 0° (horizontal): center label under the point (like bar chart)
+    // - At 45° (rotated): right-align so the last character is under the point
     const renderCustomXLabels = useCallback(
         (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
             if (!font) {
@@ -148,11 +172,13 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 const tickX = args.xScale(i);
                 const labelWidth = labelWidths.at(i) ?? 0;
 
+                // At 0°: center the label under the point (like bar chart)
+                // At 45°: right-align so the last character is under the point
                 if (angleRad === 0) {
                     return (
                         <SkiaText
                             key={`x-label-${label}`}
-                            x={tickX - labelWidth}
+                            x={tickX - labelWidth / 2}
                             y={labelY}
                             text={label}
                             font={font}
@@ -161,7 +187,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                     );
                 }
 
-                const textX = tickX - labelWidth;
+                const textX = tickX - labelWidth; // right-aligned for rotated labels
                 const origin = vec(tickX, labelY);
 
                 // Rotate around the anchor, then translate to correct for ascent/descent
@@ -222,7 +248,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                         xKey="x"
                         padding={{top: CHART_PADDING, left: CHART_PADDING, right: CHART_PADDING, bottom: (xAxisLabelHeight ?? 0) + CHART_PADDING}}
                         yKeys={['y']}
-                        domainPadding={LINE_CHART_DOMAIN_PADDING}
+                        domainPadding={domainPadding}
                         actionsRef={actionsRef}
                         customGestures={customGestures}
                         onChartBoundsChange={handleChartBoundsChange}
