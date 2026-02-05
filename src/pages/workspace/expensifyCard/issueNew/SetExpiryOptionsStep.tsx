@@ -47,7 +47,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
         setIssueNewCardStepAndData({
-            step: CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
+            step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
             data: expirationToggle ? {validFrom: values.validFrom, validThru: values.validThru} : {validFrom: undefined, validThru: undefined},
             isEditing: false,
             policyID,
@@ -92,7 +92,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
                 onSubmit={submit}
-                submitButtonText={translate('common.save')}
+                submitButtonText={isEditing ? translate('common.save') : translate('common.next')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 validate={validate}
