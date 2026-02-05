@@ -400,6 +400,15 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
+/**
+ * Checks if a feed key represents a CSV feed or Expensify Card.
+ * CSV feeds from Classic and Expensify Cards should not count toward the feed limit for Collect plan workspaces.
+ */
+function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
+    const lowerFeedKey = feedKey.toLowerCase();
+    return lowerFeedKey.startsWith('csv') || lowerFeedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === CONST.EXPENSIFY_CARD.BANK;
+}
+
 function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
@@ -901,13 +910,6 @@ function isPersonalCard(card?: Card) {
     return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
 }
 
-/**
- * Filter out personal (including cash) cards from the card list.
- */
-function filterOutPersonalCards(cards: CardList | undefined): CardList {
-    return filterObject(cards ?? {}, (_key, card) => !isPersonalCard(card));
-}
-
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;
@@ -998,6 +1000,7 @@ export {
     isSelectedFeedExpired,
     getCompanyFeeds,
     isCustomFeed,
+    isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
     getSelectedFeed,
     getPlaidCountry,
@@ -1041,7 +1044,6 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
-    filterOutPersonalCards,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
