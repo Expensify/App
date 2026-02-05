@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,7 +21,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -52,6 +53,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -65,8 +68,23 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     return false;
                 }
 
+                // Check if the transaction belongs to the current user by verifying card ownership
+                if (item?.cardID) {
+                    const card = cardList?.[item.cardID];
+                    if (card?.accountID !== currentUserAccountID) {
+                        return false;
+                    }
+                }
+
+                const transactionAmount = getTransactionDetails(item)?.amount ?? 0;
+
                 // Negative values are not allowed for unreported expenses
-                if ((getTransactionDetails(item)?.amount ?? 0) < 0) {
+                if (transactionAmount < 0) {
+                    return false;
+                }
+
+                // Zero amount expenses are not allowed in IOU reports
+                if (isIOUReport(report) && transactionAmount === 0) {
                     return false;
                 }
 
@@ -81,7 +99,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 return true;
             });
         },
-        [policy],
+        [policy, report, cardList, currentUserAccountID],
     );
 
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(
@@ -121,7 +139,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             const searchableFields: string[] = [];
 
             const merchant = getMerchant(transaction);
-            if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+            if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
                 searchableFields.push(merchant);
             }
 

@@ -1,7 +1,8 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {deleteMoneyRequest, getIOURequestPolicyID, initSplitExpenseItemData, updateSplitTransactions} from '@libs/actions/IOU';
+import {deleteMoneyRequest, getIOURequestPolicyID, initSplitExpenseItemData} from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
+import {updateSplitTransactions} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
@@ -36,7 +37,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-
+    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
@@ -149,6 +151,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
+                    iouReportNextStep,
+                    betas,
                 });
             }
 
@@ -174,6 +178,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     selectedTransactionIDs: transactionIDs,
                     hash: currentSearchHash,
                     allTransactionViolationsParam: transactionViolations,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
@@ -184,20 +189,22 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             return Array.from(deletedTransactionThreadReportIDs);
         },
         [
-            reportActions,
-            allTransactions,
-            allReports,
-            report,
             allPolicyRecentlyUsedCategories,
             allReportNameValuePairs,
-            policyCategories,
-            policy,
-            isBetaEnabled,
+            allReports,
+            allTransactions,
+            archivedReportsIdSet,
             currentUserPersonalDetails,
-            transactionViolations,
+            iouReportNextStep,
+            isBetaEnabled,
+            policy,
+            policyCategories,
             policyRecentlyUsedCurrencies,
             quickAction,
-            archivedReportsIdSet,
+            report,
+            reportActions,
+            transactionViolations,
+            betas,
         ],
     );
 
