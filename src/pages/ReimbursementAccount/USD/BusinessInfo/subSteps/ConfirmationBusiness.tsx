@@ -44,7 +44,7 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS]);
+            const errors = getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS], translate);
 
             if (!values.hasNoConnectionToCannabis) {
                 errors.hasNoConnectionToCannabis = translate('bankAccount.error.restrictedBusiness');

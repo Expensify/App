@@ -101,6 +101,7 @@ function IOURequestStepAmount({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
@@ -235,6 +236,7 @@ function IOURequestStepAmount({
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
                     requestMoney({
                         report,
+                        betas,
                         participantParams: {
                             participant: participants.at(0) ?? {},
                             payeeEmail: currentUserEmailParam,
@@ -256,6 +258,7 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         isSelfTourViewed,
+                        personalDetails,
                     });
                     return;
                 }
@@ -281,6 +284,7 @@ function IOURequestStepAmount({
                         activePolicyID,
                         quickAction,
                         recentWaypoints,
+                        betas,
                     });
                     return;
                 }
