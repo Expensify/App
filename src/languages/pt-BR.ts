@@ -754,6 +754,10 @@ const translations: TranslationDeepObject<typeof en> = {
             dismiss: 'Entendi',
             error: 'Falha na solicitação. Tente novamente mais tarde.',
         },
+        unsupportedDevice: {
+            unsupportedDevice: 'Dispositivo não compatível',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.</muted-text></centered-text>`,
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

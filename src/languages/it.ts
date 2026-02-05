@@ -736,8 +736,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: 'Sembra che il tempo sia scaduto! Riprova presso l’esercente.',
         youRanOutOfTime: 'Il tempo è scaduto',
         letsVerifyItsYou: 'Verifichiamo che sia tu',
-        nowLetsAuthenticateYou: "Ora procediamo con l'autenticazione…",
-        letsAuthenticateYou: 'Autenticazione in corso...',
+        nowLetsAuthenticateYou: 'Ora procediamo con l’autenticazione...',
+        letsAuthenticateYou: 'Autentichiamo la tua identità...',
         verifyYourself: {
             biometrics: 'Verificati con il volto o l’impronta digitale',
         },
@@ -755,6 +755,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Non hai alcun dispositivo registrato per il riconoscimento facciale/impronta digitale o la verifica con passkey. Se ne registri uno, potrai revocare tale accesso qui.',
             dismiss: 'Ho capito',
             error: 'Richiesta non riuscita. Riprova più tardi.',
+        },
+        unsupportedDevice: {
+            unsupportedDevice: 'Dispositivo non supportato',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> Questa azione non è supportata sul tuo dispositivo. Scarica l'app Expensify dall'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o da <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e riprova.</muted-text></centered-text>`,
         },
     },
     validateCodeModal: {

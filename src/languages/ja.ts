@@ -736,7 +736,7 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: '時間切れになったようです。加盟店で再度お試しください。',
         youRanOutOfTime: '時間切れです',
         letsVerifyItsYou: 'ご本人確認を行いましょう',
-        nowLetsAuthenticateYou: 'では、認証を行いましょう…',
+        nowLetsAuthenticateYou: 'では、ご本人確認を行いましょう…',
         letsAuthenticateYou: '認証を行っています…',
         verifyYourself: {
             biometrics: '顔または指紋で本人確認を行ってください',
@@ -753,6 +753,10 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: '顔認証／指紋認証またはパスキー認証用に登録されているデバイスがありません。デバイスを登録すると、そのアクセスをここで取り消せるようになります。',
             dismiss: '了解しました',
             error: 'リクエストに失敗しました。後でもう一度お試しください。',
+        },
+        unsupportedDevice: {
+            unsupportedDevice: '未対応のデバイス',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> この操作はお使いのデバイスではサポートされていません。<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> または <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Playストア</a> からExpensifyアプリをダウンロードして、もう一度お試しください。</muted-text></centered-text>`,
         },
     },
     validateCodeModal: {

@@ -737,7 +737,7 @@ const translations: TranslationDeepObject<typeof en> = {
         youRanOutOfTime: 'Die Zeit ist abgelaufen',
         letsVerifyItsYou: 'Lass uns bestätigen, dass du es bist',
         nowLetsAuthenticateYou: 'Lassen Sie uns Sie jetzt authentifizieren …',
-        letsAuthenticateYou: 'Lass uns dich authentifizieren …',
+        letsAuthenticateYou: 'Lass uns dich authentifizieren …',
         verifyYourself: {
             biometrics: 'Bestätige dich mit deinem Gesicht oder Fingerabdruck',
         },
@@ -754,6 +754,10 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: 'Sie haben keine Geräte für die Überprüfung per Gesicht/Fingerabdruck oder Passkey registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
             error: 'Anfrage fehlgeschlagen. Versuche es später noch einmal.',
+        },
+        unsupportedDevice: {
+            unsupportedDevice: 'Nicht unterstütztes Gerät',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> Diese Aktion wird auf deinem Gerät nicht unterstützt. Bitte lade die Expensify-App aus dem <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> oder dem <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> herunter und versuche es erneut.</muted-text></centered-text>`,
         },
     },
     validateCodeModal: {
