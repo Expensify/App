@@ -6,8 +6,6 @@ keywords: [New Expensify, require tags, require categories, expense compliance, 
 
 To improve expense accuracy and compliance, Workspace Admins can require all expenses to be tagged and categorized before submission. This guide walks through how to enable this setting and manage default categories that auto-apply based on merchant history.
 
-When viewing the Categories or Tags tables, Workspace Admins can see the Name, GL Code (if assigned), and Enabled/Required status for each item.
-
 ---
 
 # Require Tags or Categories for Expenses
