@@ -47,7 +47,7 @@ function KnowATeacherPage() {
      */
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME], translate);
             const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
             const validateIfNumber = validateNumber(phoneLogin);
 

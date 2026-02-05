@@ -8,6 +8,7 @@ import {
     getActivePolicies,
     getAllTaxRatesNamesAndValues,
     getCustomUnitsForDuplication,
+    getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
@@ -903,6 +904,7 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
@@ -920,6 +922,7 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
@@ -937,6 +940,7 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
@@ -954,9 +958,21 @@ describe('PolicyUtils', () => {
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
+                pendingAction: null,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(false);
+        });
+
+        it('returns false if policy is pending delete', async () => {
+            const currentUserLogin = employeeEmail;
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                isPolicyExpenseChatEnabled: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });
@@ -1864,6 +1880,39 @@ describe('PolicyUtils', () => {
                 },
             ],
             approver: 'approver@example.com',
+        });
+    });
+
+    describe('getDefaultTimeTrackingRate', () => {
+        it('should return rate in subunits', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                units: {
+                    time: {
+                        enabled: true,
+                        rate: 20,
+                    },
+                },
+            };
+            expect(getDefaultTimeTrackingRate(policy)).toBe(2000);
+        });
+
+        it('should return 0 when the rate is 0, not undefined', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                units: {
+                    time: {
+                        enabled: true,
+                        rate: 0,
+                    },
+                },
+            };
+            expect(getDefaultTimeTrackingRate(policy)).toBe(0);
+        });
+
+        it('should return undefined when the rate is not defined on the policy', () => {
+            const policy = createRandomPolicy(1);
+            expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
         });
     });
 });

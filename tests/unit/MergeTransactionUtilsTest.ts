@@ -425,6 +425,7 @@ describe('MergeTransactionUtils', () => {
                 ...createRandomTransaction(1),
                 amount: 1000,
                 currency: CONST.CURRENCY.USD,
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
                 comment: {
                     ...createRandomTransaction(1).comment,
                     originalTransactionID: 'original-split-transaction-123',
