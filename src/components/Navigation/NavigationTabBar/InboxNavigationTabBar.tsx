@@ -424,7 +424,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.TAB}
-                    accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}, ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
+                    accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
                     accessibilityState={inboxAccessibilityState}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
@@ -495,7 +495,7 @@ function InboxNavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFl
                 <PressableWithFeedback
                     onPress={showWorkspaces}
                     role={CONST.ROLE.TAB}
-                    accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `, ${translate('common.yourReviewIsRequired')}` : ''}`}
+                    accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                     accessibilityState={workspacesAccessibilityState}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
