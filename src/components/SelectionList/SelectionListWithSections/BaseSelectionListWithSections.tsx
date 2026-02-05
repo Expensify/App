@@ -90,7 +90,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         hasKeyBeenPressed.current = true;
     };
 
-    const scrollToIndex = (index: number) => {
+    const scrollToIndex = useCallback((index: number) => {
         if (index < 0 || index >= flattenedData.length || !listRef.current) {
             return;
         }
@@ -106,7 +106,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             // The layout will be computed on next render, so we can safely ignore this
             Log.warn('SelectionListWithSections: error scrolling to index', {error});
         }
-    };
+    }, [flattenedData]);
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
@@ -172,12 +172,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         innerTextInputRef.current?.focus();
     }, []);
 
-    const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
+    const updateAndScrollToFocusedIndex = useCallback((index: number, shouldScroll = true) => {
         setFocusedIndex(index);
         if (shouldScroll) {
             scrollToIndex(index);
         }
-    };
+    }, [setFocusedIndex, scrollToIndex]);
 
     useImperativeHandle(
         ref,
