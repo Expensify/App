@@ -20,6 +20,10 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/Localize', () => jest.requireActual('@libs/Localize'));
 
+jest.mock('@pages/settings/Subscription/ExpensifyCodePage', () =>
+    jest.requireActual('@pages/settings/Subscription/ExpensifyCodePage/index.tsx'),
+);
+
 jest.mock('@userActions/Subscription', () => ({
     applyExpensifyCode: jest.fn(),
 }));
