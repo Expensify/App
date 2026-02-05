@@ -10247,10 +10247,6 @@ function approveMoneyRequest(
 }
 
 function determineIouReportID(chatReport: OnyxEntry<OnyxTypes.Report>, expenseReport: OnyxEntry<OnyxTypes.Report>): string | undefined {
-    if (!chatReport?.iouReportID || !expenseReport?.reportID) {
-        return undefined;
-    }
-
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
     const expenseReportActions = getAllReportActions(expenseReport.reportID);
     const iouCreatedAction = Object.values(iouReportActions).find((action) => isCreatedAction(action));
