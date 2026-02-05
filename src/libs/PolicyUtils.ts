@@ -1870,12 +1870,18 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
     ];
 }
 
+/**
+ * Returns if the policy has the Time Tracking feature enabled.
+ */
 function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.units?.time?.enabled;
 }
 
+/**
+ * Returns the policy's default hourly rate for the Time Tracking feature.
+ */
 function getDefaultTimeTrackingRate(policy: Partial<OnyxEntry<Policy>>): number | undefined {
-    return policy?.units?.time?.rate ? convertToBackendAmount(policy.units.time.rate) : undefined;
+    return policy?.units?.time?.rate !== undefined ? convertToBackendAmount(policy.units.time.rate) : undefined;
 }
 
 export {
