@@ -63,23 +63,17 @@ type BaseDomainMembersPageProps = {
     onDismissError?: (item: MemberOption) => void;
 
     /**
-     * Allow multiple members to be selected at the same time.
-     * Defaults to false.
+     * Allow multiple members to be selected at the same time. Defaults to false.
      */
     canSelectMultiple?: boolean;
 
     /**
-     * **Controlled selected members**.
-     * Should be provided from the parent component.
-     * If this is set, `controlledSetSelectedMembers` **must** also be provided.
+     * Stores list of selected members. Only works with canSelectMultiple === true.
      */
     controlledSelectedMembers?: string[];
 
     /**
-     * **Setter for controlled selected members**.
-     * Should be provided from the parent component.
-     * Works like the setter returned by `useState`.
-     * If this is set, `controlledSelectedMembers` **must** also be provided.
+     * Setter for a list of selected members. Only works with canSelectMultiple === true.
      */
     controlledSetSelectedMembers?: React.Dispatch<React.SetStateAction<string[]>>;
 };
