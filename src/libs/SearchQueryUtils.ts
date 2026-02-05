@@ -411,6 +411,34 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
+ * Returns default values for chart views (non-table views).
+ * - Sets default groupBy based on view type (month for line charts, category for others)
+ * - Sets default sortOrder to ASC for line charts (time-based graphs show chronologically oldest to newest)
+ */
+function getChartViewDefaults(queryJSON: SearchQueryJSON): Partial<SearchQueryJSON> {
+    if (queryJSON.view === CONST.SEARCH.VIEW.TABLE) {
+        return {};
+    }
+
+    const defaults: Partial<SearchQueryJSON> = {};
+
+    // Default groupBy when not explicitly set
+    if (!queryJSON.groupBy) {
+        defaults.groupBy = queryJSON.view === CONST.SEARCH.VIEW.LINE ? CONST.SEARCH.GROUP_BY.MONTH : CONST.SEARCH.GROUP_BY.CATEGORY;
+    }
+
+    // Default sortOrder to ASC for LINE view, only if not explicitly set by the user
+    if (queryJSON.view === CONST.SEARCH.VIEW.LINE) {
+        const wasSortOrderExplicitlySet = queryJSON.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER) ?? false;
+        if (!wasSortOrderExplicitlySet) {
+            defaults.sortOrder = CONST.SEARCH.SORT_ORDER.ASC;
+        }
+    }
+
+    return defaults;
+}
+
+/**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
  *
@@ -442,10 +470,7 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
             result.policyID = [result.policyID];
         }
 
-        // Default groupBy when a chart view is specified without an explicit groupBy
-        if (result.view !== CONST.SEARCH.VIEW.TABLE && !result.groupBy) {
-            result.groupBy = result.view === CONST.SEARCH.VIEW.LINE ? CONST.SEARCH.GROUP_BY.MONTH : CONST.SEARCH.GROUP_BY.CATEGORY;
-        }
+        Object.assign(result, getChartViewDefaults(result));
 
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
         if (result.limit !== undefined) {
