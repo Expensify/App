@@ -614,6 +614,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: '為替レート',
         reimbursableTotal: '精算対象合計',
         nonReimbursableTotal: '未払い対象外の合計',
+        opensInNewTab: '新しいタブで開きます',
         month: '月',
         week: '週',
         year: '年',

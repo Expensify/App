@@ -610,6 +610,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Actie vereist',
         duplicate: 'Dupliceren',
         duplicated: 'Gedupliceerd',
+        opensInNewTab: 'Opent in een nieuw tabblad',
         duplicateExpense: 'Dubbele uitgave',
         exchangeRate: 'Wisselkoers',
         reimbursableTotal: 'Vergoedbaar totaal',
