@@ -116,9 +116,12 @@ function WorkspaceCompanyCardsTable({
     const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading;
     const isLoadingCards = Object.keys(cardNamesToEncryptedCardNumberMapping ?? {}).length === 0 ? isLoadingOnyxValue(cardListMetadata) : false;
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
-    const isLoading = isLoadingPage || isLoadingFeed;
 
-    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed && !hasFeedErrors;
+    // If we already have fetched cards, then do not show skeleton loader (let the remaining updates refresh in the background), else show it
+    const hasCards = Object.keys(cardNamesToEncryptedCardNumberMapping ?? {}).length > 0;
+    const isLoading = (!hasCards && isLoadingPage) || (isLoadingFeed && !hasCards);
+
+    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !hasFeedErrors && (hasCards || !isLoadingFeed);
     const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !hasFeedErrors;
     const showTableHeaderButtons = (showTableControls || isLoadingPage || isFeedPending || feedErrorKey === CONST.COMPANY_CARDS.FEED_LOAD_ERROR) && !!feedName;
 
