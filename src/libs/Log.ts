@@ -11,9 +11,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../package.json';
 import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
 import {shouldAttachLog} from './Console';
+import {getCurrentUserEmail} from './CurrentUserStore';
 import getPlatform from './getPlatform';
 import {post} from './Network';
-import {getCurrentUserEmail} from './CurrentUserStore';
 import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 

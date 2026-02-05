@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import {getCurrentUserEmail} from '@src/libs/CurrentUserStore';
 import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
-import {getCurrentUserEmail} from '@src/libs/CurrentUserStore';
 
 let credentials: Credentials | null | undefined;
 let lastShortAuthToken: string | null | undefined;
