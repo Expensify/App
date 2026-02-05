@@ -475,7 +475,7 @@ function getSendMoneyParams({
 }
 
 /**
- * @param managerID - Account ID of the person sending the money
+ * @param currentUserAccountID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
 function sendMoneyElsewhere(
@@ -484,7 +484,7 @@ function sendMoneyElsewhere(
     amount: number,
     currency: string,
     comment: string,
-    managerID: number,
+    currentUserAccountID: number,
     recipient: Participant,
     created?: string,
     merchant?: string,
@@ -497,7 +497,7 @@ function sendMoneyElsewhere(
         currency,
         commentParam: comment,
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-        managerID,
+        managerID: currentUserAccountID,
         recipient,
         created,
         merchant,
@@ -511,7 +511,7 @@ function sendMoneyElsewhere(
 }
 
 /**
- * @param managerID - Account ID of the person sending the money
+ * @param currentUserAccountID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
 function sendMoneyWithWallet(
@@ -520,7 +520,7 @@ function sendMoneyWithWallet(
     amount: number,
     currency: string,
     comment: string,
-    managerID: number,
+    currentUserAccountID: number,
     recipient: Participant | OptionData,
     created?: string,
     merchant?: string,
@@ -533,7 +533,7 @@ function sendMoneyWithWallet(
         currency,
         commentParam: comment,
         paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-        managerID,
+        managerID: currentUserAccountID,
         recipient,
         created,
         merchant,
