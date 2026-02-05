@@ -27,6 +27,7 @@ function BasePicker<TPickerValue>({
     onInputChange,
     icon,
     label = '',
+    accessibilityLabel,
     isDisabled = false,
     errorText = '',
     hintText = '',
