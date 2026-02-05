@@ -226,6 +226,7 @@ function SearchAutocompleteList({
             loginList,
             currentUserAccountID,
             currentUserEmail,
+            personalDetails,
         });
     }, [
         areOptionsInitialized,
@@ -239,6 +240,7 @@ function SearchAutocompleteList({
         currentUserAccountID,
         currentUserEmail,
         policyTags,
+        personalDetails,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -304,8 +306,8 @@ function SearchAutocompleteList({
     const feedAutoCompleteList = useMemo(() => {
         // We don't want to show the "Expensify Card" feeds in the autocomplete suggestion list as they don't have real "Statements"
         // Thus passing an empty object to the `allCards` parameter.
-        return Object.values(getCardFeedsForDisplay(allFeeds, {}));
-    }, [allFeeds]);
+        return Object.values(getCardFeedsForDisplay(allFeeds, {}, translate));
+    }, [allFeeds, translate]);
 
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
@@ -453,6 +455,7 @@ function SearchAutocompleteList({
                     policyTags,
                     currentUserAccountID,
                     currentUserEmail,
+                    personalDetails,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
@@ -487,6 +490,7 @@ function SearchAutocompleteList({
                     policyTags,
                     currentUserAccountID,
                     currentUserEmail,
+                    personalDetails,
                 }).recentReports.filter((chat) => {
                     if (!chat.text) {
                         return false;
@@ -674,6 +678,7 @@ function SearchAutocompleteList({
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
+        personalDetails,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -683,7 +688,20 @@ function SearchAutocompleteList({
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID) : query,
+            text: searchQueryJSON
+                ? buildUserReadableQueryString({
+                      queryJSON: searchQueryJSON,
+                      PersonalDetails: personalDetails,
+                      reports,
+                      taxRates,
+                      cardList: allCards,
+                      cardFeeds: allFeeds,
+                      policies,
+                      currentUserAccountID,
+                      autoCompleteWithSpace: false,
+                      translate,
+                  })
+                : query,
             singleIcon: expensifyIcons.History,
             searchQuery: query,
             keyForList: timestamp,

@@ -35,8 +35,11 @@ type UseSearchSelectorConfig = {
     /** Whether to include user to invite option */
     includeUserToInvite?: boolean;
 
-    /** Logins to exclude from results */
+    /** Logins to exclude from results (hard exclusions - cannot be selected at all) */
     excludeLogins?: Record<string, boolean>;
+
+    /** Logins to exclude from suggestions only (soft exclusions - can still be manually entered) */
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
 
     /** Whether to include recent reports (for getMemberInviteOptions) */
     includeRecentReports?: boolean;
@@ -135,6 +138,7 @@ function useSearchSelectorBase({
     searchContext = 'search',
     includeUserToInvite = true,
     excludeLogins = CONST.EMPTY_OBJECT,
+    excludeFromSuggestionsOnly = CONST.EMPTY_OBJECT,
     includeRecentReports = false,
     getValidOptionsConfig = CONST.EMPTY_OBJECT,
     onSelectionChange,
@@ -207,6 +211,7 @@ function useSearchSelectorBase({
                     currentUserAccountID,
                     currentUserEmail,
                     policyTags,
+                    personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, policyTags, loginList, currentUserAccountID, currentUserEmail, {
@@ -214,6 +219,7 @@ function useSearchSelectorBase({
                     includeP2P: true,
                     includeSelectedOptions: false,
                     excludeLogins,
+                    excludeFromSuggestionsOnly,
                     includeRecentReports,
                     maxElements: maxResults,
                     maxRecentReportElements: maxRecentReportsToShow,
@@ -232,6 +238,7 @@ function useSearchSelectorBase({
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
                     excludeLogins,
+                    excludeFromSuggestionsOnly,
                     personalDetails,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
@@ -288,6 +295,7 @@ function useSearchSelectorBase({
                     includeP2P: true,
                     includeSelectedOptions: false,
                     excludeLogins,
+                    excludeFromSuggestionsOnly,
                     loginsToExclude: excludeLogins,
                     includeRecentReports,
                     maxElements: maxResults,
@@ -316,6 +324,7 @@ function useSearchSelectorBase({
         loginList,
         policyTags,
         excludeLogins,
+        excludeFromSuggestionsOnly,
         includeRecentReports,
         maxRecentReportsToShow,
         getValidOptionsConfig,

@@ -92,7 +92,7 @@ function IOURequestStepDistanceMap({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const transactionWaypoints = transaction?.comment?.waypoints;
     const areTransactionWaypointsEmpty = !transactionWaypoints || Object.values(transactionWaypoints).every((w) => isEmptyObject(w));
     const waypoints = useMemo(() => {
@@ -318,13 +318,13 @@ function IOURequestStepDistanceMap({
             activePolicyID,
             policyTags,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
+            betas,
         });
     }, [
         iouType,
         report,
         policy,
         transaction,
-        reportID,
         transactionID,
         reportAttributesDerived,
         personalDetails,
@@ -337,7 +337,6 @@ function IOURequestStepDistanceMap({
         shouldSkipConfirmation,
         defaultExpensePolicy,
         isArchived,
-        personalPolicy?.autoReporting,
         isASAPSubmitBetaEnabled,
         transactionViolations,
         lastSelectedDistanceRates,
@@ -349,6 +348,9 @@ function IOURequestStepDistanceMap({
         activePolicyID,
         policyTags,
         reportNameValuePairs?.private_isArchived,
+        personalPolicy?.autoReporting,
+        reportID,
+        betas,
     ]);
 
     const getError = () => {
