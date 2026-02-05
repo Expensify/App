@@ -60,7 +60,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
-    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const loadOptions = useCallback(() => {
         const optionLists = createOptionList(personalDetails, currentUserAccountID, privateIsArchivedMap, reports, reportAttributes?.reports);
