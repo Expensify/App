@@ -215,7 +215,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Remove odometer image and close the modal.
      */
     const deleteOdometerImageAndClose = useCallback(() => {
-        removeMoneyRequestOdometerReadingImage(transaction?.transactionID, imageType, isDraftTransaction);
+        if (!transaction?.transactionID || !imageType) {
+            return;
+        }
+        removeMoneyRequestOdometerReadingImage(transaction.transactionID, imageType, isDraftTransaction);
         navigation.goBack();
     }, [transaction?.transactionID, imageType, isDraftTransaction, navigation]);
 
@@ -300,7 +303,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             callback: () =>
                                 Navigation.navigate(
                                     isOdometerImage
-                                        ? ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, imageType)
+                                        ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, imageType)
                                         : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                               action ?? CONST.IOU.ACTION.EDIT,
                                               iouType,
