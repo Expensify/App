@@ -9124,6 +9124,10 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
         return false;
     }
 
+    if (!report.lastReadTime) {
+        return !isEmptyReport(report, isReportArchived);
+    }
+
     if (isEmptyReport(report, isReportArchived)) {
         return false;
     }
@@ -9529,13 +9533,19 @@ function reasonForReportToBeInOptionList({
     isReportArchived,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
     const isInDefaultMode = !isInFocusMode;
+
+    if (report?.reportID === currentReportId) {
+        return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
+    }
+
+    const isChatThreadReport = isChatThread(report);
+    const isSelfDMReport = isSelfDM(report);
+    const isSystemChatReport = isSystemChat(report);
+
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
     // Optionally exclude reports that do not belong to currently active workspace
-
-    const parentReportAction = isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
-
     if (
         !report?.reportID ||
         !report?.type ||
@@ -9544,19 +9554,30 @@ function reasonForReportToBeInOptionList({
             // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
             // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
             !isChatRoom(report) &&
-            !isChatThread(report) &&
+            !isChatThreadReport &&
             !isReportArchived &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report) &&
-            !isSelfDM(report) &&
-            !isSystemChat(report) &&
+            !isSelfDMReport &&
+            !isSystemChatReport &&
             !isGroupChat(report))
     ) {
         return null;
     }
 
     const currentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
-    const reportActionValues = Object.values(currentReportActions);
+    const reportActionKeys = Object.keys(currentReportActions);
+
+    const isThreadReport = isThread(report);
+    let parentReportActionComputed = false;
+    let parentReportActionCache: OnyxEntry<ReportAction>;
+    const getParentReportAction = (): OnyxEntry<ReportAction> => {
+        if (!parentReportActionComputed) {
+            parentReportActionComputed = true;
+            parentReportActionCache = isThreadReport ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
+        }
+        return parentReportActionCache;
+    };
 
     // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
     // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
@@ -9572,7 +9593,7 @@ function reasonForReportToBeInOptionList({
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
-    if (isOneTransactionThread(report, parentReport, parentReportAction)) {
+    if (isOneTransactionThread(report, parentReport, getParentReportAction())) {
         return null;
     }
 
@@ -9580,14 +9601,7 @@ function reasonForReportToBeInOptionList({
         return null;
     }
 
-    // Include the currently viewed report. If we excluded the currently viewed report, then there
-    // would be no way to highlight it in the options list and it would be confusing to users because they lose
-    // a sense of context.
-    if (report.reportID === currentReportId) {
-        return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
-    }
-
-    const hasOnlyCreatedAction = reportActionValues.length === 1 && reportActionValues.at(0)?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const hasOnlyCreatedAction = reportActionKeys.length === 1 && currentReportActions[reportActionKeys[0]]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     // Hide empty reports that have only a `CREATED` action, a total of 0, and are in a submitted state
     // These reports should be hidden because they appear empty to users and there is nothing actionable for them to do
@@ -9609,7 +9623,8 @@ function reasonForReportToBeInOptionList({
     const canHideReport = shouldHideReport(report, currentReportId, isReportArchived);
 
     // Drafts already return early above, so no draft check needed here
-    if (isChatThread(report) && isEmptyChat) {
+    if (isChatThreadReport && isEmptyChat) {
+        const parentReportAction = getParentReportAction();
         const isParentDeleted = !isEmptyObject(parentReportAction) && isDeletedAction(parentReportAction);
         const isParentPendingDelete = !isEmptyObject(parentReportAction) && parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         const hasReplies = (parentReportAction?.childVisibleActionCount ?? 0) > 0;
@@ -9632,7 +9647,7 @@ function reasonForReportToBeInOptionList({
     }
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && canHideReport && isEmptyChat) {
+    if (isChatThreadReport && canHideReport && isEmptyChat) {
         return null;
     }
 
@@ -9644,7 +9659,7 @@ function reasonForReportToBeInOptionList({
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInFocusMode) {
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, currentReportActions);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         return isUnread(report, oneTransactionThreadReport, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
             ? CONST.REPORT_IN_LHN_REASONS.IS_UNREAD
@@ -9657,11 +9672,11 @@ function reasonForReportToBeInOptionList({
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isPolicyExpenseChat(report) && !isTripRoom(report) && !isSystemChat(report) && canHideReport) {
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isPolicyExpenseChat(report) && !isTripRoom(report) && !isSystemChatReport && canHideReport) {
         return null;
     }
 
-    if (isSelfDM(report)) {
+    if (isSelfDMReport) {
         return includeSelfDM ? CONST.REPORT_IN_LHN_REASONS.IS_SELF_DM : null;
     }
 
@@ -9670,7 +9685,12 @@ function reasonForReportToBeInOptionList({
     }
 
     // Hide chat threads where the parent message is pending removal
-    if (!isEmptyObject(parentReportAction) && isPendingRemove(parentReportAction) && isThreadParentMessage(parentReportAction, report?.reportID)) {
+    const parentReportActionForPendingCheck = getParentReportAction();
+    if (
+        !isEmptyObject(parentReportActionForPendingCheck) &&
+        isPendingRemove(parentReportActionForPendingCheck) &&
+        isThreadParentMessage(parentReportActionForPendingCheck, report?.reportID)
+    ) {
         return null;
     }
 
