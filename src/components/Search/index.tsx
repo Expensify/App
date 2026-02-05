@@ -405,7 +405,27 @@ function Search({
             (hasErrors && searchRequestResponseStatusCode === null) ||
             isCardFeedsLoading);
 
-    if (shouldShowLoadingState) {
+    // Track loading state conditions for debug logging
+    const loadingStateDebugRef = useRef({
+        shouldShowLoadingState: false,
+        isDataLoaded: false,
+        searchResultsIsLoading: false,
+        hasErrors: false,
+        searchRequestResponseStatusCode: null as number | null | undefined,
+        isCardFeedsLoading: false,
+    });
+
+    // Debug log for production loading state - only log when state or conditions change
+    const prev = loadingStateDebugRef.current;
+    const hasChanged =
+        prev.shouldShowLoadingState !== shouldShowLoadingState ||
+        prev.isDataLoaded !== isDataLoaded ||
+        prev.searchResultsIsLoading !== searchResults?.search.isLoading ||
+        prev.hasErrors !== hasErrors ||
+        prev.searchRequestResponseStatusCode !== searchRequestResponseStatusCode ||
+        prev.isCardFeedsLoading !== isCardFeedsLoading;
+
+    if (shouldShowLoadingState && hasChanged) {
         Log.info('[Search] shouldShowLoadingState is TRUE', {
             shouldUseLiveData,
             notShouldUseLiveData: !shouldUseLiveData,
@@ -423,6 +443,16 @@ function Search({
             isCardFeedsLoading,
         });
     }
+
+    // Always update tracked values after the check to capture state transitions
+    loadingStateDebugRef.current = {
+        shouldShowLoadingState,
+        isDataLoaded,
+        searchResultsIsLoading: searchResults?.search.isLoading ?? false,
+        hasErrors,
+        searchRequestResponseStatusCode,
+        isCardFeedsLoading,
+    };
 
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
