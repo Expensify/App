@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useHandleBackButton from '@hooks/useHandleBackButton';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubStep from '@hooks/useSubStep';
@@ -137,7 +137,7 @@ function InternationalDepositAccountContent({
         return true;
     };
 
-    useHandleBackButton(handleBackButtonPress);
+    useAndroidBackButtonHandler(handleBackButtonPress);
 
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
