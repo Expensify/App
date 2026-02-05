@@ -1,4 +1,3 @@
-
 ---
 title: What billing ownership means in Expensify
 description: Understand the role of billing ownership and what it allows you to manage in your Expensify workspace.
@@ -31,15 +30,17 @@ Being a Workspace Admin does not automatically give you billing permissions.
 - Workspace Admins can manage members and workspace settings
 - Billing owners manage subscription, billing, and payment details
 
-If you're a Workspace Admin and don’t see billing options, you're likely not the billing owner.
+[Learn what a Workspace Admin can do](help.expensify.com]. 
 
 ---
 
 ## Can billing ownership be shared?
 
-No. Each paid workspace can have only one billing owner at a time.
+No. Each paid workspace can have only one billing owner at a time. However any Workspace Admin can transfer billing ownership to themselves. 
 
-To give someone else access to billing settings, the current billing owner must transfer ownership to a Workspace Admin.
+How to transfer billing ownership in New Expensify. [LINK]
+
+How to take over billing in Expensify Classic. [LINK] 
 
 ---
 
