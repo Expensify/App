@@ -185,6 +185,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                         style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart]}
                         accessibilityLabel={translate('walletPage.chaseAccountNumberDifferent')}
                         role={CONST.ROLE.LINK}
+                        sentryLabel="PaymentMethodListItem-ChaseAccountHelp"
                     >
                         <Icon
                             src={icons.QuestionMark}
