@@ -52,6 +52,10 @@ const config = defineConfig([
                         'JSXElement[openingElement.name.name=/^Pressable(WithoutFeedback|WithFeedback|WithDelayToggle|WithoutFocus)$/]:not(:has(JSXAttribute[name.name="sentryLabel"]))',
                     message: 'All Pressable components must include sentryLabel prop for Sentry tracking. Example: <PressableWithoutFeedback sentryLabel="MoreMenu-ExportFile" />',
                 },
+                {
+                    selector: 'CallExpression[callee.name="computeReportName"]',
+                    message: 'Do not call computeReportName directly. Use ReportNameUtils.getReportName instead, which uses derived values.',
+                },
             ],
         },
     },
