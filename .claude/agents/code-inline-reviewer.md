@@ -66,58 +66,48 @@ Bad:
 
 ---
 
-### [PERF-2] Use early returns in array iteration methods
+### [PERF-2] Return early before expensive work
 
-- **Search patterns**: `.every(`, `.some(`, `.find(`, `.filter(`
+- **Search patterns**: Function bodies where `if (!param)` or `if (param === undefined)` appears AFTER function calls that use `param`
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
-  - Using .every(), .some(), .find(), .filter() or similar function
-  - Function contains an "expensive operation" (defined below)
-  - There exists a simple property check that could eliminate items earlier
-  - The simple check is performed AFTER the expensive operation
-
-  **Expensive operations are**:
-
-  - Function calls (except simple getters/property access)
-  - Regular expressions
-  - Object/array iterations
-  - Math calculations beyond basic arithmetic
-
-  **Simple checks are**:
-
-  - Property existence (!obj.prop, obj.prop === undefined)
-  - Boolean checks (obj.isActive)
-  - Primitive comparisons (obj.id === 5)
-  - Type checks (typeof, Array.isArray)
+  - Code performs expensive work (function calls, iterations, API/Onyx reads)
+  - A simple check could short-circuit earlier
+  - The simple check happens AFTER the expensive work
 
   **DO NOT flag if**:
 
-  - No expensive operations exist
-  - Simple checks are already done first
-  - The expensive operation MUST run for all items (e.g., for side effects)
+  - Simple checks already come first
+  - Validation requires the computed result
+  - Expensive work must run for side effects
 
-- **Reasoning**: Expensive operations can be any long-running synchronous tasks (like complex calculations) and should be avoided when simple property checks can eliminate items early. This reduces unnecessary computation and improves iteration performance, especially on large datasets.
+- **Reasoning**: Early returns prevent wasted computation. Validate inputs before passing them to expensive operations.
 
 Good:
 
 ```ts
-const areAllTransactionsValid = transactions.every((transaction) => {
-    if (!transaction.rawData || transaction.amount <= 0) {
-        return false;
+function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
+    if (!reportAction?.reportActionID) {
+        return;
     }
-    const validation = validateTransaction(transaction);
-    return validation.isValid;
-});
+
+    const originalReportID = getOriginalReportID(reportID, reportAction);
+    // ...
+}
 ```
 
 Bad:
 
 ```ts
-const areAllTransactionsValid = transactions.every((transaction) => {
-    const validation = validateTransaction(transaction);
-    return validation.isValid;
-});
+function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
+    const originalReportID = getOriginalReportID(reportID, reportAction);
+
+    if (!reportAction?.reportActionID) {
+        return;
+    }
+    // ...
+}
 ```
 
 ---
