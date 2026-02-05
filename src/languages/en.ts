@@ -8409,8 +8409,10 @@ const translations = {
             findMember: 'Find member',
             addMember: 'Add member',
             email: 'Email address',
-            errors: {
+            vacationDelegate: 'Vacation delegate',
+            error: {
                 addMember: 'Unable to add this member. Please try again.',
+                vacationDelegate: 'Unable to set this user as an vacation delegate. Please try again.',
             },
         },
     },

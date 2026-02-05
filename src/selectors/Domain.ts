@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
@@ -89,6 +90,15 @@ function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     return uniqueIDs.length > 0 ? uniqueIDs : getEmptyArray<number>();
 }
 
+/**
+ * Get the vacation delegate for a specific member in a domain.
+ *
+ * @param accountID - The account ID of the domain member.
+ */
+function vacationDelegateSelector(accountID: number): (domain: OnyxEntry<Domain>) => BaseVacationDelegate | undefined {
+    return (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${accountID}`];
+}
+
 const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
@@ -107,4 +117,5 @@ export {
     adminPendingActionSelector,
     technicalContactSettingsSelector,
     defaultSecurityGroupIDSelector,
+    vacationDelegateSelector,
 };
