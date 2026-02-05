@@ -97,6 +97,7 @@ function HeaderWithBackButton({
                         accessibilityRole="progressbar"
                         accessibilityLabel={translate('common.progressBar', {progress: progressBarPercentage})}
                         accessibilityValue={{min: 0, max: 100, now: progressBarPercentage}}
+                        tabIndex={0}
                     >
                         <View style={styles.headerProgressBar}>
                             <View style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]} />
