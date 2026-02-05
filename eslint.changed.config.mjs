@@ -14,6 +14,14 @@ const restrictedIconImportPaths = [
     },
 ];
 
+const restrictedReportNameImportPaths = [
+    {
+        name: '@libs/ReportNameUtils',
+        importNames: ['computeReportName'],
+        message: 'Do not import computeReportName. Use `getReportName` instead, which properly uses derived report attributes.',
+    },
+];
+
 const restrictedIconImportPatterns = [
     {
         group: ['**/Icon/Illustrations', '**/components/Icon/Illustrations'],
@@ -52,10 +60,6 @@ const config = defineConfig([
                         'JSXElement[openingElement.name.name=/^Pressable(WithoutFeedback|WithFeedback|WithDelayToggle|WithoutFocus)$/]:not(:has(JSXAttribute[name.name="sentryLabel"]))',
                     message: 'All Pressable components must include sentryLabel prop for Sentry tracking. Example: <PressableWithoutFeedback sentryLabel="MoreMenu-ExportFile" />',
                 },
-                {
-                    selector: 'CallExpression[callee.name="computeReportName"]',
-                    message: 'Do not call computeReportName directly. Use ReportNameUtils.getReportName instead, which uses derived values.',
-                },
             ],
         },
     },
@@ -69,6 +73,19 @@ const config = defineConfig([
                 {
                     paths: restrictedIconImportPaths,
                     patterns: restrictedIconImportPatterns,
+                },
+            ],
+        },
+    },
+
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        ignores: ['src/libs/actions/OnyxDerived/configs/reportAttributes.ts'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    paths: restrictedReportNameImportPaths,
                 },
             ],
         },
