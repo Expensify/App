@@ -5475,7 +5475,6 @@ function moveIOUReportToPolicy(
     policy: Policy,
     isFromSettlementButton?: boolean,
     reportTransactions: Transaction[] = [],
-    isCustomReportNamesBetaEnabled?: boolean,
 ): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
     // This flow only works for IOU reports
     if (!policy || !iouReport || !isIOUReportUsingReport(iouReport)) {
@@ -5502,7 +5501,6 @@ function moveIOUReportToPolicy(
         policyID,
         optimisticExpenseChatReportID,
         reportTransactions,
-        isCustomReportNamesBetaEnabled,
     );
 
     const parameters: MoveIOUReportToExistingPolicyParams = {
@@ -5525,7 +5523,6 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     policy: Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportTransactions: Transaction[] = [],
-    isCustomReportNamesBetaEnabled?: boolean,
 ): {policyExpenseChatReportID?: string} | undefined {
     if (!policy || !iouReport) {
         return;
@@ -5656,7 +5653,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
         failureData: convertedFailureData,
         movedExpenseReportAction,
         movedReportAction,
-    } = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID, reportTransactions, isCustomReportNamesBetaEnabled);
+    } = convertIOUReportToExpenseReport(iouReport, policy, policyID, optimisticPolicyExpenseChatReportID, reportTransactions);
 
     optimisticData.push(...convertedOptimisticData);
     successData.push(...convertedSuccessData);
@@ -5675,14 +5672,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     return {policyExpenseChatReportID: optimisticPolicyExpenseChatReportID};
 }
 
-function convertIOUReportToExpenseReport(
-    iouReport: Report,
-    policy: Policy,
-    policyID: string,
-    optimisticPolicyExpenseChatReportID: string,
-    reportTransactions: Transaction[] = [],
-    isCustomReportNamesBetaEnabled?: boolean,
-) {
+function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, policyID: string, optimisticPolicyExpenseChatReportID: string, reportTransactions: Transaction[] = []) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -5704,27 +5694,24 @@ function convertIOUReportToExpenseReport(
         expenseReport.managerID = nextApproverAccountID;
     }
 
-    // Only compute optimistic report name if the user is on the CUSTOM_REPORT_NAMES beta
-    if (isCustomReportNamesBetaEnabled) {
-        const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
-        if (!!titleReportField && isPaidGroupPolicy(policy)) {
-            // Convert transactions array to Record<string, Transaction> for FormulaContext
-            const transactionsRecord: Record<string, Transaction> = {};
-            for (const transaction of reportTransactions) {
-                if (transaction?.transactionID) {
-                    transactionsRecord[transaction.transactionID] = transaction;
-                }
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    if (!!titleReportField && isPaidGroupPolicy(policy)) {
+        // Convert transactions array to Record<string, Transaction> for FormulaContext
+        const transactionsRecord: Record<string, Transaction> = {};
+        for (const transaction of reportTransactions) {
+            if (transaction?.transactionID) {
+                transactionsRecord[transaction.transactionID] = transaction;
             }
-
-            // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-            const Formula = require('@libs/Formula') as {compute: (formula?: string, context?: {report: Report; policy: Policy; allTransactions?: Record<string, Transaction>}) => string};
-            const computedName = Formula.compute(titleReportField.defaultValue, {
-                report: expenseReport,
-                policy,
-                allTransactions: transactionsRecord,
-            });
-            expenseReport.reportName = computedName ?? expenseReport.reportName;
         }
+
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+        const Formula = require('@libs/Formula') as {compute: (formula?: string, context?: {report: Report; policy: Policy; allTransactions?: Record<string, Transaction>}) => string};
+        const computedName = Formula.compute(titleReportField.defaultValue, {
+            report: expenseReport,
+            policy,
+            allTransactions: transactionsRecord,
+        });
+        expenseReport.reportName = computedName ?? expenseReport.reportName;
     }
 
     const reportID = iouReport.reportID;
