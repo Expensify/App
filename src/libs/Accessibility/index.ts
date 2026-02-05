@@ -8,9 +8,29 @@ type HitSlop = {x: number; y: number};
 const useScreenReaderStatus = (): boolean => {
     const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
     useEffect(() => {
-        const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setIsScreenReaderEnabled);
+        let isMounted = true;
+        const isScreenReaderEnabledAsync = AccessibilityInfo.isScreenReaderEnabled;
+        if (isScreenReaderEnabledAsync) {
+            isScreenReaderEnabledAsync()
+                .then((enabled) => {
+                    if (!isMounted) {
+                        return;
+                    }
+
+                    setIsScreenReaderEnabled(enabled);
+                })
+                .catch(() => {});
+        }
+        const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (enabled) => {
+            if (!isMounted) {
+                return;
+            }
+
+            setIsScreenReaderEnabled(enabled);
+        });
 
         return () => {
+            isMounted = false;
             subscription?.remove();
         };
     }, []);
