@@ -1,6 +1,21 @@
 import type {ValueOf} from 'type-fest';
 import type {PaymentMethod} from '@components/KYCWall/types';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionTagGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
+} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
@@ -10,7 +25,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
     /** The transaction itself */
-    transaction: Transaction;
+    transaction?: Transaction;
 
     /** Whether the transaction is selected */
     isSelected: boolean;
@@ -115,8 +130,8 @@ type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | In
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
-// LineChart and PieChart are not implemented so we exclude them here to prevent TypeScript errors in `SearchChartView.tsx`.
-type ChartView = Exclude<SearchView, 'table' | 'line' | 'pie'>;
+// PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
+type ChartView = Exclude<SearchView, 'table' | 'pie'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
@@ -307,6 +322,19 @@ type BankAccountMenuItem = {
     value: PaymentMethod;
 };
 
+/** Union type representing all possible grouped transaction item types used in chart views */
+type GroupedItem =
+    | TransactionMemberGroupListItemType
+    | TransactionCardGroupListItemType
+    | TransactionWithdrawalIDGroupListItemType
+    | TransactionCategoryGroupListItemType
+    | TransactionMerchantGroupListItemType
+    | TransactionTagGroupListItemType
+    | TransactionMonthGroupListItemType
+    | TransactionWeekGroupListItemType
+    | TransactionYearGroupListItemType
+    | TransactionQuarterGroupListItemType;
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -353,4 +381,5 @@ export type {
     SearchTextFilterKeys,
     BankAccountMenuItem,
     SearchCustomColumnIds,
+    GroupedItem,
 };
