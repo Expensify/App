@@ -73,14 +73,14 @@ function maxVisibleCount(areaWidth: number, itemWidth: number): number {
  */
 function pickRotation(maxLabelWidth: number, lineHeight: number, tickSpacing: number, labelArea: number, dataCount: number, minTruncatedWidth: number): number {
     // 0°: labels fit horizontally without truncation
-    const ew0 = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
-    if (ew0 + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelArea, ew0) >= dataCount) {
+    const horizontalWidth = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
+    if (horizontalWidth + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelArea, horizontalWidth) >= dataCount) {
         return LABEL_ROTATIONS.HORIZONTAL;
     }
 
     // 45°: viable if MIN_TRUNCATED_CHARS + ellipsis fits between ticks
-    const minEw45 = minTruncatedWidth * SIN_45;
-    if (minEw45 + LABEL_PADDING <= tickSpacing) {
+    const minDiagonalWidth = minTruncatedWidth * SIN_45;
+    if (minDiagonalWidth + LABEL_PADDING <= tickSpacing) {
         return LABEL_ROTATIONS.DIAGONAL;
     }
 
@@ -97,17 +97,17 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth}: LabelLay
         const fontMetrics = font.getMetrics();
         const lineHeight = Math.abs(fontMetrics.descent) + Math.abs(fontMetrics.ascent);
         const ellipsisWidth = measureTextWidth(ELLIPSIS, font);
-        const labelWidths = data.map((p) => measureTextWidth(p.label, font));
+        const labelWidths = data.map((point) => measureTextWidth(point.label, font));
         const maxLabelLength = Math.max(...labelWidths);
 
         // Maximum width of labels after truncation to MIN_TRUNCATED_CHARS characters.
         // Labels shorter than the threshold keep their full width (can't be truncated further).
         const minTruncatedWidth = Math.max(
-            ...data.map((p, i) => {
-                if (p.label.length <= MIN_TRUNCATED_CHARS) {
-                    return labelWidths.at(i) ?? 0;
+            ...data.map((point, index) => {
+                if (point.label.length <= MIN_TRUNCATED_CHARS) {
+                    return labelWidths.at(index) ?? 0;
                 }
-                return measureTextWidth(p.label.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, font);
+                return measureTextWidth(point.label.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, font);
             }),
         );
 
@@ -117,17 +117,17 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth}: LabelLay
         // 2. Truncate labels (only at 45°)
         //    Tick-spacing constraint: labelWidth * sin(45°) + padding <= tickSpacing
         const maxLabelWidth = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 : Infinity;
-        const finalLabels = data.map((p, i) => {
-            return truncateLabel(p.label, labelWidths.at(i) ?? 0, maxLabelWidth, ellipsisWidth);
+        const finalLabels = data.map((point, index) => {
+            return truncateLabel(point.label, labelWidths.at(index) ?? 0, maxLabelWidth, ellipsisWidth);
         });
 
         // 3. Compute skip interval (only at 90°)
-        const finalMaxWidth = Math.max(...finalLabels.map((l) => measureTextWidth(l, font)));
+        const finalMaxWidth = Math.max(...finalLabels.map((label) => measureTextWidth(label, font)));
         let skipInterval = 1;
         if (rotation === LABEL_ROTATIONS.VERTICAL) {
-            const ew = effectiveWidth(finalMaxWidth, lineHeight, rotation);
-            const visible = maxVisibleCount(labelAreaWidth, ew);
-            skipInterval = visible >= data.length ? 1 : Math.ceil(data.length / Math.max(1, visible));
+            const verticalWidth = effectiveWidth(finalMaxWidth, lineHeight, rotation);
+            const visibleCount = maxVisibleCount(labelAreaWidth, verticalWidth);
+            skipInterval = visibleCount >= data.length ? 1 : Math.ceil(data.length / Math.max(1, visibleCount));
         }
 
         // 4. Compute vertical space needed for x-axis labels
