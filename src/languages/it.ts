@@ -2621,6 +2621,8 @@ ${amount} per ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Benvenuto!',
+        welcomeSignOffTitleManageTeam: 'Una volta completate le attività sopra, potremo esplorare altre funzionalità come i flussi di approvazione e le regole!',
+        welcomeSignOffTitle: 'È un piacere conoscerti!',
         explanationModal: {
             title: 'Benvenuto in Expensify',
             description: 'Un’unica app per gestire le spese aziendali e personali alla velocità di una chat. Provala e facci sapere cosa ne pensi. E non è che l’inizio!',

@@ -2622,6 +2622,8 @@ ${amount} voor ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Welkom!',
+        welcomeSignOffTitleManageTeam: 'Zodra je de bovenstaande taken hebt afgerond, kunnen we meer functionaliteit verkennen, zoals goedkeuringsworkflows en regels!',
+        welcomeSignOffTitle: 'Leuk om je te ontmoeten!',
         explanationModal: {
             title: 'Welkom bij Expensify',
             description:

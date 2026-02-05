@@ -2613,6 +2613,8 @@ ${amount} dla ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Witamy!',
+        welcomeSignOffTitleManageTeam: 'Gdy ukończysz powyższe zadania, będziemy mogli poznać więcej funkcji, takich jak przepływy akceptacji i reguły!',
+        welcomeSignOffTitle: 'Miło cię poznać!',
         explanationModal: {
             title: 'Witamy w Expensify',
             description: 'Jedna aplikacja do obsługi firmowych i prywatnych wydatków w tempie czatu. Wypróbuj ją i daj nam znać, co o niej myślisz. To dopiero początek!',

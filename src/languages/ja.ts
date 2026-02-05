@@ -2606,6 +2606,8 @@ ${date} の ${merchant} への ${amount}`,
     },
     onboarding: {
         welcome: 'ようこそ！',
+        welcomeSignOffTitleManageTeam: '上記のタスクが完了したら、承認ワークフローやルールなど、さらに多くの機能を試してみましょう！',
+        welcomeSignOffTitle: 'お会いできてうれしいです！',
         explanationModal: {
             title: 'Expensify へようこそ',
             description:

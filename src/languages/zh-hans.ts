@@ -2575,6 +2575,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     onboarding: {
         welcome: '欢迎！',
+        welcomeSignOffTitleManageTeam: '完成以上任务后，我们就可以探索更多功能，比如审批流程和规则！',
+        welcomeSignOffTitle: '很高兴见到你！',
         explanationModal: {
             title: '欢迎使用 Expensify',
             description: '一款应用，以聊天的速度处理您的商务和个人支出。试试看，并告诉我们您的想法。更多精彩功能即将上线！',

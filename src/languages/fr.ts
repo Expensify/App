@@ -2633,6 +2633,9 @@ ${amount} pour ${merchant} - ${date}`,
     },
     onboarding: {
         welcome: 'Bienvenue !',
+        welcomeSignOffTitleManageTeam:
+            'Une fois que vous aurez terminé les tâches ci-dessus, nous pourrons explorer davantage de fonctionnalités, comme les workflows d’approbation et les règles !',
+        welcomeSignOffTitle: 'Ravi de faire votre connaissance !',
         explanationModal: {
             title: 'Bienvenue sur Expensify',
             description:
