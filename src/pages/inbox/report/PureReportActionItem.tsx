@@ -1305,11 +1305,13 @@ function PureReportActionItem({
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
+            const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`];
             children = (
                 <ReportActionItemMessageWithExplain
                     message={modifiedExpenseMessage}
                     action={action}
-                    reportID={reportID}
+                    childReport={childReport}
+                    originalReport={originalReport}
                 />
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
@@ -1318,11 +1320,13 @@ function PureReportActionItem({
 
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
             if (wasSubmittedViaHarvesting) {
+                const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`];
                 children = (
                     <ReportActionItemMessageWithExplain
                         message={translate('iou.automaticallySubmitted')}
                         action={action}
-                        reportID={reportID}
+                        childReport={childReport}
+                        originalReport={originalReport}
                     />
                 );
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {

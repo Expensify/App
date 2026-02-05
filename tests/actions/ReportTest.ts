@@ -3677,25 +3677,26 @@ describe('actions/Report', () => {
         const CHILD_REPORT_ID = '2';
         const REPORT_ACTION_ID = 1;
 
-        it('should return early if originalReportID is not provided', () => {
+        it('should return early if originalReport is not provided', () => {
             const REPORT_ACTION: OnyxTypes.ReportAction = {
                 ...createRandomReportAction(REPORT_ACTION_ID),
                 reportActionID: '1',
                 actorAccountID: TEST_USER_ACCOUNT_ID,
             };
 
-            const result = Report.explain(REPORT_ACTION, undefined, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
+            const result = Report.explain(undefined, undefined, REPORT_ACTION, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
 
             expect(result).toBeUndefined();
         });
 
         it('should return early if reportAction is not provided', () => {
-            const result = Report.explain(undefined, PARENT_REPORT_ID, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
+            const result = Report.explain(undefined, undefined, undefined, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
 
             expect(result).toBeUndefined();
         });
 
-        it('should accept report action and original report ID', async () => {
+        it('should accept report action and original report', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
             const EXISTING_CHILD_REPORT = createRandomReport(2, undefined);
             const REPORT_ACTION: OnyxTypes.ReportAction = {
                 ...createRandomReportAction(REPORT_ACTION_ID),
@@ -3708,7 +3709,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(REPORT_ACTION, PARENT_REPORT_ID, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
+            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
@@ -3727,13 +3728,14 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(REPORT_ACTION, PARENT_REPORT_ID, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
+            Report.explain(undefined, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal, CONST.DEFAULT_TIME_ZONE);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('9876'));
         });
 
         it('should handle explain with default timezone parameter', async () => {
+            const PARENT_REPORT = createRandomReport(1, undefined);
             const EXISTING_CHILD_REPORT = createRandomReport(2, undefined);
             const REPORT_ACTION: OnyxTypes.ReportAction = {
                 ...createRandomReportAction(REPORT_ACTION_ID),
@@ -3746,7 +3748,7 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHILD_REPORT_ID}`, EXISTING_CHILD_REPORT);
             await waitForBatchedUpdates();
 
-            Report.explain(REPORT_ACTION, PARENT_REPORT_ID, TestHelper.translateLocal);
+            Report.explain(EXISTING_CHILD_REPORT, PARENT_REPORT, REPORT_ACTION, TestHelper.translateLocal);
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
