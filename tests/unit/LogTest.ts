@@ -250,16 +250,12 @@ describe('LogTest', () => {
         expect(userBMessages.length).toBeGreaterThan(0);
 
         // And user A's explicit logs should be in requests with their email
-        expect(userAMessages).toEqual(
-            expect.arrayContaining([expect.stringContaining('User A action 1'), expect.stringContaining('User A action 2')]),
-        );
+        expect(userAMessages).toEqual(expect.arrayContaining([expect.stringContaining('User A action 1'), expect.stringContaining('User A action 2')]));
         // User B's explicit logs should NOT be in user A's requests
         expect(userAMessages.join()).not.toContain('User B action');
 
         // And user B's explicit logs should be in requests with their email
-        expect(userBMessages).toEqual(
-            expect.arrayContaining([expect.stringContaining('User B action 1'), expect.stringContaining('User B action 2')]),
-        );
+        expect(userBMessages).toEqual(expect.arrayContaining([expect.stringContaining('User B action 1'), expect.stringContaining('User B action 2')]));
         // User A's explicit logs should NOT be in user B's requests
         expect(userBMessages.join()).not.toContain('User A action');
     });

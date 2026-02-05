@@ -113,13 +113,13 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
             // At least one group succeeded - resolve to prevent retry/duplicates
             if (rejected.length > 0) {
                 // Log warning about lost logs (rare: partial failure + multiple email groups)
-                console.warn(`[Log] ${rejected.length} of ${results.length} log groups failed to upload and will not be retried`);
+                console.error(`[Log] ${rejected.length} of ${results.length} log groups failed to upload and will not be retried`);
             }
-            return fulfilled[0].value;
+            return fulfilled.at(0)?.value ?? {requestID: ''};
         }
 
         // All requests failed - reject so Logger can retry the whole batch
-        throw rejected[0]?.reason ?? new Error('All log requests failed');
+        throw rejected.at(0)?.reason ?? new Error('All log requests failed');
     });
 }
 
