@@ -1,3 +1,5 @@
+import CONST from '@src/CONST';
+
 /**
  * Represents the transport method for a passkey credential.
  * Values based on WebAuthn AuthenticatorTransport enum.
@@ -11,7 +13,7 @@ type PasskeyCredential = {
     id: string;
 
     /** The type of credential (always "public-key" for WebAuthn) */
-    type: 'public-key';
+    type: typeof CONST.PASSKEY_CREDENTIAL_TYPE;
 
     /** Optional array of transport methods that can be used to communicate with the authenticator */
     transports?: PasskeyTransport[];

@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocalPasskeyEntry, PasskeyCredential} from '@src/types/onyx';
 
@@ -49,7 +50,7 @@ function deleteLocalPasskeyCredentials(userId: string, rpId: string): void {
 /** Backend returns simplified format without transports */
 type BackendCredential = {
     id: string;
-    type: 'public-key';
+    type: typeof CONST.PASSKEY_CREDENTIAL_TYPE;
 };
 
 type ReconcileLocalPasskeysWithBackendParams = {
