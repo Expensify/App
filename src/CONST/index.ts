@@ -8063,6 +8063,12 @@ const CONST = {
             DOWNLOAD_RECEIPT: 'ReceiptModal-DownloadReceipt',
             DELETE_RECEIPT: 'ReceiptModal-DeleteReceipt',
         },
+        IOU_REQUEST_STEP_SCAN: {
+            FLASH_BUTTON: 'IOURequestStepScan-FlashButton',
+            GALLERY_BUTTON: 'IOURequestStepScan-GalleryButton',
+            SHUTTER_BUTTON: 'IOURequestStepScan-ShutterButton',
+            MULTI_SCAN_BUTTON: 'IOURequestStepScan-MultiScanButton',
+        },
         HEADER_VIEW: {
             BACK_BUTTON: 'HeaderView-BackButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',

@@ -654,6 +654,7 @@ function IOURequestStepScan({
                                     <PressableWithFeedback
                                         role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('receipt.flash')}
+                                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP_SCAN.FLASH_BUTTON}
                                         disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                                         onPress={() => setFlash((prevFlash) => !prevFlash)}
                                     >
@@ -695,6 +696,7 @@ function IOURequestStepScan({
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.gallery')}
+                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP_SCAN.GALLERY_BUTTON}
                                 style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
                                 onPress={() => {
                                     openPicker({
@@ -719,6 +721,7 @@ function IOURequestStepScan({
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.shutter')}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP_SCAN.SHUTTER_BUTTON}
                         style={[styles.alignItemsCenter]}
                         onPress={capturePhoto}
                     >
@@ -734,6 +737,7 @@ function IOURequestStepScan({
                             accessibilityRole="button"
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.multiScan')}
+                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP_SCAN.MULTI_SCAN_BUTTON}
                             style={styles.alignItemsEnd}
                             onPress={toggleMultiScan}
                         >
@@ -748,6 +752,7 @@ function IOURequestStepScan({
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.flash')}
+                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP_SCAN.FLASH_BUTTON}
                             style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
                             disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                             onPress={() => setFlash((prevFlash) => !prevFlash)}
