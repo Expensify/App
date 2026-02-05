@@ -83,50 +83,50 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         setSelectedMembers(
             approvalWorkflow.members
-            .filter((member) => {
-                const isPolicyMember = !!policy?.employeeList?.[member.email];
-                // Keep policy members. For non-policy members, only keep if they're
-                // in the invite draft (meaning an invite flow is actively in progress).
-                // This mirrors the card flow's handleBackButtonPress cleanup pattern.
-                return isPolicyMember || invitedEmailsToAccountIDsDraft?.[member.email] != null;
-            })
-            .map((member) => {
-                let accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-                const isPolicyMember = !!policy?.employeeList?.[member.email];
+                .filter((member) => {
+                    const isPolicyMember = !!policy?.employeeList?.[member.email];
+                    // Keep policy members. For non-policy members, only keep if they're
+                    // in the invite draft (meaning an invite flow is actively in progress).
+                    // This mirrors the card flow's handleBackButtonPress cleanup pattern.
+                    return isPolicyMember || invitedEmailsToAccountIDsDraft?.[member.email] != null;
+                })
+                .map((member) => {
+                    let accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+                    const isPolicyMember = !!policy?.employeeList?.[member.email];
 
-                const personalDetail = getPersonalDetailByEmail(member.email);
+                    const personalDetail = getPersonalDetailByEmail(member.email);
 
-                // For non-policy members, try to get accountID from draft or personal details
-                if (!isPolicyMember) {
-                    const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
-                    if (draftAccountID != null) {
-                        accountID = draftAccountID;
-                    } else if (personalDetail?.accountID) {
-                        accountID = personalDetail.accountID;
+                    // For non-policy members, try to get accountID from draft or personal details
+                    if (!isPolicyMember) {
+                        const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
+                        if (draftAccountID != null) {
+                            accountID = draftAccountID;
+                        } else if (personalDetail?.accountID) {
+                            accountID = personalDetail.accountID;
+                        }
                     }
-                }
 
-                const login = personalDetailLogins?.[accountID] ?? member.email;
-                const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
-                const avatar = member.avatar ?? personalDetail?.avatar;
+                    const login = personalDetailLogins?.[accountID] ?? member.email;
+                    const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
+                    const avatar = member.avatar ?? personalDetail?.avatar;
 
-                return {
-                    text: Str.removeSMSDomain(displayName),
-                    alternateText: member.email,
-                    keyForList: member.email,
-                    isSelected: true,
-                    login: member.email,
-                    icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(displayName), id: accountID}],
-                    // Only show right element for policy members
-                    rightElement: isPolicyMember ? (
-                        <MemberRightIcon
-                            role={policy?.employeeList?.[member.email]?.role}
-                            owner={policy?.owner}
-                            login={login}
-                        />
-                    ) : undefined,
-                };
-            }),
+                    return {
+                        text: Str.removeSMSDomain(displayName),
+                        alternateText: member.email,
+                        keyForList: member.email,
+                        isSelected: true,
+                        login: member.email,
+                        icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(displayName), id: accountID}],
+                        // Only show right element for policy members
+                        rightElement: isPolicyMember ? (
+                            <MemberRightIcon
+                                role={policy?.employeeList?.[member.email]?.role}
+                                owner={policy?.owner}
+                                login={login}
+                            />
+                        ) : undefined,
+                    };
+                }),
         );
     }, [approvalWorkflow?.members, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft, personalDetailLogins, policy?.employeeList, policy?.owner]);
 
