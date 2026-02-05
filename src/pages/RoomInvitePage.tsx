@@ -8,10 +8,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {Section} from '@components/SelectionListWithSections/types';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useAncestors from '@hooks/useAncestors';
@@ -157,6 +156,7 @@ function RoomInvitePage({
         sectionsArr.push({
             title: undefined,
             data: filterSelectedOptionsFormatted,
+            sectionIndex: 0,
         });
 
         // Filtering out selected users from the search results
@@ -168,12 +168,14 @@ function RoomInvitePage({
         sectionsArr.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
+            sectionIndex: 1,
         });
 
         if (hasUnselectedUserToInvite) {
             sectionsArr.push({
                 title: undefined,
                 data: [formatMemberForList(userToInvite)],
+                sectionIndex: 2,
             });
         }
 
@@ -271,6 +273,13 @@ function RoomInvitePage({
         subtitleKey = isReportArchived ? 'roomMembersPage.roomArchived' : 'roomMembersPage.notAuthorized';
     }
 
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -287,19 +296,13 @@ function RoomInvitePage({
                     subtitle={shouldParserToHTML ? Parser.htmlToText(reportName) : reportName}
                     onBackButtonPress={goBack}
                 />
-                <SelectionList
+                <SelectionListWithSections
                     canSelectMultiple
                     sections={sections}
                     ListItem={InviteMemberListItem}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    textInputValue={searchTerm}
-                    onChangeText={(value) => {
-                        setSearchTerm(value);
-                    }}
-                    headerMessage={headerMessage}
+                    textInputOptions={textInputOptions}
                     onSelectRow={toggleOption}
-                    onConfirm={inviteUsers}
-                    showScrollIndicator
+                    // onConfirm={inviteUsers}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     showLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
