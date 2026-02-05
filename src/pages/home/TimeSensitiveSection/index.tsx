@@ -128,9 +128,8 @@ function TimeSensitiveSection() {
             icon={icons.Stopwatch}
             iconWidth={variables.iconSizeNormal}
             iconHeight={variables.iconSizeNormal}
-            iconFill={theme.danger}
+            iconFill={theme.text}
             title={translate('homePage.timeSensitiveSection.title')}
-            titleColor={theme.danger}
         >
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
                 {/* Priority 2: Broken company card connections */}
