@@ -107,6 +107,7 @@ function ReportActionItem({
     const movedFromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.FROM)}`];
     const movedToReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(action, CONST.REPORT.MOVE_TYPE.TO)}`];
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -137,6 +138,7 @@ function ReportActionItem({
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}
+            cardList={cardList}
             linkedReport={linkedReport}
             iouReportOfLinkedReport={iouReportOfLinkedReport}
             emojiReactions={emojiReactions}

@@ -5,6 +5,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -17,7 +18,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
@@ -626,7 +627,15 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true, tags?: PolicyTagLists, companyCardPageURL?: string): string {
+    getViolationTranslation(
+        violation: TransactionViolation,
+        translate: LocaleContextProps['translate'],
+        canEdit = true,
+        tags?: PolicyTagLists,
+        companyCardPageURL?: string,
+        connectionLink?: string,
+        card?: Card,
+    ): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -641,6 +650,7 @@ const ViolationsUtils = {
             taxName,
             type,
             rterType,
+            cardID,
             message = '',
             errorIndexes = [],
         } = violation.data ?? {};
@@ -704,7 +714,11 @@ const ViolationsUtils = {
                 return translate('violations.itemizedReceiptRequired', {formattedLimit});
             case 'customRules':
                 return translate('violations.customRules', {message});
-            case 'rter':
+            case 'rter': {
+                let isPersonalCardViolation = false;
+                if (cardID !== undefined && cardID !== null && card) {
+                    isPersonalCardViolation = !!isPersonalCard(card);
+                }
                 return translate('violations.rter', {
                     brokenBankConnection,
                     isAdmin,
@@ -712,7 +726,10 @@ const ViolationsUtils = {
                     member,
                     rterType,
                     companyCardPageURL,
+                    connectionLink,
+                    isPersonalCard: isPersonalCardViolation,
                 });
+            }
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});
             case 'someTagLevelsRequired':
@@ -761,6 +778,8 @@ const ViolationsUtils = {
         transactionThreadActions?: ReportAction[],
         tags?: PolicyTagLists,
         companyCardPageURL?: string,
+        connectionLink?: string,
+        cardList?: CardList,
     ): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
         const filteredViolations = filterReceiptViolations(transactionViolations);
@@ -771,7 +790,9 @@ const ViolationsUtils = {
             // Some violations end with a period already so lets make sure the connected messages have only single period between them
             // and end with a single dot.
             ...filteredViolations.map((violation) => {
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL);
+                const cardID = violation?.data?.cardID;
+                const card = cardID ? cardList?.[cardID] : undefined;
+                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink, card);
                 if (!message) {
                     return;
                 }

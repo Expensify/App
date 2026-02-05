@@ -15,7 +15,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
 import type {
     JoinWorkspaceResolution,
     OriginalMessageChangeLog,
@@ -30,7 +30,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {isCardPendingActivate} from './CardUtils';
+import {getBankName, isCardPendingActivate, isPersonalCardBrokenConnection} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -404,6 +404,10 @@ function isActionOfType<T extends ReportActionName>(action: OnyxInputOrEntry<Rep
     return action?.actionName === actionName;
 }
 
+function isCardBrokenConnectionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN);
+}
+
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
     if (!Array.isArray(reportAction?.message)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -411,6 +415,15 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return reportAction.originalMessage;
+}
+
+function getCardConnectionBrokenMessage(reportAction: OnyxEntry<ReportAction>, card: Card | undefined, translate: LocaleContextProps['translate'], connectionLink: string) {
+    if (!isCardBrokenConnectionAction(reportAction) || !isPersonalCardBrokenConnection(card)) {
+        return '';
+    }
+    const cardName = card?.cardName;
+    const personalCardName = cardName ?? getBankName(card?.bank as CompanyCardFeed);
+    return translate('personalCard.conciergeBrokenConnection', {cardName: personalCardName, connectionLink});
 }
 
 function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -4235,6 +4248,8 @@ export {
     getReportActionText,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
+    isCardBrokenConnectionAction,
+    getCardConnectionBrokenMessage,
     getTextFromHtml,
     getTrackExpenseActionableWhisper,
     getWhisperedTo,

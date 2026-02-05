@@ -25,6 +25,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2145,6 +2146,12 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: '添加您的卡片时出错。请重试。',
             password: '请输入您的 Expensify 密码',
         },
+    },
+    personalCard: {
+        fixCard: '修复卡片',
+        brokenConnection: '您的卡连接已断开',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `您的 ${cardName} 卡连接已断开。<a href="${connectionLink}">登录您的银行</a> 以修复卡片。`,
     },
     walletPage: {
         balance: '余额',
@@ -7596,9 +7603,14 @@ ${reportName}
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: '需要审核',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '由于银行连接中断，无法自动匹配收据';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                return isAdmin
+                    ? `由于卡片连接故障，无法自动匹配收据。请将其标记为现金以忽略，或<a href="${connectionLink}">修复卡片</a>以匹配收据。`
+                    : '由于卡片连接故障，无法自动匹配收据。';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin ? `银行连接已断开。<a href="${companyCardPageURL}">重新连接以匹配收据</a>` : '银行连接已中断。请联系管理员重新连接以匹配收据。';

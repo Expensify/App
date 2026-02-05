@@ -25,6 +25,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2183,6 +2184,12 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Beim Hinzufügen Ihrer Karte ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
             password: 'Bitte gib dein Expensify-Passwort ein',
         },
+    },
+    personalCard: {
+        brokenConnection: 'Ihre Kartenverbindung ist unterbrochen.',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `Die Verbindung zu Ihrer Karte ${cardName} ist unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrem Online-Banking an</a>, um die Karte zu reparieren.`,
+        fixCard: 'Karte reparieren',
     },
     walletPage: {
         balance: 'Saldo',
@@ -7791,9 +7798,14 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Überprüfung erforderlich',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Beleg kann wegen unterbrochener Bankverbindung nicht automatisch zugeordnet werden';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                return isAdmin
+                    ? `Der Beleg kann aufgrund einer fehlerhaften Kartenverbindung nicht automatisch zugeordnet werden. Markieren Sie ihn als Bargeld, um ihn zu ignorieren, oder <a href="${connectionLink}">korrigieren Sie die Kartenverbindung</a>, damit er zum Beleg passt.`
+                    : 'Automatischer Abgleich des Belegs aufgrund einer unterbrochenen Kartenverbindung nicht möglich.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

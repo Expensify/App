@@ -25,6 +25,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2179,6 +2180,12 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Er is een fout opgetreden bij het toevoegen van je kaart. Probeer het opnieuw.',
             password: 'Voer je Expensify-wachtwoord in',
         },
+    },
+    personalCard: {
+        fixCard: 'Kaart repareren',
+        brokenConnection: 'De verbinding met uw netwerkkaart is verbroken.',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `De verbinding met uw kaart ${cardName} is verbroken. <a href="${connectionLink}">Log in bij uw bank</a> om de kaart te herstellen.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7762,9 +7769,14 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Beoordeling vereist',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Kan bon niet automatisch koppelen vanwege een verbroken bankverbinding';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                return isAdmin
+                    ? `Automatische koppeling van bon mislukt vanwege verbroken kaartverbinding. Markeer als contant om te negeren, of <a href="${connectionLink}">corrigeer de kaart</a> zodat deze overeenkomt met de bon.`
+                    : 'Bon kan niet automatisch worden gekoppeld vanwege een onderbroken kaartverbinding.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

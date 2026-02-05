@@ -25,6 +25,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2191,6 +2192,12 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Une erreur s’est produite lors de l’ajout de votre carte. Veuillez réessayer.',
             password: 'Veuillez saisir votre mot de passe Expensify',
         },
+    },
+    personalCard: {
+        fixCard: 'Correction de la carte',
+        brokenConnection: 'La connexion de votre carte est interrompue.',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `La connexion à votre carte ${cardName} est interrompue. <a href="${connectionLink}">Connectez-vous à votre banque</a> pour rétablir la connexion.`,
     },
     walletPage: {
         balance: 'Solde',
@@ -7805,9 +7812,14 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Examen requis',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Impossible d’associer automatiquement le reçu en raison d’une connexion bancaire interrompue';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                return isAdmin
+                    ? `Impossible de faire correspondre automatiquement le reçu en raison d'une connexion carte défaillante. Marquez-le comme paiement en espèces pour l'ignorer, ou <a href="${connectionLink}">réparez la carte</a> pour faire correspondre le reçu.`
+                    : "Impossible de faire correspondre automatiquement le reçu en raison d'une connexion carte défaillante.";
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

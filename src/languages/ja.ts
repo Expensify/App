@@ -25,6 +25,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2172,6 +2173,12 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'カードの追加中にエラーが発生しました。もう一度お試しください。',
             password: 'Expensify のパスワードを入力してください',
         },
+    },
+    personalCard: {
+        fixCard: 'カードを修正',
+        brokenConnection: 'カード接続が切断されました',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `${cardName} カードの接続が切断されました。<a href="${connectionLink}">銀行にログイン</a>してカードを修復してください。`,
     },
     walletPage: {
         balance: '残高',
@@ -7712,9 +7719,14 @@ ${reportName}
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: '要レビュー',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '銀行連携の不具合によりレシートを自動照合できません';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                return isAdmin
+                    ? `カード接続が切断されているため、レシートを自動照合できません。現金としてマークして無視するか、レシートと一致するように<a href="${connectionLink}">カードを修正</a>してください。`
+                    : 'カード接続が切断されているため、領収書を自動照合できません。';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

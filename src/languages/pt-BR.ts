@@ -25,6 +25,7 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
+    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -2176,6 +2177,12 @@ const translations: TranslationDeepObject<typeof en> = {
             genericFailureMessage: 'Ocorreu um erro ao adicionar seu cartão. Tente novamente.',
             password: 'Insira sua senha do Expensify',
         },
+    },
+    personalCard: {
+        fixCard: 'Corrigir cartão',
+        brokenConnection: 'A conexão do seu cartão está interrompida',
+        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+            `A conexão do seu cartão ${cardName} está interrompida. <a href="${connectionLink}">Faça login no seu banco</a> para corrigir o cartão.`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -7743,9 +7750,14 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisão necessária',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Não é possível associar automaticamente o recibo devido à conexão bancária interrompida';
+            }
+            if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
+                return isAdmin
+                    ? `Não foi possível associar o recibo automaticamente devido a uma falha na conexão do cartão. Marque como dinheiro para ignorar ou <a href="${connectionLink}">corrija o cartão</a> para que a correspondência com o recibo seja feita.`
+                    : 'Não foi possível associar o recibo automaticamente devido a uma falha na conexão do cartão.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
