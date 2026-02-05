@@ -1120,6 +1120,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     groupExchangeRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsStartDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isSingleTransactionMode: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1166,6 +1167,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splitsEndDate: 'string',
                 odometerStart: 'number',
                 odometerEnd: 'number',
+                isSingleTransactionMode: 'boolean',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
