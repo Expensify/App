@@ -1,7 +1,7 @@
-import {useEffect} from 'react';
+import {useMemo} from 'react';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useOnyx from './useOnyx';
 
 const allSearchAdvancedFilters: {current: Partial<SearchAdvancedFiltersForm>} = {current: {}};
@@ -12,9 +12,9 @@ const prevSearchAdvancedFiltersFormsByType: {current: Record<string, Partial<Sea
 export default function useStickySearchFilters(shouldUpdate?: boolean) {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
-    useEffect(() => {
+    const currentAllSearchAdvancedFilters = useMemo(() => {
         if (!shouldUpdate || !searchAdvancedFiltersForm.type) {
-            return;
+            return allSearchAdvancedFilters.current;
         }
 
         const prevSearchAdvancedFiltersForm = prevSearchAdvancedFiltersFormsByType.current[searchAdvancedFiltersForm.type];
@@ -43,6 +43,7 @@ export default function useStickySearchFilters(shouldUpdate?: boolean) {
         allSearchAdvancedFilters.current = {...allSearchAdvancedFilters.current, type: searchAdvancedFiltersForm.type};
         prevSearchAdvancedFiltersFormsByType.current[searchAdvancedFiltersForm.type] = searchAdvancedFiltersForm;
 
+        return allSearchAdvancedFilters.current;
         // Here we only rely on `searchAdvancedFiltersForm`, without triggering when `shouldUpdate`,
         // because `shouldUpdate` is just a flag indicating that an update can happen,
         // and the actual update only occurs when `searchAdvancedFiltersForm` has truly been updated.
@@ -53,8 +54,5 @@ export default function useStickySearchFilters(shouldUpdate?: boolean) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchAdvancedFiltersForm]);
 
-    // We want to use ref here only because the value from this hook is just a derived value,
-    // and we don’t need to rerender when the hook’s value changes.
-    // eslint-disable-next-line react-hooks/refs
-    return shouldUpdate && isEmptyObject(allSearchAdvancedFilters.current) ? searchAdvancedFiltersForm : allSearchAdvancedFilters.current;
+    return currentAllSearchAdvancedFilters;
 }
