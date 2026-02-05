@@ -5,6 +5,7 @@ const getImageCompactModeStyle: GetImageCompactModeStyle = (maxWidth, availableW
     const fullWidthLimit = availableWidth / variables.receiptPreviewMaxHeight;
     const isTall = aspectRatio && aspectRatio <= fullWidthLimit;
 
+    // Cap ratio to 16:9 so wide images don't stretch outside the bounds of the screen.
     const cappedRatio = aspectRatio ? Math.min(aspectRatio, 16 / 9) : 16 / 9;
 
     return {
