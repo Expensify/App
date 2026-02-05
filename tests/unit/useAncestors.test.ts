@@ -45,6 +45,10 @@ for (let reportNum = 1; reportNum <= numberOfMockReports; reportNum++) {
 
 describe('useAncestors', () => {
     beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+
         Onyx.multiSet({
             [ONYXKEYS.COLLECTION.REPORT]: mockReports,
             [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: mockReportActions,
