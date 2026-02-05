@@ -247,10 +247,11 @@ describe('ReportActionCompose Integration Tests', () => {
             // When the message is submitted
             act(onSubmitAction);
 
-            // scheduleOnUI mock uses setTimeout(() => ..., 0)
             act(() => {
-                jest.advanceTimersByTime(2);
+                jest.runAllTimers();
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the message should be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(1);
@@ -268,8 +269,10 @@ describe('ReportActionCompose Integration Tests', () => {
             act(onSubmitAction);
 
             act(() => {
-                jest.advanceTimersByTime(1);
+                jest.runAllTimers();
             });
+
+            await waitForBatchedUpdatesWithAct();
 
             // Then the message should NOT be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(0);
