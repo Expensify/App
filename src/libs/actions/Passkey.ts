@@ -19,6 +19,9 @@ type SetLocalPasskeyCredentialsParams = {
  * that needs to be fully replaced, not merged. Using merge() would append to the array instead of replacing it.
  */
 function setLocalPasskeyCredentials({userId, rpId, entry}: SetLocalPasskeyCredentialsParams): void {
+    if (!userId || !rpId) {
+        throw new Error('userId and rpId are required to store passkey credentials');
+    }
     Onyx.set(getPasskeyOnyxKey(userId, rpId), entry);
 }
 
@@ -43,6 +46,9 @@ function addLocalPasskeyCredential({userId, rpId, credential, existingEntry}: Ad
 
 /** Deletes all passkey credentials for a user/rpId from Onyx storage */
 function deleteLocalPasskeyCredentials(userId: string, rpId: string): void {
+    if (!userId || !rpId) {
+        throw new Error('userId and rpId are required to delete passkey credentials');
+    }
     Onyx.set(getPasskeyOnyxKey(userId, rpId), null);
 }
 
@@ -61,6 +67,9 @@ type ReconcileLocalPasskeysWithBackendParams = {
  * Removes local credentials that no longer exist on backend.
  */
 function reconcileLocalPasskeysWithBackend({userId, rpId, backendPasskeyCredentials, localEntry}: ReconcileLocalPasskeysWithBackendParams): PasskeyCredential[] {
+    if (!userId || !rpId) {
+        throw new Error('userId and rpId are required to reconcile passkey credentials');
+    }
     if (!localEntry || localEntry.credentialIds.length === 0) {
         return [];
     }

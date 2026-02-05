@@ -30,6 +30,14 @@ describe('actions/Passkey', () => {
         const rpId = 'expensify.com';
         const credential: PasskeyCredential = {id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: ['internal']};
 
+        it('should throw error when userId is empty', () => {
+            expect(() => addLocalPasskeyCredential({userId: '', rpId, credential, existingEntry: null})).toThrow();
+        });
+
+        it('should throw error when rpId is empty', () => {
+            expect(() => addLocalPasskeyCredential({userId, rpId: '', credential, existingEntry: null})).toThrow();
+        });
+
         it('should create new entry when existingEntry is null', async () => {
             addLocalPasskeyCredential({userId, rpId, credential, existingEntry: null});
             await waitForBatchedUpdates();
@@ -64,6 +72,14 @@ describe('actions/Passkey', () => {
         const userId = '123';
         const rpId = 'expensify.com';
 
+        it('should throw error when userId is empty', () => {
+            expect(() => deleteLocalPasskeyCredentials('', rpId)).toThrow();
+        });
+
+        it('should throw error when rpId is empty', () => {
+            expect(() => deleteLocalPasskeyCredentials(userId, '')).toThrow();
+        });
+
         it('should delete existing passkey entry from Onyx', async () => {
             const entry: LocalPasskeyEntry = {credentialIds: [{id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: ['internal']}]};
             await Onyx.set(`${ONYXKEYS.COLLECTION.PASSKEYS}${userId}@${rpId}`, entry);
@@ -88,6 +104,14 @@ describe('actions/Passkey', () => {
     describe('reconcileLocalPasskeysWithBackend', () => {
         const userId = '123';
         const rpId = 'expensify.com';
+
+        it('should throw error when userId is empty', () => {
+            expect(() => reconcileLocalPasskeysWithBackend({userId: '', rpId, backendPasskeyCredentials: [], localEntry: null})).toThrow();
+        });
+
+        it('should throw error when rpId is empty', () => {
+            expect(() => reconcileLocalPasskeysWithBackend({userId, rpId: '', backendPasskeyCredentials: [], localEntry: null})).toThrow();
+        });
 
         it('should return empty array when localEntry is null', () => {
             const result = reconcileLocalPasskeysWithBackend({userId, rpId, backendPasskeyCredentials: [], localEntry: null});
