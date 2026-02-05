@@ -229,16 +229,10 @@ platforms:
           - href: plans-and-pricing
             title: Plans & Pricing
             articles:
-              - href: expensify_card_pricing_benefits
-                title: "Expensify Card: How Pricing Discounts and Cash Back Work"
-              - href: expensify_legacy_pricing
-                title: "Expensify Legacy Pricing: Who Qualifies and What It Means"
-              - href: expensify_plan_overview
-                title: "Expensify Plans Overview: Collect vs Control"
-              - href: expensify_plan_pricing
-                title: "Expensify Plan Pricing and Billing: Annual, Pay-Per-Use, and Localized Rates"
-              - href: Expensify-Plans-Comparison
-                title: "Expensify Plans & Pricing: Collect vs Control"
+              - href: plan-types-and-pricing
+                title: "Expensify Plan Types and Pricing"
+              - href: plan-types-and-pricing-expensify-classic
+                title: "Expensify Classic Plan Types and Pricing"
           
           - href: subscription-management
             title: Subscription Management
