@@ -846,15 +846,17 @@ function createPolicyCategory({
 function importPolicyCategories(
     policyID: string,
     categories: PolicyCategory[],
-    existingCategories?: PolicyCategories,
+    existingCategories?: OnyxEntry<PolicyCategories>,
 ) {
+    const policyCategories = existingCategories ?? {};
+
     const {added, updated} = categories.reduce(
         (acc, category) => {
             if (!category.name) {
                 return acc;
             }
 
-            const existing = existingCategories?.[category.name];
+            const existing = policyCategories[category.name];
 
             if (!existing) {
                 acc.added++;
@@ -871,7 +873,6 @@ function importPolicyCategories(
     );
 
     const onyxData = updateImportSpreadsheetData({added, updated});
-
     const parameters = {
         policyID,
         // eslint-disable-next-line @typescript-eslint/naming-convention
