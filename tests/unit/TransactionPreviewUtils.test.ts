@@ -16,6 +16,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
+    policy: undefined,
     transaction: buildOptimisticTransaction({
         transactionParams: {
             amount: 100,
