@@ -19,7 +19,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
@@ -101,6 +101,7 @@ function IOURequestStepAmount({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true, selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
@@ -224,6 +225,14 @@ function IOURequestStepAmount({
             const backendAmount = convertToBackendAmount(Number.parseFloat(amount));
 
             if (shouldSkipConfirmation) {
+                const participant = participants.at(0);
+                const defaultReimbursable = calculateDefaultReimbursable({
+                    iouType,
+                    policy,
+                    policyForMovingExpenses: policy,
+                    participant,
+                    transactionReportID: report?.reportID,
+                });
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                         sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
@@ -235,6 +244,7 @@ function IOURequestStepAmount({
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
                     requestMoney({
                         report,
+                        betas,
                         participantParams: {
                             participant: participants.at(0) ?? {},
                             payeeEmail: currentUserEmailParam,
@@ -246,6 +256,7 @@ function IOURequestStepAmount({
                             created: transaction?.created ?? '',
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             attendees: transaction?.comment?.attendees,
+                            reimbursable: defaultReimbursable,
                         },
                         backToReport,
                         shouldGenerateTransactionThreadReport,
@@ -256,6 +267,7 @@ function IOURequestStepAmount({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         isSelfTourViewed,
+                        personalDetails,
                     });
                     return;
                 }
@@ -273,6 +285,7 @@ function IOURequestStepAmount({
                             currency: selectedCurrency ?? CONST.CURRENCY.USD,
                             created: transaction?.created,
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                            reimbursable: defaultReimbursable,
                         },
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam,
@@ -281,6 +294,7 @@ function IOURequestStepAmount({
                         activePolicyID,
                         quickAction,
                         recentWaypoints,
+                        betas,
                     });
                     return;
                 }

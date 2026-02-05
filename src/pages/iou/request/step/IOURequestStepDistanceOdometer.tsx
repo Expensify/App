@@ -354,7 +354,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
-
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = () => {
         const start = parseFloat(startReading);
@@ -464,6 +464,7 @@ function IOURequestStepDistanceOdometer({
                         activePolicyID,
                         quickAction,
                         recentWaypoints,
+                        betas,
                     });
                     return;
                 }
@@ -495,6 +496,7 @@ function IOURequestStepDistanceOdometer({
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     recentWaypoints,
+                    betas,
                 });
                 return;
             }

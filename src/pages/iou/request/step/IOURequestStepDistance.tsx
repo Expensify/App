@@ -22,6 +22,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -93,6 +94,8 @@ function IOURequestStepDistance({
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const transactionWaypoints = transaction?.comment?.waypoints;
     const areTransactionWaypointsEmpty = !transactionWaypoints || Object.values(transactionWaypoints).every((w) => isEmptyObject(w));
@@ -318,35 +321,42 @@ function IOURequestStepDistance({
             introSelected,
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
+            policyForMovingExpenses,
+            betas,
         });
     }, [
-        transaction,
-        backTo,
-        report,
-        isArchived,
         iouType,
-        defaultExpensePolicy,
-        setDistanceRequestData,
-        shouldSkipConfirmation,
+        report,
+        policy,
+        transaction,
+        reportID,
         transactionID,
-        personalDetails,
         reportAttributesDerived,
-        translate,
+        personalDetails,
+        waypoints,
+        customUnitRateID,
         currentUserEmailParam,
         currentUserAccountIDParam,
-        policy,
-        waypoints,
-        lastSelectedDistanceRates,
+        backTo,
         backToReport,
+        shouldSkipConfirmation,
+        defaultExpensePolicy,
+        isArchived,
+        personalPolicy?.autoReporting,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        lastSelectedDistanceRates,
+        setDistanceRequestData,
+        translate,
         quickAction,
         policyRecentlyUsedCurrencies,
-        customUnitRateID,
         introSelected,
         activePolicyID,
+        reportNameValuePairs?.private_isArchived,
+        policyForMovingExpenses,
         personalPolicy?.autoReporting,
         reportID,
+        betas,
     ]);
 
     const getError = () => {

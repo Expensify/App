@@ -21,6 +21,12 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 const EMPTY_SET = new Set<string>();
+const EMPTY_TODOS_REPORT_COUNTS = Object.freeze({
+    submit: 0,
+    approve: 0,
+    pay: 0,
+    export: 0,
+});
 
 // Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
@@ -743,8 +749,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
-        ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
@@ -985,6 +989,7 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     EMPTY_SET,
+    EMPTY_TODOS_REPORT_COUNTS,
     DEFAULT_NUMBER_ID,
     DEFAULT_MISSING_ID,
     DEFAULT_COUNTRY_CODE,
@@ -7179,6 +7184,7 @@ const CONST = {
         VIEW: {
             TABLE: 'table',
             BAR: 'bar',
+            LINE: 'line',
         },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
@@ -8079,6 +8085,7 @@ const CONST = {
             SEARCH_BUTTON: 'Search-SearchButton',
             USER_SELECTION_CHECKBOX: 'Search-UserSelectionCheckbox',
             TRANSACTION_GROUP_LIST_ITEM: 'Search-TransactionGroupListItem',
+            SELECT_ALL_BUTTON: 'Search-SelectAllButton',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
@@ -8114,6 +8121,12 @@ const CONST = {
         LHN: {
             OPTION_ROW: 'LHN-OptionRow',
         },
+        SELECTION_LIST: {
+            BASE_LIST_ITEM: 'SelectionList-BaseListItem',
+        },
+        SELECTION_LIST_WITH_SECTIONS: {
+            BASE_LIST_ITEM: 'SelectionListWithSections-BaseListItem',
+        },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
             MARK_AS_UNREAD: 'ContextMenu-MarkAsUnread',
@@ -8144,6 +8157,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
             UNAPPROVE: 'MoreMenu-Unapprove',
@@ -8175,6 +8189,11 @@ const CONST = {
             EXPORT_BUTTON: 'ReportPreview-ExportButton',
             VIEW_BUTTON: 'ReportPreview-ViewButton',
             ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
+        },
+        REQUEST_CONFIRMATION_LIST: {
+            RESET_SPLIT_SHARES: 'RequestConfirmationList-ResetSplitShares',
+            RECEIPT_THUMBNAIL: 'RequestConfirmationList-ReceiptThumbnail',
+            PDF_RECEIPT_THUMBNAIL: 'RequestConfirmationList-PDFReceiptThumbnail',
         },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
@@ -8220,8 +8239,26 @@ const CONST = {
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
         },
+        REPORT_DETAILS: {
+            WORKSPACE_LINK: 'ReportDetails-WorkspaceLink',
+        },
         REANIMATED_MODAL: {
             BACKDROP: 'ReanimatedModal-Backdrop',
+        },
+        REQUEST_STEP: {
+            SCAN: {
+                MULTI_SCAN: 'Scan-MultiScan',
+                FLASH: 'Scan-Flash',
+                CHOOSE_FILE: 'Scan-ChooseFile',
+                CHOOSE_FILES: 'Scan-ChooseFiles',
+                SHUTTER: 'Scan-Shutter',
+            },
+        },
+        NEW_CHAT: {
+            SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
+        },
+        WORKSPACE: {
+            TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
         },
     },
 
