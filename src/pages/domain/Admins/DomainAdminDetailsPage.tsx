@@ -51,7 +51,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const handleRevokeAdminAccess = async () => {
         const confirmResult = await showConfirmModal({
             title: translate('domain.admins.revokeAdminAccess'),
-            prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+            prompt: translate('workspace.people.removeMemberPrompt', displayName),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
 
