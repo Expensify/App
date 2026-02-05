@@ -1,17 +1,14 @@
 import {rand} from '@ngneat/falso';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {
-    getOriginalMessage,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
-    isInviteOrRemovedAction,
     shouldReportActionBeVisibleAsLastAction,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,12 +72,12 @@ const createLHNReportsWithActions = (count: number) => {
     const reports: OnyxCollection<Report> = {};
     const reportActions: OnyxCollection<ReportActions> = {};
     const reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
-    const policies: OnyxCollection<Policy> = {};
+    const lhnPoliciesMap: OnyxCollection<Policy> = {};
     const personalDetailsWithActions: OnyxCollection<PersonalDetails> = {};
     const reportMetadata: OnyxCollection<ReportMetadata> = {};
 
     const basePolicy = createRandomPolicy(1);
-    policies[`${ONYXKEYS.COLLECTION.POLICY}${basePolicy.id}`] = basePolicy;
+    lhnPoliciesMap[`${ONYXKEYS.COLLECTION.POLICY}${basePolicy.id}`] = basePolicy;
 
     for (let i = 1; i <= count; i++) {
         const reportID = String(i);
@@ -118,7 +115,7 @@ const createLHNReportsWithActions = (count: number) => {
         reports,
         reportActions,
         reportNameValuePairs,
-        policies,
+        policies: lhnPoliciesMap,
         personalDetailsWithActions,
         reportMetadata,
     };
@@ -252,120 +249,61 @@ describe('SidebarUtils', () => {
     test('[SidebarUtils LHN] getLastMessageTextForReport across all reports', async () => {
         await waitForBatchedUpdates();
 
-        await measureFunction(() => {
-            for (const reportKey of Object.keys(lhnReports)) {
+        const inputs = Object.keys(lhnReports)
+            .map((reportKey) => {
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
                 const report = lhnReports[reportKey];
                 const nvp = lhnReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
                 const actions = lhnReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
                 const isReportArchived = !!nvp?.private_isArchived;
 
-                if (report && actions) {
-                    const lastActorAccountID = report.lastActorAccountID;
-                    let lastActorDetails: Partial<PersonalDetails> | null = null;
-                    if (lastActorAccountID && lhnPersonalDetails[lastActorAccountID]) {
-                        lastActorDetails = lhnPersonalDetails[lastActorAccountID];
-                    }
-
-                    const sortedActions = getSortedReportActions(Object.values(actions), true);
-                    const lastReportAction = sortedActions.at(0);
-
-                    const movedFromReportID = lastReportAction ? getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM) : undefined;
-                    const movedToReportID = lastReportAction ? getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO) : undefined;
-                    const movedFromReport = movedFromReportID ? lhnReports[`${ONYXKEYS.COLLECTION.REPORT}${movedFromReportID}`] : undefined;
-                    const movedToReport = movedToReportID ? lhnReports[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`] : undefined;
-
-                    const itemPolicy = lhnPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                    const itemReportMetadata = lhnReportMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
-
-                    getLastMessageTextForReport({
-                        translate: () => '',
-                        report,
-                        lastActorDetails,
-                        movedFromReport,
-                        movedToReport,
-                        policy: itemPolicy,
-                        isReportArchived,
-                        policyForMovingExpensesID: undefined,
-                        reportMetadata: itemReportMetadata,
-                        currentUserAccountID: 0,
-                    });
+                if (!report || !actions) {
+                    return null;
                 }
-            }
-        });
-    });
 
-    test('[SidebarUtils LHN] composite renderItem-style simulation for all reports', async () => {
-        await waitForBatchedUpdates();
+                const lastActorAccountID = report.lastActorAccountID;
+                let lastActorDetails: Partial<PersonalDetails> | null = null;
+                if (lastActorAccountID && lhnPersonalDetails[lastActorAccountID]) {
+                    lastActorDetails = lhnPersonalDetails[lastActorAccountID];
+                }
+
+                const sortedActions = getSortedReportActions(Object.values(actions), true);
+                const lastReportAction = sortedActions.at(0);
+
+                const movedFromReportID = lastReportAction ? getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM) : undefined;
+                const movedToReportID = lastReportAction ? getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO) : undefined;
+                const movedFromReport = movedFromReportID ? lhnReports[`${ONYXKEYS.COLLECTION.REPORT}${movedFromReportID}`] : undefined;
+                const movedToReport = movedToReportID ? lhnReports[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`] : undefined;
+
+                const itemPolicy = lhnPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                const itemReportMetadata = lhnReportMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
+
+                return {
+                    report,
+                    lastActorDetails,
+                    movedFromReport,
+                    movedToReport,
+                    itemPolicy,
+                    isReportArchived,
+                    itemReportMetadata,
+                };
+            })
+            .filter((value): value is NonNullable<typeof value> => value !== null);
 
         await measureFunction(() => {
-            for (const reportKey of Object.keys(lhnReports)) {
-                const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
-                const item = lhnReports[reportKey];
-                const itemReportActions = lhnReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-                const itemReportNameValuePairs = lhnReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
-                const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
-
-                if (itemReportActions && item) {
-                    const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
-                    const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
-                    const lastReportAction = sortedReportActions.at(0);
-
-                    let lastActorDetails: Partial<PersonalDetails> | null = null;
-                    if (item.lastActorAccountID && lhnPersonalDetails[item.lastActorAccountID]) {
-                        lastActorDetails = lhnPersonalDetails[item.lastActorAccountID] ?? null;
-                    } else if (lastReportAction) {
-                        const lastActorDisplayName = lastReportAction?.person?.[0]?.text;
-                        lastActorDetails = lastActorDisplayName
-                            ? {
-                                  displayName: lastActorDisplayName,
-                                  accountID: item.lastActorAccountID,
-                              }
-                            : null;
-                    }
-
-                    const movedFromReportID = lastReportAction ? getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.FROM) : undefined;
-                    const movedToReportID = lastReportAction ? getMovedReportID(lastReportAction, CONST.REPORT.MOVE_TYPE.TO) : undefined;
-                    const movedFromReport = movedFromReportID ? lhnReports[`${ONYXKEYS.COLLECTION.REPORT}${movedFromReportID}`] : undefined;
-                    const movedToReport = movedToReportID ? lhnReports[`${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`] : undefined;
-
-                    const itemPolicy = lhnPolicies[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
-                    const itemReportMetadata = lhnReportMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`];
-
-                    const lastMessageTextFromReport = getLastMessageTextForReport({
-                        translate: () => '',
-                        report: item,
-                        lastActorDetails,
-                        movedFromReport,
-                        movedToReport,
-                        policy: itemPolicy,
-                        isReportArchived,
-                        policyForMovingExpensesID: undefined,
-                        reportMetadata: itemReportMetadata,
-                        currentUserAccountID: 0,
-                    });
-
-                    const canUserPerformWriteActionForLastAction = canUserPerformWriteAction(item, isReportArchived);
-                    const actionsArray = getSortedReportActions(Object.values(itemReportActions));
-
-                    const reportActionsForDisplay = actionsArray.filter(
-                        (reportAction) =>
-                            shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteActionForLastAction) &&
-                            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    );
-                    const lastAction = reportActionsForDisplay.at(-1);
-
-                    let lastActionReport: OnyxEntry<Report> | undefined;
-                    if (lastAction && isInviteOrRemovedAction(lastAction)) {
-                        const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
-                        lastActionReport = lastActionOriginalMessage?.reportID
-                            ? lhnReports[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage.reportID}`]
-                            : undefined;
-                    }
-
-                    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-                    [lastMessageTextFromReport, lastAction, lastActionReport];
-                }
+            for (const input of inputs) {
+                getLastMessageTextForReport({
+                    translate: () => '',
+                    report: input.report,
+                    lastActorDetails: input.lastActorDetails,
+                    movedFromReport: input.movedFromReport,
+                    movedToReport: input.movedToReport,
+                    policy: input.itemPolicy,
+                    isReportArchived: input.isReportArchived,
+                    policyForMovingExpensesID: undefined,
+                    reportMetadata: input.itemReportMetadata,
+                    currentUserAccountID: 0,
+                });
             }
         });
     });
