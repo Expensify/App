@@ -30,6 +30,7 @@ function AnnouncementSection() {
                     leftComponent={<DateIcon date={announcement.publishedDate} />}
                     wrapperStyle={[styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                     hasSubMenuItems
+                    shouldUseNormalIconSize
                     viewMode={CONST.OPTION_MODE.COMPACT}
                     rightIconWrapperStyle={styles.pl2}
                     shouldCheckActionAllowedOnPress={false}
