@@ -553,11 +553,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     useEffect(() => {
-        if (isMobileSelectionModeEnabled) {
-            return;
-        }
+        return () => {
+            if (!isMobileSelectionModeEnabled) {
+                return;
+            }
 
-        setSelectedEmployees([]);
+            setSelectedEmployees([]);
+            turnOffMobileSelectionMode();
+        };
     }, [setSelectedEmployees, isMobileSelectionModeEnabled]);
 
     useSearchBackPress({
@@ -816,14 +819,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
-            onBackButtonPress={() => {
-                if (isMobileSelectionModeEnabled) {
-                    setSelectedEmployees([]);
-                    turnOffMobileSelectionMode();
-                    return;
-                }
-                Navigation.popToSidebar();
-            }}
         >
             {() => (
                 <>
