@@ -153,7 +153,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldShowOfflineIndicatorInWideAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <ScrollView
                 style={styles.pt0}
