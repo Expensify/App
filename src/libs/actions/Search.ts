@@ -7,7 +7,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
@@ -48,7 +48,19 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {Beta, ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    Beta,
+    ExportTemplate,
+    LastPaymentMethod,
+    LastPaymentMethodType,
+    Policy,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -58,7 +70,7 @@ import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
 import {getReportPreviewAction, prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import type {RejectMoneyRequestData} from './IOU';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
-import {setOptimisticTransactionThread} from './Report';
+import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
 type OnyxSearchResponse = {
@@ -777,6 +789,39 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
+function bulkDeleteReports(
+    hash: number,
+    selectedTransactions: Record<string, SelectedTransactionInfo>,
+    currentUserEmailParam: string,
+    currentUserAccountIDParam: number,
+    reportTransactions: Record<string, Transaction>,
+    transactionsViolations: Record<string, TransactionViolations>,
+    bankAccountList: OnyxEntry<BankAccountList>,
+    transactions: OnyxCollection<Transaction>,
+) {
+    const transactionIDList: string[] = [];
+    const reportIDList: string[] = [];
+
+    for (const key of Object.keys(selectedTransactions)) {
+        const selectedItem = selectedTransactions[key];
+        if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+            reportIDList.push(selectedItem.reportID);
+        } else {
+            transactionIDList.push(key);
+        }
+    }
+
+    if (transactionIDList.length > 0) {
+        deleteMoneyRequestOnSearch(hash, transactionIDList, transactions);
+    }
+
+    if (reportIDList.length > 0) {
+        for (const reportID of reportIDList) {
+            deleteAppReport(reportID, currentUserEmailParam, currentUserAccountIDParam, reportTransactions, transactionsViolations, bankAccountList);
+        }
+    }
+}
+
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[], transactions: OnyxCollection<Transaction>) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
 
@@ -1414,6 +1459,7 @@ export {
     search,
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
+    bulkDeleteReports,
     unholdMoneyRequestOnSearch,
     rejectMoneyRequestsOnSearch,
     exportSearchItemsToCSV,

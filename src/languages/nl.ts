@@ -370,6 +370,10 @@ const translations: TranslationDeepObject<typeof en> = {
         acceptTermsAndPrivacy: `Ik ga akkoord met de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify-servicevoorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">privacybeleid</a>`,
         acceptTermsAndConditions: `Ik ga akkoord met de <a href="${CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}">algemene voorwaarden</a>`,
         acceptTermsOfService: `Ik ga akkoord met de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Expensify-servicevoorwaarden</a>`,
+        downloadFailedEmptyReportDescription: () => ({
+            one: 'Je kunt geen leeg rapport exporteren.',
+            other: () => 'Je kunt geen lege rapporten exporteren.',
+        }),
         remove: 'Verwijderen',
         admin: 'Beheerder',
         owner: 'Eigenaar',
@@ -1282,8 +1286,14 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Weet je zeker dat je deze uitgave wilt verwijderen?',
             other: 'Weet je zeker dat je deze onkosten wilt verwijderen?',
         }),
-        deleteReport: 'Rapport verwijderen',
-        deleteReportConfirmation: 'Weet je zeker dat je dit rapport wilt verwijderen?',
+        deleteReport: () => ({
+            one: 'Rapport verwijderen',
+            other: 'Rapporten verwijderen',
+        }),
+        deleteReportConfirmation: () => ({
+            one: 'Weet u zeker dat u dit rapport wilt verwijderen?',
+            other: 'Weet u zeker dat u deze rapporten wilt verwijderen?',
+        }),
         settledExpensify: 'Betaald',
         done: 'Gereed',
         settledElsewhere: 'Elders betaald',
@@ -7533,8 +7543,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
     },
     distance: {
         addStop: 'Stop toevoegen',
-        deleteWaypoint: 'Waypoint verwijderen',
-        deleteWaypointConfirmation: 'Weet je zeker dat je dit waypoint wilt verwijderen?',
         address: 'Adres',
         waypointDescription: {
             start: 'Start',

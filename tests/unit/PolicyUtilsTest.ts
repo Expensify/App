@@ -8,6 +8,7 @@ import {
     getActivePolicies,
     getAllTaxRatesNamesAndValues,
     getCustomUnitsForDuplication,
+    getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
@@ -1864,6 +1865,39 @@ describe('PolicyUtils', () => {
                 },
             ],
             approver: 'approver@example.com',
+        });
+    });
+
+    describe('getDefaultTimeTrackingRate', () => {
+        it('should return rate in subunits', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                units: {
+                    time: {
+                        enabled: true,
+                        rate: 20,
+                    },
+                },
+            };
+            expect(getDefaultTimeTrackingRate(policy)).toBe(2000);
+        });
+
+        it('should return 0 when the rate is 0, not undefined', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                units: {
+                    time: {
+                        enabled: true,
+                        rate: 0,
+                    },
+                },
+            };
+            expect(getDefaultTimeTrackingRate(policy)).toBe(0);
+        });
+
+        it('should return undefined when the rate is not defined on the policy', () => {
+            const policy = createRandomPolicy(1);
+            expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
         });
     });
 });

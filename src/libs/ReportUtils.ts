@@ -2987,6 +2987,7 @@ function hasOutstandingChildRequest(
  * @returns The dropdown options for the add expense button
  */
 function getAddExpenseDropdownOptions(
+    translate: LocalizedTranslate,
     icons: Record<'Location' | 'ReceiptPlus', IconAsset>,
     iouReportID: string | undefined,
     policy: OnyxEntry<Policy>,
@@ -2997,8 +2998,7 @@ function getAddExpenseDropdownOptions(
     return [
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('iou.createExpense'),
+            text: translate('iou.createExpense'),
             icon: Plus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
             onSelected: () => {
@@ -3014,8 +3014,7 @@ function getAddExpenseDropdownOptions(
         },
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('iou.trackDistance'),
+            text: translate('iou.trackDistance'),
             icon: icons.Location,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
             onSelected: () => {
@@ -3031,8 +3030,7 @@ function getAddExpenseDropdownOptions(
         },
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('iou.addUnreportedExpense'),
+            text: translate('iou.addUnreportedExpense'),
             icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
