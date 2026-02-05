@@ -2081,6 +2081,8 @@ const translations = {
         reportSuspiciousActivity: 'Report suspicious activity',
         lockAccount: 'Lock account',
         unlockAccount: 'Unlock account',
+        unlockTitle: 'We’ve received your request',
+        unlockDescription: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
         compromisedDescription:
             'Notice something off with your account? Reporting it will immediately lock your account, block new Expensify Card transactions, and prevent any account changes.',
         domainAdminsDescription: 'For domain admins: This also pauses all Expensify Card activity and admin actions across your domain(s).',
@@ -8411,7 +8413,12 @@ const translations = {
             email: 'Email address',
             errors: {
                 addMember: 'Unable to add this member. Please try again.',
+                unlockAccount: 'Unable request account unlock. Please try again.',
             },
+            closeAccount: 'Close account',
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Are you sure? This will lock <strong>${email}'s</strong> account. <br /><br /> Our team will then review the account and remove any unauthorized access. To regain access, they'll need to work with Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
         },
     },
 };

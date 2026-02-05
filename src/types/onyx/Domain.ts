@@ -49,7 +49,8 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     domain_defaultSecurityGroupID: string;
 }> &
     PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
-    PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>;
+    PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup> &
+    PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_LOCKED_ACCOUNT_PREFIX, boolean>;
 
 /** Model of SAML metadata */
 type SamlMetadata = {
