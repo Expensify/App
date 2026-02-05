@@ -502,7 +502,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         invitedPrimaryToSecondaryLogins,
         policyOwner,
         currentUserLogin,
-        translate,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
