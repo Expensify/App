@@ -225,7 +225,6 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
  */
 function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined, policyID?: string | undefined) {
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
-    const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
     // payment method is equal to policyID when user selects "Pay via workspace" option
     const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyID || activePolicy.id === paymentMethod);
 
@@ -241,6 +240,9 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
             paymentType = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
             break;
     }
+
+    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid", don't require payment method selection since payment happens outside of Expensify
+    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(latestBankItems));
 
     return {
         paymentType,
