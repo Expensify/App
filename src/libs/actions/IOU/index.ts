@@ -1684,7 +1684,7 @@ function setMoneyRequestOdometerReadingImage(transactionID: string, imageType: O
  * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  */
-function removeMoneyRequestOdometerReadingImage(transactionID: string, imageType: OdometerImageType, file: File | string, isDraft: boolean) {
+function removeMoneyRequestOdometerReadingImage(transactionID: string, imageType: OdometerImageType, isDraft: boolean) {
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
