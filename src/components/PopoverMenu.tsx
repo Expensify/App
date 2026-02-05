@@ -178,9 +178,6 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Should apply semi transparency for right icon */
     shouldDimIconRight?: boolean;
 
-    /** Whether to handle navigation back */
-    shouldHandleNavigationBack?: boolean;
-
     /** Badge style to be shown near the right end. */
     badgeStyle?: StyleProp<ViewStyle>;
 };
@@ -302,7 +299,6 @@ function BasePopoverMenu({
     shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
     testID,
     shouldDimIconRight = true,
-    shouldHandleNavigationBack = false,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -605,7 +601,6 @@ function BasePopoverMenu({
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
-            shouldHandleNavigationBack={shouldHandleNavigationBack}
         >
             <FocusTrapForModal
                 active={isVisible}
