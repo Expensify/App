@@ -101,7 +101,19 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             currentUserEmail,
             personalDetails,
         });
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, visibleReportActionsData, currentUserAccountID, currentUserEmail, personalDetails]);
+    }, [
+        areOptionsInitialized,
+        isScreenTransitionEnd,
+        options,
+        draftComments,
+        nvpDismissedProductTraining,
+        countryCode,
+        loginList,
+        visibleReportActionsData,
+        currentUserAccountID,
+        currentUserEmail,
+        personalDetails,
+    ]);
 
     const chatOptions = useMemo(() => {
         return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
