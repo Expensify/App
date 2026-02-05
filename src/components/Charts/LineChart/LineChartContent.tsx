@@ -28,8 +28,8 @@ const DOT_HOVER_EXTRA_RADIUS = 2;
 /** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
 
-/** Gap between the x-axis line and the top of label glyphs */
-const X_AXIS_LABEL_GAP = 2;
+/** Consistent gap between x-axis and closest point of label (regardless of rotation) */
+const LABEL_GAP = 8;
 
 type LineChartProps = CartesianChartProps & {
     /** Callback when a data point is pressed */
@@ -116,6 +116,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         font,
         tickSpacing,
         labelAreaWidth: plotAreaWidth,
+        allowTightDiagonalPacking: true,
     });
 
     // Measure label widths for custom positioning in `renderOutside`
@@ -162,7 +163,19 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
             const fontMetrics = font.getMetrics();
             const ascent = Math.abs(fontMetrics.ascent);
             const descent = Math.abs(fontMetrics.descent);
-            const labelY = args.chartBounds.bottom + X_AXIS_LABEL_GAP + font.getSize();
+
+            // Calculate labelY to maintain consistent LABEL_GAP from axis to closest point of text
+            // At 0°: closest point is top of text (baseline - ascent)
+            // At 45°: closest point is top-right corner, ascent projects as ascent * cos(45°)
+            // At 90°: text is vertical, closest point is at descent from baseline
+            let labelY: number;
+            if (angleRad === 0) {
+                labelY = args.chartBounds.bottom + LABEL_GAP + ascent;
+            } else if (angleRad >= Math.PI / 2) {
+                labelY = args.chartBounds.bottom + LABEL_GAP + descent;
+            } else {
+                labelY = args.chartBounds.bottom + LABEL_GAP + ascent * Math.cos(angleRad);
+            }
 
             return truncatedLabels.map((label, i) => {
                 if (i % labelSkipInterval !== 0) {

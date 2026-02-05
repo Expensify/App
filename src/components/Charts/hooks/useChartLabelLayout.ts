@@ -25,6 +25,8 @@ type LabelLayoutConfig = {
     font: SkFont | null;
     tickSpacing: number;
     labelAreaWidth: number;
+    /** When true, allows tighter label packing at 45° by accounting for vertical offset. Useful for line charts. */
+    allowTightDiagonalPacking?: boolean;
 };
 
 /** Truncate `label` so its pixel width fits within `maxWidth`, adding ellipsis. */
@@ -71,7 +73,15 @@ function maxVisibleCount(areaWidth: number, itemWidth: number): number {
  * Pick the smallest rotation (0 → 45 → 90) where labels don't overlap,
  * preferring rotation over skip interval.
  */
-function pickRotation(maxLabelWidth: number, lineHeight: number, tickSpacing: number, labelArea: number, dataCount: number, minTruncatedWidth: number): number {
+function pickRotation(
+    maxLabelWidth: number,
+    lineHeight: number,
+    tickSpacing: number,
+    labelArea: number,
+    dataCount: number,
+    minTruncatedWidth: number,
+    allowTightDiagonalPacking: boolean,
+): number {
     // 0°: labels fit horizontally without truncation
     const horizontalWidth = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
     if (horizontalWidth + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelArea, horizontalWidth) >= dataCount) {
@@ -79,7 +89,9 @@ function pickRotation(maxLabelWidth: number, lineHeight: number, tickSpacing: nu
     }
 
     // 45°: viable if MIN_TRUNCATED_CHARS + ellipsis fits between ticks
-    const minDiagonalWidth = minTruncatedWidth * SIN_45;
+    // With tight packing, labels can overlap horizontally by lineHeight * sin(45°) due to vertical offset
+    const diagonalOverlap = allowTightDiagonalPacking ? lineHeight * SIN_45 : 0;
+    const minDiagonalWidth = minTruncatedWidth * SIN_45 - diagonalOverlap;
     if (minDiagonalWidth + LABEL_PADDING <= tickSpacing) {
         return LABEL_ROTATIONS.DIAGONAL;
     }
@@ -88,7 +100,7 @@ function pickRotation(maxLabelWidth: number, lineHeight: number, tickSpacing: nu
     return LABEL_ROTATIONS.VERTICAL;
 }
 
-function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth}: LabelLayoutConfig) {
+function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, allowTightDiagonalPacking = false}: LabelLayoutConfig) {
     return useMemo(() => {
         if (!font || data.length === 0 || tickSpacing <= 0 || labelAreaWidth <= 0) {
             return {labelRotation: 0, labelSkipInterval: 1, truncatedLabels: []};
@@ -112,11 +124,12 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth}: LabelLay
         );
 
         // 1. Pick rotation
-        const rotation = pickRotation(maxLabelLength, lineHeight, tickSpacing, labelAreaWidth, data.length, minTruncatedWidth);
+        const rotation = pickRotation(maxLabelLength, lineHeight, tickSpacing, labelAreaWidth, data.length, minTruncatedWidth, allowTightDiagonalPacking);
 
         // 2. Truncate labels (only at 45°)
-        //    Tick-spacing constraint: labelWidth * sin(45°) + padding <= tickSpacing
-        const maxLabelWidth = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 : Infinity;
+        //    With tight packing, labels can be longer due to allowed horizontal overlap
+        const diagonalOverlap = allowTightDiagonalPacking ? lineHeight : 0;
+        const maxLabelWidth = rotation === LABEL_ROTATIONS.DIAGONAL ? (tickSpacing - LABEL_PADDING) / SIN_45 + diagonalOverlap : Infinity;
         const finalLabels = data.map((point, index) => {
             return truncateLabel(point.label, labelWidths.at(index) ?? 0, maxLabelWidth, ellipsisWidth);
         });
@@ -139,7 +152,7 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth}: LabelLay
             truncatedLabels: finalLabels,
             xAxisLabelHeight,
         };
-    }, [font, tickSpacing, labelAreaWidth, data]);
+    }, [font, tickSpacing, labelAreaWidth, data, allowTightDiagonalPacking]);
 }
 
 export {LABEL_ROTATIONS, useChartLabelLayout};
