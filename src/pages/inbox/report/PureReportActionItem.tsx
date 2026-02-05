@@ -103,6 +103,9 @@ import {
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getAddedCodingRuleMessage,
+    getRemovedCodingRuleMessage,
+    getUpdatedCodingRuleMessage,
     getReimburserUpdateMessage,
     getRemovedConnectionMessage,
     getRemovedFromApprovalChainMessage,
@@ -1603,6 +1606,12 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getDeletedApprovalRuleMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE)) {
             children = <ReportActionItemBasicMessage message={getUpdatedApprovalRuleMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CODING_RULE)) {
+            children = <ReportActionItemBasicMessage message={getAddedCodingRuleMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_CODING_RULE)) {
+            children = <ReportActionItemBasicMessage message={getRemovedCodingRuleMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CODING_RULE)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedCodingRuleMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(translate, action)} />;
         } else if (isActionableCardFraudAlert(action)) {

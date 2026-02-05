@@ -619,6 +619,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Name of the approver */
     approverName?: string;
 
+    /** Name of the coding rule merchant */
+    merchant?: string;
+
     /** Option name of a list report field */
     optionName?: string;
 
