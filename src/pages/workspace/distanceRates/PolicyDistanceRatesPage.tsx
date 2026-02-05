@@ -217,12 +217,12 @@ function PolicyDistanceRatesPage({
         [canDisableOrDeleteRate, customUnit, policyID],
     );
 
+    const unitTranslation = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
+
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
             Object.values(customUnitRates).map((value) => {
-                const alternateText = `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
-                    `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
-                )}`;
+                const alternateText = `${convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`;
 
                 return {
                     rate: value.rate,
