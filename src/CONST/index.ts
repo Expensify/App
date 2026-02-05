@@ -262,6 +262,9 @@ const CONST = {
     LIMIT_TIMEOUT: 2147483647,
     ARROW_HIDE_DELAY: 3000,
     MAX_IMAGE_CANVAS_AREA: 16777216,
+
+    // Maximum pixel count (width × height) for processing images. Prevents memory crashes with extremely large images.
+    MAX_IMAGE_PIXEL_COUNT: 50000000,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -740,8 +743,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
-        ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
@@ -1717,6 +1718,8 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
+        TAG_POLICIES_COUNT: 'policies_count',
+        TAG_REPORTS_COUNT: 'reports_count',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
         TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
         TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
@@ -2188,6 +2191,7 @@ const CONST = {
         FOLDER_NOT_ALLOWED: 'folderNotAllowed',
         MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
         PROTECTED_FILE: 'protectedFile',
+        IMAGE_DIMENSIONS_TOO_LARGE: 'imageDimensionsTooLarge',
     },
 
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
@@ -5823,19 +5827,6 @@ const CONST = {
     },
 
     /**
-     * Feature flag to enable the missingAttendees violation feature.
-     * Currently enabled only on staging for testing.
-     * When true:
-     * - Enables new missingAttendees violations to be created
-     * - Shows existing missingAttendees violations in transaction lists
-     * - Shows "Require attendees" toggle in category settings
-     * Note: Config?.ENVIRONMENT is undefined in local dev when .env doesn't set it, so we treat undefined as dev
-     */
-    // We can't use nullish coalescing for boolean comparison
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    IS_ATTENDEES_REQUIRED_ENABLED: !Config?.ENVIRONMENT || Config?.ENVIRONMENT === 'staging' || Config?.ENVIRONMENT === 'development',
-
-    /**
      * Constants for types of violation.
      */
     VIOLATION_TYPES: {
@@ -7937,7 +7928,7 @@ const CONST = {
          * The Travel Invoicing feed type constant.
          * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
          */
-        PROGRAM_TRAVEL_US: 'TRAVEL_US',
+        PROGRAM_TRAVEL_US: 'PROGRAM_TRAVEL_US',
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
@@ -8081,6 +8072,8 @@ const CONST = {
         SEARCH: {
             SEARCH_BUTTON: 'Search-SearchButton',
             USER_SELECTION_CHECKBOX: 'Search-UserSelectionCheckbox',
+            TRANSACTION_GROUP_LIST_ITEM: 'Search-TransactionGroupListItem',
+            SELECT_ALL_BUTTON: 'Search-SelectAllButton',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',
@@ -8116,6 +8109,12 @@ const CONST = {
         LHN: {
             OPTION_ROW: 'LHN-OptionRow',
         },
+        SELECTION_LIST: {
+            BASE_LIST_ITEM: 'SelectionList-BaseListItem',
+        },
+        SELECTION_LIST_WITH_SECTIONS: {
+            BASE_LIST_ITEM: 'SelectionListWithSections-BaseListItem',
+        },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
             MARK_AS_UNREAD: 'ContextMenu-MarkAsUnread',
@@ -8146,6 +8145,7 @@ const CONST = {
             EXPORT: 'MoreMenu-Export',
             EXPORT_FILE: 'MoreMenu-ExportFile',
             DOWNLOAD_PDF: 'MoreMenu-DownloadPDF',
+            CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
             UNAPPROVE: 'MoreMenu-Unapprove',
@@ -8178,6 +8178,11 @@ const CONST = {
             VIEW_BUTTON: 'ReportPreview-ViewButton',
             ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
         },
+        REQUEST_CONFIRMATION_LIST: {
+            RESET_SPLIT_SHARES: 'RequestConfirmationList-ResetSplitShares',
+            RECEIPT_THUMBNAIL: 'RequestConfirmationList-ReceiptThumbnail',
+            PDF_RECEIPT_THUMBNAIL: 'RequestConfirmationList-PDFReceiptThumbnail',
+        },
         TRANSACTION_PREVIEW: {
             CARD: 'TransactionPreview-Card',
         },
@@ -8207,11 +8212,29 @@ const CONST = {
             VIEW_ASSIGNEE: 'Task-ViewAssignee',
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
         },
+        ACCOUNT: {
+            PROFILE: 'Account-Profile',
+            WALLET: 'Account-Wallet',
+            RULES: 'Account-Rules',
+            PREFERENCES: 'Account-Preferences',
+            SECURITY: 'Account-Security',
+            SUBSCRIPTION: 'Account-Subscription',
+            STATUS_PICKER: 'Account-StatusPicker',
+        },
         DISCOVER_SECTION: {
             TEST_DRIVE: 'DiscoverSection-TestDrive',
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
+        },
+        REPORT_DETAILS: {
+            WORKSPACE_LINK: 'ReportDetails-WorkspaceLink',
+        },
+        REANIMATED_MODAL: {
+            BACKDROP: 'ReanimatedModal-Backdrop',
+        },
+        NEW_CHAT: {
+            SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
     },
 

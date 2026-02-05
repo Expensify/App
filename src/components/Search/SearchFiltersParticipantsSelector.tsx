@@ -171,7 +171,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     }, [defaultOptions, selectedOptions, shouldAllowNameOnlyOptions]);
 
     const chatOptions = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -188,7 +188,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, shouldAllowNameOnlyOptions, searchTerm, currentUserEmail, currentUserAccountID]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, shouldAllowNameOnlyOptions, searchTerm, currentUserEmail, currentUserAccountID, personalDetails]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
