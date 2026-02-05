@@ -124,7 +124,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                         options={getBulkActionsButtonOptions()}
                         isSplitButton={false}
                         style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
-                        isDisabled={!controlledSelectedMembers.length}
                         testID="DomainMembersPage-header-dropdown-menu-button"
                     />
                 ) : (
@@ -162,8 +161,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 headerIcon={illustrations.Profile}
                 getCustomRowProps={getCustomRowProps}
                 headerContent={getHeaderButtons()}
-                controlledSelectedMembers={controlledSelectedMembers}
-                controlledSetSelectedMembers={controlledSetSelectedMembers}
+                selectedMembers={controlledSelectedMembers}
+                setSelectedMembers={controlledSetSelectedMembers}
                 canSelectMultiple
                 onDismissError={(item) => {
                     if (!defaultSecurityGroupID) {

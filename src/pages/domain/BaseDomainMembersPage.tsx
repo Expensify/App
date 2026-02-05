@@ -70,12 +70,12 @@ type BaseDomainMembersPageProps = {
     /**
      * Stores list of selected members. Only works with canSelectMultiple === true.
      */
-    controlledSelectedMembers?: string[];
+    selectedMembers?: string[];
 
     /**
      * Setter for a list of selected members. Only works with canSelectMultiple === true.
      */
-    controlledSetSelectedMembers?: React.Dispatch<React.SetStateAction<string[]>>;
+    setSelectedMembers?: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 function BaseDomainMembersPage({
@@ -89,8 +89,8 @@ function BaseDomainMembersPage({
     getCustomRightElement,
     getCustomRowProps,
     onDismissError,
-    controlledSelectedMembers,
-    controlledSetSelectedMembers,
+    selectedMembers,
+    setSelectedMembers,
     canSelectMultiple = false,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
@@ -98,10 +98,6 @@ function BaseDomainMembersPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-
-    const selectedMembers = canSelectMultiple ? controlledSelectedMembers : undefined;
-
-    const setSelectedMembers = canSelectMultiple ? controlledSetSelectedMembers : undefined;
 
     const data: MemberOption[] = accountIDs.map((accountID) => {
         const details = personalDetails?.[accountID];

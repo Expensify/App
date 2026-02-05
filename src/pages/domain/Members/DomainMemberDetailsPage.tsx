@@ -42,7 +42,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
         selector: personalDetailsSelector(accountID),
     });
 
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: false, selector: domainNameSelector});
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
 
     const memberLogin = personalDetails?.login ?? '';
 
