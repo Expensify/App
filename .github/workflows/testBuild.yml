@@ -326,7 +326,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: gradle-profile-report
-          path: Mobile-Expensify/Android/app/build/reports/profile/
+          path: Mobile-Expensify/Android/build/reports/profile/
           if-no-files-found: ignore
 
       - name: Set artifact URL output
