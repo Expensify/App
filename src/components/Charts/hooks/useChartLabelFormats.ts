@@ -1,4 +1,6 @@
 import {useCallback} from 'react';
+import {format} from '@libs/NumberFormatUtils';
+import IntlStore from '@src/languages/IntlStore';
 
 type ChartDataPoint = {
     label: string;
@@ -16,7 +18,7 @@ type UseChartLabelFormatsProps = {
 export default function useChartLabelFormats({data, yAxisUnit, yAxisUnitPosition = 'left', labelSkipInterval, labelRotation, truncatedLabels}: UseChartLabelFormatsProps) {
     const formatYAxisLabel = useCallback(
         (value: number) => {
-            const formatted = value.toLocaleString();
+            const formatted = format(IntlStore.getCurrentLocale(), value, {style: 'decimal'});
             if (!yAxisUnit) {
                 return formatted;
             }
