@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**', 'jest/**', '.claude/**']
 
+concurrency:
+  group: 'testBuildOnPush'
+  cancel-in-progress: false
+
 jobs:
   prep:
     runs-on: ubuntu-latest
@@ -432,7 +436,6 @@ jobs:
               summary.addRaw(`\n**Mobile-Expensify Submodule SHA:** [${submoduleSHA}](${submoduleUrl})`);
             }
             
-
             const prUrl = '${{ needs.prep.outputs.PR_URL }}';
 
             if (prUrl) {
@@ -440,6 +443,5 @@ jobs:
             } else {
               summary.addRaw(`\n**PR Link:** No PR associated with this commit.`);
             }
-            
             
             summary.write();
