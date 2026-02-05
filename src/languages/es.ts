@@ -493,10 +493,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Por favor, inicia sesión de nuevo.',
     },
     multifactorAuthentication: {
-        unsupportedDevice: {
-            unsupportedDevice: 'Dispositivo no compatible',
-            pleaseDownloadMobileApp: `<centered-text><muted-text>Esta acción no está soportada en tu dispositivo. Por favor descarga la aplicación móvil de Expensify desde la <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store de iOS</a> o <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e inténtalo de nuevo.</muted-text></centered-text>`,
-        },
         biometricsTest: {
             biometricsTest: 'Prueba de biometría',
             authenticationSuccessful: 'Autenticación exitosa',
