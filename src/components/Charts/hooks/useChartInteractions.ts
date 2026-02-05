@@ -1,10 +1,10 @@
-import { useMemo, useRef, useState } from 'react';
-import { Gesture } from 'react-native-gesture-handler';
-import type { SharedValue } from 'react-native-reanimated';
-import { useAnimatedReaction, useAnimatedStyle, useDerivedValue } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
-import { TOOLTIP_BAR_GAP } from '@components/Charts/constants';
-import { useChartInteractionState } from './useChartInteractionState';
+import {useMemo, useRef, useState} from 'react';
+import {Gesture} from 'react-native-gesture-handler';
+import type {SharedValue} from 'react-native-reanimated';
+import {useAnimatedReaction, useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+import {TOOLTIP_BAR_GAP} from '@components/Charts/constants';
+import {useChartInteractionState} from './useChartInteractionState';
 
 /**
  * Arguments passed to the checkIsOver callback for hit-testing
@@ -75,7 +75,7 @@ type CartesianActionsHandle = {
  * );
  * ```
  */
-function useChartInteractions({ handlePress, checkIsOver, chartBottom, yZero }: UseChartInteractionsProps) {
+function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState, isActive: isTooltipActiveState} = useChartInteractionState();
 
@@ -173,13 +173,16 @@ function useChartInteractions({ handlePress, checkIsOver, chartBottom, yZero }: 
                 const matchedIndex = chartInteractionState.matchedIndex.get();
 
                 // If Victory matched a valid data point, trigger the press handler
-                if (matchedIndex >= 0 && checkIsOver({
-                    cursorX: e.x,
-                    cursorY: e.y,
-                    targetX: chartInteractionState.x.position.get(),
-                    targetY: chartInteractionState.y.y.position.get(),
-                    chartBottom: chartBottom?.get() ?? 0,
-                })) {
+                if (
+                    matchedIndex >= 0 &&
+                    checkIsOver({
+                        cursorX: e.x,
+                        cursorY: e.y,
+                        targetX: chartInteractionState.x.position.get(),
+                        targetY: chartInteractionState.y.y.position.get(),
+                        chartBottom: chartBottom?.get() ?? 0,
+                    })
+                ) {
                     scheduleOnRN(handlePress, matchedIndex);
                 }
             }),
@@ -204,7 +207,7 @@ function useChartInteractions({ handlePress, checkIsOver, chartBottom, yZero }: 
             position: 'absolute',
             left: chartInteractionState.x.position.get(),
             top: barTopY - TOOLTIP_BAR_GAP,
-            transform: [{ translateX: '-50%' }, { translateY: '-100%' }],
+            transform: [{translateX: '-50%'}, {translateY: '-100%'}],
             opacity: chartInteractionState.isActive.get() ? 1 : 0,
         };
     });
@@ -223,5 +226,5 @@ function useChartInteractions({ handlePress, checkIsOver, chartBottom, yZero }: 
     };
 }
 
-export { useChartInteractions };
-export type { HitTestArgs };
+export {useChartInteractions};
+export type {HitTestArgs};

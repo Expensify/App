@@ -1,12 +1,12 @@
-import { useFont } from '@shopify/react-native-skia';
-import React, { useCallback, useMemo, useState } from 'react';
-import type { LayoutChangeEvent } from 'react-native';
-import { View } from 'react-native';
-import Animated, { useSharedValue } from 'react-native-reanimated';
-import type { ChartBounds, PointsArray } from 'victory-native';
-import { Bar, CartesianChart } from 'victory-native';
+import {useFont} from '@shopify/react-native-skia';
+import React, {useCallback, useMemo, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
+import {View} from 'react-native';
+import Animated, {useSharedValue} from 'react-native-reanimated';
+import type {ChartBounds, PointsArray} from 'victory-native';
+import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import { getChartColor } from '@components/Charts/chartColors';
+import {getChartColor} from '@components/Charts/chartColors';
 import ChartHeader from '@components/Charts/ChartHeader';
 import ChartTooltip from '@components/Charts/ChartTooltip';
 import {
@@ -25,9 +25,9 @@ import {
     Y_AXIS_TICK_COUNT,
 } from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
-import type { HitTestArgs } from '@components/Charts/hooks';
-import { useChartInteractions, useChartLabelFormats, useChartLabelLayout } from '@components/Charts/hooks';
-import type { BarChartProps } from '@components/Charts/types';
+import type {HitTestArgs} from '@components/Charts/hooks';
+import {useChartInteractions, useChartLabelFormats, useChartLabelLayout} from '@components/Charts/hooks';
+import type {BarChartProps} from '@components/Charts/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,10 +48,10 @@ function calculateMinDomainPadding(chartWidth: number, barCount: number, innerPa
     return Math.ceil(chartWidth * minPaddingRatio * DOMAIN_PADDING_SAFETY_BUFFER);
 }
 
-function BarChartContent({ data, title, titleIcon, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress }: BarChartProps) {
+function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const { shouldUseNarrowLayout } = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
     const [barAreaWidth, setBarAreaWidth] = useState(0);
@@ -86,12 +86,12 @@ function BarChartContent({ data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     );
 
     const handleLayout = useCallback((event: LayoutChangeEvent) => {
-        const { width, height } = event.nativeEvent.layout;
+        const {width, height} = event.nativeEvent.layout;
         setChartWidth(width);
         setContainerHeight(height);
     }, []);
 
-    const { labelRotation, labelSkipInterval, truncatedLabels, maxLabelLength } = useChartLabelLayout({
+    const {labelRotation, labelSkipInterval, truncatedLabels, maxLabelLength} = useChartLabelLayout({
         data,
         font,
         chartWidth,
@@ -101,13 +101,13 @@ function BarChartContent({ data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
     const domainPadding = useMemo(() => {
         if (chartWidth === 0) {
-            return { left: 0, right: 0, top: DOMAIN_PADDING.top, bottom: DOMAIN_PADDING.bottom };
+            return {left: 0, right: 0, top: DOMAIN_PADDING.top, bottom: DOMAIN_PADDING.bottom};
         }
         const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
-        return { left: horizontalPadding, right: horizontalPadding + DOMAIN_PADDING.right, top: DOMAIN_PADDING.top, bottom: DOMAIN_PADDING.bottom };
+        return {left: horizontalPadding, right: horizontalPadding + DOMAIN_PADDING.right, top: DOMAIN_PADDING.top, bottom: DOMAIN_PADDING.bottom};
     }, [chartWidth, data.length]);
 
-    const { formatXAxisLabel, formatYAxisLabel } = useChartLabelFormats({
+    const {formatXAxisLabel, formatYAxisLabel} = useChartLabelFormats({
         data,
         yAxisUnit,
         yAxisUnitPosition,
@@ -161,7 +161,7 @@ function BarChartContent({ data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         [barWidth, yZero],
     );
 
-    const { actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle } = useChartInteractions({
+    const {actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
         chartBottom,
@@ -275,10 +275,10 @@ function BarChartContent({ data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                                 domain: yAxisDomain,
                             },
                         ]}
-                        frame={{ lineWidth: FRAME_LINE_WIDTH }}
+                        frame={{lineWidth: FRAME_LINE_WIDTH}}
                         data={chartData}
                     >
-                        {({ points, chartBounds }) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
+                        {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
                     </CartesianChart>
                 )}
                 {isTooltipActive && !!tooltipData && (
