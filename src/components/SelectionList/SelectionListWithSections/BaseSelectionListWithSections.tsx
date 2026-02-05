@@ -273,22 +273,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 const isItemFocused = index === focusedIndex;
                 const isDisabled = !!item.isDisabled;
 
-                // When shouldPreventItemFocus is true, remove items from Tab order
-                // Navigation is handled by arrow keys only
-                // Cast to TItem is safe here since we're in the ROW case (not HEADER)
-                const itemToRender = shouldPreventItemFocus
-                    ? ({
-                          ...item,
-                          tabIndex: -1,
-                      } as TItem)
-                    : (item as TItem);
-
                 return (
                     <ListItemRenderer
                         ListItem={ListItem}
                         selectRow={selectRow}
                         showTooltip={shouldShowTooltips}
-                        item={itemToRender}
+                        item={item as TItem}
                         index={index}
                         normalizedIndex={index}
                         isFocused={isItemFocused}
