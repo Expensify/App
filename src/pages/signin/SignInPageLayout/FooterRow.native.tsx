@@ -1,11 +1,11 @@
 import React from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
-import Text from '@components/Text';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import {openLink as openLinkUtil} from '@userActions/Link';
+import CONST from '@src/CONST';
 import type {FooterColumnRow} from './types';
 
 type FooterRowProps = FooterColumnRow & {
