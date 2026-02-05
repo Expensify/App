@@ -297,15 +297,19 @@ function RoomInvitePage({
                     onBackButtonPress={goBack}
                 />
                 <SelectionListWithSections
-                    canSelectMultiple
                     sections={sections}
                     ListItem={InviteMemberListItem}
                     textInputOptions={textInputOptions}
                     onSelectRow={toggleOption}
-                    // onConfirm={inviteUsers}
+                    confirmButtonOptions={{
+                        onConfirm: inviteUsers,
+                    }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     showLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
+                    disableMaintainingScrollPosition
+                    shouldShowTextInput
+                    canSelectMultiple
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton
