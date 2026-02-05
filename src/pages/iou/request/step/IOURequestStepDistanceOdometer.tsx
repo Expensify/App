@@ -635,13 +635,6 @@ function IOURequestStepDistanceOdometer({
                         <PressableWithFeedback
                             accessible={false}
                             accessibilityRole="button"
-                            onPress={() => {
-                                if (odometerEndImage) {
-                                    handleViewOdometerImage('end');
-                                } else {
-                                    handleCaptureImage('end');
-                                }
-                            }}
                             sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
                             onPress={() => {
                                 if (odometerEndImage) {
