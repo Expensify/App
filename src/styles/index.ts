@@ -6317,7 +6317,6 @@ const plainStyles = (theme: ThemeColors) =>
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
 
-
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({
                 alignItems: 'center',
