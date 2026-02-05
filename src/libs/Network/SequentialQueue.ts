@@ -20,7 +20,7 @@ import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {ConflictData} from '@src/types/onyx/Request';
+import type {AnyRequest, ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
@@ -451,7 +451,7 @@ onReconnection(flush);
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
 
-function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
+function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>) {
     Log.info('[SequentialQueue] handleConflictActions', false, {
         conflictType: conflictAction.type,
         newCommand: newRequest.command,
@@ -469,7 +469,7 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
             replaceIndex: conflictAction.index,
             replacementRequest: conflictAction.request?.command ?? newRequest.command,
         });
-        updatePersistedRequest(conflictAction.index, conflictAction.request ?? newRequest);
+        updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
     } else if (conflictAction.type === 'delete') {
         Log.info('[SequentialQueue] Conflict resolution: DELETE', false, {
             command: newRequest.command,
@@ -499,7 +499,7 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
     }
 }
 
-function push(newRequest: OnyxRequest) {
+function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
     Log.info('[SequentialQueue] push() called', false, {
         command: newRequest.command,
         hasConflictChecker: !!newRequest.checkAndFixConflictingRequest,
@@ -508,16 +508,15 @@ function push(newRequest: OnyxRequest) {
         isSequentialQueueRunning,
     });
 
-    const {checkAndFixConflictingRequest} = newRequest;
 
-    if (checkAndFixConflictingRequest) {
+    if (newRequest.checkAndFixConflictingRequest) {
         const requests = getAllPersistedRequests();
         Log.info('[SequentialQueue] Checking for conflicts', false, {
             command: newRequest.command,
             existingRequestsCount: requests.length,
         });
 
-        const {conflictAction} = checkAndFixConflictingRequest(requests);
+        const {conflictAction} = newRequest.checkAndFixConflictingRequest(requests as Array<OnyxRequest<TKey>>);
         Log.info('[SequentialQueue] Conflict action determined', false, {
             command: newRequest.command,
             conflictType: conflictAction.type,

@@ -1,12 +1,14 @@
 import {deepEqual} from 'fast-equals';
+import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
+import type {AnyRequest} from '@src/types/onyx/Request';
 
-let persistedRequests: Request[] = [];
-let ongoingRequest: Request | null = null;
-let pendingSaveOperations: Request[] = [];
+let persistedRequests: AnyRequest[] = [];
+let ongoingRequest: AnyRequest | null = null;
+let pendingSaveOperations: AnyRequest[] = [];
 let isInitialized = false;
 let initializationCallback: () => void;
 function triggerInitializationCallback() {
@@ -102,7 +104,7 @@ function getLength(): number {
     return persistedRequests.length + (ongoingRequest ? 1 : 0);
 }
 
-function save(requestToPersist: Request) {
+function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>) {
     Log.info('[PersistedRequests] Saving request to queue started', false, {
         command: requestToPersist.command,
         currentQueueLength: persistedRequests.length,
@@ -114,14 +116,14 @@ function save(requestToPersist: Request) {
         Log.info('[PersistedRequests] Queueing request until initialization completes', false, {
             pendingSaveOperationsLength: pendingSaveOperations.length,
         });
-        pendingSaveOperations.push(requestToPersist);
+        pendingSaveOperations.push(requestToPersist as AnyRequest);
         return;
     }
 
     // If the command is not in the keepLastInstance array, add the new request as usual
     const requests = [...persistedRequests, requestToPersist];
     const previousLength = persistedRequests.length;
-    persistedRequests = requests;
+    persistedRequests = requests as AnyRequest[];
 
     Log.info('[PersistedRequests] Request added to memory, persisting to disk', false, {
         command: requestToPersist.command,
@@ -130,7 +132,7 @@ function save(requestToPersist: Request) {
         allCommands: requests.map((r) => r.command),
     });
 
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests as AnyRequest[])
         .then(() => {
             Log.info('[PersistedRequests] Request successfully persisted to disk', false, {
                 command: requestToPersist.command,
@@ -145,7 +147,7 @@ function save(requestToPersist: Request) {
         });
 }
 
-function endRequestAndRemoveFromQueue(requestToRemove: Request) {
+function endRequestAndRemoveFromQueue<TKey extends OnyxKey>(requestToRemove: Request<TKey>) {
     Log.info('[PersistedRequests] endRequestAndRemoveFromQueue called', false, {
         commandToRemove: requestToRemove.command,
         currentOngoingCommand: ongoingRequest?.command ?? 'null',
@@ -216,25 +218,25 @@ function deleteRequestsByIndices(indices: number[]) {
     });
 }
 
-function update(oldRequestIndex: number, newRequest: Request) {
+function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>) {
     const requests = [...persistedRequests];
     const oldRequest = requests.at(oldRequestIndex);
     Log.info('[PersistedRequests] Updating a request', false, {oldRequest, newRequest, oldRequestIndex});
-    requests.splice(oldRequestIndex, 1, newRequest);
+    requests.splice(oldRequestIndex, 1, newRequest as AnyRequest);
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
-function updateOngoingRequest(newRequest: Request) {
+function updateOngoingRequest<TKey extends OnyxKey>(newRequest: Request<TKey>) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
-    ongoingRequest = newRequest;
+    ongoingRequest = newRequest as AnyRequest;
 
     if (newRequest.persistWhenOngoing) {
-        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest);
+        Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest as AnyRequest);
     }
 }
 
-function processNextRequest(): Request | null {
+function processNextRequest(): AnyRequest | null {
     Log.info('[PersistedRequests] processNextRequest called', false, {
         hasOngoingRequest: !!ongoingRequest,
         ongoingCommand: ongoingRequest?.command ?? 'null',
@@ -322,11 +324,11 @@ function rollbackOngoingRequest() {
     });
 }
 
-function getAll(): Request[] {
+function getAll(): AnyRequest[] {
     return persistedRequests;
 }
 
-function getOngoingRequest(): Request | null {
+function getOngoingRequest(): AnyRequest | null {
     return ongoingRequest;
 }
 
