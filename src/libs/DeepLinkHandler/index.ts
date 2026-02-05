@@ -21,27 +21,26 @@ let linkingEventSubscription: NativeEventSubscription | null = null;
 
 let hasSessionLoaded = false;
 
-function startModule() {
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.SESSION,
-        callback: () => {
-            if (hasSessionLoaded) {
-                return;
-            }
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: () => {
+        if (hasSessionLoaded) {
+            return;
+        }
 
-            hasSessionLoaded = true;
+        hasSessionLoaded = true;
 
-            initializeDeepLinkHandler();
-        },
-    });
+        initializeDeepLinkHandler();
+    },
+});
 
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.CONCIERGE_REPORT_ID,
-        callback: (value) => {
-            currentConciergeReportID = value ?? undefined;
-        },
-    });
-}
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    callback: (value) => {
+        currentConciergeReportID = value ?? undefined;
+    },
+});
 
 function processPendingDeepLinkIfReady() {
     if (!pendingDeepLinkUrl) {
@@ -126,6 +125,4 @@ function clearModule() {
     linkingEventSubscription = null;
 }
 
-startModule();
-
-export {processInitialURL, startModule, clearModule};
+export {processInitialURL, clearModule};
