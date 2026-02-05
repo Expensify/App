@@ -8,7 +8,7 @@ import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.CURRENCY_LIST,
     callback: (val) => {
         if (!val || Object.keys(val).length === 0) {
