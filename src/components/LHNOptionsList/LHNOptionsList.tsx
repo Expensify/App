@@ -10,7 +10,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {BlockingViewProps} from '@components/BlockingViews/BlockingView';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -57,7 +56,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus']);
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
@@ -73,6 +72,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
@@ -140,7 +140,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     text={translate('common.emptyLHN.subtitleText2')}
                 />
                 <Icon
-                    src={Expensicons.Plus}
+                    src={expensifyIcons.Plus}
                     width={variables.emptyLHNIconWidth}
                     height={variables.emptyLHNIconHeight}
                     fill={theme.icon}
@@ -160,12 +160,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             styles.justifyContentCenter,
             styles.flexWrap,
             styles.textAlignCenter,
-            styles.mh1,
-            theme.icon,
-            theme.textSupporting,
             styles.textNormal,
+            styles.mh1,
+            theme.textSupporting,
+            theme.icon,
             translate,
             expensifyIcons.MagnifyingGlass,
+            expensifyIcons.Plus,
         ],
     );
 
@@ -183,6 +184,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`];
             const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
             const itemReportAttributes = reportAttributes?.[reportID];
+            const itemPolicyID = item?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : item?.policyID;
+            const itemPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${itemPolicyID}`];
 
             let invoiceReceiverPolicyID = '-1';
             if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
@@ -238,11 +241,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 movedToReport,
                 policy: itemPolicy,
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
-                policyForMovingExpensesID,
                 reportMetadata: itemReportMetadata,
                 currentUserAccountID,
+                policyTags: itemPolicyTags,
             });
-
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
             let lastAction: ReportAction | undefined;
@@ -311,11 +313,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reportMetadataCollection,
             isOffline,
             reportAttributes,
+            policyForMovingExpensesID,
+            policyTags,
             policy,
             transactions,
             draftComments,
             personalDetails,
-            policyForMovingExpensesID,
             firstReportIDWithGBRorRBR,
             optionMode,
             shouldDisableFocusOptions,

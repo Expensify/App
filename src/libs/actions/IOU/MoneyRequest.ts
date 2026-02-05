@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, PolicyTagLists, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -97,6 +97,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     activePolicyID?: string;
     privateIsArchived?: string;
     files: ReceiptFile[];
+    policyTags: OnyxEntry<PolicyTagLists>;
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
@@ -130,6 +131,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     setDistanceRequestData?: (participants: Participant[]) => void;
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
     quickAction: OnyxEntry<QuickAction>;
+    policyTags: OnyxEntry<PolicyTagLists>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
     activePolicyID?: string;
@@ -241,6 +243,7 @@ function getMoneyRequestParticipantOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
+    policyTags: OnyxEntry<PolicyTagLists>,
     privateIsArchived?: string,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): Array<Participant | OptionData> {
@@ -249,7 +252,7 @@ function getMoneyRequestParticipantOptions(
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, reportAttributesDerived);
+            : getReportOption(participant, policyTags, privateIsArchived, policy, currentUserAccountID, personalDetails, reportAttributesDerived);
     });
 }
 
@@ -279,6 +282,7 @@ function handleMoneyRequestStepScanParticipants({
     activePolicyID,
     privateIsArchived,
     files,
+    policyTags,
     isTestTransaction = false,
     locationPermissionGranted = false,
     isSelfTourViewed,
@@ -316,7 +320,7 @@ function handleMoneyRequestStepScanParticipants({
     // to the confirmation step.
     // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (!initialTransaction?.isFromGlobalCreate && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, policyTags, privateIsArchived, reportAttributesDerived);
 
         if (shouldSkipConfirmation) {
             const firstReceiptFile = files.at(0);
@@ -507,6 +511,7 @@ function handleMoneyRequestStepDistanceNavigation({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
+    policyTags,
     activePolicyID,
     privateIsArchived,
     gpsCoordinates,
@@ -532,7 +537,7 @@ function handleMoneyRequestStepDistanceNavigation({
     // to the confirm step.
     // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
-        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
+        const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, policyTags, privateIsArchived, reportAttributesDerived);
 
         let validWaypoints: WaypointCollection | undefined;
         if (!isManualDistance) {

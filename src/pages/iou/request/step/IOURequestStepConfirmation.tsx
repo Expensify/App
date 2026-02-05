@@ -305,9 +305,9 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participant.accountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived, reportDrafts);
+                    : getReportOption(participant, policyTags, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived, reportDrafts);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, currentUserPersonalDetails.accountID],
+        [transaction?.participants, iouType, privateIsArchivedMap, personalDetails, policyTags, policy, currentUserPersonalDetails.accountID, reportAttributesDerived, reportDrafts],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
@@ -1182,6 +1182,7 @@ function IOURequestStepConfirmation({
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             quickAction,
+            policyRecentlyUsedCurrencies,
             isASAPSubmitBetaEnabled,
             transactionViolations,
             receiverParticipantAccountID,
@@ -1192,7 +1193,6 @@ function IOURequestStepConfirmation({
             trackExpense,
             userLocation,
             submitPerDiemExpense,
-            policyRecentlyUsedCurrencies,
             reportID,
             betas,
         ],

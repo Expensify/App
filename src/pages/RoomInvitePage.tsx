@@ -119,7 +119,7 @@ function RoomInvitePage({
             recentReports: [],
             currentUserOption: null,
         };
-    }, [areOptionsInitialized, betas, excludedUsers, loginList, nvpDismissedProductTraining, options.personalDetails, selectedOptions, currentUserAccountID, currentUserEmail]);
+    }, [areOptionsInitialized, options.personalDetails, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, betas, excludedUsers, selectedOptions]);
 
     const inviteOptions = useMemo(() => {
         if (debouncedSearchTerm.trim() === '') {

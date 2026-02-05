@@ -66,6 +66,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -89,6 +90,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             allPolicies,
             draftComments,
             nvpDismissedProductTraining,
+            policyTags,
             loginList,
             currentUserAccountID,
             currentUserEmail,
@@ -115,6 +117,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         allPolicies,
         draftComments,
         nvpDismissedProductTraining,
+        policyTags,
         loginList,
         betas,
         action,
@@ -158,6 +161,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             [],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            policyTags,
             currentUserAccountID,
             personalDetails,
             true,
@@ -191,7 +195,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
@@ -214,9 +218,10 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         chatOptions.personalDetails,
         chatOptions.userToInvite,
         debouncedSearchTerm,
+        policyTags,
+        translate,
         personalDetails,
         reportAttributesDerived,
-        translate,
         loginList,
         countryCode,
         currentUserAccountID,

@@ -123,6 +123,7 @@ function MoneyRequestParticipantsSelector({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}`, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
@@ -291,6 +292,7 @@ function MoneyRequestParticipantsSelector({
             participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             [],
             [],
+            policyTags,
             currentUserAccountID,
             personalDetails,
             true,
@@ -345,7 +347,7 @@ function MoneyRequestParticipantsSelector({
                 data: [availableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, policyTags, currentUserAccountID, personalDetails, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
@@ -363,6 +365,8 @@ function MoneyRequestParticipantsSelector({
         didScreenTransitionEnd,
         searchTerm,
         participants,
+        policyTags,
+        currentUserAccountID,
         personalDetails,
         reportAttributesDerived,
         translate,
@@ -373,11 +377,10 @@ function MoneyRequestParticipantsSelector({
         availableOptions.personalDetails,
         isWorkspacesOnly,
         loginList,
+        currentUserEmail,
         isPerDiemRequest,
         showImportContacts,
         inputHelperText,
-        currentUserAccountID,
-        currentUserEmail,
     ]);
 
     /**

@@ -195,6 +195,7 @@ function SearchAutocompleteList({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -220,6 +221,7 @@ function SearchAutocompleteList({
             includeCurrentUser: true,
             countryCode,
             shouldShowGBR: false,
+            policyTags,
             shouldUnreadBeBold: true,
             loginList,
             currentUserAccountID,
@@ -237,6 +239,7 @@ function SearchAutocompleteList({
         loginList,
         currentUserAccountID,
         currentUserEmail,
+        policyTags,
         personalDetails,
     ]);
 
@@ -449,6 +452,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    policyTags,
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
@@ -483,6 +487,7 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
+                    policyTags,
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
@@ -655,11 +660,13 @@ function SearchAutocompleteList({
         currencyAutocompleteList,
         recentCurrencyAutocompleteList,
         taxAutocompleteList,
+        translate,
         options,
         draftComments,
         nvpDismissedProductTraining,
         betas,
         countryCode,
+        policyTags,
         loginList,
         currentUserAccountID,
         currentUserEmail,
@@ -668,7 +675,6 @@ function SearchAutocompleteList({
         statusAutocompleteList,
         feedAutoCompleteList,
         cardAutocompleteList,
-        translate,
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
