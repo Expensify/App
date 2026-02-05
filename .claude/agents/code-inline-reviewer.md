@@ -1194,7 +1194,7 @@ function SaveButton({ getSiblingFormData }: { getSiblingFormData: () => FormData
 - **Search patterns**: `FullscreenLoadingIndicator`, `ActivityIndicator`
 
 - **Condition**: Flag ONLY when ANY of these patterns is found:
-  - `FullscreenLoadingIndicator` and `HeaderWithBackButton` (or other navigation like close button) are **both visible simultaneously** (in the same JSX tree, not separated by conditionals)
+  - `FullscreenLoadingIndicator` and `HeaderWithBackButton` (or other navigation like close button) are **both under the same JSX tree** (not separated by conditionals)
   - `FullscreenLoadingIndicator` without `shouldUseGoBackButton` prop when **no navigation component** is visible alongside it
   - `ActivityIndicator` as the **sole/main screen content** (flex:1 container, early return) without any navigation component
 
