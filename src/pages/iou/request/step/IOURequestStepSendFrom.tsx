@@ -36,7 +36,7 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
     const selectedWorkspace = useMemo(() => transaction?.participants?.find((participant) => participant.isSender), [transaction]);
 
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
-        const availableWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin).filter((policy) => canSendInvoiceFromWorkspace(policy.id));
+        const availableWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin).filter((policy) => canSendInvoiceFromWorkspace(policy));
 
         return availableWorkspaces
             .sort((policy1, policy2) =>

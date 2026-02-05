@@ -1123,10 +1123,7 @@ function hasPolicyWithXeroConnection(adminPolicies: Policy[] | undefined) {
 }
 
 /** Whether the user can send invoice from the workspace */
-function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function canSendInvoiceFromWorkspace(policy: OnyxEntry<Policy>): boolean {
     return policy?.areInvoicesEnabled ?? false;
 }
 
@@ -1138,7 +1135,7 @@ function canSubmitPerDiemExpenseFromWorkspace(policy: OnyxEntry<Policy>): boolea
 
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): boolean {
-    return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy.id));
+    return getActiveAdminWorkspaces(policies, currentUserLogin).some((policy) => canSendInvoiceFromWorkspace(policy));
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
