@@ -10,8 +10,10 @@ type ChartInteractionState = {
     /** Whether interaction (hover/press) is currently active */
     isActive: SharedValue<boolean>;
 
+
     /** Index of the matched data point (-1 if none) */
     matchedIndex: SharedValue<number>;
+
 
     /** X-axis value and position */
     x: {
@@ -29,6 +31,7 @@ type ChartInteractionState = {
 
     /** Y index for stacked bar charts */
     yIndex: SharedValue<number>;
+
 
     /** Raw cursor position */
     cursor: {
