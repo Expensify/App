@@ -410,7 +410,7 @@ function UserProfile({ userId }) {
 
 ---
 
-### [PERFORMANCE-12] Prevent memory leaks in components and plugins
+### [PERF-12] Prevent memory leaks in components and plugins
 
 - **Search patterns**: `setInterval`, `setTimeout`, `addEventListener`, `subscribe`, `useEffect` with missing cleanup
 
@@ -770,7 +770,7 @@ useEffect(() => {
 
 ---
 
-### [CONSISTENCY-5] Ensure proper error handling
+### [CONSISTENCY-6] Ensure proper error handling
 
 - **Search patterns**: `try`, `catch`, `async`, `await`, `Promise`, `.then(`, `.catch(`
 
