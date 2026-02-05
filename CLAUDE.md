@@ -172,6 +172,17 @@ Key GitHub Actions workflows:
 
 ## Development Practices
 
+### Code Patterns
+
+Use `/expensify-code-patterns` skill when writing or reviewing React Native code. This skill provides patterns for performance, consistency, and clean architecture.
+
+| Category | Key Rules | Reference |
+|----------|-----------|-----------|
+| Performance | List rendering, memoization, useEffect | [PERFORMANCE.md](.claude/skills/expensify-code-patterns/references/PERFORMANCE.md) |
+| Consistency | Platform handling, constants, errors | [CONSISTENCY.md](.claude/skills/expensify-code-patterns/references/CONSISTENCY.md) |
+| Components | Composition, ownership, contracts | [COMPONENTS.md](.claude/skills/expensify-code-patterns/references/COMPONENTS.md) |
+| Onyx | Selectors, subscriptions, providers | [ONYX.md](.claude/skills/expensify-code-patterns/references/ONYX.md) |
+
 ### React Native Best Practices
 Use the `/react-native-best-practices` skill when working on performance-sensitive code, native modules, or release preparation. This ensures code respects established best practices from the start, resulting in more consistent code, fewer review iterations, and better resilience against regressions.
 
