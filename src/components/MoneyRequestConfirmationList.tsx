@@ -60,6 +60,7 @@ import {
     isMerchantMissing,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
+import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -310,7 +311,12 @@ function MoneyRequestConfirmationList({
     );
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const policy = isTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
+    let policy;
+    if (isTrackExpense) {
+        policy = isPolicyExpenseChat ? policyForMovingExpenses : undefined;
+    } else {
+        policy = policyReal ?? policyDraft;
+    }
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
@@ -325,7 +331,7 @@ function MoneyRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
-    const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest;
+    const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -365,7 +371,7 @@ function MoneyRequestConfirmationList({
         ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && !isTimeRequest;
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && (!isTimeRequest || action !== CONST.IOU.ACTION.CREATE);
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
@@ -398,7 +404,7 @@ function MoneyRequestConfirmationList({
     // to calculate the distance stored in transaction.comment.customUnit.quantity
     const gpsDistance = transaction?.comment?.customUnit?.quantity;
     const gpsDistanceWithCurrentDistanceUnit = calculateGPSDistance(distance, unit);
-    const shouldUpdateGpsDistance = gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
+    const shouldUpdateGpsDistance = isGPSDistanceRequest && gpsDistance !== gpsDistanceWithCurrentDistanceUnit;
     useEffect(() => {
         if (!shouldUpdateGpsDistance || !transactionID || isReadOnly) {
             return;
@@ -457,6 +463,19 @@ function MoneyRequestConfirmationList({
         [iouCategory, policyCategories, policy?.areRulesEnabled],
     );
 
+    const isViolationFixed = getIsViolationFixed(formError, {
+        category: iouCategory,
+        tag: getTag(transaction),
+        taxCode: transaction?.taxCode,
+        policyCategories,
+        policyTagLists: policyTags,
+        policyTaxRates: policy?.taxRates?.taxes,
+        iouAttendees,
+        currentUserPersonalDetails,
+        isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
+        isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
+    });
+
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -466,20 +485,21 @@ function MoneyRequestConfirmationList({
             setFormError('iou.receiptScanningFailed');
             return;
         }
+        // Check 1: If formError does NOT start with "violations.", clear it and return
         // Reset the form error whenever the screen gains or loses focus
         // but preserve violation-related errors since those represent real validation issues
-        // that can only be fixed by changing the underlying data
+        // that can only be resolved by fixing the underlying issue
         if (!formError.startsWith(CONST.VIOLATIONS_PREFIX)) {
             setFormError('');
             return;
         }
-        // Clear missingAttendees violation if user fixed it by changing category or attendees
-        const isMissingAttendeesViolation = getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
-        if (formError === 'violations.missingAttendees' && !isMissingAttendeesViolation) {
+        // Check 2: Only reached if formError STARTS with "violations."
+        // Clear any violation error if the user has fixed the underlying issue
+        if (isViolationFixed) {
             setFormError('');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
-    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, iouCategory, iouAttendees, policyCategories, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled]);
+    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed]);
 
     useEffect(() => {
         // We want this effect to run only when the transaction is moving from Self DM to a expense chat
@@ -788,6 +808,7 @@ function MoneyRequestConfirmationList({
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
                         shouldUseAutoHitSlop
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RESET_SPLIT_SHARES}
                     >
                         <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>{translate('common.reset')}</Text>
                     </PressableWithFeedback>
@@ -832,8 +853,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                shouldShowRightIcon: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
             }));
             options.push({
                 title: translate('common.to'),
@@ -850,7 +871,7 @@ function MoneyRequestConfirmationList({
         getSplitSectionHeader,
         splitParticipants,
         selectedParticipants,
-        isCreateExpenseFlow,
+        isFromGlobalCreateAndCanEditParticipant,
         isTestReceipt,
         isRestrictedToPreferredPolicy,
         isTypeInvoice,
@@ -931,7 +952,7 @@ function MoneyRequestConfirmationList({
      * Navigate to the participant step
      */
     const navigateToParticipantPage = () => {
-        if (!isCreateExpenseFlow) {
+        if (!isFromGlobalCreateAndCanEditParticipant) {
             return;
         }
 
@@ -984,7 +1005,14 @@ function MoneyRequestConfirmationList({
             // Since invoices are not expense reports that need attendee tracking, this validation should not apply to invoices
             const isMissingAttendeesViolation =
                 iouType !== CONST.IOU.TYPE.INVOICE &&
-                getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
+                getIsMissingAttendeesViolation(
+                    policyCategories,
+                    iouCategory,
+                    iouAttendees,
+                    currentUserPersonalDetails,
+                    policy?.isAttendeeTrackingEnabled,
+                    policy?.type === CONST.POLICY.TYPE.CORPORATE,
+                );
             if (isMissingAttendeesViolation) {
                 setFormError('violations.missingAttendees');
                 return;

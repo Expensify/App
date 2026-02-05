@@ -27,6 +27,7 @@ import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportAction,
+    hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isPayAction,
 } from './ReportActionsUtils';
@@ -67,7 +68,8 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
-    hasSmartScanFailedOrNoRouteViolation,
+    hasSubmissionBlockingViolations,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
@@ -101,18 +103,24 @@ function isSplitAction(
     }
 
     const reportTransaction = reportTransactions.at(0);
+    const {amount} = getTransactionDetails(reportTransaction) ?? {};
+
+    if (isPending(reportTransaction) || !!reportTransaction?.errors) {
+        return false;
+    }
 
     const isScanning = hasReceiptTransactionUtils(reportTransaction) && isReceiptBeingScanned(reportTransaction);
-    if (isPending(reportTransaction) || isScanning || !!reportTransaction?.errors) {
+
+    if (isScanning && !amount) {
         return false;
     }
 
-    const {amount} = getTransactionDetails(reportTransaction) ?? {};
-    if (!amount) {
+    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
+
+    if (!amount && !isExpenseSplit) {
         return false;
     }
 
-    const {isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
     if (isBillSplit) {
         return false;
     }
@@ -194,7 +202,7 @@ function isSubmitAction({
     }
 
     if (violations && currentUserLogin && currentUserAccountID !== undefined) {
-        if (reportTransactions.some((transaction) => hasSmartScanFailedOrNoRouteViolation(transaction, violations, currentUserLogin, currentUserAccountID, report, policy))) {
+        if (reportTransactions.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserLogin, currentUserAccountID, report, policy))) {
             return false;
         }
     }
@@ -259,11 +267,17 @@ function isApproveAction(
     report: Report,
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
+    reportMetadata: OnyxEntry<ReportMetadata>,
     policy?: Policy,
 ): boolean {
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
         return false;
     }
 
@@ -327,6 +341,11 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     const isManager = report.managerID === currentUserAccountID;
 
     if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing) {
+        return false;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (isDEWPolicy && !isAdmin) {
         return false;
     }
 
@@ -757,7 +776,7 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     const reportTransaction = reportTransactions.at(0);
 
     // Per diem and distance requests will be handled separately in a follow-up
-    if (isPerDiemRequestTransactionUtils(reportTransaction)) {
+    if (isPerDiemRequestTransactionUtils(reportTransaction) || isDistanceRequestTransactionUtils(reportTransaction)) {
         return false;
     }
 
@@ -858,7 +877,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
-    if (isApproveAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
+    if (isApproveAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, reportMetadata, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 
