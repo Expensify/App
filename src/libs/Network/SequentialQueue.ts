@@ -508,7 +508,6 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
         isSequentialQueueRunning,
     });
 
-
     if (newRequest.checkAndFixConflictingRequest) {
         const requests = getAllPersistedRequests();
         Log.info('[SequentialQueue] Checking for conflicts', false, {
