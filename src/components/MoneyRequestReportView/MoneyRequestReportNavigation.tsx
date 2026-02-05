@@ -8,7 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {selectFilteredReportActions} from '@libs/ReportUtils';
+import {isReportPendingDelete, selectFilteredReportActions} from '@libs/ReportUtils';
 import {getSections, getSortedSections} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import {saveLastSearchParams} from '@userActions/ReportNavigation';
@@ -84,8 +84,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             return false;
         }
         const liveReport = liveReports?.[`${reportKeyPrefix}${id}`];
-        const isPendingDelete = liveReport?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || liveReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        return !isPendingDelete;
+        return !isReportPendingDelete(liveReport);
     });
 
     const currentIndex = allReports.indexOf(reportID);

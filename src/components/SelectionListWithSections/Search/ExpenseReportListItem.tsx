@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isInvoiceReport, isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
+import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -90,9 +90,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const reportForViolations = parentReport ?? snapshotReport;
 
-    // Use live report data for pending delete check as snapshot can be stale
-    const liveReport = parentReport ?? reportItem;
-    const isReportPendingDelete = liveReport.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || liveReport.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    // Use live report data (parentReport) for pending delete check as search snapshot (reportItem) can be stale.
+    // parentReport is fetched from Onyx and reflects real-time state, while reportItem comes from cached search results.
+    const reportForPendingDeleteCheck = parentReport ?? reportItem;
+    const isPendingDelete = isReportPendingDelete(reportForPendingDeleteCheck);
 
     // Sync missingAttendees violation at render time for each transaction in the report
     // This ensures violations show immediately when category settings change, without needing to click the row
@@ -168,9 +169,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
-            isReportPendingDelete && styles.cursorDisabled,
+            isPendingDelete && styles.cursorDisabled,
         ],
-        [styles, item.isSelected, isReportPendingDelete],
+        [styles, item.isSelected, isPendingDelete],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -244,11 +245,11 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isReportPendingDelete && styles.cursorDisabled]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isPendingDelete && styles.cursorDisabled]}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}
-            isDisabled={isReportPendingDelete}
-            shouldDisableHoverStyle={isReportPendingDelete}
+            isDisabled={isPendingDelete}
+            shouldDisableHoverStyle={isPendingDelete}
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
