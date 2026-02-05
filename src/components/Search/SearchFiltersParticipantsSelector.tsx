@@ -34,7 +34,8 @@ const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoring
 
 function getSelectedOptionData(option: Option): OptionData {
     // eslint-disable-next-line rulesdir/no-default-id-values
-    return {...option, selected: true, reportID: option.reportID ?? '-1'};
+    const reportID = option.reportID ?? '-1';
+    return {...option, selected: true, reportID, keyForList: option.keyForList ?? reportID};
 }
 
 /**
@@ -51,6 +52,7 @@ function getOptionDataFromAttendee(attendee: Attendee): OptionData {
         accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
         // eslint-disable-next-line rulesdir/no-default-id-values
         reportID: '-1',
+        keyForList: `${attendee.accountID ?? attendee.email}`,
         selected: true,
         icons: attendee.avatarUrl
             ? [
@@ -171,7 +173,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     }, [defaultOptions, selectedOptions, shouldAllowNameOnlyOptions]);
 
     const chatOptions = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, {
+        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -188,7 +190,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, shouldAllowNameOnlyOptions, searchTerm, currentUserEmail, currentUserAccountID]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, shouldAllowNameOnlyOptions, searchTerm, currentUserEmail, currentUserAccountID, personalDetails]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
