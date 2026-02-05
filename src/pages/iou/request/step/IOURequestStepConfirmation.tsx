@@ -165,6 +165,8 @@ function IOURequestStepConfirmation({
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`, {canBeMissing: true});
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {canBeMissing: true});
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
     /*
@@ -560,7 +562,6 @@ function IOURequestStepConfirmation({
             const optimisticChatReportID = generateReportID();
             const optimisticCreatedReportActionID = rand64();
             const optimisticReportPreviewActionID = rand64();
-
             let existingIOUReport: Report | undefined;
 
             for (const [index, item] of transactions.entries()) {
@@ -641,6 +642,8 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     isSelfTourViewed,
+                    betas,
+                    personalDetails,
                 });
                 existingIOUReport = iouReport;
             }
@@ -676,6 +679,8 @@ function IOURequestStepConfirmation({
             parentReportAction,
             isTimeRequest,
             isSelfTourViewed,
+            betas,
+            personalDetails,
         ],
     );
 
@@ -745,6 +750,7 @@ function IOURequestStepConfirmation({
                     hasViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
+                    betas,
                 });
             }
         },
@@ -764,6 +770,7 @@ function IOURequestStepConfirmation({
             hasViolations,
             policyRecentlyUsedCurrencies,
             quickAction,
+            betas,
         ],
     );
 
@@ -835,6 +842,7 @@ function IOURequestStepConfirmation({
                     activePolicyID,
                     quickAction,
                     recentWaypoints,
+                    betas,
                 });
             }
         },
@@ -862,6 +870,7 @@ function IOURequestStepConfirmation({
             activePolicyID,
             quickAction,
             recentWaypoints,
+            betas,
         ],
     );
 
@@ -914,6 +923,7 @@ function IOURequestStepConfirmation({
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 recentWaypoints,
+                betas,
             });
         },
         [
@@ -942,6 +952,7 @@ function IOURequestStepConfirmation({
             quickAction,
             policyRecentlyUsedCurrencies,
             recentWaypoints,
+            betas,
         ],
     );
 
@@ -1043,6 +1054,7 @@ function IOURequestStepConfirmation({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        betas,
                     });
                 }
                 return;
@@ -1074,6 +1086,7 @@ function IOURequestStepConfirmation({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        betas,
                     });
                 }
                 return;
@@ -1215,6 +1228,7 @@ function IOURequestStepConfirmation({
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
             reportID,
+            betas,
         ],
     );
 

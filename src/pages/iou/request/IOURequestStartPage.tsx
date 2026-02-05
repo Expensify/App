@@ -8,8 +8,8 @@ import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -264,7 +264,6 @@ function IOURequestStartPage({
         },
     );
     const shouldShowTimeOption =
-        isBetaEnabled(CONST.BETAS.TIME_TRACKING) &&
         (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
         ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
 
@@ -273,7 +272,7 @@ function IOURequestStartPage({
         return true;
     };
 
-    useHandleBackButton(onBackButtonPress);
+    useAndroidBackButtonHandler(onBackButtonPress);
 
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 

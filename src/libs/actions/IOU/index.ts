@@ -1,91 +1,262 @@
 /* eslint-disable max-lines */
-import { eachDayOfInterval, format } from 'date-fns';
-import { fastMerge } from 'expensify-common';
+import {eachDayOfInterval, format} from 'date-fns';
+import {fastMerge} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
-import { InteractionManager } from 'react-native';
-import type { NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxUpdate } from 'react-native-onyx';
+import {InteractionManager} from 'react-native';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type { ValueOf } from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
-import type { PaymentMethod } from '@components/KYCWall/types';
-import type { SearchQueryJSON } from '@components/Search/types';
+import type {PaymentMethod} from '@components/KYCWall/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
-import type { AddReportApproverParams, ApproveMoneyRequestParams, AssignReportToMeParams, CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams, CreateDistanceRequestParams, CreatePerDiemRequestParams, CreateWorkspaceParams, DeleteMoneyRequestParams, DetachReceiptParams, MarkTransactionViolationAsResolvedParams, PayInvoiceParams, PayMoneyRequestParams, RejectMoneyRequestParams, ReopenReportParams, ReplaceReceiptParams, RequestMoneyParams, RetractReportParams, SetNameValuePairParams, ShareTrackedExpenseParams, SubmitReportParams, TrackExpenseParams, UnapproveExpenseReportParams, UpdateMoneyRequestParams } from '@libs/API/parameters';
-import { WRITE_COMMANDS } from '@libs/API/types';
-import { convertAmountToDisplayString, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals } from '@libs/CurrencyUtils';
+import type {
+    AddReportApproverParams,
+    ApproveMoneyRequestParams,
+    AssignReportToMeParams,
+    CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
+    CreateDistanceRequestParams,
+    CreatePerDiemRequestParams,
+    CreateWorkspaceParams,
+    DeleteMoneyRequestParams,
+    DetachReceiptParams,
+    MarkTransactionViolationAsResolvedParams,
+    PayInvoiceParams,
+    PayMoneyRequestParams,
+    RejectMoneyRequestParams,
+    ReopenReportParams,
+    ReplaceReceiptParams,
+    RequestMoneyParams,
+    RetractReportParams,
+    SetNameValuePairParams,
+    ShareTrackedExpenseParams,
+    SubmitReportParams,
+    TrackExpenseParams,
+    UnapproveExpenseReportParams,
+    UpdateMoneyRequestParams,
+} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import {convertAmountToDisplayString, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import { getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey } from '@libs/ErrorUtils';
-import { readFileAsync } from '@libs/fileDownload/FileUtils';
-import type { MinimalTransaction } from '@libs/Formula';
+import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import type {MinimalTransaction} from '@libs/Formula';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import { getGPSRoutes, getGPSWaypoints } from '@libs/GPSDraftDetailsUtils';
-import { calculateAmount as calculateIOUAmount, formatCurrentUserToAttendee, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, updateIOUOwnerAndTotal } from '@libs/IOUUtils';
+import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
+import {
+    calculateAmount as calculateIOUAmount,
+    formatCurrentUserToAttendee,
+    isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    navigateToStartMoneyRequestStep,
+    updateIOUOwnerAndTotal,
+} from '@libs/IOUUtils';
 import isFileUploadable from '@libs/isFileUploadable';
-import { formatPhoneNumber } from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
-import { validateAmount } from '@libs/MoneyRequestUtils';
+import {validateAmount} from '@libs/MoneyRequestUtils';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation, { navigationRef } from '@libs/Navigation/Navigation';
-import { isOffline } from '@libs/Network/NetworkStore';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {isOffline} from '@libs/Network/NetworkStore';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import { buildNextStepNew, buildOptimisticNextStep } from '@libs/NextStepUtils';
+import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import { getManagerMcTestParticipant, getPersonalDetailsForAccountIDs } from '@libs/OptionsListUtils';
+import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import { getCustomUnitID } from '@libs/PerDiemRequestUtils';
+import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import Performance from '@libs/Performance';
-import { getAccountIDsByLogins, getLoginByAccountID } from '@libs/PersonalDetailsUtils';
-import { addSMSDomainIfPhoneNumber } from '@libs/PhoneNumber';
-import { arePaymentsEnabled, getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, getPerDiemRateCustomUnitRate, getPolicy, getSubmitToAccountID, hasDependentTags, hasDynamicExternalWorkflow, isControlPolicy, isDelayedSubmissionEnabled, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose } from '@libs/PolicyUtils';
-import { getAllReportActions, getIOUActionForReportID, getLastVisibleAction, getLastVisibleMessage, getOriginalMessage, getReportAction, getReportActionHtml, getReportActionMessage, getReportActionText, getTrackExpenseActionableWhisper, hasPendingDEWApprove, isActionableTrackExpense, isCreatedAction, isDeletedAction, isMoneyRequestAction, isReportPreviewAction } from '@libs/ReportActionsUtils';
-import type { OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails } from '@libs/ReportUtils';
-import { buildOptimisticActionableTrackExpenseWhisper, buildOptimisticAddCommentReportAction, buildOptimisticApprovedReportAction, buildOptimisticCancelPaymentReportAction, buildOptimisticChangeApproverReportAction, buildOptimisticChatReport, buildOptimisticCreatedReportAction, buildOptimisticCreatedReportForUnapprovedAction, buildOptimisticDetachReceipt, buildOptimisticExpenseReport, buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildOptimisticMarkedAsResolvedReportAction, buildOptimisticModifiedExpenseReportAction, buildOptimisticMoneyRequestEntities, buildOptimisticMovedTransactionAction, buildOptimisticRejectReportAction, buildOptimisticRejectReportActionComment, buildOptimisticReopenedReportAction, buildOptimisticReportPreview, buildOptimisticRetractedReportAction, buildOptimisticSelfDMReport, buildOptimisticSubmittedReportAction, buildOptimisticUnapprovedReportAction, canBeAutoReimbursed, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, findSelfDMReportID, generateReportID, getAllHeldTransactions as getAllHeldTransactionsReportUtils, getApprovalChain, getChatByParticipants, getDisplayedReportID, getMoneyRequestSpendBreakdown, getNextApproverAccountID, getOutstandingChildRequest, getParsedComment, getPersonalDetailsForAccountID, getReportNotificationPreference, getReportOrDraftReport, getReportRecipientAccountIDs, getReportTransactions, getTransactionDetails, hasHeldExpenses as hasHeldExpensesReportUtils, hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils, hasOutstandingChildRequest, hasViolations as hasViolationsReportUtils, isArchivedReport, isClosedReport as isClosedReportUtil, isDeprecatedGroupDM, isDraftReport, isExpenseReport, isGroupChat, isIndividualInvoiceRoom, isInvoiceReport as isInvoiceReportReportUtils, isInvoiceRoom, isIOUReport, isMoneyRequestReport as isMoneyRequestReportReportUtils, isOneOnOneChat, isOneTransactionReport, isOneTransactionThread, isOpenExpenseReport as isOpenExpenseReportReportUtils, isOpenInvoiceReport as isOpenInvoiceReportReportUtils, isOpenReport, isOptimisticPersonalDetail, isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils, isPayer as isPayerReportUtils, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isProcessingReport, isReportApproved, isReportManager, isSelectedManagerMcTest, isSelfDM, isSettled, isTestTransactionReport, isTrackExpenseReport, prepareOnboardingOnyxData, shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils, shouldEnableNegative, updateReportPreview } from '@libs/ReportUtils';
-import { buildCannedSearchQuery, getCurrentSearchQueryJSON } from '@libs/SearchQueryUtils';
-import { getSuggestedSearches } from '@libs/SearchUIUtils';
-import playSound, { SOUNDS } from '@libs/Sound';
-import { shouldRestrictUserBillableActions } from '@libs/SubscriptionUtils';
-import { startSpan } from '@libs/telemetry/activeSpans';
-import { allHavePendingRTERViolation, buildOptimisticTransaction, getAmount, getCategoryTaxCodeAndAmount, getChildTransactions, getClearedPendingFields, getCurrency, getDistanceInMeters, getMerchant, getOriginalTransactionWithSplitInfo, getUpdatedTransaction, hasAnyTransactionWithoutRTERViolation, hasDuplicateTransactions, hasSubmissionBlockingViolations, isCustomUnitRateIDForP2P, isDistanceRequest as isDistanceRequestTransactionUtils, isDuplicate, isFetchingWaypointsFromServer, isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils, isManualDistanceRequest as isManualDistanceRequestTransactionUtils, isMapDistanceRequest, isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils, isOnHold, isPending, isPendingCardOrScanningTransaction, isPerDiemRequest as isPerDiemRequestTransactionUtils, isScanning, isScanRequest as isScanRequestTransactionUtils, removeTransactionFromDuplicateTransactionViolation } from '@libs/TransactionUtils';
+import {getAccountIDsByLogins, getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {
+    arePaymentsEnabled,
+    getDistanceRateCustomUnit,
+    getMemberAccountIDsForWorkspace,
+    getPerDiemCustomUnit,
+    getPerDiemRateCustomUnitRate,
+    getPolicy,
+    getSubmitToAccountID,
+    hasDependentTags,
+    hasDynamicExternalWorkflow,
+    isControlPolicy,
+    isDelayedSubmissionEnabled,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isSubmitAndClose,
+} from '@libs/PolicyUtils';
+import {
+    getAllReportActions,
+    getIOUActionForReportID,
+    getLastVisibleAction,
+    getLastVisibleMessage,
+    getOriginalMessage,
+    getReportAction,
+    getReportActionHtml,
+    getReportActionMessage,
+    getReportActionText,
+    getTrackExpenseActionableWhisper,
+    hasPendingDEWApprove,
+    isActionableTrackExpense,
+    isCreatedAction,
+    isDeletedAction,
+    isMoneyRequestAction,
+    isReportPreviewAction,
+} from '@libs/ReportActionsUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
+import {
+    buildOptimisticActionableTrackExpenseWhisper,
+    buildOptimisticAddCommentReportAction,
+    buildOptimisticApprovedReportAction,
+    buildOptimisticCancelPaymentReportAction,
+    buildOptimisticChangeApproverReportAction,
+    buildOptimisticChatReport,
+    buildOptimisticCreatedReportAction,
+    buildOptimisticCreatedReportForUnapprovedAction,
+    buildOptimisticDetachReceipt,
+    buildOptimisticExpenseReport,
+    buildOptimisticIOUReport,
+    buildOptimisticIOUReportAction,
+    buildOptimisticMarkedAsResolvedReportAction,
+    buildOptimisticModifiedExpenseReportAction,
+    buildOptimisticMoneyRequestEntities,
+    buildOptimisticMovedTransactionAction,
+    buildOptimisticRejectReportAction,
+    buildOptimisticRejectReportActionComment,
+    buildOptimisticReopenedReportAction,
+    buildOptimisticReportPreview,
+    buildOptimisticRetractedReportAction,
+    buildOptimisticSelfDMReport,
+    buildOptimisticSubmittedReportAction,
+    buildOptimisticUnapprovedReportAction,
+    canBeAutoReimbursed,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    findSelfDMReportID,
+    generateReportID,
+    getAllHeldTransactions as getAllHeldTransactionsReportUtils,
+    getApprovalChain,
+    getChatByParticipants,
+    getDisplayedReportID,
+    getMoneyRequestSpendBreakdown,
+    getNextApproverAccountID,
+    getOutstandingChildRequest,
+    getParsedComment,
+    getPersonalDetailsForAccountID,
+    getReportNotificationPreference,
+    getReportOrDraftReport,
+    getReportRecipientAccountIDs,
+    getReportTransactions,
+    getTransactionDetails,
+    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
+    hasOutstandingChildRequest,
+    hasViolations as hasViolationsReportUtils,
+    isArchivedReport,
+    isClosedReport as isClosedReportUtil,
+    isDeprecatedGroupDM,
+    isDraftReport,
+    isExpenseReport,
+    isGroupChat,
+    isIndividualInvoiceRoom,
+    isInvoiceReport as isInvoiceReportReportUtils,
+    isInvoiceRoom,
+    isIOUReport,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
+    isOneOnOneChat,
+    isOneTransactionReport,
+    isOneTransactionThread,
+    isOpenExpenseReport as isOpenExpenseReportReportUtils,
+    isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
+    isOpenReport,
+    isOptimisticPersonalDetail,
+    isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
+    isPayer as isPayerReportUtils,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    isProcessingReport,
+    isReportApproved,
+    isReportManager,
+    isSelectedManagerMcTest,
+    isSelfDM,
+    isSettled,
+    isTestTransactionReport,
+    isTrackExpenseReport,
+    prepareOnboardingOnyxData,
+    shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
+    shouldEnableNegative,
+    updateReportPreview,
+} from '@libs/ReportUtils';
+import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
+import {
+    allHavePendingRTERViolation,
+    buildOptimisticTransaction,
+    getAmount,
+    getCategoryTaxCodeAndAmount,
+    getChildTransactions,
+    getClearedPendingFields,
+    getCurrency,
+    getDistanceInMeters,
+    getMerchant,
+    getOriginalTransactionWithSplitInfo,
+    getUpdatedTransaction,
+    hasAnyTransactionWithoutRTERViolation,
+    hasDuplicateTransactions,
+    hasSubmissionBlockingViolations,
+    isCustomUnitRateIDForP2P,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isDuplicate,
+    isFetchingWaypointsFromServer,
+    isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
+    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isMapDistanceRequest,
+    isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
+    isOnHold,
+    isPending,
+    isPendingCardOrScanningTransaction,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isScanning,
+    isScanRequest as isScanRequestTransactionUtils,
+    removeTransactionFromDuplicateTransactionViolation,
+} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import { clearByKey as clearPdfByOnyxKey } from '@userActions/CachedPDFPaths';
-import { buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData } from '@userActions/Policy/Member';
-import { buildPolicyData, generatePolicyID } from '@userActions/Policy/Policy';
-import type { BuildPolicyDataKeys } from '@userActions/Policy/Policy';
-import { buildOptimisticPolicyRecentlyUsedTags } from '@userActions/Policy/Tag';
-import type { GuidedSetupData } from '@userActions/Report';
-import { buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData } from '@userActions/Report';
-import { clearAllRelatedReportActionErrors } from '@userActions/ReportActions';
-import { mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints } from '@userActions/Transaction';
-import { removeDraftTransaction, removeDraftTransactions } from '@userActions/TransactionEdit';
-import { getOnboardingMessages } from '@userActions/Welcome/OnboardingFlow';
-import type { OnboardingCompanySize } from '@userActions/Welcome/OnboardingFlow';
-import type { IOUAction, IOUActionParams, IOUType } from '@src/CONST';
+import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
+import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
+import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
+import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
+import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
+import type {GuidedSetupData} from '@userActions/Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
+import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
+import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
+import {removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
+import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
+import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Route } from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type { Accountant, Attendee, Participant, Split, SplitExpense } from '@src/types/onyx/IOU';
-import type { ErrorFields, Errors, PendingAction, PendingFields } from '@src/types/onyx/OnyxCommon';
-import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
-import type { CurrentUserPersonalDetails } from '@src/types/onyx/PersonalDetails';
-import type { QuickActionName } from '@src/types/onyx/QuickAction';
+import type {Accountant, Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
+import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
-import type { ReportNextStep } from '@src/types/onyx/Report';
+import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type { OnyxData } from '@src/types/onyx/Request';
-import type { Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection } from '@src/types/onyx/Transaction';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
-
+import type {OnyxData} from '@src/types/onyx/Request';
+import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -155,6 +326,7 @@ type PayInvoiceArgs = {
     methodID?: number;
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type RejectMoneyRequestData = {
@@ -342,6 +514,7 @@ type PerDiemExpenseInformation = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -357,6 +530,7 @@ type PerDiemExpenseInformationParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type RequestMoneyInformation = {
@@ -383,6 +557,8 @@ type RequestMoneyInformation = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     isSelfTourViewed: boolean;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type MoneyRequestInformationParams = {
@@ -390,6 +566,7 @@ type MoneyRequestInformationParams = {
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     transactionParams: RequestMoneyTransactionParams;
     participantParams: RequestMoneyParticipantParams;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyParams?: BasePolicyParams;
     moneyRequestReportID?: string;
     existingTransactionID?: string;
@@ -489,6 +666,7 @@ type CreateDistanceRequestInformation = {
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     customUnitPolicyID?: string;
     shouldHandleNavigation?: boolean;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -509,6 +687,7 @@ type CreateSplitsAndOnyxDataParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type TrackExpenseTransactionParams = {
@@ -561,6 +740,7 @@ type CreateTrackExpenseParams = {
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -604,6 +784,7 @@ type GetTrackExpenseInformationParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -697,6 +878,7 @@ type PayMoneyRequestFunctionParams = {
     full?: boolean;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -3037,6 +3219,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         quickAction,
         policyRecentlyUsedCurrencies,
         personalDetails,
+        betas,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -3136,17 +3319,17 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport(
-                  chatReport.reportID,
-                  chatReport.policyID,
+            ? buildOptimisticExpenseReport({
+                  chatReportID: chatReport.reportID,
+                  policyID: chatReport.policyID,
                   payeeAccountID,
-                  amount,
+                  total: amount,
                   currency,
                   nonReimbursableTotal,
-                  undefined,
-                  optimisticReportID,
+                  optimisticIOUReportID: optimisticReportID,
                   reportTransactions,
-              )
+                  betas,
+              })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
@@ -3475,6 +3658,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        betas,
     } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -3531,7 +3715,16 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, undefined, undefined, optimisticReportID, reportTransactions)
+            ? buildOptimisticExpenseReport({
+                  chatReportID: chatReport.reportID,
+                  policyID: chatReport.policyID,
+                  payeeAccountID,
+                  total: amount,
+                  currency,
+                  optimisticIOUReportID: optimisticReportID,
+                  reportTransactions,
+                  betas,
+              })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
@@ -3737,6 +3930,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         introSelected,
         activePolicyID,
         quickAction,
+        betas,
     } = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3907,17 +4101,17 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
-            iouReport = buildOptimisticExpenseReport(
-                chatReport.reportID,
-                chatReport.policyID,
+            iouReport = buildOptimisticExpenseReport({
+                chatReportID: chatReport.reportID,
+                policyID: chatReport.policyID,
                 payeeAccountID,
-                amount,
+                total: amount,
                 currency,
-                amount,
-                undefined,
-                optimisticExpenseReportID,
+                nonReimbursableTotal: amount,
+                betas,
+                optimisticIOUReportID: optimisticExpenseReportID,
                 reportTransactions,
-            );
+            });
         } else {
             iouReport = {...iouReport};
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -5771,6 +5965,28 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     successData?.push(...(convertTrackedExpenseInformation.successData ?? []));
     failureData?.push(...(convertTrackedExpenseInformation.failureData ?? []));
 
+    if (transactionThreadReportID) {
+        const transactionThreadReport = getReportOrDraftReport(transactionThreadReportID);
+
+        optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            value: {
+                parentReportActionID: iouParams.reportActionID,
+                parentReportID: iouParams.reportID,
+            },
+        });
+
+        failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            value: {
+                parentReportActionID: transactionThreadReport?.parentReportActionID,
+                parentReportID: transactionThreadReport?.parentReportID,
+            },
+        });
+    }
+
     if (workspaceParams) {
         const params = {
             amount,
@@ -5832,6 +6048,7 @@ function convertBulkTrackedExpensesToIOU(
     policyRecentlyUsedCurrencies: string[],
     quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
 ) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
 
@@ -5955,6 +6172,7 @@ function convertBulkTrackedExpensesToIOU(
             quickAction,
             policyRecentlyUsedCurrencies,
             personalDetails,
+            betas,
         });
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
@@ -6193,6 +6411,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         quickAction,
         policyRecentlyUsedCurrencies,
         isSelfTourViewed,
+        betas,
+        personalDetails,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6292,6 +6512,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        betas,
+        personalDetails,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -6342,7 +6564,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID,
-                    transactionThreadReportID,
+                    transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                     isLinkedTrackedExpenseReportArchived,
                 },
                 chatParams: {
@@ -6464,6 +6686,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        betas,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
@@ -6510,6 +6733,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         hasViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        betas,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
@@ -6968,6 +7192,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         activePolicyID,
         quickAction,
         recentWaypoints = [],
+        betas,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -7101,6 +7326,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         introSelected,
         activePolicyID,
         quickAction,
+        betas,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
@@ -7384,6 +7610,7 @@ function createSplitsAndOnyxData({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
+    betas,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7674,17 +7901,16 @@ function createSplitsAndOnyxData({
             );
 
             oneOnOneIOUReport = isOwnPolicyExpenseChat
-                ? buildOptimisticExpenseReport(
-                      oneOnOneChatReport.reportID,
-                      oneOnOneChatReport.policyID,
-                      currentUserAccountID,
-                      splitAmount,
+                ? buildOptimisticExpenseReport({
+                      chatReportID: oneOnOneChatReport.reportID,
+                      policyID: oneOnOneChatReport.policyID,
+                      payeeAccountID: currentUserAccountID,
+                      total: splitAmount,
                       currency,
-                      undefined,
-                      undefined,
-                      optimisticExpenseReportID,
+                      optimisticIOUReportID: optimisticExpenseReportID,
                       reportTransactions,
-                  )
+                      betas,
+                  })
                 : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -7923,6 +8149,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         recentWaypoints = [],
         customUnitPolicyID,
         shouldHandleNavigation = true,
+        betas,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -7998,6 +8225,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            betas,
         });
         onyxData = splitOnyxData;
 
@@ -8079,6 +8307,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            betas,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -9216,6 +9445,7 @@ function getReportFromHoldRequestsOnyxData({
     recipient,
     policy,
     createdTimestamp,
+    betas,
     isApprovalFlow = false,
 }: {
     chatReport: OnyxTypes.Report;
@@ -9223,6 +9453,7 @@ function getReportFromHoldRequestsOnyxData({
     recipient: Participant;
     policy: OnyxEntry<OnyxTypes.Policy>;
     createdTimestamp?: string;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
 }): {
     optimisticHoldReportID: string;
@@ -9252,18 +9483,18 @@ function getReportFromHoldRequestsOnyxData({
     }
 
     const optimisticExpenseReport = isPolicyExpenseChat
-        ? buildOptimisticExpenseReport(
-              chatReport.reportID,
-              chatReport.policyID ?? iouReport?.policyID,
-              recipient.accountID ?? 1,
-              holdAmount,
-              iouReport?.currency ?? '',
-              holdNonReimbursableAmount,
-              newParentReportActionID,
-              undefined,
+        ? buildOptimisticExpenseReport({
+              chatReportID: chatReport.reportID,
+              policyID: chatReport.policyID ?? iouReport?.policyID,
+              payeeAccountID: recipient.accountID ?? 1,
+              total: holdAmount,
+              currency: iouReport?.currency ?? '',
+              nonReimbursableTotal: holdNonReimbursableAmount,
+              parentReportActionID: newParentReportActionID,
+              betas,
               reportTransactions,
               createdTimestamp,
-          )
+          })
         : buildOptimisticIOUReport(
               iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
               iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID,
@@ -9544,6 +9775,7 @@ function getPayMoneyRequestParams({
     existingB2BInvoiceReport,
     activePolicy,
     iouReportCurrentNextStepDeprecated,
+    betas,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -9561,6 +9793,7 @@ function getPayMoneyRequestParams({
     currentUserEmailParam?: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -9849,7 +10082,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy});
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas});
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
         successData.push(...holdReportOnyxData.successData);
@@ -10074,6 +10307,7 @@ function approveMoneyRequest(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
     full?: boolean,
 ) {
     if (!expenseReport) {
@@ -10338,6 +10572,7 @@ function approveMoneyRequest(
             policy,
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
+            betas,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
@@ -11418,7 +11653,7 @@ function completePaymentOnboarding(
 }
 
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
-    const {paymentType, chatReport, iouReport, introSelected, iouReportCurrentNextStepDeprecated, currentUserAccountID, paymentPolicyID, full = true, activePolicy, policy} = params;
+    const {paymentType, chatReport, iouReport, introSelected, iouReportCurrentNextStepDeprecated, currentUserAccountID, paymentPolicyID, full = true, activePolicy, policy, betas} = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -11444,6 +11679,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         reportPolicy: policy,
         iouReportCurrentNextStepDeprecated,
         currentUserAccountIDParam: currentUserAccountID,
+        betas,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -11469,6 +11705,7 @@ function payInvoice({
     paymentMethod,
     activePolicy,
     invoiceReportCurrentNextStepDeprecated,
+    betas,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -11501,6 +11738,7 @@ function payInvoice({
         currentUserAccountIDParam,
         currentUserEmailParam,
         introSelected,
+        betas,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
@@ -12215,6 +12453,7 @@ function prepareRejectMoneyRequestData(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
     options?: {sharedRejectedToReportID?: string},
     shouldUseBulkAction?: boolean,
 ): RejectMoneyRequestData | undefined {
@@ -12462,7 +12701,7 @@ function prepareRejectMoneyRequestData(
             movedToReport = existingOpenReport;
             rejectedToReportID = existingOpenReport.reportID;
 
-            const [, , iouAction] = buildOptimisticMoneyRequestEntities({
+            const [, , iouAction, ,] = buildOptimisticMoneyRequestEntities({
                 iouReport: movedToReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transactionAmount,
@@ -12542,18 +12781,18 @@ function prepareRejectMoneyRequestData(
             // Pass transaction for formula computation (e.g., {report:startdate})
             const reportTransactions: Record<string, OnyxTypes.Transaction> = {[transaction.transactionID]: transaction};
 
-            const newExpenseReport = buildOptimisticExpenseReport(
-                report.chatReportID,
-                report?.policyID,
-                report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                transactionAmount,
-                getCurrency(transaction),
-                transactionAmount,
-                undefined,
-                rejectedToReportID,
+            const newExpenseReport = buildOptimisticExpenseReport({
+                chatReportID: report.chatReportID,
+                policyID: report?.policyID,
+                payeeAccountID: report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                total: transactionAmount,
+                currency: getCurrency(transaction),
+                nonReimbursableTotal: transactionAmount,
+                optimisticIOUReportID: rejectedToReportID,
                 reportTransactions,
-            );
-            const [, createdActionForExpenseReport, iouAction] = buildOptimisticMoneyRequestEntities({
+                betas,
+            });
+            const [, createdActionForExpenseReport, iouAction, ,] = buildOptimisticMoneyRequestEntities({
                 iouReport: newExpenseReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transactionAmount,
@@ -12978,9 +13217,10 @@ function rejectMoneyRequest(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
     options?: {sharedRejectedToReportID?: string},
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, options);
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, options);
     if (!data) {
         return;
     }
