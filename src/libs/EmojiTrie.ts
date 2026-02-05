@@ -3,7 +3,6 @@ import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
-import Timing from './actions/Timing';
 import StringUtils from './StringUtils';
 import Trie from './Trie';
 
@@ -122,9 +121,7 @@ const buildEmojisTrie = (locale: FullySupportedLocale) => {
     if (emojiTrieForLocale[locale]) {
         return; // Return early if the locale is not supported or the trie is already built
     }
-    Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
     emojiTrieForLocale[locale] = createTrie(locale);
-    Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 };
 
 export default emojiTrieForLocale;

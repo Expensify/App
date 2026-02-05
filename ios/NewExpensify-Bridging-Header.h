@@ -6,7 +6,6 @@
 //
 
 #import "RCTBootSplash.h"
-#import "RCTStartupTimer.h"
 #import <HardwareShortcuts.h>
 #import <BackgroundTasks/BackgroundTasks.h>
 #import <RNBackgroundTaskManager.h>
