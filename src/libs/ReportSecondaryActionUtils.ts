@@ -115,11 +115,12 @@ function isSplitAction(
         return false;
     }
 
-    if (!amount) {
+    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
+
+    if (!amount && !isExpenseSplit) {
         return false;
     }
 
-    const {isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
     if (isBillSplit) {
         return false;
     }
@@ -133,6 +134,11 @@ function isSplitAction(
     }
 
     if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+        return false;
+    }
+
+    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    if (isProcessingReportUtils(report) && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && arePaymentsDisabled) {
         return false;
     }
 

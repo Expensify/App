@@ -24,9 +24,9 @@ import type {ScrollViewProps} from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHandleBackButton from '@hooks/useHandleBackButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -754,7 +754,7 @@ function WorkspacesListPage() {
         return true;
     };
 
-    useHandleBackButton(onBackButtonPress);
+    useAndroidBackButtonHandler(onBackButtonPress);
 
     const data: WorkspaceOrDomainListItem[] = useMemo(() => {
         const shouldShowDomainsSection = !inputValue.trim().length;

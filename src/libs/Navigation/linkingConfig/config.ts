@@ -4,7 +4,7 @@ import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedCo
 import type {RootNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 
@@ -400,6 +400,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.SHARE_LOG]: ROUTES.SETTINGS_SHARE_LOG.route,
+                        [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.VERIFY_ACCOUNT.path,
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHODS.route,
                             exact: true,
@@ -899,6 +900,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.route,
+                        },
+                        [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
+                            path: ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.route,
                         },
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.route,
