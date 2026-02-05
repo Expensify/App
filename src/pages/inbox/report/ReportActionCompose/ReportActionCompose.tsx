@@ -48,6 +48,7 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
+    isAdminRoom,
     isChatRoom,
     isConciergeChatReport,
     isGroupChat,
@@ -65,7 +66,6 @@ import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
-import Timing from '@userActions/Timing';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -216,6 +216,10 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
+    const isAdminsRoom = useMemo(() => isAdminRoom(report), [report]);
+
+    // Show agent zero status indicator for both concierge chats and admin rooms
+    const shouldShowAgentZeroStatus = isConciergeChat || isAdminsRoom;
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
@@ -259,7 +263,7 @@ function ReportActionCompose({
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge]);
 
-    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
+    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, shouldShowAgentZeroStatus);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -340,7 +344,6 @@ function ReportActionCompose({
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
-                Timing.start(CONST.TIMING.SEND_MESSAGE);
                 startSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE, {
                     name: 'send-message',
                     op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,

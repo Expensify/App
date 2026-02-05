@@ -2,6 +2,7 @@ import type JSZip from 'jszip';
 import type {RefObject} from 'react';
 import React, {useEffect, useState} from 'react';
 import {Alert} from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
@@ -13,7 +14,6 @@ import {cleanupAfterDisable, disableRecording, enableRecording, stopProfilingAnd
 import type {ProfilingData} from '@libs/actions/Troubleshoot';
 import {parseStringifiedMessages} from '@libs/Console';
 import getPlatform from '@libs/getPlatform';
-import getMemoryInfo from '@libs/telemetry/getMemoryInfo';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Log as OnyxLog} from '@src/types/onyx';
@@ -49,7 +49,7 @@ type BaseRecordTroubleshootDataToolMenuProps = {
     displayPath?: string;
 };
 
-function formatBytes(bytes: number, decimals = 2): string {
+function formatBytes(bytes: number, decimals = 2) {
     if (!+bytes) {
         return '0 Bytes';
     }
@@ -59,9 +59,8 @@ function formatBytes(bytes: number, decimals = 2): string {
     const sizes = ['Bytes', 'KiB', 'MiB', 'GiB'];
 
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    const sizeIndex = Math.min(i, sizes.length - 1);
 
-    return `${parseFloat((bytes / k ** sizeIndex).toFixed(dm))} ${sizes.at(sizeIndex)}`;
+    return `${parseFloat((bytes / k ** i).toFixed(dm))} ${sizes.at(i)}`;
 }
 
 // WARNING: When changing this name make sure that the "scripts/symbolicate-profile.ts" script is still working!
@@ -87,13 +86,13 @@ function BaseRecordTroubleshootDataToolMenu({
     const [profileTracePath, setProfileTracePath] = useState<string>();
 
     const getAppInfo = async (profilingData: ProfilingData) => {
-        const memoryInfo = await getMemoryInfo();
+        const [totalMemory, usedMemory] = await Promise.all([DeviceInfo.getTotalMemory(), DeviceInfo.getUsedMemory()]);
         return JSON.stringify({
             appVersion: pkg.version,
             environment: CONFIG.ENVIRONMENT,
             platform: getPlatform(),
-            totalMemory: memoryInfo.totalMemoryBytes !== null ? formatBytes(memoryInfo.totalMemoryBytes, 2) : null,
-            usedMemory: memoryInfo.usedMemoryBytes !== null ? formatBytes(memoryInfo.usedMemoryBytes, 2) : null,
+            totalMemory: formatBytes(totalMemory, 2),
+            usedMemory: formatBytes(usedMemory, 2),
             memoizeStats: profilingData.memoizeStats,
             performance: profilingData.performanceMeasures,
         });
