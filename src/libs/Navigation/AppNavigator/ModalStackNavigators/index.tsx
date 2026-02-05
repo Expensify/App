@@ -89,6 +89,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         animationTypeForReplace: 'push',
     },
+    [SCREENS.MISSING_PERSONAL_DETAILS]: {
+        animationTypeForReplace: 'push',
+    },
 };
 
 /**
@@ -880,7 +883,7 @@ const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePay
 });
 
 const SearchRouterModalStackNavigator = createModalStackNavigator({
-    [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: () => require<ReactComponentModule>('../../../../components/Search/SearchRouter/SearchRouterPage').default,
+    [SCREENS.SEARCH_ROUTER.ROOT]: () => require<ReactComponentModule>('../../../../components/Search/SearchRouter/SearchRouterPage').default,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({

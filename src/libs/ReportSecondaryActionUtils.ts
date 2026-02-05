@@ -103,18 +103,24 @@ function isSplitAction(
     }
 
     const reportTransaction = reportTransactions.at(0);
+    const {amount} = getTransactionDetails(reportTransaction) ?? {};
+
+    if (isPending(reportTransaction) || !!reportTransaction?.errors) {
+        return false;
+    }
 
     const isScanning = hasReceiptTransactionUtils(reportTransaction) && isReceiptBeingScanned(reportTransaction);
-    if (isPending(reportTransaction) || isScanning || !!reportTransaction?.errors) {
+
+    if (isScanning && !amount) {
         return false;
     }
 
-    const {amount} = getTransactionDetails(reportTransaction) ?? {};
-    if (!amount) {
+    const {isBillSplit, isExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
+
+    if (!amount && !isExpenseSplit) {
         return false;
     }
 
-    const {isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
     if (isBillSplit) {
         return false;
     }

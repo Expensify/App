@@ -51,6 +51,38 @@ const PUBLIC_SCREENS_ROUTES = {
 // Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
 const VERIFY_ACCOUNT = 'verify-account';
 
+type DynamicRouteConfig = {
+    path: string;
+    entryScreens: Screen[];
+};
+
+type DynamicRoutes = Record<string, DynamicRouteConfig>;
+
+/**
+ * Dynamic routes configuration for contextual navigation paths.
+ *
+ * These routes can be appended to base paths and accessed from multiple screens
+ * based on permission rules. They create reusable UI flows while preserving
+ * the underlying navigation state.
+ *
+ * Structure:
+ * - `path`: URL suffix appended to base routes
+ * - `entryScreens`: Screens allowed to access this dynamic route
+ *
+ * Example: '/workspace/123' + 'verify-account' = '/workspace/123/verify-account'
+ *
+ * Use for: verification flows, confirmations, multi-entry workflows
+ * Avoid for: regular navigation, single-entry workflows
+ *
+ * WIP - DO NOT USE FOR NEW ROUTES
+ */
+const DYNAMIC_ROUTES = {
+    VERIFY_ACCOUNT: {
+        path: 'verify-account',
+        entryScreens: [],
+    },
+} as const satisfies DynamicRoutes;
+
 const MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES = {
     FACTOR: 'multifactor-authentication/factor',
     PROMPT: 'multifactor-authentication/prompt',
@@ -3878,7 +3910,7 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES, DYNAMIC_ROUTES};
 export default ROUTES;
 
 type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;
@@ -3917,4 +3949,6 @@ type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
-export type {Route};
+type DynamicRouteSuffix = (typeof DYNAMIC_ROUTES)[keyof typeof DYNAMIC_ROUTES]['path'];
+
+export type {Route, DynamicRouteSuffix};

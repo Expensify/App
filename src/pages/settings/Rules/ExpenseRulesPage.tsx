@@ -21,15 +21,17 @@ import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurn
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {clearDraftRule, setDraftRule, setNameValuePair} from '@libs/actions/User';
+import {clearDraftRule, deleteExpenseRules, setDraftRule} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,6 +45,7 @@ const getKeyForList = (rule: ExpenseRule, index: number) => `${getKeyForRule(rul
 
 function ExpenseRulesPage() {
     const {translate, localeCompare} = useLocalize();
+    const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -58,7 +61,7 @@ function ExpenseRulesPage() {
         setSelectedRules([]);
     }, [expenseRules]);
 
-    const hasRules = expenseRules.length > 0;
+    const hasRules = expenseRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
     const isLoading = !hasRules && isLoadingOnyxValue(expenseRulesResult);
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
@@ -80,6 +83,9 @@ function ExpenseRulesPage() {
             alternateText: changes,
             shouldHideAlternateText: !shouldUseNarrowLayout,
             keyForList: getKeyForList(rule, index),
+            pendingAction: rule.pendingAction,
+            errors: rule.errors,
+            isDisabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             rightElement: !shouldUseNarrowLayout && (
                 <View style={[styles.flex1]}>
                     <Text
@@ -107,8 +113,9 @@ function ExpenseRulesPage() {
     };
 
     const toggleAllRules = () => {
-        const someSelected = filteredRuleList.some((rule) => selectedRules.includes(rule.keyForList));
-        setSelectedRules(someSelected ? [] : filteredRuleList.map(({keyForList}) => keyForList));
+        const selectableRules = filteredRuleList.filter((rule) => !rule.isDisabled);
+        const someSelected = selectableRules.some((rule) => selectedRules.includes(rule.keyForList));
+        setSelectedRules(someSelected ? [] : selectableRules.map(({keyForList}) => keyForList));
     };
 
     const navigateToNewRulePage = () => {
@@ -125,8 +132,11 @@ function ExpenseRulesPage() {
         if (!expenseRule) {
             return;
         }
+
+        const commentMarkdown = expenseRule.comment ? Parser.htmlToMarkdown(expenseRule.comment) : undefined;
         setDraftRule({
             ...expenseRule,
+            comment: commentMarkdown,
             tax: expenseRule.tax?.field_id_TAX ? expenseRule.tax.field_id_TAX.externalID : undefined,
         });
         Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash));
@@ -142,8 +152,7 @@ function ExpenseRulesPage() {
 
     const handleDeleteRules = () => {
         if (selectedRules.length > 0) {
-            const rulesToDelete = expenseRules.filter((rule, index) => !selectedRules.includes(getKeyForList(rule, index)));
-            setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, rulesToDelete, expenseRules);
+            deleteExpenseRules(expenseRules, selectedRules, getKeyForRule);
         }
         setDeleteConfirmModalVisible(false);
         setSelectedRules([]);
