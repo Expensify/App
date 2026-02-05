@@ -1656,7 +1656,6 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
  * Set odometer image for a transaction
  * @param transactionID - The transaction ID
  * @param imageType - 'start' or 'end'
- * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  */
 function setMoneyRequestOdometerReadingImage(transactionID: string, imageType: OdometerImageType, file: File | string, isDraft: boolean) {
@@ -1681,7 +1680,6 @@ function setMoneyRequestOdometerReadingImage(transactionID: string, imageType: O
  * Remove odometer image from a transaction
  * @param transactionID - The transaction ID
  * @param imageType - 'start' or 'end'
- * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  */
 function removeMoneyRequestOdometerReadingImage(transactionID: string, imageType: OdometerImageType, isDraft: boolean) {
