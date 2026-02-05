@@ -754,7 +754,7 @@ const translations = {
     multifactorAuthentication: {
         unsupportedDevice: {
             unsupportedDevice: 'Unsupported device',
-            pleaseDownloadMobileApp: `<centered-text><muted-text>This action is not supported on your device right now. Please download the Expensify mobile app from the <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">iOS App Store</a> or <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> and try again.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `<centered-text><muted-text>This action is not supported on your device. Please download the Expensify mobile app from the <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">iOS App Store</a> or <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> and try again.</muted-text></centered-text>`,
         },
         biometricsTest: {
             biometricsTest: 'Biometrics test',

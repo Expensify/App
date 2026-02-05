@@ -738,7 +738,7 @@ const translations: TranslationDeepObject<typeof en> = {
     multifactorAuthentication: {
         unsupportedDevice: {
             unsupportedDevice: 'Nicht unterstütztes Gerät',
-            pleaseDownloadMobileApp: `<centered-text><muted-text>Diese Aktion wird auf Ihrem Gerät derzeit nicht unterstützt. Bitte laden Sie die Expensify-App aus dem <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">iOS App Store</a> oder dem <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> herunter und versuchen Sie es erneut.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `<centered-text><muted-text>Diese Aktion wird auf Ihrem Gerät nicht unterstützt. Bitte laden Sie die Expensify-App aus dem <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">iOS App Store</a> oder dem <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> herunter und versuchen Sie es erneut.</muted-text></centered-text>`,
         },
         biometricsTest: {
             biometricsTest: 'Biometrie-Test',
