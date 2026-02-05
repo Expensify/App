@@ -141,7 +141,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             return [
                 {
-                    sectionIndex: 0,
                     data: [
                         {
                             text: StringUtils.lineBreaksToSpaces(
