@@ -27,12 +27,12 @@ type EditReportFieldDropdownPageProps = {
 };
 
 function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const recentlyUsedOptions = recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [];
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const itemRightSideComponent = (item: ListItem) => {
         if (item.text === fieldValue) {
             return (

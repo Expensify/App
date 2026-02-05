@@ -62,6 +62,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'Basket',
         'Bookmark',
         'Pencil',
+        'Trashcan',
         'Receipt',
         'ChatBubbles',
         'MoneyBag',

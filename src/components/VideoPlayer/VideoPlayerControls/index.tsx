@@ -66,7 +66,7 @@ function VideoPlayerControls({
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     reportID,
 }: VideoPlayerControlsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ThreeDots', 'Pause', 'Play', 'Fullscreen']);
+    const icons = useMemoizedLazyExpensifyIcons(['Fullscreen', 'Pause', 'Play', 'ThreeDots'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackContext();

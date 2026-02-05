@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -20,6 +20,7 @@ function ReceiptAudit({notes, shouldShowAuditResult}: ReceiptAuditProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark'] as const);
 
     let auditText = '';
     if (notes.length > 0 && shouldShowAuditResult) {
@@ -38,7 +39,7 @@ function ReceiptAudit({notes, shouldShowAuditResult}: ReceiptAuditProps) {
                         <Icon
                             width={12}
                             height={12}
-                            src={notes.length ? Expensicons.DotIndicator : Expensicons.Checkmark}
+                            src={notes.length ? icons.DotIndicator : icons.Checkmark}
                             fill={notes.length ? theme.danger : theme.success}
                             additionalStyles={styles.ml1}
                         />

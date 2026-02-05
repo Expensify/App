@@ -53,6 +53,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'Bookmark',
         'Checkmark',
         'Pencil',
+        'Trashcan',
         'Receipt',
         'ChatBubbles',
         'MoneyBag',

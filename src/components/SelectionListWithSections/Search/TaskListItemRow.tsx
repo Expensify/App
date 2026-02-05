@@ -5,7 +5,6 @@ import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {TaskListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -80,6 +79,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const parentReportAction = useParentReportAction(taskItem.report);
     const isTaskActionable = canActionTask(taskItem.report, parentReportAction, session?.accountID, parentReport, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
 
     if (isTaskCompleted) {
         return (
@@ -87,7 +87,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
                 <Badge
                     success
                     text={translate('task.completed')}
-                    icon={Expensicons.Checkmark}
+                    icon={icons.Checkmark}
                     iconStyles={styles.mr0}
                     textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                     badgeStyles={[

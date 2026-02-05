@@ -273,7 +273,7 @@ describe('useTodos', () => {
                 [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 5,
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp', 'CheckCircle']));
             const sections = createTypeMenuSections(
                 icons.current,
                 CURRENT_USER_EMAIL,
@@ -311,7 +311,7 @@ describe('useTodos', () => {
                 [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 0,
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp', 'CheckCircle']));
             const sections = createTypeMenuSections(
                 icons.current,
                 CURRENT_USER_EMAIL,

@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -29,10 +28,9 @@ type HelpHeaderProps = {
 };
 
 function HelpHeader({title, onBackButtonPress, onCloseButtonPress, shouldShowBackButton = true, shouldShowCloseButton = false}: HelpHeaderProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
-
     const {translate} = useLocalize();
 
     return (
@@ -68,7 +66,7 @@ function HelpHeader({title, onBackButtonPress, onCloseButtonPress, shouldShowBac
                             accessibilityLabel={translate('common.close')}
                         >
                             <Icon
-                                src={Expensicons.Close}
+                                src={icons.Close}
                                 fill={theme.icon}
                             />
                         </PressableWithoutFeedback>

@@ -33,7 +33,7 @@ type DistanceRequestProps = {
 
 function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false}: DistanceRequestProps) {
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled', 'DotIndicator', 'DragHandles']);
+    const icons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicator', 'DotIndicatorUnfilled', 'DragHandles'] as const);
     const {translate} = useLocalize();
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
@@ -43,13 +43,13 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     let waypointIcon;
     if (index === 0) {
         descriptionKey += 'start';
-        waypointIcon = expensifyIcons.DotIndicatorUnfilled;
+        waypointIcon = icons.DotIndicatorUnfilled;
     } else if (index === lastWaypointIndex) {
         descriptionKey += 'stop';
-        waypointIcon = expensifyIcons.Location;
+        waypointIcon = icons.Location;
     } else {
         descriptionKey += 'stop';
-        waypointIcon = expensifyIcons.DotIndicator;
+        waypointIcon = icons.DotIndicator;
     }
 
     const waypoint = waypoints?.[`waypoint${index}`] ?? {};
@@ -61,7 +61,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
         <MenuItemWithTopDescription
             description={translate(descriptionKey as TranslationPaths)}
             title={title}
-            icon={expensifyIcons.DragHandles}
+            icon={icons.DragHandles}
             iconFill={theme.icon}
             secondaryIcon={waypointIcon}
             secondaryIconFill={theme.icon}

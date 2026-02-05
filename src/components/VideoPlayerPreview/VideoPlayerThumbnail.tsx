@@ -3,10 +3,10 @@ import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import AttachmentDeletedIndicator from '@components/AttachmentDeletedIndicator';
 import Icon from '@components/Icon';
-import {Play} from '@components/Icon/Expensicons';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -30,6 +30,7 @@ type VideoPlayerThumbnailProps = {
 
 function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDeleted}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Play'] as const);
 
     return (
         <View style={styles.flex1}>
@@ -66,7 +67,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                         >
                             <View style={[styles.videoThumbnailPlayButton]}>
                                 <Icon
-                                    src={Play}
+                                    src={icons.Play}
                                     fill="white"
                                     width={variables.iconSizeXLarge}
                                     height={variables.iconSizeXLarge}

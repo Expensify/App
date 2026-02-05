@@ -34,11 +34,11 @@ type ReceiptViewProps = {
 };
 
 function ReceiptView({route}: ReceiptViewProps) {
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const {translate} = useLocalize();
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const [page, setPage] = useState<number>(-1);
     const {showConfirmModal} = useConfirmModal();
 

@@ -1,8 +1,6 @@
 import {format, parseISO} from 'date-fns';
 import React from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -55,7 +53,7 @@ function PersonalCardDetailsHeaderMenu({
         <>
             {!cardholder?.validated && (
                 <MenuItem
-                    icon={Expensicons.Hourglass}
+                    icon={expensifyIcons.Hourglass}
                     iconStyles={styles.mln2}
                     description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
                     numberOfLinesDescription={0}

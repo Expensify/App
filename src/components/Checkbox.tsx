@@ -2,6 +2,7 @@ import type {ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEven
 import React from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,7 +10,6 @@ import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
@@ -91,6 +91,7 @@ function Checkbox({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Minus'] as const);
 
     const handleSpaceOrEnterKey = (event?: ReactKeyboardEvent) => {
         if (event?.code !== 'Space' && event?.code !== 'Enter') {
@@ -155,7 +156,7 @@ function Checkbox({
                 >
                     {(isChecked || isIndeterminate) && (
                         <Icon
-                            src={isChecked ? Expensicons.Checkmark : Expensicons.Minus}
+                            src={isChecked ? icons.Checkmark : icons.Minus}
                             fill={theme.textLight}
                             height={caretSize}
                             width={caretSize}

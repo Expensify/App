@@ -63,6 +63,7 @@ function IOURequestStepWaypoint({
     },
     transaction,
 }: IOURequestStepWaypointProps) {
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const styles = useThemeStyles();
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -75,6 +76,10 @@ function IOURequestStepWaypoint({
     const waypointCount = Object.keys(allWaypoints).length;
     const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => !isEmptyObject(waypoint)).length;
     const [caretHidden, setCaretHidden] = useState(false);
+<<<<<<< HEAD
+    const {showConfirmModal} = useConfirmModal();
+=======
+>>>>>>> 0be235ce0b97ddb20137e6bc08d2b391e919b5cf
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector, canBeMissing: true});

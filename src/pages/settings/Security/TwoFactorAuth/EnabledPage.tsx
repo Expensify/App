@@ -24,9 +24,9 @@ import type {Policy} from '@src/types/onyx';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function EnabledPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {login} = useCurrentUserPersonalDetails();

@@ -147,6 +147,7 @@ function BaseReportActionContextMenu({
         'Bug',
         'Trashcan',
         'Checkmark',
+        'Exit',
         'Concierge',
     ] as const);
     const StyleUtils = useStyleUtils();

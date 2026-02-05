@@ -56,7 +56,7 @@ function CategorySettingsPage({
 }: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
@@ -370,7 +370,7 @@ function CategorySettingsPage({
 
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
-                            icon={expensifyIcons.Trashcan}
+                            icon={icons.Trashcan}
                             title={translate('workspace.categories.deleteCategory')}
                             onPress={() => {
                                 if (shouldPreventDisableOrDelete) {
