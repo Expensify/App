@@ -45,7 +45,7 @@ function CardNameStep({route}: CardNameStepProps) {
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
         const length = values.name.length;
 
         if (length > CONST.STANDARD_LENGTH_LIMIT) {
