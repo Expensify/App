@@ -38,8 +38,8 @@ function IOURequestStepOdometerImage({
     const theme = useTheme();
     const {isDraggingOver} = useContext(DragAndDropContext);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd']);
-    const actionValue = (action ?? CONST.IOU.ACTION.CREATE) as IOUAction;
-    const iouTypeValue = (iouType ?? CONST.IOU.TYPE.REQUEST) as IOUType;
+    const actionValue: IOUAction = action ?? CONST.IOU.ACTION.CREATE;
+    const iouTypeValue: IOUType = iouType ?? CONST.IOU.TYPE.REQUEST;
     const isTransactionDraft = shouldUseTransactionDraft(actionValue, iouTypeValue);
     const dropBlobUrlsRef = useRef<string[]>([]);
     const shouldRevokeOnUnmountRef = useRef(true);

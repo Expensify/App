@@ -238,9 +238,8 @@ import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from
 import {removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
-import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
+import type {IOUAction, IOUActionParams, IOUType, OdometerImageType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {OdometerImageType} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
