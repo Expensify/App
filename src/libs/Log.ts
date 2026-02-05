@@ -13,7 +13,7 @@ import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
 import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
 import {post} from './Network';
-import {getCurrentUserEmail} from './Network/NetworkStore';
+import {getCurrentUserEmail} from './CurrentUserStore';
 import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
