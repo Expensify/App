@@ -8237,6 +8237,7 @@ ${reportName}
             enterDomainName: '在此输入您的域名',
             resetDomainInfo: `此操作<strong>无法撤销</strong>，并将删除以下数据：<br/> <ul><li>公司卡关联以及这些卡上所有未报销的费用</li> <li>SAML 和群组设置</li> </ul> 所有账户、工作区、报表、费用和其他数据将保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域从您的域名列表中清除。`,
         },
+        domainMembers: '域成员',
         members: {
             title: '成员',
             findMember: '查找成员',

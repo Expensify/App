@@ -8396,6 +8396,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             enterDomainName: 'Wprowadź tutaj swoją nazwę domeny',
             resetDomainInfo: `Ta czynność jest <strong>trwała</strong> i spowoduje usunięcie następujących danych: <br/> <ul><li>Połączeń z kartami firmowymi oraz wszystkich nierozliczonych wydatków z tych kart</li> <li>Ustawień SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
+        domainMembers: 'Członkowie domeny',
         members: {
             title: 'Członkowie',
             findMember: 'Znajdź członka',
