@@ -614,6 +614,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: 'Tasso di cambio',
         reimbursableTotal: 'Totale rimborsabile',
         nonReimbursableTotal: 'Totale non rimborsabile',
+        locked: 'Bloccato',
         month: 'Mese',
         week: 'Settimana',
         year: 'Anno',

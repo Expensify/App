@@ -610,6 +610,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: '汇率',
         reimbursableTotal: '可报销总额',
         nonReimbursableTotal: '不可报销总额',
+        locked: '已锁定',
         month: '月',
         week: '周',
         year: '年份',
