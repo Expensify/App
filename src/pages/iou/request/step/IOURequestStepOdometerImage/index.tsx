@@ -44,9 +44,11 @@ function IOURequestStepOdometerImage({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const title = readingType === 'start' ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
-    const message = readingType === 'start' ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
-    const icon = readingType === 'start' ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
+    const title =
+        readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
+    const message =
+        readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
+    const icon = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
     const messageHTML = `<centered-text><muted-text-label>${message}</muted-text-label></centered-text>`;
 
     const navigateBack = useCallback(() => {

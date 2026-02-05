@@ -2983,6 +2983,10 @@ const CONST = {
             DISTANCE_ODOMETER: 'distance-odometer',
             TIME: 'time',
         },
+        ODOMETER_IMAGE_TYPE: {
+            START: 'start',
+            END: 'end',
+        },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
             MANUAL: 'manual',
@@ -8301,13 +8305,26 @@ type Country = keyof typeof CONST.ALL_COUNTRIES;
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+type OdometerImageType = ValueOf<typeof CONST.IOU.ODOMETER_IMAGE_TYPE>;
 type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_OPTIONS>, 'ID'>>;
 type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
-export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
+export type {
+    Country,
+    IOUAction,
+    IOUType,
+    IOURequestType,
+    OdometerImageType,
+    SubscriptionType,
+    FeedbackSurveyOptionID,
+    CancellationType,
+    OnboardingInvite,
+    OnboardingAccounting,
+    IOUActionParams,
+};
 
 export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, COUNTRIES_US_BANK_FLOW};
 

@@ -7,7 +7,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
-import type {IOUAction, IOUType} from './CONST';
+import type {IOUAction, IOUType, OdometerImageType} from './CONST';
 import type {ReplacementReason} from './libs/actions/Card';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
@@ -1433,7 +1433,7 @@ const ROUTES = {
     },
     ODOMETER_IMAGE: {
         route: 'odometer-image/:transactionID/:readingType',
-        getRoute: (transactionID: string, readingType: 'start' | 'end') => `odometer-image/${transactionID}/${readingType}` as const,
+        getRoute: (transactionID: string, readingType: OdometerImageType) => `odometer-image/${transactionID}/${readingType}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',

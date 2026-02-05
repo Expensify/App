@@ -44,6 +44,7 @@ import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyE
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {OdometerImageType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -313,7 +314,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const handleCaptureImage = useCallback(
-        (imageType: 'start' | 'end') => {
+        (imageType: OdometerImageType) => {
             Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(transactionID, imageType));
         },
         [transactionID],
@@ -578,7 +579,7 @@ function IOURequestStepDistanceOdometer({
                             accessible={false}
                             accessibilityRole="button"
                             sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
-                            onPress={() => handleCaptureImage('start')}
+                            onPress={() => handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START)}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
@@ -618,7 +619,7 @@ function IOURequestStepDistanceOdometer({
                             accessible={false}
                             accessibilityRole="button"
                             sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
-                            onPress={() => handleCaptureImage('end')}
+                            onPress={() => handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END)}
                             style={[
                                 StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),

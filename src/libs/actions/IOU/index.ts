@@ -240,6 +240,7 @@ import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {OdometerImageType} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -1658,8 +1659,8 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
  * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  */
-function setMoneyRequestOdometerImage(transactionID: string, imageType: 'start' | 'end', file: File | string, isDraft: boolean) {
-    const imageKey = imageType === 'start' ? 'odometerStartImage' : 'odometerEndImage';
+function setMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: File | string, isDraft: boolean) {
+    const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             [imageKey]: file,
@@ -1674,8 +1675,8 @@ function setMoneyRequestOdometerImage(transactionID: string, imageType: 'start' 
  * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  */
-function removeMoneyRequestOdometerImage(transactionID: string, imageType: 'start' | 'end', file: File | string, isDraft: boolean) {
-    const imageKey = imageType === 'start' ? 'odometerStartImage' : 'odometerEndImage';
+function removeMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: File | string, isDraft: boolean) {
+    const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             [imageKey]: null,
