@@ -1,13 +1,14 @@
 import Navigation from '@libs/Navigation/Navigation';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import isDynamicRouteSuffix from './isDynamicRouteSuffix';
+import splitPathAndQuery from './splitPathAndQuery';
 
 const combinePathAndSuffix = (path: string, suffix: string): Route => {
-    const [basePath, params] = path.split('?');
-    let newPath = path.endsWith('/') ? `${basePath}${suffix}` : `${basePath}/${suffix}`;
+    const [normalizedPath, query] = splitPathAndQuery(path);
+    let newPath = `${normalizedPath}/${suffix}`;
 
-    if (params) {
-        newPath += `?${params}`;
+    if (query) {
+        newPath += `?${query}`;
     }
     return newPath as Route;
 };
