@@ -37,6 +37,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
     dismissToSuperWideRHP: jest.fn(),
+    navigateBackToLastSuperWideRHPScreen: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => '23423423'),
     setNavigationActionToMicrotaskQueue: jest.fn(),
@@ -1626,6 +1627,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            isSelfTourViewed: false,
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -1784,6 +1787,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            isSelfTourViewed: false,
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
         await getOnyxData({
@@ -1947,6 +1952,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            isSelfTourViewed: false,
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
 
@@ -2120,6 +2127,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            isSelfTourViewed: false,
+            personalDetails: {},
         });
         await waitForBatchedUpdates();
 

@@ -1,11 +1,8 @@
-import {Platform} from 'react-native';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {isMobile} from '@libs/Browser';
 import Log from '@libs/Log';
-import triggerNotifications from '@libs/Notification/triggerNotifications';
 import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
@@ -31,12 +28,12 @@ let pusherEventsPromise = Promise.resolve();
 
 let airshipEventsPromise = Promise.resolve();
 
-function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateID: number) {
+function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number) {
     Performance.markStart(CONST.TIMING.APPLY_HTTPS_UPDATES);
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-    const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
+    const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
@@ -56,10 +53,6 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateI
 
     return onyxDataUpdatePromise
         .then(() => {
-            // Trigger notifications only on successful responses.
-            if (Platform.OS === 'web' && !isMobile() && response.jsonCode === 200 && response.onyxData?.length) {
-                triggerNotifications(response.onyxData);
-            }
             // Handle the request's success/failure data (client-side data)
             if (response.jsonCode === 200 && request.successData) {
                 return updateHandler(request.successData);
@@ -90,7 +83,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateI
         });
 }
 
-function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[], lastUpdateID: number) {
+function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
     Performance.markStart(CONST.TIMING.APPLY_PUSHER_UPDATES);
 
     pusherEventsPromise = pusherEventsPromise.then(() => {
@@ -107,7 +100,7 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[], lastUpdateID: number
     return pusherEventsPromise;
 }
 
-function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[], lastUpdateID: number) {
+function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
     Performance.markStart(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
 
     airshipEventsPromise = airshipEventsPromise.then(() => {
@@ -115,7 +108,7 @@ function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[], lastUpdateID: numbe
     });
 
     airshipEventsPromise = updates
-        .reduce((promise, update) => promise.then(() => Onyx.update(update.data)), airshipEventsPromise)
+        .reduce((promise, update) => promise.then(() => Onyx.update(update.data as Array<OnyxUpdate<TKey>>)), airshipEventsPromise)
         .then(() => {
             Performance.markEnd(CONST.TIMING.APPLY_AIRSHIP_UPDATES);
             Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});
@@ -129,10 +122,22 @@ function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[], lastUpdateID: numbe
  * @param [updateParams.response] Exists if updateParams.type === 'https'
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
-function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdateEvent[]; type: 'pusher'}>): Promise<void>;
-function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
-function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<Response>;
-function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
+function apply<TKey extends OnyxKey>({
+    lastUpdateID,
+    type,
+    request,
+    response,
+    updates,
+}: Merge<OnyxUpdatesFromServer<TKey>, {updates: Array<OnyxUpdateEvent<TKey>>; type: 'pusher'}>): Promise<void>;
+function apply<TKey extends OnyxKey>({
+    lastUpdateID,
+    type,
+    request,
+    response,
+    updates,
+}: Merge<OnyxUpdatesFromServer<TKey>, {request: Request<TKey>; response: Response<TKey>; type: 'https'}>): Promise<Response>;
+function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<Response<TKey>>;
+function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
     const isUpdateOld = lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient;
@@ -181,7 +186,7 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
  * @param [updateParams.response] Exists if updateParams.type === 'https'
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
-function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
+function saveUpdateInformation<TKey extends OnyxKey = OnyxKey>(updateParams: OnyxUpdatesFromServer<TKey>) {
     let modifiedUpdateParams = updateParams;
     // We don't want to store the data in the updateParams if it's a HTTPS update since it is useless anyways
     // and it causes serialization issues when storing in Onyx
@@ -189,7 +194,7 @@ function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
         modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
-    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams);
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as OnyxUpdatesFromServer);
 }
 
 type DoesClientNeedToBeUpdatedParams = {

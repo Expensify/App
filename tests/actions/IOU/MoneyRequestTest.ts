@@ -88,13 +88,15 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
+            isSelfTourViewed: false,
+            personalDetails: {},
         };
 
         afterEach(() => {
             jest.clearAllMocks();
         });
 
-        it('should call trackExpense for TRACK iouType', () => {
+        it('should call trackExpense for TRACK iouType', async () => {
             createTransaction({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
@@ -291,6 +293,7 @@ describe('MoneyRequest', () => {
             quickAction: fakeQuickAction,
             files: [fakeReceiptFile],
             shouldGenerateTransactionThreadReport: false,
+            isSelfTourViewed: false,
         };
 
         beforeEach(async () => {
@@ -494,6 +497,8 @@ describe('MoneyRequest', () => {
 
             await waitForBatchedUpdates();
 
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
@@ -521,6 +526,7 @@ describe('MoneyRequest', () => {
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
                 shouldHandleNavigation: true,
+                recentWaypoints,
             });
             // Should not call request money inside createTransaction function
             expect(IOU.requestMoney).not.toHaveBeenCalled();
@@ -777,6 +783,8 @@ describe('MoneyRequest', () => {
 
             expect(IOU.resetSplitShares).not.toHaveBeenCalled();
 
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
@@ -812,6 +820,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
+                recentWaypoints,
             });
 
             // The function must return after trackExpense and not call createDistanceRequest
@@ -837,6 +846,8 @@ describe('MoneyRequest', () => {
             expect(updatedDraftTransaction?.pendingFields).toMatchObject({
                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
+
+            const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
@@ -873,6 +884,7 @@ describe('MoneyRequest', () => {
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
                 currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
+                recentWaypoints,
             });
         });
 
