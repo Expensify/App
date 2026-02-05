@@ -92,7 +92,7 @@ function SetExpiryOptionsStep({policy, stepNames, startStepIndex}: SetExpiryOpti
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
                 onSubmit={submit}
-                submitButtonText={isEditing ? translate('common.save') : translate('common.next')}
+                submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 validate={validate}
