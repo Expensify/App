@@ -1,7 +1,7 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@libs/actions/Passkey';
-import type {BackendCredential} from '@libs/actions/Passkey';
+import type {BackendPasskeyCredential} from '@libs/actions/Passkey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocalPasskeyEntry, PasskeyCredential} from '@src/types/onyx';
@@ -90,13 +90,13 @@ describe('actions/Passkey', () => {
         const rpId = 'expensify.com';
 
         it('should return empty array when localEntry is null', () => {
-            const result = reconcileLocalPasskeysWithBackend({userId, rpId, allowCredentials: [], localEntry: null});
+            const result = reconcileLocalPasskeysWithBackend({userId, rpId, backendPasskeyCredentials: [], localEntry: null});
 
             expect(result).toEqual([]);
         });
 
         it('should return empty array when localEntry has no credentials', () => {
-            const result = reconcileLocalPasskeysWithBackend({userId, rpId, allowCredentials: [], localEntry: {credentialIds: []}});
+            const result = reconcileLocalPasskeysWithBackend({userId, rpId, backendPasskeyCredentials: [], localEntry: {credentialIds: []}});
 
             expect(result).toEqual([]);
         });
@@ -106,12 +106,12 @@ describe('actions/Passkey', () => {
                 {id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: ['internal']},
                 {id: 'cred-2', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: ['hybrid']},
             ];
-            const allowCredentials: BackendCredential[] = [
+            const backendPasskeyCredentials: BackendPasskeyCredential[] = [
                 {id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE},
                 {id: 'cred-2', type: CONST.PASSKEY_CREDENTIAL_TYPE},
             ];
 
-            const result = reconcileLocalPasskeysWithBackend({userId, rpId, allowCredentials, localEntry: {credentialIds: localCredentials}});
+            const result = reconcileLocalPasskeysWithBackend({userId, rpId, backendPasskeyCredentials, localEntry: {credentialIds: localCredentials}});
 
             expect(result).toEqual(localCredentials);
         });
@@ -121,9 +121,9 @@ describe('actions/Passkey', () => {
                 {id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: ['internal']},
                 {id: 'cred-2', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: ['hybrid']},
             ];
-            const allowCredentials: BackendCredential[] = [{id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE}];
+            const backendPasskeyCredentials: BackendPasskeyCredential[] = [{id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE}];
 
-            const result = reconcileLocalPasskeysWithBackend({userId, rpId, allowCredentials, localEntry: {credentialIds: localCredentials}});
+            const result = reconcileLocalPasskeysWithBackend({userId, rpId, backendPasskeyCredentials, localEntry: {credentialIds: localCredentials}});
             await waitForBatchedUpdates();
 
             expect(result).toEqual([{id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: ['internal']}]);
@@ -134,9 +134,9 @@ describe('actions/Passkey', () => {
 
         it('should delete entire entry when no credentials match backend', async () => {
             const localCredentials: PasskeyCredential[] = [{id: 'old-cred', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: ['internal']}];
-            const allowCredentials: BackendCredential[] = [{id: 'new-cred', type: CONST.PASSKEY_CREDENTIAL_TYPE}];
+            const backendPasskeyCredentials: BackendPasskeyCredential[] = [{id: 'new-cred', type: CONST.PASSKEY_CREDENTIAL_TYPE}];
 
-            const result = reconcileLocalPasskeysWithBackend({userId, rpId, allowCredentials, localEntry: {credentialIds: localCredentials}});
+            const result = reconcileLocalPasskeysWithBackend({userId, rpId, backendPasskeyCredentials, localEntry: {credentialIds: localCredentials}});
             await waitForBatchedUpdates();
 
             expect(result).toEqual([]);
@@ -148,9 +148,9 @@ describe('actions/Passkey', () => {
         it('should preserve transports from local credentials', () => {
             // Backend doesn't store transports, only local storage does
             const localCredentials: PasskeyCredential[] = [{id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: ['internal', 'hybrid']}];
-            const allowCredentials: BackendCredential[] = [{id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE}];
+            const backendPasskeyCredentials: BackendPasskeyCredential[] = [{id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE}];
 
-            const result = reconcileLocalPasskeysWithBackend({userId, rpId, allowCredentials, localEntry: {credentialIds: localCredentials}});
+            const result = reconcileLocalPasskeysWithBackend({userId, rpId, backendPasskeyCredentials, localEntry: {credentialIds: localCredentials}});
 
             expect(result).toEqual([{id: 'cred-1', type: CONST.PASSKEY_CREDENTIAL_TYPE, transports: ['internal', 'hybrid']}]);
         });

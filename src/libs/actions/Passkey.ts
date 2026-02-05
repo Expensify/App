@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocalPasskeyEntry, PasskeyCredential} from '@src/types/onyx';
 
@@ -48,15 +47,12 @@ function deleteLocalPasskeyCredentials(userId: string, rpId: string): void {
 }
 
 /** Backend returns simplified format without transports */
-type BackendCredential = {
-    id: string;
-    type: typeof CONST.PASSKEY_CREDENTIAL_TYPE;
-};
+type BackendPasskeyCredential = Omit<PasskeyCredential, 'transports'>;
 
 type ReconcileLocalPasskeysWithBackendParams = {
     userId: string;
     rpId: string;
-    allowCredentials: BackendCredential[];
+    backendPasskeyCredentials: BackendPasskeyCredential[];
     localEntry: LocalPasskeyEntry | null;
 };
 
@@ -64,12 +60,12 @@ type ReconcileLocalPasskeysWithBackendParams = {
  * Reconciles local Onyx passkeys with backend allowCredentials.
  * Removes local credentials that no longer exist on backend.
  */
-function reconcileLocalPasskeysWithBackend({userId, rpId, allowCredentials, localEntry}: ReconcileLocalPasskeysWithBackendParams): PasskeyCredential[] {
+function reconcileLocalPasskeysWithBackend({userId, rpId, backendPasskeyCredentials, localEntry}: ReconcileLocalPasskeysWithBackendParams): PasskeyCredential[] {
     if (!localEntry || localEntry.credentialIds.length === 0) {
         return [];
     }
 
-    const backendCredentialIds = new Set(allowCredentials.map((c) => c.id));
+    const backendCredentialIds = new Set(backendPasskeyCredentials.map((c) => c.id));
     const matchedCredentials = localEntry.credentialIds.filter((c) => backendCredentialIds.has(c.id));
 
     if (matchedCredentials.length !== localEntry.credentialIds.length) {
@@ -84,4 +80,4 @@ function reconcileLocalPasskeysWithBackend({userId, rpId, allowCredentials, loca
 }
 
 export {getPasskeyOnyxKey, addLocalPasskeyCredential, deleteLocalPasskeyCredentials, reconcileLocalPasskeysWithBackend};
-export type {BackendCredential};
+export type {BackendPasskeyCredential};
