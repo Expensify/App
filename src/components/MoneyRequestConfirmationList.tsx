@@ -309,7 +309,12 @@ function MoneyRequestConfirmationList({
     );
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const policy = isTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
+    let policy;
+    if (isTrackExpense) {
+        policy = isPolicyExpenseChat ? policyForMovingExpenses : undefined;
+    } else {
+        policy = policyReal ?? policyDraft;
+    }
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const defaultMileageRate = defaultMileageRateDraft ?? defaultMileageRateReal;
 
@@ -324,7 +329,7 @@ function MoneyRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
-    const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest;
+    const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -364,7 +369,7 @@ function MoneyRequestConfirmationList({
         ? !policy || shouldSelectPolicy || hasEnabledOptions(Object.values(policyCategories ?? {}))
         : (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
-    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && !isTimeRequest;
+    const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && (!isTimeRequest || action !== CONST.IOU.ACTION.CREATE);
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
@@ -453,6 +458,7 @@ function MoneyRequestConfirmationList({
         iouAttendees,
         currentUserPersonalDetails,
         isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
+        isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
     });
 
     useEffect(() => {
@@ -833,8 +839,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                shouldShowRightIcon: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
             }));
             options.push({
                 title: translate('common.to'),
@@ -851,7 +857,7 @@ function MoneyRequestConfirmationList({
         getSplitSectionHeader,
         splitParticipants,
         selectedParticipants,
-        isCreateExpenseFlow,
+        isFromGlobalCreateAndCanEditParticipant,
         isTestReceipt,
         isRestrictedToPreferredPolicy,
         isTypeInvoice,
@@ -932,7 +938,7 @@ function MoneyRequestConfirmationList({
      * Navigate to the participant step
      */
     const navigateToParticipantPage = () => {
-        if (!isCreateExpenseFlow) {
+        if (!isFromGlobalCreateAndCanEditParticipant) {
             return;
         }
 
@@ -985,7 +991,14 @@ function MoneyRequestConfirmationList({
             // Since invoices are not expense reports that need attendee tracking, this validation should not apply to invoices
             const isMissingAttendeesViolation =
                 iouType !== CONST.IOU.TYPE.INVOICE &&
-                getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
+                getIsMissingAttendeesViolation(
+                    policyCategories,
+                    iouCategory,
+                    iouAttendees,
+                    currentUserPersonalDetails,
+                    policy?.isAttendeeTrackingEnabled,
+                    policy?.type === CONST.POLICY.TYPE.CORPORATE,
+                );
             if (isMissingAttendeesViolation) {
                 setFormError('violations.missingAttendees');
                 return;
