@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -77,22 +77,18 @@ function RoomInvitePage({
     const allPersonalDetails = usePersonalDetails();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(() => {
-        const res = {
-            ...CONST.EXPENSIFY_EMAILS_OBJECT,
-        };
-        const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-            .filter(([, participant]) => participant && !isHiddenForCurrentUser(participant.notificationPreference))
-            .map(([accountID]) => Number(accountID));
-        for (const participant of getLoginsByAccountIDs(visibleParticipantAccountIDs)) {
-            const smsDomain = addSMSDomainIfPhoneNumber(participant);
-            res[smsDomain] = true;
-        }
+    const excludedUsers: Record<string, boolean> = {
+        ...CONST.EXPENSIFY_EMAILS_OBJECT,
+    };
+    const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+        .filter(([, participant]) => participant && !isHiddenForCurrentUser(participant.notificationPreference))
+        .map(([accountID]) => Number(accountID));
+    for (const participant of getLoginsByAccountIDs(visibleParticipantAccountIDs)) {
+        const smsDomain = addSMSDomainIfPhoneNumber(participant);
+        excludedUsers[smsDomain] = true;
+    }
 
-        return res;
-    }, [report.participants]);
-
-    const defaultOptions = useMemo(() => {
+    const getDefaultOptions = () => {
         if (!areOptionsInitialized) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
@@ -118,27 +114,19 @@ function RoomInvitePage({
             recentReports: [],
             currentUserOption: null,
         };
-    }, [areOptionsInitialized, betas, excludedUsers, loginList, nvpDismissedProductTraining, options.personalDetails, selectedOptions, currentUserAccountID, currentUserEmail]);
+    };
+    const defaultOptions = getDefaultOptions();
 
-    const inviteOptions = useMemo(() => {
-        if (debouncedSearchTerm.trim() === '') {
-            return defaultOptions;
-        }
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
-            excludeLogins: excludedUsers,
-        });
+    const inviteOptions =
+        debouncedSearchTerm.trim() === ''
+            ? defaultOptions
+            : filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
+                  excludeLogins: excludedUsers,
+              });
 
-        return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, countryCode, loginList, excludedUsers, currentUserAccountID, currentUserEmail, allPersonalDetails]);
-
-    const sections = useMemo(() => {
-        const sectionsArr: Sections = [];
-
-        const {personalDetails, userToInvite} = inviteOptions;
-        if (!areOptionsInitialized) {
-            return [];
-        }
-
+    const {personalDetails, userToInvite} = inviteOptions;
+    const sections: Sections = [];
+    if (areOptionsInitialized) {
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
         if (debouncedSearchTerm !== '') {
@@ -153,7 +141,7 @@ function RoomInvitePage({
         }
         const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => formatMemberForList(selectedOption));
 
-        sectionsArr.push({
+        sections.push({
             title: undefined,
             data: filterSelectedOptionsFormatted,
             sectionIndex: 0,
@@ -165,59 +153,50 @@ function RoomInvitePage({
         const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
         const hasUnselectedUserToInvite = userToInvite && !selectedLogins.has(userToInvite.login);
 
-        sectionsArr.push({
+        sections.push({
             title: translate('common.contacts'),
             data: personalDetailsFormatted,
             sectionIndex: 1,
         });
 
         if (hasUnselectedUserToInvite) {
-            sectionsArr.push({
+            sections.push({
                 title: undefined,
                 data: [formatMemberForList(userToInvite)],
                 sectionIndex: 2,
             });
         }
+    }
 
-        return sectionsArr;
-    }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate, countryCode]);
+    const toggleOption = (option: MemberForList) => {
+        const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
-    const toggleOption = useCallback(
-        (option: MemberForList) => {
-            const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
+        let newSelectedOptions: OptionData[];
+        if (isOptionInList) {
+            newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
+        } else {
+            newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
+        }
 
-            let newSelectedOptions: OptionData[];
-            if (isOptionInList) {
-                newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
-            } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true}];
-            }
-
-            setSelectedOptions(newSelectedOptions);
-        },
-        [selectedOptions],
-    );
-
-    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions.length]);
+        setSelectedOptions(newSelectedOptions);
+    };
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
-    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
-    const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
+    const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
+    const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-    const backRoute = useMemo(() => {
-        return reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
-    }, [isPolicyEmployee, reportID, backTo, isReportArchived]);
+    const backRoute = reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = useMemo(() => getReportName(report), [report]);
+    const reportName = getReportName(report);
 
     const ancestors = useAncestors(report);
 
     const inviteUsers = () => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
-        if (!validate()) {
+        if (selectedOptions.length === 0) {
             return;
         }
         const invitedEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
@@ -244,11 +223,7 @@ function RoomInvitePage({
         }
     };
 
-    const goBack = useCallback(() => {
-        Navigation.goBack(backRoute);
-    }, [backRoute]);
-
-    const headerMessage = useMemo(() => {
+    const getHeaderMessageText = () => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
         const expensifyEmails = CONST.EXPENSIFY_EMAILS;
         if (!inviteOptions.userToInvite && expensifyEmails.includes(searchValue)) {
@@ -261,7 +236,7 @@ function RoomInvitePage({
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return getHeaderMessage((inviteOptions.personalDetails ?? []).length !== 0, !!inviteOptions.userToInvite, debouncedSearchTerm, countryCode);
-    }, [debouncedSearchTerm, inviteOptions.userToInvite, inviteOptions.personalDetails, excludedUsers, countryCode, translate, reportName]);
+    };
 
     useEffect(() => {
         updateUserSearchPhrase(debouncedSearchTerm);
@@ -277,7 +252,7 @@ function RoomInvitePage({
         value: searchTerm,
         label: translate('selectionList.nameEmailOrPhoneNumber'),
         onChangeText: setSearchTerm,
-        headerMessage,
+        headerMessage: getHeaderMessageText(),
     };
 
     return (
@@ -289,12 +264,12 @@ function RoomInvitePage({
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived}
                 subtitleKey={subtitleKey}
-                onBackButtonPress={goBack}
+                onBackButtonPress={() => Navigation.goBack(backRoute)}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
                     subtitle={shouldParserToHTML ? Parser.htmlToText(reportName) : reportName}
-                    onBackButtonPress={goBack}
+                    onBackButtonPress={() => Navigation.goBack(backRoute)}
                 />
                 <SelectionListWithSections
                     sections={sections}
