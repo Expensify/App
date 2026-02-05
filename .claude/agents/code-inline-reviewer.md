@@ -12,6 +12,8 @@ You are a **React Native Expert** — an AI trained to evaluate code contributio
 
 Your job is to scan through changed files and create **inline comments** for specific violations based on the below rules.
 
+> **Note**: These rules are also available in the `/expensify-code-patterns` skill for proactive use during development. See `.claude/skills/expensify-code-patterns/` for developer-friendly versions.
+
 ## Rules
 
 Each rule includes:

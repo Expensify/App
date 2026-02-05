@@ -1,0 +1,21 @@
+---
+description: React Native performance, consistency, and component patterns for Expensify App. Apply when writing React components, using useOnyx/Onyx, implementing FlatList/renderItem, or working with useEffect.
+globs:
+  - "src/**/*.tsx"
+  - "src/**/*.ts"
+alwaysApply: false
+---
+
+# Expensify Code Patterns
+
+When writing or reviewing React Native code, consult the pattern documentation below.
+
+## Pattern Index
+
+| Category | What It Covers | Documentation |
+|----------|---------------|---------------|
+| **Performance** | List rendering, memoization, early returns, useEffect anti-patterns, memory leaks | [PERFORMANCE.md](.claude/skills/expensify-code-patterns/references/PERFORMANCE.md) |
+| **Consistency** | Platform-specific files, named constants, DRY, error handling, ESLint disables | [CONSISTENCY.md](.claude/skills/expensify-code-patterns/references/CONSISTENCY.md) |
+| **Components** | Composition over configuration, component ownership, abstract contracts, focused effects | [COMPONENTS.md](.claude/skills/expensify-code-patterns/references/COMPONENTS.md) |
+| **Onyx** | Selectors, OnyxListItemProvider, collection keys, subscription patterns | [ONYX.md](.claude/skills/expensify-code-patterns/references/ONYX.md) |
+
