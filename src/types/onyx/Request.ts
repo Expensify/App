@@ -1,29 +1,68 @@
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 import type Response from './Response';
 
-/** Model of onyx requests sent to the API */
-type OnyxData<TKey extends OnyxKey> = {
+/** Expands an Onyx key, allowing template patterns for collections or enforcing literals otherwise. */
+type ExpandOnyxKeys<TKey extends OnyxKey> = TKey extends OnyxCollectionKey ? NoInfer<`${TKey}${string}`> : TKey;
+
+/**
+ * Represents an OnyxUpdate type without strict type checks on the value.
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union and is useful for contexts where the specific Onyx keys are not known ahead of time.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyOnyxUpdate<TKey extends OnyxKey = any> = {
+    /** The Onyx method to perform */
+    onyxMethod:
+        | typeof OnyxUtils.METHOD.SET
+        | typeof OnyxUtils.METHOD.MULTI_SET
+        | typeof OnyxUtils.METHOD.MERGE
+        | typeof OnyxUtils.METHOD.CLEAR
+        | typeof OnyxUtils.METHOD.MERGE_COLLECTION
+        | typeof OnyxUtils.METHOD.SET_COLLECTION;
+    /** The Onyx key to update */
+    key: ExpandOnyxKeys<TKey>;
+    /** The data to be written to Onyx. Typed as `any` to allow flexibility */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    value?: any;
+};
+
+/** Generic base for types of onyx requests model sent to the API */
+type OnyxDataBase<TOnyxUpdate> = {
     /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
-    successData?: Array<OnyxUpdate<TKey>>;
+    successData?: TOnyxUpdate[];
 
     /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
-    failureData?: Array<OnyxUpdate<TKey>>;
+    failureData?: TOnyxUpdate[];
 
     /** Onyx instructions that are executed after getting any response from server */
-    finallyData?: Array<OnyxUpdate<TKey>>;
+    finallyData?: TOnyxUpdate[];
 
     /** Onyx instructions that are executed before request is made to the server */
-    optimisticData?: Array<OnyxUpdate<TKey>>;
+    optimisticData?: TOnyxUpdate[];
 
     /** Onyx instructions that are executed when Onyx queue is flushed */
-    queueFlushedData?: Array<OnyxUpdate<TKey>>;
+    queueFlushedData?: TOnyxUpdate[];
 };
+
+/** Model of onyx requests sent to the API */
+type OnyxData<TKey extends OnyxKey> = OnyxDataBase<OnyxUpdate<TKey>>;
+
+/**
+ * Loosely typed model of onyx requests sent to the API
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
+ */
+type AnyOnyxData = OnyxDataBase<AnyOnyxUpdate>;
 
 /** HTTP request method names */
 type RequestType = 'get' | 'post';
 
-/** Model of overall requests sent to the API */
-type RequestData<TKey extends OnyxKey = OnyxKey> = {
+/** Generic base model for API requests containing common metadata and handlers */
+type RequestDataBase<TKey extends OnyxKey = OnyxKey> = {
     /** Name of the API command */
     command: string;
 
@@ -39,17 +78,8 @@ type RequestData<TKey extends OnyxKey = OnyxKey> = {
     /** Whether the app should connect to the secure API endpoints */
     shouldUseSecure?: boolean;
 
-    /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
-    successData?: Array<OnyxUpdate<TKey>>;
-
-    /** Onyx instructions that are executed after getting response from server with jsonCode !== 200 */
-    failureData?: Array<OnyxUpdate<TKey>>;
-
-    /** Onyx instructions that are executed after getting any response from server */
-    finallyData?: Array<OnyxUpdate<TKey>>;
-
     /** Promise resolve handler */
-    resolve?: (value: Response) => void;
+    resolve?: (value: Response<TKey>) => void;
 
     /** Promise reject handler */
     reject?: (value?: unknown) => void;
@@ -70,6 +100,17 @@ type RequestData<TKey extends OnyxKey = OnyxKey> = {
     /** The unique ID of the request */
     requestID?: number;
 };
+
+/** Model of overall requests sent to the API */
+type RequestData<TKey extends OnyxKey> = RequestDataBase<TKey> & OnyxData<TKey>;
+
+/**
+ * Loosely typed model of overall requests sent to the API
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
+ */
+type AnyRequestData = RequestDataBase & AnyOnyxData;
 
 /**
  * Represents the possible actions to take in case of a conflict in the request queue.
@@ -93,7 +134,7 @@ type ConflictRequestReplace = {
     /**
      * The new request to replace the existing request in the queue.
      */
-    request?: Request<OnyxKey>;
+    request?: AnyRequest;
 };
 
 /**
@@ -152,14 +193,14 @@ type ConflictActionData = {
 };
 
 /**
- * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
+ * Generic base for objects that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
  * and how to resolve those conflicts.
  */
-type RequestConflictResolver = {
+type RequestConflictResolverBase<TKey extends OnyxKey> = {
     /**
      * A function that checks if a new request conflicts with any existing requests in the queue.
      */
-    checkAndFixConflictingRequest?: (persistedRequest: Array<Request<OnyxKey>>) => ConflictActionData;
+    checkAndFixConflictingRequest?(persistedRequest: Array<Request<TKey>>): ConflictActionData;
 
     /**
      * A boolean flag to mark a request as persisting into Onyx, if set to true it means when Onyx loads
@@ -173,8 +214,32 @@ type RequestConflictResolver = {
     isRollback?: boolean;
 };
 
+/**
+ * An object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
+ * and how to resolve those conflicts.
+ */
+type RequestConflictResolver<TKey extends OnyxKey> = RequestConflictResolverBase<TKey>;
+
+/**
+ * Loosely typed object that describes how a new write request can identify any queued requests that may conflict with or be undone by the new request,
+ * and how to resolve those conflicts.
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyRequestConflictResolver = RequestConflictResolverBase<any>;
+
 /** Model of requests sent to the API */
-type Request<TKey extends OnyxKey = OnyxKey> = RequestData<TKey> & OnyxData<TKey> & RequestConflictResolver;
+type Request<TKey extends OnyxKey> = RequestData<TKey> & RequestConflictResolver<TKey>;
+
+/**
+ * Loosely typed model of requests sent to the API
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union and is useful for contexts where the specific Onyx keys are not known ahead of time.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
+ */
+type AnyRequest = AnyRequestData & AnyRequestConflictResolver;
 
 /**
  * An object used to describe how a request can be paginated.
@@ -194,7 +259,7 @@ type PaginationConfig = {
 /**
  * A paginated request object.
  */
-type PaginatedRequest = Request<OnyxKey> &
+type PaginatedRequest<TKey extends OnyxKey> = Request<TKey> &
     PaginationConfig & {
         /**
          * A boolean flag to mark a request as Paginated.
@@ -203,4 +268,4 @@ type PaginatedRequest = Request<OnyxKey> &
     };
 
 export default Request;
-export type {OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData, ConflictData};
+export type {AnyOnyxUpdate, OnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData, ConflictData, AnyRequest};
