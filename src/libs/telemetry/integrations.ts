@@ -14,6 +14,10 @@ const tracingIntegration = Sentry.reactNativeTracingIntegration({
     shouldCreateSpanForRequest,
 });
 
+const browserTracingIntegration = SentryReact.browserTracingIntegration({
+    shouldCreateSpanForRequest: () => false,
+});
+
 const browserProfilingIntegration = SentryReact.browserProfilingIntegration();
 
-export {navigationIntegration, tracingIntegration, browserProfilingIntegration};
+export {navigationIntegration, tracingIntegration, browserProfilingIntegration, browserTracingIntegration};
