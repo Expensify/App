@@ -3006,7 +3006,7 @@ describe('OptionsListUtils', () => {
             };
 
             // When we call createOptionList with this privateIsArchivedMap
-            const result = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, privateIsArchivedMap, REPORTS);
+            const result = createOptionList(PERSONAL_DETAILS, undefined, CURRENT_USER_ACCOUNT_ID, privateIsArchivedMap, REPORTS);
 
             // Then the personal detail option for account 1 (Mister Fantastic) should have private_isArchived set
             const misterFantasticOption = result.personalDetails.find((pd) => pd.item?.accountID === 1);
@@ -3019,7 +3019,7 @@ describe('OptionsListUtils', () => {
             const emptyMap: PrivateIsArchivedMap = {};
 
             // When we call createOptionList with an empty privateIsArchivedMap
-            const result = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, emptyMap, REPORTS);
+            const result = createOptionList(PERSONAL_DETAILS, undefined, CURRENT_USER_ACCOUNT_ID, emptyMap, REPORTS);
 
             // Then no personal details options should have private_isArchived set
             const optionsWithArchived = result.personalDetails.filter((pd) => pd.private_isArchived);
