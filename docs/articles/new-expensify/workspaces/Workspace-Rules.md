@@ -79,7 +79,7 @@ Available options:
 
 # Configure Category Rules
 
-Category Rules let you fine-tune how individual categories behave.
+Category Rules let you fine-tune how individual categories behave. The Categories table displays each category's Name, GL Code (if assigned), and Enabled status.
 
 To manage them:
 
@@ -99,7 +99,7 @@ Available options:
 
 # Configure Tag Rules
 
-Tag Rules allow tagging-based workflows and approvals.
+Tag Rules allow tagging-based workflows and approvals. The Tags table displays each tag's Name, GL Code (if assigned), and Required status.
 
 To manage them:
 
