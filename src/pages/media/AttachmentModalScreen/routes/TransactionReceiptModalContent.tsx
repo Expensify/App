@@ -300,7 +300,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             callback: () =>
                                 Navigation.navigate(
                                     isOdometerImage
-                                        ? ROUTES.ODOMETER_IMAGE.getRoute(transactionID, imageType, action, iouType)
+                                        ? ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, imageType)
                                         : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                               action ?? CONST.IOU.ACTION.EDIT,
                                               iouType,

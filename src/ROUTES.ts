@@ -1432,9 +1432,9 @@ const ROUTES = {
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-odometer` as const,
     },
     ODOMETER_IMAGE: {
-        route: ':action/:iouType/odometer-image/:transactionID/:readingType',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, readingType: OdometerImageType) =>
-            `${action as string}/${iouType as string}/odometer-image/${transactionID}/${readingType}` as const,
+        route: ':action/:iouType/odometer-image/:transactionID/:imageType',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, imageType: OdometerImageType) =>
+            `${action as string}/${iouType as string}/odometer-image/${transactionID}/${imageType}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -3031,7 +3031,7 @@ const ROUTES = {
             transactionID: string | undefined,
             readonly = false,
             mergeTransactionID?: string,
-            imageType?: 'start' | 'end',
+            imageType?: OdometerImageType,
             action?: IOUAction,
             iouType?: IOUType,
         ) => {

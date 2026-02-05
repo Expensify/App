@@ -30,7 +30,7 @@ type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeo
 
 function IOURequestStepOdometerImage({
     route: {
-        params: {transactionID, readingType, action, iouType},
+        params: {action, iouType, transactionID, imageType},
     },
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
@@ -47,9 +47,9 @@ function IOURequestStepOdometerImage({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const title = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
-    const message = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
-    const icon = readingType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
+    const title = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
+    const message = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startMessageWeb') : translate('distance.odometer.endMessageWeb');
+    const icon = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
     const messageHTML = `<centered-text><muted-text-label>${message}</muted-text-label></centered-text>`;
 
     const navigateBack = useCallback(() => {
@@ -67,11 +67,11 @@ function IOURequestStepOdometerImage({
 
     const handleImageSelected = useCallback(
         (file: FileObject) => {
-            setMoneyRequestOdometerReadingImage(transactionID, readingType, file as File, isTransactionDraft);
+            setMoneyRequestOdometerReadingImage(transactionID, imageType, file as File, isTransactionDraft);
             shouldRevokeOnUnmountRef.current = false;
             navigateBack();
         },
-        [transactionID, readingType, isTransactionDraft, navigateBack],
+        [transactionID, imageType, isTransactionDraft, navigateBack],
     );
 
     const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject[]) => {

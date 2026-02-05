@@ -1884,7 +1884,7 @@ type MoneyRequestNavigatorParamList = {
         action: IOUAction;
         iouType: IOUType;
         transactionID: string;
-        readingType: OdometerImageType;
+        imageType: OdometerImageType;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
