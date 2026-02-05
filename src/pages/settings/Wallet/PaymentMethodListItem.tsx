@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -106,14 +106,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
 
     // Check if this is a Chase personal bank account connected via Plaid
-    // Chase substitutes tokenized account numbers for accounts linked via Plaid
-    const isChaseAccountConnectedViaPlaid = useMemo(() => {
-        return (
-            item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT &&
-            item.accountData?.additionalData?.bankName?.toLowerCase() === CONST.BANK_NAMES.CHASE &&
-            !!(item.accountData?.additionalData?.plaidAccountID ?? item.accountData?.plaidAccountID)
-        );
-    }, [item.accountType, item.accountData]);
+    const isChaseAccountConnectedViaPlaid =
+        item.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT &&
+        item.accountData?.additionalData?.bankName?.toLowerCase() === CONST.BANK_NAMES.CHASE &&
+        !!(item.accountData?.additionalData?.plaidAccountID ?? item.accountData?.plaidAccountID);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (isAccountInSetupState(item) || !threeDotsMenuItems || (item.cardID && item.onThreeDotsMenuPress)) {

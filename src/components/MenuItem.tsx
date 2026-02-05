@@ -170,9 +170,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Text to show below menu item. This text is not interactive */
         helperText?: string;
 
-        /** Icon to display before helper text */
-        helperTextIcon?: IconAsset;
-
         /** Any additional styles to pass to helper text. */
         helperTextStyle?: StyleProp<TextStyle>;
 
@@ -480,7 +477,6 @@ function MenuItem({
     furtherDetailsComponent,
     description,
     helperText,
-    helperTextIcon,
     helperTextStyle,
     errorText,
     errorTextStyle,
@@ -614,9 +610,8 @@ function MenuItem({
         if (!helperText || !shouldParseHelperText) {
             return '';
         }
-        // Use shouldEscapeText: false to properly render HTML anchor tags as clickable links
-        return Parser.replace(helperText, {shouldEscapeText: false});
-    }, [helperText, shouldParseHelperText]);
+        return Parser.replace(helperText, {shouldEscapeText});
+    }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
@@ -1095,29 +1090,11 @@ function MenuItem({
                     </Hoverable>
                     {!!helperText &&
                         (shouldParseHelperText ? (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.renderHTML, styles.ph5, styles.pb5]}>
-                                {!!helperTextIcon && (
-                                    <Icon
-                                        src={helperTextIcon}
-                                        height={variables.iconSizeNormal}
-                                        width={variables.iconSizeNormal}
-                                        additionalStyles={[styles.mr2]}
-                                    />
-                                )}
+                            <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5]}>
                                 <RenderHTML html={processedHelperText} />
                             </View>
                         ) : (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pb5]}>
-                                {!!helperTextIcon && (
-                                    <Icon
-                                        src={helperTextIcon}
-                                        height={variables.iconSizeNormal}
-                                        width={variables.iconSizeNormal}
-                                        additionalStyles={[styles.mr2]}
-                                    />
-                                )}
-                                <Text style={[styles.mutedNormalTextLabel, helperTextStyle]}>{helperText}</Text>
-                            </View>
+                            <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, helperTextStyle]}>{helperText}</Text>
                         ))}
                 </View>
             </EducationalTooltip>
