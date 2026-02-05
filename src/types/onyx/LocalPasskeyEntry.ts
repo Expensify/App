@@ -1,5 +1,9 @@
-/** Represents the transport method for a passkey credential */
-type PasskeyTransport = 'internal' | 'hybrid' | 'usb' | 'nfc' | 'ble';
+/**
+ * Represents the transport method for a passkey credential.
+ * Values based on WebAuthn AuthenticatorTransport enum.
+ * @see https://www.w3.org/TR/webauthn-3/#enum-transport
+ */
+type PasskeyTransport = 'usb' | 'nfc' | 'ble' | 'smart-card' | 'hybrid' | 'internal';
 
 /** Represents a single credential stored locally for a passkey */
 type PasskeyCredential = {
