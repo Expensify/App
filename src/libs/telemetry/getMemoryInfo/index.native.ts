@@ -24,9 +24,13 @@ const getMemoryInfo = async (): Promise<MemoryInfo> => {
         const maxMemoryBytesRaw = maxMemory.status === 'fulfilled' ? maxMemory.value : null;
         const maxMemoryBytes = normalizeMemoryValue(maxMemoryBytesRaw);
 
+        // Calculate usage percentage based on appropriate metric per platform
+        // Android: Use % of device RAM (RSS / totalMemory) - temporary until native onTrimMemory module
+        //          This is more adaptive than absolute MB and scales with device capabilities
+        // iOS: No calculation (use absolute MB thresholds)
         let usagePercentage: number | null = null;
-        if (Platform.OS === 'android' && usedMemoryBytes !== null && maxMemoryBytes !== null && maxMemoryBytes > 0) {
-            usagePercentage = parseFloat(((usedMemoryBytes / maxMemoryBytes) * 100).toFixed(2));
+        if (Platform.OS === 'android' && usedMemoryBytes !== null && totalMemoryBytes !== null && totalMemoryBytes > 0) {
+            usagePercentage = parseFloat(((usedMemoryBytes / totalMemoryBytes) * 100).toFixed(2));
         }
 
         const freeMemoryBytes = totalMemoryBytes !== null && usedMemoryBytes !== null ? totalMemoryBytes - usedMemoryBytes : null;

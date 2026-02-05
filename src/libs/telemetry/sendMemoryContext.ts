@@ -23,18 +23,20 @@ function sendMemoryContext() {
              * WEB:
              *   - Has jsHeapSizeLimit API ✅
              *   - Use percentage: (usedMemory / jsHeapSizeLimit) * 100
-             *   - Thresholds: >90% error, >75% warning
+             *   - Thresholds: >85% error, >70% warning
              *
              * ANDROID:
-             *   - Has getMaxMemory() for VM heap limit ✅
-             *   - Use percentage: (usedMemory / maxMemory) * 100
+             *   - getUsedMemory() returns RSS (process memory including native + heap + libs)
+             *   - getMaxMemory() returns heap limit (Java heap only) - incompatible for comparison
+             *   - Temporary: Use % of device RAM (RSS / totalMemory * 100)
              *   - Thresholds: >85% error, >70% warning
+             *   - Future: Use native onTrimMemory() callbacks for system memory pressure
              *
              * iOS:
              *   - NO API for jetsam limit ❌
              *   - Use absolute MB values (conservative approach)
-             *   - Thresholds: >800MB error, >500MB warning
-             *   - Note: Actual jetsam limit varies by device (typically 20-30% of device RAM)
+             *   - Thresholds: >600MB error, >300MB warning (supports iPhone 8+)
+             *   - Note: iPhone 8/X jetsam ~300-350MB, iPhone 11+ ~400-600MB
              */
             if (memoryInfo.platform === 'web') {
                 // Web: Use percentage of JS heap limit
@@ -48,7 +50,7 @@ function sendMemoryContext() {
                     }
                 }
             } else if (memoryInfo.platform === 'android') {
-                // Android: Use percentage of VM heap limit (from getMaxMemory)
+                // Android: Use percentage of device RAM (RSS / totalMemory)
                 if (memoryInfo.usagePercentage !== null) {
                     if (memoryInfo.usagePercentage > CONST.TELEMETRY.CONFIG.MEMORY_THRESHOLD_ANDROID_CRITICAL) {
                         logLevel = 'error';
@@ -73,9 +75,11 @@ function sendMemoryContext() {
             Sentry.addBreadcrumb({
                 category: 'system.memory',
                 message:
-                    memoryInfo.platform === 'ios'
-                        ? `RAM Check: ${usedMemoryMB ?? '?'}MB used (iOS - no limit API)`
-                        : `RAM Check: ${usedMemoryMB ?? '?'}MB / ${memoryInfo.maxMemoryBytes ? Math.round(memoryInfo.maxMemoryBytes / (1024 * 1024)) : '?'}MB limit`,
+                    memoryInfo.platform === 'web'
+                        ? `RAM Check: ${usedMemoryMB ?? '?'}MB / ${memoryInfo.maxMemoryBytes ? Math.round(memoryInfo.maxMemoryBytes / (1024 * 1024)) : '?'}MB limit`
+                        : memoryInfo.platform === 'android'
+                          ? `RAM Check: ${usedMemoryMB ?? '?'}MB used (${memoryInfo.usagePercentage?.toFixed(0) ?? '?'}% device RAM)`
+                          : `RAM Check: ${usedMemoryMB ?? '?'}MB used (iOS - no limit API)`,
                 level: logLevel,
                 timestamp: timestamp / 1000,
                 data: {

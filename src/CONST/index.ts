@@ -1785,16 +1785,16 @@ const CONST = {
             MEMORY_TRACKING_INTERVAL: 2 * 60 * 1000,
 
             // Web Memory Thresholds (% of jsHeapSizeLimit)
-            MEMORY_THRESHOLD_WEB_CRITICAL: 90,
-            MEMORY_THRESHOLD_WEB_WARNING: 75,
+            MEMORY_THRESHOLD_WEB_CRITICAL: 85,
+            MEMORY_THRESHOLD_WEB_WARNING: 70,
 
-            // Android Memory Thresholds (% of VM heap limit from getMaxMemory)
-            MEMORY_THRESHOLD_ANDROID_CRITICAL: 85,
-            MEMORY_THRESHOLD_ANDROID_WARNING: 70,
+            // Android Memory Thresholds (% of device RAM - temporary solution)
+            MEMORY_THRESHOLD_ANDROID_CRITICAL: 85,  // > 85% of device RAM
+            MEMORY_THRESHOLD_ANDROID_WARNING: 70,   // > 70% of device RAM
 
             // iOS Memory Thresholds (absolute MB - no heap limit API available)
-            MEMORY_THRESHOLD_IOS_CRITICAL_MB: 800,
-            MEMORY_THRESHOLD_IOS_WARNING_MB: 500,
+            MEMORY_THRESHOLD_IOS_CRITICAL_MB: 600,  // > 600MB approaching jetsam on older devices
+            MEMORY_THRESHOLD_IOS_WARNING_MB: 300,   // > 300MB monitor closely
         },
     },
     PRIORITY_MODE: {
