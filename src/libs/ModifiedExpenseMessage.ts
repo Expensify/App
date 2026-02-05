@@ -28,7 +28,7 @@ import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, 
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- ModifiedExpenseMessage.getForReportAction is called by utility files (ReportUtils.getModifiedExpenseMessage, OptionsListUtils, ReportNameUtils) that cannot use React hooks. The global policyTags state is required for these non-React contexts. Migration to useOnyx will happen when these utility files are converted to custom hooks.
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -45,7 +45,7 @@ let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 let currentUserLogin = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- ModifiedExpenseMessage.getForReportAction requires currentUserLogin for isPolicyAdmin checks. This function is called by non-React utility files (ReportUtils.getModifiedExpenseMessage, OptionsListUtils, ReportNameUtils) that cannot use React hooks. Migration to useOnyx will happen when these utility files are converted to custom hooks.
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -516,7 +516,7 @@ function getForReportActionTemp({
     movedFromReport,
     movedToReport,
     policyTags,
-    currentUserLogin: currentUserLoginParam,
+    currentUserLogin,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -614,7 +614,7 @@ function getForReportActionTemp({
         if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
             categoryLabel += ` ${translate('iou.basedOnAI')}`;
         } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
-            const isAdmin = isPolicyAdmin(policy, currentUserLoginParam);
+            const isAdmin = isPolicyAdmin(policy, currentUserLogin);
 
             // For admins, create a hyperlink to the workspace rules page
             if (isAdmin && policy?.id) {
