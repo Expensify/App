@@ -213,7 +213,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         }
         if (bankAccountIDParam) {
             // we don't need to send the stepToOpen and subStep when opening by bankAccountID - the step is returned from the backend
-            openReimbursementAccountPage('', '', '', undefined, Number(bankAccountIDParam));
+            openReimbursementAccountPage({bankAccountID: Number(bankAccountIDParam)});
             return;
         }
         // We can specify a step to navigate to by using route params when the component mounts.
@@ -228,9 +228,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             localCurrentStep = achData?.currentStep ?? '';
         }
 
-            // When preserving the current step (e.g., coming back online), also preserve the draft
-            // to prevent losing user selections made while offline
-        openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam, preserveCurrentStep);
+        // When preserving the current step (e.g., coming back online), also preserve the draft
+        // to prevent losing user selections made while offline
+        openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep});
     }
 
     useEffect(() => {
