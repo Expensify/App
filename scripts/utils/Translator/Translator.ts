@@ -1,5 +1,6 @@
 import {DomUtils, parseDocument} from 'htmlparser2';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+import type {StringWithContext} from './types';
 
 /**
  * Base Translator class standardizes interface for translators and implements common logging.
@@ -9,12 +10,12 @@ abstract class Translator {
      * Translate a string to the given locale.
      * Implements common logging logic, while concrete subclasses handle actual translations.
      */
-    public async translate(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
+    public async translate(targetLang: TranslationTargetLocale, text: string, context?: string, id?: string): Promise<string> {
         const isEmpty = !text || text.trim().length === 0;
         if (isEmpty) {
             return '';
         }
-        const result = await this.performTranslation(targetLang, text, context);
+        const result = await this.performTranslation(targetLang, text, context, id);
         const prefix = `🧠 Translated to [${targetLang}]: `;
         console.log(`${prefix}"${this.trimForLogs(text)}"\n${''.padStart(prefix.length - 2, ' ')}→ "${this.trimForLogs(result)}"`);
         if (context) {
@@ -26,7 +27,18 @@ abstract class Translator {
     /**
      * Translate a string to the given locale.
      */
-    protected abstract performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string>;
+    protected abstract performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string, id?: string): Promise<string>;
+
+    /**
+     * Estimate cost for translating the given strings across locales.
+     */
+    public abstract estimateCost(stringsToTranslate: StringWithContext[], targetLanguages: TranslationTargetLocale[]): Promise<number>;
+
+    /**
+     * Get all translations that failed after exhausting retries.
+     * Used for summary reporting at the end of a translation run.
+     */
+    public abstract getFailedTranslations(): Array<{text: string; targetLang: TranslationTargetLocale; error: string; id?: string}>;
 
     /**
      * Trim a string to keep logs readable.
@@ -92,8 +104,11 @@ abstract class Translator {
         const originalStructure = parseHTMLStructure(original);
         const translatedStructure = parseHTMLStructure(translated);
 
-        // Compare structures (tag names and non-translatable attributes)
-        return JSON.stringify(originalStructure) === JSON.stringify(translatedStructure);
+        // Serialize and sort for order-independent comparison (preserves duplicates)
+        const originalSorted = originalStructure.map((el) => JSON.stringify(el)).sort();
+        const translatedSorted = translatedStructure.map((el) => JSON.stringify(el)).sort();
+
+        return JSON.stringify(originalSorted) === JSON.stringify(translatedSorted);
     }
 }
 

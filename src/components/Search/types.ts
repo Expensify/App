@@ -10,7 +10,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
     /** The transaction itself */
-    transaction: Transaction;
+    transaction?: Transaction;
 
     /** Whether the transaction is selected */
     isSelected: boolean;
@@ -230,6 +230,7 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW;
