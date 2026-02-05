@@ -2,9 +2,11 @@ import isEmpty from 'lodash/isEmpty';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TPhrasing, TText} from 'react-native-render-html';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {translate} from './Localize';
 import {isChatRoom} from './ReportUtils';
 
 const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').replace('#', '');
@@ -13,13 +15,15 @@ const getReportMentionDetails = (htmlAttributeReportID: string, currentReport: O
     let reportID: string | undefined;
     let mentionDisplayText: string;
 
+    const local = IntlStore.getCurrentLocale();
+
     // Get mention details based on reportID from tag attribute
     if (!isEmpty(htmlAttributeReportID)) {
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${htmlAttributeReportID}`];
         reportID = report?.reportID ?? htmlAttributeReportID;
         // Match ExpensiMark htmlToText behavior: if we can't resolve a report name, show "Hidden".
         // This keeps chat mentions consistent with LHN previews.
-        mentionDisplayText = removeLeadingLTRAndHash(report?.reportID && report?.reportName ? report?.reportName : 'Hidden');
+        mentionDisplayText = removeLeadingLTRAndHash(report?.reportID && report?.reportName ? report?.reportName : translate(local, 'common.hidden'));
         // Get mention details from name inside tnode
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
