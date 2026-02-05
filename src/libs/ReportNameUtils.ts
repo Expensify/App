@@ -126,6 +126,15 @@ import {
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 
+const staticReportNameTypes = [
+    CONST.REPORT.TYPE.EXPENSE,
+    CONST.REPORT.TYPE.INVOICE,
+    CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+    CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
+    CONST.REPORT.UNSUPPORTED_TYPE.TRIP,
+] as const;
+type StaticReportNameType = TupleToUnion<typeof staticReportNameTypes>;
+
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -140,15 +149,6 @@ function shouldReturnStaticReportName(report: Report) {
     if (!report.type) {
         return false;
     }
-
-    const staticReportNameTypes = [
-        CONST.REPORT.TYPE.EXPENSE,
-        CONST.REPORT.TYPE.INVOICE,
-        CONST.REPORT.UNSUPPORTED_TYPE.BILL,
-        CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
-        CONST.REPORT.UNSUPPORTED_TYPE.TRIP,
-    ] as const;
-    type StaticReportNameType = TupleToUnion<typeof staticReportNameTypes>;
 
     return staticReportNameTypes.includes(report.type as StaticReportNameType);
 }
@@ -692,15 +692,14 @@ function computeReportName(
     if (!report || !report.reportID) {
         return '';
     }
+    const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!privateIsArchivedValue);
 
     if (report?.reportName && shouldReturnStaticReportName(report)) {
-        return report.reportName;
+        return isArchivedNonExpense ? generateArchivedReportName(report?.reportName) : report?.reportName;
     }
 
-    const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
     const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!privateIsArchivedValue);
 
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
