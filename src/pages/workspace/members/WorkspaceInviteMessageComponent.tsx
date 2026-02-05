@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
+import {addMembersToWorkspace, clearInviteDraft, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
@@ -88,6 +88,8 @@ function WorkspaceInviteMessageComponent({
         }
         return policyName;
     }, [isWorkflowApprovalExpensesFromRoute, policyName]);
+
+    const inviteSentRef = useRef(false);
 
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -160,6 +162,7 @@ function WorkspaceInviteMessageComponent({
     }, [isOnyxLoading]);
 
     const sendInvitation = () => {
+        inviteSentRef.current = true;
         Keyboard.dismiss();
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
@@ -220,6 +223,22 @@ function WorkspaceInviteMessageComponent({
             clearWorkspaceInviteRoleDraft(policyID);
         };
     }, [policyID]);
+
+    // Clean up invite draft when backing out of the invite page without completing
+    // the invite in the approval workflow flow. This prevents stale non-member data
+    // from persisting in the draft, which fixes #78776 (workflow created with non-member submitter).
+    useEffect(() => {
+        return () => {
+            if (!isWorkflowApprovalExpensesFromRoute) {
+                return;
+            }
+            if (inviteSentRef.current) {
+                return;
+            }
+            clearInviteDraft(policyID);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isWorkflowApprovalExpensesFromRoute, policyID]);
 
     return (
         <AccessOrNotFoundWrapper

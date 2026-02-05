@@ -82,7 +82,15 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         setSelectedMembers(
-            approvalWorkflow.members.map((member) => {
+            approvalWorkflow.members
+            .filter((member) => {
+                const isPolicyMember = !!policy?.employeeList?.[member.email];
+                // Keep policy members. For non-policy members, only keep if they're
+                // in the invite draft (meaning an invite flow is actively in progress).
+                // This mirrors the card flow's handleBackButtonPress cleanup pattern.
+                return isPolicyMember || invitedEmailsToAccountIDsDraft?.[member.email] != null;
+            })
+            .map((member) => {
                 let accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
                 const isPolicyMember = !!policy?.employeeList?.[member.email];
 
@@ -91,7 +99,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 // For non-policy members, try to get accountID from draft or personal details
                 if (!isPolicyMember) {
                     const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
-                    if (draftAccountID) {
+                    if (draftAccountID != null) {
                         accountID = draftAccountID;
                     } else if (personalDetail?.accountID) {
                         accountID = personalDetail.accountID;
