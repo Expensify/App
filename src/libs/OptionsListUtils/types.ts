@@ -191,6 +191,7 @@ type IsValidReportsConfig = Pick<
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
