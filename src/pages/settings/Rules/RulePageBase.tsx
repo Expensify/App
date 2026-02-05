@@ -13,10 +13,11 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDraftRule, setNameValuePair, updateDraftRule} from '@libs/actions/User';
+import {clearDraftRule, saveExpenseRule, updateDraftRule} from '@libs/actions/User';
 import {getAvailableNonPersonalPolicyCategories, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {extractRuleFromForm, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getAllTaxRatesNamesAndValues, getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -33,17 +34,17 @@ type RulePageBaseProps = {
     hash?: string;
 };
 
+type SectionItemType = {
+    descriptionTranslationKey: TranslationPaths;
+    required?: boolean;
+    title?: string;
+    onPress: () => void;
+    shouldRenderAsHTML?: boolean;
+};
+
 type SectionType = {
     titleTranslationKey: TranslationPaths;
-    items: Array<
-        | {
-              descriptionTranslationKey: TranslationPaths;
-              required?: boolean;
-              title?: string;
-              onPress: () => void;
-          }
-        | undefined
-    >;
+    items: Array<SectionItemType | undefined>;
 };
 
 const navigateTo = (field: ValueOf<typeof CONST.EXPENSE_RULES.FIELDS>, hash?: string) => {
@@ -122,20 +123,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
         setIsSaving(true);
 
         const newRule = extractRuleFromForm(form, selectedTaxRate);
-        let newRules;
-        if (hash) {
-            let isUpdated = false;
-            newRules = expenseRules.map((rule) => {
-                if (!isUpdated && getKeyForRule(rule) === hash) {
-                    isUpdated = true;
-                    return newRule;
-                }
-                return rule;
-            });
-        } else {
-            newRules = [...expenseRules, newRule];
-        }
-        setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, newRules, expenseRules);
+        saveExpenseRule(expenseRules, newRule, hash, getKeyForRule);
 
         Navigation.goBack();
     };
@@ -183,8 +171,9 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     : undefined,
                 {
                     descriptionTranslationKey: 'common.description',
-                    title: form?.comment,
+                    title: form?.comment ? Parser.replace(form.comment) : undefined,
                     onPress: () => navigateTo(CONST.EXPENSE_RULES.FIELDS.DESCRIPTION, hash),
+                    shouldRenderAsHTML: true,
                 },
                 {
                     descriptionTranslationKey: 'common.reimbursable',
@@ -235,6 +224,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                                         shouldShowRightIcon
                                         title={item.title}
                                         titleStyle={styles.flex1}
+                                        shouldRenderAsHTML={item.shouldRenderAsHTML}
                                     />
                                 );
                             })}

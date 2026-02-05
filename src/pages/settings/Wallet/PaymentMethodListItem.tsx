@@ -29,6 +29,7 @@ type PaymentMethodItem = PaymentMethod & {
     canDismissError?: boolean;
     disabled?: boolean;
     shouldShowRightIcon?: boolean;
+    shouldShowThreeDotsMenu?: boolean;
     interactive?: boolean;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     errors?: Errors;
@@ -95,9 +96,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const {translate} = useLocalize();
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
     const isInSetupState = isAccountInSetupState(item);
+    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupState;
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (isInSetupState || !threeDotsMenuItems || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
@@ -136,10 +138,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 badgeSuccess={isInSetupState ? true : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isInSetupState ? undefined : item.iconRight}
-                shouldShowRightIcon={(isInSetupState || !threeDotsMenuItems) && item.shouldShowRightIcon}
-                shouldShowRightComponent={!isInSetupState && !!threeDotsMenuItems}
+                shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}
+                shouldShowRightComponent={showThreeDotsMenu}
                 rightComponent={
-                    threeDotsMenuItems ? (
+                    showThreeDotsMenu ? (
                         <View style={styles.alignSelfCenter}>
                             <ThreeDotsMenu
                                 shouldSelfPosition
@@ -149,6 +151,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                 shouldOverlay
                                 isNested
                                 threeDotsMenuRef={threeDotsMenuRef}
+                                disabled={item.disabled}
                             />
                         </View>
                     ) : undefined
