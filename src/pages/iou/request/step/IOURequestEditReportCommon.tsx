@@ -221,12 +221,13 @@ function IOURequestEditReportCommon({
             navigateBack();
             return;
         }
-        if (!validatePerDiemMove(item.policyID)) {
-            return;
-        }
 
         if (item?.policyID && shouldRestrictUserBillableActions(item.policyID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
+            return;
+        }
+
+        if (!validatePerDiemMove(item.policyID)) {
             return;
         }
 
