@@ -38,7 +38,7 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
-import {cleanUpMoneyRequest} from '@userActions/IOU';
+import {cleanUpMoneyRequest, replaceReceipt} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
@@ -47,6 +47,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -123,6 +124,7 @@ function MoneyRequestReceiptView({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -276,6 +278,20 @@ function MoneyRequestReceiptView({
         </View>
     );
 
+    const onReplaceReceipt = (files: FileObject[]) => {
+        if (files.length === 0) {
+            return;
+        }
+
+        const file = files.at(0);
+
+        if (!file || !linkedTransactionID) {
+            return;
+        }
+        const source = URL.createObjectURL(file as Blob);
+        replaceReceipt({transactionID: linkedTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+    };
+
     // For empty receipt should be fullHeight
     // For the rest, expand to match the content
     return (
@@ -308,6 +324,7 @@ function MoneyRequestReceiptView({
                         isInMoneyRequestView
                         style={receiptStyle}
                         isDisplayedInWideRHP={isDisplayedInWideRHP}
+                        onReplaceReceipt={onReplaceReceipt}
                     />
                 </OfflineWithFeedback>
             )}
