@@ -879,8 +879,6 @@ function SearchAutocompleteList({
                 onLayout={() => {
                     setPerformanceTimersEnd();
                     setIsInitialRender(false);
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    innerListRef.current?.updateExternalTextInputFocus?.(textInputRef?.current?.isFocused() ?? false);
                 }}
             />
         )
