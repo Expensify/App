@@ -90,6 +90,7 @@ function ForYouSection() {
                     title={translate(translationKey, {count})}
                     ctaText={translate('homePage.forYouSection.begin')}
                     onCtaPress={handler}
+                    buttonProps={{success: true}}
                 />
             ))}
         </View>
