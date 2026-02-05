@@ -5956,6 +5956,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         transactionID,
         actionableWhisperReportActionID,
         iouParams.reportID,
+        iouParams.reportActionID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
@@ -6195,6 +6196,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     const {isDraftPolicy} = policyParams;
     const {
         actionableWhisperReportActionID,
+        moneyRequestPreviewReportActionID,
         moneyRequestReportID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
@@ -6210,6 +6212,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         transactionID,
         actionableWhisperReportActionID,
         moneyRequestReportID,
+        moneyRequestPreviewReportActionID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
@@ -6289,6 +6292,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         transactionID,
         actionableWhisperReportActionID,
         moneyRequestReportID,
+        moneyRequestPreviewReportActionID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
