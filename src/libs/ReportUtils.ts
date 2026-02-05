@@ -1080,10 +1080,14 @@ Onyx.connectWithoutView({
 });
 
 let allPolicies: OnyxCollection<Policy>;
+let hasPolicies: boolean;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
+    callback: (value) => {
+        allPolicies = value;
+        hasPolicies = !isEmptyObject(value);
+    },
 });
 
 let allPolicyDrafts: OnyxCollection<Policy>;
@@ -1420,7 +1424,7 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
     const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
-    if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName && !parentReport?.policyName)) {
+    if ((!report?.policyName && !parentReport?.policyName && !hasPolicies && isEmptyObject(policies)) || isEmptyObject(report)) {
         return noPolicyFound;
     }
     const finalPolicy = (() => {
