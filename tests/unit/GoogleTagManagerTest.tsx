@@ -201,6 +201,7 @@ describe('GoogleTagManagerTest', () => {
             activePolicyID: undefined,
             quickAction: undefined,
             recentWaypoints,
+            betas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdatesWithAct();
