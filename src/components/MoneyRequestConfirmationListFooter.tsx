@@ -1234,8 +1234,7 @@ function MoneyRequestConfirmationListFooter({
 
                 {fields.filter((field) => field.shouldShow && (field.shouldShowAboveShowMore ?? false)).map((field) => field.item)}
 
-                {!isCompactMode &&
-                    fields.filter((field) => field.shouldShow && !(field.shouldShowAboveShowMore ?? false)).map((field) => <View key={field.item.key}>{field.item}</View>)}
+                {!isCompactMode && fields.filter((field) => field.shouldShow && !(field.shouldShowAboveShowMore ?? false)).map((field) => <View key={field.item.key}>{field.item}</View>)}
 
                 {isCompactMode && fields.some((field) => field.shouldShow && !(field.shouldShowAboveShowMore ?? false)) && (
                     <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>

@@ -8227,6 +8227,9 @@ const CONST = {
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
+        SELECTION_LIST: {
+            SELECT_ALL: 'SelectionList-SelectAll',
+        },
     },
 
     DOMAIN: {
