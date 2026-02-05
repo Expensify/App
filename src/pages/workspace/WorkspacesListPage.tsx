@@ -462,17 +462,6 @@ function WorkspacesListPage() {
                 });
             }
 
-            const ownerDisplayName = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-            const workspaceType = item.type ? getUserFriendlyWorkspaceType(item.type, translate) : '';
-            const accessibilityLabel = [
-                `${translate('workspace.common.workspace')}: ${item.title}`,
-                isDefault ? translate('common.default') : '',
-                `${translate('workspace.common.workspaceOwner')}: ${ownerDisplayName}`,
-                `${translate('workspace.common.workspaceType')}: ${workspaceType}`,
-            ]
-                .filter(Boolean)
-                .join(', ');
-
             return (
                 <OfflineWithFeedback
                     key={`${item.title}_${index}`}
