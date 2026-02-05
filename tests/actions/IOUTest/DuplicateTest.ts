@@ -917,6 +917,7 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
             });
 
@@ -975,6 +976,7 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
             });
 
@@ -1033,6 +1035,7 @@ describe('actions/Duplicate', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
+                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
             });
 
