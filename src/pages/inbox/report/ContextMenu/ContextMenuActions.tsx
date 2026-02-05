@@ -162,6 +162,7 @@ import {
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
+    isReportDeleted,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';
@@ -1046,8 +1047,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(displayMessage);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
                     const {originalID} = getOriginalMessage(reportAction) ?? {};
-                    const reportName = getReportName(getReportOrDraftReport(originalID));
-                    const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate);
+                    const originalReportOfUnapprovedTransactions = getReportOrDraftReport(originalID);
+                    const reportName = getReportName(originalReportOfUnapprovedTransactions);
+                    const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isReportDeleted(originalReportOfUnapprovedTransactions), translate);
                     setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
