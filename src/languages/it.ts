@@ -640,6 +640,15 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Settimana',
         year: 'Anno',
         quarter: 'Trimestre',
+        progressBar: ({progress}: {progress: number}) => `Avanzamento: ${progress} per cento`,
+        expensifyLogo: 'Logo Expensify',
+    },
+    socials: {
+        podcast: 'Seguici su Podcast',
+        twitter: 'Seguici su Twitter',
+        instagram: 'Seguici su Instagram',
+        facebook: 'Seguici su Facebook',
+        linkedin: 'Seguici su LinkedIn',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -7482,6 +7491,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Da ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'Codice QR',
         copy: 'Copia URL',
         copied: 'Copiato!',
     },

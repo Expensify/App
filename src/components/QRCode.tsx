@@ -1,5 +1,6 @@
 import React from 'react';
 import type {ImageSourcePropType} from 'react-native';
+import {View} from 'react-native';
 import QRCodeLibrary from 'react-native-qrcode-svg';
 import type {Svg, SvgProps} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
@@ -55,6 +56,9 @@ type QRCodeProps = {
      * methods
      */
     getRef?: (ref: Svg) => Svg;
+
+    /** Accessibility label for the QR code image */
+    accessibilityLabel?: string;
 };
 
 function QRCode({
@@ -69,24 +73,32 @@ function QRCode({
     backgroundColor,
     logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO,
     logoMarginRatio = CONST.QR.DEFAULT_LOGO_MARGIN_RATIO,
+    accessibilityLabel,
 }: QRCodeProps) {
     const theme = useTheme();
 
     return (
-        <QRCodeLibrary
-            getRef={getRef}
-            value={url}
-            size={size}
-            logo={logo}
-            logoSVG={svgLogo}
-            logoColor={svgLogoFillColor}
-            logoBackgroundColor={logoBackgroundColor ?? theme.appBG}
-            logoSize={size * logoRatio}
-            logoMargin={size * logoMarginRatio}
-            logoBorderRadius={size}
-            backgroundColor={backgroundColor ?? theme.appBG}
-            color={color ?? theme.text}
-        />
+        <View
+            accessible
+            role={CONST.ROLE.IMG}
+            accessibilityLabel={accessibilityLabel}
+            tabIndex={0}
+        >
+            <QRCodeLibrary
+                getRef={getRef}
+                value={url}
+                size={size}
+                logo={logo}
+                logoSVG={svgLogo}
+                logoColor={svgLogoFillColor}
+                logoBackgroundColor={logoBackgroundColor ?? theme.appBG}
+                logoSize={size * logoRatio}
+                logoMargin={size * logoMarginRatio}
+                logoBorderRadius={size}
+                backgroundColor={backgroundColor ?? theme.appBG}
+                color={color ?? theme.text}
+            />
+        </View>
     );
 }
 

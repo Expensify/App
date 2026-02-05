@@ -636,6 +636,15 @@ const translations: TranslationDeepObject<typeof en> = {
         week: '周',
         year: '年份',
         quarter: '季度',
+        progressBar: ({progress}: {progress: number}) => `进度: ${progress}%`,
+        expensifyLogo: 'Expensify徽标',
+    },
+    socials: {
+        podcast: '在播客上关注我们',
+        twitter: '在Twitter上关注我们',
+        instagram: '在Instagram上关注我们',
+        facebook: '在Facebook上关注我们',
+        linkedin: '在LinkedIn上关注我们',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -7309,6 +7318,7 @@ ${reportName}
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `来自${reportName}${workspaceName ? `在 ${workspaceName} 中` : ''}`,
     },
     qrCodes: {
+        qrCode: '二维码',
         copy: '复制 URL',
         copied: '已复制！',
     },

@@ -640,6 +640,15 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Woche',
         year: 'Jahr',
         quarter: 'Quartal',
+        progressBar: ({progress}: {progress: number}) => `Fortschritt: ${progress} Prozent`,
+        expensifyLogo: 'Expensify-Logo',
+    },
+    socials: {
+        podcast: 'Folgen Sie uns auf Podcast',
+        twitter: 'Folgen Sie uns auf Twitter',
+        instagram: 'Folgen Sie uns auf Instagram',
+        facebook: 'Folgen Sie uns auf Facebook',
+        linkedin: 'Folgen Sie uns auf LinkedIn',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -7501,6 +7510,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Von ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'QR-Code',
         copy: 'URL kopieren',
         copied: 'Kopiert!',
     },

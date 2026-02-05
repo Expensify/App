@@ -660,6 +660,15 @@ const translations = {
         week: 'Week',
         year: 'Year',
         quarter: 'Quarter',
+        progressBar: ({progress}: {progress: number}) => `Progress: ${progress} percent`,
+        expensifyLogo: 'Expensify logo',
+    },
+    socials: {
+        podcast: 'Follow us on Podcast',
+        twitter: 'Follow us on Twitter',
+        instagram: 'Follow us on Instagram',
+        facebook: 'Follow us on Facebook',
+        linkedin: 'Follow us on LinkedIn',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -7442,6 +7451,7 @@ const translations = {
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `From ${reportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'QR code',
         copy: 'Copy URL',
         copied: 'Copied!',
     },

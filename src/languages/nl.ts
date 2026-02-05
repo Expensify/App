@@ -640,6 +640,15 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Week',
         year: 'Jaar',
         quarter: 'Kwartaal',
+        progressBar: ({progress}: {progress: number}) => `Voortgang: ${progress} procent`,
+        expensifyLogo: 'Expensify-logo',
+    },
+    socials: {
+        podcast: 'Volg ons op Podcast',
+        twitter: 'Volg ons op Twitter',
+        instagram: 'Volg ons op Instagram',
+        facebook: 'Volg ons op Facebook',
+        linkedin: 'Volg ons op LinkedIn',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -7472,6 +7481,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `Van ${reportName}${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'QR-code',
         copy: 'URL kopiëren',
         copied: 'Gekopieerd!',
     },

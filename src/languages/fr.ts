@@ -641,6 +641,15 @@ const translations: TranslationDeepObject<typeof en> = {
         week: 'Semaine',
         year: 'Année',
         quarter: 'Trimestre',
+        progressBar: ({progress}: {progress: number}) => `Progression: ${progress} pour cent`,
+        expensifyLogo: 'Logo Expensify',
+    },
+    socials: {
+        podcast: 'Suivez-nous sur Podcast',
+        twitter: 'Suivez-nous sur Twitter',
+        instagram: 'Suivez-nous sur Instagram',
+        facebook: 'Suivez-nous sur Facebook',
+        linkedin: 'Suivez-nous sur LinkedIn',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -7515,6 +7524,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         parentNavigationSummary: ({reportName, workspaceName}: ParentNavigationSummaryParams) => `De ${reportName}${workspaceName ? `dans ${workspaceName}` : ''}`,
     },
     qrCodes: {
+        qrCode: 'Code QR',
         copy: 'Copier l’URL',
         copied: 'Copié !',
     },
