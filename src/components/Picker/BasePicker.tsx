@@ -215,7 +215,6 @@ function BasePicker<TPickerValue>({
                     }}
                     touchableDoneProps={{
                         accessibilityRole: CONST.ROLE.BUTTON,
-                        accessibilityLabel: translate('common.dismiss'),
                     }}
                     touchableWrapperProps={{
                         accessible: true,
