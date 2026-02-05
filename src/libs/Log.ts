@@ -49,32 +49,58 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
 type ServerLoggingCallbackOptions = {api_setCookie: boolean; logPacket: string};
 type RequestParams = Merge<
     ServerLoggingCallbackOptions,
-    {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters: string; email?: string | null}
+    {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters?: string; email?: string | null}
 >;
+
+type LogLine = {email?: string | null; [key: string]: unknown};
 
 /**
  * Network interface for logger.
+ * Splits log packets by email to ensure logs are attributed to the correct user,
+ * even when multiple users' logs are queued before flushing.
  */
 function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOptions): Promise<{requestID: string}> {
-    const requestParams = params as RequestParams;
-    requestParams.shouldProcessImmediately = false;
-    requestParams.shouldRetry = false;
-    requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${pkg.version}`;
+    const baseParams = {
+        shouldProcessImmediately: false,
+        shouldRetry: false,
+        expensifyCashAppVersion: `expensifyCash[${getPlatform()}]${pkg.version}`,
+    };
 
-    // Extract email from the log lines - use the first non-null email found
-    // Each log line captures the user's email at the time it was created
-    const logLines = JSON.parse(params.logPacket) as Array<{email?: string | null}>;
-    const email = logLines.find((line) => line.email)?.email ?? null;
-    requestParams.email = email;
-
-    if (requestParams.parameters) {
-        requestParams.parameters = JSON.stringify(requestParams.parameters);
+    // Parse log lines and group by email to handle multi-user scenarios
+    // (e.g., user signs out and another signs in before logs flush)
+    const logLines = JSON.parse(params.logPacket) as LogLine[];
+    const logsByEmail = new Map<string | null, LogLine[]>();
+    for (const line of logLines) {
+        const email = line.email ?? null;
+        const existing = logsByEmail.get(email) ?? [];
+        existing.push(line);
+        logsByEmail.set(email, existing);
     }
+
+    // Create a request for each email group
+    const requests: Array<Promise<{requestID: string}>> = [];
+    for (const [email, lines] of logsByEmail) {
+        const requestParams: RequestParams = {
+            ...params,
+            ...baseParams,
+            logPacket: JSON.stringify(lines),
+            email,
+        };
+
+        if (requestParams.parameters) {
+            requestParams.parameters = JSON.stringify(requestParams.parameters);
+        }
+
+        requests.push(LogCommand(requestParams));
+    }
+
     // Mirror backend log payload into Telemetry logger for better context
-    forwardLogsToSentry(requestParams.logPacket);
+    forwardLogsToSentry(params.logPacket);
     clearTimeout(timeout);
     timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
-    return LogCommand(requestParams);
+
+    // Return the first request's result (all requests will be sent in parallel)
+    return Promise.all(requests).then((results) => results.at(0) ?? {requestID: ''});
 }
 
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging

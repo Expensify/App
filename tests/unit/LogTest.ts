@@ -38,7 +38,7 @@ type LogLine = {
     timestamp: string;
 };
 
-type CapturedLogData = {
+type CapturedLogRequest = {
     email: string | null | undefined;
     logPacket: string | undefined;
 };
@@ -51,24 +51,23 @@ function parseLogPacket(logPacket: string | undefined): LogLine[] {
 }
 
 /**
- * Sets up a mock for HttpUtils.xhr that captures Log command data.
- * Returns an object that will be populated with captured values when the mock is called.
+ * Sets up a mock for HttpUtils.xhr that captures all Log command requests.
+ * Returns an array that will be populated with captured requests when the mock is called.
  */
-function mockHttpUtilsXhr(): CapturedLogData {
-    const captured: CapturedLogData = {
-        email: undefined,
-        logPacket: undefined,
-    };
+function mockHttpUtilsXhr(): CapturedLogRequest[] {
+    const capturedRequests: CapturedLogRequest[] = [];
 
     HttpUtils.xhr = jest.fn().mockImplementation((command: string, data: Record<string, unknown>) => {
         if (command === 'Log') {
-            captured.email = data.email as string | null | undefined;
-            captured.logPacket = data.logPacket as string | undefined;
+            capturedRequests.push({
+                email: data.email as string | null | undefined,
+                logPacket: data.logPacket as string | undefined,
+            });
         }
         return Promise.resolve({jsonCode: 200, requestID: '123'});
     });
 
-    return captured;
+    return capturedRequests;
 }
 
 describe('LogTest', () => {
@@ -102,15 +101,19 @@ describe('LogTest', () => {
         await waitForBatchedUpdates();
         expect(NetworkStore.getCurrentUserEmail()).toBe(TEST_USER_EMAIL);
 
-        const captured = mockHttpUtilsXhr();
+        const capturedRequests = mockHttpUtilsXhr();
 
         // When we log a message and force it to be sent immediately
         Log.info('Test log message while signed in', true);
         await waitForBatchedUpdates();
         await processNetworkQueue();
 
-        // Then the log request should include the user's email
-        expect(captured.email).toBe(TEST_USER_EMAIL);
+        // Then a log request should have been made
+        expect(capturedRequests.length).toBeGreaterThanOrEqual(1);
+
+        // And the request for this user's logs should include their email
+        const userRequest = capturedRequests.find((req) => req.email === TEST_USER_EMAIL);
+        expect(userRequest).toBeDefined();
     });
 
     test('logs queued while signed in retain user email after session is cleared', async () => {
@@ -130,21 +133,25 @@ describe('LogTest', () => {
         await waitForBatchedUpdates();
         expect(NetworkStore.getCurrentUserEmail()).toBeNull();
 
-        const captured = mockHttpUtilsXhr();
+        const capturedRequests = mockHttpUtilsXhr();
 
-        // And then logs are flushed
+        // And then logs are flushed (this log has null email since user is signed out)
         Log.info('Final trigger to flush', true);
         await waitForBatchedUpdates();
         await processNetworkQueue();
 
-        // Then the logs should have been sent
-        expect(captured.logPacket).toBeDefined();
+        // Then multiple requests should have been made (split by email)
+        expect(capturedRequests.length).toBeGreaterThanOrEqual(1);
 
-        // And contain all the queued messages
-        const logs = parseLogPacket(captured.logPacket);
-        expect(logs.length).toBeGreaterThanOrEqual(4);
+        // And a request with the original user's email should contain their logs
+        const userRequest = capturedRequests.find((req) => req.email === TEST_USER_EMAIL);
+        expect(userRequest).toBeDefined();
+        expect(userRequest?.logPacket).toBeDefined();
 
-        const messages = logs.map((log) => log.message);
+        const userLogs = parseLogPacket(userRequest?.logPacket);
+        expect(userLogs.length).toBeGreaterThanOrEqual(4);
+
+        const messages = userLogs.map((log) => log.message);
         expect(messages).toEqual(
             expect.arrayContaining([
                 expect.stringContaining('User performed action A'),
@@ -153,10 +160,6 @@ describe('LogTest', () => {
                 expect.stringContaining('Something suspicious happened'),
             ]),
         );
-
-        // And the email should still be the original user's email
-        // BUG: Currently fails because email is captured at send time
-        expect(captured.email).toBe(TEST_USER_EMAIL);
     });
 
     test('logs during reauthentication flow retain user context', async () => {
@@ -176,20 +179,88 @@ describe('LogTest', () => {
         await waitForBatchedUpdates();
         expect(NetworkStore.getCurrentUserEmail()).toBeNull();
 
-        const captured = mockHttpUtilsXhr();
+        const capturedRequests = mockHttpUtilsXhr();
 
-        // And then logs are flushed
+        // And then logs are flushed (this log has null email since user is signed out)
         Log.info('Trigger flush', true);
         await waitForBatchedUpdates();
         await processNetworkQueue();
 
-        // Then the log about "No credentials" should be in the packet
-        const logs = parseLogPacket(captured.logPacket);
-        const messages = logs.map((log) => log.message);
-        expect(messages).toEqual(expect.arrayContaining([expect.stringContaining('No credentials available, redirecting to sign in')]));
+        // Then a request with the original user's email should be made
+        const userRequest = capturedRequests.find((req) => req.email === TEST_USER_EMAIL);
+        expect(userRequest).toBeDefined();
 
-        // And the email should be the original user's email
-        // BUG: Currently fails because email is captured at send time
-        expect(captured.email).toBe(TEST_USER_EMAIL);
+        // And the log about "No credentials" should be in that user's packet
+        const userLogs = parseLogPacket(userRequest?.logPacket);
+        const messages = userLogs.map((log) => log.message);
+        expect(messages).toEqual(expect.arrayContaining([expect.stringContaining('No credentials available, redirecting to sign in')]));
+    });
+
+    test('logs from multiple users in same flush are split into separate requests', async () => {
+        // This tests the scenario where user A signs out and user B signs in
+        // before the queued logs flush
+
+        const USER_A_EMAIL = 'userA@test.com';
+        const USER_B_EMAIL = 'userB@test.com';
+
+        // Given user A is signed in
+        await TestHelper.signInWithTestUser(1, USER_A_EMAIL);
+        await waitForBatchedUpdates();
+        expect(NetworkStore.getCurrentUserEmail()).toBe(USER_A_EMAIL);
+
+        // Set up mock to capture all requests
+        const capturedRequests = mockHttpUtilsXhr();
+
+        // And user A creates some logs
+        Log.info('User A action 1');
+        Log.info('User A action 2');
+
+        // When user A signs out (using merge to avoid triggering extra logs)
+        await Onyx.merge(ONYXKEYS.SESSION, {email: null, authToken: null});
+        await waitForBatchedUpdates();
+        expect(NetworkStore.getCurrentUserEmail()).toBeNull();
+
+        // And user B "signs in" (just set the email directly to avoid system logs)
+        await Onyx.merge(ONYXKEYS.SESSION, {email: USER_B_EMAIL, authToken: 'token123'});
+        await waitForBatchedUpdates();
+        expect(NetworkStore.getCurrentUserEmail()).toBe(USER_B_EMAIL);
+
+        // And user B creates some logs
+        Log.info('User B action 1');
+        Log.info('User B action 2');
+
+        // And then all logs are flushed
+        Log.info('Trigger flush', true);
+        await waitForBatchedUpdates();
+        await processNetworkQueue();
+
+        // Helper to collect all messages from all requests for a given email
+        const getAllMessagesForEmail = (email: string): string[] => {
+            return capturedRequests
+                .filter((req) => req.email === email)
+                .flatMap((req) => parseLogPacket(req.logPacket))
+                .map((log) => log.message);
+        };
+
+        // Then requests should have been made for each user
+        const userAMessages = getAllMessagesForEmail(USER_A_EMAIL);
+        const userBMessages = getAllMessagesForEmail(USER_B_EMAIL);
+
+        expect(userAMessages.length).toBeGreaterThan(0);
+        expect(userBMessages.length).toBeGreaterThan(0);
+
+        // And user A's explicit logs should be in requests with their email
+        expect(userAMessages).toEqual(
+            expect.arrayContaining([expect.stringContaining('User A action 1'), expect.stringContaining('User A action 2')]),
+        );
+        // User B's explicit logs should NOT be in user A's requests
+        expect(userAMessages.join()).not.toContain('User B action');
+
+        // And user B's explicit logs should be in requests with their email
+        expect(userBMessages).toEqual(
+            expect.arrayContaining([expect.stringContaining('User B action 1'), expect.stringContaining('User B action 2')]),
+        );
+        // User A's explicit logs should NOT be in user B's requests
+        expect(userBMessages.join()).not.toContain('User A action');
     });
 });
