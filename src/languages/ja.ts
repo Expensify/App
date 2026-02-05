@@ -906,8 +906,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'あなたのスペース',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `${roomName} へようこそ！`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `+ ボタンを使って経費を${additionalText}します。`,
-        askConcierge: '質問して、24時間いつでもリアルタイムサポートを受けましょう。',
-        conciergeSupport: '24時間年中無休サポート',
+        askConcierge: '何でも聞いてください！',
+        conciergeSupport: 'あなた専用のAIエージェント',
         create: '作成',
         iouTypes: {
             pay: '支払う',
@@ -4933,6 +4933,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             chooseCardFeed: 'カードフィードを選択',
             ukRegulation:
                 'Expensify Limited は Plaid Financial Ltd. の代理人であり、Plaid Financial Ltd. は 2017 年決済サービス規則（Payment Services Regulations 2017）に基づき金融行為監督機構（Financial Conduct Authority）の規制を受ける認可決済機関です（会社登録番号：804718）。Plaid は、その代理人である Expensify Limited を通じて、お客様に規制対象である口座情報サービスを提供します。',
+            deletedFeed: '削除済みフィード',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
             unassignCardFailedError: 'カードの割り当て解除に失敗しました。',
             cardAlreadyAssignedError: 'このカードは、別のワークスペースのユーザーにすでに割り当てられています。',
@@ -8225,7 +8226,7 @@ ${reportName}
             forceCloseAccount: 'アカウントを強制的に閉鎖',
             safeCloseAccount: 'アカウントを安全に閉じる',
             closeAccountInfo:
-                '保留中の承認、処理中の精算、代替ログイン方法がない場合などでもアカウントを閉鎖できるように、安全にアカウントを閉鎖することを推奨します: <ul><li>保留中の承認</li><li>進行中の払い戻し</li><li>代替ログイン方法なし</li></ul> それ以外の場合は、上記の安全上の注意を無視して、選択したアカウントを強制的に閉鎖できます。',
+                '保留中の承認、処理中の精算、代替ログイン方法がない場合などでもアカウントを閉鎖できるように、安全にアカウントを閉鎖することを推奨します: <ul><li>保留中の承認</li><li>進行中の払い戻し</li><li>代替ログイン方法なし</li></ul>それ以外の場合は、上記の安全上の注意を無視して、選択したアカウントを強制的に閉鎖できます。',
             error: {
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',

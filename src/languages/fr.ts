@@ -914,8 +914,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Votre espace',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Bienvenue dans ${roomName} !`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Utilisez le bouton + pour ${additionalText} une dépense.`,
-        askConcierge: 'Posez des questions et obtenez une assistance en temps réel 24 h/24 et 7 j/7.',
-        conciergeSupport: 'Assistance 24 h/24, 7 j/7',
+        askConcierge: 'Posez-moi vos questions !',
+        conciergeSupport: 'Votre agent IA personnel',
         create: 'créer',
         iouTypes: {
             pay: 'payer',
@@ -4993,6 +4993,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             chooseCardFeed: 'Choisir le flux de carte',
             ukRegulation:
                 'Expensify Limited agit en tant qu’agent de Plaid Financial Ltd., établissement de paiement agréé et réglementé par la Financial Conduct Authority en vertu du Payment Services Regulations 2017 (numéro de référence de l’entreprise : 804718). Plaid vous fournit, par l’intermédiaire d’Expensify Limited en tant que son agent, des services réglementés d’information sur les comptes.',
+            deletedFeed: 'Flux supprimé',
             assignCardFailedError: 'L’assignation de la carte a échoué.',
             unassignCardFailedError: 'L’annulation de l’assignation de la carte a échoué.',
             cardAlreadyAssignedError: 'Cette carte est déjà assignée à un utilisateur dans un autre espace de travail.',
@@ -8327,7 +8328,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceCloseAccount: 'Forcer la fermeture du compte',
             safeCloseAccount: 'Fermer le compte en toute sécurité',
             closeAccountInfo:
-                'Nous recommandons de fermer le compte en toute sécurité afin d’éviter de le fermer dans le cas où il y aurait : <ul><li>Des validations en attente</li><li>Des remboursements actifs</li><li>Aucune autre méthode de connexion</li></ul> Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture du compte sélectionné.',
+                'Nous recommandons de fermer le compte en toute sécurité afin d’éviter de le fermer dans le cas où il y aurait : <ul><li>Des validations en attente</li><li>Des remboursements actifs</li><li>Aucune autre méthode de connexion</li></ul>Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture du compte sélectionné.',
             error: {
                 removeMember: 'Impossible de supprimer cet utilisateur. Veuillez réessayer.',
                 addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',

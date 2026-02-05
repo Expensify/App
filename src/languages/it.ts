@@ -910,8 +910,8 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Il tuo spazio',
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Benvenuto in ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `Usa il pulsante + per ${additionalText} una spesa.`,
-        askConcierge: 'Fai domande e ottieni assistenza in tempo reale 24/7.',
-        conciergeSupport: 'Assistenza 24/7',
+        askConcierge: 'Chiedimi qualsiasi cosa!',
+        conciergeSupport: 'Il tuo agente IA personale',
         create: 'crea',
         iouTypes: {
             pay: 'paga',
@@ -4966,6 +4966,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             chooseCardFeed: 'Scegli il feed carta',
             ukRegulation:
                 'Expensify Limited è un agente di Plaid Financial Ltd., un istituto di pagamento autorizzato regolato dalla Financial Conduct Authority ai sensi del Payment Services Regulations 2017 (Numero di riferimento dell’impresa: 804718). Plaid ti fornisce servizi regolamentati di informazione sui conti tramite Expensify Limited in qualità di suo agente.',
+            deletedFeed: 'Feed eliminato',
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
             unassignCardFailedError: 'Assegnazione della carta non riuscita.',
             cardAlreadyAssignedError: 'Questa carta è già assegnata a un utente in un altro spazio di lavoro.',
@@ -8294,7 +8295,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             forceCloseAccount: 'Forza chiusura account',
             safeCloseAccount: 'Chiudi il conto in sicurezza',
             closeAccountInfo:
-                'Consigliamo di chiudere l’account in modo sicuro per evitare problemi in caso di: <ul><li>Approvazioni in sospeso</li><li>Rimborsi attivi</li><li>Nessun metodo di accesso alternativo</li></ul> In caso contrario, puoi ignorare le precauzioni di sicurezza sopra indicate e forzare la chiusura dell’account selezionato.',
+                'Consigliamo di chiudere l’account in modo sicuro per evitare problemi in caso di: <ul><li>Approvazioni in sospeso</li><li>Rimborsi attivi</li><li>Nessun metodo di accesso alternativo</li></ul>In caso contrario, puoi ignorare le precauzioni di sicurezza sopra indicate e forzare la chiusura dell’account selezionato.',
             error: {
                 removeMember: 'Impossibile rimuovere questo utente. Riprova.',
                 addMember: 'Impossibile aggiungere questo membro. Riprova.',
