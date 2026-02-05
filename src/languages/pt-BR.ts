@@ -8426,7 +8426,14 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             findMember: 'Encontrar membro',
             addMember: 'Adicionar membro',
             email: 'Endereço de e-mail',
-            errors: {
+            closeAccount: 'Encerrar conta',
+            closeAccountPrompt: 'Tem certeza? Esta ação é permanente.',
+            forceCloseAccount: 'Forçar encerramento da conta',
+            safeCloseAccount: 'Fechar conta com segurança',
+            closeAccountInfo:
+                'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
+            error: {
+                removeMember: 'Não foi possível remover este usuário. Tente novamente.',
                 addMember: 'Não foi possível adicionar este membro. Tente novamente.',
             },
         },

@@ -8490,7 +8490,14 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             findMember: 'Trouver un membre',
             addMember: 'Ajouter un membre',
             email: 'Adresse e-mail',
-            errors: {
+            closeAccount: 'Fermer le compte',
+            closeAccountPrompt: 'Êtes-vous sûr(e) ? Cette action est définitive.',
+            forceCloseAccount: 'Forcer la fermeture du compte',
+            safeCloseAccount: 'Fermer le compte en toute sécurité',
+            closeAccountInfo:
+                'Nous recommandons de fermer le compte en toute sécurité afin d’éviter de le fermer dans le cas où il y aurait : <ul><li>Des validations en attente</li><li>Des remboursements actifs</li><li>Aucune autre méthode de connexion</li></ul>Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture du compte sélectionné.',
+            error: {
+                removeMember: 'Impossible de supprimer cet utilisateur. Veuillez réessayer.',
                 addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',
             },
         },

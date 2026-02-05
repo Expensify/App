@@ -1013,6 +1013,7 @@ function openReimbursementAccountPage(
     localCurrentStep: ReimbursementAccountStep,
     policyID?: string,
     bankAccountID?: number,
+    shouldPreserveDraft?: boolean,
 ) {
     const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
         optimisticData: [
@@ -1050,6 +1051,7 @@ function openReimbursementAccountPage(
         localCurrentStep,
         policyID,
         bankAccountID,
+        shouldPreserveDraft,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
