@@ -1,6 +1,5 @@
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -94,23 +93,19 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         setIsModalVisible(false);
     };
 
-    const getBulkActionsButtonOptions = () => {
-        const options: Array<DropdownOption<DomainMemberBulkActionType>> = [
-            {
-                text: translate('domain.members.closeAccount', {count: controlledSelectedMembers.length}),
-                value: CONST.DOMAIN.MEMBERS_BULK_ACTION_TYPES.CLOSE_ACCOUNT,
-                icon: icons.RemoveMembers,
-                onSelected: () => {
-                    setIsModalVisible(true);
-                },
+    const getBulkActionsButtonOptions: () => Array<DropdownOption<DomainMemberBulkActionType>> = () => [
+        {
+            text: translate('domain.members.closeAccount', {count: controlledSelectedMembers.length}),
+            value: CONST.DOMAIN.MEMBERS_BULK_ACTION_TYPES.CLOSE_ACCOUNT,
+            icon: icons.RemoveMembers,
+            onSelected: () => {
+                setIsModalVisible(true);
             },
-        ];
-
-        return options;
-    };
+        },
+    ];
 
     const getHeaderButtons = () => {
-        return controlledSelectedMembers.length > 0 ? (
+        return (
             <>
                 <Button
                     success
@@ -120,39 +115,29 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                     style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
                 />
-                <ButtonWithDropdownMenu<DomainMemberBulkActionType>
-                    shouldAlwaysShowDropdownMenu
-                    customText={translate('workspace.common.selected', {count: controlledSelectedMembers.length})}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    onPress={() => null}
-                    options={getBulkActionsButtonOptions()}
-                    isSplitButton={false}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    isDisabled={!controlledSelectedMembers.length}
-                    testID="DomainMembersPage-header-dropdown-menu-button"
-                />
-            </>
-        ) : (
-            <>
-                <Button
-                    success
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-                    text={translate('domain.members.addMember')}
-                    icon={icons.Plus}
-                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                    style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
-                />
-                <View style={[styles.flexRow, styles.gap2]}>
+                {controlledSelectedMembers.length > 0 ? (
+                    <ButtonWithDropdownMenu<DomainMemberBulkActionType>
+                        shouldAlwaysShowDropdownMenu
+                        customText={translate('workspace.common.selected', {count: controlledSelectedMembers.length})}
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        onPress={() => null}
+                        options={getBulkActionsButtonOptions()}
+                        isSplitButton={false}
+                        style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                        isDisabled={!controlledSelectedMembers.length}
+                        testID="DomainMembersPage-header-dropdown-menu-button"
+                    />
+                ) : (
                     <ButtonWithDropdownMenu
                         success={false}
-                        onPress={() => {}}
+                        onPress={() => null}
                         shouldAlwaysShowDropdownMenu
                         customText={translate('common.more')}
                         options={[]}
                         isSplitButton={false}
                         wrapperStyle={styles.flexGrow0}
                     />
-                </View>
+                )}
             </>
         );
     };
@@ -177,6 +162,9 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 headerIcon={illustrations.Profile}
                 getCustomRowProps={getCustomRowProps}
                 headerContent={getHeaderButtons()}
+                controlledSelectedMembers={controlledSelectedMembers}
+                controlledSetSelectedMembers={controlledSetSelectedMembers}
+                canSelectMultiple
                 onDismissError={(item) => {
                     if (!defaultSecurityGroupID) {
                         return;

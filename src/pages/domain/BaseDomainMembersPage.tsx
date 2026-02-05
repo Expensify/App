@@ -1,9 +1,8 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
-// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -105,11 +104,10 @@ function BaseDomainMembersPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const [internalSelectedMembers, setInternalSelectedMembers] = useState<string[]>([]);
 
-    const selectedMembers = controlledSelectedMembers ?? internalSelectedMembers;
+    const selectedMembers = canSelectMultiple ? controlledSelectedMembers : undefined;
 
-    const setSelectedMembers = controlledSetSelectedMembers ?? setInternalSelectedMembers;
+    const setSelectedMembers = canSelectMultiple ? controlledSetSelectedMembers : undefined;
 
     const data: MemberOption[] = accountIDs.map((accountID) => {
         const details = personalDetails?.[accountID];
@@ -148,28 +146,34 @@ function BaseDomainMembersPage({
 
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
-    const toggleAllUsers = () => {
-        const enabledAccounts = filteredData.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const enabledAccountIDs = enabledAccounts.map((member) => member.keyForList);
-        const everySelected = enabledAccountIDs.every((accountID) => selectedMembers.includes(accountID));
+    const toggleAllUsers =
+        canSelectMultiple && setSelectedMembers && filteredData.length
+            ? () => {
+                  const enabledAccounts = filteredData.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
+                  const enabledAccountIDs = enabledAccounts.map((member) => member.keyForList);
+                  const everySelected = enabledAccountIDs.every((accountID) => selectedMembers?.includes(accountID));
 
-        if (everySelected) {
-            setSelectedMembers((prevSelected) => prevSelected.filter((accountID) => !enabledAccountIDs.includes(accountID)));
-        } else {
-            setSelectedMembers((prevSelected) => {
-                const newSelected = new Set([...prevSelected, ...enabledAccountIDs]);
-                return Array.from(newSelected);
-            });
-        }
-    };
+                  if (everySelected) {
+                      setSelectedMembers((prevSelected) => prevSelected.filter((accountID) => !enabledAccountIDs.includes(accountID)));
+                  } else {
+                      setSelectedMembers((prevSelected) => {
+                          const newSelected = new Set([...prevSelected, ...enabledAccountIDs]);
+                          return Array.from(newSelected);
+                      });
+                  }
+              }
+            : undefined;
 
-    const toggleUser = (member: MemberOption) => {
-        if (selectedMembers.includes(member.keyForList)) {
-            setSelectedMembers((prevSelected) => prevSelected.filter((accountID) => accountID !== member.keyForList));
-        } else {
-            setSelectedMembers((prevSelected) => [...prevSelected, member.keyForList]);
-        }
-    };
+    const toggleUser =
+        canSelectMultiple && setSelectedMembers && filteredData.length
+            ? (member: MemberOption) => {
+                  if (selectedMembers?.includes(member.keyForList)) {
+                      setSelectedMembers((prevSelected) => prevSelected.filter((accountID) => accountID !== member.keyForList));
+                  } else {
+                      setSelectedMembers((prevSelected) => [...prevSelected, member.keyForList]);
+                  }
+              }
+            : undefined;
 
     const getCustomListHeader = () => {
         if (filteredData.length === 0) {
@@ -231,9 +235,9 @@ function BaseDomainMembersPage({
                     customListHeaderContent={listHeaderContent}
                     disableMaintainingScrollPosition
                     canSelectMultiple={canSelectMultiple}
-                    onSelectAll={canSelectMultiple ? toggleAllUsers : undefined}
-                    onCheckboxPress={canSelectMultiple ? toggleUser : undefined}
-                    selectedItems={canSelectMultiple ? selectedMembers : undefined}
+                    onSelectAll={toggleAllUsers}
+                    onCheckboxPress={toggleUser}
+                    selectedItems={selectedMembers}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
