@@ -187,7 +187,7 @@ The skill provides guidance on:
 ### Code Quality
 - **TypeScript**: Strict mode enabled
 - **ESLint**: Linter
-- **Prettier**: Automatic formatting
+- **Prettier**: Code formatting - run `npm run prettier` after making changes
 - **Patch Management**: patch-package for dependency fixes
 
 ### Testing
@@ -235,6 +235,9 @@ npm run typecheck
 
 # Linting
 npm run lint
+
+# Format code with Prettier
+npm run prettier
 
 # Testing
 npm run test
