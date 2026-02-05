@@ -72,14 +72,21 @@ function sendMemoryContext() {
             const timestamp = Date.now();
             const timestampISO = new Date(timestamp).toISOString();
 
+            // Build breadcrumb message based on platform
+            let breadcrumbMessage: string;
+            if (memoryInfo.platform === 'web') {
+                const maxMB = memoryInfo.maxMemoryBytes ? Math.round(memoryInfo.maxMemoryBytes / (1024 * 1024)) : '?';
+                breadcrumbMessage = `RAM Check: ${usedMemoryMB ?? '?'}MB / ${maxMB}MB limit`;
+            } else if (memoryInfo.platform === 'android') {
+                const usagePercent = memoryInfo.usagePercentage?.toFixed(0) ?? '?';
+                breadcrumbMessage = `RAM Check: ${usedMemoryMB ?? '?'}MB used (${usagePercent}% device RAM)`;
+            } else {
+                breadcrumbMessage = `RAM Check: ${usedMemoryMB ?? '?'}MB used (iOS - no limit API)`;
+            }
+
             Sentry.addBreadcrumb({
                 category: 'system.memory',
-                message:
-                    memoryInfo.platform === 'web'
-                        ? `RAM Check: ${usedMemoryMB ?? '?'}MB / ${memoryInfo.maxMemoryBytes ? Math.round(memoryInfo.maxMemoryBytes / (1024 * 1024)) : '?'}MB limit`
-                        : memoryInfo.platform === 'android'
-                          ? `RAM Check: ${usedMemoryMB ?? '?'}MB used (${memoryInfo.usagePercentage?.toFixed(0) ?? '?'}% device RAM)`
-                          : `RAM Check: ${usedMemoryMB ?? '?'}MB used (iOS - no limit API)`,
+                message: breadcrumbMessage,
                 level: logLevel,
                 timestamp: timestamp / 1000,
                 data: {
