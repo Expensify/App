@@ -2303,6 +2303,204 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.personalDetails.at(0)?.login).toBe('brucebanner@expensify.com');
         });
 
+        it('should find group chat when searching by participant display name', () => {
+            // Given a group chat report with participants
+            const REPORTS_WITH_GROUP_CHAT: OnyxCollection<Report> = {
+                '18': {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: '18',
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Team Chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                },
+            };
+
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+
+            // When we call getSearchOptions with a search query that matches a participant display name
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_GROUP_CHAT,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                searchQuery: 'Spider-Man',
+            });
+
+            // Then one report should be returned
+            expect(options.recentReports.length).toBe(1);
+            // Then the returned report should be the group chat
+            expect(options.recentReports.at(0)?.reportID).toBe('18');
+        });
+
+        it('should find group chat when searching by participant login', () => {
+            // Given a group chat report with participants
+            const REPORTS_WITH_GROUP_CHAT: OnyxCollection<Report> = {
+                '18': {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: '18',
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Team Chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                },
+            };
+
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+
+            // When we call getSearchOptions with a search query that matches a participant login
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_GROUP_CHAT,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                searchQuery: 'peterparker@expensify.com',
+            });
+
+            // Then one report should be returned
+            expect(options.recentReports.length).toBe(1);
+            // Then the returned report should be the group chat
+            expect(options.recentReports.at(0)?.reportID).toBe('18');
+        });
+
+        it('should find group chat when searching by multiple participant names', () => {
+            // Given a group chat report with participants
+            const REPORTS_WITH_GROUP_CHAT: OnyxCollection<Report> = {
+                '18': {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: '18',
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Team Chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                },
+            };
+
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+
+            // When we call getSearchOptions with a search query that matches a participant name
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_GROUP_CHAT,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                searchQuery: 'Black Panther',
+            });
+
+            // Then one report should be returned
+            expect(options.recentReports.length).toBe(1);
+            // Then the returned report should be the group chat
+            expect(options.recentReports.at(0)?.reportID).toBe('18');
+        });
+
+        it('should not find group chat when search does not match any participant', () => {
+            // Given a group chat report with participants
+            const REPORTS_WITH_GROUP_CHAT: OnyxCollection<Report> = {
+                '18': {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: '18',
+                    participants: {
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Team Chat',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                },
+            };
+
+            const OPTIONS_WITH_GROUP_CHAT = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT);
+
+            // When we call getSearchOptions with a search query that does not match any participant
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_GROUP_CHAT,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                searchQuery: 'Wolverine',
+            });
+
+            // Then no reports should be returned
+            expect(options.recentReports.length).toBe(0);
+        });
+
+        it('should handle group chat with empty participantsList gracefully', () => {
+            // Given a group chat report with participants but no matching personal details
+            const REPORTS_WITH_GROUP_CHAT_NO_PARTICIPANTS: OnyxCollection<Report> = {
+                '19': {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: '19',
+                    participants: {
+                        9999: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        9998: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: 'Unknown Group',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                },
+            };
+
+            const OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT_NO_PARTICIPANTS);
+
+            // When we call getSearchOptions with all betas
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                betas: [CONST.BETAS.ALL],
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+            });
+
+            // When we pass the returned options to filterAndOrderOptions with any search value
+            const filteredOptions = filterAndOrderOptions(options, 'Unknown', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+
+            // Then the report should still be found by its reportName even if participantsList is empty
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports.at(0)?.reportID).toBe('19');
+        });
+
         it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone', () => {
             // Given a set of options
             const options = getValidOptions(

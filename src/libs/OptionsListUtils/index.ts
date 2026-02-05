@@ -2280,10 +2280,8 @@ function getValidOptions(
             } else if (report.isPolicyExpenseChat) {
                 searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
             } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
-                const participantNames = report.participantsList?.map((participant) => participant.displayName).join(' ') ?? '';
-                const participantLogins = report.participantsList?.map((participant) => participant.login).join(' ') ?? '';
-                searchText += participantNames;
-                searchText += participantLogins;
+                const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
+                searchText += participantsSearchText;
             }
 
             searchText = deburr(searchText.toLocaleLowerCase());
