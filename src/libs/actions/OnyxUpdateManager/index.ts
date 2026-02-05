@@ -84,7 +84,7 @@ function finalizeUpdatesAndResumeQueue() {
  *
  * @returns a promise that resolves when all Onyx updates are done being processed
  */
-function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID?: number): Promise<void> {
+function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer<TKey>>, clientLastUpdateID?: number): Promise<void> {
     // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
     // we don't have base state of the app (reports, policies, etc.) setup. If we apply this update,
     // we'll only have them overwritten by the openApp response. So let's skip it and return.

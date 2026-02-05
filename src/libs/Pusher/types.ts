@@ -41,7 +41,8 @@ type PusherEventMap = {
 
 type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
     ? PusherEventMap[EventName]
-    : OnyxUpdatesFromServer);
+    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      OnyxUpdatesFromServer<any>);
 
 type EventCallbackError = {type?: ValueOf<typeof CONST.ERROR>; data: {code?: number; message?: string}};
 

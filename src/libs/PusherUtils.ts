@@ -35,10 +35,10 @@ function triggerMultiEventHandler<TKey extends OnyxKey>(eventType: string, data:
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
-function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: OnyxUpdatesFromServer | PingPongEvent) => void) {
+function subscribeToPrivateUserChannelEvent<TKey extends OnyxKey>(eventName: string, accountID: string, onEvent: (pushJSON: OnyxUpdatesFromServer<TKey> | PingPongEvent) => void) {
     const pusherChannelName = getUserChannelName(accountID);
 
-    function logPusherEvent(pushJSON: OnyxUpdatesFromServer | PingPongEvent) {
+    function logPusherEvent(pushJSON: OnyxUpdatesFromServer<TKey> | PingPongEvent) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
@@ -46,7 +46,7 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
         NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
     }
 
-    function onEventPush(pushJSON: OnyxUpdatesFromServer | PingPongEvent) {
+    function onEventPush(pushJSON: OnyxUpdatesFromServer<TKey> | PingPongEvent) {
         logPusherEvent(pushJSON);
         onEvent(pushJSON);
     }

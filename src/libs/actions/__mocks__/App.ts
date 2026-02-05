@@ -23,7 +23,8 @@ const {
 } = AppImplementation;
 
 type AppMockValues = {
-    missingOnyxUpdatesToBeApplied: OnyxUpdatesFromServer[] | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    missingOnyxUpdatesToBeApplied: Array<OnyxUpdatesFromServer<any>> | undefined;
 };
 
 type AppActionsMock = typeof AppImport & {
@@ -43,7 +44,8 @@ const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number)
             updates.push({
                 lastUpdateID: i,
                 previousUpdateID: i - 1,
-            } as OnyxUpdatesFromServer);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as OnyxUpdatesFromServer<any>);
         }
     }
 

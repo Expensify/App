@@ -1,10 +1,25 @@
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Request from './Request';
+import type {AnyOnyxUpdate} from './Request';
 import type Response from './Response';
 
+/**
+ * Model of a onyx server update
+ *
+ * This type was created as a solution during the migration away from the large OnyxKey union and is useful for contexts where the specific Onyx keys are not known ahead of time.
+ * It should only be used in legacy code where providing exact key types would require major restructuring.
+ */
+type AnyOnyxServerUpdate = AnyOnyxUpdate & {
+    /** Whether the update should notify UI */
+    shouldNotify?: boolean;
+
+    /** Whether the update should be shown as a push notification */
+    shouldShowPushNotification?: boolean;
+};
+
 /** Model of a onyx server update */
-type OnyxServerUpdate<TKey extends OnyxKey = OnyxKey> = OnyxUpdate<TKey> & {
+type OnyxServerUpdate<TKey extends OnyxKey> = OnyxUpdate<TKey> & {
     /** Whether the update should notify UI */
     shouldNotify?: boolean;
 
@@ -22,7 +37,7 @@ type OnyxUpdateEvent<TKey extends OnyxKey = OnyxKey> = {
 };
 
 /** Model of onyx server updates */
-type OnyxUpdatesFromServer<TKey extends OnyxKey = OnyxKey> = {
+type OnyxUpdatesFromServer<TKey extends OnyxKey> = {
     /** Delivery method of onyx updates */
     type: 'https' | 'pusher' | 'airship';
 
@@ -51,7 +66,8 @@ type OnyxUpdatesFromServer<TKey extends OnyxKey = OnyxKey> = {
  * @param value - represent the onyx update received from the server
  * @returns boolean indicating if the onyx update received from the server is valid
  */
-function isValidOnyxUpdateFromServer(value: unknown): value is OnyxUpdatesFromServer {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isValidOnyxUpdateFromServer(value: unknown): value is OnyxUpdatesFromServer<any> {
     if (!value || typeof value !== 'object') {
         return false;
     }
@@ -78,4 +94,4 @@ function isValidOnyxUpdateFromServer(value: unknown): value is OnyxUpdatesFromSe
 
 export {isValidOnyxUpdateFromServer};
 
-export type {OnyxUpdatesFromServer, OnyxUpdateEvent, OnyxServerUpdate};
+export type {OnyxUpdatesFromServer, OnyxUpdateEvent, OnyxServerUpdate, AnyOnyxServerUpdate};

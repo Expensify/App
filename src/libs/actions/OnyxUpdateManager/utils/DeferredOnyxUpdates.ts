@@ -79,7 +79,7 @@ type EnqueueDeferredOnyxUpdatesOptions = {
  * @param updates The updates that should be applied (e.g. updates from push notifications)
  * @param options additional flags to change the behaviour of this function
  */
-function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
+function enqueue<TKey extends OnyxKey>(updates: OnyxUpdatesFromServer<TKey> | DeferredUpdatesDictionary<TKey>, options?: EnqueueDeferredOnyxUpdatesOptions) {
     if (options?.shouldPauseSequentialQueue ?? true) {
         Log.info('[DeferredOnyxUpdates] Pausing SequentialQueue');
         SequentialQueue.pause();
@@ -102,7 +102,7 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
                 continue;
             }
 
-            deferredUpdates[lastUpdateID] = update;
+            deferredUpdates[lastUpdateID] = update as OnyxUpdatesFromServer<OnyxKey>;
         }
     }
 }
