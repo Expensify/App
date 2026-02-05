@@ -103,6 +103,8 @@ const SCREENS = {
         EDIT_MULTIPLE_DATE_RHP: 'Search_Edit_Multiple_Date_RHP',
         EDIT_MULTIPLE_CATEGORY_RHP: 'Search_Edit_Multiple_Category_RHP',
         EDIT_MULTIPLE_TAG_RHP: 'Search_Edit_Multiple_Tag_RHP',
+        EDIT_MULTIPLE_BILLABLE_RHP: 'Search_Edit_Multiple_Billable_RHP',
+        EDIT_MULTIPLE_REIMBURSABLE_RHP: 'Search_Edit_Multiple_Reimbursable_RHP',
         EDIT_MULTIPLE_TAX_RHP: 'Search_Edit_Multiple_Tax_RHP',
     },
     SETTINGS: {

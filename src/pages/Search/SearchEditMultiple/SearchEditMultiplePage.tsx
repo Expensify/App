@@ -6,12 +6,11 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
-import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
+import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -24,6 +23,7 @@ import {getTagArrayFromName, getTaxName, isDistanceRequest, isManagedCardTransac
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
 function SearchEditMultiplePage() {
@@ -152,17 +152,9 @@ function SearchEditMultiplePage() {
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const updateBillable = (billable: boolean) => {
-        updateBulkEditDraftTransaction({billable});
-    };
-
-    const updateReimbursable = (reimbursable: boolean) => {
-        updateBulkEditDraftTransaction({reimbursable});
-    };
-
     // TODO: Currency editing and currency symbol should be handled in a separate PR
     const tagsArray = getTagArrayFromName(draftTransaction?.tag ?? '');
-    const tagFields = areTagsEnabled
+    const tagFields: Array<{description: string; title: string; route: Route; disabled?: boolean}> = areTagsEnabled
         ? policyTagLists.map((tagList, tagListIndex) => {
               const tagName = tagsArray.at(tagListIndex) ?? '';
               const tagTitle = tagName ? getCleanedTagName(tagName) : '';
@@ -176,7 +168,14 @@ function SearchEditMultiplePage() {
           })
         : [];
 
-    const fields = [
+    const getBooleanTitle = (value?: boolean) => {
+        if (value === undefined) {
+            return '';
+        }
+        return value ? translate('common.yes') : translate('common.no');
+    };
+
+    const fields: Array<{description: string; title: string; route: Route; disabled?: boolean}> = [
         {
             description: translate('iou.amount'),
             title: draftTransaction?.amount ? convertToDisplayStringWithoutCurrency(draftTransaction.amount, currency) : '',
@@ -220,6 +219,24 @@ function SearchEditMultiplePage() {
                   },
               ]
             : []),
+        ...(areSelectedTransactionsBillable
+            ? [
+                  {
+                      description: translate('common.billable'),
+                      title: getBooleanTitle(draftTransaction?.billable),
+                      route: ROUTES.SEARCH_EDIT_MULTIPLE_BILLABLE_RHP,
+                  },
+              ]
+            : []),
+        ...(areSelectedTransactionsReimbursable
+            ? [
+                  {
+                      description: translate('common.reimbursable'),
+                      title: getBooleanTitle(draftTransaction?.reimbursable),
+                      route: ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP,
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -242,26 +259,6 @@ function SearchEditMultiplePage() {
                             interactive={!field.disabled}
                         />
                     ))}
-                    {areSelectedTransactionsBillable && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
-                            <Text style={[styles.textSupporting]}>{translate('common.billable')}</Text>
-                            <Switch
-                                isOn={!!draftTransaction?.billable}
-                                onToggle={updateBillable}
-                                accessibilityLabel={translate('common.billable')}
-                            />
-                        </View>
-                    )}
-                    {areSelectedTransactionsReimbursable && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
-                            <Text style={[styles.textSupporting]}>{translate('common.reimbursable')}</Text>
-                            <Switch
-                                isOn={!!draftTransaction?.reimbursable}
-                                onToggle={updateReimbursable}
-                                accessibilityLabel={translate('common.reimbursable')}
-                            />
-                        </View>
-                    )}
                 </ScrollView>
                 <Button
                     success
