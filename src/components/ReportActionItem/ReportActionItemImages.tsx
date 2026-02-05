@@ -101,6 +101,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                                     shouldMapHaveBorderRadius={false}
                                     onPress={onPress}
                                     shouldUseFullHeight={shouldUseAspectRatio}
+                                    shouldUseThumbnailImage
                                 />
                             </View>
                         </ImageBehaviorContextProvider>
