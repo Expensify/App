@@ -8421,10 +8421,14 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             findMember: 'Encontrar membro',
             addMember: 'Adicionar membro',
             email: 'Endereço de e-mail',
-            errors: {
-                addMember: 'Não foi possível adicionar este membro. Tente novamente.',
-            },
+            errors: {addMember: 'Não foi possível adicionar este membro. Tente novamente.'},
         },
+    },
+    proactiveAppReview: {
+        title: 'Curtindo o novo Expensify?',
+        description: 'Avise-nos para que possamos ajudar a tornar sua experiência com despesas ainda melhor.',
+        positiveButton: 'Sim!',
+        negativeButton: 'Na verdade, não',
     },
 };
 export default translations;

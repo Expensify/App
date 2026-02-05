@@ -8441,10 +8441,14 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             findMember: 'Lid zoeken',
             addMember: 'Lid toevoegen',
             email: 'E-mailadres',
-            errors: {
-                addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.',
-            },
+            errors: {addMember: 'Kan dit lid niet toevoegen. Probeer het opnieuw.'},
         },
+    },
+    proactiveAppReview: {
+        title: 'Geniet je van de nieuwe Expensify?',
+        description: 'Laat het ons weten, zodat we je uitgavenervaring nog beter kunnen maken.',
+        positiveButton: 'Ja!',
+        negativeButton: 'Niet echt',
     },
 };
 export default translations;

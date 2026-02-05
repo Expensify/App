@@ -8384,10 +8384,14 @@ ${reportName}
             findMember: 'メンバーを検索',
             addMember: 'メンバーを追加',
             email: 'メールアドレス',
-            errors: {
-                addMember: 'このメンバーを追加できません。もう一度お試しください。',
-            },
+            errors: {addMember: 'このメンバーを追加できませんでした。もう一度お試しください。'},
         },
+    },
+    proactiveAppReview: {
+        title: '新しい Expensify をお楽しみいただけていますか？',
+        description: '経費精算の体験をさらに良くできるよう、お知らせください。',
+        positiveButton: 'やった！',
+        negativeButton: 'そうでもありません',
     },
 };
 export default translations;

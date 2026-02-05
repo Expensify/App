@@ -8419,10 +8419,14 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             findMember: 'Znajdź członka',
             addMember: 'Dodaj członka',
             email: 'Adres e-mail',
-            errors: {
-                addMember: 'Nie można dodać tego członka. Spróbuj ponownie.',
-            },
+            errors: {addMember: 'Nie można dodać tego członka. Spróbuj ponownie.'},
         },
+    },
+    proactiveAppReview: {
+        title: 'Podoba Ci się nowy Expensify?',
+        description: 'Daj nam znać, abyśmy mogli pomóc uczynić Twoje rozliczanie wydatków jeszcze lepszym.',
+        positiveButton: 'Tak!',
+        negativeButton: 'Niekoniecznie',
     },
 };
 export default translations;

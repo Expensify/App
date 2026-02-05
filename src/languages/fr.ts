@@ -8485,10 +8485,14 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             findMember: 'Trouver un membre',
             addMember: 'Ajouter un membre',
             email: 'Adresse e-mail',
-            errors: {
-                addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',
-            },
+            errors: {addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.'},
         },
+    },
+    proactiveAppReview: {
+        title: 'Vous appréciez le nouveau Expensify ?',
+        description: 'Faites-le-nous savoir afin que nous puissions rendre votre expérience de gestion de notes de frais encore meilleure.',
+        positiveButton: 'Oui !',
+        negativeButton: 'Pas vraiment',
     },
 };
 export default translations;
