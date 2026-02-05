@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -58,6 +58,7 @@ type CreateTransactionParams = {
     billable?: boolean;
     reimbursable?: boolean;
     isSelfTourViewed: boolean;
+    betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
@@ -79,6 +80,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     reportAttributesDerived?: Record<string, ReportAttributes>;
     transactions: Transaction[];
     initialTransaction: InitialTransactionParams;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserLogin?: string;
     currentUserAccountID: number;
@@ -100,6 +102,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     locationPermissionGranted?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     isSelfTourViewed: boolean;
+    betas: OnyxEntry<Beta[]>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -108,6 +111,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     report: OnyxEntry<Report>;
     reportID: string;
     transactionID: string;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
     transaction?: Transaction;
     reportAttributesDerived?: Record<string, ReportAttributes>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -134,6 +138,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     privateIsArchived?: string;
     gpsCoordinates?: string;
     gpsDistance?: number;
+    betas: OnyxEntry<Beta[]>;
 };
 
 function createTransaction({
@@ -157,6 +162,7 @@ function createTransaction({
     billable,
     reimbursable = true,
     isSelfTourViewed,
+    betas,
     personalDetails,
 }: CreateTransactionParams) {
     const recentWaypoints = getRecentWaypoints();
@@ -193,10 +199,12 @@ function createTransaction({
                 activePolicyID,
                 quickAction,
                 recentWaypoints,
+                betas,
             });
         } else {
             requestMoney({
                 report,
+                betas,
                 participantParams: {
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,
@@ -255,6 +263,7 @@ function handleMoneyRequestStepScanParticipants({
     reportAttributesDerived,
     transactions,
     initialTransaction,
+    policyForMovingExpenses,
     personalDetails,
     currentUserLogin,
     currentUserAccountID,
@@ -276,6 +285,7 @@ function handleMoneyRequestStepScanParticipants({
     isTestTransaction = false,
     locationPermissionGranted = false,
     isSelfTourViewed,
+    betas,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -341,6 +351,13 @@ function handleMoneyRequestStepScanParticipants({
             if (!participant) {
                 return;
             }
+            const defaultReimbursable = calculateDefaultReimbursable({
+                iouType,
+                policy,
+                policyForMovingExpenses,
+                participant,
+                transactionReportID: initialTransaction?.reportID,
+            });
             if (locationPermissionGranted) {
                 getCurrentPosition(
                     (successData) => {
@@ -368,8 +385,9 @@ function handleMoneyRequestStepScanParticipants({
                             gpsPoint,
                             policyParams,
                             billable: false,
-                            reimbursable: true,
+                            reimbursable: defaultReimbursable,
                             isSelfTourViewed,
+                            betas,
                             personalDetails,
                         });
                     },
@@ -392,7 +410,9 @@ function handleMoneyRequestStepScanParticipants({
                             activePolicyID,
                             files,
                             participant,
+                            reimbursable: defaultReimbursable,
                             isSelfTourViewed,
+                            betas,
                             personalDetails,
                         });
                     },
@@ -415,7 +435,9 @@ function handleMoneyRequestStepScanParticipants({
                 activePolicyID,
                 files,
                 participant,
+                reimbursable: defaultReimbursable,
                 isSelfTourViewed,
+                betas,
                 personalDetails,
             });
             return;
@@ -501,6 +523,8 @@ function handleMoneyRequestStepDistanceNavigation({
     privateIsArchived,
     gpsCoordinates,
     gpsDistance,
+    policyForMovingExpenses,
+    betas,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
@@ -536,8 +560,18 @@ function handleMoneyRequestStepDistanceNavigation({
         if (shouldSkipConfirmation) {
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
             setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
+            const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
             const participant = participants.at(0);
-            if (iouType === CONST.IOU.TYPE.TRACK && participant) {
+            const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
+            const defaultReimbursable = calculateDefaultReimbursable({
+                iouType,
+                policy,
+                policyForMovingExpenses,
+                participant,
+                transactionReportID: transaction?.reportID,
+            });
+
+            if (isCreatingTrackExpense && participant) {
                 trackExpense({
                     report,
                     isDraftPolicy: false,
@@ -557,7 +591,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         merchant: translate('iou.fieldPending'),
                         receipt: {},
                         billable: false,
-                        reimbursable: isManualDistance ? undefined : true,
+                        reimbursable: defaultReimbursable,
                         validWaypoints,
                         customUnitRateID,
                         attendees: transaction?.comment?.attendees,
@@ -570,10 +604,10 @@ function handleMoneyRequestStepDistanceNavigation({
                     activePolicyID,
                     quickAction,
                     recentWaypoints,
+                    betas,
                 });
                 return;
             }
-            const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
 
             createDistanceRequest({
                 report,
@@ -590,7 +624,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     currency: transaction?.currency ?? 'USD',
                     merchant: translate('iou.fieldPending'),
                     billable: !!policy?.defaultBillable,
-                    reimbursable: isManualDistance ? undefined : !!policy?.defaultReimbursable,
+                    reimbursable: defaultReimbursable,
                     validWaypoints,
                     customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
                     splitShares: transaction?.splitShares,
@@ -603,6 +637,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 recentWaypoints,
+                betas,
             });
             return;
         }

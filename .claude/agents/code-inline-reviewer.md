@@ -66,58 +66,48 @@ Bad:
 
 ---
 
-### [PERF-2] Use early returns in array iteration methods
+### [PERF-2] Return early before expensive work
 
-- **Search patterns**: `.every(`, `.some(`, `.find(`, `.filter(`
+- **Search patterns**: Function bodies where `if (!param)` or `if (param === undefined)` appears AFTER function calls that use `param`
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
-  - Using .every(), .some(), .find(), .filter() or similar function
-  - Function contains an "expensive operation" (defined below)
-  - There exists a simple property check that could eliminate items earlier
-  - The simple check is performed AFTER the expensive operation
-
-  **Expensive operations are**:
-
-  - Function calls (except simple getters/property access)
-  - Regular expressions
-  - Object/array iterations
-  - Math calculations beyond basic arithmetic
-
-  **Simple checks are**:
-
-  - Property existence (!obj.prop, obj.prop === undefined)
-  - Boolean checks (obj.isActive)
-  - Primitive comparisons (obj.id === 5)
-  - Type checks (typeof, Array.isArray)
+  - Code performs expensive work (function calls, iterations, API/Onyx reads)
+  - A simple check could short-circuit earlier
+  - The simple check happens AFTER the expensive work
 
   **DO NOT flag if**:
 
-  - No expensive operations exist
-  - Simple checks are already done first
-  - The expensive operation MUST run for all items (e.g., for side effects)
+  - Simple checks already come first
+  - Validation requires the computed result
+  - Expensive work must run for side effects
 
-- **Reasoning**: Expensive operations can be any long-running synchronous tasks (like complex calculations) and should be avoided when simple property checks can eliminate items early. This reduces unnecessary computation and improves iteration performance, especially on large datasets.
+- **Reasoning**: Early returns prevent wasted computation. Validate inputs before passing them to expensive operations.
 
 Good:
 
 ```ts
-const areAllTransactionsValid = transactions.every((transaction) => {
-    if (!transaction.rawData || transaction.amount <= 0) {
-        return false;
+function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
+    if (!reportAction?.reportActionID) {
+        return;
     }
-    const validation = validateTransaction(transaction);
-    return validation.isValid;
-});
+
+    const originalReportID = getOriginalReportID(reportID, reportAction);
+    // ...
+}
 ```
 
 Bad:
 
 ```ts
-const areAllTransactionsValid = transactions.every((transaction) => {
-    const validation = validateTransaction(transaction);
-    return validation.isValid;
-});
+function clearReportActionErrors(reportID: string, reportAction: ReportAction) {
+    const originalReportID = getOriginalReportID(reportID, reportAction);
+
+    if (!reportAction?.reportActionID) {
+        return;
+    }
+    // ...
+}
 ```
 
 ---
@@ -996,6 +986,8 @@ function ReportScreen({ params: { reportID }}) {
 
 - **Reasoning**: When parent components compute and pass behavioral state to children, if a child's requirements change, then parent components must change as well, increasing coupling and causing behavior to leak across concerns. Letting components own their behavior keeps logic local, allows independent evolution, and follows the principle: "If removing a child breaks parent behavior, coupling exists."
 
+**Distinction from CLEAN-REACT-PATTERNS-3**: This rule is about data flow DOWN (parent → child) — "Don't pass data the child can get itself."
+
 Good (component owns its behavior):
 
 - Component receives only IDs and handlers
@@ -1076,6 +1068,379 @@ In this example:
 - The parent fetches `fullReport`, `policy`, `transaction`, `reportActions`, `personalDetails`, `transactionViolations`, and routing/layout state
 - These dependencies exist only because the child needs them — the parent is a data intermediary
 - If `OptionRowLHNData` requirements change, the parent must change too
+
+---
+
+### [CLEAN-REACT-PATTERNS-3] Design context-free component contracts
+
+- **Search patterns**: Callback props with consumer-specific signatures like `(index: number) => void`, props used only to extract values for callbacks, refs used to access external component state, useImperativeHandle
+
+- **Condition**: Flag ONLY when BOTH of these are true:
+
+  1. A component's interface is shaped around a specific consumer's implementation rather than abstract capabilities
+  2. AND at least ONE of the following manifestations is present:
+     - The component receives data only to extract values for callbacks (doesn't use it for rendering)
+     - Callback signatures encode consumer-specific assumptions (e.g., `(index: number) => void` for navigation)
+     - The component accesses external state through refs or imperative handles
+
+  **Signs of violation:**
+  - Callback signatures that encode consumer assumptions: `navigateToWaypoint(index: number)` instead of `onAddWaypoint()`
+  - Props passed only to extract values for callbacks, not for rendering (e.g., `transaction` passed just to compute `waypoints.length`)
+  - Imperative access to external state via refs or `useImperativeHandle`
+  - Component requires modification to work in a different context
+
+  **DO NOT flag if:**
+  - Component signals events with data it naturally owns (e.g., `onChange(value)` for an input, `onSelectItem(item)` for a list)
+  - Callbacks are abstract actions the component can trigger (e.g., `onAddStop()`, `onSubmit()`)
+  - State coordination happens at a higher level with clear data flow
+
+  **What makes a contract "abstract":**
+  - Callback describes *what happened* in component terms: `onAddStop`, `onSelect`, `onChange`
+  - Callback does NOT describe *what consumer should do*: `navigateToWaypoint(index)`, `updateParentState(value)`
+  - Props are used for rendering or internal logic, not just to compute callback arguments
+  - Component works without modification in a different context
+
+- **Reasoning**: A component's contract should expose its capabilities abstractly, not encode assumptions about how it will be used. When interfaces leak consumer-specific details, the component becomes coupled to that context and requires modification for reuse. Good contracts signal *what the component can do*, not *what the consumer needs*.
+
+**Distinction from CLEAN-REACT-PATTERNS-2**: PATTERNS-2 ensures components fetch their own data. This rule ensures components expose abstract capabilities, not consumer-specific interfaces.
+
+Good (abstract contract):
+
+- Interface exposes capability: "user can add a stop"
+- Implementation details (index computation, navigation) stay with consumer
+- Component is reusable in any context needing an "add stop" action
+
+```tsx
+<DistanceRequestFooter
+    onAddStop={() => {
+        const nextIndex = Object.keys(transaction?.comment?.waypoints ?? {}).length;
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(..., nextIndex.toString(), ...));
+    }}
+/>
+
+// in DistanceRequestFooter
+<Button onPress={onAddStop}>{translate('distance.addStop')}</Button>
+```
+
+Bad (contract leaks consumer assumptions):
+
+- Callback `navigateToWaypointEditPage(index: number)` encodes routing assumption
+- `transaction` prop exists only to compute index for callback
+- Requires modification if consumer navigates differently
+
+```tsx
+type DistanceRequestFooterProps = {
+    waypoints?: WaypointCollection;
+    navigateToWaypointEditPage: (index: number) => void;  // Encodes routing assumption
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+};
+
+// in IOURequestStepDistance
+<DistanceRequestFooter
+    waypoints={waypoints}
+    navigateToWaypointEditPage={navigateToWaypointEditPage}
+    transaction={transaction}
+    policy={policy}
+/>
+
+// in DistanceRequestFooter - computes value for consumer's callback
+<Button
+    onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
+    text={translate('distance.addStop')}
+/>
+```
+
+Good (independent contracts):
+
+- Each component has a self-contained interface
+- State coordination happens at composition level
+
+```tsx
+function EditProfile() {
+    const [formData, setFormData] = useState<FormData>();
+    return (
+        <>
+            <Form onChangeFormData={setFormData} />
+            <SaveButton onSave={() => API.save(formData)} />
+        </>
+    );
+}
+```
+
+Bad (coupled contracts):
+
+- `SaveButton` interface requires knowledge of `Form`'s internals
+- Neither component works independently
+
+```tsx
+function SaveButton({ getSiblingFormData }: { getSiblingFormData: () => FormData }) {
+    const handleSave = () => {
+        const formData = getSiblingFormData(); // Reaches into sibling
+        API.save(formData);
+    };
+    return <Button onPress={handleSave}>Save</Button>;
+}
+
+// Parent wires siblings together
+<Form ref={formRef} />
+<SaveButton getSiblingFormData={() => formRef.current?.getData()} />
+```
+
+---
+
+### [CLEAN-REACT-PATTERNS-4] Avoid side-effect spaghetti
+
+- **Search patterns**: Multiple `useEffect` in single component, large component bodies mixing data access/navigation/UI state/lifecycle, hooks or utilities handling several unrelated responsibilities
+
+- **Condition**: Flag when a component, hook, or utility aggregates multiple unrelated responsibilities in a single unit, making it difficult to modify one concern without touching others.
+
+  **Signs of violation:**
+  - Component has several `useEffect` hooks handling unrelated concerns (e.g., telemetry, deep linking, audio, session management all in one component)
+  - A single `useEffect` or hook handles multiple distinct responsibilities
+  - Unrelated state variables are interdependent or updated together
+  - Logic mixes data fetching, navigation, UI state, and lifecycle behavior in one place
+  - Removing one piece of functionality requires careful untangling from others
+
+  **What counts as "unrelated":**
+  - Group by responsibility (what the code does), NOT by timing (when it runs)
+  - Data fetching and analytics are NOT related — they serve different purposes even if both run on mount
+  - Session management and audio configuration are NOT related — different domains entirely
+
+  **DO NOT flag if:**
+  - Component is a thin orchestration layer that ONLY composes child components (no business logic, no effects beyond rendering)
+  - Effects are extracted into focused custom hooks with single responsibilities (e.g., `useDebugShortcut`, `usePriorityMode`) — inline `useEffect` calls are a code smell and should be named hooks
+
+- **Reasoning**: When multiple unrelated responsibilities are grouped into a single component, hook, or utility, if any one concern changes, then unrelated logic must be touched as well, increasing coupling, regression risk, and cognitive load. This is the single responsibility principle for React: extract small units that do very little, very well. A component with several unrelated effects is a code smell - even a single effect can benefit from extraction to something with a good name, proper description, and isolated tests.
+
+  **Bucketing questions for refactoring:**
+  1. Does this logic need the React render loop? YES → Extract to a focused custom hook. NO → Extract out of React entirely (e.g., Onyx migration, global initialization).
+  2. Does this logic need to be in this component? YES → Keep it, but use a focused hook. NO → Extract to a separate component that owns this concern.
+
+  **Hook granularity guidance:**
+  - Group effects that serve the same purpose into one hook (e.g., all telemetry setup in `useTelemetry`)
+  - Group effects that can be reused together across components
+  - Don't create 15 separate single-effect hooks if 5 well-named grouped hooks make more sense
+
+Good (separated concerns):
+
+- Each piece of logic is extracted to a focused hook or component
+- Parent component only orchestrates what to render
+- State subscriptions in smaller components don't cause re-renders in parent
+- Component-scoped hooks can be co-located in the same directory for maintainability
+
+```tsx
+function DebugMenu() {
+    useDebugShortcut();
+
+    return (
+        // Debug menu UI
+    );
+}
+
+function ParentComponent({ reportID }: { reportID: string }) {
+    return (
+        <View>
+            {/* Each child owns its own concerns */}
+            <ReportView reportID={reportID} />
+            <DebugMenu />
+        </View>
+    );
+}
+```
+
+```tsx
+// Focused hook that does one thing well
+function useDebugShortcut() {
+    useEffect(() => {
+        const debugShortcutConfig = CONST.KEYBOARD_SHORTCUTS.DEBUG;
+        const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
+            debugShortcutConfig.shortcutKey,
+            () => toggleTestToolsModal(),
+            debugShortcutConfig.descriptionKey,
+            debugShortcutConfig.modifiers,
+            true,
+        );
+
+        return () => {
+            unsubscribeDebugShortcut();
+        };
+    }, []);
+}
+```
+
+Bad (side-effect spaghetti):
+
+- Component mixes session management, deep linking, telemetry, navigation, splash screen, audio, and other startup logic
+- Several unrelated `useOnyx` calls and `useEffect` hooks in a single component
+- Changing one concern risks breaking others
+
+```tsx
+function Expensify() {
+    // Session & auth
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    
+    // Navigation & routing
+    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [isNavigationReady, setIsNavigationReady] = useState(false);
+    
+    // App state
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE);
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED);
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
+    
+    // Splash screen
+    const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
+    
+    // ... 10+ more useOnyx calls for unrelated concerns ...
+
+    // Telemetry effect
+    useEffect(() => {
+        bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {...});
+        // ...
+    }, []);
+
+    // Public room checking effect
+    useEffect(() => {
+        if (isCheckingPublicRoom) return;
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
+        // ...
+    }, [isCheckingPublicRoom]);
+
+    // Splash screen effect
+    useEffect(() => {
+        if (!shouldHideSplash) return;
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER, {...});
+    }, [shouldHideSplash]);
+
+    // Deep linking effect
+    useEffect(() => {
+        Linking.getInitialURL().then((url) => {
+            if (url) {
+                openReportFromDeepLink(url, ...);
+            }
+        });
+        // ...
+    }, []);
+
+    // Audio mode effect
+    useEffect(() => {
+        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
+    }, []);
+
+    // ... 10+ more useEffects mixing concerns ...
+}
+```
+
+In this example:
+- The component handles telemetry, deep linking, audio, session, navigation, splash screen, and more
+- Each concern is interleaved with others, making it hard to modify one without risking regression in another
+- Effects could be extracted to focused hooks: `useTelemetrySpans`, `useDeepLinking`, `useAudioMode`, etc.
+- Entry points don't get special treatment — extracting effects into named hooks improves clarity and makes it possible to understand what each effect does and how to safely modify it
+
+---
+
+### [CLEAN-REACT-PATTERNS-5] Keep state and subscriptions narrow
+
+- **Search patterns**: Contexts/hooks/stores exposing large bundled objects, providers with many unrelated `useOnyx` calls, state structures mixing unrelated concerns
+
+- **Condition**: Flag when a state structure (context, hook, store, or subscription) bundles unrelated concerns together, causing consumers to re-render when data they don't use changes.
+
+  **Signs of violation:**
+  - State provider (context, hook, or store) that bundles unrelated data (e.g., navigation state + list data + cache utilities in one structure)
+  - State object where properties serve different purposes and change independently
+  - Multiple unrelated subscriptions (`useOnyx`, `useContext`, store selectors) aggregated into a single exposed value
+  - Consumers of a state source that only use a subset of the provided values
+
+  **DO NOT flag if:**
+  - State values are cohesive — they change together and serve the same purpose (e.g., `keyboardHeight` + `isKeyboardShown` both relate to keyboard state)
+  - The state structure is intentionally designed as an aggregation point and consumers use most/all values
+  - Individual `useOnyx` calls without selectors — this is covered by [PERF-11]
+
+- **Reasoning**: When unrelated pieces of data are grouped into a single state structure, if an unused part changes, then all consumers re-render unnecessarily. This silently expands render scope, increases coupling, and makes performance regressions hard to detect. Structuring state around cohesive concerns ensures render scope stays predictable and changes remain local.
+
+**Distinction from PERF-11**: PERF-11 addresses individual `useOnyx` selector usage. This rule addresses state structure — how multiple values are grouped and exposed to consumers via contexts, hooks, or stores.
+
+**Distinction from CLEAN-REACT-PATTERNS-2**: PATTERNS-2 addresses data flow direction — parent shouldn't fetch data just to pass to children. This rule addresses how state is structured and grouped within any state provider.
+
+Good (cohesive state — all values serve one purpose):
+
+- All state relates to one concern (keyboard)
+- Values change together — no wasted re-renders
+- Derived state computed inline, not stored separately
+
+```tsx
+type KeyboardStateContextValue = {
+    isKeyboardShown: boolean;
+    isKeyboardActive: boolean;
+    keyboardHeight: number;
+};
+
+function KeyboardStateProvider({children}: ChildrenProps) {
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const [isKeyboardActive, setIsKeyboardActive] = useState(false);
+
+    useEffect(() => {
+        const showListener = KeyboardEvents.addListener('keyboardDidShow', (e) => {
+            setKeyboardHeight(e.height);
+            setIsKeyboardActive(true);
+        });
+        const hideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
+            setKeyboardHeight(0);
+            setIsKeyboardActive(false);
+        });
+        return () => {
+            showListener.remove();
+            hideListener.remove();
+        };
+    }, []);
+
+    const contextValue = useMemo(() => ({
+        keyboardHeight,
+        isKeyboardShown: keyboardHeight !== 0,  // Derived, not separate state
+        isKeyboardActive,
+    }), [keyboardHeight, isKeyboardActive]);
+
+    return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
+}
+```
+
+Bad (grab-bag state — bundles unrelated concerns):
+
+- State provider subscribes to many unrelated Onyx collections
+- Exposed value mixes navigation state, list data, membership data, and cache utilities
+- Any consumer re-renders when ANY subscribed value changes
+
+```tsx
+function SidebarOrderedReportsContextProvider({children}) {
+    // ❌ Many unrelated Onyx subscriptions bundled together
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+    // ❌ Context value mixes unrelated concerns
+    const contextValue = {
+        orderedReports,         // List data
+        orderedReportIDs,       // List data
+        currentReportID,        // Navigation state
+        policyMemberAccountIDs, // Policy membership
+        clearLHNCache,          // Cache management utility
+    };
+
+    return <Context.Provider value={contextValue}>{children}</Context.Provider>;
+}
+
+// A component needing only currentReportID re-renders when orderedReports changes
+// A component needing only policyMemberAccountIDs re-renders when navigation changes
+```
 
 ---
 
