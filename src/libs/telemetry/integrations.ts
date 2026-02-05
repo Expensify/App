@@ -6,7 +6,7 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
 });
 
 const shouldCreateSpanForRequest = (url: string): boolean => {
-    const filteredPhrases = ['/api/Log', '/api/SendPerformanceTiming', 'firebaselogging-pa.googleapis.com', 'analytics.google.com', 'rs.fullstory.com', 'api.github.com'];
+    const filteredPhrases = ['/api/Log', 'firebaselogging-pa.googleapis.com', 'analytics.google.com', 'rs.fullstory.com', 'api.github.com'];
     return !filteredPhrases.some((phrase) => url.includes(phrase));
 };
 
