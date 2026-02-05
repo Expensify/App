@@ -1,10 +1,12 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo} from 'react';
 import type {ReactNode} from 'react';
-import {getOutcomePath, getOutcomePaths} from '@components/MultifactorAuthentication/config/outcomePaths';
+import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
+import {getOutcomePaths} from '@components/MultifactorAuthentication/config/outcomePaths';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import type {ChallengeType, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
+import getPlatform from '@libs/getPlatform';
+import type {ChallengeType, MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
 import {requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
@@ -52,6 +54,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const biometrics = useNativeBiometrics();
     const {isOffline} = useNetwork();
+    const platform = getPlatform();
+    const isWeb = useMemo(() => platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILE_WEB, [platform]);
 
     /**
      * Internal process function that runs after each step.
@@ -89,22 +93,27 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 1. Check if there's an error - stop processing
         if (error) {
-            if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS) {
-                const noEligibleMethodsOutcomePath = getOutcomePath(scenario, 'no-eligible-methods');
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(noEligibleMethodsOutcomePath), {forceReplace: true});
-            } else {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.failureOutcome), {forceReplace: true});
-            }
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.failureOutcome), {forceReplace: true});
             dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
             return;
         }
 
         // 2. Check if device is compatible
         if (!biometrics.doesDeviceSupportBiometrics()) {
+            const {allowedAuthenticationMethods = [] as string[]} = scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] : {};
+
+            let reason: MultifactorAuthenticationReason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE;
+
+            // If the user is using mobile app and the scenario allows native biometrics as a form of authentication,
+            // then they need to enable it in the system settings as well for doesDeviceSupportBiometrics to return true.
+            if (!isWeb && allowedAuthenticationMethods.includes(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS)) {
+                reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS;
+            }
+
             dispatch({
                 type: 'SET_ERROR',
                 payload: {
-                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS,
+                    reason,
                 },
             });
             return;
@@ -263,7 +272,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // 5. All steps completed - success
         Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.successOutcome), {forceReplace: true});
         dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
-    }, [biometrics, dispatch, isOffline, state]);
+    }, [biometrics, dispatch, isOffline, state, isWeb]);
 
     /**
      * Drives the MFA state machine forward whenever relevant state changes occur.

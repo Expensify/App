@@ -736,6 +736,10 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Meld je opnieuw aan.',
     },
     multifactorAuthentication: {
+        unsupportedDevice: {
+            unsupportedDevice: 'Niet ondersteund apparaat',
+            pleaseDownloadMobileApp: `<centered-text><muted-text>Deze actie wordt momenteel niet ondersteund op je toestel. Download de Expensify mobiele app van de <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">iOS App Store</a> of de <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> en probeer het opnieuw.</muted-text></centered-text>`,
+        },
         biometricsTest: {
             biometricsTest: 'Biometrische test',
             authenticationSuccessful: 'Verificatie geslaagd',

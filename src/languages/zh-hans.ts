@@ -731,6 +731,10 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: '请重新登录。',
     },
     multifactorAuthentication: {
+        unsupportedDevice: {
+            unsupportedDevice: '不支持的设备',
+            pleaseDownloadMobileApp: `<centered-text><muted-text>您的设备当前不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">iOS 应用商店</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">谷歌播放商店</a>下载 Expensify 移动应用程序，然后重试。</muted-text></centered-text>`,
+        },
         biometricsTest: {
             biometricsTest: '生物识别测试',
             authenticationSuccessful: '验证成功',

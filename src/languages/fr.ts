@@ -739,6 +739,10 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Veuillez vous reconnecter.',
     },
     multifactorAuthentication: {
+        unsupportedDevice: {
+            unsupportedDevice: 'Appareil non pris en charge',
+            pleaseDownloadMobileApp: `<centered-text><muted-text>Cette action n'est pas prise en charge sur votre appareil actuellement. Veuillez télécharger l'application mobile Expensify depuis la <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">boutique App Store iOS</a> ou <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> et réessayez.</muted-text></centered-text>`,
+        },
         biometricsTest: {
             biometricsTest: 'Test biométrique',
             authenticationSuccessful: 'Authentification réussie',

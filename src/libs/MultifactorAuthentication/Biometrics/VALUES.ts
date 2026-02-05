@@ -54,6 +54,7 @@ const REASON = {
         NO_ACTION_MADE_YET: 'No action has been made yet',
         VALIDATE_CODE_MISSING: 'Validate code is missing',
         NO_ELIGIBLE_METHODS: 'No eligible methods available',
+        UNSUPPORTED_DEVICE: 'Unsupported device',
         BAD_REQUEST: 'Bad request',
         LOCAL_REGISTRATION_COMPLETE: 'Local registration complete',
     },
