@@ -240,6 +240,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 defaultChatEnabledPolicy,
+                allBetas,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -252,7 +253,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isReportInSearch],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isReportInSearch, allBetas],
     );
 
     const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
@@ -702,7 +703,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             {FabCreateReportConfirmationModal}
             <PopoverMenu
                 onClose={hideCreateMenu}
-                shouldHandleNavigationBack
                 shouldEnableMaxHeight={false}
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
