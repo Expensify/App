@@ -404,6 +404,26 @@ function Search({
             (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
             (hasErrors && searchRequestResponseStatusCode === null) ||
             isCardFeedsLoading);
+
+    if (shouldShowLoadingState) {
+        Log.info('[Search] shouldShowLoadingState is TRUE', {
+            shouldUseLiveData,
+            notShouldUseLiveData: !shouldUseLiveData,
+            isOffline,
+            notIsOffline: !isOffline,
+            isDataLoaded,
+            notIsDataLoaded: !isDataLoaded,
+            searchResultsIsLoading: searchResults?.search.isLoading,
+            searchResultsDataIsArray: Array.isArray(searchResults?.data),
+            searchResultsDataLength: searchResults?.data?.length,
+            searchResultsLoadingCondition: !!(searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0),
+            hasErrors,
+            searchRequestResponseStatusCode,
+            errorWithNullStatus: hasErrors && searchRequestResponseStatusCode === null,
+            isCardFeedsLoading,
+        });
+    }
+
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
