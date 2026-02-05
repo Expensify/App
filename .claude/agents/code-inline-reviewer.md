@@ -1189,6 +1189,86 @@ function SaveButton({ getSiblingFormData }: { getSiblingFormData: () => FormData
 
 ---
 
+### [UI-1] Use the correct loading indicator based on navigation context
+
+- **Search patterns**: `FullscreenLoadingIndicator`, `ActivityIndicator`
+
+- **Condition**: Flag ONLY when ANY of these patterns is found:
+  - `FullscreenLoadingIndicator` and `HeaderWithBackButton` (or other navigation like close button) render in the **same return statement/branch**
+  - `FullscreenLoadingIndicator` without `shouldUseGoBackButton` prop when **no navigation component** exists in the same return
+  - `ActivityIndicator` as the **sole/main screen content** (flex:1 container, early return) without any navigation component
+
+  **DO NOT flag if:**
+  - Loader and navigation are in **different return statements or ternary branches** (e.g., `{loading ? <Loader /> : <><Header />...</>}` or `if (loading) return <Loader />; return <Header />...`)
+  - Used inside `FullScreenLoaderContext` (renders loader as overlay on children)
+  - `ActivityIndicator` is inline (inside buttons, list items, cards, or small sections of a larger screen)
+
+- **Reasoning**: If loading hangs, users need an escape route. When navigation (back button, close) is visible alongside the loader, users can escape - use `ActivityIndicator`. When no navigation is visible, users are trapped - use `FullscreenLoadingIndicator` with `shouldUseGoBackButton={true}` which shows an emergency "Go Back" button after timeout. This prop is being migrated to become default, so set it explicitly for now.
+
+Good:
+
+```tsx
+// ✅ No navigation in return - FullscreenLoadingIndicator with shouldUseGoBackButton
+function ValidateLoginPage() {
+    return <FullscreenLoadingIndicator shouldUseGoBackButton />;
+}
+
+// ✅ Loader and navigation in DIFFERENT returns - OK to use FullscreenLoadingIndicator
+function SettingsPage() {
+    if (isLoading) {
+        return <FullscreenLoadingIndicator shouldUseGoBackButton />;
+    }
+    return (
+        <ScreenWrapper>
+            <HeaderWithBackButton title="Settings" />
+            <Content />
+        </ScreenWrapper>
+    );
+}
+
+// ✅ Header visible during loading - use ActivityIndicator
+function SettingsPage() {
+    return (
+        <ScreenWrapper>
+            <HeaderWithBackButton title="Settings" />
+            {isLoading ? (
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator size="large" />
+                </View>
+            ) : (
+                <Content />
+            )}
+        </ScreenWrapper>
+    );
+}
+```
+
+Bad:
+
+```tsx
+// ❌ Header and FullscreenLoadingIndicator in SAME return - use ActivityIndicator
+<ScreenWrapper>
+    <HeaderWithBackButton title="Settings" />
+    <FullscreenLoadingIndicator />
+</ScreenWrapper>
+
+// ❌ No navigation, missing shouldUseGoBackButton - user trapped if loading hangs
+function ValidateLoginPage() {
+    return <FullscreenLoadingIndicator />;
+}
+
+// ❌ ActivityIndicator as sole content without navigation - use FullscreenLoadingIndicator
+function AuthLoadingPage() {
+    return (
+        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+            <ActivityIndicator size="large" />
+        </View>
+    );
+}
+```
+
+---
+
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**
