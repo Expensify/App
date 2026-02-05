@@ -174,5 +174,43 @@ describe('useTodos', () => {
             expect(submitMetadata.count).toBe(2);
             expect(submitMetadata.total).toBe(-125); // -(50 + 75)
         });
+
+        it('should hide badge when todo report count is 0', () => {
+            const reportCounts = {
+                [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 0,
+                [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 0,
+                [CONST.SEARCH.SEARCH_KEYS.PAY]: 0,
+                [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 0,
+            };
+
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']));
+            const sections = createTypeMenuSections(
+                icons.current,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                mockCardFeedsByPolicy,
+                undefined,
+                mockPolicies,
+                {},
+                false,
+                undefined,
+                false,
+                {},
+                reportCounts,
+            );
+
+            const todoSection = sections.find((section) => section.translationPath === 'common.todo');
+            expect(todoSection).toBeDefined();
+
+            const submitItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+            const approveItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            const payItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.PAY);
+            const exportItem = todoSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.EXPORT);
+
+            expect(submitItem?.badgeText).toBe('');
+            expect(approveItem?.badgeText).toBe('');
+            expect(payItem?.badgeText).toBe('');
+            expect(exportItem?.badgeText).toBe('');
+        });
     });
 });
