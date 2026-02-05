@@ -157,25 +157,23 @@ function Section({
                         illustrationContainerStyle,
                     ]}
                 >
-                    {!isReduceMotionEnabled && (
-                        <View style={[styles.cardSectionIllustration, illustrationStyle]}>
-                            {isLottie ? (
-                                <Lottie
-                                    source={illustration}
-                                    style={styles.h100}
-                                    webStyle={styles.h100}
-                                    autoPlay
-                                    loop
-                                    shouldLoadAfterInteractions={shouldUseNarrowLayout}
-                                />
-                            ) : (
-                                <ImageSVG
-                                    src={illustration}
-                                    contentFit="contain"
-                                />
-                            )}
-                        </View>
-                    )}
+                    <View style={[styles.cardSectionIllustration, illustrationStyle]}>
+                        {isLottie ? (
+                            <Lottie
+                                source={illustration}
+                                style={styles.h100}
+                                webStyle={styles.h100}
+                                autoPlay={!isReduceMotionEnabled}
+                                loop
+                                shouldLoadAfterInteractions={shouldUseNarrowLayout}
+                            />
+                        ) : (
+                            <ImageSVG
+                                src={illustration}
+                                contentFit="contain"
+                            />
+                        )}
+                    </View>
                     {overlayContent?.()}
                 </View>
             )}
