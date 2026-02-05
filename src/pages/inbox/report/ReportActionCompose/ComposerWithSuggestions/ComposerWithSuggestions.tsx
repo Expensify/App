@@ -559,8 +559,21 @@ function ComposerWithSuggestions({
         [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, onEnterKeyPress, lastReportAction, reportID, updateComment, selection.end],
     );
 
+    /**
+     * Once we cleared the input and the composer finished rendering, we need to reset the manual height value.
+     * After that, the composer will adjust it's height based on it's parent flex layout.
+     */
+    const clearComposerHeightAfterClear = useCallback(() => {
+        if (composerHeightAfterClear == null) {
+            return;
+        }
+        setComposerHeightAfterClear(null);
+    }, [composerHeightAfterClear]);
+
     const onChangeText = useCallback(
         (commentValue: string) => {
+            clearComposerHeightAfterClear();
+
             updateComment(commentValue, true);
 
             if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
@@ -576,7 +589,7 @@ function ComposerWithSuggestions({
                 });
             }
         },
-        [updateComment],
+        [clearComposerHeightAfterClear, updateComment],
     );
 
     const onSelectionChange = useCallback(
@@ -832,9 +845,7 @@ function ComposerWithSuggestions({
             const inputHeight = e.nativeEvent.contentSize.height;
             const totalHeight = inputHeight + paddingTopAndBottom;
 
-            // Once we cleared the input and the composer finished rendering, we need to reset the manual height value.
-            // After that, the composer will adjust it's height based on it's parent flex layout.
-            setComposerHeightAfterClear(null);
+            clearComposerHeightAfterClear();
 
             if (emptyComposerHeightRef.current === null && totalHeight > 0 && !valueRef.current.includes('\n')) {
                 emptyComposerHeightRef.current = totalHeight;
@@ -843,7 +854,7 @@ function ComposerWithSuggestions({
             const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
             setIsFullComposerAvailable?.(isFullComposerAvailable);
         },
-        [setIsFullComposerAvailable, containerComposeStyles],
+        [containerComposeStyles.paddingVertical, clearComposerHeightAfterClear, setIsFullComposerAvailable],
     );
 
     const handleFocus = useCallback(() => {
