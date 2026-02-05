@@ -1475,6 +1475,7 @@ const CONST = {
         UNSUPPORTED_TYPE: {
             PAYCHECK: 'paycheck',
             BILL: 'bill',
+            TRIP: 'trip',
         },
         CHAT_TYPE: chatTypes,
         HELP_TYPE: {
