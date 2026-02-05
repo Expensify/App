@@ -2479,7 +2479,12 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            const OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS = createOptionList(PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, REPORTS_WITH_GROUP_CHAT_NO_PARTICIPANTS);
+            const OPTIONS_WITH_GROUP_CHAT_NO_PARTICIPANTS = createOptionList(
+                PERSONAL_DETAILS,
+                CURRENT_USER_ACCOUNT_ID,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                REPORTS_WITH_GROUP_CHAT_NO_PARTICIPANTS,
+            );
 
             // When we call getSearchOptions with all betas
             const options = getSearchOptions({
