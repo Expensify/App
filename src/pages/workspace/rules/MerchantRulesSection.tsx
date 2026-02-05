@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
@@ -12,7 +13,11 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getCleanedTagName} from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {CodingRule} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -43,10 +48,11 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tag, getCleanedTagName(rule.tag)));
     }
     if (rule.comment) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, rule.comment));
+        const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.description, commentMarkdown));
     }
     if (rule.tax?.field_id_TAX?.value) {
-        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, rule.tax.field_id_TAX.value));
+        actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
     }
     if (rule.reimbursable !== undefined) {
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
@@ -65,7 +71,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const theme = useTheme();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const {isDevelopment} = useEnvironment();
+    const {isProduction} = useEnvironment();
 
     // Hoist iterator-independent translations to avoid redundant calls in the loop
     const fieldLabels: FieldLabels = useMemo(
@@ -87,7 +93,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
         }
 
         return Object.entries(codingRules)
-            .map(([ruleID, rule]) => ({ruleID, ...rule}))
+            .filter(([, rule]) => !!rule)
+            .map(([ruleID, rule]) => ({...rule, ruleID}))
             .sort((a, b) => {
                 if (a.created && b.created) {
                     return a.created < b.created ? 1 : -1;
@@ -96,7 +103,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             });
     }, [codingRules]);
 
-    if (!isDevelopment) {
+    if (isProduction) {
         return null;
     }
 
@@ -122,19 +129,26 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 <View style={[styles.mt3]}>
                     {sortedRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
-                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName);
+                        const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+                        const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
                         const ruleDescription = getRuleDescription(rule, translate, fieldLabels);
 
                         return (
                             <View key={rule.ruleID}>
-                                <MenuItemWithTopDescription
-                                    description={matchDescription}
-                                    title={ruleDescription}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    descriptionTextStyle={[styles.textStrong, styles.themeTextColor]}
-                                    titleStyle={[styles.textLabelSupporting]}
-                                    shouldShowRightIcon
-                                />
+                                <OfflineWithFeedback
+                                    pendingAction={rule.pendingAction}
+                                    errors={rule.errors}
+                                >
+                                    <MenuItemWithTopDescription
+                                        description={matchDescription}
+                                        title={ruleDescription}
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                        descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
+                                        titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
+                                        shouldShowRightIcon
+                                        onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
+                                    />
+                                </OfflineWithFeedback>
                             </View>
                         );
                     })}
@@ -147,7 +161,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 iconHeight={20}
                 iconWidth={20}
                 style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
             />
         </Section>
     );

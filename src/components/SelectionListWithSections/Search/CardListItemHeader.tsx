@@ -142,7 +142,7 @@ function CardListItemHeader<TItem extends ListItem>({
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                                 />
                                 <TextWithTooltip
-                                    text={`${cardItem.cardName}${cardItem.lastFourPAN ? ` ${CONST.DOT_SEPARATOR} ` : ''}${cardItem.lastFourPAN}`}
+                                    text={cardItem.formattedCardName ?? ''}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 />
                             </View>

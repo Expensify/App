@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -13,7 +13,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useCurrencyList from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -35,7 +35,7 @@ import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
 import {initSplitExpense, updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@libs/actions/IOU/index';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
-import {filterPersonalCards, getCompanyCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -101,9 +101,10 @@ import {
     isTimeRequest as isTimeRequestTransactionUtils,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
 } from '@libs/TransactionUtils';
+import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
-import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
+import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyStateBackground';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -231,9 +232,7 @@ function MoneyRequestView({
     const targetPolicyID = updatedTransaction?.reportID ? parentReport?.policyID : policyID;
     const allPolicyTags = usePolicyTags();
     const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
-    const [companyCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(companyCardList ?? CONST.EMPTY_OBJECT, cardList), [companyCardList, cardList]);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true});
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -243,7 +242,6 @@ function MoneyRequestView({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isZeroExpensesBetaEnabled = isBetaEnabled(CONST.BETAS.ZERO_EXPENSES);
 
     const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
@@ -279,9 +277,7 @@ function MoneyRequestView({
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
     } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {};
-    const isZeroTransactionAmount = transactionAmount === 0;
-    const isEmptyMerchant =
-        transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transactionMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction, !!mergeTransactionID);
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
@@ -303,7 +299,7 @@ function MoneyRequestView({
     const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isManagedCardTransaction = isCardTransactionTransactionUtils(transaction);
-    const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, allCards);
+    const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, nonPersonalAndWorkspaceCards);
     const shouldShowCard = isManagedCardTransaction && cardProgramName;
 
     const taxRates = policy?.taxRates;
@@ -438,10 +434,7 @@ function MoneyRequestView({
 
     const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
     const updatedTransactionDescription = getDescription(updatedTransaction) || undefined;
-    const isEmptyUpdatedMerchant =
-        updatedTransaction?.modifiedMerchant === '' ||
-        updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
-        updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const isEmptyUpdatedMerchant = isInvalidMerchantValue(updatedTransaction?.modifiedMerchant);
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
 
     const shouldShowConvertedAmount =
@@ -532,16 +525,13 @@ function MoneyRequestView({
         actualAttendees,
         currentUserPersonalDetails,
         policy?.isAttendeeTrackingEnabled,
+        policy?.type === CONST.POLICY.TYPE.CORPORATE,
     );
 
     const getErrorForField = (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
         // Checks applied when creating a new expense
         // NOTE: receipt field can return multiple violations, so we need to handle it separately
         const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
-            amount: {
-                isError: isZeroTransactionAmount && !isZeroExpensesBetaEnabled,
-                translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
-            },
             merchant: {
                 isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
                 translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
@@ -803,7 +793,7 @@ function MoneyRequestView({
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const {wideRHPRouteKeys} = useWideRHPState();
 
     // If the view is readonly, we don't need the transactionThread dependency
     if ((!readonly && !transactionThreadReport?.reportID) || !transaction?.transactionID) {
