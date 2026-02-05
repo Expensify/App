@@ -136,7 +136,6 @@ function SearchPage({route}: SearchPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
-    const isCustomReportNamesBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_REPORT_NAMES);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
@@ -518,9 +517,9 @@ function SearchPage({route}: SearchPageProps) {
                     const reportTransactions = Object.values(allTransactions ?? {}).filter(
                         (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
                     );
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, reportTransactions, isCustomReportNamesBetaEnabled);
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, reportTransactions);
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions, isCustomReportNamesBetaEnabled);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
                     }
                 }
             }
@@ -579,7 +578,6 @@ function SearchPage({route}: SearchPageProps) {
             showDelegateNoAccessModal,
             personalPolicyID,
             allTransactions,
-            isCustomReportNamesBetaEnabled,
             allReports,
         ],
     );
@@ -1122,6 +1120,7 @@ function SearchPage({route}: SearchPageProps) {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
+            setSearchRequestResponseStatusCode(null);
             search(value)?.then((jsonCode) => {
                 setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
             });
