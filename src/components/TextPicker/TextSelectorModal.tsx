@@ -64,7 +64,7 @@ function TextSelectorModal({
             const formValue = values[rest.inputID];
 
             if (required) {
-                errors = getFieldRequiredErrors(values, [rest.inputID]);
+                errors = getFieldRequiredErrors(values, [rest.inputID], translate);
             }
 
             if (formValue.length > maxLength) {
@@ -89,7 +89,7 @@ function TextSelectorModal({
         }
         setValue(value);
         setIsClosing(false);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
     useEffect(() => {

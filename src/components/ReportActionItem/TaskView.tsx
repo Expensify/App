@@ -5,7 +5,6 @@ import {AttachmentContext} from '@components/AttachmentContext';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,7 +15,9 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -31,6 +32,7 @@ import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 
@@ -46,11 +48,13 @@ type TaskViewProps = {
 };
 
 function TaskView({report, parentReport, action}: TaskViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     useEffect(() => {
         setTaskReport(report);
@@ -101,7 +105,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                 <OfflineWithFeedback
                     shouldShowErrorMessages
                     errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                    onClose={() => clearTaskErrors(report)}
+                    onClose={() => clearTaskErrors(report, conciergeReportID)}
                     errorRowStyles={styles.ph5}
                 >
                     <Hoverable>
@@ -159,7 +163,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 <View style={styles.taskRightIconContainer}>
                                                     <Icon
                                                         additionalStyles={[styles.alignItemsCenter]}
-                                                        src={Expensicons.ArrowRight}
+                                                        src={icons.ArrowRight}
                                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
                                                     />
                                                 </View>

@@ -52,9 +52,27 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
 
     /** The chatReportID of the request */
     chatReportID?: string;
+
+    /** Whether this is a P2P (1:1) request */
+    isP2P?: boolean;
 };
 
-const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
+const nonZeroExpenses = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
+const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean) => {
+    if (!amount.length || parseFloat(amount) < 0) {
+        return true;
+    }
+
+    if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(amount) < 0.01 && isP2P) {
+        return true;
+    }
+
+    if (parseFloat(amount) < 0.01 && nonZeroExpenses.has(iouType)) {
+        return true;
+    }
+
+    return false;
+};
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
     isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
@@ -77,6 +95,7 @@ function MoneyRequestAmountForm({
     chatReportID,
     hideCurrencySymbol = false,
     allowFlippingAmount = false,
+    isP2P = false,
     ref,
 }: MoneyRequestAmountFormProps) {
     const styles = useThemeStyles();
@@ -131,7 +150,7 @@ function MoneyRequestAmountForm({
         initializeIsNegative(amount);
 
         // we want to re-initialize the state only when the selected tab
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTab]);
 
     /**
@@ -143,7 +162,7 @@ function MoneyRequestAmountForm({
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
+            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
@@ -157,7 +176,7 @@ function MoneyRequestAmountForm({
 
             onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P],
     );
 
     const buttonText: string = useMemo(() => {

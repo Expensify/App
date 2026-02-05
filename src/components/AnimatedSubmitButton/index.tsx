@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {View} from 'react-native';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
@@ -107,14 +108,13 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
         return () => clearTimeout(timer);
     }, [isAnimationRunning, isShowingLoading]);
 
-    // eslint-disable-next-line react-compiler/react-compiler
     const showLoading = isShowingLoading || (!viewRef.current && isAnimationRunning);
 
     return (
         <Animated.View style={[containerStyles, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el) => {
+                    ref={(el: View | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
                     exiting={buttonAnimation}

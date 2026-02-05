@@ -1,12 +1,12 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -83,13 +83,13 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID))}
         >
-            <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5, styles.flexRow]}>
                 <RenderHTML
                     html={translate('workspace.intacct.toggleImportTitle', {
                         mappingTitle: translate('workspace.intacct.mappingTitle', {mappingName}),
                     })}
                 />
-            </Text>
+            </View>
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.intacct.mappingTitle', {mappingName})}`}

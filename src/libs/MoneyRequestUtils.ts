@@ -60,14 +60,24 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
  * Some callers (e.g. split-by-percentage) may temporarily allow values above 100 while the user edits; they can
  * opt into this relaxed behavior via the `allowExceedingHundred` flag.
  * The `allowDecimal` flag enables one decimal place (0.1 precision) for more granular percentage splits.
+ * The `shouldAllowNegative` flag enables negative percentages (e.g. for split expenses with negative amounts).
+ * Accepts both period (.) and comma (,) as decimal separators to support locale-specific input (e.g., Spanish).
  */
-function validatePercentage(amount: string, allowExceedingHundred = false, allowDecimal = false): boolean {
+function validatePercentage(amount: string, allowExceedingHundred = false, allowDecimal = false, shouldAllowNegative = false): boolean {
     if (allowExceedingHundred) {
-        const regex = allowDecimal ? /^\d*\.?\d?$/u : /^\d*$/u;
+        // Build regex pattern conditionally based on flags
+        const negativePattern = shouldAllowNegative ? '-?' : '';
+        const decimalPattern = allowDecimal ? '[.,]?\\d?' : '';
+        const regex = new RegExp(`^${negativePattern}\\d*${decimalPattern}$`, 'u');
+
+        if (shouldAllowNegative) {
+            return amount === '' || amount === '-' || regex.test(amount);
+        }
         return amount === '' || regex.test(amount);
     }
 
-    const regexString = allowDecimal ? '^(100(\\.0)?|[0-9]{1,2}(\\.\\d)?)$' : '^(100|[0-9]{1,2})$';
+    // Accept both period and comma as decimal separators
+    const regexString = allowDecimal ? '^(100([.,]0)?|[0-9]{1,2}([.,]\\d)?)$' : '^(100|[0-9]{1,2})$';
     const percentageRegex = new RegExp(regexString, 'i');
     return amount === '' || percentageRegex.test(amount);
 }
@@ -94,11 +104,11 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
  * @param amount - The amount string to process
  * @param allowFlippingAmount - Whether flipping amount is allowed
  * @param toggleNegative - Function to toggle negative state
- * @returns The processed amount string without the '-' prefix
+ * @returns The processed amount string - strips '-' prefix only if toggleNegative callback is provided
  */
 function handleNegativeAmountFlipping(amount: string, allowFlippingAmount: boolean, toggleNegative?: () => void): string {
-    if (allowFlippingAmount && amount.startsWith('-')) {
-        toggleNegative?.();
+    if (allowFlippingAmount && amount.startsWith('-') && toggleNegative) {
+        toggleNegative();
         return amount.slice(1);
     }
     return amount;

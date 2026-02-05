@@ -190,9 +190,6 @@ function HeaderWithBackButton({
 
     return (
         <View
-            // Hover on some part of close icons will not work on Electron if dragArea is true
-            // https://github.com/Expensify/App/issues/29598
-            dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
                 shouldUseHeadlineHeader && styles.headerBarHeight,

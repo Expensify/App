@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -47,15 +47,6 @@ function AppDownloadLinksPage() {
             },
             link: CONST.APP_DOWNLOAD_LINKS.IOS,
             icon: Expensicons.Apple,
-            iconRight: icons.NewWindow,
-        },
-        {
-            translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
-            action: () => {
-                openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
-            },
-            link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
-            icon: icons.Monitor,
             iconRight: icons.NewWindow,
         },
     ];
@@ -96,6 +87,7 @@ function AppDownloadLinksPage() {
                         iconRight={item.iconRight}
                         shouldBlockSelection
                         shouldShowRightIcon
+                        role={CONST.ROLE.LINK}
                     />
                 ))}
             </ScrollView>

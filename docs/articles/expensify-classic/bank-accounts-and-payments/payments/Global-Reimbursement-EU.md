@@ -77,7 +77,8 @@ Once the bank account is approved for global reimbursement:
 3. Choose your verified EU account as the default reimbursement method.
 4. Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
-   - Click **Add deposit-only bank account** and input their account details.
+   - Click **Add Personal Bank Account** and input their account details.
+   - **Important:** The name on an employee’s bank account must exactly match the name entered in Expensify. This verification is required for every payment, and mismatches may cause delays or prevent processing.
 
 ---
 

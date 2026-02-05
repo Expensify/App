@@ -78,6 +78,11 @@ type Fullstory = {
      * Returns the current FullStory session ID.
      */
     getSessionId: () => Promise<string | undefined>;
+
+    /**
+     * Returns the current FullStory session URL.
+     */
+    getSessionURL: () => Promise<string | undefined>;
 };
 
 /**

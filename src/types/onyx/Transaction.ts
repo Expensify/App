@@ -119,6 +119,12 @@ type Comment = {
 
     /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
     pendingAutoCategorizationTime?: string;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
 };
 
 /** Model of transaction custom unit */
@@ -476,7 +482,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         merchant: string;
 
         /** The edited transaction amount */
-        modifiedAmount?: number;
+        modifiedAmount?: number | string;
 
         /** The edited attendees list */
         modifiedAttendees?: Attendee[];
@@ -525,6 +531,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the transaction was created globally */
         isFromGlobalCreate?: boolean;
+
+        /** Whether the transaction was created from the FAB, including Global create button, FloatingCameraButton, QuickAction,... */
+        isFromFloatingActionButton?: boolean;
 
         /** The transaction tax rate */
         taxRate?: string | undefined;
@@ -625,6 +634,12 @@ type AdditionalTransactionChanges = {
 
     /** Previous distance before changes */
     distance?: number;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
 };
 
 /** Model of transaction changes  */

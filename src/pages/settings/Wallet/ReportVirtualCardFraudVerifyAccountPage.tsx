@@ -1,11 +1,11 @@
-import React, {useCallback, useEffect} from 'react';
+import {filterOutPersonalCards} from '@selectors/Card';
+import React, {useEffect} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {clearCardListErrors, reportVirtualExpensifyCardFraud} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
-import {filterPersonalCards} from '@libs/CardUtils';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -23,7 +23,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
         params: {cardID = ''},
     },
 }: ReportVirtualCardFraudVerifyAccountPageProps) {
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: false});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: false});
     const virtualCard = cardList?.[cardID];
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -51,29 +51,26 @@ function ReportVirtualCardFraudVerifyAccountPage({
         }
     }, [formData?.isLoading, latestIssuedVirtualCardID, cardError, codeError, prevIsLoading]);
 
-    const handleValidateCodeEntered = useCallback(
-        (validateCode: string) => {
-            if (!virtualCard) {
-                return;
-            }
+    const handleValidateCodeEntered = (validateCode: string) => {
+        if (!virtualCard) {
+            return;
+        }
 
-            reportVirtualExpensifyCardFraud(virtualCard, validateCode);
-        },
-        [virtualCard],
-    );
+        reportVirtualExpensifyCardFraud(virtualCard, validateCode);
+    };
 
-    const handleClearError = useCallback(() => {
+    const handleClearError = () => {
         clearValidateCodeActionError(ONYXKEYS.VALIDATE_ACTION_CODE);
         if (!virtualCard?.cardID) {
             return;
         }
         clearCardListErrors(virtualCard.cardID);
-    }, [virtualCard?.cardID]);
+    };
 
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="reportVirtualCard"
             handleSubmitForm={handleValidateCodeEntered}

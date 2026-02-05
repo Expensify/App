@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -18,6 +19,9 @@ type ListHeaderProps<TItem extends ListItem> = {
     /** Whether multiple items can be selected */
     canSelectMultiple: boolean;
 
+    /** Styles for the list header wrapper */
+    headerStyle?: StyleProp<ViewStyle>;
+
     /** Function called when the select all button is pressed */
     onSelectAll: () => void;
 
@@ -33,6 +37,7 @@ function ListHeader<TItem extends ListItem>({
     customListHeader,
     canSelectMultiple,
     onSelectAll,
+    headerStyle,
     shouldShowSelectAllButton,
     shouldPreventDefaultFocusOnSelectRow,
 }: ListHeaderProps<TItem>) {
@@ -54,11 +59,12 @@ function ListHeader<TItem extends ListItem>({
 
     return (
         <View
-            style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, styles.selectionListStickyHeader]}
+            style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, headerStyle, styles.selectionListStickyHeader]}
             accessibilityRole="header"
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Checkbox
+                    testID="selection-list-select-all-checkbox"
                     accessibilityLabel={translate('workspace.people.selectAll')}
                     isChecked={dataDetails.allSelected}
                     isIndeterminate={dataDetails.someSelected}

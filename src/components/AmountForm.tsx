@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
+import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 type AmountFormProps = {
@@ -44,8 +45,17 @@ type AmountFormProps = {
     /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
 
+    /** Whether the input should be disabled */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
+
+    /** Reference to the number form for imperative updates */
+    numberFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
+
+    /** Callback when the user presses the submit key (Enter) */
+    onSubmitEditing?: () => void;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 /**
@@ -63,10 +73,13 @@ function AmountForm({
     label,
     decimals: decimalsProp,
     hideCurrencySymbol = false,
+    disabled = false,
     autoFocus,
     autoGrowExtraSpace,
     autoGrowMarginSide,
+    onSubmitEditing,
     ref,
+    numberFormRef,
 }: AmountFormProps) {
     const {preferredLocale} = useLocalize();
     const styles = useThemeStyles();
@@ -89,6 +102,7 @@ function AmountForm({
                     ref.current = newRef;
                 }
             }}
+            numberFormRef={numberFormRef}
             symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             isSymbolPressable={isCurrencyPressable}
@@ -101,9 +115,11 @@ function AmountForm({
             autoFocus={autoFocus}
             autoGrowExtraSpace={autoGrowExtraSpace}
             autoGrowMarginSide={autoGrowMarginSide}
+            onSubmitEditing={onSubmitEditing}
+            disabled={disabled}
         />
     );
 }
 
 export default AmountForm;
-export type {AmountFormProps};
+export type {AmountFormProps, NumberWithSymbolFormRef};

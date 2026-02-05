@@ -8,13 +8,11 @@ import {useRef} from 'react';
  */
 function useInitial<T>(value: T | undefined): T | undefined {
     const initialValueRef = useRef<T | undefined>(undefined);
-    /* eslint-disable react-compiler/react-compiler */
     if (initialValueRef.current === undefined && value !== undefined) {
         initialValueRef.current = value;
     }
 
     return initialValueRef.current;
-    /* eslint-enable react-compiler/react-compiler */
 }
 
 export default useInitial;

@@ -16,7 +16,7 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, 
             return;
         }
         labelRef.current.setAttribute('for', inputId);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animatedStyle = useAnimatedStyle(() => styles.textInputLabelTransformation(labelTranslateY, labelScale));
@@ -25,7 +25,6 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, 
         <Animated.Text
             numberOfLines={!isMultiline ? 1 : undefined}
             ellipsizeMode={!isMultiline ? 'tail' : undefined}
-            // eslint-disable-next-line react-compiler/react-compiler
             ref={textRef(labelRef)}
             role={CONST.ROLE.PRESENTATION}
             style={[styles.textInputLabelContainer, styles.textInputLabel, animatedStyle, styles.pointerEventsNone]}

@@ -3,8 +3,8 @@
  * This should be updated when the original implementation updates
  * Taken from: https://github.com/software-mansion/react-native-reanimated/blob/main/packages/react-native-reanimated/src/component/FlatList.tsx
  */
-// eslint-disable-next-line no-restricted-imports
-import React, {forwardRef, useRef} from 'react';
+import type {Ref} from 'react';
+import React, {useRef} from 'react';
 import type {FlatListProps, CellRendererProps as RNCellRendererProps} from 'react-native';
 import {FlatList} from 'react-native';
 import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
@@ -56,12 +56,13 @@ type AnimatedFlatListWithCellRendererProps<Item = any> = Omit<ReanimatedFlatList
     CellRendererComponent?: CellRendererComponentProps<Item>;
     onScroll?: FlatListProps<Item>['onScroll'];
     inverted?: boolean | null | undefined;
+    ref?: Ref<FlatList>;
 };
 
 // We need explicit any here, because this is the exact same type that is used in React Native types.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function FlatListForwardRefRender<Item = any>(props: AnimatedFlatListWithCellRendererProps<Item>, ref: React.ForwardedRef<FlatList>) {
-    const {itemLayoutAnimation, skipEnteringExitingAnimations, ...restProps} = props;
+function FlatListRender<Item = any>(props: AnimatedFlatListWithCellRendererProps<Item>) {
+    const {itemLayoutAnimation, skipEnteringExitingAnimations, ref, ...restProps} = props;
 
     // Set default scrollEventThrottle, because user expects
     // to have continuous scroll events and
@@ -69,7 +70,6 @@ function FlatListForwardRefRender<Item = any>(props: AnimatedFlatListWithCellRen
     // We set it to 1, so we have peace until
     // there are 960 fps screens.
     if (!('scrollEventThrottle' in restProps)) {
-        // eslint-disable-next-line react-compiler/react-compiler
         restProps.scrollEventThrottle = 1;
     }
 
@@ -106,14 +106,12 @@ function FlatListForwardRefRender<Item = any>(props: AnimatedFlatListWithCellRen
     );
 }
 
-const AnimatedFlatListWithCellRenderer = forwardRef(FlatListForwardRefRender) as <
+const AnimatedFlatListWithCellRenderer = FlatListRender as <
     // We need explicit any here, because this is the exact same type that is used in React Native types.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ItemT = any,
 >(
-    props: AnimatedFlatListWithCellRendererProps<ItemT> & {
-        ref?: React.ForwardedRef<FlatList>;
-    },
+    props: AnimatedFlatListWithCellRendererProps<ItemT>,
 ) => React.ReactElement;
 
 type ReanimatedFlatList<T> = typeof AnimatedFlatList & AnimatedFlatListComplement<T>;

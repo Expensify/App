@@ -1,9 +1,4 @@
-type SidePanelContent = 'help';
-
 type SidePanel = {
-    /** The content of the Side Panel */
-    content?: SidePanelContent;
-
     /** Whether the Side Panel is open on large screens */
     open: boolean;
 

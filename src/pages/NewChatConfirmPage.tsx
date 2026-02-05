@@ -123,7 +123,7 @@ function NewChatConfirmPage() {
         readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
 
         // we only need to run this when the component re-mounted and when the onyx is loaded completely
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newGroupDraftMetaData]);
 
     return (
@@ -135,7 +135,6 @@ function NewChatConfirmPage() {
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     source={stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         setAvatarFile(image);

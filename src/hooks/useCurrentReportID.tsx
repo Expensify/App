@@ -2,9 +2,12 @@ import type {NavigationState} from '@react-navigation/native';
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 
-type CurrentReportIDContextValue = {
-    updateCurrentReportID: (state: NavigationState) => void;
+type CurrentReportIDStateContextType = {
     currentReportID: string | undefined;
+};
+
+type CurrentReportIDActionsContextType = {
+    updateCurrentReportID: (state: NavigationState) => void;
 };
 
 type CurrentReportIDContextProviderProps = {
@@ -17,7 +20,13 @@ type CurrentReportIDContextProviderProps = {
     onSetCurrentReportID?: (reportID: string | undefined) => void;
 };
 
-const CurrentReportIDContext = createContext<CurrentReportIDContextValue | null>(null);
+const defaultCurrentReportIDActionsContext: CurrentReportIDActionsContextType = {
+    updateCurrentReportID: () => {},
+};
+
+const CurrentReportIDStateContext = createContext<CurrentReportIDStateContextType>({currentReportID: undefined});
+
+const CurrentReportIDActionsContext = createContext<CurrentReportIDActionsContextType>(defaultCurrentReportIDActionsContext);
 
 function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderProps) {
     const [currentReportID, setCurrentReportID] = useState<string | undefined>('');
@@ -51,29 +60,42 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
             props.onSetCurrentReportID?.(reportID);
             setCurrentReportID(reportID);
         },
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
         [setCurrentReportID, currentReportID],
     );
 
-    /**
-     * The context this component exposes to child components
-     * @returns currentReportID to share between central pane and LHN
-     */
-    const contextValue = useMemo(
-        (): CurrentReportIDContextValue => ({
+    const actionsContextValue = useMemo<CurrentReportIDActionsContextType>(
+        () => ({
             updateCurrentReportID,
-            currentReportID,
         }),
-        [updateCurrentReportID, currentReportID],
+        [updateCurrentReportID],
     );
 
-    return <CurrentReportIDContext.Provider value={contextValue}>{props.children}</CurrentReportIDContext.Provider>;
+    const stateContextValue = useMemo<CurrentReportIDStateContextType>(
+        () => ({
+            currentReportID,
+        }),
+        [currentReportID],
+    );
+
+    return (
+        <CurrentReportIDStateContext.Provider value={stateContextValue}>
+            <CurrentReportIDActionsContext.Provider value={actionsContextValue}>{props.children}</CurrentReportIDActionsContext.Provider>
+        </CurrentReportIDStateContext.Provider>
+    );
 }
 
-export default function useCurrentReportID(): CurrentReportIDContextValue | null {
-    return useContext(CurrentReportIDContext);
+function useCurrentReportIDState() {
+    return useContext(CurrentReportIDStateContext);
 }
 
-export {CurrentReportIDContextProvider};
+function useCurrentReportIDActions() {
+    return useContext(CurrentReportIDActionsContext);
+}
+
+export {CurrentReportIDContextProvider, useCurrentReportIDState, useCurrentReportIDActions};
+
+// Backward compatible type alias
+type CurrentReportIDContextValue = CurrentReportIDStateContextType & CurrentReportIDActionsContextType;
+
 export type {CurrentReportIDContextValue};

@@ -130,7 +130,7 @@ function WorkspaceInviteMessageComponent({
         // We only want to run this useEffect when the onyx values have loaded
         // We navigate back to the main members screen when the invitation has been sent
         // This is decided when onyx values have loaded and if `invitedEmailsToAccountIDsDraft` is empty
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
     const sendInvitation = () => {
@@ -138,7 +138,7 @@ function WorkspaceInviteMessageComponent({
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
-        addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, policyID, policyMemberAccountIDs, workspaceInviteRoleDraft, formatPhoneNumber);
+        addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, policy, policyMemberAccountIDs, workspaceInviteRoleDraft, formatPhoneNumber);
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 

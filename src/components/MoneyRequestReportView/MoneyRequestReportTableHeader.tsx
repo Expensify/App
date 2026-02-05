@@ -51,6 +51,18 @@ const columnConfig: ColumnConfig[] = [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
+        translationKey: 'common.reimbursable',
+        canBeMissing: true,
+        isColumnSortable: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
+        translationKey: 'common.billable',
+        canBeMissing: true,
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
         translationKey: undefined, // comments have no title displayed
         isColumnSortable: false,

@@ -1,5 +1,5 @@
 function getScriptURL(): string {
-    // No script URL on the native. Only available on web and desktop.
+    // No script URL on the native. Only available on web.
     return '';
 }
 

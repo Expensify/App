@@ -4,6 +4,7 @@ import type {TransactionListItemType} from '@components/SelectionListWithSection
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
+import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     getMoneyRequestSpendBreakdown,
@@ -16,7 +17,15 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {isTransactionPendingDelete} from './TransactionUtils';
+import {getReimbursable, isTransactionPendingDelete} from './TransactionUtils';
+
+function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
+    return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
+}
+
+function hasNonReimbursableTransactions(transactions: Transaction[]): boolean {
+    return transactions.some((transaction) => !getReimbursable(transaction));
+}
 
 /**
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
@@ -119,7 +128,11 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
     return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
-function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>) {
+function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>, isOffline = false) {
+    if (isOffline) {
+        return false;
+    }
+
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
     const isStillLoadingData = transactions?.length === 0 && ((!!reportMetadata?.isLoadingInitialReportActions && !reportMetadata.hasOnceLoadedReportActions) || report?.total !== 0);
@@ -176,4 +189,6 @@ export {
     isSingleTransactionReport,
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
+    isBillableEnabledOnPolicy,
+    hasNonReimbursableTransactions,
 };

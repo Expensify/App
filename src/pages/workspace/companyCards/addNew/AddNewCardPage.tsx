@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@navigation/Navigation';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -41,6 +42,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
 
@@ -133,7 +135,11 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }
 
     return (
-        <>
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+        >
             <View style={styles.flex1}>{CurrentStep}</View>
             <ConfirmModal
                 isVisible={isModalVisible}
@@ -145,10 +151,10 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat();
+                    navigateToConciergeChat(conciergeReportID, false);
                 }}
             />
-        </>
+        </AccessOrNotFoundWrapper>
     );
 }
 

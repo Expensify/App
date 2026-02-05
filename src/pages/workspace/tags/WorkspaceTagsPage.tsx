@@ -6,6 +6,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
@@ -14,10 +15,10 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import ListItemRightCaretWithLabel from '@components/SelectionListWithSections/ListItemRightCaretWithLabel';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import ListItemRightCaretWithLabel from '@components/SelectionListWithModal/ListItemRightCaretWithLabel';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -58,6 +59,7 @@ import {
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    hasIndependentTags as hasIndependentTagsPolicyUtils,
     isControlPolicy,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
@@ -103,8 +105,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const currentConnectionName = getCurrentConnectionName(policy);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
 
-    const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
-        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
+    const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
+        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
 
@@ -134,7 +136,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     useEffect(() => {
         fetchTags();
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -184,7 +185,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
             return newSelectedTags;
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tagsList]);
     const cleanupSelectedOption = useCallback(() => setSelectedTags([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
@@ -682,10 +683,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         currentConnectionName={currentConnectionName}
                         connectedIntegration={connectedIntegration}
                         translatedText={translate('workspace.tags.importedFromAccountingSoftware')}
+                        customTagName={policyTagLists.at(0)?.name ?? ''}
+                        shouldShow={!hasDependentTags && !hasIndependentTags}
                     />
                 ) : (
                     <Text style={[styles.textNormal, styles.colorMuted]}>
-                        {translate('workspace.tags.subtitle')}
+                        {!hasDependentTags && !hasIndependentTags && !!policyTagLists.at(0)?.name ? (
+                            <EmployeesSeeTagsAsText customTagName={policyTagLists.at(0)?.name ?? ''} />
+                        ) : (
+                            translate('workspace.tags.subtitle')
+                        )}
+
                         {hasDependentTags && (
                             <View style={[styles.renderHTML]}>
                                 <RenderHTML
@@ -714,9 +722,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const subtitleText = useMemo(() => {
         const emptyTagsSubtitle = hasAccountingConnections
-            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', {
-                  accountingPageURL: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`,
-              })
+            ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`)
             : translate('workspace.tags.emptyTags.subtitleHTML');
         return (
             <View style={[styles.renderHTML]}>
@@ -771,26 +777,26 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     )}
                     {hasVisibleTags && !isLoading && (
                         <SelectionListWithModal
-                            canSelectMultiple={canSelectMultiple}
-                            turnOnSelectionModeOnLongPress={!hasDependentTags}
-                            onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                            sections={[{data: filteredTagList, isDisabled: false}]}
-                            shouldUseDefaultRightHandSideCheckmark={false}
-                            selectedItems={selectedTags}
-                            isSelected={isTagSelected}
-                            onCheckboxPress={toggleTag}
-                            onSelectRow={navigateToTagSettings}
-                            shouldSingleExecuteRowSelect={!canSelectMultiple}
-                            onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
+                            data={filteredTagList}
                             ListItem={TableListItem}
+                            selectedItems={selectedTags}
+                            onSelectRow={navigateToTagSettings}
+                            canSelectMultiple={canSelectMultiple}
+                            onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                             customListHeader={filteredTagList.length > 0 ? getCustomListHeader() : undefined}
-                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                            listHeaderContent={headerContent}
-                            shouldShowListEmptyContent={false}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
+                            style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
+                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            onTurnOnSelectionMode={(item) => item && toggleTag(item)}
+                            turnOnSelectionModeOnLongPress={!hasDependentTags}
+                            shouldSingleExecuteRowSelect={!canSelectMultiple}
+                            shouldUseDefaultRightHandSideCheckmark={false}
+                            customListHeaderContent={headerContent}
+                            showListEmptyContent={false}
                             showScrollIndicator={false}
-                            addBottomSafeAreaPadding
+                            onCheckboxPress={toggleTag}
+                            isSelected={isTagSelected}
+                            shouldHeaderBeInsideList
                             shouldShowRightCaret
                         />
                     )}

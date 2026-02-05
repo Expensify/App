@@ -1,6 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -11,9 +11,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
+import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -21,13 +22,15 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy} from '@libs/actions/ReportLayout';
-import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -51,6 +54,7 @@ import {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     mergeProhibitedViolations,
+    shouldShowExpenseBreakdown,
     shouldShowViolation,
 } from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
@@ -63,7 +67,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
@@ -166,8 +170,9 @@ function MoneyRequestReportTransactionList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'CheckSquare', 'ReceiptPlus']);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
-    const {markReportIDAsExpense} = useContext(WideRHPContext);
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {markReportIDAsExpense} = useWideRHPActions();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
@@ -175,7 +180,7 @@ function MoneyRequestReportTransactionList({
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
-    const shouldShowBreakdown = !!nonReimbursableSpend && !!reimbursableSpend;
+    const shouldShowBreakdown = useMemo(() => shouldShowExpenseBreakdown(transactions), [transactions]);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -187,7 +192,7 @@ function MoneyRequestReportTransactionList({
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(expensifyIcons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [report?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
+        [report?.reportID, policy, lastDistanceExpenseType, expensifyIcons.Location],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -253,7 +258,6 @@ function MoneyRequestReportTransactionList({
     useEffect(() => {
         clearSelectedTransactions(true);
         // We don't want to run the effect on change of clearSelectedTransactions since it can cause an infinite loop.
-        // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportID]);
 
@@ -275,8 +279,18 @@ function MoneyRequestReportTransactionList({
 
     // Always use default columns for money request report view (don't use user-customized search columns)
     const columnsToShow = useMemo(() => {
-        return getColumnsToShow(currentUserDetails?.accountID, transactions, [], true);
-    }, [transactions, currentUserDetails?.accountID]);
+        return getColumnsToShow(
+            currentUserDetails?.accountID,
+            transactions,
+            [],
+            true,
+            undefined,
+            undefined,
+            isIOUReport(report),
+            isBillableEnabledOnPolicy(policy),
+            hasNonReimbursableTransactions(transactions),
+        );
+    }, [transactions, currentUserDetails?.accountID, report, policy]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
@@ -288,7 +302,7 @@ function MoneyRequestReportTransactionList({
             return groupTransactionsByTag(sortedTransactions, report, localeCompare);
         }
         return groupTransactionsByCategory(sortedTransactions, report, localeCompare);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sortedTransactions, currentGroupBy, report?.reportID, localeCompare, shouldShowGroupedTransactions]);
 
     const visualOrderTransactionIDs = useMemo(() => {
@@ -297,6 +311,18 @@ function MoneyRequestReportTransactionList({
         }
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldShowGroupedTransactions]);
+
+    const visualOrderTransactionIDsDeepCompare = useDeepCompareRef(visualOrderTransactionIDs);
+    useEffect(() => {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+            return;
+        }
+        setActiveTransactionIDs(visualOrderTransactionIDsDeepCompare ?? []);
+        return () => {
+            clearActiveTransactionIDs();
+        };
+    }, [visualOrderTransactionIDsDeepCompare]);
 
     const sortedTransactionsMap = useMemo(() => {
         const map = new Map<string, OnyxTypes.Transaction>();

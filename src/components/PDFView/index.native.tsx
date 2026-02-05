@@ -2,8 +2,8 @@ import React, {useCallback, useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
-import ActivityIndicator from '@components/ActivityIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -164,11 +164,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                     <PDF
                         fitPolicy={0}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => (
-                            <View style={loadingIndicatorStyles}>
-                                <ActivityIndicator size="large" />
-                            </View>
-                        )}
+                        renderActivityIndicator={() => <LoadingIndicator style={loadingIndicatorStyles} />}
                         source={{uri: sourceURL, cache: true, expiration: 864000}}
                         style={pdfStyles}
                         onError={handleFailureToLoadPDF}
