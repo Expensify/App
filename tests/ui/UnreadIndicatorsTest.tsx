@@ -742,6 +742,7 @@ describe('Unread Indicators', () => {
             activePolicyID: undefined,
             quickAction: undefined,
             recentWaypoints,
+            betas: [CONST.BETAS.ALL],
         });
         await waitForBatchedUpdates();
 
