@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -12,7 +13,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDraftValues} from '@libs/actions/FormActions';
+import {clearDraftValues, clearErrorFields} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -46,6 +47,12 @@ function ExpensifyCodePage() {
         clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM);
         setHasSubmitted(true);
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            clearErrorFields(ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM);
+        }, []),
+    );
 
     useEffect(() => {
         if (!hasSubmitted || !isExpensifyCodeApplied) {
