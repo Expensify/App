@@ -8230,6 +8230,7 @@ const CONST = {
             BACKDROP: 'ReanimatedModal-Backdrop',
         },
         NEW_CHAT: {
+            ADD_TO_GROUP: 'NewChatRHP-AddToGroup',
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
     },
