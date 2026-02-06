@@ -159,18 +159,22 @@ function BaseReportActionContextMenu({
     const {isProduction} = useEnvironment();
     const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
+    const [reportActionsForOriginalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canBeMissing: true,
         canEvict: false,
         selector: withDEWRoutedActionsObject,
     });
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        canBeMissing: true,
+        canEvict: false,
+    });
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
-        if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1' || !reportActionID) {
+        if (isEmptyObject(reportActionsForOriginalReport) || reportActionID === '0' || reportActionID === '-1' || !reportActionID) {
             return;
         }
-        return reportActions[reportActionID];
-    }, [reportActions, reportActionID]);
+        return reportActionsForOriginalReport[reportActionID];
+    }, [reportActionsForOriginalReport, reportActionID]);
     const transactionID = getLinkedTransactionID(reportAction);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
