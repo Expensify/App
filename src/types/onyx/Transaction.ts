@@ -125,6 +125,13 @@ type Comment = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** Both image fields are needed only locally because server receives only one merged image as receipt */
+    /** Odometer start image (File object on web, URI string on native) */
+    odometerStartImage?: File | string;
+
+    /** Odometer end image (File object on web, URI string on native) */
+    odometerEndImage?: File | string;
 };
 
 /** Model of transaction custom unit */
