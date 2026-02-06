@@ -5,9 +5,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import CardListItem from '@components/SelectionListWithSections/Search/CardListItem';
+import CardListItem from '@components/SelectionList/ListItem/CardListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -83,22 +82,22 @@ function SearchFiltersCardPage() {
         newSections.push({
             title: undefined,
             data: selectedItems.filter(searchFunction),
-            shouldShow: selectedItems.length > 0,
+            sectionIndex: 0,
         });
         newSections.push({
             title: translate('search.filters.card.cardFeeds'),
             data: cardFeedsSectionData.unselected.filter(searchFunction),
-            shouldShow: cardFeedsSectionData.unselected.length > 0,
+            sectionIndex: 1,
         });
         newSections.push({
             title: translate('search.filters.card.individualCards'),
             data: individualCardsSectionData.unselected.filter(searchFunction),
-            shouldShow: individualCardsSectionData.unselected.length > 0,
+            sectionIndex: 2,
         });
         newSections.push({
             title: translate('search.filters.card.closedCards'),
             data: closedCardsSectionData.unselected.filter(searchFunction),
-            shouldShow: closedCardsSectionData.unselected.length > 0,
+            sectionIndex: 3,
         });
         return newSections;
     }, [
@@ -161,6 +160,13 @@ function SearchFiltersCardPage() {
         [resetChanges, handleConfirmSelection],
     );
 
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('common.search'),
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
+
     return (
         <ScreenWrapper
             testID="SearchFiltersCardPage"
@@ -177,24 +183,18 @@ function SearchFiltersCardPage() {
                         }}
                     />
                     <View style={[styles.flex1]}>
-                        <SelectionList<CardFilterItem>
+                        <SelectionListWithSections<CardFilterItem>
                             sections={sections}
+                            ListItem={CardListItem}
                             onSelectRow={updateNewCards}
                             footerContent={footerContent}
-                            headerMessage={headerMessage}
+                            shouldPreventDefaultFocusOnSelectRow={false}
+                            shouldShowTextInput={shouldShowSearchInput}
+                            textInputOptions={textInputOptions}
+                            showLoadingPlaceholder={isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata) || !didScreenTransitionEnd}
                             shouldStopPropagation
                             shouldShowTooltips
                             canSelectMultiple
-                            shouldPreventDefaultFocusOnSelectRow={false}
-                            shouldKeepFocusedItemAtTopOfViewableArea={false}
-                            ListItem={CardListItem}
-                            shouldShowTextInput={shouldShowSearchInput}
-                            textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
-                            textInputValue={searchTerm}
-                            onChangeText={(value) => {
-                                setSearchTerm(value);
-                            }}
-                            showLoadingPlaceholder={isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata) || !didScreenTransitionEnd}
                         />
                     </View>
                 </>
