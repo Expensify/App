@@ -180,6 +180,16 @@ describe('canEditMultipleTransactions', () => {
         expect(result).toBe(false);
     });
 
+    it('returns false when any selected transaction belongs to a reimbursed report', () => {
+        const {transaction1, transaction2, reports, policies, reportActions, report2} = buildTestData();
+
+        report2.statusNum = CONST.REPORT.STATUS_NUM.REIMBURSED;
+
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies);
+
+        expect(result).toBe(false);
+    });
+
     it('returns true when all selected transactions have an editable field', () => {
         const {transaction1, transaction2, reports, policies, reportActions} = buildTestData();
 

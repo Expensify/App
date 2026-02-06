@@ -4755,7 +4755,7 @@ function canEditMultipleTransactions(
 
         const isApproved = isReportApproved({report});
 
-        if (isApproved) {
+        if (isApproved || isSettled(report)) {
             return false;
         }
 
