@@ -385,7 +385,11 @@ function MoneyRequestConfirmationListFooter({
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
     const shouldShowReimbursable =
-        (isPolicyExpenseChat || isTrackExpense) && !!policy && policy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction) && !isTypeInvoice;
+        (isPolicyExpenseChat || isTrackExpense || isUnreported) &&
+        !!allPolicies &&
+        allPolicies[0]?.disabledFields?.reimbursable !== true &&
+        !isManagedCardTransaction(transaction) &&
+        !isTypeInvoice;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const taxAmount = getTaxAmount(transaction, false);
     const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
