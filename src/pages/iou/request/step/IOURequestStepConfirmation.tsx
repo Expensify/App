@@ -836,6 +836,7 @@ function IOURequestStepConfirmation({
             activePolicyID,
             quickAction,
             recentWaypoints,
+            betas,
         ],
     );
 
