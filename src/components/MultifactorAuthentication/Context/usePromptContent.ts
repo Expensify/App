@@ -50,7 +50,7 @@ function usePromptContent(promptType: MultifactorAuthenticationPromptType): Prom
     // page. Since there is no legitimate case for the prompt page to transition from authentication =>
     // registration during a single flow, only the other way around, this ref prevents that from happening.
     // Functionally, it acts as a latch for isReturningUser, so that once it becomes true, it'll never become
-    // false for the duration of the flow.
+    // false until we navigate to a different page
     const wasPreviouslyRegisteredRef = useRef(false);
 
     const contentData = MULTIFACTOR_AUTHENTICATION_PROMPT_UI[promptType];
