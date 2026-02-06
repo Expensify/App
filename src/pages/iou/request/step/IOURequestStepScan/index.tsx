@@ -32,7 +32,9 @@ import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransaction
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
@@ -98,6 +100,7 @@ function IOURequestStepScan({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const isArchived = isArchivedReport(reportNameValuePairs);
     const policy = usePolicy(report?.policyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
@@ -128,6 +131,8 @@ function IOURequestStepScan({
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
+
+    const selfDMReport = useSelfDMReport();
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -341,40 +346,45 @@ function IOURequestStepScan({
                 files,
                 isTestTransaction,
                 locationPermissionGranted,
+                selfDMReport,
+                policyForMovingExpenses,
                 isSelfTourViewed,
                 betas,
             });
         },
         [
-            backTo,
-            backToReport,
-            shouldGenerateTransactionThreadReport,
-            transactions,
-            initialTransaction?.isFromGlobalCreate,
-            initialTransaction?.currency,
-            initialTransaction?.participants,
-            initialTransaction?.reportID,
-            isArchived,
             iouType,
-            defaultExpensePolicy,
+            policy,
             report,
-            initialTransactionID,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails?.login,
-            shouldSkipConfirmation,
-            personalDetails,
-            reportAttributesDerived,
             reportID,
+            reportAttributesDerived,
+            transactions,
+            initialTransactionID,
+            initialTransaction?.reportID,
+            initialTransaction?.currency,
+            initialTransaction?.isFromGlobalCreate,
+            initialTransaction?.participants,
             transactionTaxCode,
             transactionTaxAmount,
-            quickAction,
-            policyRecentlyUsedCurrencies,
-            policy,
+            personalDetails,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            backTo,
+            backToReport,
+            shouldSkipConfirmation,
+            defaultExpensePolicy,
+            shouldGenerateTransactionThreadReport,
+            isArchived,
             personalPolicy?.autoReporting,
+            selfDMReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
+            policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
+            reportNameValuePairs?.private_isArchived,
+            policyForMovingExpenses,
             isSelfTourViewed,
             betas,
         ],
@@ -693,6 +703,7 @@ function IOURequestStepScan({
                                     accessibilityLabel={translate('receipt.flash')}
                                     disabled={!isTorchAvailable}
                                     onPress={toggleFlashlight}
+                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                                 >
                                     <Icon
                                         height={16}
@@ -726,6 +737,7 @@ function IOURequestStepScan({
                                     onPicked: (data) => validateFiles(data),
                                 });
                             }}
+                            sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                         >
                             <Icon
                                 height={32}
@@ -741,6 +753,7 @@ function IOURequestStepScan({
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
                 >
                     <Icon
                         src={lazyIllustrations.Shutter}
@@ -755,6 +768,7 @@ function IOURequestStepScan({
                         accessibilityLabel={translate('receipt.multiScan')}
                         style={styles.alignItemsEnd}
                         onPress={toggleMultiScan}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                     >
                         <Icon
                             height={32}
@@ -770,6 +784,7 @@ function IOURequestStepScan({
                         style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                         onPress={toggleFlashlight}
                         disabled={!isTorchAvailable}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                     >
                         <Icon
                             height={32}

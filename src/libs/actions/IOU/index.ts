@@ -44,6 +44,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {
@@ -239,7 +240,7 @@ import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from
 import {removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
-import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
+import type {IOUAction, IOUActionParams, IOUType, OdometerImageType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1127,9 +1128,16 @@ function handleNavigateAfterExpenseCreate({
         return;
     }
     const queryString = buildCannedSearchQuery({type});
-    Navigation.dismissModal();
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+    Navigation.isNavigationReady().then(() => {
+        if (getIsNarrowLayout()) {
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+        } else {
+            Navigation.dismissModal();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+            });
+        }
     });
 }
 
@@ -1258,6 +1266,8 @@ function initMoneyRequest({
         if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
             comment.odometerStart = undefined;
             comment.odometerEnd = undefined;
+            comment.odometerStartImage = undefined;
+            comment.odometerEndImage = undefined;
         }
     }
 
@@ -1691,6 +1701,38 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
         comment: {
             odometerStart: startReading,
             odometerEnd: endReading,
+        },
+    });
+}
+
+/**
+ * Set odometer image for a transaction
+ * @param transactionID - The transaction ID
+ * @param imageType - 'start' or 'end'
+ * @param file - The image file (File object on web, URI string on native)
+ * @param isDraft - Whether this is a draft transaction
+ */
+function setMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: File | string, isDraft: boolean) {
+    const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            [imageKey]: file,
+        },
+    });
+}
+
+/**
+ * Remove odometer image from a transaction
+ * @param transactionID - The transaction ID
+ * @param imageType - 'start' or 'end'
+ * @param file - The image file (File object on web, URI string on native)
+ * @param isDraft - Whether this is a draft transaction
+ */
+function removeMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: File | string, isDraft: boolean) {
+    const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            [imageKey]: null,
         },
     });
 }
@@ -13558,6 +13600,8 @@ export {
     setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
     setMoneyRequestOdometerReading,
+    setMoneyRequestOdometerImage,
+    removeMoneyRequestOdometerImage,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
