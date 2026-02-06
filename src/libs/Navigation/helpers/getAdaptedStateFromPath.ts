@@ -92,33 +92,35 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     }
 
     // Handle dynamic routes: find the appropriate full screen route
-    const dynamicRouteSuffix = getLastSuffixFromPath(route.path);
-    if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
-        // Remove dynamic suffix to get the base path
-        const pathWithoutDynamicSuffix = route.path?.replace(`/${dynamicRouteSuffix}`, '');
+    if (route.path) {
+        const dynamicRouteSuffix = getLastSuffixFromPath(route.path);
+        if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
+            // Remove dynamic suffix to get the base path
+            const pathWithoutDynamicSuffix = route.path?.replace(`/${dynamicRouteSuffix}`, '');
 
-        // Get navigation state for the base path without dynamic suffix
-        const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
-        const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
+            // Get navigation state for the base path without dynamic suffix
+            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
+            const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
-        if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
-            return undefined;
+            if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
+                return undefined;
+            }
+
+            const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
+
+            if (isLastRouteFullScreen) {
+                return lastRoute;
+            }
+
+            const focusedStateForDynamicRoute = findFocusedRoute(stateUnderDynamicRoute);
+
+            if (!focusedStateForDynamicRoute) {
+                return undefined;
+            }
+
+            // Recursively find the matching full screen route for the focused dynamic route
+            return getMatchingFullScreenRoute(focusedStateForDynamicRoute);
         }
-
-        const isLastRouteFullScreen = isFullScreenName(lastRoute.name);
-
-        if (isLastRouteFullScreen) {
-            return lastRoute;
-        }
-
-        const focusedStateForDynamicRoute = findFocusedRoute(stateUnderDynamicRoute);
-
-        if (!focusedStateForDynamicRoute) {
-            return undefined;
-        }
-
-        // Recursively find the matching full screen route for the focused dynamic route
-        return getMatchingFullScreenRoute(focusedStateForDynamicRoute);
     }
 
     const routeNameForLookup = getSearchScreenNameForRoute(route);
