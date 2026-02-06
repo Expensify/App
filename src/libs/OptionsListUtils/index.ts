@@ -913,7 +913,7 @@ function createOption(
         // Display properties needed for UI rendering
         icons: undefined, // Set below - needed for avatars
         subtitle: undefined, // Set below - needed for display
-        keyForList: undefined, // Set below - needed for React keys
+        keyForList: '', // Set below - needed for React keys
 
         // Legacy property kept for backwards compatibility
         selected: isSelected ?? selected ?? false, // Duplicate of isSelected for backwards compatibility
@@ -2279,6 +2279,9 @@ function getValidOptions(
                 searchText += report.subtitle ?? '';
             } else if (report.isPolicyExpenseChat) {
                 searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
+            } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
+                const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
+                searchText += participantsSearchText;
             }
             searchText = deburr(searchText.toLocaleLowerCase());
             return searchTerms.every((term) => searchText.includes(term));

@@ -188,6 +188,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistanceManual').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistanceGPS').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistanceOdometer').default,
+    [SCREENS.MONEY_REQUEST.ODOMETER_IMAGE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepOdometerImage').default,
     [SCREENS.SET_DEFAULT_WORKSPACE]: () => require<ReactComponentModule>('../../../../pages/SetDefaultWorkspacePage').default,
     [SCREENS.MONEY_REQUEST.STEP_TIME_RATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTimeRate').default,
     [SCREENS.MONEY_REQUEST.STEP_HOURS]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepHours').default,
