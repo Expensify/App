@@ -1,5 +1,6 @@
 import React from 'react';
 import AttachmentView from '@components/Attachments/AttachmentView';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
@@ -25,10 +26,12 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
 };
 
 function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut, isDeleted}: BaseAnchorForAttachmentsOnlyProps) {
-    const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    const sourceURLWithAuth = addEncryptedAuthTokenToURL(source, encryptedAuthToken);
     const {translate} = useLocalize();
 
     const {isOffline} = useNetwork();
