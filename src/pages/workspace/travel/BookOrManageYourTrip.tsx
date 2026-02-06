@@ -4,7 +4,6 @@ import Section from '@components/Section';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import CONST from '@src/CONST';
