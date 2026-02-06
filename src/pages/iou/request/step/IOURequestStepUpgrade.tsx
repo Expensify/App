@@ -96,7 +96,7 @@ function IOURequestStepUpgrade({
                 }
                 setTransactionReport(transactionID, {reportID: expenseReportID}, true);
                 // Let the confirmation step decide the distance rate because policy data is not fully available at this step
-                setCustomUnitRateID(transactionID, '-1');
+                setCustomUnitRateID(transactionID, '-1', undefined, undefined);
                 Navigation.setParams({reportID: expenseReportID});
 
                 navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, expenseReportID));

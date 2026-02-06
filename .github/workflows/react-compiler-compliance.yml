@@ -14,7 +14,7 @@ jobs:
   react-compiler-compliance:
     name: React Compiler Compliance
     if: ${{ github.actor != 'OSBotify' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
 
     steps:
       # v4

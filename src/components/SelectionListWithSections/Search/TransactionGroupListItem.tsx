@@ -20,10 +20,12 @@ import type {
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionTagGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
+    TransactionYearGroupListItemType,
 } from '@components/SelectionListWithSections/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -49,11 +51,13 @@ import CategoryListItemHeader from './CategoryListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
+import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
+import YearListItemHeader from './YearListItemHeader';
 
 function TransactionGroupListItem<TItem extends ListItem>({
     item,
@@ -108,8 +112,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [isActionLoadingSet = CONST.EMPTY_SET] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -127,6 +133,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
             formatPhoneNumber,
             bankAccountList,
             isActionLoadingSet,
+            allReportMetadata,
+            cardFeeds,
         }) as [TransactionListItemType[], number];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
@@ -143,6 +151,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
         currentUserDetails.accountID,
         isActionLoadingSet,
         bankAccountList,
+        allReportMetadata,
+        cardFeeds,
     ]);
 
     const selectedItemsLength = useMemo(() => {
@@ -155,16 +165,20 @@ function TransactionGroupListItem<TItem extends ListItem>({
         return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [transactions]);
 
-    const isSelectAllChecked = selectedItemsLength === transactions.length && transactions.length > 0;
+    const isEmpty = transactions.length === 0;
+
+    const isEmptyReportSelected = isEmpty && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 
-    const isEmpty = transactions.length === 0;
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
+    // Search transactions - handles both refresh (offset 0) and pagination (current offset + pageSize)
     const searchTransactions = useCallback(
-        (pageSize = 0) => {
+        (pageSize = 0, isRefresh = false) => {
             if (!groupItem.transactionsQueryJSON) {
                 return;
             }
@@ -172,7 +186,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             search({
                 queryJSON: groupItem.transactionsQueryJSON,
                 searchKey: undefined,
-                offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
+                offset: isRefresh ? 0 : (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
                 isLoading: !!transactionsSnapshot?.search?.isLoading,
             });
@@ -198,15 +212,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!newTransactionID || !isExpanded) {
             return;
         }
-        searchTransactions();
+        searchTransactions(0, true);
     }, [newTransactionID, isExpanded, searchTransactions]);
 
     const handleToggle = useCallback(() => {
-        setIsExpanded(!isExpanded);
-        if (isExpanded) {
-            setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
-        }
-    }, [isExpanded]);
+        setIsExpanded((prev) => {
+            const newExpandedState = !prev;
+
+            if (newExpandedState) {
+                // Refresh transactions when expanding
+                searchTransactions(0, true);
+            } else {
+                setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
+            }
+
+            return newExpandedState;
+        });
+    }, [searchTransactions]);
 
     const onPress = useCallback(() => {
         if (isExpenseReportType || transactions.length === 0) {
@@ -218,11 +240,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     }, [isExpenseReportType, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle]);
 
     const onLongPress = useCallback(() => {
-        if (isEmpty) {
-            return;
-        }
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
-    }, [isEmpty, isExpenseReportType, item, onLongPressRow, transactions]);
+    }, [isExpenseReportType, item, onLongPressRow, transactions]);
 
     const onExpandedRowLongPress = useCallback(
         (transaction: TransactionListItemType) => {
@@ -241,11 +260,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const onExpandIconPress = useCallback(() => {
         if (isEmpty && !shouldDisplayEmptyView) {
             onPress();
-        } else if (groupItem.transactionsQueryJSON && !isExpanded) {
-            searchTransactions();
         }
         handleToggle();
-    }, [isEmpty, shouldDisplayEmptyView, groupItem.transactionsQueryJSON, isExpanded, handleToggle, onPress, searchTransactions]);
+    }, [isEmpty, shouldDisplayEmptyView, handleToggle, onPress]);
 
     const getHeader = useCallback(
         (hovered: boolean) => {
@@ -355,6 +372,32 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         isExpanded={isExpanded}
                     />
                 ),
+                [CONST.SEARCH.GROUP_BY.YEAR]: (
+                    <YearListItemHeader
+                        year={groupItem as TransactionYearGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                ),
+                [CONST.SEARCH.GROUP_BY.QUARTER]: (
+                    <QuarterListItemHeader
+                        quarter={groupItem as TransactionQuarterGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                ),
             };
 
             if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -363,7 +406,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         report={groupItem as TransactionReportGroupListItemType}
                         onSelectRow={(listItem) => onSelectRow(listItem, transactionPreviewData)}
                         onCheckboxPress={onCheckboxPress}
-                        isDisabled={isDisabledOrEmpty}
+                        isDisabled={isDisabled}
                         isFocused={isFocused}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
@@ -391,13 +434,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
             canSelectMultiple,
             isSelectAllChecked,
             isIndeterminate,
-            onDEWModalOpen,
-            isDEWBetaEnabled,
-            groupBy,
-            isExpanded,
             onExpandIconPress,
+            isExpanded,
             isFocused,
             searchType,
+            groupBy,
+            isDisabled,
+            onDEWModalOpen,
+            isDEWBetaEnabled,
             onSelectRow,
             transactionPreviewData,
         ],
@@ -467,6 +511,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 onLongPress={onLongPress}
                 onPress={onPress}
                 disabled={isDisabled && !isItemSelected}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested

@@ -19,7 +19,7 @@ import {
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type * as OnyxTypes from '@src/types/onyx';
-import {localeCompare} from '../../utils/TestHelper';
+import {localeCompare, translateLocal} from '../../utils/TestHelper';
 
 const personalDetailsFakeData = {
     'johndoe@example.com': {
@@ -100,7 +100,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:bar from:12345`);
+            expect(result).toEqual(`${defaultQuery} view:bar groupBy:category from:12345`);
         });
 
         test('returns query with view:line', () => {
@@ -108,7 +108,8 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:line category:travel`);
+            // LINE view defaults to sortOrder:asc (chronological) and groupBy:month
+            expect(result).toEqual('type:expense sortBy:date sortOrder:asc view:line groupBy:month category:travel');
         });
 
         test('returns query with view:pie', () => {
@@ -116,7 +117,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:pie merchant:Amazon`);
+            expect(result).toEqual(`${defaultQuery} view:pie groupBy:category merchant:Amazon`);
         });
 
         test('deduplicates conflicting type filters keeping the last occurrence', () => {
@@ -326,6 +327,81 @@ describe('SearchQueryUtils', () => {
 
                 expect(result).not.toContain('limit:');
             });
+
+            test('omits limit when form value is empty string (user cleared the field)', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    limit: '',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+
+                expect(result).not.toContain('limit:');
+            });
+        });
+
+        describe('view parameter', () => {
+            test('with view parameter set to bar', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                    view: CONST.SEARCH.VIEW.BAR,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense groupBy:category view:bar');
+            });
+
+            test('with view parameter set to table', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                    view: CONST.SEARCH.VIEW.TABLE,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense groupBy:category view:table');
+            });
+
+            test('without view parameter omits view from query', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('view:');
+            });
+
+            test('view is omitted from query when groupBy is not set', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    view: CONST.SEARCH.VIEW.BAR,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('view:');
+                expect(result).not.toContain('groupBy:');
+            });
+
+            test('view is omitted when groupBy is cleared but view remains in form', () => {
+                // This simulates the case where groupBy was set (with view), then groupBy was reset
+                // but view wasn't explicitly cleared from the form
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    groupBy: undefined,
+                    view: CONST.SEARCH.VIEW.BAR,
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                expect(result).not.toContain('view:');
+                expect(result).toEqual('sortBy:date sortOrder:desc type:expense');
+            });
         });
     });
 
@@ -351,7 +427,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('type:expense date:this-month group-by:from tag:travel');
         });
@@ -370,7 +457,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('type:expense status:all merchant:Uber');
         });
@@ -394,7 +492,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, policies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toBe('workspace:"Team Space" type:expense merchant:Starbucks');
         });
@@ -421,7 +530,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toContain('limit:25');
         });
@@ -433,7 +553,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).not.toContain('limit:');
         });
@@ -445,7 +576,18 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildUserReadableQueryString(queryJSON, undefined, emptyReports, emptyTaxRates, emptyCardList, emptyCardFeeds, emptyPolicies, currentUserAccountID);
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
 
             expect(result).toContain('limit:50');
             expect(result).toContain('group-by:category');
@@ -559,6 +701,94 @@ describe('SearchQueryUtils', () => {
                 amountLessThan: '-12345',
                 amountGreaterThan: '-67890',
                 amountEqualTo: '-54321',
+            });
+        });
+
+        test('attendee filter preserves name-only attendees without filtering by personalDetails', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {
+                12345: {accountID: 12345, login: 'user@example.com'},
+            };
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            // Test with mix of accountID and name-only attendee
+            const queryString = 'sortBy:date sortOrder:desc type:expense attendee:12345,ZZ';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            // Both values should be preserved - name-only attendees should not be filtered out
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                attendee: ['12345', 'ZZ'],
+            });
+        });
+
+        describe('view parameter', () => {
+            const emptyParams = {
+                policyCategories: {},
+                policyTags: {},
+                currencyList: {},
+                personalDetails: {},
+                cardList: {},
+                reports: {},
+                taxRates: {},
+            };
+
+            test('sets view in form when groupBy is also set', () => {
+                const queryString = 'type:expense groupBy:category view:bar';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(
+                    queryJSON,
+                    emptyParams.policyCategories,
+                    emptyParams.policyTags,
+                    emptyParams.currencyList,
+                    emptyParams.personalDetails,
+                    emptyParams.cardList,
+                    emptyParams.reports,
+                    emptyParams.taxRates,
+                );
+
+                expect(result.groupBy).toEqual(CONST.SEARCH.GROUP_BY.CATEGORY);
+                expect(result.view).toEqual(CONST.SEARCH.VIEW.BAR);
+            });
+
+            test('defaults groupBy to category when chart view is specified without groupBy', () => {
+                const queryString = 'type:expense view:bar';
+                const queryJSON = buildSearchQueryJSON(queryString);
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                const result = buildFilterFormValuesFromQuery(
+                    queryJSON,
+                    emptyParams.policyCategories,
+                    emptyParams.policyTags,
+                    emptyParams.currencyList,
+                    emptyParams.personalDetails,
+                    emptyParams.cardList,
+                    emptyParams.reports,
+                    emptyParams.taxRates,
+                );
+
+                // When a chart view is specified without groupBy, groupBy defaults to category
+                expect(result.groupBy).toEqual(CONST.SEARCH.GROUP_BY.CATEGORY);
+                expect(result.view).toEqual(CONST.SEARCH.VIEW.BAR);
             });
         });
     });
@@ -818,6 +1048,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('+15551234567');
@@ -842,6 +1073,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('Jane Doe');
@@ -865,6 +1097,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe(CONST.SEARCH.ME);
@@ -882,6 +1115,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('88888');
@@ -905,6 +1139,7 @@ describe('SearchQueryUtils', () => {
                 mockCardFeeds,
                 mockPolicies,
                 currentUserAccountID,
+                translateLocal,
             );
 
             expect(result).toBe('Custom Name');
@@ -920,7 +1155,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, '66666', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
+            const result = getFilterDisplayValue(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                '66666',
+                personalDetails,
+                mockReports,
+                mockCardList,
+                mockCardFeeds,
+                mockPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
 
             expect(result).toBe('+15551112222');
             expect(result).not.toContain('@expensify.sms');
@@ -943,7 +1188,7 @@ describe('SearchQueryUtils', () => {
             ];
 
             for (const filterKey of filterKeys) {
-                const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
+                const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID, translateLocal);
 
                 expect(result).toBe('+15553334444');
                 expect(result).not.toContain('@expensify.sms');

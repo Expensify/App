@@ -19,6 +19,7 @@ import {deletePolicyCodingRule, setPolicyCodingRule} from '@libs/actions/Policy/
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -41,6 +42,7 @@ type SectionItemType = {
     required?: boolean;
     title?: string;
     onPress: () => void;
+    shouldRenderAsHTML?: boolean;
 };
 
 type SectionType = {
@@ -103,6 +105,8 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
         // Convert the operator to matchType for the form
         // 'eq' = exact match, 'contains' = contains match
         const matchType = existingRule.filters?.operator;
+        // Convert HTML comment back to markdown for editing
+        const commentMarkdown = existingRule.comment ? Parser.htmlToMarkdown(existingRule.comment) : undefined;
         setDraftMerchantRule({
             merchantToMatch: existingRule.filters?.right,
             matchType,
@@ -110,7 +114,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             category: existingRule.category,
             tag: existingRule.tag,
             tax: existingRule.tax?.field_id_TAX?.externalID,
-            comment: existingRule.comment,
+            comment: commentMarkdown,
             reimbursable: existingRule.reimbursable,
             billable: existingRule.billable,
         });
@@ -290,8 +294,9 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                     : undefined,
                 {
                     descriptionTranslationKey: 'common.description',
-                    title: form?.comment,
+                    title: form?.comment ? Parser.replace(form.comment) : undefined,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID, ruleID)),
+                    shouldRenderAsHTML: true,
                 },
                 {
                     descriptionTranslationKey: 'common.reimbursable',
@@ -308,6 +313,15 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             ],
         },
     ];
+
+    const previewMatches = () => {
+        if (!form?.merchantToMatch?.trim()) {
+            setShouldShowError(true);
+            return;
+        }
+
+        Navigation.navigate(ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID, ruleID));
+    };
 
     if (ruleID && !existingRule && !isDeleting) {
         return <NotFoundPage />;
@@ -341,6 +355,7 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                         shouldShowRightIcon
                                         title={item.title}
                                         titleStyle={styles.flex1}
+                                        shouldRenderAsHTML={item.shouldRenderAsHTML}
                                     />
                                 ))}
                         </View>
@@ -364,6 +379,12 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                                     onToggle={setShouldUpdateMatchingTransactions}
                                 />
                             </View>
+                            <Button
+                                text={translate('workspace.rules.merchantRules.previewMatches')}
+                                onPress={previewMatches}
+                                style={[styles.mb4]}
+                                large
+                            />
                             {isEditing && (
                                 <Button
                                     text={translate('workspace.rules.merchantRules.deleteRule')}
