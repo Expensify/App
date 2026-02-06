@@ -8262,7 +8262,7 @@ const CONST = {
         },
         ONBOARDING: {
             INTERESTED_FEATURES_ITEM: 'Onboarding-InterestedFeaturesItem',
-        }
+        },
     },
 
     DOMAIN: {
