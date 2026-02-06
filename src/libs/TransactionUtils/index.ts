@@ -871,10 +871,6 @@ function getUpdatedTransaction({
         updatedTransaction.modifiedCurrency = updatedCurrency;
     }
 
-    if (Object.hasOwn(transactionChanges, 'reportID')) {
-        updatedTransaction.reportID = transactionChanges.reportID;
-    }
-
     if (Object.hasOwn(transactionChanges, 'odometerStart') && typeof transactionChanges.odometerStart === 'number') {
         lodashSet(updatedTransaction, 'comment.odometerStart', transactionChanges.odometerStart);
     }
