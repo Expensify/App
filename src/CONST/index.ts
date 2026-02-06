@@ -8270,6 +8270,7 @@ const CONST = {
         },
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
+            DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
         },
     },
 

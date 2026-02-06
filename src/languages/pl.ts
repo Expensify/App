@@ -5533,6 +5533,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             reimbursementAccount: 'konto zwrotów',
             welcomeNote: 'Proszę, zacznij używać mojego nowego obszaru roboczego',
             delayedSubmission: 'opóźnione przesłanie',
+            merchantRules: 'Zasady sprzedawcy',
+            merchantRulesCount: ({count}: {count: number}) => `${count} ${count === 1 ? 'zasada sprzedawcy' : 'zasady sprzedawcy'}`,
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Za chwilę utworzysz i udostępnisz ${newWorkspaceName ?? ''} ${totalMembers ?? 0} członkom oryginalnego obszaru roboczego.`,
             error: 'Wystąpił błąd podczas duplikowania Twojego nowego obszaru roboczego. Spróbuj ponownie.',

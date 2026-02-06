@@ -43,6 +43,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const taxesLength = Object.keys(policy?.taxRates?.taxes ?? {}).length ?? 0;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const categoriesCount = Object.keys(policyCategories ?? {}).length;
+    const codingRulesCount = Object.keys(policy?.rules?.codingRules ?? {}).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const reportFields = Object.keys(getReportFieldsByPolicyID(policyID)).length ?? 0;
     const customUnits = getPerDiemCustomUnit(policy);
@@ -142,6 +143,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                           : undefined,
                   }
                 : undefined,
+            codingRulesCount > 0 && !isCollect
+                ? {
+                      translation: translate('workspace.duplicateWorkspace.merchantRules'),
+                      value: 'codingRules',
+                      alternateText: translate('workspace.duplicateWorkspace.merchantRulesCount', {count: codingRulesCount}),
+                  }
+                : undefined,
             ratesCount > 0 && policy?.areDistanceRatesEnabled
                 ? {
                       translation: translate('workspace.common.distanceRates'),
@@ -188,6 +196,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         allRates,
         bankAccountList,
         invoiceCompany,
+        codingRulesCount,
     ]);
 
     const featuresToCopy: ListItem[] = useMemo(() => {
@@ -235,6 +244,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 exportLayouts: selectedItems.includes('workflows'),
                 overview: selectedItems.includes('overview'),
                 travel: selectedItems.includes('travel'),
+                codingRules: selectedItems.includes('codingRules'),
             },
             file: duplicatedWorkspaceAvatar,
             localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? '',
@@ -360,6 +370,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                             accessibilityLabel={translate('workspace.common.selectAll')}
                             role="button"
                             accessibilityState={{checked: isSelectAllChecked}}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DUPLICATE_SELECT_FEATURES_SELECT_ALL}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textLabelSupporting, styles.ph3]}>{translate('workspace.common.selectAll')}</Text>

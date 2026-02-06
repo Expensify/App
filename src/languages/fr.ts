@@ -5582,6 +5582,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reimbursementAccount: 'compte de remboursement',
             welcomeNote: 'Veuillez commencer à utiliser mon nouvel espace de travail',
             delayedSubmission: 'soumission retardée',
+            merchantRules: 'Règles de commerçant',
+            merchantRulesCount: ({count}: {count: number}) => `${count} ${count === 1 ? 'règle de commerçant' : 'règles de commerçant'}`,
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
             error: 'Une erreur s’est produite lors de la duplication de votre nouvel espace de travail. Veuillez réessayer.',

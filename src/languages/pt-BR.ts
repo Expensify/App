@@ -5537,6 +5537,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             reimbursementAccount: 'conta de reembolso',
             welcomeNote: 'Comece a usar meu novo espaço de trabalho',
             delayedSubmission: 'envio atrasado',
+            merchantRules: 'Regras do comerciante',
+            merchantRulesCount: ({count}: {count: number}) => `${count} ${count === 1 ? 'regra do comerciante' : 'regras do comerciante'}`,
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Você está prestes to criar e compartilhar ${newWorkspaceName ?? ''} com ${totalMembers ?? 0} membros do workspace original.`,
             error: 'Ocorreu um erro ao duplicar seu novo espaço de trabalho. Tente novamente.',

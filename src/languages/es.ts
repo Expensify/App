@@ -5283,6 +5283,8 @@ ${amount} para ${merchant} - ${date}`,
             reimbursementAccount: 'cuenta de reembolso',
             delayedSubmission: 'presentación retrasada',
             welcomeNote: 'Por favor, comience a utilizar mi nuevo espacio de trabajo.',
+            merchantRules: 'Reglas de comerciante',
+            merchantRulesCount: ({count}: {count: number}) => `${count} ${count === 1 ? 'regla de comerciante' : 'reglas de comerciante'}`,
             confirmTitle: ({newWorkspaceName, totalMembers}) =>
                 `Estás a punto de crear y compartir ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} miembros del espacio de trabajo original.`,
             error: 'Se produjo un error al duplicar tu nuevo espacio de trabajo. Inténtalo de nuevo.',
