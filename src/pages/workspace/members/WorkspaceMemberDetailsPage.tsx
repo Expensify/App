@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useContext, useEffect} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
@@ -190,6 +190,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             return;
         }
 
+        // Remove the member first so they disappear immediately from the list
+        removeMemberAndCloseModal();
+
         // Update approval workflows after approver removal
         const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
             approvalWorkflows,
@@ -197,18 +200,18 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             ownerDetails,
         });
 
-        for (const workflow of updatedWorkflows) {
-            if (workflow?.removeApprovalWorkflow) {
-                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            for (const workflow of updatedWorkflows) {
+                if (workflow?.removeApprovalWorkflow) {
+                    const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
 
-                removeApprovalWorkflowAction(updatedWorkflow, policy);
-            } else {
-                updateApprovalWorkflow(workflow, [], [], policy);
+                    removeApprovalWorkflowAction(updatedWorkflow, policy);
+                } else {
+                    updateApprovalWorkflow(workflow, [], [], policy);
+                }
             }
-        }
-
-        // Remove the member and close the modal
-        removeMemberAndCloseModal();
+        });
     };
 
     const showRemoveMemberModal = async () => {
