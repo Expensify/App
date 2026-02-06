@@ -197,7 +197,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // 4. Authorize the user if that has not already been done
         if (!isAuthorizationComplete) {
             if (!Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'))) {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'));
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'), { forceReplace: true });
             }
 
             // Request authorization challenge if not already fetched
