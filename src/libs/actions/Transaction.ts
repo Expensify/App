@@ -988,13 +988,13 @@ function changeTransactionsReport({
                 if (isDistanceRequest(transaction)) {
                     const currency = getCurrency(transaction);
                     const unit = transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-                    const distance = transaction?.comment?.customUnit?.quantity ?? 0;
-                    const defaultP2PRate = DistanceRequestUtils.getRateForP2P(currency, transaction).rate ?? 0;
+                    const distanceInMeters = getDistanceInMeters(transaction, unit);
+                    const defaultP2PRate = DistanceRequestUtils.getRateForP2PInUnit(currency, transaction, unit);
                     comment.customUnit.defaultP2PRate = defaultP2PRate;
-                    modifiedAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, defaultP2PRate);
+                    modifiedAmount = -DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, defaultP2PRate);
                     modifiedMerchant = DistanceRequestUtils.getDistanceMerchant(
                         true,
-                        getDistanceInMeters(transaction, unit),
+                        distanceInMeters,
                         unit,
                         defaultP2PRate,
                         currency,
