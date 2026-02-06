@@ -56,6 +56,7 @@ function StatusPage() {
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [draftStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT, {canBeMissing: true});
+    const [formState] = useOnyx(ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsByLogin = usePersonalDetailsByLogin();
     const formRef = useRef<FormRef>(null);
@@ -66,6 +67,7 @@ function StatusPage() {
     const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
     const vacationDelegatePersonalDetails = personalDetailsByLogin[vacationDelegate?.delegate?.toLowerCase() ?? ''];
     const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
+    const isFormLoading = !!formState?.isLoading;
 
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
@@ -344,6 +346,7 @@ function StatusPage() {
                     onPress={() => formRef.current?.submit()}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
+                    isLoading={isFormLoading}
                 />
             </FixedFooter>
         </ScreenWrapper>
