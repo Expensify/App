@@ -1193,13 +1193,7 @@ function MoneyRequestConfirmationListFooter({
                 </>
             )}
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
-                <View
-                    style={[
-                        !hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3,
-                        isCompactMode && {flexShrink: 1, minHeight: 180},
-                        isCompactMode && styles.mh5,
-                    ]}
-                >
+                <View style={[!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3, isCompactMode && {flexShrink: 1, minHeight: 180}, isCompactMode && styles.mh5]}>
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent
                         : showReceiptEmptyState && (

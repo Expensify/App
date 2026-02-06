@@ -77,6 +77,7 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import FormHelpMessage from './FormHelpMessage';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
+import getContentContainerStyle from './MoneyRequestConfirmationList/getCompactModeListStyles';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
@@ -87,7 +88,6 @@ import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
-import getContentContainerStyle from './MoneyRequestConfirmationList/getCompactModeListStyles';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
