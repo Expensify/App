@@ -432,6 +432,48 @@ describe('EmojiTest', () => {
             expect(result.length).toBe(afterEmojiConversion.length + 1);
         });
 
+        it('should insert ZWNJ between hash symbol (#) and emoji', () => {
+            // Given a hash symbol immediately followed by an emoji
+            const input = '#😄';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should be inserted between the hash and emoji
+            expect(result).toBe(`#${ZWNJ}😄`);
+        });
+
+        it('should insert ZWNJ between asterisk symbol (*) and emoji', () => {
+            // Given an asterisk symbol immediately followed by an emoji
+            const input = '*😄';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should be inserted between the asterisk and emoji
+            expect(result).toBe(`*${ZWNJ}😄`);
+        });
+
+        it('should handle mixed digits and symbols (#, *) followed by emojis', () => {
+            // Given a string with digits, hash, and asterisk followed by emojis
+            const input = '1😄 #🚀 *👍';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should be inserted only between digit/symbol and emoji (not emoji-to-symbol)
+            expect(result).toBe(`1${ZWNJ}😄 #${ZWNJ}🚀 *${ZWNJ}👍`);
+        });
+
+        it('should handle consecutive symbol-emoji pairs (# and *)', () => {
+            // Given consecutive symbol-emoji pairs
+            const input = '#😄*🚀';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should be inserted only between symbol and emoji (not emoji-to-symbol)
+            expect(result).toBe(`#${ZWNJ}😄*${ZWNJ}🚀`);
+        });
+
+        it('should not modify text with space between symbol (# or *) and emoji', () => {
+            // Given a symbol followed by a space and then an emoji
+            expect(EmojiUtils.insertZWNJBetweenDigitAndEmoji('# 😄')).toBe('# 😄');
+            expect(EmojiUtils.insertZWNJBetweenDigitAndEmoji('* 😄')).toBe('* 😄');
+        });
+
         it('should return input unchanged on non-Safari browsers', () => {
             // Given we're not on Safari
             jest.spyOn(Browser, 'isSafari').mockReturnValue(false);
@@ -441,6 +483,93 @@ describe('EmojiTest', () => {
             // Then the text should remain unchanged (no ZWNJ inserted)
             expect(result).toBe('234😄');
             expect(result.includes(ZWNJ)).toBe(false);
+        });
+
+        it('should not insert ZWNJ between emoji and asterisk (to preserve cursor navigation)', () => {
+            // Given an emoji followed by asterisk
+            // We don't insert ZWNJ here to avoid cursor navigation issues
+            const input = '#😄*';
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should only be inserted between # and emoji (not emoji-to-symbol)
+            expect(result).toBe(`#${ZWNJ}😄*`);
+        });
+
+        it('should handle emoji followed by asterisk then emoji', () => {
+            // Given emoji, asterisk, then emoji (like "#😄*😀")
+            const input = '#😄*😀';
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should be inserted between # and first emoji, and between * and second emoji (not emoji-to-symbol)
+            expect(result).toBe(`#${ZWNJ}😄*${ZWNJ}😀`);
+        });
+
+        it('should not insert ZWNJ between emoji and hash symbol (to preserve cursor navigation)', () => {
+            // Given an emoji followed by hash symbol
+            const input = '😄#';
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then no ZWNJ should be inserted (emoji-to-symbol case is not modified)
+            expect(result).toBe('😄#');
+        });
+
+        it('should fix corrupted keycap sequence followed by emoji', () => {
+            // Given Safari has created "*️⃣😄" (corrupted keycap + emoji)
+            // This happens when Safari corrupts "*😄" to "*️⃣😄" before React processes it
+            const corruptedKeycapWithEmoji = '*\uFE0F\u20E3😄'; // *️⃣😄
+
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(corruptedKeycapWithEmoji);
+
+            // Then it should be converted to "*\u200C😄" (preserving the emoji)
+            expect(result).toBe(`*${ZWNJ}😄`);
+        });
+
+        it('should handle space between symbol and emoji correctly', () => {
+            // Given text with space between symbol and emoji (like "#😃 *😄")
+            const input = '#😃 *😄';
+
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+
+            // Then ZWNJ should only be inserted between symbol and emoji (not emoji-to-symbol)
+            expect(result).toBe(`#${ZWNJ}😃 *${ZWNJ}😄`);
+        });
+
+        it('should fix corrupted keycap in text with spaces', () => {
+            // Given text like "#😃 *️⃣😄" where Safari corrupted "*😄" to "*️⃣😄"
+            const input = '#😃 *\uFE0F\u20E3😄';
+
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+
+            // Then corrupted keycap should be fixed to "*\u200C😄" (keycap removed, ZWNJ added)
+            expect(result).toBe(`#${ZWNJ}😃 *${ZWNJ}😄`);
+        });
+
+        it('should not modify emoji followed by spaces and symbol', () => {
+            // Given emoji followed by one or more spaces then symbol (like "#😄 *" or "#😄  *")
+            const inputOneSpace = '#😄 *';
+            const inputTwoSpaces = '#😄  *';
+
+            // When we process it
+            const resultOneSpace = EmojiUtils.insertZWNJBetweenDigitAndEmoji(inputOneSpace);
+            const resultTwoSpaces = EmojiUtils.insertZWNJBetweenDigitAndEmoji(inputTwoSpaces);
+
+            // Then no ZWNJ should be inserted between emoji and symbol (only between # and emoji)
+            expect(resultOneSpace).toBe(`#${ZWNJ}😄 *`);
+            expect(resultTwoSpaces).toBe(`#${ZWNJ}😄  *`);
+        });
+
+        it('should preserve legitimate standalone keycap emojis', () => {
+            // Given a legitimate standalone keycap emoji (like "*️⃣")
+            const input = '*\uFE0F\u20E3';
+
+            // When we process it
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+
+            // Then the keycap should be preserved (not removed) since it's not followed by another emoji
+            expect(result).toBe('*\uFE0F\u20E3');
         });
     });
 });

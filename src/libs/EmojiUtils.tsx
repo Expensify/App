@@ -664,28 +664,27 @@ function containsOnlyCustomEmoji(text?: string): boolean {
 }
 
 /**
- * Insert ZWNJ (Zero-Width Non-Joiner) between digits and emojis to prevent Safari's automatic keycap sequence bug.
- *
- * Safari has a browser-specific behavior where it automatically converts a digit immediately followed by an emoji
- * into a Unicode keycap sequence (e.g., "1" + "😄" becomes "1️⃣"). This happens at the browser's input handling level
- * before React can process the text, causing character corruption or unexpected joining.
- *
- * The ZWNJ character (U+200C) is a non-printing Unicode character that prevents the formation of ligatures or
- * unwanted character joining. By inserting it between digits and emojis, we break Safari's automatic keycap
- * sequence detection, ensuring the text displays correctly.
- *
- * Example: "234😄" becomes "234\u200C😄" (ZWNJ is invisible but prevents Safari's corruption)
+ * Insert ZWNJ (Zero-Width Non-Joiner) between digits/symbols and emojis to prevent Safari's automatic keycap sequence bug.
+ * Safari converts digits/symbols (#, *, 0-9) immediately followed by emojis into Unicode keycap sequences (e.g., "*😄" → "*️⃣").
+ * Inserting ZWNJ between symbol and emoji prevents corruption without breaking cursor navigation.
  */
 function insertZWNJBetweenDigitAndEmoji(input: string): string {
     if (!isSafari()) {
         return input;
     }
-    return input.replaceAll(CONST.REGEX.DIGIT_FOLLOWED_BY_EMOJI, '$1\u200C$2');
+
+    // Fix corrupted key caps that Safari created (key cap followed by emoji indicates corruption)
+    // Only fix key caps that are immediately followed by another emoji, preserving legitimate standalone key caps
+    let result = input.replaceAll(/([\d#*])\uFE0F?\u20E3([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu, '$1\u200C$2');
+    // Insert ZWNJ between digit/symbol and emoji (the main fix to prevent corruption)
+    result = result.replaceAll(CONST.REGEX.DIGIT_OR_SYMBOL_FOLLOWED_BY_EMOJI, '$1\u200C$2');
+
+    return result;
 }
 
 /**
- * Calculate the ZWNJ offset for cursor position adjustment.
- * Returns the number of ZWNJ characters inserted before the cursor position.
+ * Calculate the cursor offset for character insertions (ZWNJ) to prevent cursor jumping.
+ * Returns the number of characters inserted before the cursor position.
  */
 function getZWNJCursorOffset(text: string, cursorPosition: number | undefined | null): number {
     if (!isSafari() || cursorPosition === undefined || cursorPosition === null) {

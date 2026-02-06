@@ -13,6 +13,10 @@ const startTrace: StartTrace = (customEventName) => {
         return;
     }
 
+    if (!firebasePerfWeb) {
+        return;
+    }
+
     if (traceMap[customEventName]) {
         return;
     }
