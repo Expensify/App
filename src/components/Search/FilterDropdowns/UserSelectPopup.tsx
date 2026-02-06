@@ -79,7 +79,10 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
 
             const optionData = getSelectedOptionData(participant);
             if (optionData) {
-                acc.push(optionData);
+                acc.push({
+                    ...optionData,
+                    keyForList: optionData.keyForList ?? optionData.reportID,
+                });
             }
 
             return acc;
