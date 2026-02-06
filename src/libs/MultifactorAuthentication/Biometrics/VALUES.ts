@@ -212,7 +212,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
      * but isn't allowed to be assigned to a `string[]` field
      */
     PUBLIC_KEYS_PREVIOUSLY_BUT_NOT_CURRENTLY_REGISTERED: [] as string[],
-    PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED: undefined
+    PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED: undefined,
 } as const;
 
 export {MultifactorAuthenticationCallbacks};
