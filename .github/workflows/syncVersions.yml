@@ -36,6 +36,9 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           SETUP_AS_APP: false
 
+      - name: Update submodule to latest Mobile-Expensify main
+        run: git submodule update --remote
+
       - name: Check current versions
         id: checkVersions
         run: |
