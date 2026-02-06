@@ -13025,8 +13025,10 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
-    if (isExpenseSplit) {
-        const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
+    const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
+    const hasMultipleSplits = relatedTransactions.length > 1;
+
+    if (isExpenseSplit && hasMultipleSplits) {
         const transactionDetails = getTransactionDetails(originalTransaction);
         const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
         const draftTransaction = buildOptimisticTransaction({
