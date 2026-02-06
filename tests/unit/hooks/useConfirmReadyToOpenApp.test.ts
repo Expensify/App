@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
 
 jest.mock('@libs/actions/App', () => ({
     confirmReadyToOpenApp: jest.fn(),

@@ -8,7 +8,8 @@ import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp, setSidebarLoaded} from '@libs/actions/App';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import {setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -38,9 +39,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+    useConfirmReadyToOpenApp();
 
     useEffect(() => {
         ReportActionContextMenu.hideContextMenu(false);

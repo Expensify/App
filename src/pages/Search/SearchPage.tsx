@@ -35,7 +35,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
@@ -230,9 +230,7 @@ function SearchPage({route}: SearchPageProps) {
         updateAdvancedFilters(formValues, true);
     }, [formValues]);
 
-    useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+    useConfirmReadyToOpenApp();
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
