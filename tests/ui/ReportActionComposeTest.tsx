@@ -267,6 +267,11 @@ describe('ReportActionCompose Integration Tests', () => {
             // When the message is submitted
             act(onSubmitAction);
 
+            // scheduleOnUI mock uses setTimeout(() => ..., 0)
+            act(() => {
+                jest.advanceTimersByTime(1);
+            });
+
             // Then the message should NOT be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(0);
 
