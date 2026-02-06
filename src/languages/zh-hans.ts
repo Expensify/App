@@ -8244,7 +8244,10 @@ ${reportName}
             findMember: '查找成员',
             addMember: '添加成员',
             email: '电子邮箱地址',
-            closeAccount: '关闭账户',
+            closeAccount: () => ({
+                one: '关闭账户',
+                other: '关闭账户',
+            }),
             closeAccountPrompt: '您确定吗？此操作是永久性的。',
             forceCloseAccount: '强制关闭账户',
             safeCloseAccount: '安全关闭账户',
