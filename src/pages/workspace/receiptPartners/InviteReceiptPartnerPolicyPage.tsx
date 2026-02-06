@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
@@ -45,8 +45,11 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const policy = usePolicy(policyID);
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
-    const workspaceMembers: MemberForList[] = [];
-    if (policy?.employeeList) {
+    const workspaceMembers = useMemo((): MemberForList[] => {
+        const members: MemberForList[] = [];
+        if (!policy?.employeeList) {
+            return members;
+        }
         // Get the list of employees from the U4B organization
         const uberEmployees = policy?.receiptPartners?.uber?.employees ?? {};
 
@@ -85,12 +88,13 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     isSelected: true,
                 });
 
-                workspaceMembers.push(memberForList);
+                members.push(memberForList);
             }
         }
 
-        sortAlphabetically(workspaceMembers, 'text', localeCompare);
-    }
+        sortAlphabetically(members, 'text', localeCompare);
+        return members;
+    }, [policy?.employeeList, policy?.receiptPartners?.uber?.employees, isOffline, icons, localeCompare]);
 
     const allMembersWithState: MemberForList[] = [];
     if (workspaceMembers.length > 0) {

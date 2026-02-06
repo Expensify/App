@@ -5,7 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIPOnyx: number;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: (val) => (countryCodeByIPOnyx = val ?? 1),
 });

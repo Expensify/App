@@ -1,4 +1,4 @@
-import {useCallback} from 'react';
+import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {extractCollectionItemID} from '@libs/CollectionUtils';
 import {getReportTransactions, isChatRoom, isPolicyExpenseChat, isPolicyRelatedReport, isTaskReport} from '@libs/ReportUtils';
@@ -9,19 +9,26 @@ import useOnyx from './useOnyx';
 
 function useTransactionViolationOfWorkspace(policyID?: string) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const reportsToArchive = Object.values(allReports ?? {}).filter(
-        (report): report is Report => report != null && isPolicyRelatedReport(report, policyID) && (isChatRoom(report) || isPolicyExpenseChat(report) || isTaskReport(report)),
+    const reportsToArchive = useMemo(
+        () =>
+            Object.values(allReports ?? {}).filter(
+                (report): report is Report => report != null && isPolicyRelatedReport(report, policyID) && (isChatRoom(report) || isPolicyExpenseChat(report) || isTaskReport(report)),
+            ),
+        [allReports, policyID],
     );
-    const transactionIDSet = new Set<string>();
-    for (const report of reportsToArchive) {
-        if (!report?.iouReportID) {
-            continue;
+    const transactionIDSet = useMemo(() => {
+        const set = new Set<string>();
+        for (const report of reportsToArchive) {
+            if (!report?.iouReportID) {
+                continue;
+            }
+            const reportTransactions = getReportTransactions(report.iouReportID);
+            for (const transaction of reportTransactions) {
+                set.add(transaction.transactionID);
+            }
         }
-        const reportTransactions = getReportTransactions(report.iouReportID);
-        for (const transaction of reportTransactions) {
-            transactionIDSet.add(transaction.transactionID);
-        }
-    }
+        return set;
+    }, [reportsToArchive]);
 
     const transactionViolationSelector = useCallback(
         (violations: OnyxCollection<TransactionViolations>) => {
