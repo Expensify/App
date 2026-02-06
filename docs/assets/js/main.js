@@ -186,6 +186,7 @@ function askHelpsiteAI(query) {
             // Show "Show more" button if content overflows
             const renderedContent = aiContainer.querySelector('.ai-content');
             if (renderedContent.scrollHeight > renderedContent.clientHeight) {
+                renderedContent.classList.add('has-overflow');
                 showMoreButton.classList.remove('hidden');
                 showMoreButton.addEventListener('click', () => {
                     renderedContent.classList.toggle('expanded');
