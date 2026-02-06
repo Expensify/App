@@ -3895,6 +3895,7 @@ ${
             card: 'Karten',
             expensifyCard: 'Expensify Card',
             companyCards: 'Firmenkarten',
+            personalCards: 'Persönliche Karten',
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Arbeitsbereich finden',

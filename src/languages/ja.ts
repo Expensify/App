@@ -3863,6 +3863,7 @@ ${
             card: 'カード',
             expensifyCard: 'Expensify カード',
             companyCards: '会社カード',
+            personalCards: '個人カード',
             workflows: 'ワークフロー',
             workspace: 'ワークスペース',
             findWorkspace: 'ワークスペースを探す',

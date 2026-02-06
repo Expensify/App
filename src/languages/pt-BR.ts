@@ -3873,6 +3873,7 @@ ${
             card: 'Cartões',
             expensifyCard: 'Cartão Expensify',
             companyCards: 'Cartões corporativos',
+            personalCards: 'Cartões pessoais',
             workflows: 'Fluxos de trabalho',
             workspace: 'Espaço de trabalho',
             findWorkspace: 'Encontrar espaço de trabalho',
