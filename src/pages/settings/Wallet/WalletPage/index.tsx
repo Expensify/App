@@ -174,11 +174,13 @@ function WalletPage() {
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
         setSelectedCard(cardData);
+        const isCSVImportCard = cardData?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
+        const cardTitle = isCSVImportCard ? (cardData?.nameValuePairs?.cardTitle ?? cardData?.cardName) : maskCardNumber(cardData?.cardName, cardData?.bank);
         setPaymentMethod({
             isSelectedPaymentMethodDefault: false,
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {
-                title: maskCardNumber(cardData?.cardName, cardData?.bank),
+                title: cardTitle ?? '',
                 description: cardData ? getDescriptionForPolicyDomainCard(cardData.domainName) : '',
                 icon,
             },

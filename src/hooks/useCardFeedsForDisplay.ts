@@ -18,7 +18,7 @@ const eligiblePoliciesSelector = (policies: OnyxCollection<Policy>) => {
 };
 
 const useCardFeedsForDisplay = () => {
-    const {localeCompare} = useLocalize();
+    const {localeCompare, translate} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [eligiblePoliciesIDs] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
@@ -26,7 +26,7 @@ const useCardFeedsForDisplay = () => {
         canBeMissing: true,
     });
 
-    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds);
+    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate);
 
     let defaultCardFeed;
     if (eligiblePoliciesIDs) {

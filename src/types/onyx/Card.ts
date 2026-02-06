@@ -345,20 +345,6 @@ type CardAssignmentData = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
-/**
- * Pending action for a company card assignment
- */
-type FailedCardAssignment = CardAssignmentData & {
-    /** The domain or workspace account ID */
-    domainOrWorkspaceAccountID: number;
-
-    /** The name of the feed */
-    bankName: CardFeedWithNumber | undefined;
-};
-
-/** Pending action for a company card assignment */
-type FailedCardAssignments = Record<string, FailedCardAssignment>;
-
 export default Card;
 export type {
     ExpensifyCardDetails,
@@ -371,7 +357,5 @@ export type {
     ProvisioningCardData,
     AssignableCardsList,
     CardAssignmentData,
-    FailedCardAssignment,
-    FailedCardAssignments,
     UnassignedCard,
 };

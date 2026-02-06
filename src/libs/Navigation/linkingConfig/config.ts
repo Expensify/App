@@ -4,7 +4,7 @@ import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedCo
 import type {RootNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 
@@ -157,8 +157,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.RIGHT_MODAL.SEARCH_ROUTER]: {
-                    path: ROUTES.SEARCH_ROUTER,
-                    exact: true,
+                    screens: {
+                        [SCREENS.SEARCH_ROUTER.ROOT]: ROUTES.SEARCH_ROUTER,
+                    },
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
@@ -399,6 +400,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.SHARE_LOG]: ROUTES.SETTINGS_SHARE_LOG.route,
+                        [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.VERIFY_ACCOUNT.path,
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHODS.route,
                             exact: true,
@@ -898,6 +900,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.route,
+                        },
+                        [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
+                            path: ROUTES.WORKSPACE_INVITE_MESSAGE_APPROVER.route,
                         },
                         [SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE]: {
                             path: ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE.route,
@@ -1613,6 +1618,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.route,
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER]: ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.route,
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.route,
+                        [SCREENS.MONEY_REQUEST.ODOMETER_IMAGE]: ROUTES.ODOMETER_IMAGE.route,
                         [SCREENS.MONEY_REQUEST.HOLD]: ROUTES.MONEY_REQUEST_HOLD_REASON.route,
                         [SCREENS.MONEY_REQUEST.REJECT]: ROUTES.REJECT_MONEY_REQUEST_REASON.route,
                         [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,

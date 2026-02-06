@@ -4,7 +4,7 @@ import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import cardFeedErrorsConfig from '@src/libs/actions/OnyxDerived/configs/cardFeedErrors';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, CardList, FailedCardAssignments, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardFeedWithDomainID, CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 const DERIVED_VALUE_CONTEXT: DerivedValueContext<typeof cardFeedErrorsConfig.key, typeof cardFeedErrorsConfig.dependencies> = {
@@ -75,7 +75,7 @@ function createWorkspaceCardsList(cards: Record<string, Card>, cardList?: Record
 describe('CardFeedErrors Derived Value', () => {
     describe('compute function', () => {
         it('should return empty errors when no cards exist', () => {
-            const result = cardFeedErrorsConfig.compute([{}, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([{}, {}, {}], DERIVED_VALUE_CONTEXT);
 
             expect(result.cardFeedErrors).toEqual({});
             expect(result.cardsWithBrokenFeedConnection).toEqual({});
@@ -85,11 +85,10 @@ describe('CardFeedErrors Derived Value', () => {
             expect(result.all.isFeedConnectionBroken).toBe(false);
             expect(result.all.hasFeedErrors).toBe(false);
             // expect(result.all.hasWorkspaceErrors).toBe(false);
-            expect(result.all.hasFailedCardAssignments).toBe(false);
         });
 
         it('should return empty errors when all inputs are undefined', () => {
-            const result = cardFeedErrorsConfig.compute([undefined, undefined, undefined, undefined], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([undefined, undefined, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.cardFeedErrors).toEqual({});
             expect(result.all.shouldShowRBR).toBe(false);
@@ -107,7 +106,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {card1: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.isFeedConnectionBroken).toBe(true);
                 expect(result.all.shouldShowRBR).toBe(true);
@@ -125,7 +124,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {card1: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.isFeedConnectionBroken).toBe(false);
                 expect(result.cardsWithBrokenFeedConnection).toEqual({});
@@ -142,7 +141,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {card1: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.isFeedConnectionBroken).toBe(false);
             });
@@ -158,7 +157,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {card1: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.isFeedConnectionBroken).toBe(false);
             });
@@ -178,7 +177,7 @@ describe('CardFeedErrors Derived Value', () => {
                     [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeed.workspaceAccountID}_${cardFeed.feedNameWithDomainID}`]: createWorkspaceCardsList({card2: card}),
                 };
 
-                const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.isFeedConnectionBroken).toBe(true);
                 expect(result.cardsWithBrokenFeedConnection[CARD_IDS.card2]).toEqual(card);
@@ -228,63 +227,13 @@ describe('CardFeedErrors Derived Value', () => {
                     }),
                 };
 
-                const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
 
                 // Only the active card should be processed and detected as broken
                 expect(result.cardsWithBrokenFeedConnection).toHaveProperty(String(CARD_IDS.card4));
                 expect(result.cardsWithBrokenFeedConnection).not.toHaveProperty(String(CARD_IDS.card1));
                 expect(result.cardsWithBrokenFeedConnection).not.toHaveProperty(String(CARD_IDS.card2));
                 expect(result.cardsWithBrokenFeedConnection).not.toHaveProperty(String(CARD_IDS.card3));
-            });
-        });
-
-        describe('failed card assignments detection', () => {
-            it('should detect failed card assignments', () => {
-                const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
-
-                const card = createCard({
-                    cardID: CARD_IDS.card3,
-                    bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
-                });
-
-                const globalCardList: CardList = {[CARD_IDS.card3]: card};
-
-                const failedAssignments: OnyxCollection<FailedCardAssignments> = {
-                    [`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${cardFeed.workspaceAccountID}_${cardFeed.feedNameWithDomainID}`]: {
-                        [String(CARD_IDS.card3)]: {
-                            errors: {error: 'Failed to assign card'},
-                            errorFields: undefined,
-                            pendingAction: undefined,
-                            domainOrWorkspaceAccountID: cardFeed.workspaceAccountID,
-                            bankName: cardFeed.feedName,
-                            cardName: card.cardName ?? '',
-                            encryptedCardNumber: card.encryptedCardNumber ?? '',
-                        },
-                    },
-                };
-
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, failedAssignments, {}], DERIVED_VALUE_CONTEXT);
-
-                expect(result.all.hasFailedCardAssignments).toBe(true);
-                expect(result.all.shouldShowRBR).toBe(true);
-                expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.hasFailedCardAssignments).toBe(true);
-            });
-
-            it('should NOT detect failed card assignments when empty', () => {
-                const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
-
-                const card = createCard({
-                    cardID: CARD_IDS.card4,
-                    bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
-                });
-
-                const globalCardList: CardList = {[CARD_IDS.card4]: card};
-
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
-
-                expect(result.all.hasFailedCardAssignments).toBe(false);
             });
         });
 
@@ -315,7 +264,7 @@ describe('CardFeedErrors Derived Value', () => {
                     },
                 };
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.hasFeedErrors).toBe(true);
                 expect(result.all.shouldShowRBR).toBe(true);
@@ -373,7 +322,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.cardErrors[CARD_IDS.card1]).toEqual({
                     errors: {cardError: 'Card sync failed'},
@@ -396,7 +345,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.cardErrors[CARD_IDS.card1]?.errorFields).toEqual({
                     cardName: {error: 'Invalid card name'},
@@ -415,7 +364,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.cardFeedErrors[cardFeed.feedNameWithDomainID]?.cardErrors[CARD_IDS.card1]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             });
@@ -434,7 +383,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed.workspaceAccountID]).toBe(true);
             });
@@ -451,7 +400,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.shouldShowRbrForFeedNameWithDomainID[cardFeed.feedNameWithDomainID]).toBe(true);
             });
@@ -468,7 +417,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed.workspaceAccountID]).toBe(false);
                 expect(result.shouldShowRbrForFeedNameWithDomainID[cardFeed.feedNameWithDomainID]).toBe(false);
@@ -496,7 +445,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card1, [CARD_IDS.card2]: card2};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed1.workspaceAccountID]).toBe(true);
                 expect(result.shouldShowRbrForWorkspaceAccountID[cardFeed2.workspaceAccountID]).toBe(false);
@@ -529,7 +478,7 @@ describe('CardFeedErrors Derived Value', () => {
                     }),
                 };
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, allWorkspaceCards, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.cardsWithBrokenFeedConnection).toHaveProperty(String(CARD_IDS.card1));
                 expect(result.cardsWithBrokenFeedConnection).toHaveProperty(String(CARD_IDS.card2));
@@ -561,37 +510,7 @@ describe('CardFeedErrors Derived Value', () => {
                     },
                 };
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
-
-                expect(result.all.shouldShowRBR).toBe(true);
-            });
-
-            it('should return true when hasFailedCardAssignment is true', () => {
-                const cardFeed = CARD_FEEDS[CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD];
-
-                const card = createCard({
-                    cardID: CARD_IDS.card1,
-                    bank: cardFeed.feedName,
-                    fundID: String(cardFeed.workspaceAccountID),
-                });
-
-                const globalCardList: CardList = {[CARD_IDS.card1]: card};
-
-                const failedAssignments: OnyxCollection<FailedCardAssignments> = {
-                    [`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${cardFeed.workspaceAccountID}_${cardFeed.feedNameWithDomainID}`]: {
-                        [String(CARD_IDS.card1)]: {
-                            errors: {error: 'Assignment failed'},
-                            errorFields: undefined,
-                            pendingAction: undefined,
-                            domainOrWorkspaceAccountID: cardFeed.workspaceAccountID,
-                            bankName: cardFeed.feedName,
-                            cardName: card.cardName ?? '',
-                            encryptedCardNumber: card.encryptedCardNumber ?? '',
-                        },
-                    },
-                };
-
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, failedAssignments, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.shouldShowRBR).toBe(true);
             });
@@ -608,7 +527,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.shouldShowRBR).toBe(true);
             });
@@ -625,7 +544,7 @@ describe('CardFeedErrors Derived Value', () => {
 
                 const globalCardList: CardList = {[CARD_IDS.card1]: card};
 
-                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, {}], DERIVED_VALUE_CONTEXT);
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
 
                 expect(result.all.shouldShowRBR).toBe(false);
             });
