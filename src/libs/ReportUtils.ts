@@ -4447,6 +4447,36 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
 }
 
 /**
+ * Gets the title field from a policy, with a fallback when the policy fieldList is empty (matches OldDot behavior).
+ */
+function getTitleFieldWithFallback(policy: OnyxEntry<Policy>): PolicyReportField | undefined {
+    const policyTitleField = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    if (policyTitleField) {
+        return policyTitleField;
+    }
+
+    const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+    if (isPolicyFieldListEmpty) {
+        return {
+            fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+            name: 'title',
+            type: CONST.REPORT_FIELD_TYPES.TEXT,
+            defaultValue: CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME,
+            deletable: true,
+            target: 'expense',
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            orderWeight: 0,
+            isTax: false,
+        };
+    }
+
+    return undefined;
+}
+
+/**
  * Get the key for a report field
  */
 function getReportFieldKey(reportFieldId: string | undefined) {
@@ -6573,6 +6603,30 @@ function buildOptimisticInvoiceReport(
 }
 
 /**
+ * Computes the optimistic report name using the policy's title field formula, with a fallback to the default expense report name.
+ */
+function computeOptimisticReportName(report: Report, policy: OnyxEntry<Policy>, policyID: string | undefined, reportTransactions: Record<string, Transaction>): string | null {
+    if (!isGroupPolicy(policy?.type ?? '')) {
+        return null;
+    }
+
+    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
+    const formulaContext: FormulaContext = {
+        report,
+        policy,
+        allTransactions: reportTransactions,
+    };
+
+    // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
+
+    // If there is no title field, use "New Report" as default (matches OldDot behavior)
+    const defaultValue = titleReportField?.defaultValue ?? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
+    return Formula.compute(defaultValue, formulaContext);
+}
+
+/**
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
@@ -6681,20 +6735,12 @@ function buildOptimisticExpenseReport({
         expenseReport.managerID = submitToAccountID;
     }
 
-    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
-    if (!!titleReportField && isGroupPolicy(policy?.type ?? '')) {
-        const formulaContext: FormulaContext = {
-            report: expenseReport,
-            policy,
-            allTransactions: reportTransactions ?? {},
-        };
-
-        // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-        const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
-        const computedName = Formula.compute(titleReportField.defaultValue, formulaContext);
-        expenseReport.reportName = computedName ?? expenseReport.reportName;
+    // Compute optimistic report name if applicable
+    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, reportTransactions ?? {});
+    if (computedName !== null) {
+        expenseReport.reportName = computedName;
     }
+    // Otherwise, keep the default format: `${policyName} owes ${formattedTotal}`
 
     expenseReport.fieldList = policy?.fieldList;
 
@@ -6711,7 +6757,6 @@ function buildOptimisticEmptyReport(
     betas: OnyxEntry<Beta[]>,
 ) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas, true);
-    const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
         reportName: '',
         reportID,
@@ -6733,17 +6778,11 @@ function buildOptimisticEmptyReport(
         managerID: getManagerAccountID(policy, {ownerAccountID: accountID}),
     };
 
-    const formulaContext: FormulaContext = {
-        report: optimisticEmptyReport as Report,
-        policy,
-        allTransactions: {},
-    };
-
-    // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
-    const optimisticReportName = Formula.compute(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, formulaContext);
-    optimisticEmptyReport.reportName = optimisticReportName ?? '';
+    // Compute optimistic report name if applicable
+    const optimisticReportName = computeOptimisticReportName(optimisticEmptyReport as Report, policy, policy?.id, {});
+    if (optimisticReportName !== null) {
+        optimisticEmptyReport.reportName = optimisticReportName;
+    }
 
     optimisticEmptyReport.participants = accountID
         ? {
@@ -13120,6 +13159,7 @@ export {
     isSelectedManagerMcTest,
     isTestTransactionReport,
     getReportSubtitlePrefix,
+    computeOptimisticReportName,
     getPolicyChangeMessage,
     getMovedTransactionMessage,
     getUnreportedTransactionMessage,
@@ -13129,6 +13169,7 @@ export {
     isBusinessInvoiceRoom,
     buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
+    getTitleFieldWithFallback,
     getReportFieldsByPolicyID,
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,

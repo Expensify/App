@@ -325,6 +325,14 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
 function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {report: OnyxEntry<Report>; policy?: OnyxEntry<Policy>; invoiceReceiverPolicy?: OnyxEntry<Policy>}): string {
+    // For expense reports with empty fieldList and empty reportName, return "New Report" (matches OldDot behavior)
+    if (isExpenseReport(report)) {
+        const isPolicyFieldListEmpty = !policy?.fieldList || Object.keys(policy.fieldList).length === 0;
+        if (report?.reportName === '' && isPolicyFieldListEmpty) {
+            return CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME;
+        }
+    }
+
     if (report?.reportName && isExpenseReport(report)) {
         return report.reportName;
     }
