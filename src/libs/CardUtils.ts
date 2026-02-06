@@ -984,10 +984,6 @@ function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string 
 }
 
 function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number): boolean {
-    console.log('cardNumberToCheck', cardNumberToCheck);
-    console.log('workspaceCardFeeds', workspaceCardFeeds);
-    console.log('domainOrWorkspaceAccountID', domainOrWorkspaceAccountID);
-
     if (!cardNumberToCheck || !workspaceCardFeeds) {
         return false;
     }
