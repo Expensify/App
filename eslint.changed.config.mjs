@@ -14,14 +14,6 @@ const restrictedIconImportPaths = [
     },
 ];
 
-const restrictedReportNameImportPaths = [
-    {
-        name: '@libs/ReportNameUtils',
-        importNames: ['computeReportName'],
-        message: 'Do not import computeReportName. Use `getReportName` instead, which properly uses derived report attributes.',
-    },
-];
-
 const restrictedIconImportPatterns = [
     {
         group: ['**/Icon/Illustrations', '**/components/Icon/Illustrations'],
@@ -32,6 +24,22 @@ const restrictedIconImportPatterns = [
         group: ['**/Icon/Expensicons', '**/components/Icon/Expensicons'],
         message:
             'Direct imports from Icon/Expensicons are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyExpensifyIcons` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
+    },
+];
+
+const restrictedReportNameImportPaths = [
+    {
+        name: '@libs/ReportNameUtils',
+        importNames: ['computeReportName'],
+        message: 'Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes.',
+    },
+];
+
+const restrictedReportNameImportPatterns = [
+    {
+        group: ['**/ReportNameUtils', '**/libs/ReportNameUtils'],
+        importNames: ['computeReportName'],
+        message: 'Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes.',
     },
 ];
 
@@ -86,6 +94,7 @@ const config = defineConfig([
                 'error',
                 {
                     paths: restrictedReportNameImportPaths,
+                    patterns: restrictedReportNameImportPatterns,
                 },
             ],
         },
