@@ -8,7 +8,6 @@ function scrollToTab({containerX, tabX, tabWidth, animated = true, containerRef,
 
     const isTabLeftSideCut = containerX > tabX;
     const isTabRightSideCut = tabX + tabWidth >= containerX + containerWidth - TAB_SELECTOR_SCROLL_MARGIN_INLINE_PX;
-    console.log({isTabLeftSideCut, isTabRightSideCut, tabX, tabWidth, containerX, containerWidth});
     if (!isTabLeftSideCut && !isTabRightSideCut) {
         return;
     }
