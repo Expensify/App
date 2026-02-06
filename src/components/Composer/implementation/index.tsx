@@ -347,7 +347,7 @@ function Composer({
                 textInput.current = el;
             }}
             selection={selection}
-            style={inputStyleMemo}
+            style={[inputStyleMemo]}
             markdownStyle={markdownStyle}
             value={value}
             defaultValue={defaultValue}
