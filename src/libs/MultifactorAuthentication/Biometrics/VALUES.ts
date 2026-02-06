@@ -52,9 +52,11 @@ const REASON = {
         SIGNATURE_INVALID: 'Signature is invalid',
         SIGNATURE_MISSING: 'Signature is missing',
         NO_ACTION_MADE_YET: 'No action has been made yet',
-        FACTORS_ERROR: 'Authentication factors error',
-        FACTORS_VERIFIED: 'Authentication factors verified',
         VALIDATE_CODE_MISSING: 'Validate code is missing',
+        NO_ELIGIBLE_METHODS: 'No eligible methods available',
+        UNSUPPORTED_DEVICE: 'Unsupported device',
+        BAD_REQUEST: 'Bad request',
+        LOCAL_REGISTRATION_COMPLETE: 'Local registration complete',
     },
     KEYSTORE: {
         KEY_DELETED: 'Key successfully deleted from SecureStore',
@@ -92,6 +94,7 @@ const API_RESPONSE_MAP = {
         },
         401: {
             TOO_MANY_ATTEMPTS: REASON.BACKEND.TOO_MANY_ATTEMPTS,
+            INVALID_VALIDATE_CODE: REASON.BACKEND.INVALID_VALIDATE_CODE,
         },
         402: {
             MISSING_CHALLENGE_TYPE: REASON.BACKEND.MISSING_CHALLENGE_TYPE,
@@ -122,22 +125,6 @@ const API_RESPONSE_MAP = {
 /* eslint-enable @typescript-eslint/naming-convention */
 
 /**
- * Factor origin types for multifactor authentication.
- */
-const MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN = {
-    BIOMETRICS: 'Biometrics',
-    ADDITIONAL: 'Additional',
-} as const;
-
-/**
- * Available multifactor authentication factors.
- */
-const MULTIFACTOR_AUTHENTICATION_FACTORS = {
-    SIGNED_CHALLENGE: 'SIGNED_CHALLENGE',
-    VALIDATE_CODE: 'VALIDATE_CODE',
-} as const;
-
-/**
  * Expo error message search strings and separator.
  */
 const EXPO_ERRORS = {
@@ -153,31 +140,6 @@ const EXPO_ERRORS = {
 } as const;
 
 /**
- * Maps authentication factors and Expo errors to appropriate reason messages.
- */
-const MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS = {
-    /** Maps authentication factors to their missing error translation paths */
-    FACTOR_MISSING_REASONS: {
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: REASON.GENERIC.VALIDATE_CODE_MISSING,
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE]: REASON.GENERIC.SIGNATURE_MISSING,
-    },
-
-    /** Maps authentication factors to their invalid error translation paths */
-    FACTOR_INVALID_REASONS: {
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE]: REASON.BACKEND.INVALID_VALIDATE_CODE,
-        [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE]: REASON.GENERIC.SIGNATURE_INVALID,
-    },
-    EXPO_ERROR_MAPPINGS: {
-        [EXPO_ERRORS.SEARCH_STRING.CANCELED]: REASON.EXPO.CANCELED,
-        [EXPO_ERRORS.SEARCH_STRING.IN_PROGRESS]: REASON.EXPO.IN_PROGRESS,
-        [EXPO_ERRORS.SEARCH_STRING.NOT_IN_FOREGROUND]: REASON.EXPO.NOT_IN_FOREGROUND,
-        [EXPO_ERRORS.SEARCH_STRING.EXISTS]: REASON.EXPO.KEY_EXISTS,
-        [EXPO_ERRORS.SEARCH_STRING.NO_AUTHENTICATION]: REASON.EXPO.NO_METHOD_AVAILABLE,
-        [EXPO_ERRORS.SEARCH_STRING.OLD_ANDROID]: REASON.EXPO.NOT_SUPPORTED,
-    },
-} as const;
-
-/**
  * Centralized constants used by the multifactor authentication biometrics flow.
  * It is stored here instead of the CONST file to avoid circular dependencies.
  */
@@ -188,7 +150,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     KEYCHAIN_SERVICE: 'Expensify',
 
     /**
-     * EdDSA key type identifier referred to as EdDSA in the Auth system.
+     * EdDSA key type identifier referred to as EdDSA in the Auth.
      */
     ED25519_TYPE: 'biometric',
 
@@ -202,37 +164,16 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     EXPO_ERRORS,
 
     /**
-     * Defines the requirements and configuration for each authentication factor.
+     * Maps authentication Expo errors to appropriate reason messages.
      */
-    FACTORS_REQUIREMENTS: {
-        SIGNED_CHALLENGE: {
-            id: MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE,
-            name: 'Signed Challenge',
-            parameter: 'signedChallenge',
-            length: undefined,
-            origin: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN.BIOMETRICS,
-        },
-        VALIDATE_CODE: {
-            id: MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE,
-            name: 'Email One-Time Password',
-            parameter: 'validateCode',
-            length: 6,
-            origin: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN.ADDITIONAL,
-        },
+    EXPO_ERROR_MAPPINGS: {
+        [EXPO_ERRORS.SEARCH_STRING.CANCELED]: REASON.EXPO.CANCELED,
+        [EXPO_ERRORS.SEARCH_STRING.IN_PROGRESS]: REASON.EXPO.IN_PROGRESS,
+        [EXPO_ERRORS.SEARCH_STRING.NOT_IN_FOREGROUND]: REASON.EXPO.NOT_IN_FOREGROUND,
+        [EXPO_ERRORS.SEARCH_STRING.EXISTS]: REASON.EXPO.KEY_EXISTS,
+        [EXPO_ERRORS.SEARCH_STRING.NO_AUTHENTICATION]: REASON.EXPO.NO_METHOD_AVAILABLE,
+        [EXPO_ERRORS.SEARCH_STRING.OLD_ANDROID]: REASON.EXPO.NOT_SUPPORTED,
     },
-
-    /**
-     * Valid authentication factor combinations for different scenarios.
-     */
-    FACTOR_COMBINATIONS: {
-        REGISTRATION: [MULTIFACTOR_AUTHENTICATION_FACTORS.VALIDATE_CODE],
-        BIOMETRICS_AUTHENTICATION: [MULTIFACTOR_AUTHENTICATION_FACTORS.SIGNED_CHALLENGE],
-    },
-
-    /**
-     * Factor origin classifications.
-     */
-    FACTORS_ORIGIN: MULTIFACTOR_AUTHENTICATION_FACTOR_ORIGIN,
 
     /**
      * Scenario name mappings.
@@ -254,10 +195,25 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         REGISTRATION: 'registration',
         AUTHENTICATION: 'authentication',
     },
-    FACTORS: MULTIFACTOR_AUTHENTICATION_FACTORS,
+    /**
+     * One of these parameters are always present in any MFA request.
+     * Validate code in the registration and signedChallenge in the authentication.
+     */
+    BASE_PARAMETERS: {
+        SIGNED_CHALLENGE: 'signedChallenge',
+        VALIDATE_CODE: 'validateCode',
+    },
     API_RESPONSE_MAP,
     REASON,
+    /**
+     * Specifically meaningful values for `multifactorAuthenticationPublicKeyIDs` in the `account` Onyx key.
+     * Casting `[] as string[]` is necessary to allow us to actually store the value in Onyx. Otherwise the
+     * `as const` would mean `[]` becomes `readonly []` (readonly empty array), which is more precise,
+     * but isn't allowed to be assigned to a `string[]` field.
+     */
+    PUBLIC_KEYS_PREVIOUSLY_BUT_NOT_CURRENTLY_REGISTERED: [] as string[],
+    PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED: undefined,
 } as const;
 
-export {MultifactorAuthenticationCallbacks, MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS};
+export {MultifactorAuthenticationCallbacks};
 export default MULTIFACTOR_AUTHENTICATION_VALUES;
