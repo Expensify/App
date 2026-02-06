@@ -82,7 +82,7 @@ Add the following formulas to your CSV template:
 
 Once your template is set up, export expenses using the custom CSV template to capture Fringe Benefit Tax data. 
 
-For more detailed guidance, see [Download via CSV](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses#export-as-csv).
+For more detailed guidance on exporting expenses, see [Download via CSV](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses#export-as-csv).
 
 ---  
 
