@@ -72,9 +72,7 @@ describe('Sidebar', () => {
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        Onyx.clear();
-    });
+    afterEach(() => Onyx.clear());
 
     describe('in default mode', () => {
         it('is rendered with empty state when no reports are available', () => {

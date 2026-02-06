@@ -73,8 +73,7 @@ describe('usePolicyData', () => {
     });
 
     beforeEach(() => {
-        Onyx.clear();
-        return waitForBatchedUpdates();
+        return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     test('returns data given a policy ID that exists in the onyx', async () => {

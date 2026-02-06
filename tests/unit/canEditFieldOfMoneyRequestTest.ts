@@ -99,8 +99,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
 
             afterEach(() => {
-                Onyx.clear();
-                return waitForBatchedUpdates();
+                return Onyx.clear().then(waitForBatchedUpdates);
             });
 
             it('should return false for invoice report action if it is not outstanding report', async () => {
@@ -198,8 +197,7 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
 
             afterEach(() => {
-                Onyx.clear();
-                return waitForBatchedUpdates();
+                return Onyx.clear().then(waitForBatchedUpdates);
             });
 
             it('should return true for submitter of a distance request for amount and currency fields', async () => {

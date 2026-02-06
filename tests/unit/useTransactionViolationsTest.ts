@@ -58,9 +58,9 @@ describe('useTransactionViolations', () => {
         });
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
 
         // Default mock implementations
         (isViolationDismissed as jest.Mock).mockReturnValue(false);

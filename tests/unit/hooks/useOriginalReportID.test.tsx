@@ -14,9 +14,9 @@ describe('useOriginalReportID', () => {
         });
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
     });
 
     it('should return the reportID given a DEW routed action', async () => {

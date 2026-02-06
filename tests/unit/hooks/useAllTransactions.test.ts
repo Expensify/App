@@ -21,9 +21,9 @@ describe('useAllTransactions', () => {
         });
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await Onyx.clear();
         mockCurrentSearchResults = undefined;
     });
 

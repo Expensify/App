@@ -27,21 +27,17 @@ const renderLocaleContextProvider = () => {
     );
 };
 
-const onyxDerivedTestSetup = () => {
-    Onyx.clear();
+const onyxDerivedTestSetup = async () => {
+    await Onyx.clear();
     Onyx.init({keys: ONYXKEYS});
     initOnyxDerivedValues();
 };
 
 describe('OnyxDerived', () => {
-    beforeEach(() => {
-        Onyx.clear();
-    });
+    beforeEach(() => Onyx.clear());
 
     describe('reportAttributes', () => {
-        beforeAll(() => {
-            onyxDerivedTestSetup();
-        });
+        beforeAll(() => onyxDerivedTestSetup());
 
         const mockReport: Report = {
             reportID: `test_1`,
@@ -426,7 +422,7 @@ describe('OnyxDerived', () => {
 
     describe('nonPersonalAndWorkspaceCardList', () => {
         beforeAll(async () => {
-            onyxDerivedTestSetup();
+            await onyxDerivedTestSetup();
         });
 
         it('returns empty object when dependencies are not set', async () => {
@@ -532,7 +528,7 @@ describe('OnyxDerived', () => {
 
     describe('todos', () => {
         beforeAll(async () => {
-            onyxDerivedTestSetup();
+            await onyxDerivedTestSetup();
         });
 
         const CURRENT_USER_ACCOUNT_ID = 1;
