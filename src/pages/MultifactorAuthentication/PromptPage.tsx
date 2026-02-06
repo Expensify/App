@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {markHasAcceptedSoftPrompt} from '@libs/actions/MultifactorAuthentication';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
@@ -31,6 +32,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
 
     const onConfirm = () => {
+        markHasAcceptedSoftPrompt();
         dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
     };
 

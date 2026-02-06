@@ -1,5 +1,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo} from 'react';
 import type {ReactNode} from 'react';
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
 import {getOutcomePaths} from '@components/MultifactorAuthentication/config/outcomePaths';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
@@ -11,10 +13,20 @@ import Navigation from '@navigation/Navigation';
 import {requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {DeviceBiometrics} from '@src/types/onyx';
 import {useMultifactorAuthenticationState} from './State';
 import useNativeBiometrics from './useNativeBiometrics';
 import type {AuthorizeResult, RegisterResult} from './useNativeBiometrics';
+
+let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.DEVICE_BIOMETRICS,
+    callback: (data) => {
+        deviceBiometricsState = data;
+    },
+});
 
 type ExecuteScenarioParams<T extends MultifactorAuthenticationScenario> = MultifactorAuthenticationScenarioParams<T> & Partial<OutcomePaths>;
 
@@ -191,6 +203,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
                 dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: true});
             });
+            return;
+        }
+
+        // Registration isn't required, but they have never seen the soft prompt
+        // this happens on ios if they delete and reinstall the app. Their keys are preserved in the secure store, but
+        // they'll be shown the "do you want to enable FaceID again" system prompt, so we want to show them the soft prompt
+        if (!deviceBiometricsState?.hasAcceptedSoftPrompt) {
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS), {forceReplace: true});
             return;
         }
 

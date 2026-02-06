@@ -187,4 +187,17 @@ async function revokeMultifactorAuthenticationCredentials() {
     }
 }
 
-export {registerAuthenticationKey, requestRegistrationChallenge, requestAuthorizationChallenge, troubleshootMultifactorAuthentication, revokeMultifactorAuthenticationCredentials};
+function markHasAcceptedSoftPrompt() {
+    Onyx.merge(ONYXKEYS.DEVICE_BIOMETRICS, {
+        hasAcceptedSoftPrompt: true,
+    });
+}
+
+export {
+    registerAuthenticationKey,
+    requestRegistrationChallenge,
+    requestAuthorizationChallenge,
+    troubleshootMultifactorAuthentication,
+    revokeMultifactorAuthenticationCredentials,
+    markHasAcceptedSoftPrompt,
+};

@@ -29,6 +29,14 @@ const ONYXKEYS = {
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
 
+    /** Holds information about device-specific biometrics which:
+     * - does need to be persisted
+     * - does not need to be kept in secure storage
+     * - does not persist across uninstallations
+     * (secure storage persists across uninstallation)
+     */
+    DEVICE_BIOMETRICS: 'deviceBiometrics',
+
     /** Boolean flag set whenever the sidebar has loaded */
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
@@ -1417,6 +1425,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
+    [ONYXKEYS.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
 
 type OnyxDerivedValuesMapping = {
