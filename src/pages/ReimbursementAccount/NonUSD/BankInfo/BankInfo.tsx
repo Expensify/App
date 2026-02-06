@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
+import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
@@ -71,8 +72,10 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
         // We need to check value of local isSubmittingRef because on initial render reimbursementAccount?.isSuccess is still true after submitting the previous step
         if (reimbursementAccount?.isSuccess === true && isSubmittingRef.current) {
             isSubmittingRef.current = false;
-            onSubmit();
             clearReimbursementAccountBankCreation();
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                onSubmit();
+            });
         }
     }, [corpayFields?.bankCurrency, country, currency, onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
