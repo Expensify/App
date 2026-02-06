@@ -154,6 +154,7 @@ function BaseDomainMembersPage({
                     onBackButtonPress={Navigation.popToSidebar}
                     icon={headerIcon}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
                 >
                     {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>

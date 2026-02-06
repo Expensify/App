@@ -77,6 +77,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                     onBackButtonPress={Navigation.popToSidebar}
                     icon={illustrations.Members}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
                 />
                 <SelectionList
                     data={data}
