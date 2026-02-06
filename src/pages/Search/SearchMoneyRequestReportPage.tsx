@@ -32,7 +32,7 @@ import {
     getReportAction,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
-import {isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isMoneyRequestReport, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
@@ -42,8 +42,8 @@ import {createTransactionThreadReport, openReport, updateLastVisitTime} from '@u
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type {PersonalDetailsList, Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SearchMoneyRequestPageProps =
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
@@ -58,6 +58,13 @@ const defaultReportMetadata = {
     isOptimisticReport: false,
 };
 
+function isEmpty(report: OnyxEntry<Report>): boolean {
+    if (isEmptyObject(report)) {
+        return true;
+    }
+    return !Object.values(report).some((value) => value !== undefined && value !== '');
+}
+
 function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -65,9 +72,27 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {currentSearchResults: snapshot} = useSearchContext();
 
+    const [firstRender, setFirstRender] = useState(true);
+
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
 
     const isFocused = useIsFocused();
+
+    useEffect(() => {
+        if (firstRender) {
+            setFirstRender(false);
+            return;
+        }
+
+        const isRemovalExpectedForReportType = isEmpty(report) && isMoneyRequestReport(report);
+
+        if (isRemovalExpectedForReportType) {
+            if (!isFocused) {
+                return;
+            }
+            Navigation.dismissModal();
+        }
+    }, [report]);
 
     useEffect(() => {
         // Update last visit time when the expense super wide RHP report is focused
