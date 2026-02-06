@@ -27,7 +27,7 @@ import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import type {FlattenedItem, ListItem, SectionHeader, SelectionListWithSectionsProps} from './types';
+import type {FlattenedItem, ListItem, SelectionListWithSectionsProps} from './types';
 
 function getItemType<TItem extends ListItem>(item: FlattenedItem<TItem>): ValueOf<typeof CONST.SECTION_LIST_ITEM_TYPE> {
     return item?.type ?? CONST.SECTION_LIST_ITEM_TYPE.ROW;
@@ -50,6 +50,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     rightHandSideComponent,
     listEmptyContent,
     footerContent,
+    listFooterContent,
     style,
     addBottomSafeAreaPadding,
     isLoadingNewOptions,
@@ -272,13 +273,18 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return null;
         }
 
-        switch (getItemType(item)) {
-            case CONST.SECTION_LIST_ITEM_TYPE.HEADER:
+        switch (item.type) {
+            case CONST.SECTION_LIST_ITEM_TYPE.HEADER: {
+                if (item.customHeader) {
+                    return item.customHeader;
+                }
+
                 return (
                     <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                        <Text style={[styles.ph5, styles.textLabelSupporting]}>{(item as SectionHeader).title}</Text>
+                        <Text style={[styles.ph5, styles.textLabelSupporting]}>{item.title}</Text>
                     </View>
                 );
+            }
             case CONST.SECTION_LIST_ITEM_TYPE.ROW: {
                 const isItemFocused = index === focusedIndex;
                 const isDisabled = !!item.isDisabled;
@@ -288,7 +294,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         ListItem={ListItem}
                         selectRow={selectRow}
                         showTooltip={shouldShowTooltips}
-                        item={item as TItem}
+                        item={item}
                         index={index}
                         normalizedIndex={index}
                         isFocused={isItemFocused}
@@ -336,6 +342,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         indicatorStyle="white"
                         showsVerticalScrollIndicator
                         keyboardShouldPersistTaps="always"
+                        ListFooterComponent={listFooterContent}
                         style={style?.listStyle}
                         maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}
                     />

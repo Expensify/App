@@ -80,10 +80,9 @@ import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from './SelectionListWithSections';
-import type {SectionListDataType} from './SelectionListWithSections/types';
-import UserListItem from './SelectionListWithSections/UserListItem';
+import UserListItem from './SelectionList/ListItem/UserListItem';
+import SelectionListWithSections from './SelectionList/SelectionListWithSections';
+import type {Section} from './SelectionList/SelectionListWithSections/types';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -222,7 +221,7 @@ type MoneyRequestConfirmationListProps = {
     showRemoveExpenseConfirmModal?: () => void;
 };
 
-type MoneyRequestConfirmationListItem = Participant | OptionData;
+type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
 const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
 
@@ -721,6 +720,7 @@ function MoneyRequestConfirmationList({
                 }
                 return {
                     ...participantOption,
+                    keyForList: `${participantOption.keyForList ?? participantOption.accountID ?? participantOption.reportID}`,
                     isSelected: false,
                     isInteractive: false,
                     rightElement: (
@@ -740,6 +740,7 @@ function MoneyRequestConfirmationList({
             tabIndex: -1,
             isSelected: false,
             isInteractive: false,
+            keyForList: `${participantOption.keyForList ?? participantOption.accountID ?? participantOption.reportID}`,
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
@@ -832,19 +833,19 @@ function MoneyRequestConfirmationList({
     );
 
     const sections = useMemo(() => {
-        const options: Array<SectionListDataType<MoneyRequestConfirmationListItem>> = [];
+        const options: Array<Section<MoneyRequestConfirmationListItem>> = [];
         if (isTypeSplit) {
             options.push(
                 ...[
                     {
                         title: translate('moneyRequestConfirmationList.paidBy'),
                         data: [getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)],
-                        shouldShow: true,
+                        sectionIndex: 0,
                     },
                     {
-                        CustomSectionHeader: getSplitSectionHeader,
+                        customHeader: getSplitSectionHeader(),
                         data: splitParticipants,
-                        shouldShow: true,
+                        sectionIndex: 1,
                     },
                 ],
             );
@@ -853,13 +854,15 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
+                keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
                 isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
                 shouldShowRightIcon: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
             }));
+
             options.push({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
-                shouldShow: true,
+                sectionIndex: 0,
             });
         }
 
@@ -1305,18 +1308,18 @@ function MoneyRequestConfirmationList({
 
     return (
         <MouseProvider>
-            <SelectionList<MoneyRequestConfirmationListItem>
+            <SelectionListWithSections<MoneyRequestConfirmationListItem>
                 sections={sections}
                 ListItem={UserListItem}
                 onSelectRow={navigateToParticipantPage}
                 shouldSingleExecuteRowSelect
-                canSelectMultiple={false}
                 shouldPreventDefaultFocusOnSelectRow
-                shouldShowListEmptyContent={false}
+                showListEmptyContent={false}
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
-                containerStyle={[styles.flexBasisAuto]}
-                removeClippedSubviews={false}
+                style={{
+                    containerStyle: [styles.flexBasisAuto],
+                }}
                 disableKeyboardShortcuts
             />
         </MouseProvider>

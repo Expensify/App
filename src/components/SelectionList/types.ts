@@ -25,6 +25,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
 
+    /** Custom content to display in the footer of list component */
+    listFooterContent?: React.JSX.Element | null | undefined;
+
     /** Whether to show the loading placeholder */
     showLoadingPlaceholder?: boolean;
 
@@ -128,9 +131,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Custom component to render while data is loading */
         customLoadingPlaceholder?: React.JSX.Element;
-
-        /** Custom content to display in the footer of list component */
-        listFooterContent?: React.JSX.Element | null | undefined;
 
         /** Number of lines to show for alternate text */
         alternateNumberOfSupportedLines?: number;
