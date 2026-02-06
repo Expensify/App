@@ -30,14 +30,14 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
     const session = useSession();
-    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
-    const sourceURLWithAuth = addEncryptedAuthTokenToURL(source, encryptedAuthToken);
     const {translate} = useLocalize();
 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
     const isDownloading = download?.isDownloading ?? false;
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
+    const sourceURLWithAuth = addEncryptedAuthTokenToURL(source, encryptedAuthToken);
 
     return (
         <ShowContextMenuContext.Consumer>
@@ -62,6 +62,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}
                     role={CONST.ROLE.BUTTON}
+                    sentryLabel={CONST.SENTRY_LABEL.BASE_ANCHOR_FOR_ATTACHMENTS_ONLY.DOWNLOAD_BUTTON}
                 >
                     <AttachmentView
                         source={source}
