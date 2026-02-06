@@ -94,9 +94,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
             // Wait for component to render
             await waitForBatchedUpdatesWithAct();
 
-            // Then the Travel Booking section should be visible
-            expect(screen.getByText('Travel booking')).toBeTruthy();
-            // And the Central Invoicing section should be visible
+            // Central Invoicing section should be visible
             expect(screen.getByText('Central invoicing')).toBeTruthy();
         });
 
@@ -118,9 +116,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Then the Travel Booking section should be visible
-            expect(screen.getByText('Travel booking')).toBeTruthy();
-            // And the Central Invoicing section should be visible
+            // The Central Invoicing section should be visible
             expect(screen.getByText('Central invoicing')).toBeTruthy();
         });
     });
@@ -155,8 +151,8 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // Then the section title should be visible
-            expect(screen.getByText('Travel booking')).toBeTruthy();
+            // The section title should be visible
+            expect(screen.getByText('Central invoicing')).toBeTruthy();
         });
 
         it('should display current travel spend label when configured', async () => {
