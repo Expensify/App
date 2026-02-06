@@ -64,6 +64,7 @@ body {
     min-height: 100%;
     background: var(--color-appBG);
     color: var(--color-text-supporting);
+    overflow-x: hidden;
 }
 
 hr {
@@ -901,7 +902,7 @@ button {
         font-size: 1.2em;
         font-weight: normal;
         &.with-margin {
-            margin: 20px 0 8px 0;
+            margin: 12px 0 8px 0;
         }
     }
 
@@ -969,7 +970,7 @@ button {
         &__illustration {
             display: none;
 
-            @include breakpoint($breakpoint-tablet) {
+            @include breakpoint($breakpoint-desktop) {
                 display: block;
             }
 
@@ -1009,9 +1010,8 @@ button {
         align-items: center;
 
         .base-icon {
-            width: 16px;
-            height: 16px;
-            opacity: 0.5;
+            width: 18px;
+            height: 18px;
         }
     }
 
@@ -1168,6 +1168,9 @@ button {
         }
 
         h3.title {
+            font-family: 'Expensify Neue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+            font-weight: 700;
+            font-style: normal;
             padding: 0;
             margin: 0 0 8px 0;
         }
