@@ -260,8 +260,8 @@ function ComposerWithSuggestions({
     const commentRef = useRef(value);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
-    // Autofocus is disabled on SearchReport when another RHP is displayed below as it causes animation issues
-    const shouldDisableAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
+    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
@@ -275,7 +275,7 @@ function ComposerWithSuggestions({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
     const shouldAutoFocus =
-        (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput && !shouldDisableAutoFocus;
+        (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -612,9 +612,14 @@ function ComposerWithSuggestions({
      * Focus the composer text input
      * @param [shouldDelay=false] Impose delay before focusing the composer
      */
-    const focus = useCallback((shouldDelay = false) => {
-        focusComposerWithDelay(textInputRef.current)(shouldDelay);
-    }, []);
+    const focus = useCallback(
+        (shouldDelay = false) => {
+            // If we're stacked above another RHP, wait for the transition to complete before focusing.
+            const delay = shouldDelayAutoFocus ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
+            focusComposerWithDelay(textInputRef.current, delay)(shouldDelay);
+        },
+        [shouldDelayAutoFocus],
+    );
 
     /**
      * Set focus callback
