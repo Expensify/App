@@ -10,21 +10,20 @@
 
 {% assign section = hub.flatSections | where: "href", activeSectionPath | first %}
 
-<h1 class="title">
-    {{ section.title }}
-</h1>
+{% if section %}
+  <h1 class="title">
+      {{ section.title }}
+  </h1>
 
-<section>
-    <div class="cards-group">
-        {% if section.sections %}
-            {% for subsection in section.sections %}
-                {% include section-card.html platform=activePlatform hub=hub.href section=subsection.href title=subsection.title %}
-            {% endfor %}
-        {% endif %}
-        {% assign sortedArticles = section.articles | default: empty %}
+  {% if section.articles %}
+    <section>
+      <div class="cards-group">
+        {% assign sortedArticles = section.articles | sort: 'order', 'last' | default: 999 %}
         {% for article in sortedArticles %}
-            {% assign article_href = section.href | append: '/' | append: article.href %}
-            {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
+          {% assign article_href = section.href | append: '/' | append: article.href %}
+          {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
         {% endfor %}
-    </div>
-</section>
+      </div>
+    </section>
+  {% endif %}
+{% endif %}
