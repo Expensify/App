@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -25,6 +26,16 @@ function SearchEditMultipleDescriptionPage() {
 
     const currentDescription = draftTransaction?.comment?.comment ?? '';
 
+    const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM> = {};
+
+        if ((value.description?.length ?? 0) > CONST.DESCRIPTION_LIMIT) {
+            addErrorMessage(errors, INPUT_IDS.DESCRIPTION, translate('common.error.characterLimitExceedCounter', value.description?.length ?? 0, CONST.DESCRIPTION_LIMIT));
+        }
+
+        return errors;
+    };
+
     const saveDescription = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM>) => {
         const newDescription = value.description?.trim() ?? '';
         updateBulkEditDraftTransaction({
@@ -37,7 +48,7 @@ function SearchEditMultipleDescriptionPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={SearchEditMultipleDescriptionPage.displayName}
+            testID="SearchEditMultipleDescriptionPage"
         >
             <HeaderWithBackButton
                 title={translate('common.description')}
@@ -47,6 +58,7 @@ function SearchEditMultipleDescriptionPage() {
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM}
                 onSubmit={saveDescription}
+                validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
@@ -64,6 +76,7 @@ function SearchEditMultipleDescriptionPage() {
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
+                        type="markdown"
                     />
                 </View>
             </FormProvider>
