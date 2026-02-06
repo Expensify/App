@@ -1,7 +1,11 @@
-import {reverseGeocodeAsync} from 'expo-location';
+import {hasStartedLocationUpdatesAsync, reverseGeocodeAsync, stopLocationUpdatesAsync} from 'expo-location';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Routes, WaypointCollection} from '@src/types/onyx/Transaction';
+import {setEndAddress, setIsTracking} from './actions/GPSDraftDetails';
 import DistanceRequestUtils from './DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from './NumberUtils';
 
@@ -58,7 +62,7 @@ function getGPSCoordinates(gpsDraftDetails: GpsDraftDetails | undefined): string
 }
 
 function calculateGPSDistance(distanceInMeters: number, unit: Unit): number {
-    return roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit));
+    return DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
 }
 
 function getGPSConvertedDistance(gpsDraftDetails: GpsDraftDetails | undefined, unit: Unit): number {
@@ -87,4 +91,34 @@ function coordinatesToString(gpsPoint: {lat: number; long: number}): string {
     return `${gpsPoint.lat},${gpsPoint.long}`;
 }
 
-export {getGPSRoutes, getGPSWaypoints, getGPSConvertedDistance, getGPSCoordinates, addressFromGpsPoint, coordinatesToString, calculateGPSDistance};
+async function stopGpsTrip(isOffline: boolean) {
+    const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
+
+    if (isBackgroundTaskRunning) {
+        await stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
+    }
+
+    setIsTracking(false);
+
+    const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+
+    const lastPoint = gpsTrip?.gpsPoints?.at(-1);
+
+    if (!lastPoint) {
+        return;
+    }
+
+    if (!isOffline) {
+        const endAddress = await addressFromGpsPoint(lastPoint);
+
+        if (endAddress !== null) {
+            setEndAddress({value: endAddress, type: 'address'});
+            return;
+        }
+    }
+
+    const formattedCoordinates = coordinatesToString(lastPoint);
+    setEndAddress({value: formattedCoordinates, type: 'coordinates'});
+}
+
+export {getGPSRoutes, getGPSWaypoints, stopGpsTrip, getGPSConvertedDistance, getGPSCoordinates, addressFromGpsPoint, coordinatesToString, calculateGPSDistance};

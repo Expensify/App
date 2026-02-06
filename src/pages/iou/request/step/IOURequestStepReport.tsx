@@ -128,7 +128,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         // Clear subrates, and update customUnitID if policy changed for per diem transactions
         if (policyChanged && isPerDiemTransaction) {
             setCustomUnitID(transaction.transactionID, newCustomUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-            setCustomUnitRateID(transaction.transactionID, undefined);
+            setCustomUnitRateID(transaction.transactionID, undefined, transaction, newPolicy);
             clearSubrates(transaction.transactionID);
         }
 

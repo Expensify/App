@@ -278,6 +278,19 @@ function getMCardNumberString(cardNumber: string): string {
     return cardNumber.replaceAll(/\s/g, '');
 }
 
+/**
+ * Returns the default Expensify Card limit type based on policy approval workflow.
+ * When approvals are configured (not optional), defaults to SMART; otherwise MONTHLY.
+ */
+function getDefaultExpensifyCardLimitType(policy?: OnyxEntry<Policy>): ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> {
+    let approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        approvalMode = CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    }
+    const areApprovalsConfigured = approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    return areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
+}
+
 function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths | '' {
     switch (limitType) {
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
@@ -286,6 +299,8 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
             return 'workspace.card.issueNewCard.fixedAmount';
         case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
             return 'workspace.card.issueNewCard.monthly';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE:
+            return 'workspace.card.issueNewCard.singleUse';
         default:
             return '';
     }
@@ -398,6 +413,15 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
     }
 
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
+}
+
+/**
+ * Checks if a feed key represents a CSV feed or Expensify Card.
+ * CSV feeds from Classic and Expensify Cards should not count toward the feed limit for Collect plan workspaces.
+ */
+function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
+    const lowerFeedKey = feedKey.toLowerCase();
+    return lowerFeedKey.startsWith('csv') || lowerFeedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === CONST.EXPENSIFY_CARD.BANK;
 }
 
 function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
@@ -972,6 +996,7 @@ function hasDisplayableAssignedCards(cardList: CardList | undefined): boolean {
 
 export {
     getAssignedCardSortKey,
+    getDefaultExpensifyCardLimitType,
     isExpensifyCard,
     getDomainCards,
     formatCardExpiration,
@@ -991,6 +1016,7 @@ export {
     isSelectedFeedExpired,
     getCompanyFeeds,
     isCustomFeed,
+    isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
     getSelectedFeed,
     getPlaidCountry,

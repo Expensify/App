@@ -365,6 +365,7 @@ const SCREENS = {
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
         STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
         STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',
+        ODOMETER_IMAGE: 'Money_Request_Odometer_Image',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
         STEP_TIME_RATE: 'Money_Request_Step_Time_Rate',
         STEP_HOURS: 'Money_Request_Step_Hours',
@@ -412,6 +413,7 @@ const SCREENS = {
         EXPENSIFY_CARD_NAME: 'Expensify_Card_Name',
         EXPENSIFY_CARD_LIMIT: 'Expensify_Card_Limit',
         EXPENSIFY_CARD_LIMIT_TYPE: 'Expensify_Card_Limit_Type',
+        EXPENSIFY_CARD_EXPIRY_OPTIONS: 'Expensify_Card_Expiry_Options',
     },
     DOMAIN_CARD: {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
