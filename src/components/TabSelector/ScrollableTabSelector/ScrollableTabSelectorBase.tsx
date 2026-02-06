@@ -38,6 +38,7 @@ function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, p
             ref={containerRef}
             style={styles.scrollableTabSelector}
             contentContainerStyle={{
+                flexGrow: 1,
                 paddingBottom: 12,
                 paddingHorizontal: 20,
             }}

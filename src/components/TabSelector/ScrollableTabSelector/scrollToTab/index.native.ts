@@ -6,15 +6,16 @@ function scrollToTab({containerX, tabX, tabWidth, animated = true, containerRef,
         return;
     }
 
-    const leftSideCut = containerX > tabX;
-    const rightSideCut = tabX + tabWidth >= containerX + containerWidth - TAB_SELECTOR_SCROLL_MARGIN_INLINE_PX;
-    if (!leftSideCut && !rightSideCut) {
+    const isTabLeftSideCut = containerX > tabX;
+    const isTabRightSideCut = tabX + tabWidth >= containerX + containerWidth - TAB_SELECTOR_SCROLL_MARGIN_INLINE_PX;
+    console.log({isTabLeftSideCut, isTabRightSideCut, tabX, tabWidth, containerX, containerWidth});
+    if (!isTabLeftSideCut && !isTabRightSideCut) {
         return;
     }
 
-    if (rightSideCut) {
-        const rightSideCutLength = tabX + tabWidth - (containerWidth + containerX);
-        containerRef.current.scrollTo({x: containerX + rightSideCutLength + TAB_SELECTOR_SCROLL_MARGIN_INLINE_PX, animated});
+    if (isTabRightSideCut) {
+        const tabCutLengthOnRight = tabX + tabWidth - (containerWidth + containerX);
+        containerRef.current.scrollTo({x: containerX + tabCutLengthOnRight + TAB_SELECTOR_SCROLL_MARGIN_INLINE_PX, animated});
         return;
     }
 

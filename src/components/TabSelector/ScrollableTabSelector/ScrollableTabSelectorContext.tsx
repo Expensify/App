@@ -1,4 +1,4 @@
-import React, {createContext, useRef, useState} from 'react';
+import React, {createContext, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, View} from 'react-native';
 import scrollToTabUtil from './scrollToTab';
@@ -30,29 +30,17 @@ const ScrollableTabSelectorContext = createContext<ScrollableTabSelectorContextV
 
 function ScrollableTabSelectorContextProvider({children, activeTabKey}: ScrollableTabSelectorContextProviderProps) {
     const containerRef = useRef<RNScrollView>(null);
+    const containerLayoutRef = useRef<{x: number; width: number}>({x: 0, width: 0});
     const tabsRef = useRef<Record<string, {ref: HTMLDivElement | View | null; width: number; x: number}>>({});
-
-    const [containerX, setContainerX] = useState(0);
-    const [containerWidth, setContainerWidth] = useState(0);
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
         const width = event.nativeEvent.layout.width;
-        setContainerWidth(width);
-
-        const activeTabData = tabsRef.current[activeTabKey];
-
-        if (!activeTabData) {
-            return;
-        }
-
-        const {x: tabX, width: tabWidth, ref: tabRef} = activeTabData;
-
-        scrollToTabUtil({tabX, tabWidth, tabRef, containerRef, containerWidth, containerX, animated: false});
+        containerLayoutRef.current.width = width;
     };
 
     const onContainerScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const x = event.nativeEvent.contentOffset.x;
-        setContainerX(x);
+        containerLayoutRef.current.x = x;
     };
 
     const registerTab = (tabKey: string, ref: HTMLDivElement | View | null) => {
@@ -66,6 +54,11 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
     const onTabLayout = (tabKey: string, event: LayoutChangeEvent) => {
         const {x, width} = event.nativeEvent.layout;
         tabsRef.current[tabKey] = {...tabsRef.current[tabKey], x, width};
+
+        if (tabKey === activeTabKey) {
+            const {ref: tabRef} = tabsRef.current[tabKey];
+            scrollToTabUtil({tabX: x, tabWidth: width, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x, animated: false});
+        }
     };
 
     const scrollToTab = (tabKey: string) => {
@@ -77,14 +70,13 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
 
         const {x: tabX, width: tabWidth, ref: tabRef} = tabData;
 
-        scrollToTabUtil({tabX, tabWidth, tabRef, containerRef, containerWidth, containerX});
+        scrollToTabUtil({tabX, tabWidth, tabRef, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
     };
 
     // React Compiler auto-memoization
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue = {containerRef, registerTab, onTabLayout, onContainerLayout, onContainerScroll, scrollToTab};
 
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
     return <ScrollableTabSelectorContext.Provider value={contextValue}>{children}</ScrollableTabSelectorContext.Provider>;
 }
 

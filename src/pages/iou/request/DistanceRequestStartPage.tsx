@@ -215,7 +215,6 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => null}</TopTab.Screen>
                         {showGPSTab && (
                             <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_GPS}>
                                 {() => (
