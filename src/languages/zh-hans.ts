@@ -783,6 +783,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nameEmailOrPhoneNumber: '姓名、电子邮件或电话号码',
         findMember: '查找成员',
         searchForSomeone: '搜索联系人',
+        userSelected: (username: string) => `已选择 ${username}`,
     },
     customApprovalWorkflow: {
         title: '自定义审批流程',
@@ -3026,10 +3027,7 @@ ${
     detailsPage: {
         localTime: '本地时间',
     },
-    newChatPage: {
-        startGroup: '开始群组',
-        addToGroup: '添加到群组',
-    },
+    newChatPage: {startGroup: '开始群组', addToGroup: '添加到群组', addUserToGroup: (username: string) => `将 ${username} 添加到群组`},
     yearPickerPage: {
         year: '年份',
         selectYear: '请选择年份',
@@ -6379,6 +6377,7 @@ ${reportName}
             symbols: '符号',
             flags: '标记',
         },
+        emojiNotSelected: '未选择表情符号',
     },
     newRoomPage: {
         newRoom: '新房间',

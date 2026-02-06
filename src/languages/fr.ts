@@ -795,6 +795,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nameEmailOrPhoneNumber: 'Nom, e-mail ou numéro de téléphone',
         findMember: 'Trouver un membre',
         searchForSomeone: 'Rechercher une personne',
+        userSelected: (username: string) => `${username} sélectionné`,
     },
     customApprovalWorkflow: {
         title: 'Workflow d’approbation personnalisé',
@@ -3095,6 +3096,7 @@ ${
     newChatPage: {
         startGroup: 'Commencer le groupe',
         addToGroup: 'Ajouter au groupe',
+        addUserToGroup: (username: string) => `Ajouter ${username} au groupe`,
     },
     yearPickerPage: {
         year: 'Année',
@@ -6553,6 +6555,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             symbols: 'Symboles',
             flags: 'Drapeaux',
         },
+        emojiNotSelected: 'Emoji non sélectionné',
     },
     newRoomPage: {
         newRoom: 'Nouvelle salle',

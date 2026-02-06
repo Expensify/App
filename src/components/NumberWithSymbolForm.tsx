@@ -461,7 +461,7 @@ function NumberWithSymbolForm({
             isNegative={isNegative}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
-            accessibilityLabel={props.accessibilityLabel}
+            accessibilityLabel={props.accessibilityLabel ?? `${translate('iou.amount')} ${formattedNumber} (${currency})`}
             keyboardType={props.keyboardType}
         />
     );

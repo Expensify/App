@@ -807,6 +807,7 @@ const translations = {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
         searchForSomeone: 'Search for someone',
+        userSelected: (username: string) => `${username} selected`,
     },
     customApprovalWorkflow: {
         title: 'Custom approval workflow',
@@ -3115,6 +3116,7 @@ const translations = {
     newChatPage: {
         startGroup: 'Start group',
         addToGroup: 'Add to group',
+        addUserToGroup: (username: string) => `Add ${username} to group`,
     },
     yearPickerPage: {
         year: 'Year',
@@ -6459,6 +6461,7 @@ const translations = {
         onboardingHelp: 'Onboarding help',
     },
     emojiPicker: {
+        emojiNotSelected: 'Emoji not selected',
         skinTonePickerLabel: 'Change default skin tone',
         headers: {
             frequentlyUsed: 'Frequently Used',
