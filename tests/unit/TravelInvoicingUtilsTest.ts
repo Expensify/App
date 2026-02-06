@@ -29,24 +29,59 @@ describe('TravelInvoicingUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('Should return true when cardSettings object exists', () => {
-            // The existence of the settings object indicates Travel Invoicing is enabled
+        it('Should return false when isEnabled is explicitly false', () => {
+            const cardSettings = {isEnabled: false} as ExpensifyCardSettings;
+            const result = getIsTravelInvoicingEnabled(cardSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return true when isEnabled is explicitly true', () => {
+            const cardSettings = {isEnabled: true} as ExpensifyCardSettings;
+            const result = getIsTravelInvoicingEnabled(cardSettings);
+            expect(result).toBe(true);
+        });
+
+        it('Should return false when isEnabled is undefined and no paymentBankAccountID (new account)', () => {
+            // Empty settings (like from loading state) should return false, not true
             const cardSettings = {} as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
-            expect(result).toBe(true);
+            expect(result).toBe(false);
         });
 
-        it('Should return true when cardSettings exists even if settlement account is not set', () => {
-            // Settings object existence is the indicator, not the bank account ID
-            const cardSettings = {paymentBankAccountID: 0} as ExpensifyCardSettings;
-            const result = getIsTravelInvoicingEnabled(cardSettings);
-            expect(result).toBe(true);
-        });
-
-        it('Should return true when cardSettings exists with we have a valid settlement account set', () => {
+        it('Should return true when isEnabled is undefined with valid paymentBankAccountID', () => {
             const cardSettings = {paymentBankAccountID: 12345} as ExpensifyCardSettings;
             const result = getIsTravelInvoicingEnabled(cardSettings);
             expect(result).toBe(true);
+        });
+
+        // Tests for nested TRAVEL_US structure (backend response format)
+        it('Should return false when nested TRAVEL_US.isEnabled is false', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {isEnabled: false, paymentBankAccountID: 12345},
+            } as ExpensifyCardSettings;
+            const result = getIsTravelInvoicingEnabled(cardSettings);
+            expect(result).toBe(false);
+        });
+
+        it('Should return true when nested TRAVEL_US.isEnabled is true', () => {
+            const cardSettings = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {isEnabled: true, paymentBankAccountID: 12345},
+            } as ExpensifyCardSettings;
+            const result = getIsTravelInvoicingEnabled(cardSettings);
+            expect(result).toBe(true);
+        });
+
+        it('Should prioritize nested TRAVEL_US over root level', () => {
+            // Even if root level says enabled, nested TRAVEL_US should take precedence
+            const cardSettings = {
+                isEnabled: true,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                TRAVEL_US: {isEnabled: false},
+            } as ExpensifyCardSettings;
+            const result = getIsTravelInvoicingEnabled(cardSettings);
+            expect(result).toBe(false);
         });
     });
 

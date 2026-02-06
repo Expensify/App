@@ -58,8 +58,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const [isOutstandingBalanceModalVisible, setIsOutstandingBalanceModalVisible] = useState(false);
 
     // For Travel Invoicing, we use a travel-specific card settings key
-    // The format is: private_expensifyCardSettings_{workspaceAccountID}_{feedType}
-    // where feedType is PROGRAM_TRAVEL_US for Travel Invoicing
+    // Uses the same key pattern as Expensify Card: private_expensifyCardSettings_{workspaceAccountID}
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID), {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
@@ -88,8 +87,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
     // Differentiate toggle errors from settlement account errors based on pendingAction
     // Toggle actions use ADD or DELETE pendingAction, settlement account uses UPDATE
-    const isTogglePendingAction =
-        cardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || cardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isTogglePendingAction = cardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || cardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isSettlementAccountPendingAction = cardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
     // Only show errors/pending under the toggle if it's a toggle action
@@ -107,13 +105,15 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
 
-    // Determine if Travel Invoicing is enabled based on settings object existence
+    // Determine if Travel Invoicing is enabled based on isEnabled field
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
 
     /**
      * Handle toggle change for Central Invoicing.
-     * When turning ON, calls toggleTravelInvoicing(true) first to provision domain, then navigates to settlement account.
-     * When turning OFF, shows confirmation modal and then clears settings via toggleTravelInvoicing.
+     * When turning ON:
+     *   - If has settlement account: call toggleTravelInvoicing(true)
+     *   - If no settlement account: navigate to selection (enable happens after selection)
+     * When turning OFF: show confirmation modal, then call toggleTravelInvoicing(false).
      */
     const handleToggle = (isEnabled: boolean) => {
         if (!isEnabled) {
@@ -134,17 +134,22 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             return;
         }
 
-        // Turning ON - check if bank account setup is needed
+        // Turning ON - check if bank account setup is needed first
         if (!eligibleBankAccounts.length || isSetupUnfinished) {
             // No bank accounts - start add bank account flow
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)));
             return;
         }
 
-        // Bank accounts exist - navigate to settlement account selection
-        // toggleTravelInvoicing(true) will be called after account is selected
-        // (backend requires settlement account to be set before enabling)
-        Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
+        // If no settlement account configured, navigate to settlement account setup
+        // The toggle will be enabled after settlement account is selected
+        if (!hasSettlementAccount) {
+            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
+            return;
+        }
+
+        // Has settlement account - enable Travel Invoicing directly
+        toggleTravelInvoicing(policyID, workspaceAccountID, true);
     };
 
     /**
@@ -156,7 +161,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     };
 
     const getCentralInvoicingSubtitle = () => {
-        if (!hasSettlementAccount) {
+        if (!isTravelInvoicingEnabled) {
             return <CentralInvoicingSubtitleWrapper htmlComponent={<CentralInvoicingLearnHow />} />;
         }
         return <CentralInvoicingSubtitleWrapper />;
@@ -184,7 +189,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                             titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
                             descriptionTextStyle={styles.textLabelSupportingNormal}
                             interactive={false}
-                            // brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                         <View style={[styles.wFitContent]}>
                             <AnimatedSubmitButton
@@ -206,7 +210,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                         titleStyle={styles.textNormalThemeText}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         interactive={false}
-                        // brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                     <OfflineWithFeedback
                         errors={settlementAccountErrors}
@@ -234,7 +237,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                         titleStyle={styles.textNormalThemeText}
                         descriptionTextStyle={styles.textLabelSupportingNormal}
                         shouldShowRightIcon
-                        // brickRoadIndicator={hasDelayedSubmissionError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </>
             ),

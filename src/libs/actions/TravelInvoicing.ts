@@ -4,8 +4,8 @@ import * as API from '@libs/API';
 import type {OpenPolicyTravelPageParams, SetTravelInvoicingSettlementAccountParams, ToggleTravelInvoicingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
+import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -123,50 +123,43 @@ function clearTravelInvoicingSettlementAccountErrors(workspaceAccountID: number,
 
 /**
  * Toggles Travel Invoicing on or off for a workspace.
- * When enabling: sets loading state, backend returns settings on success
- * When disabling: clears the settings object entirely (backend returns null onyx data)
+ * Sets isEnabled flag optimistically, backend confirms via onyx data.
  */
 function toggleTravelInvoicing(policyID: string, workspaceAccountID: number, enabled: boolean) {
     const domainName = getDomainNameForPolicy(policyID);
     const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
-    // When enabling: use MERGE to set loading state, backend returns full settings
-    // When disabling: use SET null to clear entire settings object
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: enabled ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
-            value: enabled
-                ? {
-                      isLoading: true,
-                      pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                      errors: null,
-                  }
-                : null,
+            value: {
+                isEnabled: enabled,
+                isLoading: true,
+                pendingAction: enabled ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                errors: null,
+            },
         },
     ];
 
     const successData: OnyxUpdate[] = [
         {
-            onyxMethod: enabled ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
-            value: enabled
-                ? {
-                      isLoading: false,
-                      pendingAction: null,
-                  }
-                : null,
+            value: {
+                isLoading: false,
+                pendingAction: null,
+            },
         },
     ];
 
-    // On failure: restore state with error
-    // For enable failure: clear loading state and show error
-    // For disable failure: need to restore settings with error (backend should return original data)
+    // On failure: revert isEnabled and show error
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: cardSettingsKey,
             value: {
+                isEnabled: !enabled,
                 isLoading: false,
                 pendingAction: null,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -193,4 +186,3 @@ function clearToggleTravelInvoicingErrors(workspaceAccountID: number) {
 }
 
 export {openPolicyTravelPage, setTravelInvoicingSettlementAccount, clearTravelInvoicingSettlementAccountErrors, toggleTravelInvoicing, clearToggleTravelInvoicingErrors};
-
