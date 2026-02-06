@@ -10,6 +10,12 @@ type DropZoneUIProps = {
     /** Icon to display in the drop zone */
     icon: IconAsset;
 
+    /** Icon width to display in the drop zone */
+    iconWidth?: number;
+
+    /** Icon height to display in the drop zone */
+    iconHeight?: number;
+
     /** Title to display in the drop zone */
     dropTitle?: string;
 
@@ -26,7 +32,7 @@ type DropZoneUIProps = {
     dropWrapperStyles?: StyleProp<ViewStyle>;
 };
 
-function DropZoneUI({icon, dropTitle, dropStyles, dropTextStyles, dropWrapperStyles, dashedBorderStyles}: DropZoneUIProps) {
+function DropZoneUI({icon, iconWidth = 100, iconHeight = 100, dropTitle, dropStyles, dropTextStyles, dropWrapperStyles, dashedBorderStyles}: DropZoneUIProps) {
     const styles = useThemeStyles();
 
     return (
@@ -36,8 +42,8 @@ function DropZoneUI({icon, dropTitle, dropStyles, dropTextStyles, dropWrapperSty
                     <View style={styles.mb3}>
                         <Icon
                             src={icon}
-                            width={100}
-                            height={100}
+                            width={iconWidth}
+                            height={iconHeight}
                         />
                     </View>
                     <Text style={[styles.textDropZone, dropTextStyles]}>{dropTitle}</Text>

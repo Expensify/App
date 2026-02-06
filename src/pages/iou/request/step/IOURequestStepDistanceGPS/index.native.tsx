@@ -9,6 +9,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setGPSTransactionDraftData} from '@libs/actions/IOU';
@@ -53,6 +55,8 @@ function IOURequestStepDistanceGPS({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const selfDMReport = useSelfDMReport();
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
@@ -113,6 +117,8 @@ function IOURequestStepDistanceGPS({
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             gpsCoordinates,
             gpsDistance: distance,
+            selfDMReport,
+            policyForMovingExpenses,
             betas,
         });
     };
