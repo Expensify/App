@@ -268,7 +268,7 @@ PODS:
   - fmt (11.0.2)
   - ForkInputMask (7.3.3)
   - FullStory (1.64.2)
-  - fullstory_react-native (1.8.1):
+  - fullstory_react-native (1.7.8):
     - boost
     - DoubleConversion
     - fast_float
@@ -4663,7 +4663,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c381e701f709f5185471800bbb626f079d93fc0d
-  fullstory_react-native: f3bc7acf2533f1a1803368925cf6d50e629ee786
+  fullstory_react-native: 590db55c04e728f483667487f833a8e487112520
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
