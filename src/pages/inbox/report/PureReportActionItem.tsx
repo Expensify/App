@@ -1402,7 +1402,23 @@ function PureReportActionItem({
             children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
             const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
-            children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={getReportActionMessageText(action)} />;
+            if (isFromNewDot) {
+                children = emptyHTML;
+            } else {
+                // Skip the first fragment (actor's email) since it's already shown in the action header
+                const messageFragments = action.message;
+                let reimbursedMessage = getReportActionMessageText(action);
+                if (Array.isArray(messageFragments) && messageFragments.length > 1) {
+                    reimbursedMessage = messageFragments
+                        .slice(1)
+                        .map((fragment) => fragment?.text ?? '')
+                        .join('')
+                        .trim();
+                    // Capitalize the first letter
+                    reimbursedMessage = reimbursedMessage.charAt(0).toUpperCase() + reimbursedMessage.slice(1);
+                }
+                children = <ReportActionItemBasicMessage message={reimbursedMessage} />;
+            }
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
