@@ -8239,9 +8239,6 @@ const CONST = {
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
         },
-        WORKSPACE: {
-            WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
-        },
         REPORT_DETAILS: {
             WORKSPACE_LINK: 'ReportDetails-WorkspaceLink',
         },
@@ -8262,6 +8259,7 @@ const CONST = {
         },
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
+            WORKSPACE_MENU_ITEM: 'Workspace-WorkspaceMenuItem',
         },
     },
 
