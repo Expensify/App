@@ -7443,6 +7443,7 @@ ${reportName}
             prompt: '确定要放弃此行程并退出登录吗？',
             confirm: '放弃并退出登录',
         },
+        switchToODWarningTripInProgress: {title: '正在进行 GPS 跟踪', prompt: '您确定要停止 GPS 追踪并切换到 Expensify Classic 吗？', confirm: '停止并切换'},
         locationServicesRequiredModal: {
             title: '需要访问位置信息',
             confirm: '打开设置',
