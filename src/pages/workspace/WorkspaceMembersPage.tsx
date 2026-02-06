@@ -553,6 +553,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     useEffect(() => {
+        if (isMobileSelectionModeEnabled) {
+            return;
+        }
+
+        setSelectedEmployees([]);        
         return () => {
             if (!isMobileSelectionModeEnabled) {
                 return;
