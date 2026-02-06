@@ -1069,16 +1069,14 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
             // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
                 const isNarrowLayout = getIsNarrowLayout();
-                if (isNarrowLayout) {
-                    Navigation.dismissModal();
-                } else {
-                    Navigation.dismissToPreviousRHP();
-                }
+                Navigation.dismissToPreviousRHP();
 
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: !isNarrowLayout});
-                });
-                return;
+                if (!isNarrowLayout) {
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: !isNarrowLayout});
+                    });
+                    return;
+                }
             }
             Navigation.pop(rhpKey);
             return;
