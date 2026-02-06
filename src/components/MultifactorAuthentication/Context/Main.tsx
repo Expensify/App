@@ -10,7 +10,7 @@ import {requestValidateCodeAction} from '@libs/actions/User';
 import getPlatform from '@libs/getPlatform';
 import type {ChallengeType, MultifactorAuthenticationReason, OutcomePaths} from '@libs/MultifactorAuthentication/Biometrics/types';
 import Navigation from '@navigation/Navigation';
-import {requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
+import {clearLocalMFAPublicKeyList, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenario} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,9 +24,8 @@ let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
 
 // Use Onyx.connectWithoutView instead of useOnyx hook to access the device biometrics state.
 // This is a non-reactive read that allows us to check the current value (hasAcceptedSoftPrompt)
-// from within the process() callback without triggering component re-renders or complicating
-// the effect's dependency list. Since we only need the latest value at specific points in the
-// MFA flow (not reactivity to changes), this is more efficient than using the useOnyx hook.
+// from within the process() callback without triggering calling it too many times during the 
+// fresh registration flow
 Onyx.connectWithoutView({
     key: ONYXKEYS.DEVICE_BIOMETRICS,
     callback: (data) => {
@@ -111,6 +110,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 1. Check if there's an error - stop processing
         if (error) {
+            if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.REGISTRATION_REQUIRED) {
+                clearLocalMFAPublicKeyList();
+                dispatch({type: 'REREGISTER'});
+                return;
+            }
+
             Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME.getRoute(paths.failureOutcome), {forceReplace: true});
             dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
             return;
