@@ -1,12 +1,9 @@
-import {useMemo} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid using snapshots for live to-do data
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
-import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 type TodoSearchResultsData = SearchResults['data'];
 
@@ -117,118 +114,44 @@ function buildSearchResultsData(
 }
 
 export default function useTodos() {
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {canBeMissing: false});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const {login = '', accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const todos = useMemo(() => {
-        const reportsToSubmit: Report[] = [];
-        const reportsToApprove: Report[] = [];
-        const reportsToPay: Report[] = [];
-        const reportsToExport: Report[] = [];
-        const transactionsByReportID: Record<string, Transaction[]> = {};
+    const [todosReports] = useOnyx(ONYXKEYS.DERIVED.TODOS, {canBeMissing: true});
 
-        const reports = allReports ? Object.values(allReports) : [];
-        if (reports.length === 0) {
-            return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
-        }
-
-        if (allTransactions) {
-            for (const transaction of Object.values(allTransactions)) {
-                if (!transaction?.reportID) {
-                    continue;
-                }
-                (transactionsByReportID[transaction.reportID] ??= []).push(transaction);
-            }
-        }
-
-        for (const report of reports) {
-            if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
-                continue;
-            }
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
-            const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
-            const reportTransactions = transactionsByReportID[report.reportID] ?? [];
-            const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
-
-            if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID)) {
-                reportsToSubmit.push(report);
-            }
-            if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
-                reportsToApprove.push(report);
-            }
-            if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
-                reportsToPay.push(report);
-            }
-            if (isExportAction(report, login, policy, reportActions)) {
-                reportsToExport.push(report);
-            }
-        }
-
-        return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID};
-    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, currentUserAccountID, login, bankAccountList, allReportMetadata]);
-
-    const {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport, transactionsByReportID} = todos;
+    const transactionsByReportID = todosReports?.transactionsByReportID ?? CONST.EMPTY_OBJECT;
 
     // Build SearchResults-formatted data for each to-do category
-    const todoSearchResultsData = useMemo(() => {
-        const buildData = (reports: Report[]): {data: TodoSearchResultsData; metadata: TodoMetadata} => {
-            if (reports.length === 0) {
-                // Return empty object like the Search API would when there's no data
-                return {
-                    data: {} as TodoSearchResultsData,
-                    metadata: {count: 0, total: 0, currency: undefined},
-                };
-            }
+    const buildData = (reports?: Report[]): {data: TodoSearchResultsData; metadata: TodoMetadata} => {
+        if (!reports?.length) {
+            // Return empty object like the Search API would when there's no data
+            return {
+                data: CONST.EMPTY_OBJECT as TodoSearchResultsData,
+                metadata: {count: 0, total: 0, currency: undefined},
+            };
+        }
 
-            const metadata = computeMetadata(reports, transactionsByReportID);
-            const data = buildSearchResultsData(
-                reports,
-                transactionsByReportID,
-                allPolicies as Record<string, Policy> | undefined,
-                allReportActions as Record<string, ReportActions> | undefined,
-                allReportNameValuePairs as Record<string, ReportNameValuePairs> | undefined,
-                personalDetailsList,
-                allTransactionViolations as Record<string, TransactionViolations> | undefined,
-            );
+        const metadata = computeMetadata(reports, transactionsByReportID);
+        const data = buildSearchResultsData(
+            reports,
+            transactionsByReportID,
+            allPolicies as Record<string, Policy> | undefined,
+            allReportActions as Record<string, ReportActions> | undefined,
+            allReportNameValuePairs as Record<string, ReportNameValuePairs> | undefined,
+            personalDetailsList,
+            allTransactionViolations as Record<string, TransactionViolations> | undefined,
+        );
 
-            return {data, metadata};
-        };
-
-        return {
-            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: buildData(reportsToSubmit),
-            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: buildData(reportsToApprove),
-            [CONST.SEARCH.SEARCH_KEYS.PAY]: buildData(reportsToPay),
-            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: buildData(reportsToExport),
-        };
-    }, [
-        reportsToSubmit,
-        reportsToApprove,
-        reportsToPay,
-        reportsToExport,
-        transactionsByReportID,
-        allPolicies,
-        allReportActions,
-        allReportNameValuePairs,
-        personalDetailsList,
-        allTransactionViolations,
-    ]);
+        return {data, metadata};
+    };
 
     return {
-        todoSearchResultsData,
-        reportCounts: {
-            [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: reportsToSubmit.length,
-            [CONST.SEARCH.SEARCH_KEYS.APPROVE]: reportsToApprove.length,
-            [CONST.SEARCH.SEARCH_KEYS.PAY]: reportsToPay.length,
-            [CONST.SEARCH.SEARCH_KEYS.EXPORT]: reportsToExport.length,
-        },
+        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: buildData(todosReports?.reportsToSubmit),
+        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: buildData(todosReports?.reportsToApprove),
+        [CONST.SEARCH.SEARCH_KEYS.PAY]: buildData(todosReports?.reportsToPay),
+        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: buildData(todosReports?.reportsToExport),
     };
 }
