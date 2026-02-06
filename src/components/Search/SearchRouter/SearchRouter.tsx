@@ -89,7 +89,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
 
     const getAdditionalSections: GetAdditionalSectionsCallback = useCallback(
-        ({recentReports}) => {
+        ({recentReports}, sectionIndex) => {
             if (!contextualReportID) {
                 return undefined;
             }
@@ -141,6 +141,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             return [
                 {
+                    sectionIndex,
                     data: [
                         {
                             text: StringUtils.lineBreaksToSpaces(
@@ -470,7 +471,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         onListItemPress(focusedOption);
                     }}
                     caretHidden={shouldHideInputCaret}
-                    autocompleteListRef={listRef}
                     shouldShowOfflineMessage
                     wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
                     wrapperFocusedStyle={styles.borderColorFocus}

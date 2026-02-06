@@ -344,26 +344,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue],
     );
 
-    const updateAutocompleteSubstitutions = useCallback(
-        (item: SearchQueryItem) => {
-            if (!item.autocompleteID || !item.mapKey) {
-                return;
-            }
-
-            const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
-            setAutocompleteSubstitutions(substitutions);
-        },
-        [autocompleteSubstitutions],
-    );
-
-    const setTextAndUpdateSelection = useCallback(
-        (text: string) => {
-            setTextInputValue(text);
-            setSelection({start: text.length, end: text.length});
-        },
-        [setSelection, setTextInputValue],
-    );
-
     const searchQueryItem = useMemo(
         () =>
             textInputValue
@@ -401,7 +381,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 onFocus={onFocus}
                                 wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                                 wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
-                                autocompleteListRef={listRef}
                                 ref={textInputRef}
                                 onKeyPress={handleKeyPress}
                             />
@@ -419,8 +398,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 handleSearch={handleSearchAction}
                                 searchQueryItem={searchQueryItem}
                                 onListItemPress={onListItemPress}
-                                setTextQuery={setTextAndUpdateSelection}
-                                updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                                 ref={listRef}
                                 personalDetails={personalDetails}
                                 reports={reports}
@@ -479,7 +456,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                             wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                             outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
-                            autocompleteListRef={listRef}
                             ref={textInputRef}
                             selection={selection}
                             substitutionMap={autocompleteSubstitutions}
@@ -493,8 +469,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 handleSearch={handleSearchAction}
                                 searchQueryItem={searchQueryItem}
                                 onListItemPress={onListItemPress}
-                                setTextQuery={setTextAndUpdateSelection}
-                                updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                                 ref={listRef}
                                 shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
                                 personalDetails={personalDetails}

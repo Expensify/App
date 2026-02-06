@@ -35,9 +35,6 @@ type SearchAutocompleteInputProps = {
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
 
-    /** SearchAutocompleteList ref for managing TextInput and SearchAutocompleteList focus */
-    autocompleteListRef?: RefObject<SelectionListWithSectionsHandle | null>;
-
     /** Whether the input is full width */
     isFullWidth: boolean;
 
@@ -79,7 +76,6 @@ function SearchAutocompleteInput({
     value,
     onSearchQueryChange,
     onSubmit = () => {},
-    autocompleteListRef,
     isFullWidth,
     disabled = false,
     shouldDelayFocus = false,

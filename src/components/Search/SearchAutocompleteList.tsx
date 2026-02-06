@@ -5,7 +5,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps, ValidListItem} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 // eslint-disable-next-line no-restricted-imports
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
@@ -61,7 +61,7 @@ type AutocompleteItemData = {
 
 type AutocompleteListItem = NewListItem & Partial<Omit<OptionData, keyof NewListItem>> & Partial<Omit<SearchQueryItem, keyof NewListItem>>;
 
-type GetAdditionalSectionsCallback = (options: Options) => Array<Section<AutocompleteListItem>> | undefined;
+type GetAdditionalSectionsCallback = (options: Options, sectionIndex: number) => Array<Section<AutocompleteListItem>> | undefined;
 
 type SearchAutocompleteListProps = {
     /** Value of TextInput */
@@ -112,6 +112,12 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
+const setPerformanceTimersEnd = () => {
+    Timing.end(CONST.TIMING.OPEN_SEARCH);
+    Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
+    endSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
+};
+
 function isSearchQueryListItem(listItem: UserListItemProps<AutocompleteListItem> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
     return isSearchQueryItem(listItem.item);
 }
@@ -119,12 +125,6 @@ function isSearchQueryListItem(listItem: UserListItemProps<AutocompleteListItem>
 function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
     return `${filterKey}:${value}`;
 }
-
-const setPerformanceTimersEnd = () => {
-    Timing.end(CONST.TIMING.OPEN_SEARCH);
-    Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
-    endSpan('OPEN_SEARCH');
-};
 
 function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | SearchQueryListItemProps) {
     const styles = useThemeStyles();
@@ -217,8 +217,9 @@ function SearchAutocompleteList({
         if (typeof ref === 'function') {
             ref(instance);
         } else if (ref) {
+            // Forwarded ref requires mutation when ref is an object ref (not a callback)
             // eslint-disable-next-line no-param-reassign
-            (ref as React.MutableRefObject<SelectionListWithSectionsHandle | null>).current = instance;
+            ref.current = instance;
         }
     };
 
@@ -234,7 +235,6 @@ function SearchAutocompleteList({
         if (queryChanged) {
             // When query changes, focus on the search query item (index 0) and scroll to top
             // onHighlightFirstItem will switch focus to the first result when there's a good match
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
         }
     }, [autocompleteQueryValue, isInitialRender]);
@@ -247,8 +247,7 @@ function SearchAutocompleteList({
 
         // Update the list's internal focus tracking when the external input focus changes
         const updateFocus = () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            innerListRef.current?.updateExternalTextInputFocus?.(textInputRef.current?.isFocused() ?? false);
+            innerListRef.current?.updateExternalTextInputFocus(textInputRef.current?.isFocused() ?? false);
         };
 
         // Initial update
@@ -808,11 +807,12 @@ function SearchAutocompleteList({
         sections.push({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
     }
 
-    const additionalSections = getAdditionalSections?.(searchOptions);
+    const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
 
     if (additionalSections) {
         for (const section of additionalSections) {
-            sections.push({...section, sectionIndex: sectionIndex++});
+            sections.push(section);
+            sectionIndex++;
         }
     }
 
@@ -875,7 +875,7 @@ function SearchAutocompleteList({
         // On page refresh, when the list is rendered before options are initialized the auto-focusing on initiallyFocusedOptionKey
         // will fail because the list will be empty on first render so we only render after options are initialized.
         areOptionsInitialized && (
-            <SelectionList<AutocompleteListItem>
+            <SelectionListWithSections<AutocompleteListItem>
                 showLoadingPlaceholder
                 sections={sections}
                 onSelectRow={onListItemPress}
@@ -895,8 +895,7 @@ function SearchAutocompleteList({
                 onLayout={() => {
                     setPerformanceTimersEnd();
                     setIsInitialRender(false);
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    innerListRef.current?.updateExternalTextInputFocus?.(textInputRef?.current?.isFocused() ?? false);
+                    innerListRef.current?.updateExternalTextInputFocus(textInputRef?.current?.isFocused() ?? false);
                 }}
             />
         )
