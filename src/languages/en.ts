@@ -7576,6 +7576,11 @@ const translations = {
             prompt: 'Are you sure you want to discard the trip and sign out?',
             confirm: 'Discard and sign out',
         },
+        switchToODWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
+            confirm: 'Stop and switch',
+        },
         locationServicesRequiredModal: {
             title: 'Location access required',
             confirm: 'Open settings',
@@ -8386,6 +8391,7 @@ const translations = {
             enterDomainName: 'Enter your domain name here',
             resetDomainInfo: `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <ul><li>Company card connections and any unreported expenses from those cards</li> <li>SAML and group settings</li> </ul> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/>Note: You can clear this domain from your domains list by removing the associated email from your <a href="#">contact methods</a>.`,
         },
+        domainMembers: 'Domain members',
         members: {
             title: 'Members',
             findMember: 'Find member',

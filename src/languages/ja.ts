@@ -7557,6 +7557,11 @@ ${reportName}
             prompt: 'この旅行を破棄してサインアウトしてもよろしいですか？',
             confirm: '破棄してサインアウト',
         },
+        switchToODWarningTripInProgress: {
+            title: 'GPS追跡を実行中',
+            prompt: 'GPS追跡を停止して、Expensify Classic に切り替えてもよろしいですか？',
+            confirm: '停止して切り替える',
+        },
         locationServicesRequiredModal: {
             title: '位置情報へのアクセスが必要です',
             confirm: '設定を開く',
@@ -8362,6 +8367,7 @@ ${reportName}
             enterDomainName: 'ここにドメイン名を入力してください',
             resetDomainInfo: `この操作は<strong>元に戻せません</strong>。次のデータが削除されます：<br/> <ul><li>会社カードの接続と、そのカードの未報告精算</li> <li>SAML およびグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：<a href="#">連絡方法</a>から関連付けられているメールアドレスを削除すると、このドメインをドメイン一覧から消去できます。`,
         },
+        domainMembers: 'ドメインメンバー',
         members: {
             title: 'メンバー',
             findMember: 'メンバーを検索',
