@@ -746,7 +746,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     </View>
                     {isPolicyAdmin ? (
                         <PressableWithoutFeedback
-                            sentryLabel={CONST.SENTRY_LABEL.REPORT.SEND_BUTTON}
                             style={[styles.w100]}
                             disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             role={CONST.ROLE.BUTTON}
