@@ -37,10 +37,10 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             keyForList: group.id,
             text: group.details.name ?? '',
             rightElement: (
-                <View style={[styles.flex1]}>
+                <View style={styles.flex1}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.alignSelfStart]}
+                        style={styles.alignSelfStart}
                     >
                         {translate('domain.groups.memberCount', {count: Object.keys(group.details.shared).length})}
                     </Text>
@@ -56,12 +56,8 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
 
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
-                <View style={[styles.flex1]}>
-                    <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
-                </View>
-                <View style={[styles.flex1]}>
-                    <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.members')}</Text>
-                </View>
+                <Text style={[styles.textMicroSupporting, styles.flex1]}>{translate('common.name')}</Text>
+                <Text style={[styles.textMicroSupporting, styles.flex1]}>{translate('common.members')}</Text>
             </View>
         );
 
