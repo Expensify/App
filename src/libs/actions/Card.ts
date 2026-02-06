@@ -326,7 +326,7 @@ function setPersonalCardReimbursable(cardID: number, reimbursable: boolean, prev
     API.write(WRITE_COMMANDS.SET_PERSONAL_CARD_REIMBURSABLE, parameters, {optimisticData, finallyData, failureData});
 }
 
-function syncCard(cardID: number, lastScrapeResult?: number) {
+function syncCard(cardID: number, lastScrapeResult?: number, breakConnection?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -380,9 +380,14 @@ function syncCard(cardID: number, lastScrapeResult?: number) {
         },
     ];
 
-    const parameters = {
+    const parameters: {cardID: number; breakConnection?: number} = {
         cardID,
     };
+
+    if (breakConnection) {
+        // Simulate "Account not found" error code for testing
+        parameters.breakConnection = 434;
+    }
 
     API.write(WRITE_COMMANDS.SYNC_CARD, parameters, {optimisticData, finallyData, failureData});
 }
