@@ -6,7 +6,9 @@ import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+import Text from '@components/Text';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
+import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
@@ -14,9 +16,18 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
 import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
-import {getCreated, isExpenseUnreported} from '@libs/TransactionUtils';
+import {
+    getCreated,
+    getCurrency,
+    getDescription,
+    getFormattedCreated,
+    getMerchantOrDescription,
+    getAmount,
+    isExpenseUnreported,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction} from '@src/types/onyx';
@@ -31,6 +42,17 @@ type MergeTransactionsListContentProps = {
 
 type MergeTransactionListItemType = Transaction & ListItem;
 
+function getSearchableTextForTransaction(item: MergeTransactionListItemType): string {
+    const parts = [
+        getMerchantOrDescription(item) ?? '',
+        item.category ?? '',
+        getDescription(item),
+        getFormattedCreated(item),
+        convertToDisplayString(getAmount(item, false, false), getCurrency(item)),
+    ];
+    return parts.join(' ').toLowerCase();
+}
+
 function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate, localeCompare} = useLocalize();
@@ -40,6 +62,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
@@ -75,6 +98,18 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             }))
             .sort((a, b) => localeCompare(getCreated(b), getCreated(a)));
     }, [eligibleTransactions, mergeTransaction?.sourceTransactionID, localeCompare]);
+
+    const shouldShowTextInput = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const filteredData = useMemo(() => {
+        if (!shouldShowTextInput || !debouncedSearchTerm.trim()) {
+            return data;
+        }
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        return data.filter((item) => getSearchableTextForTransaction(item).includes(searchValue));
+    }, [data, shouldShowTextInput, debouncedSearchTerm]);
+
+    const isSearchWithNoResults = shouldShowTextInput && debouncedSearchTerm.trim() !== '' && filteredData.length === 0;
 
     const handleSelectRow = useCallback(
         (item: MergeTransactionListItemType) => {
@@ -146,15 +181,33 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         );
     }
 
+    const listEmptyContent = isSearchWithNoResults ? (
+        <View style={[styles.ph5, styles.pt5, styles.pb3]}>
+            <Text style={[styles.textLabel, styles.colorMuted]}>
+                {translate('common.noResultsFoundMatching', debouncedSearchTerm.trim())}
+            </Text>
+        </View>
+    ) : undefined;
+
     return (
         <SelectionList<MergeTransactionListItemType>
-            data={data}
+            data={filteredData}
             onSelectRow={handleSelectRow}
             ListItem={MergeTransactionItem}
             customListHeader={headerContent}
             confirmButtonOptions={confirmButtonOptions}
             customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
-            showLoadingPlaceholder
+            showLoadingPlaceholder={!isSearchWithNoResults}
+            listEmptyContent={listEmptyContent}
+            textInputOptions={
+                shouldShowTextInput
+                    ? {
+                          label: translate('common.search'),
+                          value: searchTerm,
+                          onChangeText: setSearchTerm,
+                      }
+                    : undefined
+            }
         />
     );
 }
