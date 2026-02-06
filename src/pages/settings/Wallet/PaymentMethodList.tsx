@@ -180,14 +180,14 @@ function PaymentMethodList({
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
-    const nonExpensifyCardDomains = shouldShowAssignedCards
+    const cardDomains = shouldShowAssignedCards
         ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-              .filter((card) => !isExpensifyCard(card) && !!card.domainName)
+              .filter((card) => !!card.domainName)
               .map((card) => card.domainName)
         : [];
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
-        selector: createPoliciesForDomainCardsSelector(nonExpensifyCardDomains),
+        selector: createPoliciesForDomainCardsSelector(cardDomains),
     });
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -223,7 +223,8 @@ function PaymentMethodList({
                 if (card.fundID) {
                     const feedNameWithDomainID = getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID);
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
-                } else {
+                } else if (card.bank !== CONST.PERSONAL_CARD.BANK_NAME.CSV) {
+                    // Don't show red dot for CSV imported cards without fundID
                     shouldShowRBR = true;
                 }
 
@@ -242,9 +243,8 @@ function PaymentMethodList({
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD;
-                    const cardDisplayName = maskCardNumber(card.cardName, card.bank);
+                    const cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
                     const pressHandler = onPress as CardPressHandler;
-
                     let cardDescription;
                     if (isUserPersonalCard) {
                         cardDescription = lastFourPAN;
@@ -274,7 +274,7 @@ function PaymentMethodList({
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl: isUserPersonalCard ? undefined : plaidUrl,
-                        title: cardDisplayName,
+                        title: cardTitle,
                         description: isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription,
                         interactive: !isDisabled,
                         disabled: isDisabled,
