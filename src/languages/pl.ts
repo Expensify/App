@@ -736,6 +736,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: 'Wygląda na to, że skończył ci się czas! Spróbuj ponownie u sprzedawcy.',
         youRanOutOfTime: 'Czas się skończył',
         letsVerifyItsYou: 'Zweryfikujmy, czy to na pewno Ty',
+        nowLetsAuthenticateYou: 'Teraz Cię uwierzytelnimy…',
+        letsAuthenticateYou: 'Uwierzytelnijmy Cię…',
         verifyYourself: {
             biometrics: 'Zweryfikuj się za pomocą twarzy lub odcisku palca',
         },
@@ -753,6 +755,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Nie masz zarejestrowanych żadnych urządzeń do weryfikacji twarzą/odciskiem palca ani kluczem dostępu. Jeśli jakieś zarejestrujesz, będziesz mógł/mogła cofnąć ten dostęp tutaj.',
             dismiss: 'Rozumiem',
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
+        },
+        unsupportedDevice: {
+            unsupportedDevice: 'Nieobsługiwane urządzenie',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> Ta akcja nie jest obsługiwana na Twoim urządzeniu. Pobierz aplikację Expensify z <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> lub <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Sklepu Google Play</a> i spróbuj ponownie.</muted-text></centered-text>`,
         },
     },
     validateCodeModal: {
@@ -3871,6 +3877,7 @@ ${
             card: 'Karty',
             expensifyCard: 'Karta Expensify',
             companyCards: 'Firmowe karty',
+            personalCards: 'Osobiste karty',
             workflows: 'Przepływy pracy',
             workspace: 'Przestrzeń robocza',
             findWorkspace: 'Znajdź przestrzeń roboczą',

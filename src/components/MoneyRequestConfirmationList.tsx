@@ -877,7 +877,17 @@ function MoneyRequestConfirmationList({
         */
         setMoneyRequestPendingFields(transactionID, {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
-        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit, getCurrencySymbol);
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(
+            hasRoute,
+            distance,
+            unit,
+            rate ?? 0,
+            currency ?? CONST.CURRENCY.USD,
+            translate,
+            toLocaleDigit,
+            getCurrencySymbol,
+            isManualDistanceRequest,
+        );
         setMoneyRequestMerchant(transactionID, distanceMerchant, true);
     }, [
         isDistanceRequestWithPendingRoute,
@@ -896,6 +906,7 @@ function MoneyRequestConfirmationList({
         isReadOnly,
         isMovingTransactionFromTrackExpense,
         getCurrencySymbol,
+        isManualDistanceRequest,
     ]);
 
     // Auto select the category if there is only one enabled category and it is required

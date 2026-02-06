@@ -15,7 +15,7 @@ jobs:
   lint-changed:
     name: Changed files ESLint check
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Count commits between merge base and HEAD
         id: count

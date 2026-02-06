@@ -739,6 +739,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: 'On dirait que votre temps est écoulé ! Veuillez réessayer chez le commerçant.',
         youRanOutOfTime: 'Vous n’avez plus de temps',
         letsVerifyItsYou: 'Vérifions qu’il s’agit bien de vous',
+        nowLetsAuthenticateYou: 'Maintenant, procédons à votre authentification…',
+        letsAuthenticateYou: 'Authentifions votre identité…',
         verifyYourself: {
             biometrics: 'Vérifiez votre identité avec votre visage ou votre empreinte digitale',
         },
@@ -756,6 +758,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale, empreinte digitale ou passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
             dismiss: 'Compris',
             error: 'La requête a échoué. Réessayez plus tard.',
+        },
+        unsupportedDevice: {
+            unsupportedDevice: 'Appareil non pris en charge',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> Cette action n'est pas prise en charge sur votre appareil. Veuillez télécharger l'application Expensify depuis l'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou le <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> et réessayer.</muted-text></centered-text>`,
         },
     },
     validateCodeModal: {
@@ -3901,6 +3907,7 @@ ${
             card: 'Cartes',
             expensifyCard: 'Carte Expensify',
             companyCards: 'Cartes d’entreprise',
+            personalCards: 'Cartes personnelles',
             workflows: 'Workflows',
             workspace: 'Espace de travail',
             findWorkspace: 'Trouver un espace de travail',

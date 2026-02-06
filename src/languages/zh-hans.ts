@@ -720,7 +720,7 @@ const translations: TranslationDeepObject<typeof en> = {
             areYouSureToReject: '您确定吗？如果您关闭此界面，此次身份验证尝试将被拒绝。',
             rejectAuthentication: '拒绝认证',
             test: '测试',
-            biometricsAuthentication: '生物识别身份验证',
+            biometricsAuthentication: '生物识别认证',
         },
         pleaseEnableInSystemSettings: {
             start: '请在您的设备中启用面部/指纹验证或设置设备密码',
@@ -731,6 +731,8 @@ const translations: TranslationDeepObject<typeof en> = {
         looksLikeYouRanOutOfTime: '看起来您的操作已超时！请在商家处重试。',
         youRanOutOfTime: '你的时间用完了',
         letsVerifyItsYou: '让我们验证一下您的身份',
+        nowLetsAuthenticateYou: '现在，让我们为你进行身份验证…',
+        letsAuthenticateYou: '正在验证您的身份…',
         verifyYourself: {
             biometrics: '使用面部或指纹验证您的身份',
         },
@@ -746,6 +748,10 @@ const translations: TranslationDeepObject<typeof en> = {
             noDevices: '您尚未注册用于面部 / 指纹或通行密钥验证的任何设备。如果您注册了设备，之后可以在此撤销该访问权限。',
             dismiss: '明白了',
             error: '请求失败。请稍后重试。',
+        },
+        unsupportedDevice: {
+            unsupportedDevice: '不支持的设备',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> 您的设备不支持此操作。请从<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a>或<a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play 商店</a>下载 Expensify 应用，然后重试。</muted-text></centered-text>`,
         },
     },
     validateCodeModal: {
@@ -3813,6 +3819,7 @@ ${
             card: '卡片',
             expensifyCard: 'Expensify 卡',
             companyCards: '公司卡片',
+            personalCards: '个人卡片',
             workflows: '工作流程',
             workspace: '工作区',
             findWorkspace: '查找工作区',

@@ -731,6 +731,10 @@ const translations = {
         signIn: 'Please sign in again.',
     },
     multifactorAuthentication: {
+        unsupportedDevice: {
+            unsupportedDevice: 'Unsupported device',
+            pleaseDownloadMobileApp: `<centered-text><muted-text> This action is not supported on your device. Please download the Expensify app from the <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> or <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> and try again.</muted-text></centered-text>`,
+        },
         biometricsTest: {
             biometricsTest: 'Biometrics test',
             authenticationSuccessful: 'Authentication successful',
@@ -741,7 +745,7 @@ const translations = {
             areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
             rejectAuthentication: 'Reject authentication',
             test: 'Test',
-            biometricsAuthentication: 'Biometrics authentication',
+            biometricsAuthentication: 'Biometric authentication',
         },
         pleaseEnableInSystemSettings: {
             start: 'Please enable face/fingerprint verification or set a device passcode in your ',
@@ -752,6 +756,8 @@ const translations = {
         looksLikeYouRanOutOfTime: 'Looks like you ran out of time! Please try again at the merchant.',
         youRanOutOfTime: 'You ran out of time',
         letsVerifyItsYou: 'Let’s verify it’s you',
+        nowLetsAuthenticateYou: "Now, let's authenticate you...",
+        letsAuthenticateYou: "Let's authenticate you...",
         verifyYourself: {
             biometrics: 'Verify yourself with your face or fingerprint',
         },
@@ -3914,6 +3920,7 @@ const translations = {
             card: 'Cards',
             expensifyCard: 'Expensify Card',
             companyCards: 'Company cards',
+            personalCards: 'Personal cards',
             workflows: 'Workflows',
             workspace: 'Workspace',
             findWorkspace: 'Find workspace',
