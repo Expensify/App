@@ -93,7 +93,6 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                     <View>
                         <ImageSVG
                             src={icons.ReceiptBody}
-                            fill={theme.textColorfulBackground}
                             contentFit="fill"
                         />
                         <View style={styles.eReceiptContentWrapper}>
