@@ -1,17 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {openExternalLink} from '@libs/actions/Link';
 import {clearTravelInvoicingSettlementAccountErrors, setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
@@ -47,8 +43,6 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const {isExecuting, singleExecution} = useSingleExecution();
-    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
 
     // For Travel Invoicing, we use a travel-specific card settings key
     // The format is: private_expensifyCardSettings_{workspaceAccountID}_{feedType}
