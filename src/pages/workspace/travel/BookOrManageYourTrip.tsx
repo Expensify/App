@@ -44,6 +44,9 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                 />
             </Section>
+            {isTravelInvoicingEnabled && (
+                <WorkspaceTravelInvoicingSection policyID={policyID} />
+            )}
         </>
     );
 }
