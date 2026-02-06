@@ -510,6 +510,47 @@ describe('getPrimaryAction', () => {
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
+    it('should NOT return EXPORT TO ACCOUNTING for admin who is not the preferred exporter', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN, // User is admin
+            connections: {
+                intacct: {
+                    config: {
+                        export: {
+                            exporter: 'someone.else@mail.com', // But NOT the preferred exporter
+                        },
+                    },
+                },
+            },
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        (getValidConnectedIntegration as jest.Mock).mockReturnValue('netsuite');
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
+    });
+
     it('should not return EXPORT TO ACCOUNTING for invoice reports', async () => {
         const report = {
             reportID: REPORT_ID,

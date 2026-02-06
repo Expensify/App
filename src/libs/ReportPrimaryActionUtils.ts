@@ -238,10 +238,8 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
         return false;
     }
 
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-
     const isReportExporter = isPreferredExporter(policy, currentUserLogin);
-    if (!isReportExporter && !isAdmin) {
+    if (!isReportExporter) {
         return false;
     }
 
