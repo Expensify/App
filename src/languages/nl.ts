@@ -7531,8 +7531,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
     },
     cardTransactions: {
         notActivated: 'Niet geactiveerd',
-        outOfPocket: 'Uitgaven uit eigen zak',
-        companySpend: 'Uitgaven van het bedrijf',
+        outOfPocket: 'Vergoedbaar',
+        companySpend: 'Niet vergoedbaar',
     },
     distance: {
         addStop: 'Stop toevoegen',

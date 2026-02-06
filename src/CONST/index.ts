@@ -8262,6 +8262,9 @@ const CONST = {
         NEW_CHAT: {
             SELECT_PARTICIPANT: 'NewChat-SelectParticipant',
         },
+        WORKSPACE_EXPENSIFY_CARD: {
+            CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
+        },
         WORKSPACE: {
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
         },

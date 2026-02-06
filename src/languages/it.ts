@@ -7543,8 +7543,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
     },
     cardTransactions: {
         notActivated: 'Non attivato',
-        outOfPocket: 'Spesa personale',
-        companySpend: 'Spese aziendali',
+        outOfPocket: 'Rimborsabile',
+        companySpend: 'Non rimborsabile',
     },
     distance: {
         addStop: 'Aggiungi fermata',

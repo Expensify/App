@@ -7368,9 +7368,9 @@ ${reportName}
         },
     },
     cardTransactions: {
-        notActivated: '未启用',
-        outOfPocket: '个人垫付支出',
-        companySpend: '公司支出',
+        notActivated: '未激活',
+        outOfPocket: '可报销',
+        companySpend: '不可报销',
     },
     distance: {
         addStop: '添加站点',
