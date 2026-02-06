@@ -106,9 +106,11 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
         // Only reduce if both sides have excess space (labels short enough for 0°)
         // If canReduce <= 0, labels are too long and hook will use rotation/truncation
-        const horizontalPadding = Math.max(canReduce > 0 ? geometricPadding - canReduce : geometricPadding, MIN_SAFE_PADDING);
+        const extraPadding = canReduce > 0;
+        const horizontalPadding = Math.max(extraPadding ? geometricPadding - canReduce : geometricPadding, MIN_SAFE_PADDING);
 
-        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
+        // if extraPadding is true then we have to add the extra padding to the right so the label is not clipped
+        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding + (extraPadding ? MIN_SAFE_PADDING : 0)};
     }, [chartWidth, data, font]);
 
     // For centered labels, tick spacing is evenly distributed across the plot area (same as BarChart)
