@@ -1,11 +1,11 @@
 import {differenceInDays} from 'date-fns';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import RecordTroubleshootDataToolMenu from '@components/RecordTroubleshootDataToolMenu';
 import RenderHTML from '@components/RenderHTML';
@@ -17,6 +17,7 @@ import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -53,7 +54,6 @@ function TroubleshootPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction, isDevelopment} = useEnvironment();
-    const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoading, setIsLoading] = useState(false);
@@ -61,16 +61,32 @@ function TroubleshootPage() {
     const [shouldMaskOnyxState = true] = useOnyx(ONYXKEYS.SHOULD_MASK_ONYX_STATE, {canBeMissing: true});
     const {resetOptions} = useOptionsList({shouldInitialize: false});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const {showConfirmModal} = useConfirmModal();
     const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
     const {setShouldResetSearchQuery} = useSearchContext();
-    const exportOnyxState = useCallback(() => {
+    const showResetAndRefreshModal = async () => {
+        const result = await showConfirmModal({
+            title: translate('common.areYouSure'),
+            prompt: translate('initialSettingsPage.troubleshoot.confirmResetDescription'),
+            confirmText: translate('initialSettingsPage.troubleshoot.resetAndRefresh'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        resetOptions();
+        setShouldResetSearchQuery(true);
+        clearOnyxAndResetApp();
+    };
+    const exportOnyxState = () => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const dataToShare = ExportOnyxState.maskOnyxState(value, shouldMaskOnyxState);
             ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
-    }, [shouldMaskOnyxState]);
+    };
 
-    const surveyCompletedWithinLastMonth = useMemo(() => {
+    const getSurveyCompletedWithinLastMonth = () => {
         const surveyThresholdInDays = 30;
         const {dismissedReasons} = tryNewDot?.classicRedirect ?? {};
         if (dismissedReasons?.length === 0) {
@@ -93,9 +109,10 @@ function TroubleshootPage() {
 
         const daysSinceLastSurvey = differenceInDays(new Date(), timestampToCheck);
         return daysSinceLastSurvey < surveyThresholdInDays;
-    }, [tryNewDot?.classicRedirect]);
+    };
+    const surveyCompletedWithinLastMonth = getSurveyCompletedWithinLastMonth();
 
-    const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
+    const getClassicRedirectMenuItem = (): BaseMenuItem | null => {
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
             return null;
         }
@@ -124,9 +141,10 @@ function TroubleshootPage() {
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
+    };
+    const classicRedirectMenuItem = getClassicRedirectMenuItem();
 
-    const menuItems = useMemo(() => {
+    const getMenuItems = () => {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
             icon: icons.Bug,
@@ -137,7 +155,7 @@ function TroubleshootPage() {
             {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
                 icon: icons.RotateLeft,
-                action: () => setIsConfirmationModalVisible(true),
+                action: showResetAndRefreshModal,
             },
             {
                 translationKey: 'initialSettingsPage.troubleshoot.exportOnyxState',
@@ -161,7 +179,8 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [icons.Bug, icons.RotateLeft, icons.Download, waitForNavigate, exportOnyxState, shouldStoreLogs, classicRedirectMenuItem, translate, styles.sectionMenuItemTopDescription]);
+    };
+    const menuItems = getMenuItems();
 
     return (
         <ScreenWrapper
@@ -222,21 +241,6 @@ function TroubleshootPage() {
                                     <SentryDebugToolMenu />
                                 </View>
                             )}
-
-                            <ConfirmModal
-                                title={translate('common.areYouSure')}
-                                isVisible={isConfirmationModalVisible}
-                                onConfirm={() => {
-                                    setIsConfirmationModalVisible(false);
-                                    resetOptions();
-                                    setShouldResetSearchQuery(true);
-                                    clearOnyxAndResetApp();
-                                }}
-                                onCancel={() => setIsConfirmationModalVisible(false)}
-                                prompt={translate('initialSettingsPage.troubleshoot.confirmResetDescription')}
-                                confirmText={translate('initialSettingsPage.troubleshoot.resetAndRefresh')}
-                                cancelText={translate('common.cancel')}
-                            />
                         </View>
                     </Section>
                 </View>
