@@ -247,11 +247,10 @@ describe('ReportActionCompose Integration Tests', () => {
             // When the message is submitted
             act(onSubmitAction);
 
+            // Advance timers to allow the setTimeout in scheduleOnUI mock to run
             act(() => {
-                jest.runAllTimers();
+                jest.advanceTimersByTime(1);
             });
-
-            await waitForBatchedUpdatesWithAct();
 
             // Then the message should be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(1);
@@ -265,14 +264,13 @@ describe('ReportActionCompose Integration Tests', () => {
             const invalidMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH + 1);
             fireEvent.changeText(composer, invalidMessage);
 
-            // When the message is submitted
+            // When the message is submitted (validation should fail, so no setTimeout is scheduled)
             act(onSubmitAction);
 
+            // Advance timers to ensure any pending async work completes
             act(() => {
-                jest.runAllTimers();
+                jest.advanceTimersByTime(CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME + 1);
             });
-
-            await waitForBatchedUpdatesWithAct();
 
             // Then the message should NOT be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(0);
