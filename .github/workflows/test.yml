@@ -45,7 +45,7 @@ jobs:
           key: ${{ runner.os }}-jest
 
       - name: Jest tests
-        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=2 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }} --logHeapUsage
+        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=2 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
 
       - name: Upload coverage to Codecov (PRs - tokenless)
         if: ${{ github.event_name == 'pull_request' }}
