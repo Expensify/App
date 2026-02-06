@@ -91,7 +91,8 @@ function BaseAnchorForCommentsOnly({
                 <Text
                     ref={linkRef}
                     style={StyleSheet.flatten([style, defaultTextStyle])}
-                    role={CONST.ROLE.LINK}
+                    // Removed duplicate role={CONST.ROLE.LINK} to fix VoiceOver accessibility
+                    // The parent PressableWithSecondaryInteraction already has the LINK role
                     tabIndex={0}
                     hrefAttrs={{
                         rel,

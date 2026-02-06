@@ -15,7 +15,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -114,7 +114,8 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                                 styles.breakWord,
                                 styles.textWrap,
                             ]}
-                            role={CONST.ROLE.LINK}
+                            // Removed duplicate role={CONST.ROLE.LINK} to fix VoiceOver accessibility
+                            // The parent Text component already has the LINK role
                             testID="mention-user"
                             href={`/${navigationRoute}`}
                         >
