@@ -257,7 +257,7 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
                 formatMemberForList({
                     text: personalDetails.displayName,
                     alternateText: personalDetails.login,
-                    keyForList: personalDetails.login,
+                    keyForList: personalDetails.login ?? String(personalDetails.accountID),
                     accountID: personalDetails.accountID,
                     login: personalDetails.login,
                     pendingAction: personalDetails.pendingAction,
@@ -1643,6 +1643,10 @@ function areAllGroupPoliciesExpenseChatDisabled(policies: OnyxCollection<Policy>
             continue;
         }
 
+        if (policy.isJoinRequestPending || !shouldShowPolicy(policy, false, undefined)) {
+            continue;
+        }
+
         foundGroupPolicy = true;
 
         if (policy.isPolicyExpenseChatEnabled) {
@@ -1661,7 +1665,9 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Pol
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
     }
-    return Object.values(policies).filter((policy) => isPaidGroupPolicy(policy) && policy?.isPolicyExpenseChatEnabled);
+    return Object.values(policies).filter(
+        (policy) => policy?.isPolicyExpenseChatEnabled && isPaidGroupPolicy(policy) && !policy?.isJoinRequestPending && shouldShowPolicy(policy, false, undefined),
+    );
 }
 
 /**
@@ -1883,12 +1889,18 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
     ];
 }
 
+/**
+ * Returns if the policy has the Time Tracking feature enabled.
+ */
 function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.units?.time?.enabled;
 }
 
+/**
+ * Returns the policy's default hourly rate for the Time Tracking feature.
+ */
 function getDefaultTimeTrackingRate(policy: Partial<OnyxEntry<Policy>>): number | undefined {
-    return policy?.units?.time?.rate ? convertToBackendAmount(policy.units.time.rate) : undefined;
+    return policy?.units?.time?.rate !== undefined ? convertToBackendAmount(policy.units.time.rate) : undefined;
 }
 
 export {
