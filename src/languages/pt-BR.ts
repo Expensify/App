@@ -7498,8 +7498,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
     },
     cardTransactions: {
         notActivated: 'Não ativado',
-        outOfPocket: 'Gasto presencial',
-        companySpend: 'Gastos da empresa',
+        outOfPocket: 'Reembolsável',
+        companySpend: 'Não reembolsável',
     },
     distance: {
         addStop: 'Adicionar parada',

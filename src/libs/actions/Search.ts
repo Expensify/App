@@ -1245,10 +1245,9 @@ function handleBulkPayItemSelected(params: {
         showDelegateNoAccessModal,
         confirmPayment,
     } = params;
-    const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems, policy?.id);
-    const isPolicyBasedPaymentOption = activeAdminPolicies.some((activePolicy) => activePolicy.id === item.key);
+    const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
-    if (!isValidBulkPayOption(item) && !isPolicyBasedPaymentOption) {
+    if (!isValidBulkPayOption(item) && !policyFromPaymentMethod) {
         return;
     }
 
@@ -1272,12 +1271,12 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if ((!!selectedPolicy || shouldSelectPaymentMethod) && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+    if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         triggerKYCFlow({
             event: undefined,
             iouPaymentType: paymentType,
             paymentMethod: item.key as PaymentMethod,
-            policy: selectedPolicy,
+            policy: policyFromPaymentMethod ?? policyFromContext,
         });
 
         if (paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
