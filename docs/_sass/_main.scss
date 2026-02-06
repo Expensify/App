@@ -1173,7 +1173,7 @@ button {
         color: var(--color-text);
         position: relative;
 
-        &::after {
+        &.has-overflow::after {
             content: '';
             position: absolute;
             bottom: 0;
