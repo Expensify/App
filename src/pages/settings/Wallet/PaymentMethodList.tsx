@@ -362,7 +362,7 @@ function PaymentMethodList({
             if (companyCardsGrouped.length > 0 && personalCardsGrouped.length > 0) {
                 return [...companyCards, ...personalCards];
             }
-            return companyCardsGrouped.length > 0 ? companyCards : personalCards;
+            return [...companyCardsGrouped, ...personalCardsGrouped];
         }
 
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
@@ -497,6 +497,8 @@ function PaymentMethodList({
         return filteredPaymentMethods;
     }, [filteredPaymentMethods, shouldShowBankAccountSections, translate]);
 
+    const filteredPaymentMethodsWithoutStrings = useMemo(() => filteredPaymentMethods.filter((method) => typeof method !== 'string'), [filteredPaymentMethods]);
+
     /**
      * Create a menuItem for each passed paymentMethod
      */
@@ -513,7 +515,7 @@ function PaymentMethodList({
                 <PaymentMethodListItem
                     item={item}
                     shouldShowDefaultBadge={shouldShowDefaultBadge(
-                        filteredPaymentMethods.filter((method) => typeof method !== 'string'),
+                        filteredPaymentMethodsWithoutStrings,
                         invoiceTransferBankAccountID ? invoiceTransferBankAccountID === item.methodID : item.methodID === userWallet?.walletLinkedAccountID,
                         shouldHideDefaultBadge,
                     )}
@@ -523,7 +525,7 @@ function PaymentMethodList({
             );
         },
         [
-            filteredPaymentMethods,
+            filteredPaymentMethodsWithoutStrings,
             invoiceTransferBankAccountID,
             userWallet?.walletLinkedAccountID,
             shouldHideDefaultBadge,
