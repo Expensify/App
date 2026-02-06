@@ -30,6 +30,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
+import {openTroubleshootSettingsPage} from '@libs/actions/Users';
 import colors from '@styles/theme/colors';
 import {clearOnyxAndResetApp} from '@userActions/App';
 import CONFIG from '@src/CONFIG';
@@ -164,6 +165,10 @@ function TroubleshootPage() {
             }))
             .reverse();
     }, [icons.Bug, icons.RotateLeft, icons.Download, waitForNavigate, exportOnyxState, shouldStoreLogs, classicRedirectMenuItem, translate, styles.sectionMenuItemTopDescription]);
+
+    useEffect(() => {
+        openTroubleshootSettingsPage();
+    }, []);
 
     return (
         <ScreenWrapper
