@@ -152,7 +152,6 @@ import {
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
-    getOriginalReportID,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
@@ -182,19 +181,7 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {
-    Beta,
-    Card,
-    Download as DownloadOnyx,
-    OnyxInputOrEntry,
-    Policy,
-    PolicyTagLists,
-    ReportAction,
-    ReportActionReactions,
-    ReportActions,
-    Report as ReportType,
-    Transaction,
-} from '@src/types/onyx';
+import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -249,9 +236,9 @@ type ShouldShow = (args: {
 
 type ContextMenuActionPayload = {
     reportAction: ReportAction;
-    reportActions: OnyxEntry<ReportActions>;
     transaction?: OnyxEntry<Transaction>;
     reportID: string | undefined;
+    originalReportID: string | undefined;
     currentUserAccountID: number;
     report: OnyxEntry<ReportType>;
     policy?: OnyxEntry<Policy>;
@@ -473,12 +460,11 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             return hasReasoning(reportAction);
         },
-        onPress: (closePopover, {reportAction, reportActions, reportID, translate, currentUserPersonalDetails}) => {
+        onPress: (closePopover, {reportAction, reportID, originalReportID, translate, currentUserPersonalDetails}) => {
             if (!reportID) {
                 return;
             }
 
-            const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
@@ -1097,8 +1083,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
         },
-        onPress: (closePopover, {reportAction, reportActions, reportID}) => {
-            const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
+        onPress: (closePopover, {reportAction, originalReportID}) => {
             getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = reportAction?.reportActionID;
                 Clipboard.setString(`${environmentURL}/r/${originalReportID}/${reportActionID}`);
