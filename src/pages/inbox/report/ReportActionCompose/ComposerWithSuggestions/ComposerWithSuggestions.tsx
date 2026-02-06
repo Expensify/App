@@ -157,11 +157,16 @@ type ComposerRef = {
     replaceSelectionWithText: OnEmojiSelected;
     getCurrentText: () => string;
     isFocused: () => boolean;
+
     /**
      * Calling clear will immediately clear the input on the UI thread (its a worklet).
      * Once the composer ahs cleared onCleared will be called with the value that was cleared.
      */
     clearWorklet: () => void;
+
+    /**
+     * Reset the height of the composer.
+     */
     resetHeight: () => void;
 };
 
