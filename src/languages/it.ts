@@ -7617,6 +7617,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             prompt: 'Sei sicuro di voler annullare il viaggio e disconnetterti?',
             confirm: 'Annulla e disconnetti',
         },
+        switchToODWarningTripInProgress: {
+            title: 'Monitoraggio GPS in corso',
+            prompt: 'Sei sicuro di voler interrompere il tracciamento GPS e passare a Expensify Classic?',
+            confirm: 'Interrompi e cambia',
+        },
         locationServicesRequiredModal: {
             title: 'Accesso alla posizione richiesto',
             confirm: 'Apri impostazioni',

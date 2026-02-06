@@ -7586,6 +7586,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             prompt: 'Czy na pewno chcesz odrzucić podróż i się wylogować?',
             confirm: 'Odrzuć i wyloguj się',
         },
+        switchToODWarningTripInProgress: {
+            title: 'Trwa śledzenie GPS',
+            prompt: 'Czy na pewno chcesz zatrzymać śledzenie GPS i przełączyć się na Expensify Classic?',
+            confirm: 'Zatrzymaj i przełącz',
+        },
         locationServicesRequiredModal: {
             title: 'Wymagany dostęp do lokalizacji',
             confirm: 'Otwórz ustawienia',
