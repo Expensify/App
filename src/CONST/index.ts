@@ -8262,7 +8262,7 @@ const CONST = {
         },
         ACCOUNT_SWITCHER: {
             SHOW_ACCOUNTS: 'AccountSwitcher-ShowAccounts',
-        }
+        },
     },
 
     DOMAIN: {
