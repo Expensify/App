@@ -1,4 +1,4 @@
-import {hasServicesEnabledAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
+import {hasServicesEnabledAsync, startLocationUpdatesAsync} from 'expo-location';
 import React, {useState} from 'react';
 import {Linking, View} from 'react-native';
 import Button from '@components/Button';
@@ -6,10 +6,11 @@ import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {initGpsDraft, resetGPSDraftDetails, setEndAddress, setIsTracking} from '@libs/actions/GPSDraftDetails';
-import {addressFromGpsPoint, coordinatesToString} from '@libs/GPSDraftDetailsUtils';
+import {initGpsDraft, resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
+import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +30,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const [showStopConfirmation, setShowStopConfirmation] = useState(false);
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
     const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
+    const {isOffline} = useNetwork();
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
@@ -48,28 +50,6 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
         }
 
         setStartPermissionsFlow(true);
-    };
-
-    const stopGpsTrip = async () => {
-        await stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
-
-        setIsTracking(false);
-
-        const lastPoint = gpsDraftDetails?.gpsPoints?.at(-1);
-
-        if (!lastPoint) {
-            return;
-        }
-
-        const endAddress = await addressFromGpsPoint(lastPoint);
-
-        if (endAddress === null) {
-            const formattedCoordinates = coordinatesToString(lastPoint);
-            setEndAddress({value: formattedCoordinates, type: 'coordinates'});
-            return;
-        }
-
-        setEndAddress({value: endAddress, type: 'address'});
     };
 
     const startGpsTrip = async () => {
@@ -151,7 +131,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 isVisible={showStopConfirmation}
                 onConfirm={() => {
                     setShowStopConfirmation(false);
-                    stopGpsTrip();
+                    stopGpsTrip(isOffline);
                 }}
                 onCancel={() => setShowStopConfirmation(false)}
                 confirmText={translate('gps.stopGpsTrackingModal.confirm')}

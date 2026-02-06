@@ -639,6 +639,10 @@ function ReportActionsList({
      * the height of the smallest report action possible.
      */
     const initialNumToRender = useMemo((): number | undefined => {
+        if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
+            return sortedVisibleReportActions.length;
+        }
+
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
@@ -646,7 +650,16 @@ function ReportActionsList({
             return getInitialNumToRender(numToRender);
         }
         return numToRender || undefined;
-    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
+    }, [
+        styles.chatItem.paddingBottom,
+        styles.chatItem.paddingTop,
+        windowHeight,
+        linkedReportActionID,
+        sortedVisibleReportActions.length,
+        shouldScrollToEndAfterLayout,
+        hasCreatedActionAdded,
+        isOffline,
+    ]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
