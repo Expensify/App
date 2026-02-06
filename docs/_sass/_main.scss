@@ -1125,9 +1125,6 @@ button {
             order: 2;
             width: 400px;
             flex-shrink: 0;
-            position: sticky;
-            top: 52px;
-            align-self: flex-start;
         }
     }
 
@@ -1140,7 +1137,7 @@ button {
         flex-direction: column;
 
         &.ai-panel-loading {
-            min-height: 300px;
+            min-height: 320px;
 
             @include breakpoint($breakpoint-tablet) {
                 min-height: 676px;
