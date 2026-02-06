@@ -5477,8 +5477,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 20,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingLeft: 0,
-            paddingRight: 0,
+            paddingHorizontal: 0,
         },
 
         stickToBottom: {
