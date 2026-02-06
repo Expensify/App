@@ -716,6 +716,59 @@ button {
     }
 }
 
+// Keep mobile LHN layout (top bar) on tablet
+.mobile-lhn {
+    @include breakpoint($breakpoint-tablet) {
+        #lhn {
+            width: 100%;
+            height: auto;
+        }
+
+        #lhn #lhn-content {
+            display: none;
+
+            &.expanded {
+                display: block;
+            }
+        }
+
+        #lhn .lhn-header {
+            padding: 24px;
+
+            #header-button {
+                display: block;
+            }
+        }
+
+        #content-area {
+            margin-left: 0;
+        }
+    }
+
+    @include breakpoint($breakpoint-desktop) {
+        #lhn {
+            width: 420px;
+            height: 100%;
+        }
+
+        #lhn #lhn-content {
+            display: block;
+        }
+
+        #lhn .lhn-header {
+            padding: 44px 44px 40px 44px;
+
+            #header-button {
+                display: none;
+            }
+        }
+
+        #content-area {
+            margin-left: 420px;
+        }
+    }
+}
+
 .lhn-items {
     ol,
     ul {
