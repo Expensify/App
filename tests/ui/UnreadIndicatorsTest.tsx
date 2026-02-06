@@ -548,7 +548,7 @@ describe('Unread Indicators', () => {
     it('Displays the correct chat message preview in the LHN when a comment is added then deleted', () => {
         let reportActions: OnyxEntry<ReportActions>;
         let lastReportAction: ReportAction | undefined;
-        Onyx.connect({
+        const reportActionsConnection = Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
             callback: (val) => (reportActions = val),
         });
@@ -593,6 +593,7 @@ describe('Unread Indicators', () => {
                     expect(alternateText).toHaveLength(1);
                     expect(screen.getAllByText('Comment 9').at(0)).toBeOnTheScreen();
                 })
+                .finally(() => Onyx.disconnect(reportActionsConnection))
         );
     });
 
@@ -700,42 +701,45 @@ describe('Unread Indicators', () => {
         };
 
         let recentWaypoints: RecentWaypoint[] = [];
-        Onyx.connect({
+        const recentWaypointsConnection = Onyx.connect({
             key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
             callback: (val) => (recentWaypoints = val ?? []),
         });
+        try {
+            // When the user track an expense on the self DM
+            const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: participant.login,
+                    payeeAccountID: participant.accountID,
+                    participant,
+                },
+                transactionParams: {
+                    amount: fakeTransaction.amount,
+                    currency: fakeTransaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                },
+                isASAPSubmitBetaEnabled: true,
+                currentUserAccountIDParam: USER_A_ACCOUNT_ID,
+                currentUserEmailParam: USER_A_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                recentWaypoints,
+                betas: [CONST.BETAS.ALL],
+            });
+            await waitForBatchedUpdates();
 
-        // When the user track an expense on the self DM
-        const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
-        trackExpense({
-            report: selfDMReport,
-            isDraftPolicy: true,
-            action: CONST.IOU.ACTION.CREATE,
-            participantParams: {
-                payeeEmail: participant.login,
-                payeeAccountID: participant.accountID,
-                participant,
-            },
-            transactionParams: {
-                amount: fakeTransaction.amount,
-                currency: fakeTransaction.currency,
-                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-            },
-            isASAPSubmitBetaEnabled: true,
-            currentUserAccountIDParam: USER_A_ACCOUNT_ID,
-            currentUserEmailParam: USER_A_EMAIL,
-            introSelected: undefined,
-            activePolicyID: undefined,
-            quickAction: undefined,
-            recentWaypoints,
-            betas: [CONST.BETAS.ALL],
-        });
-        await waitForBatchedUpdates();
-
-        // Then the new line indicator shouldn't be displayed
-        const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
-        const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
-        expect(unreadIndicator).toHaveLength(0);
+            // Then the new line indicator shouldn't be displayed
+            const newMessageLineIndicatorHintText = TestHelper.translateLocal('accessibilityHints.newMessageLineIndicator');
+            const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+            expect(unreadIndicator).toHaveLength(0);
+        } finally {
+            Onyx.disconnect(recentWaypointsConnection);
+        }
     });
     it('Mark the chat as unread on clicking "Mark as unread" on an item in LHN when the last message of the chat was deleted by another user', async () => {
         await signInAndGetAppWithUnreadChat();

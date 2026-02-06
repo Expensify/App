@@ -203,6 +203,11 @@ const VIT_ACCOUNT_ID = 4;
 const VIT_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
 
 OnyxUpdateManager();
+let trackedOnyxConnections: Array<ReturnType<typeof Onyx.connect>> = [];
+const trackOnyxConnection = (connection: ReturnType<typeof Onyx.connect>) => {
+    trackedOnyxConnections.push(connection);
+    return connection;
+};
 describe('actions/IOU', () => {
     const currentUserPersonalDetails: CurrentUserPersonalDetails = {
         ...createPersonalDetails(RORY_ACCOUNT_ID),
@@ -235,6 +240,10 @@ describe('actions/IOU', () => {
     });
 
     afterEach(() => {
+        for (const connection of trackedOnyxConnections) {
+            Onyx.disconnect(connection);
+        }
+        trackedOnyxConnections = [];
         jest.clearAllMocks();
     });
 
@@ -7289,10 +7298,12 @@ describe('actions/IOU', () => {
 
             expect(thread.participants).toStrictEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 
-            Onyx.connect({
+            trackOnyxConnection(
+                Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
                 callback: (val) => (reportActions = val),
-            });
+                }),
+            );
 
             await waitForBatchedUpdates();
 
@@ -7382,10 +7393,12 @@ describe('actions/IOU', () => {
             // Given a transaction thread
             thread = buildTransactionThread(createIOUAction, iouReport);
 
-            Onyx.connect({
+            trackOnyxConnection(
+                Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
                 callback: (val) => (reportActions = val),
-            });
+                }),
+            );
 
             await waitForBatchedUpdates();
 
@@ -7515,10 +7528,12 @@ describe('actions/IOU', () => {
             openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
-            Onyx.connect({
+            trackOnyxConnection(
+                Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
                 callback: (val) => (reportActions = val),
-            });
+                }),
+            );
             await waitForBatchedUpdates();
 
             await new Promise<void>((resolve) => {
@@ -7606,10 +7621,12 @@ describe('actions/IOU', () => {
 
             expect(thread.participants).toStrictEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 
-            Onyx.connect({
+            trackOnyxConnection(
+                Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
                 callback: (val) => (reportActions = val),
-            });
+                }),
+            );
             await waitForBatchedUpdates();
 
             jest.advanceTimersByTime(10);
@@ -7682,10 +7699,12 @@ describe('actions/IOU', () => {
 
             // Given an added comment to the IOU report
 
-            Onyx.connect({
+            trackOnyxConnection(
+                Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`,
                 callback: (val) => (reportActions = val),
-            });
+                }),
+            );
             await waitForBatchedUpdates();
 
             jest.advanceTimersByTime(10);
@@ -7769,10 +7788,12 @@ describe('actions/IOU', () => {
 
         it('update IOU report and reportPreview with new totals and messages if the IOU report is not deleted', async () => {
             await waitForBatchedUpdates();
-            Onyx.connect({
+            trackOnyxConnection(
+                Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
                 callback: (val) => (iouReport = val),
-            });
+                }),
+            );
             await waitForBatchedUpdates();
 
             // Given a second expense in addition to the first one

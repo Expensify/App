@@ -82,9 +82,12 @@ describe('DistanceRate', () => {
             }
             await waitForBatchedUpdates();
             const transactionViolations = await new Promise<Record<string, TransactionViolations | undefined>>((resolve) => {
-                Onyx.connect({
+                const connectionID = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(value);
+                    },
                     waitForCollectionCallback: true,
                 });
             });
@@ -145,11 +148,12 @@ describe('DistanceRate', () => {
             }
             await waitForBatchedUpdates();
             const onyxPolicy = await new Promise<Policy>((resolve) => {
-                Onyx.connect({
+                const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as OnyxKey,
                     // eslint-disable-next-line rulesdir/prefer-early-return
                     callback: (value) => {
                         if (value !== undefined) {
+                            Onyx.disconnect(connectionID);
                             resolve(value as Policy);
                         }
                     },

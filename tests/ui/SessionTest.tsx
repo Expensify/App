@@ -54,6 +54,7 @@ function getInitialURL() {
 
 describe('Deep linking', () => {
     let lastVisitedPath: string | undefined;
+    let lastVisitedPathConnection: ReturnType<typeof Onyx.connect> | undefined;
     let originalSignInWithShortLivedAuthToken: typeof Session.signInWithShortLivedAuthToken;
     let originalOpenApp: typeof AppActions.openApp;
 
@@ -63,7 +64,7 @@ describe('Deep linking', () => {
     });
 
     beforeEach(() => {
-        Onyx.connect({
+        lastVisitedPathConnection = Onyx.connect({
             key: ONYXKEYS.LAST_VISITED_PATH,
             callback: (val: OnyxEntry<string>) => (lastVisitedPath = val),
         });
@@ -100,6 +101,10 @@ describe('Deep linking', () => {
     });
 
     afterEach(async () => {
+        if (lastVisitedPathConnection) {
+            Onyx.disconnect(lastVisitedPathConnection);
+            lastVisitedPathConnection = undefined;
+        }
         await Onyx.clear();
         await waitForNetworkPromises();
         jest.clearAllMocks();
