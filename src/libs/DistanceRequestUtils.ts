@@ -124,7 +124,7 @@ function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
  */
 function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string {
     const convertedDistance = convertDistanceUnit(distanceInMeters, unit);
-    return parseFloat(convertedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES)).toString();
+    return convertedDistance.toFixed(CONST.DISTANCE_DECIMAL_PLACES);
 }
 
 /**
