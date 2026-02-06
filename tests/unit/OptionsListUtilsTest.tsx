@@ -629,14 +629,36 @@ describe('OptionsListUtils', () => {
 
     let OPTIONS: OptionList;
 
-    const createMockReportAttributesDerived = (reports: OnyxCollection<Report>): Record<string, ReportAttributes> => {
+    /**
+     * Creates mock reportAttributesDerived data for tests.
+     * For CHAT type reports, builds name from participants (excluding current user) to simulate
+     * the real reportAttributesDerived computation that happens on the server.
+     */
+    const createMockReportAttributesDerived = (reports: OnyxCollection<Report>, personalDetails: PersonalDetailsList, currentUserAccountID: number): Record<string, ReportAttributes> => {
         const derived: Record<string, ReportAttributes> = {};
         const reportValues = Object.values(reports ?? {});
         for (const report of reportValues) {
             if (!report?.reportID) {
                 continue;
             }
+
             let name = report.reportName;
+
+            if (report.type === CONST.REPORT.TYPE.CHAT && report.participants) {
+                const participantAccountIDs = Object.keys(report.participants)
+                    .map(Number)
+                    .filter((id) => id !== currentUserAccountID)
+                    .slice(0, 5);
+
+                if (participantAccountIDs.length > 0) {
+                    const participantNames = participantAccountIDs.map((accountID) => personalDetails[accountID]?.displayName).filter(Boolean);
+
+                    if (participantNames.length > 0) {
+                        name = participantNames.join(', ');
+                    }
+                }
+            }
+
             if (!name) {
                 if (report.oldPolicyName) {
                     name = report.oldPolicyName;
@@ -644,6 +666,7 @@ describe('OptionsListUtils', () => {
                     name = `Report ${report.reportID}`;
                 }
             }
+
             derived[report.reportID] = {
                 reportName: name,
                 isEmpty: false,
@@ -655,7 +678,7 @@ describe('OptionsListUtils', () => {
         return derived;
     };
 
-    const MOCK_REPORT_ATTRIBUTES_DERIVED_RAW = createMockReportAttributesDerived(REPORTS);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_RAW = createMockReportAttributesDerived(REPORTS, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID);
     const MOCK_REPORT_ATTRIBUTES_DERIVED: Record<string, ReportAttributes> = {
         ...MOCK_REPORT_ATTRIBUTES_DERIVED_RAW,
         '10': {
@@ -663,11 +686,11 @@ describe('OptionsListUtils', () => {
             reportName: `${MOCK_REPORT_ATTRIBUTES_DERIVED_RAW['10']?.reportName || ''} (Archived)`,
         },
     };
-    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE = createMockReportAttributesDerived(REPORTS_WITH_CONCIERGE);
-    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS = createMockReportAttributesDerived(REPORTS_WITH_CHRONOS);
-    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS = createMockReportAttributesDerived(REPORTS_WITH_RECEIPTS);
-    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM = createMockReportAttributesDerived(REPORTS_WITH_WORKSPACE_ROOMS);
-    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_MANAGER_MCTEST = createMockReportAttributesDerived(REPORTS_WITH_MANAGER_MCTEST);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE = createMockReportAttributesDerived(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, CURRENT_USER_ACCOUNT_ID);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS = createMockReportAttributesDerived(REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, CURRENT_USER_ACCOUNT_ID);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS = createMockReportAttributesDerived(REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, CURRENT_USER_ACCOUNT_ID);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM = createMockReportAttributesDerived(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID);
+    const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_MANAGER_MCTEST = createMockReportAttributesDerived(REPORTS_WITH_MANAGER_MCTEST, PERSONAL_DETAILS_WITH_MANAGER_MCTEST, CURRENT_USER_ACCOUNT_ID);
 
     let OPTIONS_WITH_CONCIERGE: OptionList;
     let OPTIONS_WITH_CHRONOS: OptionList;
@@ -2068,7 +2091,7 @@ describe('OptionsListUtils', () => {
         it('should prioritize options with matching display name over chat rooms', () => {
             const searchText = 'spider';
             // Given a set of options with chat rooms
-            const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM = createMockReportAttributesDerived(REPORTS_WITH_CHAT_ROOM);
+            const MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM = createMockReportAttributesDerived(REPORTS_WITH_CHAT_ROOM, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID);
             const OPTIONS_WITH_CHAT_ROOMS = createOptionList(
                 PERSONAL_DETAILS,
                 CURRENT_USER_ACCOUNT_ID,
